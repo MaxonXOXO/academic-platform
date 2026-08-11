@@ -2013,6 +2013,7 @@ class DataController extends Controller
                         'batch_year'       => $batch->batch_year,
                         'current_semester' => $batch->current_semester,
                         'branch'           => $batch->branch,
+                        'scheme'           => 'R2021',
                         'student_count'    => \App\Models\Student::where('classroom_id', $batch->classroom_id)->count(),
                         'roles'            => [],
                         'subjects'         => []
@@ -2031,6 +2032,7 @@ class DataController extends Controller
                         'batch_year'       => $batch->batch_year,
                         'current_semester' => $batch->current_semester,
                         'branch'           => $batch->branch,
+                        'scheme'           => 'R2026',
                         'student_count'    => \App\Models\Student::where('classroom_id', $batch->classroom_id)->count(),
                         'roles'            => [],
                         'subjects'         => []
@@ -2044,9 +2046,11 @@ class DataController extends Controller
             foreach ($subjectAssignments as $sa) {
                 if ($sa->batchSubject) {
                     $batch = $sa->batchSubject->classroom; // Check 2021 relationship
+                    $isR26 = false;
                     if (!$batch) {
                         // Fallback to R26 Class Management
                         $batch = \App\Models\R26ClassManagement::where('classroom_id', $sa->batchSubject->classroom_id)->first();
+                        $isR26 = true;
                     }
                     if (!$batch) continue;
 
@@ -2073,6 +2077,7 @@ class DataController extends Controller
                             'batch_year'       => $batch->batch_year,
                             'current_semester' => $batch->current_semester,
                             'branch'           => $batch->branch,
+                            'scheme'           => $isR26 ? 'R2026' : (str_contains($batch->classroom_id, '2026') ? 'R2026' : 'R2021'),
                             'student_count'    => \App\Models\Student::where('classroom_id', $batch->classroom_id)->count(),
                             'roles'            => [],
                             'subjects'         => []

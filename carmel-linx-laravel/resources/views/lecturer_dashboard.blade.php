@@ -1806,8 +1806,10 @@
           <div class="p-4 border-b border-slate-800/60 bg-slate-900/40">
             <div class="flex justify-between items-start">
               <div>
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-1.5 flex-wrap mb-1">
                   <h4 class="font-black text-slate-100 text-lg tracking-tight">Admission ${b.batch_year}</h4>
+                  ${b.branch ? `<span class="px-2 py-0.5 bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.branch}</span>` : ''}
+                  <span class="px-2 py-0.5 bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.scheme || (b.classroom_id && b.classroom_id.includes('2026') ? 'R2026' : 'R2021')}</span>
                   ${(b.current_semester || 1) > 6
                     ? `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-bold text-sm select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`
                     : `<span class="px-2.5 py-0.5 bg-indigo-600/80 text-white rounded-lg font-bold text-sm select-none">S-${b.current_semester || 1}</span>`

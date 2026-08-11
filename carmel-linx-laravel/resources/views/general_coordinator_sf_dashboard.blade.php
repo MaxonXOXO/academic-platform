@@ -296,13 +296,26 @@
       <a href="/staff/professional-activities" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block text-xs">
         <span class="material-symbols-rounded text-base">school</span> Professional Activities
       </a>
+
+      <button id="navSecurity" onclick="switchPanel('security')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
+        <span class="material-symbols-rounded text-base">manage_accounts</span> My Profile
+      </button>
     </nav>
 
     <!-- Logout -->
-    <div class="p-4 border-t border-slate-800/80">
-      <a href="{{ url('/logout') }}" class="w-full py-3 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-[10px] text-xs">
-        <span class="material-symbols-rounded text-[10px] text-base">logout</span> Sign Out
+    <div class="p-4 border-t border-slate-800/80 space-y-2.5">
+      <a href="{{ url('/logout') }}" class="w-full py-2.5 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium">
+        <span class="material-symbols-rounded text-sm">logout</span> Sign Out
       </a>
+
+      <!-- Support Badge -->
+      <div onclick="openStaffSupportModal()" class="p-2 bg-slate-950/60 hover:bg-slate-900 border border-slate-800/80 rounded-xl text-center select-none cursor-pointer transition-premium" title="Click to Request Remote Support Assist">
+        <div class="flex items-center justify-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+          <span class="material-symbols-rounded text-xs text-blue-400">headset_mic</span> Live Assist
+        </div>
+        <div class="text-[11px] font-black text-slate-200 mt-0.5">Dhanush.A</div>
+        <div class="text-[9px] text-slate-400 font-medium">Dept. of Electronics</div>
+      </div>
     </div>
   </aside>
 
@@ -312,9 +325,13 @@
     <!-- Top Header -->
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Overview</h1>
-      <div id="loadingIndicator" class="hidden items-center gap-2 text-[10px] text-slate-400 text-[10px] text-xs">
-        <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
-        <span>Syncing...</span>
+      <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
+        <div id="aiStatusBadge" class="hidden"></div>
+        <div id="loadingIndicator" class="hidden items-center gap-2 text-[10px] text-slate-400 text-xs">
+          <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+          <span>Syncing...</span>
+        </div>
       </div>
     </header>
 
@@ -386,6 +403,11 @@
         </div>
       </div>
 
+      <!-- PANEL 3: MY PROFILE -->
+      <div id="panelSecurity" class="hidden space-y-6">
+        @include('partials.staff_profile_panel')
+      </div>
+
     </div>
   </main>
 
@@ -396,6 +418,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       loadLecturerBatches();
       if (activePanel === 'directory') loadUsers();
+      if (activePanel === 'security' && typeof loadSelfSecurityLogs === 'function') loadSelfSecurityLogs();
     });
 
     function filterBatches(status) {
@@ -466,11 +489,13 @@
             let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
             let barPct    = topicsPct || hoursPct;
             let barColor  = barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400';
+            let revCode   = s.syllabus_revision_code || (b.scheme === 'R2026' ? 'REV2026' : (b.classroom_id && b.classroom_id.includes('2026') ? 'REV2026' : 'REV2021'));
+            let cleanName = (s.name || '').replace(/'/g, "\\'");
 
             subjectsHtml += `
               <div class="${idx > 0 ? 'pt-3' : ''} w-full">
                 <div class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-teal-500/50 hover:bg-slate-900 flex flex-col gap-2">
-                  <div class="flex justify-between items-center cursor-pointer" onclick="window.location.href='/dashboard/lecturer'">
+                  <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${cleanName}', '${s.code}', '${revCode}', '${s.type}')">
                     <div class="flex-1 min-w-0 pr-2">
                       <div class="text-base font-extrabold text-slate-200 group-hover:text-teal-400 transition-premium truncate">${s.name}</div>
                       <div class="text-xs text-slate-400 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${s.code}</div>
@@ -533,24 +558,58 @@
       });
     }
 
+    function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
+      const isR26 = revision === 'REV2026' || (batchId && batchId.includes('2026'));
+      if (isR26) {
+        const sNameLower = (subjectName || '').toLowerCase();
+        const sTypeLower = (type || '').toLowerCase();
+        if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
+          window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
+          window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('practicum') || type.includes('Practicum')) {
+          window.open(`/r26/classroom/practicum/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('theory') || type.includes('Theory')) {
+          window.open(`/r26/classroom/theory/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || type.includes('Practical') || type.includes('Lab')) {
+          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
+          return;
+        } else {
+          window.open(`/r26/classroom/theory/${subjectId}`, '_blank');
+          return;
+        }
+      }
+      window.location.href = `/dashboard/lecturer?subject_id=${subjectId}`;
+    }
+
     function switchPanel(panelId) {
       activePanel = panelId;
-      const panels = ['dashboard', 'directory'];
+      const panels = ['dashboard', 'directory', 'security'];
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
         const nav = document.getElementById('nav' + id.charAt(0).toUpperCase() + id.slice(1));
         
         if (id === panelId) {
           if (el) el.classList.remove('hidden');
-          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500";
+          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 mobile-link";
         } else {
-          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer";
+          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer mobile-link";
           if (el) el.classList.add('hidden');
         }
       });
 
-      document.getElementById('panelTitle').innerText = panelId === 'dashboard' ? 'Overview' : 'User Directory';
+      const titles = {
+        'dashboard': 'Overview',
+        'directory': 'User Directory',
+        'security': 'My Profile & Security'
+      };
+      document.getElementById('panelTitle').innerText = titles[panelId] || 'Overview';
       if (panelId === 'directory') loadUsers();
+      if (panelId === 'security' && typeof loadSelfSecurityLogs === 'function') loadSelfSecurityLogs();
     }
 
     function loadUsers() {
@@ -593,5 +652,6 @@
         .catch(() => indicator.classList.add('hidden'));
     }
   </script>
+  @include('partials.support_desk_overlay')
 </body>
 </html>

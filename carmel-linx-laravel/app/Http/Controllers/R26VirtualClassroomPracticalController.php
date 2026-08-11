@@ -230,7 +230,10 @@ class R26VirtualClassroomPracticalController extends Controller
 
             // 2. Run Python parser (same parser used by R26 Theory — it extracts COs, CO-PO, credits)
             $pyPath = base_path('app/Services/r26_syllabus_parser.py');
-            $jsonOutput = shell_exec('py ' . escapeshellarg($pyPath) . ' ' . escapeshellarg($fullPath));
+            $pythonBin = file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3';
+            $sitePkg = '/home/carmel/.local/lib/python3.14/site-packages';
+            $command = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($pyPath) . " " . escapeshellarg($fullPath) . " 2>&1";
+            $jsonOutput = shell_exec($command);
             $parsedResult = json_decode($jsonOutput, true);
 
             // Default values
@@ -265,7 +268,8 @@ class R26VirtualClassroomPracticalController extends Controller
                 "r = pypdf.PdfReader(sys.argv[1])\n" .
                 "print(''.join([p.extract_text() for p in r.pages]))\n"
             );
-            $pdfText = shell_exec('py ' . escapeshellarg($dumpPy) . ' ' . escapeshellarg($fullPath));
+            $cmdDump = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($dumpPy) . " " . escapeshellarg($fullPath) . " 2>&1";
+            $pdfText = shell_exec($cmdDump);
             @unlink($dumpPy);
 
             // 4. Parse experiments from "Detailed Syllabus" section

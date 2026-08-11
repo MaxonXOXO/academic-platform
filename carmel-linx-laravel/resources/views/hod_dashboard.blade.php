@@ -321,6 +321,7 @@
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-bold text-slate-100 tracking-tight text-lg">Batch & Class Management</h1>
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
         <div id="aiStatusBadge" class="hidden"></div>
         <div id="loadingIndicator" class="hidden items-center gap-2 text-sm text-slate-400 text-sm">
           <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
@@ -489,19 +490,20 @@
           </div>
         </div>
 
-        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-hidden">
-          <table class="w-full text-left text-sm border-collapse">
+        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-sm border-collapse min-w-[750px]">
             <thead>
-              <tr class="bg-slate-900/60 border-b border-slate-800/60 text-slate-400 font-bold">
-                <th class="p-4">Subject Code</th>
-                <th class="p-4">Subject Name</th>
-                <th class="p-4">Type</th>
-                <th class="p-4">Assigned Staff</th>
-                <th class="p-4 text-right">Actions</th>
+              <tr class="bg-slate-900/60 border-b border-slate-800/60 text-slate-400 font-bold text-xs uppercase tracking-wider">
+                <th class="p-3.5">Subject Code</th>
+                <th class="p-3.5 text-center w-24">Rev</th>
+                <th class="p-3.5">Subject Name</th>
+                <th class="p-3.5">Type</th>
+                <th class="p-3.5">Assigned Staff</th>
+                <th class="p-3.5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody id="subjectsTableBody">
-              <tr><td colspan="5" class="p-8 text-center text-slate-500">Select a batch to view its subjects.</td></tr>
+              <tr><td colspan="6" class="p-8 text-center text-slate-500">Select a batch to view its subjects.</td></tr>
             </tbody>
           </table>
         </div>
@@ -565,8 +567,17 @@
         <div id="batchAdmYearContainer">
           <label class="block text-sm text-slate-400 font-bold uppercase tracking-wider mb-1.5">Admission Year</label>
           <input type="number" id="batchAdmYear" min="2000" max="2100" value="2026"
-            oninput="updateBatchPreview()"
+            oninput="handleAdmYearChange(); updateBatchPreview();"
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none">
+        </div>
+
+        <!-- Syllabus Revision (Scheme) -->
+        <div id="batchRevisionContainer">
+          <label class="block text-sm text-slate-400 font-bold uppercase tracking-wider mb-1.5">Syllabus Revision (Scheme)</label>
+          <select id="batchRevisionSelect" onchange="updateBatchPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-violet-500 outline-none cursor-pointer">
+            <option value="REV2021">Revision 2021 (REV2021 - Diploma Scheme)</option>
+            <option value="REV2026" selected>Revision 2026 (REV2026 - Outcome Based Scheme)</option>
+          </select>
         </div>
 
         <!-- Batch Type -->
@@ -2047,7 +2058,7 @@
             <div class="flex items-center gap-2.5">
               <span class="px-2.5 py-1 border rounded-lg font-mono text-sm font-bold ${yearBadgeClass} whitespace-nowrap">${batch.classroom_id}</span>
               ${batch.classroom_id.includes('_LET') ? `<span class="bg-purple-950/80 border border-purple-500/40 text-purple-400 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase select-none whitespace-nowrap">LET</span>` : ''}
-              ${isR26 ? `<span class="bg-emerald-950/80 border border-emerald-500/40 text-emerald-450 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase select-none tracking-wide animate-pulse whitespace-nowrap">Revision 2026</span>` : ''}
+              ${isR26 ? `<span class="bg-emerald-950/80 border border-emerald-500/40 text-emerald-450 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase select-none tracking-wide animate-pulse whitespace-nowrap">Revision 2026</span>` : `<span class="bg-slate-900 border border-slate-700/60 text-slate-400 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase select-none tracking-wide whitespace-nowrap">Revision 2021</span>`}
             </div>
             
             <div class="flex items-center justify-between gap-3">
@@ -2127,10 +2138,26 @@
       }
     }
 
+    function handleAdmYearChange() {
+      const year = parseInt(document.getElementById('batchAdmYear').value) || new Date().getFullYear();
+      const revSelect = document.getElementById('batchRevisionSelect');
+      if (revSelect) {
+        if (year < 2026) {
+          revSelect.value = 'REV2021';
+        } else {
+          revSelect.value = 'REV2026';
+        }
+      }
+    }
+
     function openCreateBatchModal() {
       document.getElementById('createBatchAlert').classList.add('hidden');
-      document.getElementById('batchAdmYear').value = new Date().getFullYear();
+      const currentYear = new Date().getFullYear();
+      document.getElementById('batchAdmYear').value = currentYear;
       document.getElementById('batchTypeSelect').value = 'Regular';
+      if (document.getElementById('batchRevisionSelect')) {
+        document.getElementById('batchRevisionSelect').value = currentYear >= 2026 ? 'REV2026' : 'REV2021';
+      }
       toggleBatchCreationLetView();
       updateBatchPreview();
       // Refresh staff cache then populate dropdowns
@@ -2156,12 +2183,14 @@
     function updateBatchPreview() {
       const isLet = document.getElementById('batchTypeSelect').value === 'LET';
       const year = parseInt(document.getElementById('batchAdmYear').value) || new Date().getFullYear();
+      const revSelect = document.getElementById('batchRevisionSelect');
+      const revision = revSelect ? revSelect.value : (year >= 2026 ? 'REV2026' : 'REV2021');
       const branch = '{{ session("userBranch") }}';
       if (isLet) {
         const baseYear = year - 1;
-        document.getElementById('batchIdPreview').innerText = `${branch}_${baseYear}_${baseYear + 3}_LET`;
+        document.getElementById('batchIdPreview').innerText = `${branch}_${baseYear}_${baseYear + 3}_LET [${revision}]`;
       } else {
-        document.getElementById('batchIdPreview').innerText = `${branch}_${year}_${year + 3}`;
+        document.getElementById('batchIdPreview').innerText = `${branch}_${year}_${year + 3} [${revision}]`;
       }
     }
 
@@ -2170,6 +2199,8 @@
       const alertEl = document.getElementById('createBatchAlert');
       const isLet = document.getElementById('batchTypeSelect').value === 'LET';
       const year = document.getElementById('batchAdmYear').value;
+      const revSelect = document.getElementById('batchRevisionSelect');
+      const revision = revSelect ? revSelect.value : (parseInt(year) >= 2026 ? 'REV2026' : 'REV2021');
 
       if (!year) {
         alertEl.className = 'p-3 rounded-xl text-sm font-bold bg-red-950/40 text-red-400 border border-red-900 block';
@@ -2180,7 +2211,8 @@
 
       let payload = {
         is_lateral_entry: isLet,
-        admission_year: parseInt(year)
+        admission_year: parseInt(year),
+        syllabus_revision_code: revision
       };
 
       if (!isLet) {
@@ -2195,7 +2227,7 @@
       spinner.classList.remove('hidden');
       alertEl.classList.add('hidden');
 
-      const url = (parseInt(year) === 2026) ? '/api/r26/hod/batches' : '/api/hod/batches';
+      const url = (revision === 'REV2026') ? '/api/r26/hod/batches' : '/api/hod/batches';
       fetch(url, {
         method: 'POST',
         headers: getHeaders(),
@@ -2892,7 +2924,7 @@
       function renderPrintCell(slot, colspan = 1) {
         const colspanAttr = colspan > 1 ? `colspan="${colspan}"` : '';
         if (!slot.subject) {
-          return `<td ${colspanAttr} class="p-4 text-center free-period">-- Free --</td>`;
+          return `<td ${colspanAttr} class="p-1.5 text-center free-period">-- Free --</td>`;
         }
         
         const matchedSub = currentAllocatedSubjects.find(s => s.subject_code === slot.subject);
@@ -2905,10 +2937,10 @@
         }
 
         return `
-          <td ${colspanAttr} class="p-4 text-center">
-            <div style="font-weight: 850; font-size: 15px;">${slot.subject}</div>
-            <div style="font-weight: 600; font-size: 12px; margin-top: 2px;">${subjectName}</div>
-            <div style="font-size: 11px; margin-top: 2px;">${staffDisplay}</div>
+          <td ${colspanAttr} class="p-1 text-center">
+            <div style="font-weight: 900; font-size: 10.5px; line-height: 1.1; color: #000000;">${slot.subject}</div>
+            <div style="font-weight: 700; font-size: 9.5px; margin-top: 1px; line-height: 1.1; color: #000000;">${subjectName}</div>
+            <div style="font-size: 8.5px; font-weight: 700; margin-top: 1px; line-height: 1.1; color: #000000;">${staffDisplay}</div>
           </td>
         `;
       }
@@ -2923,16 +2955,18 @@
           staffDisplay = sub.staff.map(s => s.name).join(', ');
         }
         legendHtml += `
-          <div class="flex gap-2 text-sm py-1.5 border-b legend-item">
-            <span class="font-mono font-bold w-24 legend-code">${code}</span>
-            <span class="flex-grow font-semibold">${name}</span>
-            <span class="legend-staff font-medium">(${staffDisplay || 'No staff assigned'})</span>
+          <div class="flex items-center gap-1.5 text-xs p-1 border rounded legend-item bg-slate-900/40">
+            <span class="font-mono font-black w-16 shrink-0 legend-code text-[9.5px]">${code}</span>
+            <div class="flex-grow min-w-0">
+              <span class="font-bold block truncate text-[10px]">${name}</span>
+              <span class="legend-staff text-[9px] font-bold block truncate">Faculty: ${staffDisplay || 'Unassigned'}</span>
+            </div>
           </div>
         `;
       });
 
       if (!legendHtml) {
-        legendHtml = '<p class="text-sm text-gray-500 italic">No subjects scheduled.</p>';
+        legendHtml = '<p class="text-xs text-gray-500 italic col-span-2 text-center">No subjects scheduled.</p>';
       }
 
       printWindow.document.write(`
@@ -2942,139 +2976,214 @@
           <title>Timetable - ${activeBatchId}</title>
           <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
           <style>
-            /* Screen (Dark Mode) Styles */
+            /* Screen Preview (White Page) Styles */
             body {
               font-family: Arial, sans-serif;
-              padding: 30px;
-              background-color: #0b0f19;
-              color: #f1f5f9;
+              padding: 20px;
+              background-color: #cbd5e1;
+              color: #000000;
+            }
+            .page-container {
+              background-color: #ffffff;
+              color: #000000;
+              padding: 20px;
+              border-radius: 12px;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+              border: 1px solid #cbd5e1;
             }
             .header-border {
-              border-color: #1e293b;
-            }
-            .meta-val {
-              color: #ffffff;
-            }
-            .meta-lbl {
-              color: #94a3b8;
+              border-color: #000000;
             }
             table {
               border-collapse: collapse;
               width: 100%;
-              border: 2px solid #1e293b;
-              background-color: #0f172a;
+              border: 2px solid #000000;
+              background-color: #ffffff;
             }
             th {
-              background-color: #1e293b;
-              color: #f1f5f9;
-              border: 1px solid #334155;
-              padding: 12px;
+              background-color: #f1f5f9;
+              color: #000000;
+              border: 1.5px solid #000000;
+              padding: 6px;
               text-align: center;
+              font-weight: 800;
             }
             td {
-              border: 1px solid #334155;
-              padding: 12px;
+              border: 1.5px solid #000000;
+              padding: 6px;
               text-align: center;
               vertical-align: middle;
+              color: #000000;
+              font-weight: 700;
             }
             .day-cell {
-              background-color: #1e293b;
-              font-weight: bold;
-              color: #ffffff;
+              background-color: #f1f5f9;
+              font-weight: 800;
+              color: #000000;
             }
             .lunch-cell {
-              background-color: #090d16;
-              color: #64748b;
-              font-weight: 900;
+              background-color: #e5e7eb;
+              color: #000000;
+              font-weight: 800;
             }
             .legend-box {
-              background-color: #0f172a;
-              border: 1px solid #1e293b;
+              background-color: #ffffff;
+              border: 1.5px solid #000000;
+            }
+            .legend-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 4px;
             }
             .legend-title {
-              color: #ffffff;
+              color: #000000;
+              font-weight: 800;
             }
             .legend-item {
-              border-color: #1e293b;
-              color: #cbd5e1;
+              border: 1.5px solid #000000;
+              background-color: #f8fafc;
+              color: #000000;
             }
             .legend-code {
-              color: #ffffff;
+              color: #000000;
+              font-weight: 900;
             }
             .legend-staff {
-              color: #94a3b8;
+              color: #000000;
+              font-weight: 700;
             }
             .free-period {
-              color: #475569;
+              color: #000000;
               font-style: italic;
             }
 
-            /* Print (Light Mode) Styles */
+            /* Print (Light Mode) Styles - LASER PRINTER HIGH CONTRAST PURE BLACK */
             @media print {
+              * {
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
               .no-print {
-                display: none;
+                display: none !important;
               }
               @page {
                 size: A4 landscape;
-                margin: 0.5cm;
+                margin: 6mm 8mm;
               }
-              body {
-                background-color: #ffffff;
-                color: #000000;
-                padding: 0;
-                margin: 0;
+              html, body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+              }
+              .page-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: #ffffff !important;
+                box-shadow: none !important;
+                border: none !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
               }
               table {
-                background-color: #ffffff;
+                background-color: #ffffff !important;
                 border: 2px solid #000000 !important;
+                margin-top: 2px !important;
+                margin-bottom: 2px !important;
+                page-break-inside: avoid !important;
               }
-              th, td {
-                border: 2px solid #000000 !important;
+              th {
+                border: 1.5px solid #000000 !important;
+                color: #000000 !important;
+                background-color: #f1f5f9 !important;
+                padding: 2.5px 3px !important;
+                font-size: 9.5px !important;
+                font-weight: 800 !important;
+              }
+              td {
+                border: 1.5px solid #000000 !important;
                 color: #000000 !important;
                 background-color: #ffffff !important;
-                padding: 6px !important;
+                padding: 1.5px 3px !important;
+                font-size: 9.5px !important;
+                font-weight: 700 !important;
               }
               .day-cell {
-                background-color: #f3f4f6 !important;
+                background-color: #f1f5f9 !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
               .lunch-cell {
                 background-color: #e5e7eb !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
               .legend-box {
                 background-color: #ffffff !important;
-                border: 1px solid #000000 !important;
-                margin-top: 10px !important;
-                padding: 8px !important;
+                border: 1.5px solid #000000 !important;
+                margin-top: 2px !important;
+                padding: 3px 5px !important;
+                page-break-inside: avoid !important;
               }
-              .legend-title, .legend-item, .legend-code, .legend-staff {
+              .legend-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2px 6px !important;
+              }
+              .legend-item {
+                border: 1.5px solid #000000 !important;
+                background-color: #ffffff !important;
+                padding: 1.5px 4px !important;
+                border-radius: 3px !important;
+              }
+              .print-header, .print-header h1, .print-header h2, .print-header div, .print-header strong, .print-header span, .meta-lbl, .meta-val, .legend-title, .legend-item, .legend-code, .legend-staff {
                 color: #000000 !important;
+                font-weight: 700 !important;
+              }
+              .print-header {
+                border-bottom: 2px solid #000000 !important;
               }
               .free-period {
-                color: #9ca3af !important;
+                color: #000000 !important;
+              }
+              .signature-footer {
+                padding-top: 4px !important;
+                margin-top: 2px !important;
+                page-break-inside: avoid !important;
+              }
+              .signature-footer p {
+                border-top: 1.5px solid #000000 !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
             }
           </style>
         </head>
         <body>
-          <div class="max-w-6xl mx-auto space-y-6">
+          <div class="max-w-6xl mx-auto space-y-2 page-container">
             
-            <!-- Centered Header Section -->
-            <div class="border-b pb-4 text-center relative header-border">
-              <h1 class="text-lg font-bold meta-lbl uppercase tracking-widest text-slate-400">Carmel Polytechnic College</h1>
-              <h2 class="text-2xl font-black text-white mt-1">Weekly Class Timetable</h2>
+            <!-- Centered Header Section (BLACK TEXT IN PRINT) -->
+            <div class="border-b-2 border-black pb-1.5 text-center relative header-border print-header space-y-0.5">
+              <h1 class="text-xs font-black uppercase tracking-widest text-black">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
+              <h2 class="text-base font-black text-black uppercase">WEEKLY CLASS TIMETABLE</h2>
               
-              <div class="flex justify-center gap-12 mt-4 text-sm meta-lbl">
-                <div>Department: <strong class="meta-val">${fullDept}</strong></div>
-                <div>Batch: <strong class="meta-val">${activeBatchId}</strong></div>
-                <div>Semester: <strong class="meta-val">Semester ${sem}</strong></div>
-                <div>Assessment Year: <strong class="meta-val">${currentYear}</strong></div>
+              <div class="flex justify-center flex-wrap gap-x-6 gap-y-0.5 mt-1 text-[11px] font-black text-black">
+                <div>Branch: <strong class="text-black font-black">${fullDept}</strong></div>
+                <div>Sem: <strong class="text-black font-black">Semester ${sem}</strong></div>
+                <div>Year: <strong class="text-black font-black">${currentYear} - ${currentYear + 1}</strong></div>
+                <div>Batch: <strong class="text-black font-black">${activeBatchId}</strong></div>
               </div>
 
               <div class="no-print absolute top-0 right-0 flex gap-2">
-                <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow transition duration-200">
+                <button onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shadow transition duration-200">
                   Print Timetable
                 </button>
-                <button onclick="window.close()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm shadow transition duration-200">
+                <button onclick="window.close()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-xs shadow transition duration-200">
                   Close Preview
                 </button>
               </div>
@@ -3083,15 +3192,15 @@
             <!-- Timetable Grid -->
             <table class="w-full text-left border">
               <thead>
-                <tr class="text-slate-400 font-bold border-b header-border">
-                  <th class="p-3 text-center w-24">Day</th>
-                  <th class="p-3 text-center">Period 1<br><span class="text-xs font-normal meta-lbl">09:00 - 10:00</span></th>
-                  <th class="p-3 text-center">Period 2<br><span class="text-xs font-normal meta-lbl">10:00 - 11:00</span></th>
-                  <th class="p-3 text-center">Period 3<br><span class="text-xs font-normal meta-lbl">11:10 - 12:10</span></th>
-                  <th class="p-3 text-center w-16">Lunch</th>
-                  <th class="p-3 text-center">Period 4<br><span class="text-xs font-normal meta-lbl">01:00 - 02:00</span></th>
-                  <th class="p-3 text-center">Period 5<br><span class="text-xs font-normal meta-lbl">02:00 - 03:00</span></th>
-                  <th class="p-3 text-center">Period 6<br><span class="text-xs font-normal meta-lbl">03:00 - 04:00</span></th>
+                <tr class="text-slate-400 font-bold border-b header-border text-xs">
+                  <th class="p-1.5 text-center w-16">Day</th>
+                  <th class="p-1.5 text-center">Period 1<br><span class="text-[8.5px] font-normal meta-lbl">09:00 - 10:00</span></th>
+                  <th class="p-1.5 text-center">Period 2<br><span class="text-[8.5px] font-normal meta-lbl">10:00 - 11:00</span></th>
+                  <th class="p-1.5 text-center">Period 3<br><span class="text-[8.5px] font-normal meta-lbl">11:10 - 12:10</span></th>
+                  <th class="p-1.5 text-center w-8">Lunch</th>
+                  <th class="p-1.5 text-center">Period 4<br><span class="text-[8.5px] font-normal meta-lbl">01:00 - 02:00</span></th>
+                  <th class="p-1.5 text-center">Period 5<br><span class="text-[8.5px] font-normal meta-lbl">02:00 - 03:00</span></th>
+                  <th class="p-1.5 text-center">Period 6<br><span class="text-[8.5px] font-normal meta-lbl">03:00 - 04:00</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -3099,11 +3208,27 @@
               </tbody>
             </table>
             
-            <!-- Subject Legend / Abbreviations -->
-            <div class="mt-6 p-4 rounded-xl border legend-box">
-              <h3 class="text-sm font-bold legend-title mb-2 uppercase tracking-wider text-center">Subject Legend & Abbreviations</h3>
-              <div class="space-y-1">
+            <!-- Subject Legend / Abbreviations (STRICT 2 COLUMNS) -->
+            <div class="mt-2 p-2 rounded-xl border legend-box">
+              <h3 class="text-[10px] font-bold legend-title mb-1 uppercase tracking-wider text-center border-b pb-0.5">Course Legend & Assigned Faculty List</h3>
+              <div class="grid grid-cols-2 gap-1 legend-grid">
                 ${legendHtml}
+              </div>
+            </div>
+            
+            <!-- Signature Footer -->
+            <div class="pt-2 grid grid-cols-3 text-center text-[9.5px] font-bold signature-footer text-slate-400">
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Staff Advisor</p>
+              </div>
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Head of Department</p>
+              </div>
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Principal / Academic Coordinator</p>
               </div>
             </div>
             
@@ -3221,29 +3346,33 @@
             }
 
             data.subjects.forEach(subj => {
-              let staffList = subj.staff.map(s => `<span class="block text-sm text-slate-400"><span class="font-bold text-slate-300">${s.name}</span> (${s.branch})</span>`).join('');
-              if (subj.staff.length === 0) staffList = `<span class="text-red-400 text-sm font-bold">Unassigned</span>`;
+              let staffList = subj.staff.map(s => `<span class="block text-xs text-slate-400"><span class="font-bold text-slate-300">${s.name}</span> (${s.branch})</span>`).join('');
+              if (subj.staff.length === 0) staffList = `<span class="text-red-400 text-xs font-bold">Unassigned</span>`;
               
               let courseFileBadge = subj.course_file_status === 'Submitted' 
-                ? '<span class="px-2 py-0.5 rounded text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/20">Submitted</span>'
-                : '<span class="px-2 py-0.5 rounded text-sm font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>';
+                ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">Submitted</span>'
+                : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>';
 
               const currentStaffIds = subj.staff.map(s => s.mobile_no).join(',');
+              const revCode = subj.syllabus_revision_code || '2021';
+              const revBadge = revCode.includes('2026')
+                ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">R2026</span>'
+                : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700 font-mono">R2021</span>';
 
               const tr = document.createElement('tr');
               tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium cursor-help';
               tr.innerHTML = `
-                <td class="p-4 font-mono text-slate-300 font-bold">${subj.subject_code}</td>
-                <td class="p-4 font-mono text-slate-500 text-sm">${subj.syllabus_revision_code || '2021'}</td>
-                <td class="p-4 font-bold text-slate-200">${subj.subject_name}</td>
-                <td class="p-4 text-slate-400 text-sm">${subj.subject_type}</td>
-                <td class="p-4">${staffList}</td>
-                <td class="p-4">${courseFileBadge}</td>
-                <td class="p-4 text-right space-x-1.5">
-                  <button onclick="openAssignStaffModalFromModal(event, this, ${subj.id}, '${currentStaffIds}')" data-subject-name="${subj.subject_name.replace(/"/g, '&quot;')}" class="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-sm font-bold transition-premium border border-blue-500/20 cursor-pointer">Assign Staff</button>
-                  <button onclick="deleteSubject(${subj.id})" class="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900 border border-red-900/60 text-red-400 rounded-lg text-sm font-bold transition-premium cursor-pointer" title="Delete Subject">
-                    Delete
-                  </button>
+                <td class="p-3 font-mono text-slate-300 font-bold text-xs whitespace-nowrap">${subj.subject_code}</td>
+                <td class="p-3 text-center whitespace-nowrap">${revBadge}</td>
+                <td class="p-3 font-bold text-slate-200 text-sm">${subj.subject_name}</td>
+                <td class="p-3 text-slate-400 text-xs whitespace-nowrap">${subj.subject_type}</td>
+                <td class="p-3">${staffList}</td>
+                <td class="p-3 text-center whitespace-nowrap">${courseFileBadge}</td>
+                <td class="p-3 text-right whitespace-nowrap">
+                  <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                    <button onclick="openAssignStaffModalFromModal(event, this, ${subj.id}, '${currentStaffIds}')" data-subject-name="${subj.subject_name.replace(/"/g, '&quot;')}" class="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold transition-premium border border-blue-500/20 cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">person_add</span> Staff</button>
+                    <button onclick="deleteSubject(${subj.id})" class="px-2.5 py-1 bg-red-950/40 hover:bg-red-900 border border-red-900/60 text-red-400 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Delete Subject"><span class="material-symbols-rounded text-xs">delete</span> Delete</button>
+                  </div>
                 </td>
               `;
               
@@ -3434,11 +3563,11 @@
       
       const tbody = document.getElementById('subjectsTableBody');
       if (!classroomId) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">Select a batch to view its subjects.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">Select a batch to view its subjects.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">Loading subjects...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">Loading subjects...</td></tr>`;
 
       fetch(`/api/hod/batches/${encodeURIComponent(classroomId)}/subjects?semester=${semester}`)
         .then(res => res.json())
@@ -3447,37 +3576,44 @@
             allCollegeStaffCache = data.all_staff || [];
             tbody.innerHTML = '';
             if (data.subjects.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No subjects allocated for this semester yet.</td></tr>`;
+              tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No subjects allocated for this semester yet.</td></tr>`;
               return;
             }
 
             data.subjects.forEach(subj => {
-              let staffList = subj.staff.map(s => `<span class="block text-sm text-slate-400"><span class="font-bold text-slate-300">${s.name}</span> (${s.branch})</span>`).join('');
-              if (subj.staff.length === 0) staffList = `<span class="text-red-400 text-sm font-bold">Unassigned</span>`;
+              let staffList = subj.staff.map(s => `<span class="block text-xs text-slate-400"><span class="font-bold text-slate-300">${s.name}</span> (${s.branch})</span>`).join('');
+              if (subj.staff.length === 0) staffList = `<span class="text-red-400 text-xs font-bold">Unassigned</span>`;
               
               const currentStaffIds = subj.staff.map(s => s.mobile_no).join(',');
+              const revCode = subj.syllabus_revision_code || '2021';
+              const revBadge = revCode.includes('2026')
+                ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">R2026</span>'
+                : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700 font-mono">R2021</span>';
 
               const tr = document.createElement('tr');
               tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium';
               tr.innerHTML = `
-                <td class="p-4 font-mono text-slate-300 font-bold">${subj.subject_code}</td>
-                <td class="p-4 font-bold text-slate-200">${subj.subject_name}</td>
-                <td class="p-4 text-slate-400 text-sm">${subj.subject_type}</td>
-                <td class="p-4">${staffList}</td>
-                <td class="p-4 text-right space-x-2">
-                  <button onclick="openEditSubjectModal(${JSON.stringify(subj).replace(/"/g, '&quot;')})" class="px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg text-sm font-bold transition-premium border border-amber-500/20 cursor-pointer"><span class="material-symbols-rounded text-sm align-middle" style="font-size:14px">edit</span> Edit</button>
-                  <button onclick="openAssignStaffModal(this, ${subj.id}, '${currentStaffIds}')" data-subject-name="${subj.subject_name.replace(/"/g, '&quot;')}" class="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-sm font-bold transition-premium border border-blue-500/20 cursor-pointer">Assign Staff</button>
-                  <button onclick="deleteSubject(${subj.id})" class="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-bold transition-premium border border-red-500/20 cursor-pointer">Delete</button>
+                <td class="p-3 font-mono text-slate-300 font-bold text-xs whitespace-nowrap">${subj.subject_code}</td>
+                <td class="p-3 text-center whitespace-nowrap">${revBadge}</td>
+                <td class="p-3 font-bold text-slate-200 text-sm">${subj.subject_name}</td>
+                <td class="p-3 text-slate-400 text-xs whitespace-nowrap">${subj.subject_type}</td>
+                <td class="p-3">${staffList}</td>
+                <td class="p-3 text-right whitespace-nowrap">
+                  <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                    <button onclick="openEditSubjectModal(${JSON.stringify(subj).replace(/"/g, '&quot;')})" class="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg text-xs font-bold transition-premium border border-amber-500/20 cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">edit</span> Edit</button>
+                    <button onclick="openAssignStaffModal(this, ${subj.id}, '${currentStaffIds}')" data-subject-name="${subj.subject_name.replace(/"/g, '&quot;')}" class="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold transition-premium border border-blue-500/20 cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">person_add</span> Staff</button>
+                    <button onclick="deleteSubject(${subj.id})" class="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-bold transition-premium border border-red-500/20 cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">delete</span> Delete</button>
+                  </div>
                 </td>
               `;
               tbody.appendChild(tr);
             });
           } else {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load subjects.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400">Failed to load subjects.</td></tr>`;
           }
         })
         .catch(() => {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">Error fetching subjects.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-400">Error fetching subjects.</td></tr>`;
         });
     }
 

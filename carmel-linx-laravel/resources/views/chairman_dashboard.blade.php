@@ -224,6 +224,7 @@
       </div>
 
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
         <!-- Theme Toggle Button -->
         <button id="themeToggleBtn" onclick="toggleTheme()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-bold text-xs transition-premium cursor-pointer shadow-sm" title="Toggle Light/Dark Mode">
           <span id="themeToggleIcon" class="material-symbols-rounded text-base text-amber-400">light_mode</span>

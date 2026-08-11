@@ -27,8 +27,9 @@ class AttendanceController extends Controller
 
     /**
      * Get list of active subjects/batches for the logged-in staff member.
+     * Filtered to show only assigned subjects for active classes.
      */
-    public function getActiveSubjects()
+    public function getActiveSubjects(Request $request)
     {
         $staffMobile = Session::get('userId');
         $role = Session::get('userRole');
@@ -37,23 +38,43 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
-        // HOD, Workshop Superintendent, Principal can access all subjects
-        if (in_array($role, ['HOD', 'Workshop Superintendent', 'Principal'])) {
-            $subjects = BatchSubject::orderBy('classroom_id', 'asc')
-                ->orderBy('semester', 'asc')
-                ->get();
+        $userBranch = Session::get('userBranch');
+        $assignedIds = SubjectStaffAssignment::where('staff_mobile_no', $staffMobile)->pluck('batch_subject_id');
+
+        if ($assignedIds->isNotEmpty()) {
+            $querySubjects = BatchSubject::whereIn('id', $assignedIds);
+        } elseif (in_array($role, ['HOD', 'Workshop Superintendent', 'Principal'])) {
+            // Fallback for HOD/Principal without explicit subject assignments: fetch subjects in branch/all
+            $querySubjects = BatchSubject::query();
+            if ($userBranch && $role === 'HOD') {
+                $querySubjects->where('classroom_id', 'LIKE', strtoupper($userBranch) . '%');
+            }
         } else {
-            // Other staff members (Lecturer, Demonstrator, Trade Instructor, etc.) see only assigned subjects
-            $assignedIds = SubjectStaffAssignment::where('staff_mobile_no', $staffMobile)->pluck('batch_subject_id');
-            $subjects = BatchSubject::whereIn('id', $assignedIds)
-                ->orderBy('classroom_id', 'asc')
-                ->orderBy('semester', 'asc')
-                ->get();
+            $querySubjects = BatchSubject::whereRaw('1 = 0');
         }
+
+        $allSubjects = $querySubjects->orderBy('classroom_id', 'asc')
+            ->orderBy('semester', 'asc')
+            ->get();
+
+        // Filter to keep ONLY active classes (where batch current_semester <= 6 and subject semester >= batch current_semester)
+        $activeSubjects = $allSubjects->filter(function ($subj) {
+            $batch = \App\Models\ClassManagement::where('classroom_id', $subj->classroom_id)->first();
+            if (!$batch) {
+                $batch = \App\Models\R26ClassManagement::where('classroom_id', $subj->classroom_id)->first();
+            }
+            if (!$batch) return false;
+
+            $currentSem = (int) $batch->current_semester;
+            $subjectSem = (int) $subj->semester;
+
+            // Must be an active batch (current_semester <= 6) AND subject semester must match current active semester
+            return $currentSem <= 6 && $subjectSem >= $currentSem;
+        })->values();
 
         return response()->json([
             'status' => 'SUCCESS',
-            'subjects' => $subjects
+            'subjects' => $activeSubjects
         ]);
     }
 

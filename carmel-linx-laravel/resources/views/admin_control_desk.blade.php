@@ -192,6 +192,10 @@
       <button id="navDashboard" onclick="switchPanel('dashboard')" class="w-full text-left px-4 py-2.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-3 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500">
         <span class="material-symbols-rounded text-lg">dashboard</span> Dashboard Overview
       </button>
+
+      <a href="/dashboard/lecturer" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-sky-400 hover:bg-sky-950/30 hover:text-sky-300 cursor-pointer no-underline block border border-sky-900/40 bg-sky-950/20">
+         <span class="material-symbols-rounded text-lg text-sky-400">grid_view</span> My Batches & Virtual Classes
+      </a>
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-lg">group</span> User Directory
       </button>
@@ -261,6 +265,8 @@
       </div>
 
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
+
         <!-- Theme Toggle Button -->
         <button id="themeToggleBtn" onclick="toggleTheme()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-bold text-xs transition-premium cursor-pointer shadow-sm" title="Toggle Light/Dark Mode">
           <span id="themeToggleIcon" class="material-symbols-rounded text-base text-amber-400">light_mode</span>

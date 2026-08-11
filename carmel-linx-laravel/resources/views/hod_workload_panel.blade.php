@@ -14,94 +14,142 @@
       font-family: 'Inter', sans-serif;
     }
     .transition-premium {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    body, button, select, input, textarea, table, th, td, div, p, span, a {
-      font-size: 14px !important;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      font-size: 16px !important;
-      font-weight: 800 !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .card-gradient {
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-300 min-h-screen flex flex-col relative overflow-x-hidden selection:bg-amber-500/30">
+<body class="bg-slate-950 text-slate-300 min-h-screen flex flex-col relative overflow-x-hidden selection:bg-amber-500/30 text-xs">
 
   <!-- Header -->
-  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 shadow-2xl">
-    <div class="px-6 h-12 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="/hod/report-centre" class="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-bold transition-premium no-underline">
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 shadow-xl">
+    <div class="px-4 lg:px-6 h-11 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <a href="/hod/report-centre" class="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 rounded-md font-semibold transition-premium no-underline text-xs">
           <span class="material-symbols-rounded text-sm">arrow_back</span>
-          <span class="text-sm">Back</span>
+          <span>Back</span>
         </a>
-        <div class="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black rounded-md w-7 h-7 flex items-center justify-center text-xs shadow-lg shadow-amber-500/20">WP</div>
+        <div class="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black rounded w-6 h-6 flex items-center justify-center text-[10px] shadow-sm">WP</div>
         <div>
-          <h1 class="font-extrabold text-slate-100 tracking-wide text-sm flex items-center gap-2">
-            Workload & Timetable Reports
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700/50">{{ $department }} Dept</span>
+          <h1 class="font-extrabold text-slate-100 text-xs tracking-wide flex items-center gap-2 m-0">
+            Workload & Timetable Control Panel
+            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{{ $department }} Dept</span>
           </h1>
         </div>
+      </div>
+      <div class="flex items-center gap-2">
+        @include('partials.fullscreen_btn')
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-grow p-4 lg:p-6 max-w-5xl mx-auto w-full space-y-5">
+  <!-- Main Content Container (Compact & Dense Layout) -->
+  <main class="flex-grow p-3 lg:p-5 max-w-5xl mx-auto w-full space-y-3.5">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <!-- Executive Quick Stats Strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 flex items-center gap-2">
+        <span class="material-symbols-rounded text-amber-400 text-base">groups</span>
+        <div>
+          <div class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Active Batches</div>
+          <div class="font-extrabold text-slate-200 text-xs">{{ count($batches) }} Batches</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 flex items-center gap-2">
+        <span class="material-symbols-rounded text-violet-400 text-base">calendar_view_week</span>
+        <div>
+          <div class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Semesters Covered</div>
+          <div class="font-extrabold text-slate-200 text-xs">Semesters 1 - 6</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 flex items-center gap-2">
+        <span class="material-symbols-rounded text-emerald-400 text-base">print</span>
+        <div>
+          <div class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Print Format</div>
+          <div class="font-extrabold text-slate-200 text-xs">A4 Landscape Grid</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 flex items-center gap-2">
+        <span class="material-symbols-rounded text-sky-400 text-base">verified</span>
+        <div>
+          <div class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Laser Contrast</div>
+          <div class="font-extrabold text-slate-200 text-xs">Monochrome Ready</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-Column Compact Control Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
       
-      <!-- Card 1: Department Workload -->
-      <div class="card-gradient border border-slate-800/80 rounded-xl p-4 space-y-3 hover:border-amber-500/30 transition-premium flex flex-col justify-between">
+      <!-- Card 1: Department Faculty Workload -->
+      <div class="card-gradient border border-slate-800/80 rounded-xl p-3.5 space-y-2.5 hover:border-amber-500/30 transition-premium flex flex-col justify-between shadow-lg">
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <div class="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg">
-              <span class="material-symbols-rounded text-xl">pending_actions</span>
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-md flex items-center justify-center">
+                <span class="material-symbols-rounded text-base">pending_actions</span>
+              </div>
+              <h2 class="text-slate-100 text-xs font-black m-0">1. Department Faculty Workload</h2>
             </div>
-            <span class="px-2 py-0.5 rounded text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">Ready</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Official Report</span>
           </div>
-          <h3 class="text-white text-sm font-black">1. Department Faculty Workload</h3>
-          <p class="text-slate-400 text-sm leading-relaxed">
+          
+          <p class="text-slate-400 text-[11px] leading-relaxed m-0">
             Generate the official weekly engaged hours report for all lecturers and demonstrators in the department, calculated dynamically from active timetables.
           </p>
+
+          <!-- Specifications Tags -->
+          <div class="flex flex-wrap gap-1 pt-1">
+            <span class="text-[9.5px] font-semibold bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">Dynamic Hours</span>
+            <span class="text-[9.5px] font-semibold bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">Theory & Lab Breakdown</span>
+            <span class="text-[9.5px] font-semibold bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">HOD Sign Block</span>
+          </div>
         </div>
-        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
-          <span class="text-xs text-slate-500">Commencement Format</span>
-          <a href="/hod/workload-report/print" target="_blank" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition-premium text-sm shadow-lg shadow-amber-500/15">
-            Print Workload
+
+        <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-between">
+          <span class="text-[10px] font-medium text-slate-500">Commencement Format</span>
+          <a href="/hod/workload-report/print" target="_blank" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition-premium text-xs shadow-md no-underline flex items-center gap-1">
+            <span class="material-symbols-rounded text-xs">print</span>
+            <span>Print Workload</span>
           </a>
         </div>
       </div>
 
-      <!-- Card 2: Batch Timetable Printer -->
-      <div class="card-gradient border border-slate-800/80 rounded-xl p-4 space-y-3 hover:border-violet-500/30 transition-premium flex flex-col justify-between">
+      <!-- Card 2: Individual Batch Timetable Printer -->
+      <div class="card-gradient border border-slate-800/80 rounded-xl p-3.5 space-y-2.5 hover:border-violet-500/30 transition-premium flex flex-col justify-between shadow-lg">
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <div class="p-2 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-lg">
-              <span class="material-symbols-rounded text-xl">calendar_today</span>
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-md flex items-center justify-center">
+                <span class="material-symbols-rounded text-base">calendar_today</span>
+              </div>
+              <h2 class="text-slate-100 text-xs font-black m-0">2. Individual Batch Timetable</h2>
             </div>
-            <span class="px-2 py-0.5 rounded text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">Active</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-500/10 text-violet-400 border border-violet-500/20">Single A4 Sheet</span>
           </div>
-          <h3 class="text-white text-sm font-black">2. Individual Batch Timetable</h3>
-          <p class="text-slate-400 text-sm leading-relaxed">
-            Select any department batch and semester to preview and print its finalized A4 landscape weekly timetable.
+          
+          <p class="text-slate-400 text-[11px] leading-relaxed m-0">
+            Select any department batch and semester to preview and print its finalized A4 landscape weekly timetable sheet.
           </p>
           
-          <div class="grid grid-cols-2 gap-3 pt-1">
+          <!-- Compact Controls Row -->
+          <div class="grid grid-cols-2 gap-2 pt-0.5">
             <div class="space-y-0.5">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Classroom</label>
-              <select id="singleBatchSelect" class="w-full bg-slate-900 border border-slate-850 rounded-lg p-2 text-sm text-white focus:border-violet-500 outline-none">
+              <label class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Classroom</label>
+              <select id="singleBatchSelect" class="w-full bg-slate-950 border border-slate-800 rounded-md h-7 px-2 text-xs text-slate-200 focus:border-violet-500 outline-none">
                 @foreach ($batches as $b)
                   <option value="{{ $b->classroom_id }}">{{ $b->classroom_id }}</option>
                 @endforeach
               </select>
             </div>
             <div class="space-y-0.5">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Semester</label>
-              <select id="singleSemSelect" class="w-full bg-slate-900 border border-slate-850 rounded-lg p-2 text-sm text-white focus:border-violet-500 outline-none">
+              <label class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Semester</label>
+              <select id="singleSemSelect" class="w-full bg-slate-950 border border-slate-800 rounded-md h-7 px-2 text-xs text-slate-200 focus:border-violet-500 outline-none">
                 <option value="1">Semester 1</option>
                 <option value="2">Semester 2</option>
                 <option value="3" selected>Semester 3</option>
@@ -112,58 +160,71 @@
             </div>
           </div>
         </div>
-        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
-          <span class="text-xs text-slate-500">A4 Landscape Grid</span>
-          <button onclick="printSingleTimetable()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg transition-premium text-sm cursor-pointer shadow-lg shadow-violet-600/15">
-            Print Timetable
+
+        <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-between">
+          <span class="text-[10px] font-medium text-slate-500">Laser-Black Preview Sheet</span>
+          <button onclick="printSingleTimetable()" class="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-lg transition-premium text-xs cursor-pointer shadow-md flex items-center gap-1 border border-violet-500/30">
+            <span class="material-symbols-rounded text-xs">print</span>
+            <span>Print Timetable</span>
           </button>
         </div>
       </div>
 
     </div>
 
-    <!-- Card 3: Consolidated Timetable (3 Batches) -->
-    <div class="card-gradient border border-slate-800/80 rounded-xl p-5 space-y-4 hover:border-emerald-500/30 transition-premium shadow-xl">
-      <div class="space-y-1.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
-              <span class="material-symbols-rounded text-xl">dashboard_customize</span>
-            </div>
-            <div>
-              <h3 class="text-white text-sm font-black">3. Semester Consolidated Timetable</h3>
-              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select up to 3 active classes</p>
-            </div>
+    <!-- Card 3: Multi-Batch Consolidated Timetable Sheet (Full Width Compact) -->
+    <div class="card-gradient border border-slate-800/80 rounded-xl p-3.5 space-y-3 hover:border-emerald-500/30 transition-premium shadow-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md flex items-center justify-center">
+            <span class="material-symbols-rounded text-base">dashboard_customize</span>
           </div>
-          <span class="px-2 py-0.5 rounded text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">Clash Audit</span>
+          <div>
+            <h2 class="text-slate-100 text-xs font-black m-0">3. Semester Consolidated Timetable (Clash Audit Sheet)</h2>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider m-0">Select 2 or 3 active classes</p>
+          </div>
         </div>
-        <p class="text-slate-400 text-sm leading-relaxed max-w-3xl">
-          Pick exactly 2 or 3 active classes to compile a consolidated semester timetable sheet. It places schedules side-by-side per period, ideal for monitoring department clash reviews.
-        </p>
+        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Clash Audit Engine</span>
       </div>
 
-      <form id="consolidatedForm" action="/hod/consolidated-timetable/print" method="GET" target="_blank" onsubmit="return validateConsolidatedForm(event)" class="space-y-4 pt-1.5">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <p class="text-slate-400 text-[11px] leading-relaxed m-0">
+        Select 2 or 3 active department classes to compile a consolidated side-by-side timetable sheet per period. Ideal for monitoring clash reviews across shared faculty or labs.
+      </p>
+
+      <form id="consolidatedForm" action="/hod/consolidated-timetable/print" method="GET" target="_blank" onsubmit="return validateConsolidatedForm(event)" class="space-y-2.5 pt-0.5">
+        
+        <!-- Compact Batch Checkboxes Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
           @forelse ($batches as $b)
-            <label class="flex items-center gap-2 p-3 bg-slate-900/40 border border-slate-850 hover:border-emerald-500/30 rounded-xl transition-premium cursor-pointer select-none">
-              <input type="checkbox" name="batches[]" value="{{ $b->classroom_id }}" class="w-4 h-4 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-950 accent-emerald-500 batch-checkbox" />
-              <div>
-                <span class="text-sm font-bold text-slate-200 block">{{ $b->classroom_id }}</span>
-                <span class="text-xs text-slate-500">Admission Year: {{ $b->batch_year }}</span>
+            <label class="flex items-center gap-2 p-2 bg-slate-950/80 border border-slate-800 hover:border-emerald-500/40 rounded-lg transition-premium cursor-pointer select-none">
+              <input type="checkbox" name="batches[]" value="{{ $b->classroom_id }}" class="w-3.5 h-3.5 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-900 accent-emerald-500 batch-checkbox" />
+              <div class="min-w-0">
+                <span class="text-[11px] font-bold text-slate-200 block truncate">{{ $b->classroom_id }}</span>
+                <span class="text-[9.5px] text-slate-500 block truncate">Adm: {{ $b->batch_year }}</span>
               </div>
             </label>
           @empty
-            <div class="col-span-full p-6 text-center text-slate-500 italic">No batches created for this department.</div>
+            <div class="col-span-full p-4 text-center text-slate-500 italic text-xs">No batches created for this department.</div>
           @endforelse
         </div>
 
-        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
-          <span class="text-xs text-slate-500" id="selectionStatus">Select batches to begin (Max 3)</span>
-          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-premium text-sm cursor-pointer shadow-lg shadow-emerald-600/15">
-            Generate Consolidated Sheet
+        <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between">
+          <span class="text-[10.5px] font-medium text-slate-400" id="selectionStatus">0 of 3 batches selected</span>
+          <button type="submit" class="px-3.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-premium text-xs cursor-pointer shadow-md flex items-center gap-1 border border-emerald-500/30">
+            <span class="material-symbols-rounded text-xs">grid_view</span>
+            <span>Generate Consolidated Sheet</span>
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- Institutional Compliance Footer Note -->
+    <div class="bg-slate-900/40 border border-slate-800/60 rounded-lg p-2.5 flex items-center justify-between text-[10.5px] text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-rounded text-amber-400 text-sm">info</span>
+        <span>Institutional Standard: All printed reports format to single-page A4 landscape with high-contrast laser monochrome styling (`#000000` text).</span>
+      </div>
+      <span class="font-bold text-slate-500 text-[9.5px]">CARMEL LINX R26</span>
     </div>
 
   </main>
@@ -297,7 +358,7 @@
       function renderPrintCell(slot, colspan = 1) {
         const colspanAttr = colspan > 1 ? `colspan="${colspan}"` : '';
         if (!slot.subject) {
-          return `<td ${colspanAttr} class="p-4 text-center free-period">-- Free --</td>`;
+          return `<td ${colspanAttr} class="p-1.5 text-center free-period">-- Free --</td>`;
         }
         
         const matchedSub = allocatedSubjects.find(s => s.subject_code === slot.subject);
@@ -310,10 +371,10 @@
         }
 
         return `
-          <td ${colspanAttr} class="p-4 text-center">
-            <div style="font-weight: 850; font-size: 15px;">${slot.subject}</div>
-            <div style="font-weight: 600; font-size: 12px; margin-top: 2px;">${subjectName}</div>
-            <div style="font-size: 11px; margin-top: 2px;">${staffDisplay}</div>
+          <td ${colspanAttr} class="p-1 text-center">
+            <div style="font-weight: 900; font-size: 10.5px; line-height: 1.1; color: #000000;">${slot.subject}</div>
+            <div style="font-weight: 700; font-size: 9.5px; margin-top: 1px; line-height: 1.1; color: #000000;">${subjectName}</div>
+            <div style="font-size: 8.5px; font-weight: 700; margin-top: 1px; line-height: 1.1; color: #000000;">${staffDisplay}</div>
           </td>
         `;
       }
@@ -328,16 +389,18 @@
           staffDisplay = sub.staff.map(s => s.name).join(', ');
         }
         legendHtml += `
-          <div class="flex gap-2 text-sm py-1.5 border-b legend-item">
-            <span class="font-mono font-bold w-24 legend-code">${code}</span>
-            <span class="flex-grow font-semibold">${name}</span>
-            <span class="legend-staff font-medium">(${staffDisplay || 'No staff assigned'})</span>
+          <div class="flex items-center gap-1.5 text-xs p-1 border rounded legend-item bg-slate-900/40">
+            <span class="font-mono font-black w-16 shrink-0 legend-code text-[9.5px]">${code}</span>
+            <div class="flex-grow min-w-0">
+              <span class="font-bold block truncate text-[10px]">${name}</span>
+              <span class="legend-staff text-[9px] font-bold block truncate">Faculty: ${staffDisplay || 'Unassigned'}</span>
+            </div>
           </div>
         `;
       });
 
       if (!legendHtml) {
-        legendHtml = '<p class="text-sm text-gray-500 italic">No subjects scheduled.</p>';
+        legendHtml = '<p class="text-xs text-gray-500 italic col-span-2 text-center">No subjects scheduled.</p>';
       }
 
       // Department Full Name Mapping
@@ -360,139 +423,214 @@
           <title>Timetable - ${classroomId}</title>
           <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
           <style>
-            /* Screen (Dark Mode) Styles */
+            /* Screen Preview (White Page) Styles */
             body {
               font-family: Arial, sans-serif;
-              padding: 30px;
-              background-color: #0b0f19;
-              color: #f1f5f9;
+              padding: 20px;
+              background-color: #cbd5e1;
+              color: #000000;
+            }
+            .page-container {
+              background-color: #ffffff;
+              color: #000000;
+              padding: 20px;
+              border-radius: 12px;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+              border: 1px solid #cbd5e1;
             }
             .header-border {
-              border-color: #1e293b;
-            }
-            .meta-val {
-              color: #ffffff;
-            }
-            .meta-lbl {
-              color: #94a3b8;
+              border-color: #000000;
             }
             table {
               border-collapse: collapse;
               width: 100%;
-              border: 2px solid #1e293b;
-              background-color: #0f172a;
+              border: 2px solid #000000;
+              background-color: #ffffff;
             }
             th {
-              background-color: #1e293b;
-              color: #f1f5f9;
-              border: 1px solid #334155;
-              padding: 12px;
+              background-color: #f1f5f9;
+              color: #000000;
+              border: 1.5px solid #000000;
+              padding: 6px;
               text-align: center;
+              font-weight: 800;
             }
             td {
-              border: 1px solid #334155;
-              padding: 12px;
+              border: 1.5px solid #000000;
+              padding: 6px;
               text-align: center;
               vertical-align: middle;
+              color: #000000;
+              font-weight: 700;
             }
             .day-cell {
-              background-color: #1e293b;
-              font-weight: bold;
-              color: #ffffff;
+              background-color: #f1f5f9;
+              font-weight: 800;
+              color: #000000;
             }
             .lunch-cell {
-              background-color: #090d16;
-              color: #64748b;
-              font-weight: 900;
+              background-color: #e5e7eb;
+              color: #000000;
+              font-weight: 800;
             }
             .legend-box {
-              background-color: #0f172a;
-              border: 1px solid #1e293b;
+              background-color: #ffffff;
+              border: 1.5px solid #000000;
+            }
+            .legend-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 4px;
             }
             .legend-title {
-              color: #ffffff;
+              color: #000000;
+              font-weight: 800;
             }
             .legend-item {
-              border-color: #1e293b;
-              color: #cbd5e1;
+              border: 1.5px solid #000000;
+              background-color: #f8fafc;
+              color: #000000;
             }
             .legend-code {
-              color: #ffffff;
+              color: #000000;
+              font-weight: 900;
             }
             .legend-staff {
-              color: #94a3b8;
+              color: #000000;
+              font-weight: 700;
             }
             .free-period {
-              color: #475569;
+              color: #000000;
               font-style: italic;
             }
 
-            /* Print (Light Mode) Styles */
+            /* Print (Light Mode) Styles - LASER PRINTER HIGH CONTRAST PURE BLACK */
             @media print {
+              * {
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
               .no-print {
-                display: none;
+                display: none !important;
               }
               @page {
                 size: A4 landscape;
-                margin: 0.5cm;
+                margin: 6mm 8mm;
               }
-              body {
-                background-color: #ffffff;
-                color: #000000;
-                padding: 0;
-                margin: 0;
+              html, body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+              }
+              .page-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: #ffffff !important;
+                box-shadow: none !important;
+                border: none !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
               }
               table {
-                background-color: #ffffff;
+                background-color: #ffffff !important;
                 border: 2px solid #000000 !important;
+                margin-top: 2px !important;
+                margin-bottom: 2px !important;
+                page-break-inside: avoid !important;
               }
-              th, td {
-                border: 2px solid #000000 !important;
+              th {
+                border: 1.5px solid #000000 !important;
+                color: #000000 !important;
+                background-color: #f1f5f9 !important;
+                padding: 2.5px 3px !important;
+                font-size: 9.5px !important;
+                font-weight: 800 !important;
+              }
+              td {
+                border: 1.5px solid #000000 !important;
                 color: #000000 !important;
                 background-color: #ffffff !important;
-                padding: 6px !important;
+                padding: 1.5px 3px !important;
+                font-size: 9.5px !important;
+                font-weight: 700 !important;
               }
               .day-cell {
-                background-color: #f3f4f6 !important;
+                background-color: #f1f5f9 !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
               .lunch-cell {
                 background-color: #e5e7eb !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
               .legend-box {
                 background-color: #ffffff !important;
-                border: 1px solid #000000 !important;
-                margin-top: 10px !important;
-                padding: 8px !important;
+                border: 1.5px solid #000000 !important;
+                margin-top: 2px !important;
+                padding: 3px 5px !important;
+                page-break-inside: avoid !important;
               }
-              .legend-title, .legend-item, .legend-code, .legend-staff {
+              .legend-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2px 6px !important;
+              }
+              .legend-item {
+                border: 1.5px solid #000000 !important;
+                background-color: #ffffff !important;
+                padding: 1.5px 4px !important;
+                border-radius: 3px !important;
+              }
+              .print-header, .print-header h1, .print-header h2, .print-header div, .print-header strong, .print-header span, .meta-lbl, .meta-val, .legend-title, .legend-item, .legend-code, .legend-staff {
                 color: #000000 !important;
+                font-weight: 700 !important;
+              }
+              .print-header {
+                border-bottom: 2px solid #000000 !important;
               }
               .free-period {
-                color: #9ca3af !important;
+                color: #000000 !important;
+              }
+              .signature-footer {
+                padding-top: 4px !important;
+                margin-top: 2px !important;
+                page-break-inside: avoid !important;
+              }
+              .signature-footer p {
+                border-top: 1.5px solid #000000 !important;
+                color: #000000 !important;
+                font-weight: 800 !important;
               }
             }
           </style>
         </head>
         <body>
-          <div class="max-w-6xl mx-auto space-y-6">
+          <div class="max-w-6xl mx-auto space-y-2 page-container">
             
-            <!-- Centered Header Section -->
-            <div class="border-b pb-4 text-center relative header-border">
-              <h1 class="text-lg font-bold meta-lbl uppercase tracking-widest text-slate-400">Carmel Polytechnic College</h1>
-              <h2 class="text-2xl font-black text-white mt-1">Weekly Class Timetable</h2>
+            <!-- Centered Header Section (BLACK TEXT IN PRINT) -->
+            <div class="border-b-2 border-black pb-1.5 text-center relative header-border print-header space-y-0.5">
+              <h1 class="text-xs font-black uppercase tracking-widest text-black">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
+              <h2 class="text-base font-black text-black uppercase">WEEKLY CLASS TIMETABLE</h2>
               
-              <div class="flex justify-center gap-12 mt-4 text-sm meta-lbl">
-                <div>Department: <strong class="meta-val">${fullDept}</strong></div>
-                <div>Batch: <strong class="meta-val">${classroomId}</strong></div>
-                <div>Semester: <strong class="meta-val">Semester ${sem}</strong></div>
-                <div>Assessment Year: <strong class="meta-val">${currentYear}</strong></div>
+              <div class="flex justify-center flex-wrap gap-x-6 gap-y-0.5 mt-1 text-[11px] font-black text-black">
+                <div>Branch: <strong class="text-black font-black">${fullDept}</strong></div>
+                <div>Sem: <strong class="text-black font-black">Semester ${sem}</strong></div>
+                <div>Year: <strong class="text-black font-black">${currentYear} - ${currentYear + 1}</strong></div>
+                <div>Batch: <strong class="text-black font-black">${classroomId}</strong></div>
               </div>
 
               <div class="no-print absolute top-0 right-0 flex gap-2">
-                <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow transition duration-200">
+                <button onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shadow transition duration-200">
                   Print Timetable
                 </button>
-                <button onclick="window.close()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm shadow transition duration-200">
+                <button onclick="window.close()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-xs shadow transition duration-200">
                   Close Preview
                 </button>
               </div>
@@ -501,15 +639,15 @@
             <!-- Timetable Grid -->
             <table class="w-full text-left border">
               <thead>
-                <tr class="text-slate-400 font-bold border-b header-border">
-                  <th class="p-3 text-center w-24">Day</th>
-                  <th class="p-3 text-center">Period 1<br><span class="text-xs font-normal meta-lbl">09:00 - 10:00</span></th>
-                  <th class="p-3 text-center">Period 2<br><span class="text-xs font-normal meta-lbl">10:00 - 11:00</span></th>
-                  <th class="p-3 text-center">Period 3<br><span class="text-xs font-normal meta-lbl">11:10 - 12:10</span></th>
-                  <th class="p-3 text-center w-16">Lunch</th>
-                  <th class="p-3 text-center">Period 4<br><span class="text-xs font-normal meta-lbl">01:00 - 02:00</span></th>
-                  <th class="p-3 text-center">Period 5<br><span class="text-xs font-normal meta-lbl">02:00 - 03:00</span></th>
-                  <th class="p-3 text-center">Period 6<br><span class="text-xs font-normal meta-lbl">03:00 - 04:00</span></th>
+                <tr class="text-slate-400 font-bold border-b header-border text-xs">
+                  <th class="p-1.5 text-center w-16">Day</th>
+                  <th class="p-1.5 text-center">Period 1<br><span class="text-[8.5px] font-normal meta-lbl">09:00 - 10:00</span></th>
+                  <th class="p-1.5 text-center">Period 2<br><span class="text-[8.5px] font-normal meta-lbl">10:00 - 11:00</span></th>
+                  <th class="p-1.5 text-center">Period 3<br><span class="text-[8.5px] font-normal meta-lbl">11:10 - 12:10</span></th>
+                  <th class="p-1.5 text-center w-8">Lunch</th>
+                  <th class="p-1.5 text-center">Period 4<br><span class="text-[8.5px] font-normal meta-lbl">01:00 - 02:00</span></th>
+                  <th class="p-1.5 text-center">Period 5<br><span class="text-[8.5px] font-normal meta-lbl">02:00 - 03:00</span></th>
+                  <th class="p-1.5 text-center">Period 6<br><span class="text-[8.5px] font-normal meta-lbl">03:00 - 04:00</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -517,11 +655,27 @@
               </tbody>
             </table>
             
-            <!-- Subject Legend / Abbreviations -->
-            <div class="mt-6 p-4 rounded-xl border legend-box">
-              <h3 class="text-sm font-bold legend-title mb-2 uppercase tracking-wider text-center">Subject Legend & Abbreviations</h3>
-              <div class="space-y-1">
+            <!-- Subject Legend / Abbreviations (STRICT 2 COLUMNS) -->
+            <div class="mt-2 p-2 rounded-xl border legend-box">
+              <h3 class="text-[10px] font-bold legend-title mb-1 uppercase tracking-wider text-center border-b pb-0.5">Course Legend & Assigned Faculty List</h3>
+              <div class="grid grid-cols-2 gap-1 legend-grid">
                 ${legendHtml}
+              </div>
+            </div>
+            
+            <!-- Signature Footer -->
+            <div class="pt-2 grid grid-cols-3 text-center text-[9.5px] font-bold signature-footer text-slate-400">
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Staff Advisor</p>
+              </div>
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Head of Department</p>
+              </div>
+              <div>
+                <div class="h-4"></div>
+                <p class="border-t border-slate-700 pt-0.5 mx-6">Principal / Academic Coordinator</p>
               </div>
             </div>
             

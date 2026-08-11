@@ -196,6 +196,7 @@
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Admin Overview</h1>
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
         <!-- Theme Toggle Button -->
         <button id="themeToggleBtn" onclick="toggleTheme()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-bold text-xs transition-premium cursor-pointer shadow-sm" title="Toggle Light/Dark Mode">
           <span id="themeToggleIcon" class="material-symbols-rounded text-base text-amber-400">light_mode</span>

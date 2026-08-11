@@ -44,6 +44,7 @@
       </div>
       
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
         <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded-md font-mono text-xs">
           {{ session('userBranch') }}
         </span>

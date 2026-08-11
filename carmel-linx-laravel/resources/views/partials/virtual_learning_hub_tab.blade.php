@@ -1,5 +1,5 @@
 <!-- TAB: STUDY MATERIALS & PRE-CLASS HUB -->
-<div id="tab-materials" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5 hidden">
+<div id="tab-materials" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5">
   
   <!-- Header Bar -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/30 pb-3 gap-3">

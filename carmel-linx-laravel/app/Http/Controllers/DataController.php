@@ -1059,22 +1059,28 @@ class DataController extends Controller
             $admYear    = (int) $request->input('admission_year');
             $branchCode = strtoupper($currentBranch);
             $baseYear   = $admYear;
-            $semester = (int) $request->input('current_semester', 1);
+            $semester   = (int) $request->input('current_semester', 1);
+            $classroomId = "{$branchCode}_{$baseYear}_" . ($baseYear + 3);
             $tutorMobile  = $request->input('tutor_mobile_no');
             $mentorMobile = $request->input('mentor_mobile_no');
 
             if ($tutorMobile) {
                 $tutor = StaffProfile::where('mobile_no', $tutorMobile)->first();
-                if (!$tutor || strtoupper($tutor->branch) !== $branchCode) {
+                if (!$tutor || (strtoupper($tutor->branch) !== $branchCode && strtoupper($tutor->branch) !== 'GEN')) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Selected Tutor does not belong to your department.']);
                 }
             }
             if ($mentorMobile) {
                 $mentor = StaffProfile::where('mobile_no', $mentorMobile)->first();
-                if (!$mentor || strtoupper($mentor->branch) !== $branchCode) {
+                if (!$mentor || (strtoupper($mentor->branch) !== $branchCode && strtoupper($mentor->branch) !== 'GEN')) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Selected Mentor does not belong to your department.']);
                 }
             }
+        }
+
+        // Check if batch already exists in R26 table
+        if (\App\Models\R26ClassManagement::where('classroom_id', $classroomId)->exists()) {
+            return response()->json(['status' => 'ERROR', 'message' => "A Revision 2026 batch with ID {$classroomId} already exists."]);
         }
 
         // Check if batch already exists

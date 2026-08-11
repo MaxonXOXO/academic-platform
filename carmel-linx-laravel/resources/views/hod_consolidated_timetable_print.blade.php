@@ -4,255 +4,278 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consolidated Timetable - {{ $department }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    /* Screen (Dark Mode) Styles */
     body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background-color: #0b0f19;
-      color: #f1f5f9;
-    }
-    .header-border {
-      border-color: #1e293b;
-    }
-    .meta-val {
-      color: #ffffff;
-    }
-    .meta-lbl {
-      color: #94a3b8;
+      font-family: 'Outfit', sans-serif;
+      background-color: #cbd5e1;
+      color: #000000;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      border: 2px solid #1e293b;
-      background-color: #0f172a;
+      background-color: #ffffff;
+      border: 2px solid #000000;
     }
     th {
-      background-color: #1e293b;
-      color: #f1f5f9;
-      border: 1px solid #334155;
-      padding: 12px;
-      text-align: center;
+      border: 1.5px solid #000000;
+      background-color: #f1f5f9;
+      color: #000000;
       font-weight: 800;
+      padding: 3px;
+      font-size: 9px;
     }
     td {
-      border: 1px solid #334155;
-      padding: 12px;
-      text-align: center;
-      vertical-align: middle;
-      font-weight: 500;
+      border: 1.5px solid #000000;
+      background-color: #ffffff;
+      color: #000000;
+      font-weight: 700;
+      padding: 2px;
+      font-size: 8.5px;
     }
     .day-cell {
-      background-color: #1e293b;
-      font-weight: bold;
-      color: #ffffff;
+      background-color: #f1f5f9 !important;
+      color: #000000 !important;
+      font-weight: 900 !important;
     }
     .batch-cell {
-      background-color: #0f172a;
-      font-weight: bold;
-      color: #e2e8f0;
+      background-color: #f8fafc !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
     }
     .lunch-cell {
-      background-color: #090d16;
-      color: #64748b;
-      font-weight: 900;
-    }
-    .legend-box {
-      background-color: #0f172a;
-      border: 1px solid #1e293b;
-    }
-    .legend-title {
-      color: #ffffff;
-    }
-    .legend-item {
-      border-color: #1e293b;
-      color: #cbd5e1;
-    }
-    .legend-code {
-      color: #ffffff;
-    }
-    .legend-staff {
-      color: #94a3b8;
+      background-color: #e2e8f0 !important;
+      color: #000000 !important;
+      font-weight: 900 !important;
     }
     .free-period {
-      color: #475569;
+      color: #000000 !important;
       font-style: italic;
     }
 
-    /* Print (Light Mode) Styles */
+    /* Print (Light Mode) - STRICT SINGLE A4 LANDSCAPE PAGE */
     @media print {
+      * {
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .no-print {
-        display: none;
+        display: none !important;
       }
       @page {
         size: A4 landscape;
-        margin: 0.5cm;
+        margin: 5mm 6mm;
       }
-      body {
-        background-color: #ffffff;
-        color: #000000;
-        padding: 0;
-        margin: 0;
+      html, body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      .page-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+      }
+      .print-header {
+        border-bottom: 2px solid #000000 !important;
       }
       table {
-        background-color: #ffffff;
         border: 2px solid #000000 !important;
+        margin-top: 2px !important;
+        margin-bottom: 2px !important;
+        page-break-inside: avoid !important;
       }
-      th, td {
-        border: 2px solid #000000 !important;
+      th {
+        border: 1.5px solid #000000 !important;
+        color: #000000 !important;
+        background-color: #f1f5f9 !important;
+        padding: 2px 3px !important;
+        font-size: 9px !important;
+        font-weight: 800 !important;
+      }
+      td {
+        border: 1.5px solid #000000 !important;
         color: #000000 !important;
         background-color: #ffffff !important;
-        padding: 5px !important;
-        font-size: 11px !important;
+        padding: 1.5px 2px !important;
+        font-size: 8.5px !important;
+        font-weight: 700 !important;
       }
-      .day-cell {
-        background-color: #f3f4f6 !important;
+      .signature-footer {
+        padding-top: 4px !important;
+        margin-top: 2px !important;
+        page-break-inside: avoid !important;
       }
-      .batch-cell {
-        background-color: #fafafa !important;
-      }
-      .lunch-cell {
-        background-color: #e5e7eb !important;
-      }
-      .free-period {
-        color: #9ca3af !important;
+      .signature-footer p {
+        border-top: 1.5px solid #000000 !important;
+        color: #000000 !important;
+        font-weight: 800 !important;
       }
     }
   </style>
 </head>
-<body>
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- Centered Header Section -->
-    <div class="border-b pb-4 text-center relative header-border">
-      <h1 class="text-lg font-bold meta-lbl uppercase tracking-widest text-slate-400">Carmel Polytechnic College</h1>
-      <h2 class="text-2xl font-black text-white mt-1">Consolidated Department Timetable</h2>
-      
-      <div class="flex justify-center gap-12 mt-4 text-sm meta-lbl">
-        <div>Department: <strong class="meta-val">
-          @php
-            $deptNames = [
-              "EL" => "Electronics Engineering",
-              "CS" => "Computer Engineering",
-              "ME" => "Mechanical Engineering",
-              "EE" => "Electrical & Electronics Engineering",
-              "CE" => "Civil Engineering",
-              "CH" => "Chemical Engineering"
-            ];
-            echo $deptNames[strtoupper($department)] ?? $department;
-          @endphp
-        </strong></div>
-        <div>Batches: <strong class="meta-val">{{ implode(', ', array_keys($timetables)) }}</strong></div>
-        <div>Academic Year: <strong class="meta-val">{{ $currentYear }}</strong></div>
-      </div>
+<body class="p-4 min-h-screen bg-slate-300">
 
-      <div class="no-print absolute top-0 right-0 flex gap-2">
-        <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow transition duration-200">
-          Print Consolidated Sheet
+  <div class="max-w-7xl mx-auto space-y-3">
+    
+    <!-- Top Floating Action Bar (Screen Only) -->
+    <div class="no-print flex justify-between items-center bg-slate-900 text-white rounded-xl p-3 shadow-xl border border-slate-800">
+      <div class="flex items-center space-x-3">
+        <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded font-bold text-xs">
+          CONSOLIDATED TIMETABLE SHEET
+        </span>
+        <span class="text-slate-200 text-sm font-semibold">
+          {{ $department }} • {{ implode(', ', array_keys($timetables)) }}
+        </span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-all shadow-md cursor-pointer flex items-center space-x-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z"/></svg>
+          <span>Print Consolidated Sheet</span>
         </button>
-        <button onclick="window.close()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm shadow transition duration-200">
+        <button onclick="window.close()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg text-xs transition-all cursor-pointer border border-slate-700">
           Close Preview
         </button>
       </div>
     </div>
-    
-    <!-- Consolidated Timetable Grid -->
-    <table class="w-full text-left border">
-      <thead>
-        <tr class="text-slate-400 font-bold border-b header-border">
-          <th class="p-3 text-center w-24">Day</th>
-          <th class="p-3 text-center w-32">Classroom</th>
-          <th class="p-3 text-center">Period 1<br><span class="text-xs font-normal meta-lbl">09:00 - 10:00</span></th>
-          <th class="p-3 text-center">Period 2<br><span class="text-xs font-normal meta-lbl">10:00 - 11:00</span></th>
-          <th class="p-3 text-center">Period 3<br><span class="text-xs font-normal meta-lbl">11:10 - 12:10</span></th>
-          <th class="p-3 text-center w-16">Lunch</th>
-          <th class="p-3 text-center">Period 4<br><span class="text-xs font-normal meta-lbl">01:00 - 02:00</span></th>
-          <th class="p-3 text-center">Period 5<br><span class="text-xs font-normal meta-lbl">02:00 - 03:00</span></th>
-          <th class="p-3 text-center">Period 6<br><span class="text-xs font-normal meta-lbl">03:00 - 04:00</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        @php
-          $days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
-          $batchCount = count($timetables);
-          $scheduledSubjects = new \StdClass();
-          $scheduledSubjects->list = [];
-        @endphp
 
-        @foreach ($days as $dayIndex => $day)
-          @php
-            $firstBatchRow = true;
-          @endphp
-          @foreach ($timetables as $classroomId => $info)
-            @php
-              $dayData = $info['data'][$day] ?? [];
-              
-              $s1 = $dayData[1] ?? ['subject' => '', 'staff' => ''];
-              $s2 = $dayData[2] ?? ['subject' => '', 'staff' => ''];
-              $s3 = $dayData[3] ?? ['subject' => '', 'staff' => ''];
-              $s4 = $dayData[4] ?? ['subject' => '', 'staff' => ''];
-              $s5 = $dayData[5] ?? ['subject' => '', 'staff' => ''];
-              $s6 = $dayData[6] ?? ['subject' => '', 'staff' => ''];
+    <!-- White Paper Page Container -->
+    <div class="bg-white text-black p-5 rounded-xl shadow-2xl border border-slate-300 page-container space-y-2">
+      
+      <!-- Centered Institutional Title Header -->
+      <div class="border-b-2 border-black pb-1.5 text-center relative print-header space-y-0.5">
+        <h1 class="text-xs font-black uppercase tracking-widest text-black">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
+        <h2 class="text-base font-black text-black uppercase">CONSOLIDATED DEPARTMENT TIMETABLE</h2>
+        
+        <!-- Metadata Strip: Branch, Batches, Academic Year -->
+        <div class="flex justify-center flex-wrap gap-x-6 gap-y-0.5 mt-1 text-[11px] font-black text-black">
+          <div>Branch: <strong class="text-black font-black">{{ $department }}</strong></div>
+          <div>Batches: <strong class="text-black font-black">{{ implode(', ', array_keys($timetables)) }}</strong></div>
+          <div>Year: <strong class="text-black font-black">{{ $currentYear }} - {{ $currentYear + 1 }}</strong></div>
+        </div>
+      </div>
 
-              foreach([$s1, $s2, $s3, $s4, $s5, $s6] as $slot) {
-                if (!empty($slot['subject'])) {
-                  $scheduledSubjects->list[$slot['subject']] = $classroomId;
-                }
-              }
-            @endphp
-            <tr class="border-b header-border">
-              @if ($firstBatchRow)
-                <td rowspan="{{ $batchCount }}" class="p-4 text-center font-bold bg-slate-900/40 day-cell">{{ $day }}</td>
-              @endif
-              
-              <td class="p-3 font-bold batch-cell border-r border-slate-800/40">{{ $classroomId }}</td>
-
-              {{-- Forenoon Slots --}}
-              @if ($s1['subject'] && $s1['subject'] === $s2['subject'] && $s2['subject'] === $s3['subject'])
-                {!! renderPrintCellHtml($s1, 3, $info['subjects']) !!}
-              @elseif ($s1['subject'] && $s1['subject'] === $s2['subject'])
-                {!! renderPrintCellHtml($s1, 2, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s3, 1, $info['subjects']) !!}
-              @elseif ($s2['subject'] && $s2['subject'] === $s3['subject'])
-                {!! renderPrintCellHtml($s1, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s2, 2, $info['subjects']) !!}
-              @else
-                {!! renderPrintCellHtml($s1, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s2, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s3, 1, $info['subjects']) !!}
-              @endif
-
-              {{-- Lunch Column (rowspan across all days & batches) --}}
-              @if ($dayIndex === 0 && $firstBatchRow)
-                <td rowspan="{{ 5 * $batchCount }}" class="p-4 text-center font-black lunch-cell text-base" style="writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); letter-spacing: 5px; vertical-align: middle; min-width: 50px;">LUNCH BREAK</td>
-              @endif
-
-              {{-- Afternoon Slots --}}
-              @if ($s4['subject'] && $s4['subject'] === $s5['subject'] && $s5['subject'] === $s6['subject'])
-                {!! renderPrintCellHtml($s4, 3, $info['subjects']) !!}
-              @elseif ($s4['subject'] && $s4['subject'] === $s5['subject'])
-                {!! renderPrintCellHtml($s4, 2, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s6, 1, $info['subjects']) !!}
-              @elseif ($s5['subject'] && $s5['subject'] === $s6['subject'])
-                {!! renderPrintCellHtml($s4, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s5, 2, $info['subjects']) !!}
-              @else
-                {!! renderPrintCellHtml($s4, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s5, 1, $info['subjects']) !!}
-                {!! renderPrintCellHtml($s6, 1, $info['subjects']) !!}
-              @endif
+      <!-- Consolidated Timetable Grid Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-center border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-black font-bold text-xs uppercase">
+              <th class="p-1 text-center w-14 bg-day text-black">Day</th>
+              <th class="p-1 text-center w-24 bg-batch-cell text-black">Classroom</th>
+              <th class="p-1 text-center text-black">Period 1<br><span class="text-[8px] text-black font-normal">09:00 - 10:00</span></th>
+              <th class="p-1 text-center text-black">Period 2<br><span class="text-[8px] text-black font-normal">10:00 - 11:00</span></th>
+              <th class="p-1 text-center text-black">Period 3<br><span class="text-[8px] text-black font-normal">11:10 - 12:10</span></th>
+              <th class="p-1 text-center w-7 bg-lunch text-[8px] text-black">Lunch</th>
+              <th class="p-1 text-center text-black">Period 4<br><span class="text-[8px] text-black font-normal">01:00 - 02:00</span></th>
+              <th class="p-1 text-center text-black">Period 5<br><span class="text-[8px] text-black font-normal">02:00 - 03:00</span></th>
+              <th class="p-1 text-center text-black">Period 6<br><span class="text-[8px] text-black font-normal">03:00 - 04:00</span></th>
             </tr>
+          </thead>
+          <tbody class="text-xs">
             @php
-              $firstBatchRow = false;
+              $days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+              $batchCount = count($timetables);
             @endphp
-          @endforeach
-        @endforeach
-      </tbody>
-    </table>
 
-    
+            @foreach ($days as $dayIndex => $day)
+              @php
+                $firstBatchRow = true;
+              @endphp
+              @foreach ($timetables as $classroomId => $info)
+                @php
+                  $dayData = $info['data'][$day] ?? [];
+                  
+                  $s1 = $dayData[1] ?? ['subject' => '', 'staff' => ''];
+                  $s2 = $dayData[2] ?? ['subject' => '', 'staff' => ''];
+                  $s3 = $dayData[3] ?? ['subject' => '', 'staff' => ''];
+                  $s4 = $dayData[4] ?? ['subject' => '', 'staff' => ''];
+                  $s5 = $dayData[5] ?? ['subject' => '', 'staff' => ''];
+                  $s6 = $dayData[6] ?? ['subject' => '', 'staff' => ''];
+                @endphp
+                <tr>
+                  @if ($firstBatchRow)
+                    <td rowspan="{{ $batchCount }}" class="p-1 text-center font-black bg-day text-black uppercase text-[10px]">{{ $day }}</td>
+                  @endif
+                  
+                  <td class="p-1 font-black batch-cell text-black text-[9.5px] border-r border-black">{{ $classroomId }}</td>
+
+                  {{-- Forenoon Slots --}}
+                  @if ($s1['subject'] && $s1['subject'] === $s2['subject'] && $s2['subject'] === $s3['subject'])
+                    {!! renderPrintCellHtml($s1, 3, $info['subjects']) !!}
+                  @elseif ($s1['subject'] && $s1['subject'] === $s2['subject'])
+                    {!! renderPrintCellHtml($s1, 2, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s3, 1, $info['subjects']) !!}
+                  @elseif ($s2['subject'] && $s2['subject'] === $s3['subject'])
+                    {!! renderPrintCellHtml($s1, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s2, 2, $info['subjects']) !!}
+                  @else
+                    {!! renderPrintCellHtml($s1, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s2, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s3, 1, $info['subjects']) !!}
+                  @endif
+
+                  {{-- Lunch Column (rowspan across all days & batches) --}}
+                  @if ($dayIndex === 0 && $firstBatchRow)
+                    <td rowspan="{{ 5 * $batchCount }}" class="bg-lunch text-black font-extrabold text-[9px] uppercase tracking-widest" style="writing-mode: vertical-rl; transform: rotate(180deg); vertical-align: middle;">
+                      LUNCH BREAK
+                    </td>
+                  @endif
+
+                  {{-- Afternoon Slots --}}
+                  @if ($s4['subject'] && $s4['subject'] === $s5['subject'] && $s5['subject'] === $s6['subject'])
+                    {!! renderPrintCellHtml($s4, 3, $info['subjects']) !!}
+                  @elseif ($s4['subject'] && $s4['subject'] === $s5['subject'])
+                    {!! renderPrintCellHtml($s4, 2, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s6, 1, $info['subjects']) !!}
+                  @elseif ($s5['subject'] && $s5['subject'] === $s6['subject'])
+                    {!! renderPrintCellHtml($s4, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s5, 2, $info['subjects']) !!}
+                  @else
+                    {!! renderPrintCellHtml($s4, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s5, 1, $info['subjects']) !!}
+                    {!! renderPrintCellHtml($s6, 1, $info['subjects']) !!}
+                  @endif
+                </tr>
+                @php
+                  $firstBatchRow = false;
+                @endphp
+              @endforeach
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Signature Footer -->
+      <div class="pt-2 grid grid-cols-3 text-center text-[9.5px] font-extrabold text-black signature-footer">
+        <div>
+          <div class="h-4"></div>
+          <p class="border-t-2 border-black pt-0.5 mx-6">Head of Department</p>
+        </div>
+        <div>
+          <div class="h-4"></div>
+          <p class="border-t-2 border-black pt-0.5 mx-6">Academic Timetable Coordinator</p>
+        </div>
+        <div>
+          <div class="h-4"></div>
+          <p class="border-t-2 border-black pt-0.5 mx-6">Principal</p>
+        </div>
+      </div>
+
+    </div>
+
   </div>
+
 </body>
 </html>
 
@@ -260,7 +283,7 @@
   function renderPrintCellHtml($slot, $colspan = 1, $subjectsList = []) {
     $colspanAttr = $colspan > 1 ? "colspan=\"{$colspan}\"" : "";
     if (empty($slot['subject'])) {
-      return "<td {$colspanAttr} class=\"p-4 text-center free-period\">-- Free --</td>";
+      return "<td {$colspanAttr} class=\"p-0.5 text-center free-period\">-- Free --</td>";
     }
     
     $matchedSub = $subjectsList->firstWhere('subject_code', $slot['subject']);
@@ -275,13 +298,13 @@
           ->pluck('staff_profiles.name')
           ->toArray();
     }
-    $staffDisplay = count($assignedStaff) > 0 ? implode(', ', $assignedStaff) : ($slot['staff'] ?? 'N/A');
+    $staffDisplay = count($assignedStaff) > 0 ? implode(', ', $assignedStaff) : ($slot['staff'] ?? '');
 
     return "
-      <td {$colspanAttr} class=\"p-4 text-center\">
-        <div style=\"font-weight: 850; font-size: 15px;\">{$slot['subject']}</div>
-        <div style=\"font-weight: 600; font-size: 12px; margin-top: 2px;\">{$subjectName}</div>
-        <div style=\"font-size: 11px; margin-top: 2px;\">{$staffDisplay}</div>
+      <td {$colspanAttr} class=\"p-0.5 text-center\">
+        <div style=\"font-weight: 900; font-size: 9.5px; line-height: 1.1; color: #000000;\">{$slot['subject']}</div>
+        <div style=\"font-weight: 700; font-size: 8.5px; margin-top: 0.5px; line-height: 1.05; color: #000000;\">{$subjectName}</div>
+        <div style=\"font-size: 7.5px; font-weight: 700; margin-top: 0.5px; line-height: 1.05; color: #000000;\">{$staffDisplay}</div>
       </td>
     ";
   }

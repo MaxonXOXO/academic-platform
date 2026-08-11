@@ -297,6 +297,9 @@
     <!-- Top Header -->
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Trade & Workshops</h1>
+      <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
+      </div>
     </header>
 
     <!-- Panel Container -->

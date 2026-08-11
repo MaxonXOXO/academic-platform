@@ -10,10 +10,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        .material-symbols-rounded {
+            font-family: 'Material Symbols Rounded', sans-serif;
+            font-weight: normal;
+            font-style: normal;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
         :root {
             --bg-primary: #0b0f19;
             --bg-secondary: #111827;
@@ -982,8 +995,8 @@
                     <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <div class="flex items-center space-x-3">
-                                <div class="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                                    <span class="material-symbols-rounded text-2xl">rate_review</span>
+                                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-rounded text-lg">rate_review</span>
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-white text-base">Mid-Semester Online Survey</h4>
@@ -1016,8 +1029,8 @@
                     <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <div class="flex items-center space-x-3">
-                                <div class="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
-                                    <span class="material-symbols-rounded text-2xl">assignment_turned_in</span>
+                                <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-rounded text-lg">assignment_turned_in</span>
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-white text-base">Course Exit Survey</h4>
@@ -1153,6 +1166,11 @@
                 </div>
             </div>
 
+            <!-- Subtab 8: Study Materials & Pre-Class Hub -->
+            <div id="theory-subcontent-materials" class="hidden">
+                @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum'])
+            </div>
+
         </div>
 
         <!-- ========================================================================= -->
@@ -1167,10 +1185,11 @@
                 <button onclick="switchLabSubtab('eval')" id="lab-tab-eval" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🔬 Lab Eval</button>
                 <button onclick="switchLabSubtab('series')" id="lab-tab-series" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📝 Lab Series</button>
                 <button onclick="switchLabSubtab('ese')" id="lab-tab-ese" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🏆 Lab ESE</button>
+                <button onclick="switchLabSubtab('materials')" id="lab-tab-materials" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📁 Pre-Lab Materials</button>
             </div>
 
-            <div id="theory-subcontent-materials" class="hidden">
-                @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum'])
+            <div id="lab-subcontent-materials" class="hidden">
+                @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum Lab'])
             </div>
 
             <!-- Subtab 1: 3-Hour Session Experiments Roster -->
@@ -1865,16 +1884,22 @@
             document.getElementById('theory-subcontent-' + tab)?.classList.remove('hidden');
             document.getElementById('theory-tab-' + tab)?.classList.add('active', 'text-white');
             localStorage.setItem('active_theory_subtab', tab);
+            if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
+                loadSubjectMaterials();
+            }
         }
 
         function switchLabSubtab(tab) {
-            ['roster', 'planner', 'eval', 'series', 'ese'].forEach(t => {
+            ['roster', 'planner', 'eval', 'series', 'ese', 'materials'].forEach(t => {
                 document.getElementById('lab-subcontent-' + t)?.classList.add('hidden');
                 document.getElementById('lab-tab-' + t)?.classList.remove('active', 'text-white');
             });
             document.getElementById('lab-subcontent-' + tab)?.classList.remove('hidden');
             document.getElementById('lab-tab-' + tab)?.classList.add('active', 'text-white');
             localStorage.setItem('active_lab_subtab', tab);
+            if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
+                loadSubjectMaterials();
+            }
         }
 
         function toggleFullscreen() {

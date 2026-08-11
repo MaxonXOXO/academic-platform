@@ -858,6 +858,10 @@
       <a href="/dashboard/hod" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
         <span class="material-symbols-rounded text-lg">admin_panel_settings</span> HOD Console
       </a>
+      @elseif(in_array(session('userRole'), ['Principal', 'Super_Admin']))
+      <a href="/dashboard/principal" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-sky-400 hover:bg-sky-950/30 hover:text-sky-300 cursor-pointer no-underline block border border-sky-900/40 bg-sky-950/20">
+        <span class="material-symbols-rounded text-lg">shield_person</span> Principal Control Desk
+      </a>
       @endif
 
       @if($isTutor)
@@ -922,6 +926,7 @@
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-2xl">My Batches</h1>
       <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
         <div id="aiStatusBadge" class="hidden"></div>
         <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/80 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-premium cursor-pointer" title="Toggle Light/Dark Theme">
           <span id="themeToggleIcon" class="material-symbols-rounded text-lg">light_mode</span>

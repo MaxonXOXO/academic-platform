@@ -57,6 +57,9 @@
           <p class="text-sm font-semibold text-slate-400 tracking-wide uppercase" style="font-size: 0.65rem;">Coaching & Diagnostics</p>
         </div>
       </div>
+      <div class="flex items-center gap-3">
+        @include('partials.fullscreen_btn')
+      </div>
     </div>
   </header>
 

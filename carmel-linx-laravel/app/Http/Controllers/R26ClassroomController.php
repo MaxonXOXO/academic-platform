@@ -275,11 +275,14 @@ class R26ClassroomController extends Controller
 
             // Execute local Python parser service
             $pyPath = base_path('app/Services/r26_syllabus_parser.py');
-            $command = "py " . escapeshellarg($pyPath) . " " . escapeshellarg(storage_path('app/public/' . $path));
+            $pythonBin = file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3';
+            $sitePkg = '/home/carmel/.local/lib/python3.14/site-packages';
+            $fullPdfPath = storage_path('app/public/' . $path);
+            $command = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($pyPath) . " " . escapeshellarg($fullPdfPath) . " 2>&1";
             $jsonOutput = shell_exec($command);
             
             $parsedResult = json_decode($jsonOutput, true);
-            if (!$parsedResult || $parsedResult['status'] === 'ERROR') {
+            if (!$parsedResult || ($parsedResult['status'] ?? '') === 'ERROR') {
                 throw new \Exception($parsedResult['message'] ?? 'Failed to execute local syllabus parser.');
             }
             
@@ -456,13 +459,32 @@ class R26ClassroomController extends Controller
         foreach ($rows as $row) {
             $id = $row['id'] ?? null;
             if (!$id) continue;
-            
+
+            if (str_starts_with((string)$id, 'new_')) {
+                LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no'           => $row['day_no'] ?? 1,
+                    'co_id'            => $row['co_id'] ?? 'CO1',
+                    'topic_content'    => $row['topic_content'] ?? '',
+                    'allocated_hours'  => $row['allocated_hours'] ?? 1,
+                    'pedagogy'         => $row['pedagogy'] ?? 'Lecture',
+                    'taxonomy'         => $row['taxonomy'] ?? null,
+                    'proposed_date'    => $row['proposed_date'] ?? null,
+                    'actual_date'      => $row['actual_date'] ?? null,
+                    'status'           => $row['status'] ?? 'Pending'
+                ]);
+                $updated++;
+                continue;
+            }
+
             $plan = LessonPlan::where('id', $id)
                 ->where('batch_subject_id', $subjectId)
                 ->first();
                 
             if (!$plan) continue;
 
+            if (isset($row['co_id'])) $plan->co_id = $row['co_id'];
+            if (isset($row['day_no'])) $plan->day_no = $row['day_no'];
             $plan->topic_content   = $row['topic_content']   ?? $plan->topic_content;
             $plan->proposed_date   = $row['proposed_date']   ?? $plan->proposed_date;
             $plan->actual_date     = $row['actual_date']     ?? $plan->actual_date;

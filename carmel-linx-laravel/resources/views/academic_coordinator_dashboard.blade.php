@@ -422,15 +422,24 @@
         </a>
 
         <button id="navSecurity" onclick="switchPanel('security')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer mt-2">
-          <span class="material-symbols-rounded text-base">security</span> Security Log
+          <span class="material-symbols-rounded text-base">manage_accounts</span> My Profile
         </button>
       </nav>
 
       <!-- Logout -->
-      <div class="p-4 border-t border-slate-800/80">
-        <a href="{{ url('/logout') }}" class="w-full py-3 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-xs">
-          <span class="material-symbols-rounded text-base">logout</span> Sign Out
+      <div class="p-4 border-t border-slate-800/80 space-y-2.5">
+        <a href="{{ url('/logout') }}" class="w-full py-2.5 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium">
+          <span class="material-symbols-rounded text-sm">logout</span> Sign Out
         </a>
+
+        <!-- Support Badge -->
+        <div onclick="openStaffSupportModal()" class="p-2 bg-slate-950/60 hover:bg-slate-900 border border-slate-800/80 rounded-xl text-center select-none cursor-pointer transition-premium" title="Click to Request Remote Support Assist">
+          <div class="flex items-center justify-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            <span class="material-symbols-rounded text-xs text-blue-400">headset_mic</span> Live Assist
+          </div>
+          <div class="text-[11px] font-black text-slate-200 mt-0.5">Dhanush.A</div>
+          <div class="text-[9px] text-slate-400 font-medium">Dept. of Electronics</div>
+        </div>
       </div>
     </aside>
 
@@ -443,9 +452,13 @@
           <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Academic Coordinator Overview</h1>
           <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Self-Financing Stream</span>
         </div>
-        <div id="loadingIndicator" class="hidden items-center gap-2 text-slate-400 text-xs">
-          <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
-          <span>Syncing...</span>
+        <div class="flex items-center gap-3">
+          @include('partials.fullscreen_btn')
+          <div id="aiStatusBadge" class="hidden"></div>
+          <div id="loadingIndicator" class="hidden items-center gap-2 text-slate-400 text-xs">
+            <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+            <span>Syncing...</span>
+          </div>
         </div>
       </header>
 
@@ -717,26 +730,9 @@
           </div>
         </div>
 
-        <!-- PANEL 4: SECURITY LOG -->
+        <!-- PANEL 4: MY PROFILE & SECURITY -->
         <div id="panelSecurity" class="hidden space-y-6">
-          <div class="bg-slate-950/30 border border-slate-800/40 p-6 rounded-2xl">
-            <h3 class="font-black text-slate-200 border-b border-slate-800/60 pb-3 mb-4 flex items-center gap-2 text-sm">
-              <span class="material-symbols-rounded text-blue-400 text-lg">security</span> My Profile Security Audit Trail
-            </h3>
-            <div class="overflow-x-auto scrollbar-hidden border border-slate-800 rounded-xl">
-              <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr class="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-bold">
-                    <th class="p-4">Time</th>
-                    <th class="p-4">Action</th>
-                    <th class="p-4">Details</th>
-                  </tr>
-                </thead>
-                <tbody id="selfSecurityLogsTable">
-                </tbody>
-              </table>
-            </div>
-          </div>
+          @include('partials.staff_profile_panel')
         </div>
 
       </div>
@@ -1304,5 +1300,6 @@
         });
     }
   </script>
+  @include('partials.support_desk_overlay')
 </body>
 </html>

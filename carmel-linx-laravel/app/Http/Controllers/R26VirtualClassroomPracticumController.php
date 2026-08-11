@@ -82,7 +82,15 @@ class R26VirtualClassroomPracticumController extends Controller
                     ['experiment_no' => 'EXP-04', 'title' => 'Series and Parallel Capacitor circuit construction and testing', 'co_id' => 'CO2', 'hours' => 3],
                     ['experiment_no' => 'EXP-05', 'title' => 'Identification of PN Junction Diode and plotting VI characteristics', 'co_id' => 'CO3', 'hours' => 3],
                     ['experiment_no' => 'EXP-06', 'title' => 'Plotting VI characteristics of Zener Diode', 'co_id' => 'CO3', 'hours' => 3],
-                    ['experiment_no' => 'EXP-07', 'title' => 'PCB layout preparation and soldering practice', 'co_id' => 'CO4', 'hours' => 6]
+                    ['experiment_no' => 'EXP-07', 'title' => 'PCB layout preparation and soldering practice', 'co_id' => 'CO4', 'hours' => 3],
+                    ['experiment_no' => 'EXP-08', 'title' => 'Identification and testing of BJT Transistors', 'co_id' => 'CO3', 'hours' => 3],
+                    ['experiment_no' => 'EXP-09', 'title' => 'Half wave rectifier circuit assembly and waveform measurement', 'co_id' => 'CO3', 'hours' => 3],
+                    ['experiment_no' => 'EXP-10', 'title' => 'Full wave center-tapped rectifier circuit assembly and testing', 'co_id' => 'CO3', 'hours' => 3],
+                    ['experiment_no' => 'EXP-11', 'title' => 'Capacitor filter circuit testing with DC output ripple analysis', 'co_id' => 'CO3', 'hours' => 3],
+                    ['experiment_no' => 'EXP-12', 'title' => 'Logic gate IC pinout familiarization and truth table verification', 'co_id' => 'CO4', 'hours' => 3],
+                    ['experiment_no' => 'EXP-13', 'title' => 'Through-hole component soldering on general purpose PCB', 'co_id' => 'CO4', 'hours' => 3],
+                    ['experiment_no' => 'EXP-14', 'title' => 'Desoldering techniques and component replacement practice', 'co_id' => 'CO4', 'hours' => 3],
+                    ['experiment_no' => 'EXP-15', 'title' => 'Mini hardware project circuit testing and troubleshooting', 'co_id' => 'CO4', 'hours' => 3]
                 ],
                 'parsed_copo' => [
                     'credit' => 4.5,
@@ -402,8 +410,13 @@ class R26VirtualClassroomPracticumController extends Controller
             $practicalHours += floatval($e['hours'] ?? 3);
         }
 
-        if ($theoryHours == 0) $theoryHours = 45;
-        if ($practicalHours == 0) $practicalHours = 45;
+        if (empty($practicumCourseFile->syllabus_pdf_path)) {
+            $theoryHours = 45;
+            $practicalHours = 45;
+        } else {
+            if ($theoryHours == 0) $theoryHours = 45;
+            if ($practicalHours == 0) $practicalHours = 45;
+        }
 
         // CO-PO Matrix & Attainment Calculation
         $copoPayload = $practicumCourseFile->parsed_copo ?: [];
@@ -580,15 +593,24 @@ class R26VirtualClassroomPracticumController extends Controller
 
             $pyPath = base_path('app/Services/r26_syllabus_parser.py');
             $fullPdfPath = storage_path('app/public/' . $path);
+
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 $command = "python " . escapeshellarg($pyPath) . " " . escapeshellarg($fullPdfPath) . " 2>&1";
             } else {
-                $command = "PYTHONIOENCODING=utf-8 PYTHONPATH=/home/carmel/.local/lib/python3.14/site-packages:\$PYTHONPATH /usr/bin/python3 " . escapeshellarg($pyPath) . " " . escapeshellarg($fullPdfPath) . " 2>&1";
+                $pythonBin = file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3';
+                $sitePkg = '/home/carmel/.local/lib/python3.14/site-packages';
+                $command = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($pyPath) . " " . escapeshellarg($fullPdfPath) . " 2>&1";
             }
+
             $jsonOutput = shell_exec($command);
 
             $parsedResult = json_decode($jsonOutput, true);
-            if (!$parsedResult || $parsedResult['status'] === 'ERROR') {
+            if (!$parsedResult || !isset($parsedResult['status'])) {
+                \Illuminate\Support\Facades\Log::error("Syllabus parser failed output: " . $jsonOutput);
+                throw new \Exception('Failed to parse Practicum syllabus PDF. Raw output: ' . substr($jsonOutput ?? '', 0, 200));
+            }
+
+            if ($parsedResult['status'] === 'ERROR') {
                 throw new \Exception($parsedResult['message'] ?? 'Failed to parse Practicum syllabus PDF.');
             }
 
@@ -624,9 +646,12 @@ class R26VirtualClassroomPracticumController extends Controller
                 ]
             );
 
+            // Regenerate Lesson Plans according to newly uploaded syllabus content
+            $this->generate90HourLessonPlan($batchSubject, $practicumFile);
+
             return response()->json([
                 'status' => 'SUCCESS',
-                'message' => 'Practicum syllabus uploaded and parsed successfully!',
+                'message' => 'Practicum syllabus uploaded, parsed, and lesson plan dynamically generated successfully!',
                 'data' => $data
             ]);
         } catch (\Exception $e) {
@@ -883,46 +908,136 @@ class R26VirtualClassroomPracticumController extends Controller
             ['batch_subject_id' => $subjectId]
         );
 
+        $savedChecklist = $practicumCourseFile->doc_checklist ?: [];
+
+        // Real-time evaluation of generated system components
+        $hasSyllabus = !empty($practicumCourseFile->syllabus_pdf_path);
+        $hasLessonPlan = LessonPlan::where('batch_subject_id', $subjectId)->exists();
+        $studentCount = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->count();
+        $hasAttendance = \DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->exists();
+        $hasExpEval = \DB::table('r26_practicum_experiment_evaluations')->where('batch_subject_id', $subjectId)->exists();
+        $hasSeriesTheory = \DB::table('r26_practicum_series_theory')->where('batch_subject_id', $subjectId)->exists();
+        $hasSeriesPractical = \DB::table('r26_practicum_series_practical')->where('batch_subject_id', $subjectId)->exists();
+        $hasEse = \DB::table('r26_practicum_ese_marks')->where('batch_subject_id', $subjectId)->exists();
+        $hasCoPo = !empty($practicumCourseFile->parsed_copo);
+        $hasSelfLearning = !empty($practicumCourseFile->self_learning_configs);
+
         $docCatalog = [
-            1 => 'Class Time table (current semester Program timetable)',
-            2 => 'Faculty Workload',
-            3 => 'Student List with register numbers',
-            4 => 'Course Syllabus with Recommended Books (SITTTR)',
-            5 => 'Course information sheet',
-            6 => 'Course outcomes & CO-PO Mappings',
-            7 => 'Academic calender & Semester Layout',
-            8 => 'Course Plan / Combined Lesson Planner',
-            9 => 'Course log and Attendance',
-            10 => 'Theory Series Exam Question Papers & Scheme',
-            11 => 'Internal Examination Result Analysis NBA',
-            12 => 'Weaker student coaching schedule and proof',
-            13 => 'Teaching and Learning Methods Proof - handouts, capsule notes etc.',
-            14 => 'Self-Learning / Assignment questions with rubrics',
-            15 => 'Internal Marks - SBTE (CIA 40M Summary)',
-            16 => 'Practical Series Exam Task Sheet & Rubric Evaluation Scheme',
-            17 => 'Continuous Practical Evaluation Log (Table 2.2)',
-            18 => 'Institutional Practical ESE Examination Results',
-            19 => 'Attainment of Course Outcome (CO) Co-Po-Pso Map',
-            20 => 'Attainment of PO/PSO report',
-            21 => 'Mid semester survey & report',
-            22 => 'End semester / Course exit survey & report',
-            23 => 'Internal Examination sample answer scripts',
-            24 => 'Practical record sample pages',
-            25 => 'Others'
+            1 => ['name' => 'Class Time table (current semester Program timetable)', 'auto' => true, 'auto_remark' => 'Active timetable mapped'],
+            2 => ['name' => 'Faculty Workload', 'auto' => true, 'auto_remark' => 'Faculty allocation assigned'],
+            3 => ['name' => 'Student List with register numbers', 'auto' => ($studentCount > 0), 'auto_remark' => $studentCount > 0 ? "{$studentCount} students enrolled" : 'Pending student registration'],
+            4 => ['name' => 'Course Syllabus with Recommended Books (SITTTR)', 'auto' => $hasSyllabus, 'auto_remark' => $hasSyllabus ? 'SITTTR Syllabus PDF parsed' : 'Pending syllabus upload'],
+            5 => ['name' => 'Course information sheet', 'auto' => true, 'auto_remark' => 'Generated from course metadata'],
+            6 => ['name' => 'Course outcomes & CO-PO Mappings', 'auto' => $hasCoPo, 'auto_remark' => $hasCoPo ? 'CO-PO matrix mapped' : 'Pending CO-PO mapping'],
+            7 => ['name' => 'Academic calender & Semester Layout', 'auto' => true, 'auto_remark' => 'Institutional calendar mapped'],
+            8 => ['name' => 'Course Plan / Combined Lesson Planner', 'auto' => $hasLessonPlan, 'auto_remark' => $hasLessonPlan ? 'Lesson plan generated' : 'Pending lesson plan generation'],
+            9 => ['name' => 'Course log and Attendance', 'auto' => $hasAttendance, 'auto_remark' => $hasAttendance ? 'Attendance logs recorded' : 'Pending attendance logs'],
+            10 => ['name' => 'Theory Series Exam Question Papers & Scheme', 'auto' => $hasSeriesTheory, 'auto_remark' => $hasSeriesTheory ? 'Series 1 & 2 theory configured' : 'Pending series exam setup'],
+            11 => ['name' => 'Internal Examination Result Analysis NBA', 'auto' => $hasSeriesTheory, 'auto_remark' => $hasSeriesTheory ? 'Internal result analysis generated' : 'Pending internal exam scores'],
+            12 => ['name' => 'Weaker student coaching schedule and proof', 'auto' => false, 'auto_remark' => 'Pending remediation log'],
+            13 => ['name' => 'Teaching and Learning Methods Proof - handouts, capsule notes etc.', 'auto' => true, 'auto_remark' => 'Dynamic pedagogy tracking active'],
+            14 => ['name' => 'Self-Learning / Assignment questions with rubrics', 'auto' => $hasSelfLearning, 'auto_remark' => $hasSelfLearning ? 'Self-learning scheme configured' : 'Pending self-learning setup'],
+            15 => ['name' => 'Internal Marks - SBTE (CIA 40M Summary)', 'auto' => ($hasExpEval || $hasSeriesTheory), 'auto_remark' => ($hasExpEval || $hasSeriesTheory) ? 'CIA 40M summary generated' : 'Pending CIA evaluation'],
+            16 => ['name' => 'Practical Series Exam Task Sheet & Rubric Evaluation Scheme', 'auto' => true, 'auto_remark' => 'Table 2.2 & 3.1 Rubrics mapped'],
+            17 => ['name' => 'Continuous Practical Evaluation Log (Table 2.2)', 'auto' => $hasExpEval, 'auto_remark' => $hasExpEval ? 'Experiment evaluations logged' : 'Pending experiment evaluation'],
+            18 => ['name' => 'Institutional Practical ESE Examination Results', 'auto' => $hasEse, 'auto_remark' => $hasEse ? 'ESE marks recorded' : 'Pending ESE evaluation'],
+            19 => ['name' => 'Attainment of Course Outcome (CO) Co-Po-Pso Map', 'auto' => $hasCoPo, 'auto_remark' => $hasCoPo ? 'CO attainment mapped' : 'Pending CO attainment'],
+            20 => ['name' => 'Attainment of PO/PSO report', 'auto' => $hasCoPo, 'auto_remark' => $hasCoPo ? 'PO/PSO attainment calculated' : 'Pending PO attainment'],
+            21 => ['name' => 'Mid semester survey & report', 'auto' => false, 'auto_remark' => 'Pending mid-sem survey'],
+            22 => ['name' => 'End semester / Course exit survey & report', 'auto' => false, 'auto_remark' => 'Pending course exit survey'],
+            23 => ['name' => 'Internal Examination sample answer scripts', 'auto' => false, 'auto_remark' => 'Pending physical sample upload'],
+            24 => ['name' => 'Practical record sample pages', 'auto' => false, 'auto_remark' => 'Pending record sample upload'],
+            25 => ['name' => 'Others', 'auto' => false, 'auto_remark' => 'Optional audit attachments']
         ];
 
         $documents = collect();
-        foreach ($docCatalog as $num => $name) {
+        foreach ($docCatalog as $num => $info) {
+            $saved = $savedChecklist[$num] ?? null;
+            $isChecked = $saved ? (bool)($saved['is_checked'] ?? false) : $info['auto'];
+            $remarks = $saved ? ($saved['remarks'] ?? '') : $info['auto_remark'];
+
             $documents->push((object)[
                 'id' => $num,
                 'document_number' => $num,
-                'document_name' => $name,
-                'is_checked' => true,
-                'remarks' => 'Auto-indexed for NBA audit'
+                'document_name' => $info['name'],
+                'is_checked' => $isChecked,
+                'remarks' => $remarks
             ]);
         }
 
         return view('r26_practicum.course_file_preparation', compact('batchSubject', 'practicumCourseFile', 'documents'));
+    }
+
+    /**
+     * Save Practicum Course File Document Checklist Audit Status
+     */
+    public function saveCourseFileDoc(Request $request, $subjectId)
+    {
+        $practicumFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$practicumFile) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Practicum course file not found.'], 404);
+        }
+
+        $docId = (int)$request->input('doc_id');
+        $isChecked = filter_var($request->input('is_checked'), FILTER_VALIDATE_BOOLEAN);
+        $remarks = $request->input('remarks', '');
+
+        $checklist = $practicumFile->doc_checklist ?: [];
+        $checklist[$docId] = [
+            'is_checked' => $isChecked,
+            'remarks' => $remarks,
+            'updated_at' => now()->toDateTimeString()
+        ];
+
+        $practicumFile->doc_checklist = $checklist;
+        $practicumFile->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Document audit status updated successfully.'
+        ]);
+    }
+
+    /**
+     * Print Current Semester Program Class Timetable for Batch
+     */
+    public function printClassroomTimetable($subjectId)
+    {
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $classroomId = $batchSubject->classroom_id;
+        $semester = $batchSubject->semester;
+
+        // Fetch timetable data from storage
+        $cleanId = preg_replace('/[^a-zA-Z0-9_-]/', '', $classroomId);
+        $path = storage_path("app/timetables/{$cleanId}.json");
+        $timetableData = file_exists($path) ? (json_decode(file_get_contents($path), true) ?: []) : [];
+
+        // Fetch allocated subjects for this batch & semester with staff relations
+        $allocatedSubjects = BatchSubject::where('classroom_id', $classroomId)
+            ->where('semester', $semester)
+            ->with(['staffAssignments.staff'])
+            ->get();
+
+        // Department mapping
+        $deptNames = [
+            "EL" => "Electronics Engineering",
+            "CS" => "Computer Engineering",
+            "ME" => "Mechanical Engineering",
+            "EE" => "Electrical & Electronics Engineering",
+            "CE" => "Civil Engineering",
+            "CH" => "Chemical Engineering"
+        ];
+        $deptShort = explode('-', $classroomId)[0] ?? 'DEPT';
+        $fullDept = $deptNames[strtoupper($deptShort)] ?? $deptShort;
+
+        return view('r26_practicum.timetable_print', compact(
+            'batchSubject',
+            'classroomId',
+            'semester',
+            'timetableData',
+            'allocatedSubjects',
+            'fullDept'
+        ));
     }
 
     /**

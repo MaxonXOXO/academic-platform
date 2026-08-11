@@ -390,23 +390,23 @@
         </div>
 
         <!-- Users Table Grid -->
-        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-hidden">
-          <div class="max-h-[calc(100vh-320px)] overflow-auto custom-scrollbar">
-            <table class="min-w-[1100px] w-full text-left border-collapse text-sm">
+        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-hidden shadow-xl">
+          <div class="max-h-[calc(100vh-320px)] overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse text-xs md:text-sm min-w-[950px]">
               <thead>
-                <tr class="bg-slate-900/60 border-b border-slate-800/60 text-slate-400 font-bold">
-                  <th class="p-4">Profile</th>
-                  <th class="p-4">Mobile / Reg No</th>
-                  <th class="p-4">Branch</th>
-                  <th class="p-4">Registered Sem</th>
-                  <th class="p-4">Role Designation</th>
-                  <th class="p-4">Account Status</th>
-                  <th class="p-4">Enrollment Status</th>
-                  <th class="p-4 text-right">Actions</th>
+                <tr class="bg-slate-900/80 border-b border-slate-800/80 text-slate-400 font-bold uppercase text-[11px] tracking-wider whitespace-nowrap">
+                  <th class="p-3.5 align-middle">Profile</th>
+                  <th class="p-3.5 align-middle">Mobile / Reg No</th>
+                  <th class="p-3.5 align-middle">Branch</th>
+                  <th class="p-3.5 align-middle">Sem / Batch</th>
+                  <th class="p-3.5 align-middle">Role Designation</th>
+                  <th class="p-3.5 align-middle">Account Status</th>
+                  <th class="p-3.5 align-middle">Enrollment</th>
+                  <th class="p-3.5 align-middle text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody id="usersTableBody">
-                <tr><td colspan="8" class="p-8 text-center text-slate-500 font-medium text-base">Use the filters and click "Load Directory" to view accounts.</td></tr>
+              <tbody id="usersTableBody" class="divide-y divide-slate-800/40">
+                <tr><td colspan="8" class="p-8 text-center text-slate-500 font-medium text-sm">Use the filters and click "Load Directory" to view accounts.</td></tr>
               </tbody>
             </table>
           </div>
@@ -1361,32 +1361,32 @@
       users.forEach(user => {
         // Prevent listing self or other HODs if needed (handled by backend, but safe-check)
         const tr = document.createElement('tr');
-        tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium";
+        tr.className = "border-b border-slate-800/40 hover:bg-slate-900/40 transition-premium whitespace-nowrap align-middle";
 
-        let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-sm font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>`;
+        let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">Pending</span>`;
         if (user.status === 'Approved') {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/20">Approved</span>`;
+          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20 whitespace-nowrap">Approved</span>`;
         } else if (user.status === 'Suspended') {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-sm font-bold bg-red-500/10 text-red-400 border border-red-500/20">Suspended</span>`;
+          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">Suspended</span>`;
         }
 
         let toggleButton = '';
         if (user.id !== "{{ session('userId') }}") {
           if (user.status === 'Pending') {
             toggleButton = `
-              <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold text-white transition-premium cursor-pointer">
+              <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap">
                 Approve
               </button>
             `;
           } else if (user.status === 'Approved') {
             toggleButton = `
-              <button onclick="changeStatus('${user.id}', '${user.type}', 'Suspended')" class="px-2 py-1 bg-red-950 hover:bg-red-900 border border-red-800 rounded text-sm font-bold text-red-300 transition-premium cursor-pointer">
+              <button onclick="changeStatus('${user.id}', '${user.type}', 'Suspended')" class="px-2.5 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap">
                 Suspend
               </button>
             `;
           } else if (user.status === 'Suspended') {
             toggleButton = `
-              <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold text-white transition-premium cursor-pointer">
+              <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap">
                 Activate
               </button>
             `;
@@ -1394,33 +1394,36 @@
         }
 
         let roleCol = user.role;
-        // HOD can't promote role designations in general, we just display it.
 
         tr.innerHTML = `
-          <td class="p-2.5 flex items-center gap-3">
-            <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
-            <div>
-              <span class="font-bold text-slate-100 block text-sm">${user.name}</span>
-              <span class="text-sm text-slate-500 block">${user.email}</span>
+          <td class="p-3 align-middle whitespace-nowrap">
+            <div class="flex items-center gap-2.5">
+              <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-700 shadow shrink-0">
+              <div class="min-w-0">
+                <span class="font-bold text-slate-100 block text-xs md:text-sm truncate">${user.name}</span>
+                <span class="text-[11px] text-slate-400 block truncate">${user.email}</span>
+              </div>
             </div>
           </td>
-          <td class="p-2.5 font-mono font-bold text-slate-300 text-sm">${user.id}</td>
-          <td class="p-2.5"><span class="font-bold font-mono text-sm bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
-          <td class="p-2.5">
+          <td class="p-3 align-middle whitespace-nowrap font-mono font-bold text-slate-300 text-xs md:text-sm">${user.id}</td>
+          <td class="p-3 align-middle whitespace-nowrap"><span class="font-bold font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
+          <td class="p-3 align-middle whitespace-nowrap">
             ${user.type === 'student' ? `
-              <button onclick="editStudentSemester('${user.id}', '${user.semester || 'S1'}')" class="text-indigo-400 hover:text-indigo-300 underline font-bold text-sm cursor-pointer" title="Click to Edit Semester">
-                ${user.semester || 'S1'}
-              </button>
-              <button onclick="editStudentBatch('${user.id}', '${user.classroom_id || ''}')" class="text-violet-400 hover:text-violet-300 underline font-bold text-sm cursor-pointer ml-2" title="Move Batch">
-                Move
-              </button>
-            ` : '<span class="text-slate-500 font-bold text-sm">N/A</span>'}
+              <div class="inline-flex items-center gap-1.5">
+                <button onclick="editStudentSemester('${user.id}', '${user.semester || 'S1'}')" class="text-indigo-400 hover:text-indigo-300 font-bold text-xs cursor-pointer underline" title="Click to Edit Semester">
+                  ${user.semester || 'S1'}
+                </button>
+                <button onclick="editStudentBatch('${user.id}', '${user.classroom_id || ''}')" class="text-xs px-1.5 py-0.5 bg-violet-600/20 text-violet-300 hover:bg-violet-600/40 rounded border border-violet-500/30 font-bold cursor-pointer transition-premium" title="Move Batch">
+                  Move
+                </button>
+              </div>
+            ` : '<span class="text-slate-500 font-bold text-xs">N/A</span>'}
           </td>
-          <td class="p-2.5 text-sm">${roleCol}</td>
-          <td class="p-2.5 text-sm">${statusBadge}</td>
-          <td class="p-2.5">
+          <td class="p-3 align-middle whitespace-nowrap text-xs text-slate-200">${roleCol}</td>
+          <td class="p-3 align-middle whitespace-nowrap text-xs">${statusBadge}</td>
+          <td class="p-3 align-middle whitespace-nowrap">
             ${user.type === 'student' ? `
-              <select onchange="updateAcademicStatusDirectly('${user.id}', this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-sm outline-none focus:border-blue-500 font-bold cursor-pointer ${
+              <select onchange="updateAcademicStatusDirectly('${user.id}', this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs outline-none focus:border-blue-500 font-bold cursor-pointer ${
                 user.academic_status === 'Active' ? 'text-green-400 border-green-500/20' :
                 user.academic_status === 'Discontinued' ? 'text-amber-400 border-amber-500/20' :
                 'text-red-400 border-red-500/20'
@@ -1429,20 +1432,22 @@
                 <option value="Discontinued" ${user.academic_status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
                 <option value="TC Issued" ${user.academic_status === 'TC Issued' ? 'selected' : ''}>TC Issued</option>
               </select>
-            ` : '<span class="text-slate-500 font-bold text-sm">N/A</span>'}
+            ` : '<span class="text-slate-500 font-bold text-xs">N/A</span>'}
           </td>
-          <td class="p-2.5 text-right space-x-1 text-sm">
-            ${toggleButton}
-            <button onclick="triggerPasswordReset('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-sm font-bold transition-premium cursor-pointer">
-              Reset Pwd
-            </button>
-            <button onclick="viewUserAudit('${user.id}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-blue-900 border border-slate-800 text-slate-300 rounded text-sm font-bold transition-premium cursor-pointer" title="View Audit Trail">
-              Audit
-            </button>
-            ${user.id !== "{{ session('userId') }}" ? `
-            <button onclick="confirmDeleteUser('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-red-950/40 hover:bg-red-900 border border-red-900/60 text-red-400 rounded text-sm font-bold transition-premium cursor-pointer" title="Delete User">
-              Delete
-            </button>` : ''}
+          <td class="p-3 align-middle whitespace-nowrap text-right">
+            <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+              ${toggleButton}
+              <button onclick="triggerPasswordReset('${user.id}', '${user.type}', '${user.name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap">
+                Reset Pwd
+              </button>
+              <button onclick="viewUserAudit('${user.id}', '${user.name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-blue-900 border border-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap" title="View Audit Trail">
+                Audit
+              </button>
+              ${user.id !== "{{ session('userId') }}" ? `
+              <button onclick="confirmDeleteUser('${user.id}', '${user.type}', '${user.name}')" class="px-2.5 py-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-900/60 text-rose-400 rounded-lg text-xs font-bold transition-premium cursor-pointer whitespace-nowrap" title="Delete User">
+                Delete
+              </button>` : ''}
+            </div>
           </td>
         `;
         tbody.appendChild(tr);

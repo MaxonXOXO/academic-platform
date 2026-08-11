@@ -189,6 +189,12 @@ class AttendanceController extends Controller
             ->first();
 
         if (!$classroom) {
+            $classroom = DB::table('r26_class_management')
+                ->where('tutor_mobile_no', $staffMobile)
+                ->first();
+        }
+
+        if (!$classroom) {
             return response()->json([
                 'status' => 'ERROR',
                 'message' => 'No classroom assigned as advisor/tutor to your profile.'

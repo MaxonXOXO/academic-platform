@@ -210,32 +210,6 @@
         <!-- ========================================== -->
         <div id="tab-overview" class="tab-panel active space-y-4">
 
-            <!-- UNIFIED DAY ORDER & DATE CARD WITH DAY SWITCH POPUP -->
-            <div class="glass-card rounded-2xl p-4 border border-slate-700/60 border-l-4 border-l-blue-500 shadow-md">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
-                            <i class="fa-solid fa-calendar-day text-lg"></i>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Institutional Day Order</span>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <h2 class="text-lg font-black text-white leading-none">
-                                    <span id="displayDayOrder">{{ $defaultDayOrder }}</span>
-                                </h2>
-                                <button type="button" onclick="openDayOrderModal()" class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-blue-600/80 hover:bg-blue-500 text-white border border-blue-400/40 shadow-sm flex items-center gap-1 transition-all" title="Change Institutional Day Order">
-                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i> Switch Day
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today</span>
-                        <p class="text-xs font-mono font-bold text-blue-400 mt-0.5">{{ date('D, d M Y') }}</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- PROMINENT NOTIFICATIONS & SEMINARS FEED (HOME TAB) -->
             <div class="glass-card rounded-2xl p-4 border border-slate-700/60 shadow-lg space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
@@ -350,6 +324,32 @@
                     <div class="mt-2">
                         <span class="text-2xl font-black text-purple-400">{{ count($deptStaff) }}</span>
                         <p class="text-[10px] mt-0.5 text-slate-400">Registered Faculty</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UNIFIED DAY ORDER & DATE CARD WITH DAY SWITCH POPUP -->
+            <div class="glass-card rounded-2xl p-4 border border-slate-700/60 border-l-4 border-l-blue-500 shadow-md">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
+                            <i class="fa-solid fa-calendar-day text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Institutional Day Order</span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <h2 class="text-lg font-black text-white leading-none">
+                                    <span id="displayDayOrder">{{ $defaultDayOrder }}</span>
+                                </h2>
+                                <button type="button" onclick="openDayOrderModal()" class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-blue-600/80 hover:bg-blue-500 text-white border border-blue-400/40 shadow-sm flex items-center gap-1 transition-all" title="Change Institutional Day Order">
+                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i> Switch Day
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today</span>
+                        <p class="text-xs font-mono font-bold text-blue-400 mt-0.5">{{ date('D, d M Y') }}</p>
                     </div>
                 </div>
             </div>
@@ -688,7 +688,12 @@
                 @foreach($deptBatches as $b)
                     <div class="glass-card rounded-2xl p-4 space-y-2">
                         <div class="flex items-center justify-between">
-                            <h4 class="font-bold text-sm text-blue-400">{{ $b->classroom_id }}</h4>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-sm text-blue-400">{{ $b->classroom_id }}</h4>
+                                @if(!empty($b->is_r26) || ($b->batch_year ?? 0) == 2026)
+                                    <span class="px-1.5 py-0.5 text-[9px] font-black rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">R26</span>
+                                @endif
+                            </div>
                             <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                                 Sem {{ $b->current_semester ?? 1 }}
                             </span>

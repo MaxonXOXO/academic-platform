@@ -133,6 +133,12 @@ class ParentDashboardController extends Controller
             ->where('classroom_id', $student->classroom_id)
             ->first();
 
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')
+                ->where('classroom_id', $student->classroom_id)
+                ->first();
+        }
+
         $tutor = null;
         if ($classroom && $classroom->tutor_mobile_no) {
             $tutor = DB::table('staff_profiles')

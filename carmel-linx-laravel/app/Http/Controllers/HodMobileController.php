@@ -46,10 +46,23 @@ class HodMobileController extends Controller
             ->select('batch_subjects.*', 'subject_staff_assignments.batch_subject_id')
             ->get();
 
-        // 2. Department Classroom Batches
-        $deptBatches = ClassManagement::where('branch', $dept)
+        // 2. Department Classroom Batches (R21 & R26)
+        $deptBatches2021 = ClassManagement::where('branch', $dept)
+            ->orWhere('classroom_id', 'like', "{$dept}%")
             ->orderBy('batch_year', 'desc')
             ->get();
+
+        $deptBatches2026 = DB::table('r26_class_management')
+            ->where('branch', $dept)
+            ->orWhere('classroom_id', 'like', "{$dept}%")
+            ->orderBy('batch_year', 'desc')
+            ->get();
+
+        foreach ($deptBatches2026 as $b26) {
+            $b26->is_r26 = true;
+        }
+
+        $deptBatches = $deptBatches2021->concat($deptBatches2026)->unique('classroom_id')->values();
 
         // Populate tutor/mentor details for batches
         $tutorMobiles = $deptBatches->pluck('tutor_mobile_no')->filter()->toArray();
@@ -135,7 +148,20 @@ class HodMobileController extends Controller
         $targetSemesters = [1, 3, 5];
         $semesterSchedules = [];
 
+        // Fetch all classrooms for this department (R21 and R26)
+        $deptClsR21 = DB::table('class_management')->where('branch', $dept)->get();
+        $deptClsR26 = DB::table('r26_class_management')->where('branch', $dept)->get();
+        $allDeptClassrooms = $deptClsR21->concat($deptClsR26);
+
         foreach ($targetSemesters as $sem) {
+            // Locate classroom matching current_semester or semester batch year
+            $classroom = $allDeptClassrooms->firstWhere('current_semester', $sem);
+            if (!$classroom && $sem == 1) {
+                $classroom = $allDeptClassrooms->first(function ($c) {
+                    return str_contains($c->classroom_id, '2026') || ($c->current_semester ?? 1) == 1;
+                });
+            }
+
             $semSubjects = DB::table('batch_subjects')
                 ->where('semester', $sem)
                 ->where(function ($q) use ($dept) {
@@ -145,7 +171,6 @@ class HodMobileController extends Controller
                 ->get();
 
             if ($semSubjects->isEmpty()) {
-                // Fallback to any batch subjects for that semester if branch naming is generic
                 $semSubjects = DB::table('batch_subjects')->where('semester', $sem)->get();
             }
 
@@ -157,6 +182,20 @@ class HodMobileController extends Controller
                 ->where('date', $todayDate)
                 ->get()
                 ->keyBy('period');
+
+            // Load saved timetable JSON file for this classroom if available
+            $dayTt = null;
+            if ($classroom && !empty($classroom->classroom_id)) {
+                $cIdClean = preg_replace('/[^a-zA-Z0-9_-]/', '', $classroom->classroom_id);
+                $ttFile = storage_path("app/timetables/{$cIdClean}.json");
+                if (file_exists($ttFile)) {
+                    $rawTt = json_decode(file_get_contents($ttFile), true);
+                    if ($rawTt) {
+                        $dayAlt = array_search($defaultDayOrder, $dayMap);
+                        $dayTt = $rawTt[$defaultDayOrder] ?? ($dayAlt ? ($rawTt[$dayAlt] ?? null) : null);
+                    }
+                }
+            }
 
             $periodsData = [];
             for ($p = 1; $p <= 6; $p++) {
@@ -175,31 +214,46 @@ class HodMobileController extends Controller
                         'status'       => 'Conducted',
                         'badge_class'  => 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                     ];
-                } elseif ($semSubjects->count() > 0) {
-                    $idx = ($p - 1) % $semSubjects->count();
-                    $scheduledSub = $semSubjects->values()[$idx] ?? null;
-
-                    $periodsData[$p] = [
-                        'period'       => $p,
-                        'time_slot'    => $periodTimings[$p],
-                        'subject_code' => $scheduledSub->subject_code ?? 'Scheduled',
-                        'subject_name' => $scheduledSub->subject_name ?? 'Scheduled Period',
-                        'staff_name'   => 'Assigned Faculty',
-                        'topic'        => 'Scheduled Time Slot',
-                        'status'       => 'Scheduled',
-                        'badge_class'  => 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                    ];
                 } else {
-                    $periodsData[$p] = [
-                        'period'       => $p,
-                        'time_slot'    => $periodTimings[$p],
-                        'subject_code' => 'FREE',
-                        'subject_name' => 'Free Period',
-                        'staff_name'   => '—',
-                        'topic'        => 'No Class Scheduled',
-                        'status'       => 'Free',
-                        'badge_class'  => 'bg-slate-800/80 text-slate-400 border border-slate-700/60'
-                    ];
+                    // Check if timetable cell exists for this period
+                    $slotData = null;
+                    if ($dayTt && is_array($dayTt)) {
+                        $slotData = $dayTt[$p] ?? ($dayTt[(string)$p] ?? ($dayTt["period_{$p}"] ?? ($dayTt["Period {$p}"] ?? null)));
+                    }
+
+                    if ($slotData && !empty($slotData)) {
+                        $subCode = is_array($slotData) ? ($slotData['subject'] ?? ($slotData['subject_code'] ?? '')) : $slotData;
+                        $staffName = is_array($slotData) ? ($slotData['staff'] ?? '') : '';
+
+                        $matchedSub = $semSubjects->firstWhere('subject_code', $subCode);
+                        if (!$matchedSub) {
+                            $matchedSub = DB::table('batch_subjects')->where('subject_code', $subCode)->first();
+                        }
+                        $subName = $matchedSub ? $matchedSub->subject_name : $subCode;
+
+                        $periodsData[$p] = [
+                            'period'       => $p,
+                            'time_slot'    => $periodTimings[$p],
+                            'subject_code' => $subCode ?: 'Scheduled',
+                            'subject_name' => $subName ?: 'Scheduled Class',
+                            'staff_name'   => $staffName ?: 'Assigned Faculty',
+                            'topic'        => 'Scheduled Class',
+                            'status'       => 'Scheduled',
+                            'badge_class'  => 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        ];
+                    } else {
+                        // NO timetable created by HOD for this slot or timetable file missing
+                        $periodsData[$p] = [
+                            'period'       => $p,
+                            'time_slot'    => $periodTimings[$p],
+                            'subject_code' => 'FREE',
+                            'subject_name' => 'Free Period',
+                            'staff_name'   => '—',
+                            'topic'        => 'No Class Scheduled',
+                            'status'       => 'Free',
+                            'badge_class'  => 'bg-slate-800/80 text-slate-400 border border-slate-700/60'
+                        ];
+                    }
                 }
             }
 

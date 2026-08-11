@@ -132,6 +132,9 @@ class RemedialController extends Controller
         $output = [];
         foreach ($rooms as $room) {
             $classroom = DB::table('class_management')->where('classroom_id', $room->classroom_id)->first();
+            if (!$classroom) {
+                $classroom = DB::table('r26_class_management')->where('classroom_id', $room->classroom_id)->first();
+            }
             $subject = DB::table('batch_subjects')->where('subject_code', $room->subject_code)->where('classroom_id', $room->classroom_id)->first();
             
             $lecturer = DB::table('staff_profiles')->where('mobile_no', $room->created_by_mobile)->first();
@@ -175,6 +178,9 @@ class RemedialController extends Controller
         if (!$room) return response()->json(['status' => 'ERROR', 'message' => 'Room not found.']);
 
         $classroom = DB::table('class_management')->where('classroom_id', $room->classroom_id)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $room->classroom_id)->first();
+        }
         $subject = DB::table('batch_subjects')->where('subject_code', $room->subject_code)->where('classroom_id', $room->classroom_id)->first();
 
         $studentList = [];

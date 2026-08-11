@@ -32,13 +32,15 @@ class MentoringController extends Controller
         $mobileNo = Session::get('userId');
         if (!$mobileNo) return [];
 
-        // As Tutor (Mentor-1) for classrooms
-        $asTutor = ClassManagement::where('tutor_mobile_no', $mobileNo)
-            ->pluck('classroom_id')->toArray();
+        // As Tutor (Mentor-1) for classrooms (R21 and R26)
+        $asTutor21 = ClassManagement::where('tutor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
+        $asTutor26 = DB::table('r26_class_management')->where('tutor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
+        $asTutor   = array_merge($asTutor21, $asTutor26);
 
-        // As Mentor-2 for classrooms
-        $asMentor2 = ClassManagement::where('mentor_mobile_no', $mobileNo)
-            ->pluck('classroom_id')->toArray();
+        // As Mentor-2 for classrooms (R21 and R26)
+        $asMentor21 = ClassManagement::where('mentor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
+        $asMentor26 = DB::table('r26_class_management')->where('mentor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
+        $asMentor2  = array_merge($asMentor21, $asMentor26);
 
         return array_unique(array_merge($asTutor, $asMentor2));
     }
@@ -1331,6 +1333,9 @@ class MentoringController extends Controller
 
             // ── Classroom info (includes current_semester) ───────────────────────
             $classroom = ClassManagement::where('classroom_id', $student->classroom_id)->first();
+            if (!$classroom) {
+                $classroom = DB::table('r26_class_management')->where('classroom_id', $student->classroom_id)->first();
+            }
             $currentSem = $classroom ? (int) $classroom->current_semester : 1;
 
             // ── Batch subjects ───────────────────────────────────────────────────
@@ -1843,9 +1848,13 @@ class MentoringController extends Controller
             ->get();
 
         // 2. Classrooms where staff is Tutor (Mentor-1) or Mentor-2
-        $classrooms = ClassManagement::where('tutor_mobile_no', $userId)
+        $cls21 = ClassManagement::where('tutor_mobile_no', $userId)
             ->orWhere('mentor_mobile_no', $userId)
             ->get();
+        $cls26 = DB::table('r26_class_management')->where('tutor_mobile_no', $userId)
+            ->orWhere('mentor_mobile_no', $userId)
+            ->get();
+        $classrooms = $cls21->concat($cls26);
 
         // 3. Pending Leaves for Staff's Classrooms
         $classroomIds = $classrooms->pluck('classroom_id')->toArray();

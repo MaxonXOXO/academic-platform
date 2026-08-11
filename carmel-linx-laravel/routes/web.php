@@ -500,7 +500,9 @@ Route::middleware(['web'])->group(function () {
     // Revision 2026 Practicum Virtual Classroom Management (Joint Theory + Lab)
     Route::get('/r26/classroom/practicum/{subjectId}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'show']);
     Route::get('/r26/classroom/practicum/course-file/{subjectId}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'viewCourseFile']);
+    Route::post('/api/r26/classroom/practicum/course-file/{subjectId}/save-doc', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveCourseFileDoc']);
     Route::get('/r26/classroom/practicum/{subjectId}/print-lesson-plan', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printLessonPlanPdf']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-timetable', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printClassroomTimetable']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'uploadSyllabus']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveLessonPlanRow']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save-all', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveAllLessonPlans']);
@@ -736,9 +738,13 @@ Route::middleware(['web'])->group(function () {
         if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
         
         $dept = Session::get('userBranch');
-        $batches = DB::table('class_management')
+        $batches2021 = DB::table('class_management')
             ->where('branch', $dept)
             ->get();
+        $batches2026 = DB::table('r26_class_management')
+            ->where('branch', $dept)
+            ->get();
+        $batches = $batches2021->concat($batches2026);
 
         return view('hod_report_centre', [
             'batches' => $batches
@@ -750,9 +756,13 @@ Route::middleware(['web'])->group(function () {
         if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
         
         $dept = Session::get('userBranch');
-        $batches = DB::table('class_management')
+        $batches2021 = DB::table('class_management')
             ->where('branch', $dept)
             ->get();
+        $batches2026 = DB::table('r26_class_management')
+            ->where('branch', $dept)
+            ->get();
+        $batches = $batches2021->concat($batches2026);
             
         return view('hod_workload_panel', [
             'department' => $dept,
@@ -797,6 +807,9 @@ Route::middleware(['web'])->group(function () {
         
         $classroomId = $request->input('classroom_id');
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
         if (!$classroom) {
             abort(404, 'Classroom not found.');
         }
@@ -923,6 +936,9 @@ Route::middleware(['web'])->group(function () {
         $classroomId = $request->input('classroom_id');
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
         if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
+        if (!$classroom) {
             abort(404, 'Classroom not found.');
         }
         $classroom->branch = getFullBranchName($classroom->branch);
@@ -998,6 +1014,9 @@ Route::middleware(['web'])->group(function () {
         $classroomId = $request->input('classroom_id');
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
         if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
+        if (!$classroom) {
             abort(404, 'Classroom not found.');
         }
         $classroom->branch = getFullBranchName($classroom->branch);
@@ -1066,6 +1085,9 @@ Route::middleware(['web'])->group(function () {
         $semester = $request->input('semester', 'all'); // 'all', '1', '2', '3', etc.
         
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
         if (!$classroom) {
             abort(404, 'Classroom not found.');
         }

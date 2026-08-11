@@ -152,43 +152,49 @@
             background-color: rgba(55, 65, 81, 0.35) !important;
         }
 
-        /* Strict Minimum Font Size Policy Compliance */
-        input, select, textarea, button, table, td, th, label, p, span, div {
-            font-size: 0.9375rem !important; /* 15px minimum for high readability */
+        /* Dashboard Typography & Compact Form Controls */
+        body {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* Compact Table Typography */
+        table th {
+            font-size: 0.75rem !important;
+            padding: 0.45rem 0.6rem !important;
+        }
+
+        table td {
+            font-size: 0.8125rem !important;
+            padding: 0.4rem 0.6rem !important;
         }
 
         /* Compact Font Size Specifically for 90-Hour Dense Lesson Planner */
         .lp-table input, .lp-table select, .lp-table td, .lp-table th, .lp-table span, .lp-table button {
-            font-size: 0.8125rem !important; /* 13px compact font for high density */
+            font-size: 0.8125rem !important;
             padding-top: 0.25rem !important;
             padding-bottom: 0.25rem !important;
         }
 
-        /* Specific header elements requested by user to be compact */
+        /* Header Elements */
         .header-subtitle, .header-subtitle span {
-            font-size: 0.8125rem !important; /* 13px compact font */
+            font-size: 0.8125rem !important;
         }
 
         .table-compact-header th, .table-compact-header tr th {
-            font-size: 0.75rem !important; /* 12px font size for compact table headers */
+            font-size: 0.75rem !important;
             padding-top: 0.35rem !important;
             padding-bottom: 0.35rem !important;
         }
 
         .header-badge, .header-badge span, .header-badge div {
-            font-size: 0.8125rem !important; /* 13px compact font */
-            padding-top: 0.25rem !important;
-            padding-bottom: 0.25rem !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+            font-size: 0.75rem !important;
+            padding: 0.2rem 0.5rem !important;
         }
 
         .header-btn {
-            font-size: 0.8125rem !important; /* 13px compact font */
-            padding-top: 0.35rem !important;
-            padding-bottom: 0.35rem !important;
-            padding-left: 0.65rem !important;
-            padding-right: 0.65rem !important;
+            font-size: 0.8125rem !important;
+            padding: 0.35rem 0.65rem !important;
             border-radius: 8px !important;
             transition: all 0.2s ease !important;
         }
@@ -198,7 +204,7 @@
         }
 
         .header-btn span, .header-btn svg {
-            font-size: 0.8125rem !important; /* 13px compact font */
+            font-size: 0.8125rem !important;
         }
 
         /* Custom Scrollbars */
@@ -312,15 +318,15 @@
     <div class="max-w-[98%] mx-auto px-4 md:px-8 mt-3">
         <div class="glass-card p-3.5 rounded-xl border border-slate-800 flex items-center justify-between flex-wrap gap-3">
             
-            <!-- Hours & Assessment Details (Simple Inline without border blocks) -->
+            <!-- Hours & Assessment Details (Dynamic from Uploaded Syllabus) -->
             <div class="flex items-center space-x-3.5 flex-wrap gap-y-1.5 text-slate-300 header-subtitle">
-                <span>Theory: <span class="font-bold text-blue-400">45 Hrs</span> (L)</span>
+                <span>Theory: <span class="font-bold text-blue-400">{{ $theoryHours ?? 45 }} Hrs</span> (L)</span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>Practical: <span class="font-bold text-emerald-400">45 Hrs</span> (P)</span>
+                <span>Practical: <span class="font-bold text-emerald-400">{{ $practicalHours ?? 45 }} Hrs</span> (P)</span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>Total Schedule: <span class="font-bold text-purple-400">90 Hrs</span></span>
+                <span>Total Schedule: <span class="font-bold text-purple-400">{{ $practicumCourseFile->contact_hours ?? (($theoryHours ?? 45) + ($practicalHours ?? 45)) }} Hrs</span></span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>CIA: <span class="font-bold text-amber-400">40M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-indigo-400">{{ $practicumCourseFile->ese_marks }}M</span></span>
+                <span>CIE: <span class="font-bold text-amber-400">{{ $practicumCourseFile->cie_marks ?? 40 }}M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-indigo-400">{{ $practicumCourseFile->ese_marks ?? 60 }}M</span></span>
             </div>
 
             <!-- Action Controls -->
@@ -357,13 +363,13 @@
     <!-- 3. TOP-LEVEL DUAL MODE SWITCHER -->
     <main class="max-w-[98%] mx-auto px-4 md:px-8 mt-4">
         
-        <div class="glass-panel p-2 rounded-xl mb-5 flex items-center justify-center space-x-3">
-            <button onclick="switchMode('theory')" id="mode-btn-theory" class="mode-btn active w-1/2 py-3 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 text-base">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <div class="glass-panel p-1.5 rounded-xl mb-4 flex items-center justify-center space-x-2 max-w-3xl mx-auto">
+            <button onclick="switchMode('theory')" id="mode-btn-theory" class="mode-btn active w-1/2 py-2 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                 <span>📖 Virtual Theory Classroom</span>
             </button>
-            <button onclick="switchMode('lab')" id="mode-btn-lab" class="mode-btn w-1/2 py-3 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center justify-center space-x-2 text-base">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <button onclick="switchMode('lab')" id="mode-btn-lab" class="mode-btn w-1/2 py-2 rounded-lg font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center justify-center space-x-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 <span>🔬 Virtual Lab</span>
             </button>
         </div>
@@ -404,7 +410,7 @@
                         <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-3">
                             <div class="flex items-center justify-between gap-2 whitespace-nowrap">
                                 <h3 class="font-bold text-emerald-400 text-base whitespace-nowrap">🔬 Practical Lab Experiments Summary</h3>
-                                <span class="text-xs px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20 whitespace-nowrap flex-shrink-0">45 P Hours</span>
+                                <span class="text-xs px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20 whitespace-nowrap flex-shrink-0">{{ $practicalHours ?? 45 }} P Hours</span>
                             </div>
                             <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
                                 @foreach(($practicumCourseFile->parsed_experiments ?? []) as $exp)
@@ -473,8 +479,8 @@
             <div id="theory-subcontent-planner" class="glass-card p-5 rounded-xl border border-slate-800 hidden space-y-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
-                        <h3 class="text-lg font-bold text-white">Practicum Theory Lesson Planner (45 Hours Schedule)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5">Includes 45 Theory Lecture Hours (L) and 4 Theory Series Exams (ST).</p>
+                        <h3 class="text-lg font-bold text-white">Practicum Theory Lesson Planner ({{ $theoryHours ?? 45 }} Hours Schedule)</h3>
+                        <p class="text-slate-400 text-xs mt-0.5">Includes {{ $theoryHours ?? 45 }} Theory Lecture Hours (L) and Series Exams (ST).</p>
                     </div>
                     <div class="flex items-center space-x-3">
                         <button onclick="saveAllLessonPlans()" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5">
@@ -505,7 +511,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 text-sm">
-                            @foreach($lessonPlans->whereIn('mode', ['L', 'ST'])->take(45) as $plan)
+                            @foreach($lessonPlans->whereIn('mode', ['L', 'ST']) as $plan)
                             <tr id="lp-row-{{ $plan->id }}" data-plan-id="{{ $plan->id }}" class="hover:bg-slate-800/30 transition-all">
                                 <td class="p-2.5 font-normal text-center text-white">{{ $plan->day_no }}</td>
                                 <td class="p-2.5">
@@ -1207,7 +1213,7 @@
             <div id="lab-subcontent-planner" class="glass-card p-5 rounded-xl border border-slate-800 hidden space-y-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
-                        <h3 class="text-lg font-bold text-white">Practical Sessions Planner (45 P Hours)</h3>
+                        <h3 class="text-lg font-bold text-white">Practical Sessions Planner ({{ $practicalHours ?? 45 }} P Hours)</h3>
                         <p class="text-slate-400 text-xs mt-0.5">Interactive lab session planner. Evaluates topics/experiments, proposed/actual dates, sub-batches, and remarks.</p>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -1240,7 +1246,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 text-sm">
                             @php
-                                $labPlans = $lessonPlans->whereIn('mode', ['P', 'SP'])->values()->take(45);
+                                $labPlans = $lessonPlans->whereIn('mode', ['P', 'SP'])->values();
                                 $labSessions = $labPlans->chunk(3);
                             @endphp
                             @forelse($labSessions as $sIdx => $block)
@@ -1571,7 +1577,50 @@
 
         </div>
 
-    </main>
+    <!-- Upload Syllabus Modal -->
+    <div id="syllabus-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-4">
+        <div class="glass-card max-w-lg w-full p-6 rounded-2xl border border-slate-800 space-y-5 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Upload Practicum Syllabus PDF</h3>
+                        <p class="text-xs text-slate-400">Extracts modules, experiments, COs & CO-PO matrix automatically</p>
+                    </div>
+                </div>
+                <button onclick="closeSyllabusModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="uploadSyllabusForm" onsubmit="uploadSyllabusPdf(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Select Syllabus PDF File (Max 10MB)</label>
+                    <input type="file" id="syllabus_file_input" name="syllabus_file" accept=".pdf" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:border-blue-500 outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-300 hover:file:bg-blue-600/35 cursor-pointer">
+                </div>
+
+                <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 space-y-1">
+                    <div class="font-bold flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>SITTTR R2026 Practicum PDF Parser</span>
+                    </div>
+                    <p class="text-slate-400 text-[11px] leading-relaxed">
+                        Uploaded syllabus will dynamically update Course File metadata, Theory Modules, Practical Experiments, Course Outcomes (COs), CIE & ESE Marks, and CO-PO matrix mapping.
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="closeSyllabusModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 transition-all">Cancel</button>
+                    <button type="submit" id="btnUploadSyllabusSubmit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all flex items-center space-x-2 shadow-lg shadow-blue-600/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        <span>Parse & Upload PDF</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Customize Self-Learning Activities Modal -->
     <div id="sl-config-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden p-4">
@@ -1842,6 +1891,59 @@
 
         function openSyllabusModal() { document.getElementById('syllabus-modal').classList.remove('hidden'); }
         function closeSyllabusModal() { document.getElementById('syllabus-modal').classList.add('hidden'); }
+
+        async function uploadSyllabusPdf(e) {
+            if (e) e.preventDefault();
+            const fileInput = document.getElementById('syllabus_file_input');
+            if (!fileInput || !fileInput.files.length) {
+                Swal.fire('Required', 'Please select a syllabus PDF file to upload.', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('syllabus_file', fileInput.files[0]);
+
+            const submitBtn = document.getElementById('btnUploadSyllabusSubmit');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Parsing PDF...</span>
+            `;
+
+            try {
+                const response = await fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/syllabus', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.status === 'SUCCESS') {
+                    closeSyllabusModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Uploaded!',
+                        text: data.message || 'Practicum syllabus uploaded and parsed successfully!',
+                        confirmButtonColor: '#2563eb'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Parsing Failed', data.message || 'Unable to parse syllabus PDF.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Upload Error', err.message || 'Network error while uploading syllabus.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
 
         function openSlConfigModal() { document.getElementById('sl-config-modal').classList.remove('hidden'); }
         function closeSlConfigModal() { document.getElementById('sl-config-modal').classList.add('hidden'); }

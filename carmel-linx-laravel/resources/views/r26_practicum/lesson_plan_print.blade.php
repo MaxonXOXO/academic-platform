@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Practicum Lesson Planner (90 Hours) - {{ $batchSubject->subject_name }}</title>
+    <title>Practicum Lesson Planner ({{ $practicumCourseFile->contact_hours ?? 90 }} Hours) - {{ $batchSubject->subject_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -29,7 +29,7 @@
     <!-- Print Button -->
     <div class="no-print mb-6 flex items-center justify-between bg-slate-100 p-4 rounded-xl border border-slate-300">
         <div>
-            <h2 class="font-bold text-slate-800 text-lg">Practicum Combined Lesson Planner (90 Hours Schedule)</h2>
+            <h2 class="font-bold text-slate-800 text-lg">Practicum Combined Lesson Planner ({{ $practicumCourseFile->contact_hours ?? 90 }} Hours Schedule)</h2>
             <p class="text-slate-600 text-sm">Official print-ready course plan covering Theory (L), Practical (P), and Series Tests (ST/SP).</p>
         </div>
         <div class="flex items-center space-x-3">
@@ -48,7 +48,7 @@
     <div class="border-b-2 border-slate-900 pb-3 mb-5 text-center space-y-1">
         <h1 class="text-xl font-bold uppercase tracking-wider text-slate-900">CARMEL POLYTECHNIC COLLEGE, PUNNAPRA</h1>
         <h2 class="text-sm font-bold text-slate-700 uppercase">DEPARTMENT OF {{ strtoupper($departmentName) }}</h2>
-        <h3 class="text-xs font-bold text-blue-900 uppercase">PRACTICUM COMBINED LESSON PLANNER (90 HOURS SCHEDULE)</h3>
+        <h3 class="text-xs font-bold text-blue-900 uppercase">PRACTICUM COMBINED LESSON PLANNER ({{ $practicumCourseFile->contact_hours ?? 90 }} HOURS SCHEDULE)</h3>
     </div>
 
     <!-- Metadata Grid -->

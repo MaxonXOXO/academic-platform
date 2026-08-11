@@ -26,6 +26,9 @@ class StudentAttendanceController extends Controller
 
         // Classroom & Tutor details
         $classroom = DB::table('class_management')->where('classroom_id', $student->classroom_id)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $student->classroom_id)->first();
+        }
         $tutor = null;
         if ($classroom && $classroom->tutor_mobile_no) {
             $tutor = DB::table('staff_profiles')->where('mobile_no', $classroom->tutor_mobile_no)->first();
@@ -191,6 +194,9 @@ class StudentAttendanceController extends Controller
 
         // Classroom & Tutor details
         $classroom = DB::table('class_management')->where('classroom_id', $student->classroom_id)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $student->classroom_id)->first();
+        }
         $tutor = null;
         if ($classroom && $classroom->tutor_mobile_no) {
             $tutor = DB::table('staff_profiles')->where('mobile_no', $classroom->tutor_mobile_no)->first();

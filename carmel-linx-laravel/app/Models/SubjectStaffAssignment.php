@@ -20,4 +20,9 @@ class SubjectStaffAssignment extends Model
     {
         return $this->belongsTo(StaffProfile::class, 'staff_mobile_no', 'mobile_no');
     }
+
+    public function staff()
+    {
+        return $this->belongsTo(StaffProfile::class, 'staff_mobile_no', 'mobile_no');
+    }
 }

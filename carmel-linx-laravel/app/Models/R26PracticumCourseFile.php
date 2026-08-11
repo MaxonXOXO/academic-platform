@@ -29,7 +29,8 @@ class R26PracticumCourseFile extends Model
         'parsed_experiments',
         'parsed_copo',
         'parsed_textbooks',
-        'self_learning_configs'
+        'self_learning_configs',
+        'doc_checklist'
     ];
 
     protected $casts = [
@@ -38,7 +39,8 @@ class R26PracticumCourseFile extends Model
         'parsed_experiments' => 'array',
         'parsed_copo' => 'array',
         'parsed_textbooks' => 'array',
-        'self_learning_configs' => 'array'
+        'self_learning_configs' => 'array',
+        'doc_checklist' => 'array'
     ];
 
     public function batchSubject()

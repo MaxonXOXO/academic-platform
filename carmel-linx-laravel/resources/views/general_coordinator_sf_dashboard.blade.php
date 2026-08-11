@@ -243,7 +243,7 @@
         <span class="material-symbols-rounded text-base">dashboard</span> Overview
       </button>
       <a href="/dashboard/lecturer" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-sky-400 hover:bg-sky-900/30 cursor-pointer no-underline block text-xs mobile-link">
-        <span class="material-symbols-rounded text-base">school</span> My Teaching Batches
+        <span class="material-symbols-rounded text-base">school</span> My Batches
       </a>
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-base">group</span> User Directory

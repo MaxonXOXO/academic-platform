@@ -242,9 +242,11 @@
       <button id="navDashboard" onclick="switchPanel('dashboard')" class="w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 text-xs mobile-link">
         <span class="material-symbols-rounded text-base">dashboard</span> Overview
       </button>
+
       <a href="/dashboard/lecturer" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-sky-400 hover:bg-sky-900/30 cursor-pointer no-underline block text-xs mobile-link">
-        <span class="material-symbols-rounded text-base">school</span> My Batches
+        <span class="material-symbols-rounded text-base">grid_view</span> My Batches
       </a>
+
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-base">group</span> User Directory
       </button>
@@ -266,8 +268,25 @@
         <span class="material-symbols-rounded text-base">diversity_3</span> My Mentoring
       </a>
       @endif
+
+      <a href="/staff/attendance-log" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block text-xs">
+        <span class="material-symbols-rounded text-base">co_present</span> Class Attendance Log
+      </a>
+
+      <a href="/remedial-sessions" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block text-xs">
+        <span class="material-symbols-rounded text-base">health_and_safety</span> Remedial Sessions
+      </a>
+
+      <a href="/course-files" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block text-xs">
+        <span class="material-symbols-rounded text-base">folder_open</span> Course Files (2021)
+      </a>
+
       <a href="/staff/mobile?mode=mobile" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-purple-400 hover:bg-purple-900/30 cursor-pointer no-underline block text-xs mobile-link">
         <span class="material-symbols-rounded text-base">event_note</span> My Leave & Attendance Log
+      </a>
+
+      <a href="/staff/professional-activities" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block text-xs">
+        <span class="material-symbols-rounded text-base">school</span> Professional Activities
       </a>
     </nav>
 
@@ -294,14 +313,29 @@
     <!-- Panel Container -->
     <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6">
       
-      <!-- PANEL 1: OVERVIEW -->
+      <!-- PANEL 1: OVERVIEW & MY BATCHES -->
       <div id="panelDashboard" class="space-y-6">
-        <div class="bg-slate-950/40 border border-slate-800/60 p-8 rounded-2xl text-center shadow-sm max-w-2xl mx-auto">
-          <span class="material-symbols-rounded text-blue-400 block mb-3 text-5xl">verified_user</span>
-          <h3 class="font-black text-slate-200 text-lg">General Department Coordinator (Aided) Console Connected</h3>
-          <p class="text-slate-400 text-[10px] mt-2 font-medium text-sm">
-            Welcome! As the selected Aided General Department Coordinator, you have HOD-like coordinates over academic staff assigned to General Department Aided.
-          </p>
+        <div class="bg-slate-950/40 border border-slate-800/60 p-6 rounded-2xl shadow-sm">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 class="font-black text-slate-100 text-lg flex items-center gap-2">
+                <span class="material-symbols-rounded text-blue-400">verified_user</span> General Department Coordinator (Aided) Console
+              </h3>
+              <p class="text-slate-400 text-xs mt-1">
+                Assigned batches &amp; common subject teaching cards across Aided branches (R2021 &amp; R2026).
+              </p>
+            </div>
+
+            <div class="flex items-center bg-slate-900 border border-slate-800 p-1 rounded-xl gap-1">
+              <button id="btnActiveBatches" onclick="filterBatches('active')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm">Active Batches</button>
+              <button id="btnHistoricalBatches" onclick="filterBatches('historical')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white">Historical</button>
+            </div>
+          </div>
+
+          <!-- Batch Grid -->
+          <div id="lecturerBatchGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full py-12 text-center text-slate-500 font-bold text-xs animate-pulse">Loading assigned batches...</div>
+          </div>
         </div>
       </div>
 
@@ -349,10 +383,147 @@
 
   <script>
     let activePanel = 'dashboard';
+    let currentDashboardFilter = 'active';
 
     document.addEventListener("DOMContentLoaded", () => {
+      loadLecturerBatches();
       if (activePanel === 'directory') loadUsers();
     });
+
+    function filterBatches(status) {
+      currentDashboardFilter = status;
+      const btnActive = document.getElementById('btnActiveBatches');
+      const btnHist = document.getElementById('btnHistoricalBatches');
+      if (status === 'active') {
+        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm";
+        btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white";
+      } else {
+        btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm";
+        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white";
+      }
+      loadLecturerBatches();
+    }
+
+    function loadLecturerBatches() {
+      const grid = document.getElementById('lecturerBatchGrid');
+      if (!grid) return;
+      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 font-bold text-xs animate-pulse">Loading assigned batches...</div>';
+
+      fetch(`/api/lecturer/my-batches?status=${currentDashboardFilter}`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          renderBatchCards(data.batches);
+        } else {
+          grid.innerHTML = `<div class="col-span-full p-4 bg-red-950/40 text-red-400 border border-red-900 rounded-xl text-xs">${data.message}</div>`;
+        }
+      })
+      .catch(() => {
+        grid.innerHTML = `<div class="col-span-full p-4 bg-red-950/40 text-red-400 border border-red-900 rounded-xl text-xs">Error loading batches.</div>`;
+      });
+    }
+
+    function renderBatchCards(batches) {
+      const grid = document.getElementById('lecturerBatchGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      if (batches.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-slate-950/40 border border-slate-800/60 p-8 rounded-2xl text-center shadow-sm max-w-2xl mx-auto">
+            <span class="material-symbols-rounded text-5xl text-slate-700 mb-3">sentiment_dissatisfied</span>
+            <p class="font-bold text-slate-300 text-sm">No batches assigned</p>
+            <p class="text-xs text-slate-500 mt-1">You have not been assigned as a Tutor, Mentor, or Subject Staff for any batches yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      batches.forEach(b => {
+        let rolesHtml = '';
+        b.roles.forEach(r => {
+          let color = 'slate';
+          if (r === 'Tutor') color = 'sky';
+          if (r === 'Mentor') color = 'emerald';
+          if (r === 'Subject Staff') color = 'violet';
+          rolesHtml += `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-${color}-500/10 text-${color}-400 border border-${color}-500/20">${r}</span>`;
+        });
+
+        let subjectsHtml = '';
+        if (b.subjects && b.subjects.length > 0) {
+          b.subjects.forEach((s, idx) => {
+            let topicsPct = s.total_topics > 0 ? Math.round((s.covered_topics / s.total_topics) * 100) : 0;
+            let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
+            let barPct    = topicsPct || hoursPct;
+            let barColor  = barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400';
+
+            subjectsHtml += `
+              <div class="${idx > 0 ? 'pt-3' : ''} w-full">
+                <div class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-blue-500/50 hover:bg-slate-900 flex flex-col gap-2">
+                  <div class="flex justify-between items-center cursor-pointer" onclick="window.location.href='/dashboard/lecturer'">
+                    <div class="flex-1 min-w-0 pr-2">
+                      <div class="text-base font-extrabold text-slate-200 group-hover:text-blue-400 transition-premium truncate">${s.name}</div>
+                      <div class="text-xs text-slate-400 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${s.code}</div>
+                    </div>
+                    <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-base transition-premium flex-shrink-0">open_in_new</span>
+                  </div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <div class="flex-1 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
+                      <div class="bg-gradient-to-r ${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${barPct}%"></div>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-400 whitespace-nowrap flex-shrink-0">${s.engaged_hours}/${s.total_hours} hrs</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        } else {
+          subjectsHtml = `<div class="text-xs text-slate-500 italic px-2 py-2">No subjects assigned in this batch.</div>`;
+        }
+
+        const card = document.createElement('div');
+        let yearBorderColor = 'border-t-violet-500';
+        if (b.batch_year % 3 === 0) yearBorderColor = 'border-t-sky-500';
+        else if (b.batch_year % 3 === 1) yearBorderColor = 'border-t-emerald-500';
+        
+        card.className = `bg-slate-950/40 border border-slate-800/80 ${yearBorderColor} border-t-[3px] rounded-2xl overflow-hidden flex flex-col transition-premium hover:shadow-xl hover:shadow-black/50 hover:border-slate-700/60`;
+        card.innerHTML = `
+          <div class="p-4 border-b border-slate-800/60 bg-slate-900/40">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                  <h4 class="font-black text-slate-100 text-lg tracking-tight">Admission ${b.batch_year}</h4>
+                  ${b.branch ? `<span class="px-2 py-0.5 bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.branch}</span>` : ''}
+                  <span class="px-2 py-0.5 bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.scheme || (b.classroom_id && b.classroom_id.includes('2026') ? 'R2026' : 'R2021')}</span>
+                  ${(b.current_semester || 1) > 6
+                    ? `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-bold text-sm select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`
+                    : `<span class="px-2.5 py-0.5 bg-indigo-600/80 text-white rounded-lg font-bold text-sm select-none">S-${b.current_semester || 1}</span>`
+                  }
+                </div>
+                <span class="inline-block px-2.5 py-0.5 bg-slate-800 border border-slate-600/60 rounded-lg font-mono text-sm font-bold text-slate-300 tracking-wide">${b.classroom_id}</span>
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <div class="flex flex-wrap gap-1 justify-end">${rolesHtml}</div>
+                <span class="flex items-center gap-1 text-xs font-bold text-slate-400 mt-1">
+                  <span class="material-symbols-rounded" style="font-size:13px">group</span>${b.student_count || 0} students
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-4 flex-grow space-y-3 bg-slate-950/20">
+            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span class="material-symbols-rounded text-xs">book</span> Assigned Subjects</h5>
+            <div class="space-y-3 divide-y divide-slate-800/80">
+              ${subjectsHtml}
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
 
     function switchPanel(panelId) {
       activePanel = panelId;

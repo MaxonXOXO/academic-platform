@@ -206,6 +206,9 @@
             color: #fcd34d !important;
             font-weight: 700 !important;
             border-color: rgba(245, 158, 11, 0.4) !important;
+            min-width: 75px !important;
+            text-align: center !important;
+            text-align-last: center !important;
         }
 
         .lp-table select[id^="lp-co-"] option {
@@ -538,18 +541,18 @@
                 </div>
  
                 <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
-                    <table class="w-full text-left border-collapse lp-table">
+                    <table class="w-full min-w-[1050px] text-left border-collapse lp-table">
                         <thead class="sticky top-0 z-10 bg-slate-900 shadow">
                             <tr class="border-b border-slate-800 text-slate-400 font-normal text-xs uppercase tracking-wider">
-                                <th class="p-3 w-16 text-center">Day/Hr</th>
-                                <th class="p-3 w-36">Pedagogy</th>
-                                <th class="p-3 w-32">Proposed Date</th>
-                                <th class="p-3 w-32">Actual Date</th>
-                                <th class="p-3 w-[40%]">Topic & Content Description</th>
-                                <th class="p-3 w-28 text-center">CO</th>
-                                <th class="p-3 w-32">Sub-Batch</th>
-                                <th class="p-3 w-24 text-center">Hours Needed</th>
-                                <th class="p-3 w-32">Remarks</th>
+                                <th class="p-3 w-16 min-w-[65px] text-center">Day/Hr</th>
+                                <th class="p-3 w-36 min-w-[140px]">Pedagogy</th>
+                                <th class="p-3 w-32 min-w-[130px]">Proposed Date</th>
+                                <th class="p-3 w-32 min-w-[130px]">Actual Date</th>
+                                <th class="p-3 min-w-[280px]">Topic & Content Description</th>
+                                <th class="p-3 w-28 min-w-[90px] text-center">CO</th>
+                                <th class="p-3 w-32 min-w-[120px]">Sub-Batch</th>
+                                <th class="p-3 w-24 min-w-[100px] text-center">Hours Needed</th>
+                                <th class="p-3 w-32 min-w-[130px]">Remarks</th>
                             </tr>
                         </thead>
                         <tbody id="lp-theory-tbody" class="divide-y divide-slate-800/60 text-sm">
@@ -1287,18 +1290,18 @@
                 </div>
  
                 <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
-                    <table class="w-full text-left border-collapse lp-table">
+                    <table class="w-full min-w-[1050px] text-left border-collapse lp-table">
                         <thead class="sticky top-0 z-10 bg-slate-900 shadow">
                             <tr class="border-b border-slate-800 text-slate-400 font-normal text-xs uppercase tracking-wider">
-                                <th class="p-3 w-16 text-center">Day/Hr</th>
-                                <th class="p-3 w-36">Pedagogy</th>
-                                <th class="p-3 w-32">Proposed Date</th>
-                                <th class="p-3 w-32">Actual Date</th>
-                                <th class="p-3 w-[40%]">Topic & Content Description</th>
-                                <th class="p-3 w-24 text-center">CO</th>
-                                <th class="p-3 w-32">Sub-Batch</th>
-                                <th class="p-3 w-24 text-center">Hours Needed</th>
-                                <th class="p-3 w-32">Remarks</th>
+                                <th class="p-3 w-16 min-w-[65px] text-center">Day/Hr</th>
+                                <th class="p-3 w-36 min-w-[140px]">Pedagogy</th>
+                                <th class="p-3 w-32 min-w-[130px]">Proposed Date</th>
+                                <th class="p-3 w-32 min-w-[130px]">Actual Date</th>
+                                <th class="p-3 min-w-[280px]">Topic & Content Description</th>
+                                <th class="p-3 w-28 min-w-[90px] text-center">CO</th>
+                                <th class="p-3 w-32 min-w-[120px]">Sub-Batch</th>
+                                <th class="p-3 w-24 min-w-[100px] text-center">Hours Needed</th>
+                                <th class="p-3 w-32 min-w-[130px]">Remarks</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 text-sm">

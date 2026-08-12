@@ -1528,8 +1528,7 @@ class R26VirtualClassroomDrawingController extends Controller
         $exercises = $drawingCourseFile->parsed_exercises ?? [];
 
         // Fetch all Slot Evals for this subject
-        $slotEvals = DB::table('r26_drawing_slot_evals')
-            ->where('batch_subject_id', $subjectId)
+        $slotEvals = R26DrawingSlotEvaluation::where('batch_subject_id', $subjectId)
             ->get()
             ->groupBy('reg_no');
 
@@ -1546,13 +1545,7 @@ class R26VirtualClassroomDrawingController extends Controller
                 $evalRec = $stEvals->firstWhere('exercise_no', $exNo);
 
                 if ($evalRec) {
-                    $p1 = $evalRec->prep_setup ?? 0;
-                    $p2 = $evalRec->drawing_execution ?? 0;
-                    $p3 = $evalRec->accuracy_standards ?? 0;
-                    $p4 = $evalRec->cad_drafting ?? 0;
-                    $p5 = $evalRec->viva_voce ?? 0;
-                    $p6 = $evalRec->timely_completion ?? 0;
-                    $tot = $p1 + $p2 + $p3 + $p4 + $p5 + $p6;
+                    $tot = floatval($evalRec->total_score_50 ?? 0);
                     $exScores[$exNo] = $tot;
                     $totalScoredSum += $tot;
                     $exCount++;

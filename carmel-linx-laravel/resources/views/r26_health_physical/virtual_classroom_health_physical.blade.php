@@ -72,9 +72,11 @@
     <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-6 py-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
-                <a href="/dashboard/lecturer" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition">
-                    <i class="fa-solid fa-arrow-left text-sm"></i>
-                </a>
+                <div class="flex items-center gap-2 shrink-0">
+                    <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
+                    <span class="font-extrabold text-white text-sm tracking-tight">Carmel Linx</span>
+                    <span class="text-slate-600 font-bold">|</span>
+                </div>
                 <div>
                     <div class="flex items-center space-x-3">
                         <h1 class="text-xl font-bold font-display tracking-tight text-white">
@@ -98,6 +100,10 @@
                     <i class="fa-solid fa-file-pdf"></i>
                     <span>Upload Syllabus PDF</span>
                 </button>
+                <a href="/dashboard/lecturer" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold text-[11px] transition border border-rose-500/30 flex items-center space-x-1.5 no-underline" title="Dashboard">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                    <span>Dashboard</span>
+                </a>
             </div>
         </div>
     </header>

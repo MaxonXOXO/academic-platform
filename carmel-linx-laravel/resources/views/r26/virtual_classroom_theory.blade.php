@@ -162,7 +162,7 @@
         <div>
           <div class="text-sm font-bold tracking-tight text-title flex items-center gap-1.5">
             <span>Carmel Linx</span>
-            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">{{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}</span>
+            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-sky-500/15 text-sky-400 border border-sky-500/30 rounded">{{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}</span>
             @php $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled(); @endphp
             @if($isAiActive)
               <span class="px-2 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 rounded-md text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI Active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span> AI Active</span>

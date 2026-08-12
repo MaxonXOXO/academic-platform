@@ -94,19 +94,43 @@
         .transition-premium {
             transition: all 0.2s ease-in-out;
         }
-    </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    @php
+        $role = Session::get('userRole');
+        $dashboardUrl = '/dashboard/lecturer';
+        if ($role === 'HOD') {
+            $dashboardUrl = '/dashboard/hod';
+        } elseif ($role === 'Principal') {
+            $dashboardUrl = '/dashboard/principal';
+        } elseif ($role === 'Demonstrator') {
+            $dashboardUrl = '/dashboard/demonstrator';
+        } elseif ($role === 'Super_Admin') {
+            $dashboardUrl = '/dashboard/superadmin';
+        } elseif ($role === 'Admin') {
+            $dashboardUrl = '/dashboard/admin';
+        } elseif ($role === 'Gen_Dept_Coordinator_Aided') {
+            $dashboardUrl = '/dashboard/general-coordinator-aided';
+        } elseif ($role === 'Gen_Dept_Coordinator_Self_Finance') {
+            $dashboardUrl = '/dashboard/general-coordinator-sf';
+        } elseif ($role === 'Trade_Instructor') {
+            $dashboardUrl = '/dashboard/tradeinstructor';
+        } elseif ($role === 'Workshop_Superintendent') {
+            $dashboardUrl = '/dashboard/workshop';
+        }
+    @endphp
 
     <!-- Top Compact Header -->
     <header class="glass-panel mx-2 mt-2 px-4 py-2.5 flex items-center justify-between shadow-xl relative z-40">
         <div class="flex items-center gap-3">
-            <a href="/dashboard/lecturer" class="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-premium">
-                <i class="fa-solid fa-arrow-left text-xs"></i>
-            </a>
+            <div class="flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
+                <span class="font-extrabold text-white text-sm tracking-tight">Carmel Linx</span>
+                <span class="text-slate-600 font-bold">|</span>
+            </div>
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    <span class="px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm">
                         VIRTUAL LAB ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
                     </span>
                     <span class="text-[11px] text-cyan-400 font-mono font-bold">{{ $batchSubject->subject_code }}</span>
@@ -120,38 +144,77 @@
                 <i class="fa-solid fa-expand text-[11px]"></i> <span class="hidden sm:inline">Fullscreen</span>
             </button>
 
-            <a href="/classroom/practical/{{ $batchSubject->id }}/report/print" target="_blank" class="px-3 py-1.5 bg-emerald-600/20 border border-emerald-500/30 hover:bg-emerald-600/35 text-emerald-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
+            <a href="/classroom/practical/{{ $batchSubject->id }}/report/print" target="_blank" class="px-3 py-1.5 bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/20 text-sky-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
                 <i class="fa-solid fa-print text-[11px]"></i> <span class="hidden sm:inline">Print CIA Report</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.close(); setTimeout(function() { let ref = document.referrer; if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) { window.location.href = ref; } else { window.location.href = '{{ $dashboardUrl }}'; } }, 150);" class="px-2.5 py-1 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold text-[11px] transition border border-rose-500/30 flex items-center gap-1 cursor-pointer no-underline" title="Dashboard">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                <span>Dashboard</span>
             </a>
         </div>
     </header>
 
-    <!-- Top Compact Navigation & Batch Filter Bar -->
+    <style>
+        .drawing-hall-tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 12px;
+            background: #090d16;
+            border: 1px solid rgba(51, 65, 85, 0.7);
+        }
+        .drawing-hall-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            background: transparent;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .drawing-hall-tab-btn:hover {
+            color: #f1f5f9;
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .drawing-hall-tab-btn.active {
+            color: #ffffff !important;
+            background: #0f172a !important;
+            border: 1.5px solid #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) !important;
+            font-weight: 700 !important;
+        }
+    </style>
+
+    <!-- Top Navigation & Batch Filter Bar (Exact Drawing Hall 2026 Style) -->
     <div class="glass-panel mx-2 mt-2 p-2 flex flex-wrap items-center justify-between gap-2 z-30">
-        <!-- Horizontal Tabs -->
-        <div class="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
-            <button onclick="switchTab('table22')" id="btn-table22" class="tab-btn px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 font-medium text-xs transition flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-flask text-xs"></i>
-                <span>Lab Work Log</span>
-                <span class="text-[10px] bg-blue-500/20 px-1.5 py-0.2 rounded text-blue-300 font-mono">Table 2.2</span>
+        <!-- Horizontal Tabs (Drawing Hall 2026 Style) -->
+        <div class="drawing-hall-tab-bar rounded-xl flex-1">
+            <button onclick="switchTab('table22')" id="btn-table22" class="drawing-hall-tab-btn tab-btn active">
+                <i class="fa-solid fa-pen-ruler text-sky-400"></i>
+                <span>Continuous Eval (CE 30M)</span>
             </button>
 
-            <button onclick="switchTab('table23')" id="btn-table23" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-slate-900/80 text-slate-400 font-medium text-xs transition flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-lightbulb text-xs"></i>
-                <span>Open-Ended Projects</span>
-                <span class="text-[10px] bg-slate-800 px-1.5 py-0.2 rounded text-slate-400 font-mono">Table 2.3</span>
+            <button onclick="switchTab('table23')" id="btn-table23" class="drawing-hall-tab-btn tab-btn">
+                <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                <span>Open-Ended (10M)</span>
             </button>
 
-            <button onclick="switchTab('table31')" id="btn-table31" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-slate-900/80 text-slate-400 font-medium text-xs transition flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-file-signature text-xs"></i>
-                <span>Series Practical Tests</span>
-                <span class="text-[10px] bg-slate-800 px-1.5 py-0.2 rounded text-slate-400 font-mono">Table 3.1</span>
+            <button onclick="switchTab('table31')" id="btn-table31" class="drawing-hall-tab-btn tab-btn">
+                <i class="fa-solid fa-pen-to-square text-blue-400"></i>
+                <span>Practical Tests (15M)</span>
             </button>
 
-            <button onclick="switchTab('summary')" id="btn-summary" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-slate-900/80 text-slate-400 font-medium text-xs transition flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-award text-xs"></i>
-                <span>CIA Consolidated</span>
-                <span class="text-[10px] bg-emerald-500/20 px-1.5 py-0.2 rounded text-emerald-400 font-mono font-bold">60 M</span>
+            <button onclick="switchTab('summary')" id="btn-summary" class="drawing-hall-tab-btn tab-btn">
+                <i class="fa-solid fa-chart-pie text-purple-400"></i>
+                <span>Consolidated CIE & Reports (60M)</span>
             </button>
         </div>
 
@@ -385,7 +448,7 @@
         <div id="tab-summary" class="tab-content glass-panel p-4 hidden">
             <div class="pb-3 border-b border-slate-800/80">
                 <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-award text-emerald-400 text-xs"></i> Lab CIA Consolidated Summary Sheet
+                    <i class="fa-solid fa-award text-sky-400 text-xs"></i> Lab CIA Consolidated Summary Sheet
                 </h2>
                 <p class="text-[11px] text-slate-400">Real-time consolidated continuous internal assessment breakdown (out of 60 marks).</p>
             </div>
@@ -426,8 +489,8 @@
                             <td class="text-center font-mono text-blue-400 text-xs" id="cia-lab-work-{{ $student->reg_no }}">{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-purple-400 text-xs" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-amber-400 text-xs" id="cia-open-{{ $student->reg_no }}">{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
-                            <td class="text-center font-mono text-emerald-400 text-xs">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 5 }}</td>
-                            <td class="text-center font-mono font-semibold text-xs text-emerald-400" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_60'] ?? '0.00' }}</td>
+                            <td class="text-center font-mono text-sky-400 text-xs">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 5 }}</td>
+                            <td class="text-center font-mono font-bold text-xs text-cyan-300" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_60'] ?? '0.00' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -552,14 +615,12 @@
             activeTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-blue-600/20', 'border-blue-500/40', 'text-blue-400');
-                el.classList.add('hover:bg-slate-900/80', 'text-slate-400');
+                el.classList.remove('active');
             });
 
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             const btn = document.getElementById('btn-' + tabId);
-            btn.classList.remove('hover:bg-slate-900/80', 'text-slate-400');
-            btn.classList.add('bg-blue-600/20', 'border-blue-500/40', 'text-blue-400');
+            if (btn) btn.classList.add('active');
         }
 
         // Enable standard HTML5 Fullscreen mode

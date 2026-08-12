@@ -914,12 +914,11 @@
     <!-- Top Header Card (Stable Always) -->
     <header class="h-16 shrink-0 sticky top-0 z-30 border-b border-slate-800/60 bg-slate-900/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shadow-md">
       <div class="flex items-center gap-3 min-w-0">
-        <button id="headerBackBtn" onclick="switchPanel('dashboard')" class="hidden items-center gap-2.5 px-3 py-1.5 bg-slate-950/90 hover:bg-slate-900 text-slate-200 hover:text-white border border-slate-700/80 hover:border-blue-500/50 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shadow-md group shrink-0" title="Return to Main Dashboard">
-          <div class="w-6 h-6 rounded-lg bg-blue-500/15 group-hover:bg-blue-500/25 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:text-blue-300 transition-all shadow-inner">
-            <span class="material-symbols-rounded text-sm">arrow_back</span>
-          </div>
-          <span class="hidden sm:inline font-extrabold text-[10px] md:text-[11px] tracking-wider uppercase text-slate-300 group-hover:text-blue-300">Back to Dashboard</span>
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="material-symbols-rounded text-sky-400 text-xl">school</span>
+          <span class="font-extrabold text-white text-base tracking-tight">Carmel Linx</span>
+          <span class="text-slate-600 font-bold">|</span>
+        </div>
         <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg md:text-2xl truncate flex items-center gap-2">My Batches</h1>
       </div>
       <div class="flex items-center gap-2 md:gap-3 shrink-0">
@@ -928,6 +927,10 @@
         <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-premium cursor-pointer" title="Toggle Light/Dark Theme">
           <span id="themeToggleIcon" class="material-symbols-rounded text-lg">light_mode</span>
           <span id="themeToggleText" class="text-xs font-bold uppercase tracking-wider hidden sm:inline">Light Mode</span>
+        </button>
+        <button id="headerBackBtn" onclick="switchPanel('dashboard')" class="hidden items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer shadow-sm group shrink-0" title="Return to Main Dashboard">
+          <span class="material-symbols-rounded text-xs text-rose-400">arrow_back</span>
+          <span class="hidden sm:inline font-bold text-[11px] tracking-wide text-rose-400 group-hover:text-rose-300">Dashboard</span>
         </button>
       </div>
     </header>
@@ -1074,6 +1077,9 @@
                 </div>
                 <p class="text-sm font-bold text-slate-300">No syllabus loaded.</p>
                 <p class="text-sm mt-1.5 max-w-xs text-slate-400 leading-relaxed">Upload a syllabus PDF to automatically populate Course Outcomes, Modules, and Textbooks.</p>
+                <button onclick="document.getElementById('syllabusFileInput').click()" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center gap-2">
+                  <span class="material-symbols-rounded text-sm">upload_file</span> Upload Syllabus PDF
+                </button>
               </div>
             </div>
             
@@ -1695,11 +1701,14 @@
       }
 
       if (panelId === 'dashboard') {
-        document.getElementById('panelTitle').innerHTML = '<span class="font-extrabold text-slate-100">My Batches</span>';
+        const pTitle = document.getElementById('panelTitle');
+        if (pTitle) pTitle.innerHTML = '<span class="font-extrabold text-slate-100">My Batches</span>';
       } else if (panelId === 'security') {
-        document.getElementById('panelTitle').innerHTML = '<span class="font-extrabold text-slate-100">My Profile Security Log</span>';
+        const pTitle = document.getElementById('panelTitle');
+        if (pTitle) pTitle.innerHTML = '<span class="font-extrabold text-slate-100">My Profile Security Log</span>';
       } else if (panelId === 'mobileSeminar') {
-        document.getElementById('panelTitle').innerHTML = '<span class="font-black text-slate-100">Seminar Evaluation</span>';
+        const pTitle = document.getElementById('panelTitle');
+        if (pTitle) pTitle.innerHTML = '<span class="font-black text-slate-100">Seminar Evaluation</span>';
       }
 
       if (panelId === 'security') loadSecurityLogs();
@@ -1884,9 +1893,9 @@
         const pTitle = document.getElementById('panelTitle');
         if (pTitle) {
           if (isSeminar) {
-            pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-emerald-400 text-lg">co_present</span> Virtual Seminar Room</span>`;
+            pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-indigo-400 text-lg">co_present</span> Virtual Seminar Room</span>`;
           } else if (isPractical) {
-            pTitle.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-teal-500/15 border border-teal-500/40 text-teal-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-teal-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabel} )</span>`;
+            pTitle.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabel} )</span>`;
           } else {
             pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom</span>`;
           }
@@ -1900,9 +1909,9 @@
         const vcTitle = document.getElementById('vcTitle');
         if (vcTitle) {
           if (isPractical) {
-            vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-xl">science</span> <span class="text-base md:text-lg font-black text-teal-300">Virtual Lab ( ${revLabel} )</span>`;
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-xl">science</span> <span class="text-base md:text-lg font-black text-sky-300">Virtual Lab ( ${revLabel} )</span>`;
           } else {
-            vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
           }
         }
 
@@ -1942,7 +1951,7 @@
     }
 
     function handleSyllabusUpload(input) {
-      if (!input.files || input.files.length === 0) return;
+      if (!input || !input.files || input.files.length === 0) return;
       if (!currentSubjectId) return;
 
       const file = input.files[0];
@@ -1950,10 +1959,12 @@
       formData.append('syllabus_file', file);
       formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
-      document.getElementById('syllabusUploadBox').classList.add('hidden');
-      document.getElementById('syllabusUploadProgress').classList.remove('hidden');
-      // Extracting...
-      // status update
+      const box = document.getElementById('syllabusUploadBox');
+      const progress = document.getElementById('syllabusUploadProgress');
+      const fileInput = document.getElementById('syllabusFileInput');
+
+      if (box) box.classList.add('hidden');
+      if (progress) progress.classList.remove('hidden');
 
       fetch(`/api/classroom/${currentSubjectId}/syllabus`, {
         method: 'POST',
@@ -1965,25 +1976,26 @@
         return res.json();
       })
       .then(data => {
-        document.getElementById('syllabusUploadBox').classList.remove('hidden');
-        document.getElementById('syllabusUploadProgress').classList.add('hidden');
-        // Reset file input so same file can be re-uploaded
-        document.getElementById('syllabusFileInput').value = '';
+        if (box) box.classList.remove('hidden');
+        if (progress) progress.classList.add('hidden');
+        if (fileInput) fileInput.value = '';
+        if (input) input.value = '';
         if (data.status === 'SUCCESS') {
-          // Synced
-          // status update
-          // Reload course details — it will auto-switch to Course Structure tab
-          loadCourseDetails(currentSubjectId);
+          // Reload course details and ensure auto-switch to Course Structure tab
+          loadCourseDetails(currentSubjectId).then(() => {
+            toggleClassroomTab('structure');
+          }).catch(err => {
+            console.error('Error refreshing course details after syllabus upload:', err);
+          });
         } else {
           alert(data.message || 'Upload failed.');
-          // Upload Failed
-          // status update
         }
       })
       .catch(err => {
-        document.getElementById('syllabusUploadBox').classList.remove('hidden');
-        document.getElementById('syllabusUploadProgress').classList.add('hidden');
-        document.getElementById('syllabusFileInput').value = '';
+        if (box) box.classList.remove('hidden');
+        if (progress) progress.classList.add('hidden');
+        if (fileInput) fileInput.value = '';
+        if (input) input.value = '';
         alert('Failed to upload syllabus: ' + err.message);
       });
     }
@@ -2057,28 +2069,41 @@
 
     function loadCourseDetails(subjectId) {
       currentSubjectId = subjectId;
-      document.getElementById('courseStructureContent').innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-          <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p class="text-[10px] font-bold text-slate-400">Loading course data...</p>
-        </div>
-      `;
-      document.getElementById('coursePlannerContent').innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-          <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p class="text-[10px] font-bold text-slate-400">Loading planner...</p>
-        </div>
-      `;
-      document.getElementById('surveyWorkspace').innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-          <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p class="text-sm font-bold text-slate-400">Loading survey details...</p>
-        </div>
-      `;
-      document.getElementById('activeSyllabusCard').classList.add('hidden');
-      // Note: vcSubjectInfo is set by openClassroom immediately - don't hide it during load
-      document.getElementById('parseStatusBadge').innerText = 'Syncing...';
-      document.getElementById('parseStatusBadge').className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-blue-900/30 text-blue-400 border border-blue-500/30';
+      const csContent = document.getElementById('courseStructureContent');
+      if (csContent) {
+        csContent.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+            <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-[10px] font-bold text-slate-400">Loading course data...</p>
+          </div>
+        `;
+      }
+      const cpContent = document.getElementById('coursePlannerContent');
+      if (cpContent) {
+        cpContent.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+            <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-[10px] font-bold text-slate-400">Loading planner...</p>
+          </div>
+        `;
+      }
+      const sWorkspace = document.getElementById('surveyWorkspace');
+      if (sWorkspace) {
+        sWorkspace.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+            <div class="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-bold text-slate-400">Loading survey details...</p>
+          </div>
+        `;
+      }
+      const activeSyllabusCard = document.getElementById('activeSyllabusCard');
+      if (activeSyllabusCard) activeSyllabusCard.classList.add('hidden');
+      
+      const statusBadge = document.getElementById('parseStatusBadge');
+      if (statusBadge) {
+        statusBadge.innerText = 'Syncing...';
+        statusBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-blue-900/30 text-blue-400 border border-blue-500/30';
+      }
 
       return fetch(`/api/classroom/${subjectId}/details`)
       .then(res => res.json())
@@ -2208,8 +2233,8 @@
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab('seminar_evaluation');
           } else if (isPractical) {
-            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-teal-500/15 border border-teal-500/40 text-teal-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-teal-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
-            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-sm">science</span> Virtual Lab Workspace`;
+            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-sm">science</span> Virtual Lab Workspace`;
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.remove('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.remove('hidden');
@@ -2224,13 +2249,18 @@
             if (pRepActions) {
               pRepActions.classList.remove('hidden');
               pRepActions.classList.add('flex');
-              document.getElementById('pRepBtnRegister').href = `/classroom/${subjectId}/practical-report/print?type=register`;
-              document.getElementById('pRepBtnAttendance').href = `/classroom/${subjectId}/practical-report/print?type=attendance`;
-              document.getElementById('pRepBtnExperiments').href = `/classroom/${subjectId}/practical-report/print?type=experiments`;
-              document.getElementById('pRepBtnPlanner').href = `/classroom/${subjectId}/practical-report/print?type=planner`;
-              document.getElementById('pRepBtnProjects').href = `/classroom/${subjectId}/practical-report/print?type=projects`;
+              const btnReg = document.getElementById('pRepBtnRegister');
+              if (btnReg) btnReg.href = `/classroom/${subjectId}/practical-report/print?type=register`;
+              const btnAtt = document.getElementById('pRepBtnAttendance');
+              if (btnAtt) btnAtt.href = `/classroom/${subjectId}/practical-report/print?type=attendance`;
+              const btnExp = document.getElementById('pRepBtnExperiments');
+              if (btnExp) btnExp.href = `/classroom/${subjectId}/practical-report/print?type=experiments`;
+              const btnPlan = document.getElementById('pRepBtnPlanner');
+              if (btnPlan) btnPlan.href = `/classroom/${subjectId}/practical-report/print?type=planner`;
+              const btnProj = document.getElementById('pRepBtnProjects');
+              if (btnProj) btnProj.href = `/classroom/${subjectId}/practical-report/print?type=projects`;
             }
-            toggleClassroomTab('lab_evaluation');
+            toggleClassroomTab('structure');
           } else {
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom</span>`;
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> Virtual Classroom`;
@@ -2254,6 +2284,7 @@
             vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${currentSubjectName || 'Virtual Classroom'}`;
           }
 
+          const badge = document.getElementById('parseStatusBadge');
           if (data.data.syllabus_pdf_path) {
             const dlBtn = document.getElementById('downloadSyllabusBtn');
             if (dlBtn) {
@@ -2261,51 +2292,70 @@
               dlBtn.classList.add('inline-flex');
               dlBtn.dataset.url = `/api/classroom/${subjectId}/syllabus/download`;
             }
-            document.getElementById('parseStatusBadge').innerText = 'Syllabus Uploaded ✓';
-            // status update
+            if (badge) badge.innerText = 'Syllabus Uploaded ✓';
           } else {
-            document.getElementById('parseStatusBadge').innerText = 'Syllabus not uploaded';
-            document.getElementById('parseStatusBadge').className = 'h-9 px-3.5 inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl whitespace-nowrap shrink-0';
+            if (badge) {
+              badge.innerText = 'Syllabus not uploaded';
+              badge.className = 'h-9 px-3.5 inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl whitespace-nowrap shrink-0';
+            }
           }
         } else {
-          document.getElementById('parseStatusBadge').innerText = 'Syllabus not uploaded';
-          document.getElementById('parseStatusBadge').className = 'h-9 px-3.5 inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl whitespace-nowrap shrink-0';
-          document.getElementById('courseStructureContent').innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-              <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
-                <span class="material-symbols-rounded text-xl text-slate-600">inventory_2</span>
+          const badge = document.getElementById('parseStatusBadge');
+          if (badge) {
+            badge.innerText = 'Syllabus not uploaded';
+            badge.className = 'h-9 px-3.5 inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl whitespace-nowrap shrink-0';
+          }
+          const csContent = document.getElementById('courseStructureContent');
+          if (csContent) {
+            csContent.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+                <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
+                  <span class="material-symbols-rounded text-xl text-slate-600">inventory_2</span>
+                </div>
+                <p class="text-sm font-bold text-slate-400">No syllabus loaded.</p>
+                <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus PDF to automatically populate Course Outcomes, Modules, and Textbooks.</p>
+                <button onclick="document.getElementById(\'syllabusFileInput\').click()" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center gap-2">
+                  <span class="material-symbols-rounded text-sm">upload_file</span> Upload Syllabus PDF
+                </button>
               </div>
-              <p class="text-sm font-bold text-slate-400">No syllabus loaded.</p>
-              <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus PDF to automatically populate Course Outcomes, Modules, and Textbooks.</p>
-            </div>
-          `;
-          document.getElementById('coursePlannerContent').innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-              <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
-                <span class="material-symbols-rounded text-xl text-slate-600">event_note</span>
+            `;
+          }
+          const cpContent = document.getElementById('coursePlannerContent');
+          if (cpContent) {
+            cpContent.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+                <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
+                  <span class="material-symbols-rounded text-xl text-slate-600">event_note</span>
+                </div>
+                <p class="text-sm font-bold text-slate-400">Planner not generated.</p>
+                <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to automatically generate the lesson plan.</p>
               </div>
-              <p class="text-sm font-bold text-slate-400">Planner not generated.</p>
-              <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to automatically generate the lesson plan.</p>
-            </div>
-          `;
-          document.getElementById('formativeAssessmentContent').innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-              <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
-                <span class="material-symbols-rounded text-xl text-slate-600">assignment_turned_in</span>
+            `;
+          }
+          const faContent = document.getElementById('formativeAssessmentContent');
+          if (faContent) {
+            faContent.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+                <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
+                  <span class="material-symbols-rounded text-xl text-slate-600">assignment_turned_in</span>
+                </div>
+                <p class="text-sm font-bold text-slate-400">Formative Assessment Inactive.</p>
+                <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to activate formative assessment tasks and mark entry.</p>
               </div>
-              <p class="text-sm font-bold text-slate-400">Formative Assessment Inactive.</p>
-              <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to activate formative assessment tasks and mark entry.</p>
-            </div>
-          `;
-          document.getElementById('summativeAssessmentContent').innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-              <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
-                <span class="material-symbols-rounded text-xl text-slate-600">quiz</span>
+            `;
+          }
+          const saContent = document.getElementById('summativeAssessmentContent');
+          if (saContent) {
+            saContent.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
+                <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
+                  <span class="material-symbols-rounded text-xl text-slate-600">quiz</span>
+                </div>
+                <p class="text-sm font-bold text-slate-400">Summative Assessment Inactive.</p>
+                <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to activate written test configuration and mark entry.</p>
               </div>
-              <p class="text-sm font-bold text-slate-400">Summative Assessment Inactive.</p>
-              <p class="text-sm mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to activate written test configuration and mark entry.</p>
-            </div>
-          `;
+            `;
+          }
           const qbContent = document.getElementById('questionBankContent');
           if (qbContent) {
               qbContent.innerHTML = `
@@ -2336,6 +2386,9 @@
               </div>
               <p class="text-sm font-bold text-slate-300">Syllabus not uploaded yet.</p>
               <p class="text-sm mt-1.5 max-w-xs text-slate-400 leading-relaxed">Upload a syllabus PDF to automatically populate Course Outcomes, Modules, and Textbooks.</p>
+              <button onclick="document.getElementById(\'syllabusFileInput\').click()" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center gap-2">
+                <span class="material-symbols-rounded text-sm">upload_file</span> Upload Syllabus PDF
+              </button>
             </div>
           `;
         }
@@ -2758,11 +2811,13 @@
       }
 
       html += `</tbody></table></div></div>`;
-      document.getElementById('formativeAssessmentContent').innerHTML = html;
+      const faContent = document.getElementById('formativeAssessmentContent');
+      if (faContent) faContent.innerHTML = html;
     }
 
     function renderAIQuestionsList(questionsData, subjectId) {
       const container = document.getElementById('aiQuestionsContainer');
+      if (!container) return;
       container.style.display = 'grid';
       let html = '';
       
@@ -3145,31 +3200,36 @@
 
       if (cos && cos.length > 0) {
         let cosList = cos.map(co => `
-          <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-[10px]">
-            <td class="p-3 font-bold text-blue-400 whitespace-nowrap">${co.id}</td>
-            <td class="p-3 text-slate-300 leading-relaxed">${co.description}</td>
-            <td class="p-3 text-center text-slate-400">${co.duration ? co.duration + ' hrs' : '-'}</td>
-            <td class="p-3 text-emerald-400 font-mono">${co.cognitive_level || '-'}</td>
+          <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium text-base">
+            <td class="p-4 font-black text-sky-400 whitespace-nowrap text-base border-r border-slate-800/40 text-center">${co.id}</td>
+            <td class="p-4 text-slate-100 leading-relaxed font-medium text-base">${co.description}</td>
+            <td class="p-4 text-center font-bold text-slate-200 whitespace-nowrap text-base border-l border-slate-800/40">${co.duration ? co.duration + ' hrs' : '-'}</td>
+            <td class="p-4 text-emerald-400 font-mono font-bold whitespace-nowrap text-sm border-l border-slate-800/40 text-center">${co.cognitive_level || '-'}</td>
           </tr>
         `).join('');
         html += `
-          <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner mb-6">
-            <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 font-bold text-[10px] text-slate-400 flex items-center gap-2 tracking-wider uppercase">
-              <span class="material-symbols-rounded text-[10px] text-sky-400">target</span> Course Outcomes
+          <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-lg mb-6">
+            <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800/80 font-bold text-sm text-slate-200 flex items-center justify-between tracking-wider uppercase">
+              <span class="flex items-center gap-2.5 text-sky-400 font-black text-sm">
+                <span class="material-symbols-rounded text-lg">target</span> Course Outcomes (COs)
+              </span>
+              <span class="text-xs font-bold text-sky-400/80 bg-sky-950/60 border border-sky-500/30 px-3 py-1 rounded-full lowercase">${cos.length} outcomes extracted</span>
             </div>
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-900/40 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800/60">
-                  <th class="p-3 w-16">CO</th>
-                  <th class="p-3">Description</th>
-                  <th class="p-3 text-center w-20">Duration</th>
-                  <th class="p-3 w-32">Cognitive Level</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${cosList}
-              </tbody>
-            </table>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-900/70 text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800/80">
+                    <th class="p-4 w-24 text-center border-r border-slate-800/40">CO ID</th>
+                    <th class="p-4">Course Outcome Statement</th>
+                    <th class="p-4 text-center w-32 border-l border-slate-800/40">Duration</th>
+                    <th class="p-4 w-40 text-center border-l border-slate-800/40">Cognitive Level</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/40">
+                  ${cosList}
+                </tbody>
+              </table>
+            </div>
           </div>
         `;
       }
@@ -3179,12 +3239,17 @@
             let mapping = copo[coKey];
             let poCells = '';
             for(let i = 1; i <= 12; i++) {
-                let val = mapping['PO' + i] || '-';
-                poCells += `<td class="p-2 text-center text-slate-400 ${val !== '-' ? 'font-bold text-emerald-400' : ''}">${val}</td>`;
+                let val = mapping['PO' + i];
+                let displayVal = (val !== null && val !== undefined && val !== '-' && val !== '0') ? val : '-';
+                let isMapped = displayVal !== '-';
+                poCells += `
+                  <td class="p-3 text-center text-sm md:text-base border-r border-slate-800/40 last:border-r-0 ${isMapped ? 'font-black text-emerald-400 bg-emerald-500/15' : 'text-slate-500 font-medium'}">
+                    ${displayVal}
+                  </td>`;
             }
             return `
-              <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-[10px]">
-                <td class="p-2 font-bold text-blue-400 whitespace-nowrap border-r border-slate-800/60">${coKey}</td>
+              <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium text-sm md:text-base">
+                <td class="p-3 font-black text-sky-400 whitespace-nowrap border-r border-slate-800/80 bg-slate-900/40 text-center">${coKey}</td>
                 ${poCells}
               </tr>
             `;
@@ -3192,23 +3257,26 @@
         
         let poHeaders = '';
         for(let i=1; i<=12; i++) {
-            poHeaders += `<th class="p-2 text-center">PO${i}</th>`;
+            poHeaders += `<th class="p-3 text-center text-xs md:text-sm font-bold border-r border-slate-800/60 last:border-r-0 text-slate-200">PO${i}</th>`;
         }
 
         html += `
-          <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner mb-6">
-            <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 font-bold text-[10px] text-slate-400 flex items-center gap-2 tracking-wider uppercase">
-              <span class="material-symbols-rounded text-[10px] text-amber-400">grid_on</span> CO-PO Mapping Matrix
+          <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-lg mb-6">
+            <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800/80 font-bold text-sm text-slate-200 flex items-center justify-between tracking-wider uppercase">
+              <span class="flex items-center gap-2.5 text-amber-400 font-black text-sm">
+                <span class="material-symbols-rounded text-lg">grid_on</span> CO-PO Mapping Matrix
+              </span>
+              <span class="text-xs font-bold text-amber-400/80 bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full lowercase">Scale: 1 (Low) to 3 (High)</span>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse min-w-[700px]">
                   <thead>
-                    <tr class="bg-slate-900/40 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800/60">
-                      <th class="p-2 w-16 border-r border-slate-800/60">CO</th>
+                    <tr class="bg-slate-900/70 text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800/80">
+                      <th class="p-3 w-16 border-r border-slate-800/80 text-center bg-slate-900/50">CO</th>
                       ${poHeaders}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="divide-y divide-slate-800/40">
                     ${copoList}
                   </tbody>
                 </table>
@@ -3552,7 +3620,8 @@
         <div id="printableExamArea" class="hidden no-print"></div>
       `;
 
-      document.getElementById('summativeAssessmentContent').innerHTML = html;
+      const saContent = document.getElementById('summativeAssessmentContent');
+      if (saContent) saContent.innerHTML = html;
 
       // Automatically spawn manual fields for any saved manual papers on load
       if (cos && cos.length > 0) {
@@ -6969,16 +7038,19 @@
     function fetchPracticalEvaluations() {
       if (!currentSubjectId) return;
       const tbody = document.getElementById('labEvaluationsTableBody');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="12" class="p-8 text-center text-slate-400 font-bold text-sm">
-            <span class="animate-pulse">Loading student evaluation records...</span>
-          </td>
-        </tr>
-      `;
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" class="p-8 text-center text-slate-400 font-bold text-sm">
+              <span class="animate-pulse">Loading student evaluation records...</span>
+            </td>
+          </tr>
+        `;
+      }
 
       // Set print & full workspace button hrefs
-      document.getElementById('printLabReportBtn').href = `/classroom/practical/${currentSubjectId}/report/print`;
+      const printBtn = document.getElementById('printLabReportBtn');
+      if (printBtn) printBtn.href = `/classroom/practical/${currentSubjectId}/report/print`;
       const fullWsBtn = document.getElementById('openFullVirtualLabBtn');
       if (fullWsBtn) fullWsBtn.href = `/classroom/practical/${currentSubjectId}`;
 
@@ -6992,17 +7064,18 @@
           renderLabEvaluationsTable();
           calculateLabStatistics();
         } else {
-          tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">${res.message}</td></tr>`;
+          if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">${res.message}</td></tr>`;
         }
       })
       .catch(err => {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">Error syncing lab evaluations.</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">Error syncing lab evaluations.</td></tr>`;
       });
     }
 
     function renderLabEvaluationsTable() {
       const tbody = document.getElementById('labEvaluationsTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       if (labStudentsData.length === 0) {
@@ -7065,7 +7138,8 @@
     }
 
     function filterLabGridByBatch() {
-      const filterVal = document.getElementById('labBatchFilterSelect').value;
+      const filterSelect = document.getElementById('labBatchFilterSelect');
+      const filterVal = filterSelect ? filterSelect.value : 'combined';
       const tbody = document.getElementById('labEvaluationsTableBody');
       if (!tbody) return;
       const rows = Array.from(tbody.querySelectorAll('tr[data-reg]'));
@@ -7116,10 +7190,14 @@
       const avgBoard = boardCount > 0 ? (sumBoard / boardCount) : 0;
       const passPercent = boardCount > 0 ? ((passedCount / boardCount) * 100) : 0;
 
-      document.getElementById('statLabAvgInternal').innerText = `${avgInternal.toFixed(2)} / 75`;
-      document.getElementById('statLabAvgBoard').innerText = boardCount > 0 ? `${avgBoard.toFixed(2)} / 50` : 'N/A';
-      document.getElementById('statLabPassPercent').innerText = boardCount > 0 ? `${passPercent.toFixed(1)}%` : 'N/A';
-      document.getElementById('statLabTotalExps').innerText = labExperimentsData.length;
+      const statAvgInt = document.getElementById('statLabAvgInternal');
+      if (statAvgInt) statAvgInt.innerText = `${avgInternal.toFixed(2)} / 75`;
+      const statAvgBrd = document.getElementById('statLabAvgBoard');
+      if (statAvgBrd) statAvgBrd.innerText = boardCount > 0 ? `${avgBoard.toFixed(2)} / 50` : 'N/A';
+      const statPassPct = document.getElementById('statLabPassPercent');
+      if (statPassPct) statPassPct.innerText = boardCount > 0 ? `${passPercent.toFixed(1)}%` : 'N/A';
+      const statTotalExps = document.getElementById('statLabTotalExps');
+      if (statTotalExps) statTotalExps.innerText = labExperimentsData.length;
     }
 
     // Modal tabs toggle
@@ -7603,6 +7681,7 @@
     // CO-PO Matrix
     function fetchPracticalCoPoMapping() {
       const tbody = document.getElementById('labCoPoMappingTbody');
+      if (!tbody) return;
       tbody.innerHTML = '<tr><td colspan="16" class="p-8 text-center text-slate-500 font-bold text-xs animate-pulse">Loading Articulation Matrix...</td></tr>';
 
       fetch(`/api/classroom/${currentSubjectId}/practical/copo-mapping`)
@@ -7643,7 +7722,7 @@
         }
       })
       .catch(() => {
-        tbody.innerHTML = '<tr><td colspan="16" class="p-8 text-center text-red-400 font-bold text-xs">Failed to load articulation matrix.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="16" class="p-8 text-center text-red-400 font-bold text-xs">Failed to load articulation matrix.</td></tr>';
       });
     }
 

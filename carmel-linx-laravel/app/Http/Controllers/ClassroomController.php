@@ -261,44 +261,46 @@ class ClassroomController extends Controller
                 $apiKey = env('GEMINI_API_KEY');
                 if ($apiKey && \App\Http\Controllers\SystemSettingController::isAiEnabled()) {
                     try {
-                    $prompt = "You are an expert academic syllabus parser. Carefully extract structured information from the raw syllabus text provided.
+                    $prompt = "You are an expert academic syllabus parser for technical diploma and degree institutions.
+Carefully extract structured metadata, course outcomes, unit contents, textbooks, and detailed topic-by-topic lesson plans from the syllabus text provided below.
 
-Return ONLY valid JSON with NO markdown, NO code fences, NO explanation — just the raw JSON object.
-
-The JSON must match this schema exactly:
+Return ONLY a valid JSON object with NO markdown or extra text, matching this schema:
 {
+  \"subject_code\": \"3043\",
+  \"subject_name\": \"Subject Name\",
+  \"revision_year\": 2021,
+  \"total_hours\": 60,
+  \"cia_marks\": 60,
+  \"ese_marks\": 40,
+  \"credits\": 2.0,
   \"cos\": [
-    { \"id\": \"CO1\", \"description\": \"...\", \"duration\": 13, \"cognitive_level\": \"Understanding\" }
+    { \"id\": \"CO1\", \"description\": \"Detailed outcome statement\", \"duration\": 14, \"cognitive_level\": \"Applying\" }
   ],
   \"copo\": {
-    \"CO1\": { \"PO1\": 3, \"PO2\": 2, \"PO3\": 1, \"PO4\": null, \"PO5\": null, \"PO6\": null, \"PO7\": null, \"PO8\": null, \"PO9\": null, \"PO10\": null, \"PO11\": null, \"PO12\": null }
+    \"CO1\": { \"PO1\": 3, \"PO2\": null, \"PO3\": null, \"PO4\": 3, \"PO5\": null, \"PO6\": null, \"PO7\": null, \"PO8\": null, \"PO9\": null, \"PO10\": null, \"PO11\": null, \"PO12\": null }
   },
   \"modules\": [
-    { \"module_id\": \"I\", \"content\": \"Exact text of the module contents section\" }
+    { \"module_id\": \"I\", \"content\": \"Exact text of Module I / Unit I contents from syllabus\" }
   ],
-  \"textbooks\": [\"Author Name, Title, Publisher, Year\"],
+  \"textbooks\": [
+    \"Author Name, Book Title, Publisher\"
+  ],
   \"lesson_plan\": [
-    { \"co_id\": \"CO1\", \"topic_content\": \"Exact topic text as written in syllabus\", \"allocated_hours\": 2, \"pedagogy\": \"Lecture\" }
+    { \"co_id\": \"CO1\", \"topic_content\": \"Specific atomic topic extracted directly from syllabus text\", \"allocated_hours\": 1, \"pedagogy\": \"Lecture\" }
   ]
 }
 
-CRITICAL RULES FOR lesson_plan:
-- Generate ONE row per MODULE OUTCOME row (e.g. M1.01, M1.02, M1.03, etc. for each CO).
-- Use the EXACT topic text from each row of the Course Outline table (e.g. \"Describe embedded system, illustrate difference from general purpose computer\").
-- Use the EXACT duration (hours) from each row of the Course Outline table (e.g. 2).
-- DO NOT summarize or combine multiple rows into one — keep each row separate.
-- If the syllabus does not have a Course Outline table, generate one lesson_plan entry per topic sentence in each module's contents, using 1 or 2 hours per topic.
-- The co_id must match the CO number that each module outcome belongs to.
-- pedagogy should be Lecture for theory topics, Lab for practical topics, Demo for demonstrations.
+CRITICAL INSTRUCTIONS FOR LESSON PLAN & COURSE OUTCOMES:
+- Extract EXACTLY the Course Outcomes (cos) present in the syllabus text. If there are 3 COs (CO1, CO2, CO3), extract ONLY those 3 COs. DO NOT create extra COs (e.g. CO4).
+- For CO-PO Mapping Matrix (copo): Read the ACTUAL CO-PO table from the syllabus PDF text. Extract ONLY the non-empty mapping values (1, 2, or 3) for each PO column. Set unmapped or blank table cells to null. DO NOT generate fake numbers (like 3, 2, 1)!
+- Extract EVERY specific topic mentioned in the module/unit contents sections of the syllabus.
+- Break down multi-topic sentences into standalone 1-hour session topics (e.g. \"Transistor biasing - need and load line\", \"Operating point and stabilization\").
+- Do NOT use generic placeholder text like \"Introduction to CO1\" or \"Unit 1 content\".
+- Ensure every lesson plan item has co_id matching the relevant Course Outcome (CO1, CO2, CO3, etc.).
+- Each entry must have allocated_hours = 1.
 
-CRITICAL RULES FOR modules:
-- Copy the EXACT text from the Contents section of each module.
-- Do NOT use generic placeholder text.
-
-Syllabus text:
-
+Syllabus Text:
 " . substr($text, 0, 18000);
-
 
                     $response = \Illuminate\Support\Facades\Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
                         'contents' => [['parts' => [['text' => $prompt]]]],
@@ -315,6 +317,22 @@ Syllabus text:
                         
                         $parsed = json_decode($cleanJson, true);
                         if ($parsed) {
+                            if (!empty($parsed['revision_year'])) {
+                                $syllabusRevision = (int)$parsed['revision_year'];
+                            }
+                            if (!empty($parsed['total_hours']) && (int)$parsed['total_hours'] > 0) {
+                                $targetHours = (int)$parsed['total_hours'];
+                            }
+                            if (!empty($parsed['cia_marks']) && (int)$parsed['cia_marks'] > 0) {
+                                $extractedCia = (int)$parsed['cia_marks'];
+                            }
+                            if (!empty($parsed['ese_marks']) && (int)$parsed['ese_marks'] > 0) {
+                                $extractedEse = (int)$parsed['ese_marks'];
+                            }
+                            if (!empty($parsed['credits']) && (float)$parsed['credits'] > 0) {
+                                $extractedCredits = (float)$parsed['credits'];
+                            }
+
                             $extractedCos = $parsed['cos'] ?? [];
                             $extractedCoPo = $parsed['copo'] ?? [];
                             $extractedModules = $parsed['modules'] ?? [];
@@ -378,13 +396,27 @@ Syllabus text:
                 unset($co);
             }
 
-            if (empty($extractedCoPo)) {
-                $extractedCoPo = [
-                    'CO1' => ['PO1' => 3, 'PO2' => 2, 'PO3' => 1, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO2' => ['PO1' => 2, 'PO2' => 3, 'PO3' => 2, 'PO4' => 1, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO3' => ['PO1' => 1, 'PO2' => 2, 'PO3' => 3, 'PO4' => 2, 'PO5' => 1, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO4' => ['PO1' => null, 'PO2' => 1, 'PO3' => 2, 'PO4' => 3, 'PO5' => 2, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null]
-                ];
+            // Always extract CO-PO matrix directly from PDF text to avoid Gemini hallucinations
+            $pdfParsedCoPo = $this->extractCoPoMapping($text, !empty($extractedCos) ? $extractedCos : []);
+            $hasPdfCoPo = false;
+            foreach ($pdfParsedCoPo as $cKey => $pRow) {
+                if (count(array_filter($pRow, function($val) { return $val !== null; })) > 0) {
+                    $hasPdfCoPo = true;
+                    break;
+                }
+            }
+
+            if ($hasPdfCoPo) {
+                $extractedCoPo = $pdfParsedCoPo;
+            } elseif (!empty($extractedCos)) {
+                $validCoIds = array_column($extractedCos, 'id');
+                if (!empty($extractedCoPo)) {
+                    $extractedCoPo = array_intersect_key($extractedCoPo, array_flip($validCoIds));
+                } else {
+                    $extractedCoPo = $pdfParsedCoPo;
+                }
+            } else {
+                $extractedCoPo = $pdfParsedCoPo;
             }
 
             if (empty($extractedModules)) {
@@ -515,11 +547,12 @@ Syllabus text:
 
         foreach ($cos as $idx => $co) {
             $coId    = $co['id'] ?? ('CO' . ($idx + 1));
+            $coDesc  = $co['description'] ?? '';
             $hours   = isset($co['duration']) && (int)$co['duration'] > 0 ? (int)$co['duration'] : 15;
             $content = isset($modules[$idx]) ? ($modules[$idx]['content'] ?? '') : '';
 
             // Extract REAL atomic topics from module content
-            $topics = $this->extractAtomicTopics($content, $coId, $hours);
+            $topics = $this->extractAtomicTopics($content, $coId, $hours, $coDesc);
 
             foreach ($topics as $topic) {
                 $rawPlans[] = [
@@ -556,13 +589,13 @@ Syllabus text:
      *  - Fewer topics than hours → pad with clearly-labelled review sessions.
      *  - Generic/fallback content detected → generate descriptive generics.
      */
-    private function extractAtomicTopics(string $content, string $coId, int $targetHours): array
+    private function extractAtomicTopics(string $content, string $coId, int $targetHours, string $coDesc = ''): array
     {
         $content = trim($content);
         $isGeneric = $this->isGenericFallbackContent($content);
 
         if ($isGeneric || strlen($content) < 10) {
-            return $this->generateGenericDayTopics($coId, $targetHours);
+            return $this->generateGenericDayTopics($coId, $targetHours, $coDesc);
         }
 
         // ── Step 1: split into sentences by period / semicolon ───────────────
@@ -593,7 +626,7 @@ Syllabus text:
         $topics = array_values(array_unique(array_filter($topics, fn($t) => strlen($t) > 4)));
 
         if (empty($topics)) {
-            return $this->generateGenericDayTopics($coId, $targetHours);
+            return $this->generateGenericDayTopics($coId, $targetHours, $coDesc);
         }
 
         $count = count($topics);
@@ -674,28 +707,34 @@ Syllabus text:
     }
 
     /**
-     * Generate generic-but-descriptive day topic names when actual content
-     * is unavailable (e.g. image-based PDF, or no syllabus uploaded yet).
+     * Generate descriptive day topic names derived from the Course Outcome statement
+     * when raw module content string is unavailable or generic.
      */
-    private function generateGenericDayTopics(string $coId, int $hours): array
+    private function generateGenericDayTopics(string $coId, int $hours, string $coDesc = ''): array
     {
-        $templates = [
-            "Introduction and overview of {$coId} concepts",
-            "Fundamental principles and definitions for {$coId}",
-            "Core theory and key concepts of {$coId}",
-            "Detailed study: analysis and discussion ({$coId})",
-            "Worked examples and solved problems ({$coId})",
-            "Design considerations and methodology ({$coId})",
-            "Applications and practical usage ({$coId})",
-            "Problem solving session ({$coId})",
-            "Advanced concepts and extensions ({$coId})",
-            "Case studies and real-world scenarios ({$coId})",
-            "Revision, Q&A and doubt clearing ({$coId})",
-            "Tutorial and additional problems ({$coId})",
+        $base = (!empty($coDesc) && strlen($coDesc) > 8 && stripos($coDesc, 'Course Outcome') === false) 
+            ? trim($coDesc) 
+            : "Core syllabus topics for {$coId}";
+
+        $subsections = [
+            "Fundamental principles and theoretical concepts",
+            "Detailed operational analysis and methodologies",
+            "Core equations, formulas and derivations",
+            "Component configurations and circuit/system layouts",
+            "Worked examples and numerical problem solving",
+            "Performance characteristics and parameter evaluation",
+            "Practical applications and implementation techniques",
+            "Design considerations and safety/efficiency factors",
+            "Advanced operations and specialized sub-components",
+            "Comparative analysis and system trade-offs",
+            "Practice exercises and diagnostic problem solving",
+            "Review session, Q&A and doubt resolution"
         ];
+
         $topics = [];
         for ($i = 0; $i < $hours; $i++) {
-            $topics[] = $templates[$i % count($templates)];
+            $sub = $subsections[$i % count($subsections)];
+            $topics[] = "{$base} – {$sub}";
         }
         return $topics;
     }
@@ -1217,6 +1256,135 @@ Syllabus text:
         return $cos;
     }
 
+    /**
+     * Parse CO-PO Mapping Matrix from raw PDF text using header position alignment.
+     */
+    private function extractCoPoMapping(string $text, array $cos = []): array
+    {
+        $copo = [];
+        $coIds = !empty($cos) ? array_column($cos, 'id') : ['CO1', 'CO2', 'CO3'];
+
+        // Search for CO-PO matrix section in raw text
+        $matrixPos = stripos($text, 'CO-PO');
+        if ($matrixPos === false) $matrixPos = stripos($text, 'Mapping Matrix');
+        if ($matrixPos === false) $matrixPos = stripos($text, 'Program Outcome');
+        
+        $searchSection = ($matrixPos !== false) ? substr($text, $matrixPos, 5000) : $text;
+        \Log::info("CO-PO MATRIX RAW TEXT SECTION:\n" . substr($searchSection, 0, 1500));
+
+        $lines = preg_split('/\r\n|\r|\n/', $searchSection);
+
+        // Step 1: Flexible detection of header line containing PO1, PO2... and record character offsets
+        $poPositions = [];
+        foreach ($lines as $line) {
+            if (preg_match('/PO\s*[\-_]?\s*1\b/i', $line) || preg_match('/PO\s*[\-_]?\s*2\b/i', $line)) {
+                for ($i = 1; $i <= 12; $i++) {
+                    if (preg_match('/PO\s*[\-_]?\s*' . $i . '\b/i', $line, $pm, PREG_OFFSET_CAPTURE)) {
+                        $poPositions[$i] = $pm[0][1];
+                    }
+                }
+                if (count($poPositions) >= 2) {
+                    \Log::info("FOUND PO POSITIONS: " . json_encode($poPositions) . " ON LINE: " . $line);
+                    break;
+                }
+            }
+        }
+
+        // Step 2: Extract CO rows and align numbers 1, 2, 3 to closest PO header position
+        foreach ($coIds as $coId) {
+            foreach ($lines as $line) {
+                if (preg_match('/\b' . $coId . '\b/i', $line) && preg_match('/[123]/', $line)) {
+                    $rowMapping = [];
+                    for ($k = 1; $k <= 12; $k++) {
+                        $rowMapping['PO' . $k] = null;
+                    }
+
+                    if (!empty($poPositions)) {
+                        // Position-based alignment relative to detected header positions
+                        $coOffset = stripos($line, $coId) + strlen($coId);
+                        for ($p = $coOffset; $p < strlen($line); $p++) {
+                            $char = $line[$p];
+                            if (in_array($char, ['1', '2', '3'])) {
+                                $bestPo = null;
+                                $minDiff = 999;
+                                foreach ($poPositions as $poNum => $poPos) {
+                                    $diff = abs($p - $poPos);
+                                    if ($diff < $minDiff) {
+                                        $minDiff = $diff;
+                                        $bestPo = $poNum;
+                                    }
+                                }
+                                if ($bestPo !== null && $minDiff <= 15) {
+                                    $rowMapping['PO' . $bestPo] = (int)$char;
+                                }
+                            }
+                        }
+                    }
+
+                    // Fallback 1: Direct key-value regex like PO1:3 or PO4-3 or PO1(3)
+                    if (count(array_filter($rowMapping)) === 0) {
+                        if (preg_match_all('/PO\s*[\-_]?\s*(\d+)\s*[\:\-\=\(]?\s*([123])/i', $line, $allMatches, PREG_SET_ORDER)) {
+                            foreach ($allMatches as $mItem) {
+                                $pNum = (int)$mItem[1];
+                                $val = (int)$mItem[2];
+                                if ($pNum >= 1 && $pNum <= 12) {
+                                    $rowMapping['PO' . $pNum] = $val;
+                                }
+                            }
+                        }
+                    }
+
+                    // Fallback 2: Estimate PO column index based on character spacing when no header was found
+                    if (count(array_filter($rowMapping)) === 0 && empty($poPositions)) {
+                        $coOffset = stripos($line, $coId) + strlen($coId);
+                        $digitPositions = [];
+                        for ($p = $coOffset; $p < strlen($line); $p++) {
+                            $char = $line[$p];
+                            if (in_array($char, ['1', '2', '3'])) {
+                                $digitPositions[] = ['pos' => $p, 'val' => (int)$char];
+                            }
+                        }
+                        if (!empty($digitPositions)) {
+                            // First digit pos establishes baseline for PO1 or first mapped PO
+                            $firstPos = $digitPositions[0]['pos'];
+                            foreach ($digitPositions as $dIdx => $dInfo) {
+                                if ($dIdx === 0) {
+                                    $rowMapping['PO1'] = $dInfo['val'];
+                                } else {
+                                    $relDist = $dInfo['pos'] - $firstPos;
+                                    // Average column spacing in PDF table text is ~5-8 characters per PO column
+                                    $estPoNum = 1 + (int)round($relDist / 6.5);
+                                    if ($estPoNum >= 1 && $estPoNum <= 12) {
+                                        $rowMapping['PO' . $estPoNum] = $dInfo['val'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (count(array_filter($rowMapping)) > 0) {
+                        $copo[$coId] = $rowMapping;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Step 3: If matrix was completely unparseable, initialize null mappings for ONLY the actual COs
+        if (empty($copo)) {
+            foreach ($coIds as $cId) {
+                $row = [];
+                for ($k = 1; $k <= 12; $k++) {
+                    $row['PO' . $k] = null;
+                }
+                $copo[$cId] = $row;
+            }
+        }
+
+        \Log::info("PARSED CO-PO MATRIX RESULT: " . json_encode($copo));
+        return $copo;
+    }
+
     private function extractModules($text)
     {
         $modules = [];
@@ -1382,7 +1550,8 @@ Syllabus text:
 
         $syllabus = \DB::table('syllabus_registry')->where('subject_code', $batchSubject->subject_code)->first();
         $syllabusRevision = $syllabus->revision_year ?? '2021';
-        $classroom = \App\Models\Classroom::find($batchSubject->classroom_id);
+        $classroom = \DB::table('class_management')->where('classroom_id', $batchSubject->classroom_id)->first() 
+            ?? \DB::table('r26_class_management')->where('classroom_id', $batchSubject->classroom_id)->first();
         $branch = $classroom->branch ?? (strtok($batchSubject->classroom_id ?? '', '_') ?: 'CE');
         $credits = $syllabus->credits ?? ($batchSubject->credits ?? 2.0);
 

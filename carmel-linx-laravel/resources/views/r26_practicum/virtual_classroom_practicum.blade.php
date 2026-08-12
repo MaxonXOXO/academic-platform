@@ -297,13 +297,13 @@
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800 px-4 md:px-8 py-3">
         <div class="max-w-[98%] mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3">
             
-            <!-- Left: Noticeable Back Button & Subject Details -->
+            <!-- Left: Subject Details -->
             <div class="flex items-center space-x-3.5 w-full xl:w-auto">
-                <a href="javascript:void(0)" onclick="window.close(); setTimeout(function() { let ref = document.referrer; if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) { window.location.href = ref; } else { window.location.href = '{{ $dashboardUrl }}'; } }, 150);" class="px-4 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold shadow-md transition-all flex items-center space-x-2 border border-slate-700 hover:border-cyan-500/50 flex-shrink-0">
-                    <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    <span>Back</span>
-                </a>
-                
+                <div class="flex items-center gap-2 shrink-0">
+                    <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
+                    <span class="font-extrabold text-white text-sm tracking-tight">Carmel Linx</span>
+                    <span class="text-slate-600 font-bold">|</span>
+                </div>
                 <div class="space-y-0.5">
                     <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
                         <h1 class="text-lg font-bold text-white tracking-tight">{{ $batchSubject->subject_name }}</h1>
@@ -336,23 +336,30 @@
                 </div>
             </div>
 
-            <!-- Right: Logged-In & Assigned Faculty Info -->
-            <div class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-300 flex items-center space-x-2.5 flex-shrink-0 header-subtitle">
-                <div class="p-1 rounded-lg bg-purple-500/20 text-purple-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <!-- Right: Logged-In & Assigned Faculty Info & Back Button -->
+            <div class="flex items-center space-x-3 flex-shrink-0">
+                <div class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-300 flex items-center space-x-2.5 header-subtitle">
+                    <div class="p-1 rounded-lg bg-purple-500/20 text-purple-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <div class="text-white font-semibold">
+                        Faculty: <span class="text-purple-300 font-bold">
+                            {{ Session::get('userName') ?? 'Faculty In-Charge' }}
+                            @if(isset($assignedStaff) && count($assignedStaff) > 0)
+                                @foreach(($assignedStaff ?? []) as $stf)
+                                    @if($stf->name !== Session::get('userName'))
+                                        , {{ $stf->name }}
+                                    @endif
+                                @endforeach
+                            @endif
+                        </span>
+                    </div>
                 </div>
-                <div class="text-white font-semibold">
-                    Faculty: <span class="text-purple-300 font-bold">
-                        {{ Session::get('userName') ?? 'Faculty In-Charge' }}
-                        @if(isset($assignedStaff) && count($assignedStaff) > 0)
-                            @foreach(($assignedStaff ?? []) as $stf)
-                                @if($stf->name !== Session::get('userName'))
-                                    , {{ $stf->name }}
-                                @endif
-                            @endforeach
-                        @endif
-                    </span>
-                </div>
+
+                <a href="javascript:void(0)" onclick="window.close(); setTimeout(function() { let ref = document.referrer; if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) { window.location.href = ref; } else { window.location.href = '{{ $dashboardUrl }}'; } }, 150);" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold transition-all flex items-center space-x-1.5 border border-rose-500/30 flex-shrink-0 cursor-pointer no-underline text-[11px]" title="Dashboard">
+                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    <span>Dashboard</span>
+                </a>
             </div>
         </div>
     </header>

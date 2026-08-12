@@ -179,23 +179,25 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            padding: 10px 14px;
+            padding: 9px 12px;
             font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
+            font-weight: 600;
+            color: #94a3b8;
             background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--border);
+            border: 1.5px solid transparent;
+            border-radius: 6px;
+            margin-bottom: 3px;
             cursor: pointer;
-            transition: background .12s, color .12s;
+            transition: all 0.2s ease;
             text-align: left;
         }
-        .tab-btn:last-child { border-bottom: none; }
-        .tab-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .tab-btn:hover { background: rgba(30, 41, 59, 0.6); color: #f1f5f9; }
         .tab-btn.active {
-            background: var(--accent-dim);
-            color: var(--accent);
-            font-weight: 600;
+            background: #0f172a !important;
+            color: #ffffff !important;
+            border: 1.5px solid #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) !important;
+            font-weight: 700 !important;
         }
         .tab-btn .tab-icon {
             width: 20px;
@@ -344,15 +346,14 @@
 
     <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
     <header id="vl-header">
-        <!-- Row 1: Back · Badge · Subject Name · Actions -->
+        <!-- Row 1: Badge · Subject Name · Actions · Back Button -->
         <div class="row1">
             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch" title="Back / Close Tab" style="padding:7px 14px;background:#f59e0b;border:1px solid #fbbf24;color:#0f172a;border-radius:8px;font-size:13px;font-weight:800;display:inline-flex;align-items:center;gap:7px;text-decoration:none;box-shadow:0 2px 8px rgba(245,158,11,0.4);">
-                    <i class="fa-solid fa-arrow-left-long" style="font-size:15px;color:#0f172a;"></i>
-                    <span>Back</span>
-                </a>
-
-
+                <div style="display:inline-flex;align-items:center;gap:6px;font-weight:800;color:#ffffff;font-size:15px;letter-spacing:-.01em;flex-shrink:0;">
+                    <i class="fa-solid fa-graduation-cap" style="color:#38bdf8;font-size:16px;"></i>
+                    <span>Carmel Linx</span>
+                </div>
+                <span style="color:#475569;font-weight:700;">|</span>
                 <span class="vl-badge vl-badge-blue" style="font-size:13.5px;font-weight:800;letter-spacing:.06em;padding:5px 12px;border-radius:7px;">
                     <i class="fa-solid fa-flask-vial" style="font-size:14px;"></i> VIRTUAL LAB · {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}
                 </span>
@@ -378,6 +379,10 @@
                 <a href="/r26/classroom/practical/course-file/{{ $batchSubject->id }}" target="_blank" class="exp-btn-touch" style="padding:7px 13px;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#fcd34d;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;" title="Course File">
                     <i class="fa-solid fa-folder-open" style="color:#fbbf24;"></i>
                     <span class="hide-xs">Course File</span>
+                </a>
+                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch" title="Dashboard / Close Tab" style="padding:5px 10px;background:#f59e0b;border:1px solid #fbbf24;color:#0f172a;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;text-decoration:none;box-shadow:0 2px 6px rgba(245,158,11,0.3);">
+                    <i class="fa-solid fa-arrow-left" style="font-size:11px;color:#0f172a;"></i>
+                    <span>Dashboard</span>
                 </a>
             </div>
         </div>

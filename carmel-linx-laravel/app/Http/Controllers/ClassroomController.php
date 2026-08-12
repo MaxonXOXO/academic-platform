@@ -1427,23 +1427,19 @@ Syllabus Text:
         $hasRealContentCount = 0;
         foreach ($moduleIds as $idx => $mId) {
             $num = $idx + 1;
-            // Look for "CO1 ... Contents: [text] ... CO2" or similar
-            $pattern = '/CO' . $num . '\s+[\s\S]*?Contents:\s*([\s\S]*?)(?=CO' . ($num + 1) . '|Module\s+[IVX]+|Series Test|Text\s*[\/\-]\s*Reference|References|Text\s*Book|Bibliography|Course Outcomes|\z)/i';
+            // Look for "CO 1 ... Contents: [text] ... CO 2" or similar
+            $pattern = '/CO\s*' . $num . '\b[\s\S]*?Contents:\s*([\s\S]*?)(?=CO\s*' . ($num + 1) . '\b|Module\s+[IVX]+|Series Test|Text\s*[\/\-]\s*Reference|References|Text\s*Book|Bibliography|Course Outcomes|\z)/i';
             if (preg_match($pattern, $outlineText, $match)) {
                 $content = trim($match[1]);
-                $content = preg_replace('/\s+/', ' ', $content);
+                $content = preg_replace('/CO\s*\d+\s+[\s\S]*/i', '', $content);
+                $content = trim(preg_replace('/\s+/', ' ', $content));
                 if (strlen($content) > 10) {
                     $hasRealContentCount++;
+                    $modules[] = [
+                        'module_id' => $mId,
+                        'content' => substr($content, 0, 1000)
+                    ];
                 }
-                $modules[] = [
-                    'module_id' => $mId,
-                    'content' => substr($content, 0, 1000)
-                ];
-            } else {
-                $modules[] = [
-                    'module_id' => $mId,
-                    'content' => ''
-                ];
             }
         }
         
@@ -1454,34 +1450,23 @@ Syllabus Text:
             $currentModule = null;
             foreach ($parts as $part) {
                 if (preg_match('/^(?:Module|Unit)\s+([IVX\d]+)$/i', trim($part), $m)) {
-                    if ($currentModule) $fallbackModules[] = $currentModule;
+                    if ($currentModule && !empty(trim($currentModule['content']))) $fallbackModules[] = $currentModule;
                     $currentModule = ['module_id' => strtoupper($m[1]), 'content' => ''];
                 } else if ($currentModule) {
                     $cleanText = preg_replace('/\s+/', ' ', trim($part));
                     $currentModule['content'] = substr($cleanText, 0, 1000);
                 }
             }
-            if ($currentModule) $fallbackModules[] = $currentModule;
+            if ($currentModule && !empty(trim($currentModule['content']))) $fallbackModules[] = $currentModule;
 
-            // Merge/Align fallback modules with the main modules list
             if (!empty($fallbackModules)) {
-                foreach ($moduleIds as $idx => $mId) {
-                    // Try to find the fallback module that matches Roman numeral or index number
-                    $foundContent = '';
-                    foreach ($fallbackModules as $fMod) {
-                        if ($fMod['module_id'] === $mId || $fMod['module_id'] === (string)($idx + 1)) {
-                            $foundContent = $fMod['content'];
-                            break;
-                        }
-                    }
-                    if ($foundContent) {
-                        $modules[$idx]['content'] = $foundContent;
-                    }
-                }
+                $modules = $fallbackModules;
             }
         }
         
-        return $modules;
+        return array_values(array_filter($modules, function($m) {
+            return !empty($m['content']) && strlen(trim($m['content'])) > 5;
+        }));
     }
 
     private function extractTextbooks($text)

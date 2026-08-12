@@ -3722,8 +3722,9 @@
       }
 
       // Render Modules section
-      if (modules && modules.length > 0) {
-        let modulesList = modules.map((m, idx) => `
+      let validModules = modules ? modules.filter(m => m.content && m.content.trim().length > 0) : [];
+      if (validModules.length > 0) {
+        let modulesList = validModules.map((m, idx) => `
           <div class="border-b border-slate-800/40 last:border-0 px-4 py-3 hover:bg-slate-900/30 transition-premium">
             <div class="flex items-start gap-3">
               <span class="flex-shrink-0 w-7 h-7 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 text-xs font-black">${m.module_id || (idx + 1)}</span>

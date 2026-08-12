@@ -206,6 +206,9 @@
             color: #fcd34d !important;
             font-weight: 700 !important;
             border-color: rgba(245, 158, 11, 0.4) !important;
+            min-width: 62px !important;
+            padding-left: 2px !important;
+            padding-right: 2px !important;
             text-align: center !important;
             text-align-last: center !important;
         }
@@ -548,7 +551,7 @@
                                 <th class="p-2 w-28">Prop Date</th>
                                 <th class="p-2 w-28">Act Date</th>
                                 <th class="p-2 w-auto">Topic & Content Description</th>
-                                <th class="p-2 w-16 text-center">CO</th>
+                                <th class="p-2 w-20 text-center">CO</th>
                                 <th class="p-2 w-16 text-center">Batch</th>
                                 <th class="p-2 w-16 text-center">Hours</th>
                                 <th class="p-2 pr-3 w-28">Remarks</th>
@@ -1311,7 +1314,7 @@
                                 <th class="p-2 w-28">Prop Date</th>
                                 <th class="p-2 w-28">Act Date</th>
                                 <th class="p-2 w-auto">Topic & Content Description</th>
-                                <th class="p-2 w-16 text-center">CO</th>
+                                <th class="p-2 w-20 text-center">CO</th>
                                 <th class="p-2 w-16 text-center">Batch</th>
                                 <th class="p-2 w-16 text-center">Hours</th>
                                 <th class="p-2 pr-3 w-28">Remarks</th>
@@ -2325,7 +2328,7 @@
                 }
             }
 
-            const label = defaultMode === 'L' ? `Hr ${nextNum}` : `Session ${nextNum}`;
+            const label = defaultMode === 'L' ? `${nextNum}` : `Session ${nextNum}`;
 
             const tr = document.createElement('tr');
             tr.id = `lp-row-${newId}`;

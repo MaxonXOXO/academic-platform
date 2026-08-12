@@ -504,7 +504,7 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" value="{{ $lp->allocated_hours ?: 1 }}" class="form-control form-control-custom form-control-sm text-center lp-hours" min="1" max="6" onchange="updateLpHoursTotal()">
+                                        <input type="text" value="{{ $lp->allocated_hours ?: 1 }}" class="form-control form-control-custom form-control-sm text-center lp-hours" inputmode="numeric" oninput="updateLpHoursTotal()">
                                     </td>
                                     <td>
                                         <select class="form-select form-control-custom form-select-sm lp-pedagogy">
@@ -1387,7 +1387,7 @@
                     </select>
                 </td>
                 <td>
-                    <input type="number" value="1" class="form-control form-control-custom form-control-sm text-center lp-hours" min="1" max="6" onchange="updateLpHoursTotal()">
+                    <input type="text" value="1" class="form-control form-control-custom form-control-sm text-center lp-hours" inputmode="numeric" oninput="updateLpHoursTotal()">
                 </td>
                 <td>
                     <select class="form-select form-control-custom form-select-sm lp-pedagogy">

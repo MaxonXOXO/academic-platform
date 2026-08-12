@@ -1132,19 +1132,19 @@
                 <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
                   <div>
                     <div class="flex items-center gap-2 mb-2">
-                      <span class="material-symbols-rounded text-teal-400 text-base">emoji_events</span>
+                      <span class="material-symbols-rounded text-slate-300 text-base">emoji_events</span>
                       <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Surveys & Attainment</h4>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed">Direct/Indirect CO attainment calculations, SAR survey reports, and 3-2-1 Likert scale feedback.</p>
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <button onclick="openPrintReport('course_exit')" class="w-full px-3 py-2 bg-teal-600/20 hover:bg-teal-600 border border-teal-500/30 text-teal-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">print</span> Course Exit Survey Report (A4)</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('course_exit')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">print</span> Course Exit Survey Report (A4)</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('nba_attainment')" class="w-full px-3 py-2 bg-amber-600/20 hover:bg-amber-600 border border-amber-500/30 text-amber-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">analytics</span> NBA Course Attainment Report</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('nba_attainment')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">analytics</span> NBA Course Attainment Report</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                   </div>
                 </div>
@@ -1153,23 +1153,23 @@
                 <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
                   <div>
                     <div class="flex items-center gap-2 mb-2">
-                      <span class="material-symbols-rounded text-sky-400 text-base">auto_stories</span>
+                      <span class="material-symbols-rounded text-slate-300 text-base">auto_stories</span>
                       <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Curriculum & Course Files</h4>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed">Lesson plan execution tracking, self-learning academic reports, and master course file dossier.</p>
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <button onclick="openPrintReport('lesson_plan')" class="w-full px-3 py-2 bg-sky-600/20 hover:bg-sky-600 border border-sky-500/30 text-sky-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">calendar_month</span> Lesson Plan Report (A4)</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('lesson_plan')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">calendar_month</span> Lesson Plan Report (A4)</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('course_file')" class="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-blue-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">folder_open</span> Comprehensive Course File (2021)</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('course_file')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">folder_open</span> Comprehensive Course File (2021)</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('self_learning')" class="w-full px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">school</span> Self-Learning Report</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('self_learning')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">school</span> Self-Learning Report</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                   </div>
                 </div>
@@ -1178,23 +1178,23 @@
                 <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
                   <div>
                     <div class="flex items-center gap-2 mb-2">
-                      <span class="material-symbols-rounded text-emerald-400 text-base">fact_check</span>
+                      <span class="material-symbols-rounded text-slate-300 text-base">fact_check</span>
                       <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Evaluation Marksheets</h4>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed">Internal Continuous Evaluation (CIE), Series Exam marksheets, and final End-Semester Results.</p>
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <button onclick="openPrintReport('cie_marksheet')" class="w-full px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">assignment</span> Internal CIE Marksheet Report</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('cie_marksheet')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Internal CIE Marksheet Report</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('series_marks')" class="w-full px-3 py-2 bg-purple-600/20 hover:bg-purple-600 border border-purple-500/30 text-purple-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">edit_note</span> Series Exam Marksheet Report</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('series_marks')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">edit_note</span> Series Exam Marksheet Report</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('final_results')" class="w-full px-3 py-2 bg-violet-600/20 hover:bg-violet-600 border border-violet-500/30 text-violet-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">grade</span> Final Results & ESE Marksheet</span>
-                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    <button onclick="openPrintReport('final_results')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">grade</span> Final Results & ESE Marksheet</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                   </div>
                 </div>

@@ -2387,6 +2387,15 @@
             `;
 
             tbody.appendChild(tr);
+
+            // Automatically shift vertical scroll to max down to show the new row
+            const scrollContainer = tbody.closest('.max-h-\\[650px\\], .overflow-y-auto, div') || tbody.parentElement;
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+            setTimeout(() => {
+                tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 50);
         }
 
         function saveAllLessonPlans() {

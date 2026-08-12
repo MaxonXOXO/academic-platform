@@ -220,7 +220,7 @@
                                 </span>
                                 <div>
                                     <h4 class="text-sm font-bold text-slate-100">{{ $student->name }}</h4>
-                                    <span class="text-xs font-mono text-slate-500">{{ $student->reg_no }}</span>
+                                    <span class="text-xs font-mono text-cyan-400 font-bold">{{ $student->reg_no }}</span>
                                 </div>
                             </div>
 
@@ -283,7 +283,7 @@
                                 </span>
                                 <div>
                                     <h4 class="text-sm font-bold text-slate-100">{{ $student->name }}</h4>
-                                    <span class="text-xs font-mono text-slate-500">{{ $student->reg_no }}</span>
+                                    <span class="text-xs font-mono text-cyan-400 font-bold">{{ $student->reg_no }}</span>
                                 </div>
                             </div>
 
@@ -345,7 +345,7 @@
                                 </span>
                                 <div>
                                     <h4 class="text-sm font-bold text-slate-100">{{ $student->name }}</h4>
-                                    <span class="text-xs font-mono text-slate-500">{{ $student->reg_no }}</span>
+                                    <span class="text-xs font-mono text-cyan-400 font-bold">{{ $student->reg_no }}</span>
                                 </div>
                             </div>
 
@@ -439,7 +439,7 @@
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <div>
                     <h3 id="modalStudentName" class="font-black text-white text-base">Student Name</h3>
-                    <span id="modalStudentReg" class="text-xs font-mono text-slate-500">Reg No</span>
+                    <span id="modalStudentReg" class="text-xs font-mono text-cyan-400 font-bold">Reg No</span>
                 </div>
                 <button onclick="closeGradingModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>

@@ -68,6 +68,27 @@ class ClassroomController extends Controller
                 $targetHours = (int)$matches[1];
             }
 
+            // Extract CIA / ESE marks & credits dynamically from PDF text
+            $extractedCia = 60;
+            $extractedEse = 40;
+            $extractedCredits = 2.0;
+
+            if (preg_match('/CIA\s*:\s*(\d+)/i', $text, $mM)) {
+                $extractedCia = (int)$mM[1];
+            } elseif (preg_match('/Continuous\s+Internal\s+Assessment\s*[\:\-]?\s*(\d+)/i', $text, $mM)) {
+                $extractedCia = (int)$mM[1];
+            }
+
+            if (preg_match('/ESE\s*:\s*(\d+)/i', $text, $mM)) {
+                $extractedEse = (int)$mM[1];
+            } elseif (preg_match('/End\s+Semester\s+Examination\s*[\:\-]?\s*(\d+)/i', $text, $mM)) {
+                $extractedEse = (int)$mM[1];
+            }
+
+            if (preg_match('/Credits?\s*:\s*([\d\.]+)/i', $text, $mM)) {
+                $extractedCredits = (float)$mM[1];
+            }
+
             // CROSS-BATCH TEMPLATE AUTO-POPULATION:
             // If a template already exists for this subject code, load it directly instead of parsing / AI generation
             $templateRows = \DB::table('lesson_plan_templates')
@@ -392,6 +413,9 @@ Syllabus text:
                     'subject_name' => $batchSubject->subject_name,
                     'revision_year' => $syllabusRevision ?? 2021,
                     'co_count' => count($extractedCos) ?: 6,
+                    'cia_marks' => $extractedCia ?? 60,
+                    'ese_marks' => $extractedEse ?? 40,
+                    'credits' => $extractedCredits ?? 2.0,
                     'updated_at' => now(),
                     'created_at' => now(),
                 ]
@@ -1366,6 +1390,9 @@ Syllabus text:
         $coSum = array_sum(array_column($parsedCos, 'duration'));
         $proposedHours = ($coSum > 0) ? ($coSum + 2) : 60;
 
+        $ciaMarks = $syllabus->cia_marks ?? 60;
+        $eseMarks = $syllabus->ese_marks ?? 40;
+
         return response()->json([
             'status' => 'SUCCESS',
             'data' => [
@@ -1388,7 +1415,9 @@ Syllabus text:
                 'academic_year' => $batchSubject->academic_year ?? '',
                 'classroom_id' => $batchSubject->classroom_id ?? '',
                 'syllabus_revision' => $syllabusRevision,
-                'proposed_total_hours' => $proposedHours
+                'proposed_total_hours' => $proposedHours,
+                'cia_marks' => $ciaMarks,
+                'ese_marks' => $eseMarks
             ]
         ]);
     }

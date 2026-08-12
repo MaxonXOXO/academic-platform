@@ -268,10 +268,52 @@
 </head>
 <body>
 
+    @php
+        $role = Session::get('userRole');
+        $dashboardUrl = '/dashboard/lecturer';
+        if ($role === 'HOD') {
+            $dashboardUrl = '/dashboard/hod';
+        } elseif ($role === 'Principal') {
+            $dashboardUrl = '/dashboard/principal';
+        } elseif ($role === 'Demonstrator') {
+            $dashboardUrl = '/dashboard/demonstrator';
+        } elseif ($role === 'Super_Admin') {
+            $dashboardUrl = '/dashboard/superadmin';
+        } elseif ($role === 'Admin') {
+            $dashboardUrl = '/dashboard/admin';
+        } elseif ($role === 'Gen_Dept_Coordinator_Aided') {
+            $dashboardUrl = '/dashboard/general-coordinator-aided';
+        } elseif ($role === 'Gen_Dept_Coordinator_Self_Finance') {
+            $dashboardUrl = '/dashboard/general-coordinator-sf';
+        } elseif ($role === 'Trade_Instructor') {
+            $dashboardUrl = '/dashboard/tradeinstructor';
+        } elseif ($role === 'Workshop_Superintendent') {
+            $dashboardUrl = '/dashboard/workshop';
+        }
+    @endphp
+
+    <script>
+        function closeTabOrGoDashboard() {
+            if (window.opener && !window.opener.closed) {
+                window.close();
+                return;
+            }
+            window.close();
+            setTimeout(function() {
+                let ref = document.referrer;
+                if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) {
+                    window.location.href = ref;
+                } else {
+                    window.location.href = '{{ $dashboardUrl }}';
+                }
+            }, 150);
+        }
+    </script>
+
     <!-- Header Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2">
         <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard/lecturer">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="javascript:void(0)" onclick="closeTabOrGoDashboard()">
                 <i class="fa-solid fa-drafting-compass text-info fs-4"></i>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="fw-bold brand-font text-white" style="font-size: 1rem;">Carmel Linx</span>
@@ -283,6 +325,20 @@
                 </div>
             </a>
             <div class="d-flex align-items-center gap-2">
+                @php
+                    $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
+                @endphp
+                @if($isAiActive)
+                    <span class="badge px-2.5 py-1 rounded-2 text-slate-300 font-semibold d-none d-md-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(51, 65, 85, 0.8); color: #cbd5e1;" title="AI Support API Active">
+                        <span class="rounded-circle bg-emerald-400 d-inline-block" style="width:6px; height:6px;"></span>
+                        <span>AI Active</span>
+                    </span>
+                @else
+                    <span class="badge px-2.5 py-1 rounded-2 text-slate-300 font-semibold d-none d-md-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(51, 65, 85, 0.8); color: #cbd5e1;" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
+                        <span class="rounded-circle bg-slate-400 d-inline-block" style="width:6px; height:6px;"></span>
+                        <span>AI Offline (Local DB)</span>
+                    </span>
+                @endif
                 <div class="text-end d-none d-md-block">
                     <span class="badge bg-dark text-info border border-info px-2 py-1" style="font-size: 0.72rem; font-weight: 600;">
                         <i class="fa-solid fa-graduation-cap me-1"></i> {{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}
@@ -291,7 +347,7 @@
                 <button onclick="toggleFullscreen()" class="btn btn-sm btn-outline-light px-2.5 py-1 fw-bold text-white shadow-sm" id="fullscreenToggleBtn" title="Toggle Fullscreen" style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2);">
                     <i class="fa-solid fa-expand me-1 text-info"></i> <span class="d-none d-sm-inline">Fullscreen</span>
                 </button>
-                <a href="/dashboard/lecturer" class="btn btn-sm btn-outline-info px-3 py-1 fw-bold text-info shadow-sm" style="font-size: 0.8rem; background: rgba(6, 182, 212, 0.12); border-color: rgba(56, 189, 248, 0.5);"><i class="fa-solid fa-arrow-left me-1.5"></i> Dashboard</a>
+                <a href="javascript:void(0)" onclick="closeTabOrGoDashboard()" class="btn btn-sm btn-outline-info px-3 py-1 fw-bold text-info shadow-sm" style="font-size: 0.8rem; background: rgba(6, 182, 212, 0.12); border-color: rgba(56, 189, 248, 0.5);"><i class="fa-solid fa-arrow-left me-1.5"></i> Dashboard</a>
             </div>
         </div>
     </nav>
@@ -302,74 +358,31 @@
         <!-- Top Banner -->
         <div class="glass-card p-3 mb-3">
             <div class="row align-items-center g-3">
-                <div class="col-lg-7">
-                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
-                        @php
-                            $courseType = $drawingCourseFile->type_of_course ?? 'Drawing';
-                            $isLab = str_contains(strtolower($courseType), 'lab') || str_contains(strtolower($courseType), 'practical');
-                        @endphp
-                        <span class="badge {{ $isLab ? 'badge-cyan' : 'badge-purple' }} px-2 py-0.5" style="font-size: 0.68rem;">
-                            <i class="fa-solid {{ $isLab ? 'fa-flask' : 'fa-pen-ruler' }} me-1"></i> {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R2021' : 'R2026' }} {{ $courseType }} Paper
-                        </span>
-                        
-                        <!-- Batch Badge -->
-                        <span class="badge badge-emerald px-2 py-0.5" style="font-size: 0.68rem;">
-                            <i class="fa-solid fa-users me-1"></i> Batch: {{ $classroom->batch_year ?? 'R26' }} ({{ $batchSubject->classroom_id }})
-                        </span>
-
-                        <!-- Assigned Faculty Badge -->
-                        <span class="badge badge-purple px-2 py-0.5" style="font-size: 0.68rem;">
-                            <i class="fa-solid fa-user-tie me-1"></i> Faculty: 
-                            @if(isset($assignedStaff) && count($assignedStaff) > 0)
-                                {{ $assignedStaff->pluck('name')->implode(', ') }}
-                            @else
-                                {{ Session::get('userName') ?? 'Faculty In-Charge' }}
-                            @endif
-                        </span>
-
-                        <!-- AI Status Badge -->
-                        @php
-                            $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
-                        @endphp
-                        @if($isAiActive)
-                            <span class="badge badge-cyan px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Active">
-                                <span class="rounded-circle bg-emerald-400 d-inline-block" style="width:5px; height:5px;"></span>
-                                <span>AI Active</span>
-                            </span>
-                        @else
-                            <span class="badge bg-dark text-warning border border-warning-subtle px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
-                                <span class="rounded-circle bg-warning d-inline-block" style="width:5px; height:5px;"></span>
-                                <span>AI Offline (Local DB)</span>
-                            </span>
-                        @endif
-
-                        <span class="badge badge-amber px-2 py-0.5" style="font-size: 0.68rem;">
-                            <i class="fa-solid fa-clock me-1"></i> {{ $drawingCourseFile->contact_hours ?? 45 }} Hours
-                        </span>
-                    </div>
-                    <h5 class="fw-bold mb-1 text-white" style="font-size: 1.05rem;">
+                <div class="col-lg-8">
+                    <!-- Subject Code & Title at top (1rem font size matching Carmel Linx navbar title) -->
+                    <h5 class="fw-bold mb-1 text-white" style="font-size: 1rem; font-weight: 700;">
                         <span class="text-info me-1.5">[{{ $batchSubject->formatted_subject_code ?? ($drawingCourseFile->course_code ?? $batchSubject->subject_code) }}]</span>
                         <span>{{ $drawingCourseFile->course_title ?? $batchSubject->subject_name }}</span>
                     </h5>
-                    <p class="mb-0" style="color: #cbd5e1; font-size: 0.8rem;">
-                        <span style="color: #94a3b8;">Scheme L:T:P:R:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->teaching_scheme ?? '0:0:3:0' }}</strong> &nbsp;|&nbsp; 
-                        <span style="color: #94a3b8;">Credits:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->credits ?? 1.5 }}</strong> &nbsp;|&nbsp; 
-                        <span style="color: #94a3b8;">Contact Hours:</span> <strong style="color: #fbbf24; font-weight: 700;">{{ $drawingCourseFile->contact_hours ?? 45 }} Hrs</strong>
-                    </p>
+                    
+                    <!-- Metadata Row: Scheme, Credits, Contact Hours -->
+                    <div class="d-flex align-items-center gap-2.5 flex-wrap text-slate-300" style="font-size: 0.8rem;">
+                        <span><span style="color: #94a3b8;">Scheme L:T:P:R:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->teaching_scheme ?? '0:0:3:0' }}</strong></span>
+                        <span class="text-slate-600 font-bold">•</span>
+                        <span><span style="color: #94a3b8;">Credits:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->credits ?? 1.5 }}</strong></span>
+                        <span class="text-slate-600 font-bold">•</span>
+                        <span><span style="color: #94a3b8;">Contact Hours:</span> <strong style="color: #fbbf24; font-weight: 700;">{{ $drawingCourseFile->contact_hours ?? 45 }} Hrs</strong></span>
+                    </div>
                 </div>
-                <div class="col-lg-5">
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="stat-card text-center py-2 px-2 rounded-lg" style="background: rgba(6, 182, 212, 0.12); border: 1px solid var(--accent-cyan);">
-                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #38bdf8; letter-spacing: 0.2px;">Continuous Assessment (CIE)</div>
-                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 1rem;">{{ $drawingCourseFile->cie_marks ?? 60 }} Marks</span>
-                            </div>
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center justify-content-lg-end gap-2">
+                        <div class="text-center py-1 px-2.5 rounded-2 shadow-sm" style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.35); min-width: 105px;">
+                            <div class="fw-bold text-uppercase" style="font-size: 0.62rem; color: #38bdf8; letter-spacing: 0.2px;">CIE (Marks)</div>
+                            <span class="fw-extrabold text-white d-block mt-0.5" style="font-size: 0.85rem;">{{ $drawingCourseFile->cie_marks ?? 60 }} Marks</span>
                         </div>
-                        <div class="col-6">
-                            <div class="stat-card text-center py-2 px-2 rounded-lg" style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--accent-amber);">
-                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #fbbf24; letter-spacing: 0.2px;">End Semester Exam (ESE)</div>
-                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 1rem;">{{ $drawingCourseFile->ese_marks ?? 40 }} Marks</span>
-                            </div>
+                        <div class="text-center py-1 px-2.5 rounded-2 shadow-sm" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); min-width: 105px;">
+                            <div class="fw-bold text-uppercase" style="font-size: 0.62rem; color: #fbbf24; letter-spacing: 0.2px;">ESE (Marks)</div>
+                            <span class="fw-extrabold text-white d-block mt-0.5" style="font-size: 0.85rem;">{{ $drawingCourseFile->ese_marks ?? 40 }} Marks</span>
                         </div>
                     </div>
                 </div>

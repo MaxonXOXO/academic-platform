@@ -1248,23 +1248,26 @@
                   <h4 class="text-base font-black text-white tracking-wide">Practical / Lab Evaluation Register</h4>
                   <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Grade day-to-day experiments (37.5), model tests (15),<br>micro-projects (7.5), and board exam marks (50).</p>
                 </div>
-                <div class="flex items-center gap-3 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
-                  <div class="flex items-center gap-2.5 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl shadow-sm focus-within:border-blue-500/50 transition-all shrink-0">
-                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">Batch Filter:</span>
-                    <select id="labBatchFilterSelect" onchange="filterLabGridByBatch()" class="bg-transparent border-0 text-white font-bold text-sm outline-none cursor-pointer">
+                <div class="flex items-center gap-2.5 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
+                  <a id="openFullVirtualLabBtn" href="#" target="_blank" class="px-3 py-1.5 bg-cyan-600/20 border border-cyan-500/40 hover:bg-cyan-600/30 text-cyan-400 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0">
+                    <span class="material-symbols-rounded text-sm">open_in_new</span> Full Workspace
+                  </a>
+                  <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm focus-within:border-blue-500/50 transition-all shrink-0">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Batch:</span>
+                    <select id="labBatchFilterSelect" onchange="filterLabGridByBatch()" class="bg-transparent border-0 text-white font-medium text-xs outline-none cursor-pointer">
                       <option value="combined" class="bg-slate-950">Combined (Full Class)</option>
                       <option value="1" class="bg-slate-950">Lab Batch 1 (First 50%)</option>
                       <option value="2" class="bg-slate-950">Lab Batch 2 (Second 50%)</option>
                     </select>
                   </div>
-                  <button onclick="openManageExperimentsModal()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-xl text-sm font-bold transition-premium flex items-center gap-2 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-base text-teal-400">settings</span> Manage Experiments
+                  <button onclick="openManageExperimentsModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
+                    <span class="material-symbols-rounded text-sm text-teal-400">settings</span> Experiments
                   </button>
-                  <button onclick="openManageTestsModal()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-xl text-sm font-bold transition-premium flex items-center gap-2 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-base text-blue-400">assignment_turned_in</span> Configure Tests
+                  <button onclick="openManageTestsModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
+                    <span class="material-symbols-rounded text-sm text-blue-400">assignment_turned_in</span> Tests
                   </button>
-                  <a id="printLabReportBtn" href="#" target="_blank" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/15 shrink-0">
-                    <span class="material-symbols-rounded text-base">print</span> Print Register
+                  <a id="printLabReportBtn" href="#" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition no-underline flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/15 shrink-0">
+                    <span class="material-symbols-rounded text-sm">print</span> Print Register
                   </a>
                 </div>
               </div>
@@ -1338,19 +1341,19 @@
                 <div class="overflow-x-auto">
                   <table class="w-full text-left border-collapse min-w-[1100px]">
                     <thead>
-                      <tr class="border-b border-slate-800/80 text-slate-350 font-bold uppercase tracking-wider text-sm bg-slate-900/80">
-                        <th class="p-4 w-20 text-center">Roll No</th>
-                        <th class="p-4">Student Name</th>
-                        <th class="p-4 text-center">Graded Exps</th>
-                        <th class="p-4 text-center">Exp Avg (37.5)</th>
-                        <th class="p-4 text-center">Test 1 (15)</th>
-                        <th class="p-4 text-center">Test 2 (15)</th>
-                        <th class="p-4 text-center">Test Avg (15)</th>
-                        <th class="p-4 text-center">Project (7.5)</th>
-                        <th class="p-4 text-center">Attendance (15)</th>
-                        <th class="p-4 text-center text-teal-400 bg-teal-500/5">Total CA (75)</th>
-                        <th class="p-4 text-center text-blue-400 bg-blue-500/5">Board Exam (50)</th>
-                        <th class="p-4 text-center">Action</th>
+                      <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
+                        <th class="p-2 w-12 text-center">Roll</th>
+                        <th class="p-2">Student Name</th>
+                        <th class="p-2 text-center">Graded Exps</th>
+                        <th class="p-2 text-center">Exp Avg (37.5)</th>
+                        <th class="p-2 text-center">Test 1 (15)</th>
+                        <th class="p-2 text-center">Test 2 (15)</th>
+                        <th class="p-2 text-center">Test Avg (15)</th>
+                        <th class="p-2 text-center">Project (7.5)</th>
+                        <th class="p-2 text-center">Attendance (15)</th>
+                        <th class="p-2 text-center text-teal-400 bg-teal-500/5">Total CA (75)</th>
+                        <th class="p-2 text-center text-blue-400 bg-blue-500/5">Board Exam (50)</th>
+                        <th class="p-2 text-center w-24">Action</th>
                       </tr>
                     </thead>
                     <tbody id="labEvaluationsTableBody" class="divide-y divide-slate-800/50">
@@ -6869,8 +6872,10 @@
         </tr>
       `;
 
-      // Set print button href
-      document.getElementById('printLabReportBtn').href = `/classroom/${currentSubjectId}/practical-report/print?type=register`;
+      // Set print & full workspace button hrefs
+      document.getElementById('printLabReportBtn').href = `/classroom/practical/${currentSubjectId}/report/print`;
+      const fullWsBtn = document.getElementById('openFullVirtualLabBtn');
+      if (fullWsBtn) fullWsBtn.href = `/classroom/practical/${currentSubjectId}`;
 
       fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
       .then(res => res.json())
@@ -6908,7 +6913,7 @@
 
       labStudentsData.forEach(student => {
         const tr = document.createElement('tr');
-        tr.className = "border-b border-slate-800/40 text-base hover:bg-slate-900/20";
+        tr.className = "border-b border-slate-800/40 text-xs hover:bg-slate-900/20";
         tr.setAttribute('data-reg', student.reg_no);
         
         // Count graded experiments for this student
@@ -6927,29 +6932,24 @@
         const boardMarks = student.board_exam_marks !== null ? parseFloat(student.board_exam_marks).toFixed(1) : 'N/A';
 
         tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-slate-300 text-nowrap text-sm">${student.roll_no || '-'}</td>
-          <td class="p-3 text-sm">
-            <button onclick="openStudentLabModal('${student.reg_no}')" class="text-blue-400 hover:text-blue-300 font-bold cursor-pointer text-left block text-sm">
+          <td class="p-2 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || '-'}</td>
+          <td class="p-2">
+            <button onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-blue-300 font-medium text-xs text-left block">
               ${student.name}
             </button>
-            <span class="text-xs text-slate-500 block font-mono mt-0.5">${student.reg_no}</span>
+            <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.reg_no}</span>
           </td>
-          <td class="p-3 text-center text-slate-400 font-bold font-mono text-sm">${gradedCount} / ${labExperimentsData.length}</td>
-          <td class="p-3 text-center font-mono font-bold text-slate-300 text-sm">${expAverage}</td>
-          <td class="p-3 text-center font-mono text-slate-455 text-sm">${t1Total}</td>
-          <td class="p-3 text-center font-mono text-slate-455 text-sm">${t2Total}</td>
-          <td class="p-3 text-center font-mono text-slate-300 font-bold text-sm">${testsAvg}</td>
-          <td class="p-3 text-center font-mono text-slate-455 text-sm">${microProjVal}</td>
-          <td class="p-3 text-center font-mono text-sm">
-            <div class="inline-flex flex-col items-center">
-              <span class="font-bold text-slate-350">${attendanceVal}</span>
-              <span class="text-xs text-slate-500 font-bold">${student.attendance_percentage}%</span>
-            </div>
-          </td>
-          <td class="p-3 text-center font-mono font-bold text-teal-400 text-base">${internalsTotal}</td>
-          <td class="p-3 text-center font-mono font-bold text-blue-400 text-base">${boardMarks}</td>
-          <td class="p-3 text-center">
-            <button onclick="openStudentLabModal('${student.reg_no}')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition-premium cursor-pointer border border-slate-700/50 flex items-center gap-1 mx-auto">
+          <td class="p-2 text-center text-slate-400 font-mono text-xs">${gradedCount} / ${labExperimentsData.length}</td>
+          <td class="p-2 text-center font-mono font-semibold text-blue-400 text-xs">${expAverage}</td>
+          <td class="p-2 text-center font-mono text-slate-400 text-xs">${t1Total}</td>
+          <td class="p-2 text-center font-mono text-slate-400 text-xs">${t2Total}</td>
+          <td class="p-2 text-center font-mono font-semibold text-purple-400 text-xs">${testsAvg}</td>
+          <td class="p-2 text-center font-mono text-amber-400 text-xs">${microProjVal}</td>
+          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)</td>
+          <td class="p-2 text-center font-mono font-bold text-teal-400 text-xs">${internalsTotal}</td>
+          <td class="p-2 text-center font-mono font-bold text-blue-400 text-xs">${boardMarks}</td>
+          <td class="p-2 text-center">
+            <button onclick="openStudentLabModal('${student.reg_no}')" class="px-2.5 py-1 bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-blue-400 text-[11px] font-medium rounded transition flex items-center justify-center gap-1 mx-auto">
               <span class="material-symbols-rounded text-xs">edit</span> Grade
             </button>
           </td>

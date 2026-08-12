@@ -638,9 +638,9 @@
                                     $v6 = $stEval->workmanship_discipline ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan fs-6">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-2 py-1 fs-6">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white fs-6">{{ $st->name }}</td>
+                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
+                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input p1" value="{{ $v1 }}" max="10" min="0" step="0.5">
@@ -758,9 +758,9 @@
                                     $isAbs = $ca1->is_absent ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan fs-6">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-2 py-1 fs-6">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white fs-6">{{ $st->name }}</td>
+                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
+                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input ca-w" value="{{ $cw }}" max="10" min="0" step="0.5">
@@ -838,9 +838,9 @@
                                     $m5 = $stOee->teamwork_innovation ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan fs-6">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-2 py-1 fs-6">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white fs-6">{{ $st->name }}</td>
+                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
+                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input oee-m1" value="{{ $m1 }}" max="10" min="0" step="0.5">
@@ -917,9 +917,9 @@
                                     $isAbsEse = $stEse->is_absent ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan fs-6">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-2 py-1 fs-6">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white fs-6">{{ $st->name }}</td>
+                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
+                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input ese-pa" value="{{ $pa }}" max="10" min="0" step="0.5">

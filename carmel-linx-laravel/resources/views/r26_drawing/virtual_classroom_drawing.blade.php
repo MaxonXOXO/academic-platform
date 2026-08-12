@@ -266,6 +266,9 @@
                         <i class="fa-solid fa-graduation-cap me-1"></i> {{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}
                     </span>
                 </div>
+                <button onclick="toggleFullscreen()" class="btn btn-sm btn-outline-light px-2.5 py-1 fw-bold text-white shadow-sm" id="fullscreenToggleBtn" title="Toggle Fullscreen" style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2);">
+                    <i class="fa-solid fa-expand me-1 text-info"></i> <span class="d-none d-sm-inline">Fullscreen</span>
+                </button>
                 <a href="/dashboard/lecturer" class="btn btn-sm btn-outline-info px-3 py-1 fw-bold text-info shadow-sm" style="font-size: 0.8rem; background: rgba(6, 182, 212, 0.12); border-color: rgba(56, 189, 248, 0.5);"><i class="fa-solid fa-arrow-left me-1.5"></i> Dashboard</a>
             </div>
         </div>
@@ -1923,6 +1926,35 @@
                 alert('Error saving Question Bank: ' + e.message);
             }
         }
+
+        // Fullscreen Toggle Logic
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    updateFullscreenBtnUI();
+                }).catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(() => {
+                        updateFullscreenBtnUI();
+                    });
+                }
+            }
+        }
+
+        function updateFullscreenBtnUI() {
+            const btn = document.getElementById('fullscreenToggleBtn');
+            if (!btn) return;
+            if (document.fullscreenElement) {
+                btn.innerHTML = '<i class="fa-solid fa-compress me-1 text-warning"></i> <span class="d-none d-sm-inline">Exit Fullscreen</span>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-expand me-1 text-info"></i> <span class="d-none d-sm-inline">Fullscreen</span>';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenBtnUI);
     </script>
 </body>
 </html>

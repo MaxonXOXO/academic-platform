@@ -266,7 +266,7 @@
                         <i class="fa-solid fa-graduation-cap me-1"></i> {{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}
                     </span>
                 </div>
-                <a href="/dashboard/lecturer" class="btn btn-outline-secondary btn-sm px-2.5 py-1" style="font-size: 0.75rem;"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
+                <a href="/dashboard/lecturer" class="btn btn-sm btn-outline-info px-3 py-1 fw-bold text-info shadow-sm" style="font-size: 0.8rem; background: rgba(6, 182, 212, 0.12); border-color: rgba(56, 189, 248, 0.5);"><i class="fa-solid fa-arrow-left me-1.5"></i> Dashboard</a>
             </div>
         </div>
     </nav>

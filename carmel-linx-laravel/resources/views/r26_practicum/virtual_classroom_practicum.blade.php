@@ -901,12 +901,12 @@
                     <div class="overflow-x-auto rounded-lg border border-slate-800">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80 uppercase tracking-wider">
-                                    <th class="p-2.5 w-12 text-center">Roll</th>
-                                    <th class="p-2.5 w-32">SBTE Reg No</th>
-                                    <th class="p-2.5">Student Name</th>
-                                    <th class="p-2.5 text-center w-36">Theory ESE Grade</th>
-                                    <th class="p-2.5 text-center w-32">Status</th>
+                                <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80 uppercase tracking-wider text-[10px]">
+                                    <th class="py-1.5 px-2.5 w-12 text-center">Roll</th>
+                                    <th class="py-1.5 px-2.5 w-32">SBTE Reg No</th>
+                                    <th class="py-1.5 px-2.5">Student Name</th>
+                                    <th class="py-1.5 px-2.5 text-center w-36">Theory ESE Grade</th>
+                                    <th class="py-1.5 px-2.5 text-center w-32">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60 text-xs">

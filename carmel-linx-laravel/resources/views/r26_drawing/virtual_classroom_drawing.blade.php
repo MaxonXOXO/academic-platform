@@ -397,7 +397,7 @@
                                     <input type="file" class="form-control form-control-custom" name="syllabus_file" accept=".pdf" required>
                                 </div>
                                 <button type="submit" class="btn btn-cyan w-100" id="uploadBtn">
-                                    <i class="fa-solid fa-gears me-1"></i> Parse & Extract Syllabus
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload, Parse & Extract Syllabus
                                 </button>
                             </form>
                             @if(!empty($drawingCourseFile->syllabus_pdf_path))
@@ -1244,7 +1244,7 @@
             } finally {
                 this.reset();
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-gears me-1"></i> Parse & Extract Syllabus';
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload, Parse & Extract Syllabus';
             }
         });
 

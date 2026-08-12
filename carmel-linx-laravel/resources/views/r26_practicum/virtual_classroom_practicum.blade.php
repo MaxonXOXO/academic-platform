@@ -541,26 +541,26 @@
                 </div>
  
                 <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
-                    <table class="w-full min-w-[1050px] text-left border-collapse lp-table">
+                    <table class="w-full min-w-[1080px] text-left border-collapse lp-table">
                         <thead class="sticky top-0 z-10 bg-slate-900 shadow">
                             <tr class="border-b border-slate-800 text-slate-400 font-normal text-xs uppercase tracking-wider">
-                                <th class="p-3 w-16 min-w-[65px] text-center">Day/Hr</th>
-                                <th class="p-3 w-36 min-w-[140px]">Pedagogy</th>
-                                <th class="p-3 w-32 min-w-[130px]">Proposed Date</th>
-                                <th class="p-3 w-32 min-w-[130px]">Actual Date</th>
-                                <th class="p-3 min-w-[280px]">Topic & Content Description</th>
-                                <th class="p-3 w-28 min-w-[90px] text-center">CO</th>
-                                <th class="p-3 w-32 min-w-[120px]">Sub-Batch</th>
-                                <th class="p-3 w-24 min-w-[100px] text-center">Hours Needed</th>
-                                <th class="p-3 w-32 min-w-[130px]">Remarks</th>
+                                <th class="p-2 w-12 min-w-[48px] text-center">Day/Hr</th>
+                                <th class="p-2 w-32 min-w-[125px]">Pedagogy</th>
+                                <th class="p-2 w-28 min-w-[115px]">Prop Date</th>
+                                <th class="p-2 w-28 min-w-[115px]">Act Date</th>
+                                <th class="p-2 min-w-[340px]">Topic & Content Description</th>
+                                <th class="p-2 w-16 min-w-[65px] text-center">CO</th>
+                                <th class="p-2 w-20 min-w-[70px] text-center">Batch</th>
+                                <th class="p-2 w-20 min-w-[80px] text-center">Hours</th>
+                                <th class="p-2 pr-5 w-28 min-w-[120px]">Remarks</th>
                             </tr>
                         </thead>
                         <tbody id="lp-theory-tbody" class="divide-y divide-slate-800/60 text-sm">
                             @foreach($lessonPlans->whereIn('mode', ['L', 'ST']) as $plan)
                             <tr id="lp-row-{{ $plan->id }}" data-plan-id="{{ $plan->id }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 font-normal text-center text-white">{{ $plan->day_no }}</td>
-                                <td class="p-2.5">
-                                    <select id="lp-pedagogy-{{ $plan->id }}" onchange="onPedagogyChange({{ $plan->id }}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs w-full {{ $plan->mode === 'L' ? 'text-blue-400' : ($plan->mode === 'P' ? 'text-emerald-400' : 'text-purple-400') }}">
+                                <td class="p-2 font-normal text-center text-white text-xs">{{ $plan->day_no }}</td>
+                                <td class="p-2">
+                                    <select id="lp-pedagogy-{{ $plan->id }}" onchange="onPedagogyChange({{ $plan->id }}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 font-normal text-xs w-full {{ $plan->mode === 'L' ? 'text-blue-400' : ($plan->mode === 'P' ? 'text-emerald-400' : 'text-purple-400') }}">
                                         <option value="Lecture (L)" {{ ($plan->pedagogy ?? 'Lecture (L)') === 'Lecture (L)' || ($plan->mode === 'L' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Lecture (L)</option>
                                         <option value="Practical Lab (P)" {{ ($plan->pedagogy ?? '') === 'Practical Lab (P)' || ($plan->mode === 'P' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Practical Lab (P)</option>
                                         <option value="Theory Series Exam (ST)" {{ ($plan->pedagogy ?? '') === 'Theory Series Exam (ST)' || ($plan->mode === 'ST' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Theory Series Exam (ST)</option>
@@ -570,45 +570,53 @@
                                         <option value="Group Activity" {{ ($plan->pedagogy ?? '') === 'Group Activity' ? 'selected' : '' }}>Group Activity</option>
                                     </select>
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="date" id="lp-prop-{{ $plan->id }}" value="{{ $plan->proposed_date }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                                <td class="p-2">
+                                    <input type="date" id="lp-prop-{{ $plan->id }}" value="{{ $plan->proposed_date }}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="date" id="lp-act-{{ $plan->id }}" value="{{ $plan->actual_date }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                                <td class="p-2">
+                                    <input type="date" id="lp-act-{{ $plan->id }}" value="{{ $plan->actual_date }}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                                 </td>
-                                <td class="p-2.5">
-                                    <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $plan->topic_content }}</textarea>
+                                <td class="p-2">
+                                    <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-xs font-normal w-full min-w-[320px] focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $plan->topic_content }}</textarea>
                                 </td>
-                                <td class="p-2.5 text-center">
-                                    <select id="lp-co-{{ $plan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                                <td class="p-2 text-center">
+                                    <select id="lp-co-{{ $plan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
                                         @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
                                             <option value="{{ $coOpt }}" {{ ($plan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td id="lp-batch-td-{{ $plan->id }}" class="p-2.5">
+                                <td id="lp-batch-td-{{ $plan->id }}" class="p-2 text-center">
                                     @if(in_array($plan->mode, ['P', 'SP']) || (isset($plan->pedagogy) && (stripos($plan->pedagogy, 'Practical') !== false || stripos($plan->pedagogy, 'Lab') !== false)))
-                                        <select id="lp-batch-{{ $plan->id }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs text-emerald-400 w-full">
-                                            <option value="Batch A & B" {{ ($plan->sub_batch ?? 'Batch A & B') === 'Batch A & B' ? 'selected' : '' }}>Batch A & B (Combined)</option>
-                                            <option value="Batch A" {{ ($plan->sub_batch ?? '') === 'Batch A' ? 'selected' : '' }}>Batch A</option>
-                                            <option value="Batch B" {{ ($plan->sub_batch ?? '') === 'Batch B' ? 'selected' : '' }}>Batch B</option>
+                                        @php
+                                            $bVal = $plan->sub_batch ?? 'A & B';
+                                            if (in_array($bVal, ['Batch A & B', 'Batch A & B (Combined)', 'A & B'])) $bVal = 'A & B';
+                                            elseif (in_array($bVal, ['Batch A', 'A'])) $bVal = 'A';
+                                            elseif (in_array($bVal, ['Batch B', 'B'])) $bVal = 'B';
+                                            else $bVal = 'ALL';
+                                        @endphp
+                                        <select id="lp-batch-{{ $plan->id }}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
+                                            <option value="A & B" {{ $bVal === 'A & B' ? 'selected' : '' }}>A & B</option>
+                                            <option value="A" {{ $bVal === 'A' ? 'selected' : '' }}>A</option>
+                                            <option value="B" {{ $bVal === 'B' ? 'selected' : '' }}>B</option>
+                                            <option value="ALL" {{ $bVal === 'ALL' ? 'selected' : '' }}>ALL</option>
                                         </select>
                                     @else
-                                        <span class="px-2.5 py-1 rounded bg-slate-900/80 text-slate-400 font-normal text-xs border border-slate-800 inline-block">
-                                            All Students
+                                        <span class="px-2 py-0.5 rounded bg-slate-900/80 text-slate-400 font-mono text-[11px] border border-slate-800 inline-block">
+                                            ALL
                                         </span>
-                                        <input type="hidden" id="lp-batch-{{ $plan->id }}" value="All Students">
+                                        <input type="hidden" id="lp-batch-{{ $plan->id }}" value="ALL">
                                     @endif
                                 </td>
-                                <td id="lp-hours-td-{{ $plan->id }}" class="p-2.5 text-center font-normal">
+                                <td id="lp-hours-td-{{ $plan->id }}" class="p-2 text-center font-normal">
                                     @if(in_array($plan->mode, ['P', 'SP']) || (isset($plan->pedagogy) && (stripos($plan->pedagogy, 'Practical') !== false || stripos($plan->pedagogy, 'Lab') !== false)))
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-normal">3 Hours</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-normal">3 Hrs</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">1 Hour</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">1 Hr</span>
                                     @endif
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="text" id="lp-remarks-{{ $plan->id }}" value="{{ $plan->remarks }}" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
+                                <td class="p-2 pr-5">
+                                    <input type="text" id="lp-remarks-{{ $plan->id }}" value="{{ $plan->remarks }}" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full min-w-[100px]">
                                 </td>
                             </tr>
                             @endforeach
@@ -1290,18 +1298,18 @@
                 </div>
  
                 <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
-                    <table class="w-full min-w-[1050px] text-left border-collapse lp-table">
+                    <table class="w-full min-w-[1080px] text-left border-collapse lp-table">
                         <thead class="sticky top-0 z-10 bg-slate-900 shadow">
                             <tr class="border-b border-slate-800 text-slate-400 font-normal text-xs uppercase tracking-wider">
-                                <th class="p-3 w-16 min-w-[65px] text-center">Day/Hr</th>
-                                <th class="p-3 w-36 min-w-[140px]">Pedagogy</th>
-                                <th class="p-3 w-32 min-w-[130px]">Proposed Date</th>
-                                <th class="p-3 w-32 min-w-[130px]">Actual Date</th>
-                                <th class="p-3 min-w-[280px]">Topic & Content Description</th>
-                                <th class="p-3 w-28 min-w-[90px] text-center">CO</th>
-                                <th class="p-3 w-32 min-w-[120px]">Sub-Batch</th>
-                                <th class="p-3 w-24 min-w-[100px] text-center">Hours Needed</th>
-                                <th class="p-3 w-32 min-w-[130px]">Remarks</th>
+                                <th class="p-2 w-16 min-w-[55px] text-center">Day/Hr</th>
+                                <th class="p-2 w-32 min-w-[125px]">Pedagogy</th>
+                                <th class="p-2 w-28 min-w-[115px]">Prop Date</th>
+                                <th class="p-2 w-28 min-w-[115px]">Act Date</th>
+                                <th class="p-2 min-w-[340px]">Topic & Content Description</th>
+                                <th class="p-2 w-16 min-w-[65px] text-center">CO</th>
+                                <th class="p-2 w-20 min-w-[70px] text-center">Batch</th>
+                                <th class="p-2 w-20 min-w-[80px] text-center">Hours</th>
+                                <th class="p-2 pr-5 w-28 min-w-[120px]">Remarks</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 text-sm">
@@ -1316,9 +1324,9 @@
                                 $cleanTopic = preg_replace('/\s*\(Hour \d+\/\d+\)/i', '', $firstPlan->topic_content);
                             @endphp
                             <tr id="lp-row-{{ $firstPlan->id }}" data-plan-id="{{ $firstPlan->id }}" data-block-ids="{{ $blockIds }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 font-normal text-center text-white">Session {{ $sIdx + 1 }}</td>
-                                <td class="p-2.5">
-                                    <select id="lp-pedagogy-{{ $firstPlan->id }}" onchange="onPedagogyChange({{ $firstPlan->id }}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs w-full text-emerald-400">
+                                <td class="p-2 font-normal text-center text-white text-xs">Sess {{ $sIdx + 1 }}</td>
+                                <td class="p-2">
+                                    <select id="lp-pedagogy-{{ $firstPlan->id }}" onchange="onPedagogyChange({{ $firstPlan->id }}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 font-normal text-xs w-full text-emerald-400">
                                         <option value="Practical Lab (P)" {{ ($firstPlan->pedagogy ?? '') === 'Practical Lab (P)' || ($firstPlan->mode === 'P' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Practical Lab (P)</option>
                                         <option value="Practical Series Exam (SP)" {{ ($firstPlan->pedagogy ?? '') === 'Practical Series Exam (SP)' || ($firstPlan->mode === 'SP' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Practical Series Exam (SP)</option>
                                         <option value="Lecture (L)" {{ ($firstPlan->pedagogy ?? 'Lecture (L)') === 'Lecture (L)' || ($firstPlan->mode === 'L' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Lecture (L)</option>
@@ -1328,34 +1336,42 @@
                                         <option value="Group Activity" {{ ($firstPlan->pedagogy ?? '') === 'Group Activity' ? 'selected' : '' }}>Group Activity</option>
                                     </select>
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="date" id="lp-prop-{{ $firstPlan->id }}" value="{{ $firstPlan->proposed_date }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                                <td class="p-2">
+                                    <input type="date" id="lp-prop-{{ $firstPlan->id }}" value="{{ $firstPlan->proposed_date }}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="date" id="lp-act-{{ $firstPlan->id }}" value="{{ $firstPlan->actual_date }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                                <td class="p-2">
+                                    <input type="date" id="lp-act-{{ $firstPlan->id }}" value="{{ $firstPlan->actual_date }}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                                 </td>
-                                <td class="p-2.5">
-                                    <textarea id="lp-topic-{{ $firstPlan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-emerald-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $cleanTopic }}</textarea>
+                                <td class="p-2">
+                                    <textarea id="lp-topic-{{ $firstPlan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-xs font-normal w-full min-w-[320px] focus:border-emerald-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $cleanTopic }}</textarea>
                                 </td>
-                                <td class="p-2.5 text-center">
-                                    <select id="lp-co-{{ $firstPlan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                                <td class="p-2 text-center">
+                                    <select id="lp-co-{{ $firstPlan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
                                         @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
                                             <option value="{{ $coOpt }}" {{ ($firstPlan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td id="lp-batch-td-{{ $firstPlan->id }}" class="p-2.5">
-                                    <select id="lp-batch-{{ $firstPlan->id }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs text-emerald-400 w-full">
-                                        <option value="Batch A & B" {{ ($firstPlan->sub_batch ?? 'Batch A & B') === 'Batch A & B' ? 'selected' : '' }}>Batch A & B (Combined)</option>
-                                        <option value="Batch A" {{ ($firstPlan->sub_batch ?? '') === 'Batch A' ? 'selected' : '' }}>Batch A</option>
-                                        <option value="Batch B" {{ ($firstPlan->sub_batch ?? '') === 'Batch B' ? 'selected' : '' }}>Batch B</option>
+                                <td id="lp-batch-td-{{ $firstPlan->id }}" class="p-2 text-center">
+                                    @php
+                                        $bVal = $firstPlan->sub_batch ?? 'A & B';
+                                        if (in_array($bVal, ['Batch A & B', 'Batch A & B (Combined)', 'A & B'])) $bVal = 'A & B';
+                                        elseif (in_array($bVal, ['Batch A', 'A'])) $bVal = 'A';
+                                        elseif (in_array($bVal, ['Batch B', 'B'])) $bVal = 'B';
+                                        else $bVal = 'ALL';
+                                    @endphp
+                                    <select id="lp-batch-{{ $firstPlan->id }}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
+                                        <option value="A & B" {{ $bVal === 'A & B' ? 'selected' : '' }}>A & B</option>
+                                        <option value="A" {{ $bVal === 'A' ? 'selected' : '' }}>A</option>
+                                        <option value="B" {{ $bVal === 'B' ? 'selected' : '' }}>B</option>
+                                        <option value="ALL" {{ $bVal === 'ALL' ? 'selected' : '' }}>ALL</option>
                                     </select>
                                 </td>
-                                <td id="lp-hours-td-{{ $firstPlan->id }}" class="p-2.5 text-center font-normal">
-                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-normal">3 Hours</span>
+                                <td id="lp-hours-td-{{ $firstPlan->id }}" class="p-2 text-center font-normal">
+                                    <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-normal">3 Hrs</span>
                                 </td>
-                                <td class="p-2.5">
-                                    <input type="text" id="lp-remarks-{{ $firstPlan->id }}" value="{{ $firstPlan->remarks }}" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
+                                <td class="p-2 pr-5">
+                                    <input type="text" id="lp-remarks-{{ $firstPlan->id }}" value="{{ $firstPlan->remarks }}" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full min-w-[100px]">
                                 </td>
                             </tr>
                             @empty
@@ -2299,17 +2315,17 @@
                         <option value="Group Activity">Group Activity</option>
                     </select>
                 </td>
-                <td class="p-2.5">
-                    <input type="date" id="lp-prop-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                <td class="p-2">
+                    <input type="date" id="lp-prop-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                 </td>
-                <td class="p-2.5">
-                    <input type="date" id="lp-act-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                <td class="p-2">
+                    <input type="date" id="lp-act-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full">
                 </td>
-                <td class="p-2.5">
-                    <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter custom lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug"></textarea>
+                <td class="p-2">
+                    <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter custom lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-xs font-normal w-full min-w-[320px] focus:border-blue-500 outline-none resize-y leading-snug"></textarea>
                 </td>
-                <td class="p-2.5 text-center">
-                    <select id="lp-co-${newId}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                <td class="p-2 text-center">
+                    <select id="lp-co-${newId}" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
                         <option value="CO1" selected style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO1</option>
                         <option value="CO2" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO2</option>
                         <option value="CO3" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO3</option>
@@ -2318,20 +2334,20 @@
                         <option value="CO6" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO6</option>
                     </select>
                 </td>
-                <td id="lp-batch-td-${newId}" class="p-2.5">
-                    <select id="lp-batch-${newId}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs text-slate-300 w-full">
-                        <option value="All Students" selected>All Students</option>
-                        <option value="Batch A & B">Batch A & B (Combined)</option>
-                        <option value="Batch A">Batch A</option>
-                        <option value="Batch B">Batch B</option>
+                <td id="lp-batch-td-${newId}" class="p-2 text-center">
+                    <select id="lp-batch-${newId}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
+                        <option value="ALL" ${defaultMode === 'L' ? 'selected' : ''}>ALL</option>
+                        <option value="A & B" ${defaultMode === 'P' ? 'selected' : ''}>A & B</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
                     </select>
                 </td>
-                <td id="lp-hours-td-${newId}" class="p-2.5 text-center font-normal">
-                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">1 Hour</span>
+                <td id="lp-hours-td-${newId}" class="p-2 text-center font-normal">
+                    <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">${defaultMode === 'L' ? '1 Hr' : '3 Hrs'}</span>
                 </td>
-                <td class="p-2.5">
+                <td class="p-2 pr-5">
                     <div class="flex items-center space-x-1">
-                        <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
+                        <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full min-w-[100px]">
                         <button type="button" onclick="document.getElementById('lp-row-${newId}').remove()" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-1.5 py-1" title="Remove Row">&times;</button>
                     </div>
                 </td>

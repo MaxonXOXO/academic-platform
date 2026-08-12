@@ -622,10 +622,14 @@
                                     <th style="width: 80px;">Total (50)</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach($students as $st)
+                             <tbody>
                                 @php
-                                    $stEval = isset($slotEvals[$st->reg_no]) ? $slotEvals[$st->reg_no]->first() : null;
+                                    $firstExNo = isset($drawingCourseFile->parsed_exercises[0]) ? $drawingCourseFile->parsed_exercises[0]['exercise_no'] : 'EXE-01';
+                                @endphp
+                                @forelse($students as $st)
+                                @php
+                                    $stEvals = isset($slotEvals[$st->reg_no]) ? $slotEvals[$st->reg_no] : collect();
+                                    $stEval = $stEvals->firstWhere('exercise_no', $firstExNo) ?? $stEvals->first();
                                     $v1 = $stEval->prep_punctuality ?? 0;
                                     $v2 = $stEval->setup_procedure ?? 0;
                                     $v3 = $stEval->observation_recording ?? 0;
@@ -634,9 +638,9 @@
                                     $v6 = $stEval->workmanship_discipline ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center">{{ $st->roll_no }}</td>
-                                    <td><small class="text-muted">{{ $st->reg_no }}</small></td>
-                                    <td class="fw-semibold">{{ $st->name }}</td>
+                                    <td class="fw-bold text-center text-light">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-secondary text-info font-monospace px-2 py-1">{{ $st->reg_no }}</span></td>
+                                    <td class="fw-bold text-white">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input p1" value="{{ $v1 }}" max="10" min="0" step="0.5">
@@ -674,8 +678,11 @@
                                         </div>
                                     </td>
                                     <td class="fw-bold text-info total-50 fs-6 text-center">{{ number_format($v1+$v2+$v3+$v4+$v5+$v6, 2) }}</td>
+                                @empty
+                                <tr>
+                                    <td colspan="10" class="text-center py-4 text-muted">No students enrolled in this classroom batch yet.</td>
                                 </tr>
-                                @endforeach
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -1277,6 +1284,45 @@
             }
         });
 
+        // Dynamic CE Evaluation Store & Switch Handler
+        let allSlotEvalsStore = @json($slotEvals);
+
+        document.getElementById('ceExerciseSelect')?.addEventListener('change', function() {
+            const selectedEx = this.value;
+            document.querySelectorAll('#ceTable tbody tr').forEach(tr => {
+                const regNo = tr.dataset.regNo;
+                const stEvals = allSlotEvalsStore[regNo] || [];
+                const evalRec = stEvals.find(e => e.exercise_no === selectedEx);
+
+                const v1 = evalRec ? (evalRec.prep_punctuality ?? 0) : 0;
+                const v2 = evalRec ? (evalRec.setup_procedure ?? 0) : 0;
+                const v3 = evalRec ? (evalRec.observation_recording ?? 0) : 0;
+                const v4 = evalRec ? (evalRec.analysis_interpretation ?? 0) : 0;
+                const v5 = evalRec ? (evalRec.viva_voce ?? 0) : 0;
+                const v6 = evalRec ? (evalRec.workmanship_discipline ?? 0) : 0;
+
+                const p1 = tr.querySelector('.p1');
+                const p2 = tr.querySelector('.p2');
+                const p3 = tr.querySelector('.p3');
+                const p4 = tr.querySelector('.p4');
+                const p5 = tr.querySelector('.p5');
+                const p6 = tr.querySelector('.p6');
+
+                if (p1) { p1.value = v1; if (p1.nextElementSibling) p1.nextElementSibling.value = v1; }
+                if (p2) { p2.value = v2; if (p2.nextElementSibling) p2.nextElementSibling.value = v2; }
+                if (p3) { p3.value = v3; if (p3.nextElementSibling) p3.nextElementSibling.value = v3; }
+                if (p4) { p4.value = v4; if (p4.nextElementSibling) p4.nextElementSibling.value = v4; }
+                if (p5) { p5.value = v5; if (p5.nextElementSibling) p5.nextElementSibling.value = v5; }
+                if (p6) { p6.value = v6; if (p6.nextElementSibling) p6.nextElementSibling.value = v6; }
+
+                const totEl = tr.querySelector('.total-50');
+                if (totEl) {
+                    const tot = (parseFloat(v1)||0) + (parseFloat(v2)||0) + (parseFloat(v3)||0) + (parseFloat(v4)||0) + (parseFloat(v5)||0) + (parseFloat(v6)||0);
+                    totEl.textContent = tot.toFixed(2);
+                }
+            });
+        });
+
         // Save CE
         document.getElementById('saveCeBtn').addEventListener('click', async () => {
             const exNo = document.getElementById('ceExerciseSelect').value;
@@ -1299,6 +1345,24 @@
                 body: JSON.stringify({ exercise_no: exNo, marks_data: marksData })
             });
             const data = await res.json();
+
+            if (data.status === 'SUCCESS') {
+                // Update local store
+                marksData.forEach(row => {
+                    if (!allSlotEvalsStore[row.reg_no]) allSlotEvalsStore[row.reg_no] = [];
+                    let rec = allSlotEvalsStore[row.reg_no].find(e => e.exercise_no === exNo);
+                    if (!rec) {
+                        rec = { exercise_no: exNo };
+                        allSlotEvalsStore[row.reg_no].push(rec);
+                    }
+                    rec.prep_punctuality = parseFloat(row.prep_punctuality);
+                    rec.setup_procedure = parseFloat(row.setup_procedure);
+                    rec.observation_recording = parseFloat(row.observation_recording);
+                    rec.analysis_interpretation = parseFloat(row.analysis_interpretation);
+                    rec.viva_voce = parseFloat(row.viva_voce);
+                    rec.workmanship_discipline = parseFloat(row.workmanship_discipline);
+                });
+            }
             alert(data.message);
         });
 

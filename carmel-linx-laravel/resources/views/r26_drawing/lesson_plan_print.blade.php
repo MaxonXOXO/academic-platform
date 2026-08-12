@@ -139,25 +139,25 @@
     <!-- Header Title Section -->
     <div class="header">
         <h1>Carmel Polytechnic College, Alappuzha</h1>
-        <h2>Department of {{ strtoupper($classroom->branch ?? 'Mechanical') }} Engineering</h2>
-        <h3>LESSON PLAN - {{ $batchSubject->syllabus_revision_code ?? 'REVISION 2026' }} (45 CONTACT HOURS)</h3>
+        <h2>Department of {{ strtoupper($classroom?->branch ?? $batchSubject?->branch ?? 'Mechanical') }} Engineering</h2>
+        <h3>LESSON PLAN - {{ $batchSubject->syllabus_revision_code ?? 'REVISION 2026' }} ({{ $drawingCourseFile?->contact_hours ?? 45 }} CONTACT HOURS)</h3>
     </div>
 
     <!-- Metadata Grid Table -->
     <table class="meta-table">
         <tr>
             <td style="width: 38%;"><strong>College Name:</strong> Carmel Polytechnic College, Alappuzha</td>
-            <td style="width: 32%;"><strong>Department:</strong> {{ $classroom->branch ?? 'Mechanical' }} Engineering</td>
+            <td style="width: 32%;"><strong>Department:</strong> {{ $classroom?->branch ?? $batchSubject?->branch ?? 'Mechanical' }} Engineering</td>
             <td style="width: 30%;"><strong>Assessment Year:</strong> 2026 - 2027</td>
         </tr>
         <tr>
             <td><strong>Subject Code & Name:</strong> {{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
-            <td><strong>Batch:</strong> {{ $classroom->batch_year ? $classroom->batch_year.'-'.($classroom->batch_year+3) : ($classroom->classroom_id ?? '2026-2029') }}</td>
-            <td><strong>Semester:</strong> Semester {{ $classroom->current_semester ?? 'I' }}</td>
+            <td><strong>Batch:</strong> {{ !empty($classroom?->batch_year) ? $classroom->batch_year.'-'.($classroom->batch_year+3) : ($classroom?->classroom_id ?? $batchSubject->classroom_id ?? '2026-2029') }}</td>
+            <td><strong>Semester:</strong> Semester {{ $classroom?->current_semester ?? $batchSubject->semester ?? 'I' }}</td>
         </tr>
         <tr>
             <td colspan="2"><strong>Faculty In Charge:</strong> {{ $staff->name ?? 'Lecturer In Charge' }}</td>
-            <td><strong>Total Duration:</strong> 45 Hours</td>
+            <td><strong>Total Duration:</strong> {{ $drawingCourseFile?->contact_hours ?? 45 }} Hours</td>
         </tr>
     </table>
 

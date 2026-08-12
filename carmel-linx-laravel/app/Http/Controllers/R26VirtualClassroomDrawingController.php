@@ -712,7 +712,8 @@ class R26VirtualClassroomDrawingController extends Controller
     public function printLessonPlan($subjectId)
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
-        $classroom = ClassManagement::find($batchSubject->classroom_id);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
         $lessonPlans = LessonPlan::where('batch_subject_id', $subjectId)->orderBy('day_no', 'asc')->get();
 
@@ -1153,7 +1154,8 @@ class R26VirtualClassroomDrawingController extends Controller
     public function printSeriesTestQP(Request $request, $subjectId, $testNo = 1)
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
-        $classroom = ClassManagement::find($batchSubject->classroom_id);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
 
         $staffMobile = Session::get('mobileNo') ?: Session::get('userId');

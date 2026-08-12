@@ -1056,21 +1056,52 @@ Syllabus Text:
         $updated = 0;
         foreach ($rows as $row) {
             $id = $row['id'] ?? null;
-            if (!$id) continue;
+            if (!$id) {
+                \App\Models\LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no'           => $row['day_no'] ?? null,
+                    'co_id'            => $row['co_id'] ?? null,
+                    'topic_content'    => $row['topic_content'] ?? '',
+                    'proposed_date'    => $row['proposed_date'] ?? null,
+                    'actual_date'      => $row['actual_date'] ?? null,
+                    'allocated_hours'  => $row['allocated_hours'] ?? 1,
+                    'pedagogy'         => $row['pedagogy'] ?? 'Lecture',
+                    'remarks'          => $row['remarks'] ?? null,
+                    'status'           => 'Pending',
+                ]);
+                $updated++;
+                continue;
+            }
             $plan = \App\Models\LessonPlan::where('id', $id)
                 ->where('batch_subject_id', $subjectId)
                 ->first();
             if (!$plan) continue;
 
-            $plan->topic_content  = $row['topic_content']  ?? $plan->topic_content;
-            $plan->proposed_date  = $row['proposed_date']  ?? $plan->proposed_date;
-            $plan->pedagogy       = $row['pedagogy']        ?? $plan->pedagogy;
-            $plan->remarks        = $row['remarks']         ?? $plan->remarks;
+            $plan->day_no          = $row['day_no']          ?? $plan->day_no;
+            $plan->co_id           = $row['co_id']           ?? $plan->co_id;
+            $plan->topic_content   = $row['topic_content']   ?? $plan->topic_content;
+            $plan->proposed_date   = $row['proposed_date']   ?? $plan->proposed_date;
+            $plan->actual_date     = $row['actual_date']     ?? $plan->actual_date;
+            $plan->allocated_hours = $row['allocated_hours'] ?? $plan->allocated_hours;
+            $plan->pedagogy        = $row['pedagogy']        ?? $plan->pedagogy;
+            $plan->remarks         = $row['remarks']         ?? $plan->remarks;
             $plan->save();
             $updated++;
         }
 
         return response()->json(['status' => 'SUCCESS', 'message' => "{$updated} lesson plan rows saved."]);
+    }
+
+    public function deleteLessonPlanRow(Request $request, $subjectId, $planId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+
+        \App\Models\LessonPlan::where('id', $planId)
+            ->where('batch_subject_id', $subjectId)
+            ->delete();
+
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Row deleted successfully.']);
     }
 
     /**

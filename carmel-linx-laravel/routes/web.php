@@ -463,7 +463,9 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/{subjectId}/series-exams/{examId}', [R26ClassroomController::class, 'saveSeriesExam']);
     Route::post('/api/r26/classroom/{subjectId}/series-exams/{examId}/lock', [R26ClassroomController::class, 'lockSeriesExam']);
     Route::post('/api/r26/classroom/{subjectId}/series-exams/marks/bulk-update', [R26ClassroomController::class, 'bulkUpdateSeriesExamMarks']);
+    Route::get('/api/r26/classroom/{subjectId}/ese-marks', [R26ClassroomController::class, 'getEseMarks']);
     Route::post('/api/r26/classroom/{subjectId}/ese-marks/bulk-update', [R26ClassroomController::class, 'bulkUpdateEseMarks']);
+    Route::get('/api/r26/classroom/{subjectId}/attainment-summary', [R26ClassroomController::class, 'getAttainmentSummary']);
     Route::get('/r26/classroom/series-exams/{examId}/print-qp', [R26ClassroomController::class, 'printSeriesExamQp']);
     Route::get('/r26/classroom/series-exams/{examId}/print-scheme', [R26ClassroomController::class, 'printSeriesExamScheme']);
     Route::get('/r26/classroom/{subjectId}/series-exams/print-marks', [R26ClassroomController::class, 'printSeriesExamMarks']);
@@ -596,6 +598,8 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/classroom/{subjectId}/details', [App\Http\Controllers\ClassroomController::class, 'getCourseDetails']);
     Route::post('/api/classroom/{subjectId}/lesson-plans/regenerate', [App\Http\Controllers\ClassroomController::class, 'regenerateLessonPlans']);
     Route::post('/api/classroom/{subjectId}/lesson-plans/bulk-update', [App\Http\Controllers\ClassroomController::class, 'bulkUpdateLessonPlans']);
+    Route::post('/api/classroom/{subjectId}/save-lesson-plans', [App\Http\Controllers\ClassroomController::class, 'bulkUpdateLessonPlans']);
+    Route::delete('/api/classroom/{subjectId}/lesson-plans/{planId}', [App\Http\Controllers\ClassroomController::class, 'deleteLessonPlanRow']);
     Route::post('/api/classroom/{subjectId}/lesson-plans/save-as-template', [App\Http\Controllers\ClassroomController::class, 'saveAsTemplate']);
     Route::get('/api/classroom/{subjectId}/lesson-plans/load-template', [App\Http\Controllers\ClassroomController::class, 'loadTemplate']);
     Route::get('/api/classroom/{subjectId}/generate-questions', [App\Http\Controllers\ClassroomController::class, 'generateAssignmentQuestions']);

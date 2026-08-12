@@ -1044,17 +1044,11 @@
              <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">school</span> Summative Assessment
              </button>
-             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-               <span class="material-symbols-rounded text-sm">assessment</span> Reports
-             </button>
              <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">database</span> Question Bank
              </button>
              <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-               <span class="material-symbols-rounded text-sm">rate_review</span> Mid-Sem Survey
-             </button>
-             <button onclick="toggleClassroomTab('exit_survey')" id="tabExitSurvey" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-               <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Exit Survey
+               <span class="material-symbols-rounded text-sm">rate_review</span> Surveys
              </button>
              <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
                <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
@@ -1064,6 +1058,12 @@
              </button>
              <button onclick="toggleClassroomTab('lab_copo')" id="tabLabCoPo" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
                <span class="material-symbols-rounded text-sm text-cyan-400">analytics</span> CO-PO Mapping
+             </button>
+             <button onclick="toggleClassroomTab('course_attainment')" id="tabCourseAttainment" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+               <span class="material-symbols-rounded text-sm text-amber-400">emoji_events</span> Course Attainment
+             </button>
+             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+               <span class="material-symbols-rounded text-sm">assessment</span> Reports
              </button>
           </nav>
         </div>
@@ -1113,21 +1113,116 @@
             </div>
 
             <div id="classReportsContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
-              <div class="flex flex-wrap gap-3">
-                <button onclick="loadClassReport('attendance_log')" id="btnReportLog" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm cursor-pointer transition-premium">
-                  Class Attendance Log
-                </button>
-                <button onclick="loadClassReport('subject_log')" id="btnReportSubject" class="px-4 py-2 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800 transition-premium">
-                  Class Subject Log
-                </button>
-                <button onclick="loadClassReport('summary_matrix')" id="btnReportMatrix" class="px-4 py-2 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800 transition-premium">
-                  Attendance Matrix
-                </button>
+              <!-- Institutional Academic Reports Header Banner -->
+              <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-teal-950/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-rounded text-teal-400 text-lg">assessment</span>
+                    <span class="text-xs font-black uppercase tracking-wider text-teal-400">Institutional Academic Reports Center</span>
+                  </div>
+                  <h3 class="text-base font-black text-slate-100">Printable Academic Reports & Attainment Documentation</h3>
+                  <p class="text-xs text-slate-400 mt-1">Access A4 laser-ready print reports for Surveys, Attainment Matrices, Lesson Plans, CIA Marksheets, and Course Files.</p>
+                </div>
               </div>
 
-              <div id="classroomReportWorkspace" class="pt-4 overflow-x-auto">
-                <div class="text-sm font-bold text-slate-400 py-10 text-center">No reports loaded. Please select a report type above.</div>
+              <!-- Printable Academic Reports Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Card 1: Surveys & Attainment -->
+                <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
+                  <div>
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="material-symbols-rounded text-teal-400 text-base">emoji_events</span>
+                      <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Surveys & Attainment</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Direct/Indirect CO attainment calculations, SAR survey reports, and 3-2-1 Likert scale feedback.</p>
+                  </div>
+                  <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <button onclick="openPrintReport('course_exit')" class="w-full px-3 py-2 bg-teal-600/20 hover:bg-teal-600 border border-teal-500/30 text-teal-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">print</span> Course Exit Survey Report (A4)</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                    <button onclick="openPrintReport('nba_attainment')" class="w-full px-3 py-2 bg-amber-600/20 hover:bg-amber-600 border border-amber-500/30 text-amber-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">analytics</span> NBA Course Attainment Report</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Card 2: Curriculum & Planning -->
+                <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
+                  <div>
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="material-symbols-rounded text-sky-400 text-base">auto_stories</span>
+                      <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Curriculum & Course Files</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Lesson plan execution tracking, self-learning academic reports, and master course file dossier.</p>
+                  </div>
+                  <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <button onclick="openPrintReport('lesson_plan')" class="w-full px-3 py-2 bg-sky-600/20 hover:bg-sky-600 border border-sky-500/30 text-sky-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">calendar_month</span> Lesson Plan Report (A4)</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                    <button onclick="openPrintReport('course_file')" class="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-blue-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">folder_open</span> Comprehensive Course File PDF</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                    <button onclick="openPrintReport('self_learning')" class="w-full px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">school</span> Self-Learning Report</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Card 3: Marks & Evaluations -->
+                <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-premium">
+                  <div>
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="material-symbols-rounded text-emerald-400 text-base">fact_check</span>
+                      <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Evaluation Marksheets</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Internal Continuous Evaluation (CIE), Series Exam marksheets, and final End-Semester Results.</p>
+                  </div>
+                  <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <button onclick="openPrintReport('cie_marksheet')" class="w-full px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">assignment</span> Internal CIE Marksheet Report</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                    <button onclick="openPrintReport('series_marks')" class="w-full px-3 py-2 bg-purple-600/20 hover:bg-purple-600 border border-purple-500/30 text-purple-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">edit_note</span> Series Exam Marksheet Report</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                    <button onclick="openPrintReport('final_results')" class="w-full px-3 py-2 bg-violet-600/20 hover:bg-violet-600 border border-violet-500/30 text-violet-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">grade</span> Final Results & ESE Marksheet</span>
+                      <span class="material-symbols-rounded text-xs">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+
               </div>
+
+              <!-- Attendance & Teaching Logs Sub-Tabs Section -->
+              <div class="border-t border-slate-800/60 pt-4 space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <h4 class="text-xs font-black uppercase tracking-wider text-slate-300">Classroom Attendance & Subject Logs</h4>
+                  <div class="flex flex-wrap gap-2">
+                    <button onclick="loadClassReport('attendance_log')" id="btnReportLog" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl font-bold text-xs cursor-pointer transition-premium">
+                      Class Attendance Log
+                    </button>
+                    <button onclick="loadClassReport('subject_log')" id="btnReportSubject" class="px-3.5 py-1.5 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-800 transition-premium">
+                      Class Subject Log
+                    </button>
+                    <button onclick="loadClassReport('summary_matrix')" id="btnReportMatrix" class="px-3.5 py-1.5 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-800 transition-premium">
+                      Attendance Matrix
+                    </button>
+                  </div>
+                </div>
+
+                <div id="classroomReportWorkspace" class="pt-2 overflow-x-auto">
+                  <div class="text-sm font-bold text-slate-400 py-6 text-center">No reports loaded. Please select a log report type above.</div>
+                </div>
+              </div>
+
             </div>
 
             <!-- Question Bank Panel -->
@@ -1156,39 +1251,68 @@
               </div>
             </div>
 
-            <!-- Mid Semester Survey Panel (SAR Criterion 2) -->
-            <div id="midSemesterSurveyContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
-              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
-                <div>
-                  <h4 class="text-sm font-black text-slate-200">Mid-Semester Survey Evaluation (SAR Criterion 2)</h4>
-                  <p class="text-sm text-slate-400 mt-1">Conduct real-time Teaching-Learning process evaluation to identify learning difficulties and plan immediate corrective actions.</p>
+            <!-- Combined Surveys Panel (Mid-Semester & Exit Surveys) -->
+            <div id="surveysContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
+              <div class="flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl w-fit shadow-md">
+                <button onclick="switchSurveySubTab('mid_sem')" id="btnSubTabMidSem" class="px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer bg-blue-600 text-white shadow-sm flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sm">rate_review</span> Mid-Semester Survey
+                </button>
+                <button onclick="switchSurveySubTab('course_exit')" id="btnSubTabExit" class="px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Course Exit Survey
+                </button>
+              </div>
+
+              <!-- Mid-Semester Survey Section -->
+              <div id="midSemesterSurveySection" class="space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
+                  <div>
+                    <h4 class="text-sm font-black text-slate-200">Mid-Semester Survey Evaluation (SAR Criterion 2)</h4>
+                    <p class="text-sm text-slate-400 mt-1">Conduct real-time Teaching-Learning process evaluation to identify learning difficulties and plan immediate corrective actions.</p>
+                  </div>
+                  <div class="flex items-center gap-3 font-semibold text-sm" id="surveyHeaderActions">
+                    <!-- Rendered dynamically -->
+                  </div>
                 </div>
-                <div class="flex items-center gap-3 font-semibold text-sm" id="surveyHeaderActions">
-                  <!-- Rendered dynamically -->
+
+                <div id="surveyWorkspace" class="space-y-6">
+                  <!-- Rendered dynamically (Initiate Screen / Live Panel / Results Panel) -->
                 </div>
               </div>
 
-              <!-- Main Workspace for Survey -->
-              <div id="surveyWorkspace" class="space-y-6">
-                <!-- Rendered dynamically (Initiate Screen / Live Panel / Results Panel) -->
+              <!-- Course Exit Survey Section -->
+              <div id="courseExitSurveySection" class="hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
+                  <div>
+                    <h4 class="text-sm font-black text-slate-200">Course Exit Survey (Indirect CO Attainment)</h4>
+                    <p class="text-sm text-slate-400 mt-1">Evaluates indirect Course Outcome (CO) attainment parameters at semester-end for NBA course file accreditation.</p>
+                  </div>
+                  <div class="flex items-center gap-3 font-semibold text-sm" id="exitSurveyHeaderActions">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+                <div id="exitSurveyWorkspace" class="space-y-6">
+                  <!-- Rendered dynamically (Initiate Screen / Live Panel / Results Panel) -->
+                </div>
               </div>
             </div>
 
-            <!-- Course Exit Survey Panel (Indirect CO Attainment) -->
-            <div id="courseExitSurveyContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
+            <!-- Course Attainment Panel -->
+            <div id="courseAttainmentContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
               <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
                 <div>
-                  <h4 class="text-sm font-black text-slate-200">Course Exit Survey (Indirect CO Attainment)</h4>
-                  <p class="text-sm text-slate-400 mt-1">Evaluates indirect Course Outcome (CO) attainment parameters at semester-end for NBA course file accreditation.</p>
+                  <h4 class="text-sm font-black text-slate-200">Course Attainment Analysis (R-2021)</h4>
+                  <p class="text-sm text-slate-400 mt-1">Direct (Formative & Summative) and Indirect (Exit Survey) Course Outcome (CO) attainment matrix and target benchmarks.</p>
                 </div>
-                <div class="flex items-center gap-3 font-semibold text-sm" id="exitSurveyHeaderActions">
-                  <!-- Rendered dynamically -->
+                <div class="flex items-center gap-2">
+                  <button onclick="openEseMarksModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md shadow-indigo-900/30">
+                    <span class="material-symbols-rounded text-sm">edit_note</span> Enter / Update ESE Marks
+                  </button>
                 </div>
               </div>
 
-              <!-- Main Workspace for Exit Survey -->
-              <div id="exitSurveyWorkspace" class="space-y-6">
-                <!-- Rendered dynamically (Initiate Screen / Live Panel / Results Panel) -->
+              <div id="courseAttainmentWorkspace" class="space-y-6">
+                <!-- Rendered dynamically -->
               </div>
             </div>
 
@@ -1897,7 +2021,7 @@
           } else if (isPractical) {
             pTitle.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabel} )</span>`;
           } else {
-            pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom</span>`;
+            pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021</span>`;
           }
         }
 
@@ -1981,11 +2105,18 @@
         if (fileInput) fileInput.value = '';
         if (input) input.value = '';
         if (data.status === 'SUCCESS') {
-          // Reload course details and ensure auto-switch to Course Structure tab
-          loadCourseDetails(currentSubjectId).then(() => {
-            toggleClassroomTab('structure');
+          // Always generate a new lesson plan when syllabus is reuploaded
+          fetch(`/api/classroom/${currentSubjectId}/lesson-plans/regenerate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
           }).catch(err => {
-            console.error('Error refreshing course details after syllabus upload:', err);
+            console.error('Error auto-generating lesson plan after syllabus upload:', err);
+          }).finally(() => {
+            loadCourseDetails(currentSubjectId).then(() => {
+              toggleClassroomTab('structure');
+            }).catch(err => {
+              console.error('Error refreshing course details after syllabus upload:', err);
+            });
           });
         } else {
           alert(data.message || 'Upload failed.');
@@ -2000,19 +2131,148 @@
       });
     }
 
+    function switchSurveySubTab(type) {
+      const btnMid = document.getElementById('btnSubTabMidSem');
+      const btnExit = document.getElementById('btnSubTabExit');
+      const secMid = document.getElementById('midSemesterSurveySection');
+      const secExit = document.getElementById('courseExitSurveySection');
+
+      if (type === 'mid_sem') {
+        if (btnMid) btnMid.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer bg-blue-600 text-white shadow-sm flex items-center gap-1.5';
+        if (btnExit) btnExit.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center gap-1.5';
+        if (secMid) secMid.classList.remove('hidden');
+        if (secExit) secExit.classList.add('hidden');
+        fetchSurveyResults(currentSubjectId);
+      } else {
+        if (btnMid) btnMid.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center gap-1.5';
+        if (btnExit) btnExit.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-premium cursor-pointer bg-teal-600 text-white shadow-sm flex items-center gap-1.5';
+        if (secMid) secMid.classList.add('hidden');
+        if (secExit) secExit.classList.remove('hidden');
+        fetchExitSurveyResults(currentSubjectId);
+      }
+    }
+
+    function loadCourseAttainment() {
+      const workspace = document.getElementById('courseAttainmentWorkspace');
+      if (!workspace || !currentSubjectId) return;
+
+      workspace.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 text-center text-slate-500">
+          <span class="material-symbols-rounded text-3xl text-indigo-400 animate-spin mb-3">progress_activity</span>
+          <p class="text-sm font-bold text-slate-300">Calculating Course Attainment Metrics...</p>
+        </div>
+      `;
+
+      fetch(`/api/r26/classroom/${currentSubjectId}/attainment-summary`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status !== 'SUCCESS') {
+            workspace.innerHTML = `
+              <div class="p-6 text-center text-rose-400 font-bold bg-slate-900 border border-slate-800 rounded-xl">
+                Failed to load attainment data.
+              </div>
+            `;
+            return;
+          }
+
+          const summary = data.summary || {};
+          const matrix = data.matrix || [];
+
+          let rowsHtml = matrix.map(row => {
+            const attained = row.attained;
+            const badgeBg = attained 
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+              : 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+
+            return `
+              <tr class="border-b border-slate-800/60 hover:bg-slate-900/30 transition-premium">
+                <td class="p-3.5 font-bold text-blue-400 text-xs">${row.co}</td>
+                <td class="p-3.5 text-center text-slate-300 text-xs font-mono">${row.direct_percent}%</td>
+                <td class="p-3.5 text-center text-slate-300 text-xs font-mono">${row.indirect_percent}% <span class="text-[10px] text-slate-500">(${row.indirect_rating}/3)</span></td>
+                <td class="p-3.5 text-center text-emerald-400 text-xs font-bold font-mono">${row.overall_percent}%</td>
+                <td class="p-3.5 text-center text-slate-400 text-xs font-mono">${row.target_benchmark}%</td>
+                <td class="p-3.5 text-center text-slate-300 text-xs font-bold">${row.attainment_level}</td>
+                <td class="p-3.5 text-center">
+                  <span class="px-2.5 py-1 text-[11px] font-extrabold rounded-lg border ${badgeBg}">
+                    ${attained ? 'ATTAINED ✓' : 'NOT MET'}
+                  </span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+
+          workspace.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl shadow-sm">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Direct Attainment (80%)</div>
+                <div class="text-2xl font-black text-blue-400 mt-1">${summary.direct_attainment_percent}%</div>
+                <div class="text-[11px] text-slate-500 mt-1">Formative Tasks & ESE Letter Grades</div>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl shadow-sm">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Indirect Attainment (20%)</div>
+                <div class="text-2xl font-black text-teal-400 mt-1">${summary.indirect_attainment_percent}%</div>
+                <div class="text-[11px] text-slate-500 mt-1">Course Exit Survey Feedback</div>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl shadow-sm">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Attainment Level</div>
+                <div class="text-2xl font-black text-emerald-400 mt-1">${summary.overall_attainment_level} (${summary.overall_attainment_percent}%)</div>
+                <div class="text-[11px] text-emerald-500 font-bold mt-1">Target Student Benchmark: ${summary.target_benchmark}%</div>
+              </div>
+            </div>
+
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl overflow-hidden shadow-inner">
+              <div class="p-4 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center flex-wrap gap-2">
+                <h5 class="text-xs font-black text-slate-200 uppercase tracking-wider">Course Outcome Attainment Summary Matrix</h5>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-slate-400">Target Student Benchmark: <strong class="text-emerald-400 font-mono">${summary.target_benchmark}%</strong></span>
+                  <button onclick="loadCourseAttainment()" title="Recalculate Attainment" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-lg text-[11px] font-bold transition-premium flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-rounded text-xs">refresh</span> Recalculate
+                  </button>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                  <thead>
+                    <tr class="bg-slate-900/40 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                      <th class="p-3.5">Course Outcome</th>
+                      <th class="p-3.5 text-center">Direct Attainment (80%)</th>
+                      <th class="p-3.5 text-center">Indirect Exit Survey (20%)</th>
+                      <th class="p-3.5 text-center">Overall CO Attainment</th>
+                      <th class="p-3.5 text-center">Target Benchmark</th>
+                      <th class="p-3.5 text-center">Attainment Level</th>
+                      <th class="p-3.5 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        })
+        .catch(err => {
+          workspace.innerHTML = `
+            <div class="p-6 text-center text-rose-400 font-bold bg-slate-900 border border-slate-800 rounded-xl">
+              Error connecting to server.
+            </div>
+          `;
+        });
+    }
+
     function toggleClassroomTab(tabName) {
       const tabs = [
         { id: 'structure', btn: 'tabStructure', content: 'courseStructureContent' },
         { id: 'planner', btn: 'tabPlanner', content: 'coursePlannerContent' },
         { id: 'assessment', btn: 'tabAssessment', content: 'formativeAssessmentContent' },
         { id: 'summative', btn: 'tabSummative', content: 'summativeAssessmentContent' },
-        { id: 'reports', btn: 'tabReports', content: 'classReportsContent' },
         { id: 'qbank', btn: 'tabQBank', content: 'questionBankContent' },
-        { id: 'survey', btn: 'tabSurvey', content: 'midSemesterSurveyContent' },
-        { id: 'exit_survey', btn: 'tabExitSurvey', content: 'courseExitSurveyContent' },
+        { id: 'survey', btn: 'tabSurvey', content: 'surveysContent' },
         { id: 'seminar_evaluation', btn: 'tabSeminar', content: 'seminarEvaluationContent' },
         { id: 'lab_evaluation', btn: 'tabLab', content: 'labEvaluationContent' },
-        { id: 'lab_copo', btn: 'tabLabCoPo', content: 'labCoPoMappingContent' }
+        { id: 'lab_copo', btn: 'tabLabCoPo', content: 'labCoPoMappingContent' },
+        { id: 'course_attainment', btn: 'tabCourseAttainment', content: 'courseAttainmentContent' },
+        { id: 'reports', btn: 'tabReports', content: 'classReportsContent' }
       ];
 
       tabs.forEach(t => {
@@ -2044,15 +2304,15 @@
       } else if (tabName === 'qbank') {
         fetchQuestionBank(currentSubjectId);
       } else if (tabName === 'survey') {
-        fetchSurveyResults(currentSubjectId);
-      } else if (tabName === 'exit_survey') {
-        fetchExitSurveyResults(currentSubjectId);
+        switchSurveySubTab('mid_sem');
       } else if (tabName === 'seminar_evaluation') {
         fetchSeminarEvaluations();
       } else if (tabName === 'lab_evaluation') {
         fetchPracticalEvaluations();
       } else if (tabName === 'lab_copo') {
         fetchPracticalCoPoMapping();
+      } else if (tabName === 'course_attainment') {
+        loadCourseAttainment();
       }
     }
 
@@ -2182,6 +2442,7 @@
           window.currentVirtualStudents = data.data.students || [];
           window.currentVirtualSemester = data.data.semester || '';
           window.currentProposedTotalHours = data.data.proposed_total_hours || 60;
+          window.currentCos = data.data.cos || [];
           
           renderCourseStructure(data.data.cos, data.data.modules, data.data.textbooks, data.data.copo);
           renderCoursePlanner(data.data.lesson_plans);
@@ -2207,7 +2468,7 @@
           const tabReports = document.getElementById('tabReports');
           const tabQBank = document.getElementById('tabQBank');
           const tabSurvey = document.getElementById('tabSurvey');
-          const tabExitSurvey = document.getElementById('tabExitSurvey');
+          const tabCourseAttainment = document.getElementById('tabCourseAttainment');
           const pRepActions = document.getElementById('practicalReportsActions');
           const vcTitle = document.getElementById('vcTitle');
 
@@ -2229,7 +2490,7 @@
             if (tabReports) tabReports.classList.add('hidden');
             if (tabQBank) tabQBank.classList.add('hidden');
             if (tabSurvey) tabSurvey.classList.add('hidden');
-            if (tabExitSurvey) tabExitSurvey.classList.add('hidden');
+            if (tabCourseAttainment) tabCourseAttainment.classList.add('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab('seminar_evaluation');
           } else if (isPractical) {
@@ -2245,7 +2506,7 @@
             if (tabReports) tabReports.classList.remove('hidden');
             if (tabQBank) tabQBank.classList.remove('hidden');
             if (tabSurvey) tabSurvey.classList.remove('hidden');
-            if (tabExitSurvey) tabExitSurvey.classList.remove('hidden');
+            if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
             if (pRepActions) {
               pRepActions.classList.remove('hidden');
               pRepActions.classList.add('flex');
@@ -2262,8 +2523,8 @@
             }
             toggleClassroomTab('structure');
           } else {
-            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom</span>`;
-            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> Virtual Classroom`;
+            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021</span>`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> VIrtual theory classroom  R-2021`;
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.add('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.add('hidden');
@@ -2274,14 +2535,14 @@
             if (tabReports) tabReports.classList.remove('hidden');
             if (tabQBank) tabQBank.classList.remove('hidden');
             if (tabSurvey) tabSurvey.classList.remove('hidden');
-            if (tabExitSurvey) tabExitSurvey.classList.remove('hidden');
+            if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab('structure');
           }
 
           // Update vcTitle to include subject name for regular classrooms
           if (!isSeminar && !isPractical && vcTitle) {
-            vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${currentSubjectName || 'Virtual Classroom'}`;
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> VIrtual theory classroom  R-2021 ( ${currentSubjectName || ''} )`;
           }
 
           const badge = document.getElementById('parseStatusBadge');
@@ -2426,6 +2687,22 @@
       'CO6': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     };
 
+    function autoGrowTextarea(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = Math.max(42, el.scrollHeight + 2) + 'px';
+    }
+
+    function renderPedagogySelect(selectedValue, lpId) {
+      const options = ['Lecture', 'Demo', 'Lab', 'Test', 'Discussion', 'Seminar', 'Tutorial', 'Assignment', 'Presentation'];
+      let val = (selectedValue || 'Lecture').trim();
+      if (val && !options.some(o => o.toLowerCase() === val.toLowerCase())) {
+        options.push(val);
+      }
+      let optionsHtml = options.map(o => `<option value="${o}" ${o.toLowerCase() === val.toLowerCase() ? 'selected' : ''}>${o}</option>`).join('');
+      return `<select data-field="pedagogy" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-xs font-medium focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${lpId}')">${optionsHtml}</select>`;
+    }
+
     function renderCoursePlanner(lessonPlans) {
       const container = document.getElementById('coursePlannerContent');
       if (!container) return;
@@ -2468,6 +2745,10 @@
       let lectureDays = lessonPlans.length - testDays;
       let proposedVal = window.currentProposedTotalHours || 60;
 
+      let coList = (window.currentCos && window.currentCos.length > 0)
+        ? window.currentCos.map(c => c.id || c.co_id)
+        : ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
+
       // Header buttons
       let practicalRegenBtn = window.isCurrentSubjectPractical
         ? `<button onclick="openGeneratePlannerModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1">
@@ -2478,7 +2759,7 @@
         <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800/60">
           <div>
             <h4 class="text-sm font-black text-slate-200">Lesson Planner</h4>
-            <p class="text-xs text-slate-500 mt-0.5">${lectureDays} lecture days · ${testDays} test days · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours) · Click any topic to edit inline</p>
+            <p class="text-xs text-slate-500 mt-0.5">${lectureDays} lecture days · ${testDays} test days · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours) · Auto-growing content textareas</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             ${practicalRegenBtn}
@@ -2506,13 +2787,13 @@
               <thead>
                 <tr class="bg-slate-900/80 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-10 text-center">#</th>
-                  <th class="p-3 w-8 text-center">CO</th>
-                  <th class="p-3">Topic / Content <span class="text-slate-600 normal-case font-normal">(editable)</span></th>
+                  <th class="p-3 w-20 text-center">CO</th>
+                  <th class="p-3">Topic / Content <span class="text-slate-600 normal-case font-normal">(auto-grow)</span></th>
                   <th class="p-3 w-32">Proposed Date</th>
                   <th class="p-3 w-32">Actual Date</th>
-                  <th class="p-3 w-24 text-center">Hrs</th>
+                  <th class="p-3 w-16 text-center">Hrs</th>
                   <th class="p-3 w-28">Pedagogy</th>
-                  <th class="p-3 w-36">Remarks</th>
+                  <th class="p-3 w-32">Remarks</th>
                 </tr>
               </thead>
               <tbody>
@@ -2520,41 +2801,54 @@
 
       lessonPlans.forEach((lp, index) => {
         let co        = lp.co_id || '';
-        let coColor   = CO_COLORS[co] || 'bg-slate-700/30 text-slate-400 border-slate-600/30';
-        let coBadge   = co ? `<span class="px-1.5 py-0.5 rounded border text-[10px] font-bold ${coColor}">${co}</span>` : `<span class="text-slate-700 text-[10px]">—</span>`;
         let proposed  = lp.proposed_date || '';
+        let actualDateVal = lp.actual_date || '';
         let pedagogy  = lp.pedagogy || 'Lecture';
         let remarks   = (lp.remarks || '').replace(/"/g, '&quot;');
-        let topic     = (lp.topic_content || '').replace(/"/g, '&quot;');
+        let topic     = (lp.topic_content || '');
         let dayNo     = lp.day_no || (index + 1);
         let isTest    = pedagogy.toLowerCase() === 'test';
         let rowBg     = isTest ? 'bg-amber-950/20 border-amber-900/20' : 'border-slate-800/40';
-        let actual    = lp.actual_date
-          ? `<span class="text-emerald-400 font-mono text-[10px]">${lp.actual_date}</span>`
-          : `<span class="text-slate-700 text-[10px]">—</span>`;
+
+        let coSelectOptions = `<option value="">--</option>` + coList.map(c => `<option value="${c}" ${c === co ? 'selected' : ''}>${c}</option>`).join('');
 
         html += `
           <tr class="border-b ${rowBg} last:border-0 hover:bg-slate-900/20 transition-premium" data-lp-id="${lp.id}">
-            <td class="p-2 text-center text-xs font-bold text-slate-600">${dayNo}</td>
-            <td class="p-2 text-center">${coBadge}</td>
-            <td class="p-2">
-              <input type="text" value="${topic}" data-field="topic"
-                class="w-full bg-transparent border border-transparent hover:border-slate-700/60 focus:border-blue-500/50 focus:bg-slate-900/60 rounded px-2 py-1 text-slate-300 text-xs focus:outline-none transition-all placeholder:text-slate-600"
-                placeholder="Enter topic..."
+            <td class="p-2 text-center text-xs font-bold text-slate-600">
+              <input type="number" value="${dayNo}" data-field="day_no"
+                class="w-10 bg-transparent border border-transparent hover:border-slate-700/60 text-center text-slate-400 text-xs font-bold rounded py-0.5 focus:outline-none focus:bg-slate-900/80 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 onchange="markPlanDirty(${lp.id})">
+            </td>
+            <td class="p-2 text-center">
+              <select data-field="co_id" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty(${lp.id})">
+                ${coSelectOptions}
+              </select>
+            </td>
+            <td class="p-2">
+              <textarea data-field="topic" rows="2"
+                class="w-full bg-slate-900/80 border border-slate-700/60 focus:border-blue-500/50 rounded p-2 text-slate-200 text-xs focus:outline-none transition-all resize-none leading-relaxed overflow-hidden"
+                placeholder="Enter topic content..."
+                oninput="autoGrowTextarea(this); markPlanDirty(${lp.id})"
+                onfocus="autoGrowTextarea(this)"
+                onkeyup="autoGrowTextarea(this)">${topic}</textarea>
             </td>
             <td class="p-2">
               <input type="date" value="${proposed}" data-field="proposed_date"
                 class="w-full bg-slate-900/60 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-xs focus:outline-none focus:border-blue-500/50 font-mono"
                 onchange="markPlanDirty(${lp.id}); autoSavePlanRow(${lp.id}, this.closest('tr'))">
             </td>
-            <td class="p-2 text-center">${actual}</td>
-            <td class="p-2 text-center text-xs font-mono text-slate-500">${lp.allocated_hours || 1}</td>
             <td class="p-2">
-              <input type="text" value="${pedagogy}" data-field="pedagogy"
-                class="w-full bg-transparent border border-transparent hover:border-slate-700/60 focus:border-blue-500/50 focus:bg-slate-900/60 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none transition-all"
-                placeholder="Lecture, Demo, Lab..."
+              <input type="date" value="${actualDateVal}" data-field="actual_date"
+                class="w-full bg-slate-900/60 border border-slate-700/60 rounded px-2 py-1 text-emerald-400 text-xs focus:outline-none focus:border-blue-500/50 font-mono"
+                onchange="markPlanDirty(${lp.id}); autoSavePlanRow(${lp.id}, this.closest('tr'))">
+            </td>
+            <td class="p-2 text-center">
+              <input type="text" value="${lp.allocated_hours || 1}" data-field="allocated_hours"
+                class="w-10 bg-transparent border border-transparent hover:border-slate-700/60 text-center text-slate-400 text-xs font-mono rounded py-0.5 focus:outline-none focus:bg-slate-900/80"
                 onchange="markPlanDirty(${lp.id})">
+            </td>
+            <td class="p-2">
+              ${renderPedagogySelect(pedagogy, lp.id)}
             </td>
             <td class="p-2">
               <input type="text" value="${remarks}" data-field="remarks"
@@ -2570,6 +2864,19 @@
               </tbody>
             </table>
           </div>
+          <div class="p-3 bg-slate-900/90 border-t border-slate-800/60 flex items-center justify-between gap-3 flex-wrap">
+            <button onclick="addLessonPlanRow()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 border border-slate-700/60 shadow-md">
+              <span class="material-symbols-rounded text-base">add_circle</span> Add Row
+            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="saveLessonPlanChanges()" id="btnSavePlanBottom" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base">save</span> Save
+              </button>
+              <button onclick="saveLessonPlanChanges()" id="btnSaveNowBottom" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-emerald-900/20">
+                <span class="material-symbols-rounded text-base">check_circle</span> Save Now
+              </button>
+            </div>
+          </div>
         </div>
 
         <div id="planSaveStatusBar" class="hidden mt-3 px-4 py-2.5 bg-amber-900/20 border border-amber-500/20 rounded-xl flex items-center gap-3 text-xs font-bold text-amber-400">
@@ -2582,6 +2889,77 @@
       `;
 
       container.innerHTML = html;
+      setTimeout(() => {
+        container.querySelectorAll('textarea[data-field="topic"]').forEach(ta => autoGrowTextarea(ta));
+      }, 50);
+    }
+
+    function addLessonPlanRow() {
+      const tbody = document.querySelector('#lessonPlanTable tbody');
+      if (!tbody) return;
+
+      const rowCount = tbody.querySelectorAll('tr').length;
+      const nextDayNo = rowCount + 1;
+      const tempId = 'new_' + Date.now();
+
+      let coList = (window.currentCos && window.currentCos.length > 0)
+        ? window.currentCos.map(c => c.id || c.co_id)
+        : ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
+      let coOptionsHtml = `<option value="">--</option>` + coList.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/20 transition-premium';
+      tr.setAttribute('data-lp-id', tempId);
+
+      tr.innerHTML = `
+        <td class="p-2 text-center text-xs font-bold text-slate-600">
+          <input type="number" value="${nextDayNo}" data-field="day_no" class="w-10 bg-slate-900/80 border border-slate-700/60 text-center text-slate-300 text-xs rounded py-0.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" onchange="markPlanDirty('${tempId}')">
+        </td>
+        <td class="p-2 text-center">
+          <select data-field="co_id" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${tempId}')">
+            ${coOptionsHtml}
+          </select>
+        </td>
+        <td class="p-2">
+          <textarea data-field="topic" rows="2" class="w-full bg-slate-900/80 border border-slate-700/60 focus:border-blue-500/50 rounded p-2 text-slate-200 text-xs focus:outline-none transition-all resize-none leading-relaxed overflow-hidden" placeholder="Enter topic content..." oninput="autoGrowTextarea(this); markPlanDirty('${tempId}')" onfocus="autoGrowTextarea(this)" onkeyup="autoGrowTextarea(this)"></textarea>
+        </td>
+        <td class="p-2">
+          <input type="date" value="" data-field="proposed_date" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-xs focus:outline-none focus:border-blue-500/50 font-mono" onchange="markPlanDirty('${tempId}')">
+        </td>
+        <td class="p-2">
+          <input type="date" value="" data-field="actual_date" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-emerald-400 text-xs focus:outline-none focus:border-blue-500/50 font-mono" onchange="markPlanDirty('${tempId}')">
+        </td>
+        <td class="p-2 text-center">
+          <input type="text" value="1" data-field="allocated_hours" class="w-10 bg-slate-900/80 border border-slate-700/60 text-center text-slate-300 text-xs rounded py-0.5 focus:outline-none font-mono" onchange="markPlanDirty('${tempId}')">
+        </td>
+        <td class="p-2">
+          ${renderPedagogySelect('Lecture', tempId)}
+        </td>
+        <td class="p-2">
+          <input type="text" value="" data-field="remarks" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none focus:border-blue-500/50" placeholder="Remarks..." onchange="markPlanDirty('${tempId}')">
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      markPlanDirty(tempId);
+      const textarea = tr.querySelector('textarea');
+      if (textarea) autoGrowTextarea(textarea);
+    }
+
+    function deleteLessonPlanRow(btn) {
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const lpId = tr.getAttribute('data-lp-id');
+      if (lpId && !lpId.startsWith('new_')) {
+        if (!confirm('Are you sure you want to remove this lesson plan row?')) return;
+        fetch(`/api/classroom/${currentSubjectId}/lesson-plans/${lpId}`, {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        }).then(r => r.json()).catch(e => console.error(e));
+      }
+      tr.remove();
+      const bar = document.getElementById('planSaveStatusBar');
+      if (bar) { bar.classList.remove('hidden'); bar.classList.add('flex'); }
     }
 
     // Track which rows have been edited
@@ -2595,10 +2973,10 @@
 
     // Auto-save a single row immediately (for date changes)
     function autoSavePlanRow(lpId, row) {
-      if (!row) return;
+      if (!row || String(lpId).startsWith('new_')) return;
       const rowData = collectPlanRow(lpId, row);
       if (!rowData) return;
-      fetch(`/api/classroom/${currentSubjectId}/lesson-plans/bulk-update`, {
+      fetch(`/api/classroom/${currentSubjectId}/save-lesson-plans`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ rows: [rowData] })
@@ -2612,27 +2990,37 @@
         row = document.querySelector(`#lessonPlanTable tr[data-lp-id="${lpId}"]`);
         if (!row) return null;
       }
+      const isNew = String(lpId).startsWith('new_');
       return {
-        id:            lpId,
-        topic_content: row.querySelector('[data-field="topic"]')?.value          || '',
-        proposed_date: row.querySelector('[data-field="proposed_date"]')?.value  || null,
-        pedagogy:      row.querySelector('[data-field="pedagogy"]')?.value        || 'Lecture',
-        remarks:       row.querySelector('[data-field="remarks"]')?.value         || '',
+        id:              isNew ? null : (parseInt(lpId) || null),
+        day_no:          row.querySelector('[data-field="day_no"]')?.value        || null,
+        co_id:           row.querySelector('[data-field="co_id"]')?.value         || null,
+        topic_content:   row.querySelector('[data-field="topic"]')?.value          || '',
+        proposed_date:   row.querySelector('[data-field="proposed_date"]')?.value  || null,
+        actual_date:     row.querySelector('[data-field="actual_date"]')?.value    || null,
+        allocated_hours: row.querySelector('[data-field="allocated_hours"]')?.value || 1,
+        pedagogy:        row.querySelector('[data-field="pedagogy"]')?.value        || 'Lecture',
+        remarks:         row.querySelector('[data-field="remarks"]')?.value         || '',
       };
     }
 
     function saveLessonPlanChanges() {
-      const btn = document.getElementById('btnSavePlan');
+      const btnTop = document.getElementById('btnSavePlan');
+      const btnBottom = document.getElementById('btnSavePlanBottom');
+      const btnSaveNow = document.getElementById('btnSaveNowBottom');
       const rows = [];
       document.querySelectorAll('#lessonPlanTable tbody tr[data-lp-id]').forEach(row => {
-        const lpId = parseInt(row.getAttribute('data-lp-id'));
+        const lpId = row.getAttribute('data-lp-id');
         const data = collectPlanRow(lpId, row);
         if (data) rows.push(data);
       });
       if (rows.length === 0) { alert('Nothing to save.'); return; }
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
 
-      fetch(`/api/classroom/${currentSubjectId}/lesson-plans/bulk-update`, {
+      if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
+      if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
+      if (btnSaveNow) { btnSaveNow.disabled = true; btnSaveNow.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
+
+      fetch(`/api/classroom/${currentSubjectId}/save-lesson-plans`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ rows })
@@ -2641,15 +3029,26 @@
           window._dirtyPlanRows.clear();
           const bar = document.getElementById('planSaveStatusBar');
           if (bar) { bar.classList.add('hidden'); bar.classList.remove('flex'); }
-          if (btn) btn.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
-          setTimeout(() => { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; } }, 2500);
+          if (btnTop) btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
+          if (btnBottom) btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
+          if (btnSaveNow) btnSaveNow.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
+          setTimeout(() => {
+            if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; }
+            if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save'; }
+            if (btnSaveNow) { btnSaveNow.disabled = false; btnSaveNow.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Save Now'; }
+            loadCourseDetails(currentSubjectId).then(() => toggleClassroomTab('planner'));
+          }, 1500);
         } else {
           alert(d.message || 'Save failed.');
-          if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; }
+          if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; }
+          if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save'; }
+          if (btnSaveNow) { btnSaveNow.disabled = false; btnSaveNow.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Save Now'; }
         }
       }).catch(e => {
         alert('Save failed: ' + e.message);
-        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; }
+        if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save Changes'; }
+        if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs">save</span> Save'; }
+        if (btnSaveNow) { btnSaveNow.disabled = false; btnSaveNow.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Save Now'; }
       });
     }
 
@@ -3042,22 +3441,22 @@
     function addManualQuestionField(question = '', btLevel = 'Understand', marks = 5) {
       const container = document.getElementById('editQuestionsFieldsContainer');
       const div = document.createElement('div');
-      div.className = "p-4 bg-slate-950/40 border border-slate-800 rounded-xl space-y-3 relative question-field-row";
+      div.className = "p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3 relative question-field-row shadow-sm";
       
       div.innerHTML = `
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Question</span>
-          <button type="button" onclick="this.closest('.question-field-row').remove(); updateEditQuestionsTotalMarks();" class="text-rose-400 hover:text-rose-350 cursor-pointer">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Question Description</span>
+          <button type="button" onclick="this.closest('.question-field-row').remove(); updateEditQuestionsTotalMarks();" class="text-rose-400 hover:text-rose-300 cursor-pointer p-1 rounded hover:bg-rose-500/10 transition" title="Delete Question">
             <span class="material-symbols-rounded text-base">delete</span>
           </button>
         </div>
         <div>
-          <textarea class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 text-sm outline-none focus:border-blue-500 resize-y q-text" rows="2" placeholder="Type question description..." required>${question}</textarea>
+          <textarea class="w-full bg-slate-900/90 border border-slate-700/60 rounded-xl p-3 text-slate-100 text-sm font-normal outline-none focus:border-blue-500/80 leading-relaxed resize-y min-h-[130px] q-text" rows="5" placeholder="Type descriptive question content..." required oninput="autoGrowTextarea(this)" onfocus="autoGrowTextarea(this)">${question}</textarea>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">BT Level</label>
-            <select class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:border-blue-500 outline-none q-bt">
+            <select class="w-full bg-slate-900 border border-slate-700/60 rounded-lg px-3 py-2 text-xs font-bold text-white focus:border-blue-500 outline-none q-bt">
               <option value="Remember" ${btLevel === 'Remember' ? 'selected' : ''}>Remember</option>
               <option value="Understand" ${btLevel === 'Understand' ? 'selected' : ''}>Understand</option>
               <option value="Apply" ${btLevel === 'Apply' ? 'selected' : ''}>Apply</option>
@@ -3065,11 +3464,13 @@
           </div>
           <div>
             <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Marks</label>
-            <input type="number" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:border-blue-500 outline-none q-marks" value="${marks}" min="1" max="20" onchange="updateEditQuestionsTotalMarks()" required>
+            <input type="number" class="w-full bg-slate-900 border border-slate-700/60 rounded-lg px-3 py-2 text-xs font-bold text-white focus:border-blue-500 outline-none q-marks" value="${marks}" min="1" max="20" onchange="updateEditQuestionsTotalMarks()" required>
           </div>
         </div>
       `;
       container.appendChild(div);
+      const ta = div.querySelector('textarea.q-text');
+      if (ta) autoGrowTextarea(ta);
       updateEditQuestionsTotalMarks();
     }
 
@@ -4989,6 +5390,43 @@
         });
     }
 
+    function openPrintReport(reportType) {
+      if (!currentSubjectId) {
+        alert("Please select a subject first.");
+        return;
+      }
+      let url = '';
+      switch(reportType) {
+        case 'course_exit':
+          url = `/classroom/${currentSubjectId}/course-exit/report`;
+          break;
+        case 'nba_attainment':
+          url = `/r26/classroom/${currentSubjectId}/nba/attainment-report`;
+          break;
+        case 'lesson_plan':
+          url = `/r26/classroom/lesson-plan/print/${currentSubjectId}`;
+          break;
+        case 'course_file':
+          url = `/r26/classroom/course-file/${currentSubjectId}/print-pdf`;
+          break;
+        case 'self_learning':
+          url = `/r26/classroom/self-learning/print/${currentSubjectId}`;
+          break;
+        case 'cie_marksheet':
+          url = `/r26/classroom/${currentSubjectId}/internals/print-cie`;
+          break;
+        case 'final_results':
+          url = `/r26/classroom/${currentSubjectId}/final-results/print`;
+          break;
+        case 'series_marks':
+          url = `/r26/classroom/${currentSubjectId}/series-exams/print-marks`;
+          break;
+      }
+      if (url) {
+        window.open(url, '_blank');
+      }
+    }
+
     function loadClassReport(type) {
       activeReportType = type;
       
@@ -5939,7 +6377,7 @@
 
 <!-- Edit Assignment Questions Modal -->
 <div id="editQuestionsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[85vh]">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[88vh]">
     <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
       <div>
         <h3 class="text-base font-black text-white flex items-center gap-2">
@@ -7753,6 +8191,232 @@
       .catch(() => alert('Failed to save mapping matrix.'));
     }
 
+    function openEseMarksModal() {
+      if (!currentSubjectId) {
+        alert("Please select a subject first.");
+        return;
+      }
+      const modal = document.getElementById('modalEseMarks');
+      if (modal) modal.classList.remove('hidden');
+
+      const tbody = document.getElementById('eseMarksTableBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">Loading student records...</td></tr>';
+
+      fetch(`/api/r26/classroom/${currentSubjectId}/ese-marks`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status !== 'SUCCESS') {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-rose-400 font-bold">Failed to load ESE records.</td></tr>';
+            return;
+          }
+
+          const cfg = data.config || {};
+          document.getElementById('eseEntryMode').value = cfg.entry_mode || 'grades';
+          document.getElementById('eseMaxMarks').value = cfg.max_marks || 60;
+          document.getElementById('eseThresholdPercent').value = cfg.ese_threshold_percent || cfg.target_threshold_percent || 50;
+          document.getElementById('eseThresholdGrade').value = cfg.ese_threshold_grade || cfg.target_grade || 'D';
+          document.getElementById('cieThresholdPercent').value = cfg.cie_threshold_percent || 50;
+          document.getElementById('targetStudentPercent').value = cfg.target_student_percent || cfg.level3_percent || 70;
+
+          renderEseStudentRows(data.students || [], 'grades', cfg.max_marks || 60);
+          updateEseSummaryStats(data.summary);
+        })
+        .catch(err => {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-rose-400 font-bold">Error connecting to server.</td></tr>';
+        });
+    }
+
+    function toggleEseModeInputs() {
+      recalculateEseStats();
+    }
+
+    function renderEseStudentRows(students, mode, maxMarks) {
+      const tbody = document.getElementById('eseMarksTableBody');
+      if (!Array.isArray(students) || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-bold">No students registered in this batch.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      students.forEach(s => {
+        const reg = s.reg_no || s.sbte_reg_no;
+        const markVal = s.ese_marks !== null && s.ese_marks !== undefined ? s.ese_marks : 40.0;
+        const gradeVal = s.ese_grade || 'D';
+
+        const inputHtml = `
+          <select data-reg="${reg}" onchange="recalculateEseStats()" class="ese-val-input bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-44 px-2 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer">
+            <option value="S" ${gradeVal === 'S' ? 'selected' : ''}>S (90%+ Outstanding)</option>
+            <option value="A" ${gradeVal === 'A' ? 'selected' : ''}>A (80%-89% Excellent)</option>
+            <option value="B" ${gradeVal === 'B' ? 'selected' : ''}>B (70%-79% Very Good)</option>
+            <option value="C" ${gradeVal === 'C' ? 'selected' : ''}>C (60%-69% Good)</option>
+            <option value="D" ${gradeVal === 'D' ? 'selected' : ''}>D (50%-59% Average)</option>
+            <option value="E" ${gradeVal === 'E' || gradeVal === 'P' ? 'selected' : ''}>E (40%-49% Pass)</option>
+            <option value="F" ${gradeVal === 'F' ? 'selected' : ''}>F (Below 40% Fail)</option>
+          </select>
+        `;
+
+        html += `
+          <tr class="hover:bg-slate-800/30 transition-premium">
+            <td class="p-3 font-mono font-bold text-slate-300">${s.roll_no || '-'}</td>
+            <td class="p-3 font-mono text-slate-400">${reg || '-'}</td>
+            <td class="p-3 font-bold text-slate-200">${s.name}</td>
+            <td class="p-3 text-center">${inputHtml}</td>
+            <td class="p-3 text-center" id="status_cell_${reg}">
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Target Met</span>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      recalculateEseStats();
+    }
+
+    function recalculateEseStats() {
+      const mode = document.getElementById('eseEntryMode').value;
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
+      const eseTargetPct = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
+      const targetStudentPct = parseFloat(document.getElementById('targetStudentPercent').value || 70);
+
+      // Update Redefined Attainment Level Preview Labels
+      const lvl3Val = targetStudentPct;
+      const lvl2Val = Math.max(0, targetStudentPct - 10);
+      const lvl1Val = Math.max(0, targetStudentPct - 20);
+
+      const elL3 = document.getElementById('previewLevel3');
+      const elL2 = document.getElementById('previewLevel2');
+      const elL1 = document.getElementById('previewLevel1');
+      if (elL3) elL3.innerText = `≥ ${lvl3Val}% Batch`;
+      if (elL2) elL2.innerText = `≥ ${lvl2Val}% Batch`;
+      if (elL1) elL1.innerText = `≥ ${lvl1Val}% Batch`;
+
+      const inputs = document.querySelectorAll('.ese-val-input');
+      const totalStudents = inputs.length;
+      let appeared = 0;
+      let metTarget = 0;
+
+      inputs.forEach(inp => {
+        const reg = inp.getAttribute('data-reg');
+        const val = inp.value.trim();
+        const statusCell = document.getElementById(`status_cell_${reg}`);
+        
+        let isMet = false;
+        if (mode === 'grades') {
+          if (val && val !== 'F' && val !== 'FE') {
+            appeared++;
+            isMet = true;
+            metTarget++;
+          }
+        } else {
+          const mark = parseFloat(val);
+          if (!isNaN(mark)) {
+            appeared++;
+            const pct = (mark / (maxMarks > 0 ? maxMarks : 60)) * 100;
+            if (pct >= eseTargetPct) {
+              isMet = true;
+              metTarget++;
+            }
+          }
+        }
+
+        if (statusCell) {
+          if (isMet) {
+            statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ATTAINED ✓</span>';
+          } else {
+            statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">NOT MET</span>';
+          }
+        }
+      });
+
+      const metPercent = totalStudents > 0 ? ((metTarget / totalStudents) * 100).toFixed(1) : 0;
+      let levelText = 'Level 0 (Nil)';
+      let levelClass = 'text-rose-400';
+
+      if (parseFloat(metPercent) >= lvl3Val) {
+        levelText = `Level 3 (High - ${metPercent}%)`;
+        levelClass = 'text-emerald-400';
+      } else if (parseFloat(metPercent) >= lvl2Val) {
+        levelText = `Level 2 (Moderate - ${metPercent}%)`;
+        levelClass = 'text-amber-400';
+      } else if (parseFloat(metPercent) >= lvl1Val) {
+        levelText = `Level 1 (Low - ${metPercent}%)`;
+        levelClass = 'text-blue-400';
+      }
+
+      updateEseSummaryStats({
+        total_students: totalStudents,
+        appeared_count: appeared,
+        met_target_count: metTarget,
+        met_target_percent: metPercent,
+        attainment_level_text: levelText,
+        level_class: levelClass
+      });
+    }
+
+    function updateEseSummaryStats(summary) {
+      if (!summary) return;
+      document.getElementById('statTotalStudents').innerText = summary.total_students || 0;
+      document.getElementById('statAppearedStudents').innerText = summary.appeared_count || 0;
+      document.getElementById('statMetTargetStudents').innerText = `${summary.met_target_count || 0} (${summary.met_target_percent || 0}%)`;
+      
+      const lvlEl = document.getElementById('statAttainmentLevel');
+      if (lvlEl) {
+        lvlEl.innerText = summary.attainment_level_text || (`Level ${summary.attainment_level || 0}`);
+        if (summary.level_class) {
+          lvlEl.className = `text-sm font-black ${summary.level_class}`;
+        }
+      }
+    }
+
+    function closeEseMarksModal() {
+      const modal = document.getElementById('modalEseMarks');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveEseMarks() {
+      const mode = document.getElementById('eseEntryMode').value;
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
+      const eseThresholdGrade = document.getElementById('eseThresholdGrade').value;
+      const eseThresholdPercent = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
+      const cieThresholdPercent = parseFloat(document.getElementById('cieThresholdPercent').value || 50);
+      const targetStudentPercent = parseFloat(document.getElementById('targetStudentPercent').value || 70);
+
+      const inputs = document.querySelectorAll('.ese-val-input');
+      const marks = {};
+      inputs.forEach(inp => {
+        const reg = inp.getAttribute('data-reg');
+        if (reg) marks[reg] = inp.value;
+      });
+
+      const payload = {
+        entry_mode: mode,
+        max_marks: maxMarks,
+        ese_threshold_grade: eseThresholdGrade,
+        ese_threshold_percent: eseThresholdPercent,
+        cie_threshold_percent: cieThresholdPercent,
+        target_student_percent: targetStudentPercent,
+        marks: marks
+      };
+
+      fetch(`/api/r26/classroom/${currentSubjectId}/ese-marks/bulk-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message || 'Threshold settings & student evaluation records updated successfully.');
+        closeEseMarksModal();
+        loadCourseAttainment();
+      })
+      .catch(err => {
+        alert('Failed to save ESE records.');
+      });
+    }
+
     // Live AI Status Indicator for Faculty
     document.addEventListener("DOMContentLoaded", () => {
       fetch('/api/system/ai-status')
@@ -7771,6 +8435,155 @@
         .catch(err => console.error("Failed to load system AI status:", err));
     });
   </script>
+
+  <!-- Modal: Bulk Enter End Semester Exam (ESE) Marks & NBA Attainment Criteria -->
+  <div id="modalEseMarks" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-5 bg-slate-950/80 border-b border-slate-800/80 flex justify-between items-center">
+        <div>
+          <h3 class="text-sm font-black text-slate-100 flex items-center gap-2">
+            <span class="material-symbols-rounded text-emerald-400 text-base">tune</span>
+            NBA Attainment Threshold Config & ESE Evaluation
+          </h3>
+          <p class="text-xs text-slate-400 mt-1">Configure threshold marks/grades for CIE and ESE exams, target student percentage, and batch attainment criteria.</p>
+        </div>
+        <button onclick="closeEseMarksModal()" class="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-5 flex-grow" id="eseModalBody">
+        
+        <!-- Streamlined Threshold Config Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Card 1: Exam Threshold Settings -->
+          <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-black text-slate-200 uppercase tracking-wider">1. Assessment Threshold Settings</span>
+              <span class="text-[10px] font-bold text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-800/50">CIE & ESE Targets</span>
+            </div>
+
+            <!-- Hidden Inputs for API Backward Compatibility -->
+            <input type="hidden" id="eseEntryMode" value="grades">
+            <input type="hidden" id="eseMaxMarks" value="60">
+            <input type="hidden" id="eseThresholdPercent" value="50">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- ESE Threshold Grade (SBTE Kerala Board) -->
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">ESE Threshold Grade (SBTE)</label>
+                <select id="eseThresholdGrade" onchange="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-teal-400 font-bold text-xs px-2.5 py-2 rounded-lg outline-none focus:border-teal-500 overflow-ellipsis">
+                  <option value="E">E Grade & Above (Pass - 40%+)</option>
+                  <option value="D" selected>D Grade & Above (Average - 50%+)</option>
+                  <option value="C">C Grade & Above (Good - 60%+)</option>
+                  <option value="B">B Grade & Above (Very Good - 70%+)</option>
+                  <option value="A">A Grade & Above (Excellent - 80%+)</option>
+                  <option value="S">S Grade (Outstanding - 90%+)</option>
+                </select>
+              </div>
+
+              <!-- Internal (CIE) Threshold -->
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Internal (CIE) Threshold (%)</label>
+                <input type="number" id="cieThresholdPercent" value="50" min="30" max="90" step="1" oninput="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-indigo-400 font-mono font-bold text-xs px-3 py-2 rounded-lg outline-none focus:border-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Target Student % & Attainment Levels -->
+          <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-black text-slate-200 uppercase tracking-wider">2. Batch Target & Attainment Levels</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/50">NBA Criteria</span>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 mb-1">Target % of Total Batch Students</label>
+              <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg">
+                <span class="text-xs font-bold text-emerald-400">Target (T):</span>
+                <input type="number" id="targetStudentPercent" value="70" min="30" max="100" step="1" oninput="recalculateEseStats()" class="w-full bg-transparent text-emerald-400 font-mono font-black text-sm outline-none">
+                <span class="text-xs text-slate-500 font-bold">%</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <div class="bg-slate-900/80 border border-emerald-500/30 p-2 rounded-lg text-center">
+                <span class="block text-[9px] font-bold text-emerald-400 uppercase">Level 3 (High)</span>
+                <span id="previewLevel3" class="text-xs font-mono font-bold text-emerald-300">≥ 70% Batch</span>
+              </div>
+
+              <div class="bg-slate-900/80 border border-amber-500/30 p-2 rounded-lg text-center">
+                <span class="block text-[9px] font-bold text-amber-400 uppercase">Level 2 (Mod)</span>
+                <span id="previewLevel2" class="text-xs font-mono font-bold text-amber-300">≥ 60% Batch</span>
+              </div>
+
+              <div class="bg-slate-900/80 border border-blue-500/30 p-2 rounded-lg text-center">
+                <span class="block text-[9px] font-bold text-blue-400 uppercase">Level 1 (Low)</span>
+                <span id="previewLevel1" class="text-xs font-mono font-bold text-blue-300">≥ 50% Batch</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary & Batch Metrics -->
+        <div id="eseSummaryBar" class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div>
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">Max Batch Students</span>
+            <span id="statTotalStudents" class="text-sm font-black text-slate-200">0</span>
+          </div>
+          <div>
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">Students Appeared</span>
+            <span id="statAppearedStudents" class="text-sm font-black text-blue-400">0</span>
+          </div>
+          <div>
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">Met Target Threshold</span>
+            <span id="statMetTargetStudents" class="text-sm font-black text-emerald-400">0 (0%)</span>
+          </div>
+          <div>
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">ESE Attainment Level</span>
+            <span id="statAttainmentLevel" class="text-sm font-black text-amber-400">Level 0</span>
+          </div>
+        </div>
+
+        <!-- Toolbar & Table -->
+        <div class="space-y-3">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-xs text-slate-300 font-bold">Student ESE Grade Ledger (SBTE Kerala)</span>
+            <span class="text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-1 rounded border border-slate-800">S, A, B, C, D, E, F Evaluation</span>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-800/60 rounded-xl">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
+                  <th class="p-3 w-16">Roll</th>
+                  <th class="p-3 w-36">Register No</th>
+                  <th class="p-3">Student Name</th>
+                  <th class="p-3 text-center w-44">ESE Score / Grade</th>
+                  <th class="p-3 text-center w-28">Status</th>
+                </tr>
+              </thead>
+              <tbody id="eseMarksTableBody" class="divide-y divide-slate-800/40">
+                <tr>
+                  <td colspan="5" class="p-6 text-center text-slate-500 font-bold">Loading student records...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-950/80 border-t border-slate-800/80 flex justify-end gap-3">
+        <button onclick="closeEseMarksModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-premium cursor-pointer">
+          Cancel
+        </button>
+        <button onclick="saveEseMarks()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer shadow-lg shadow-indigo-900/30 flex items-center gap-1.5">
+          <span class="material-symbols-rounded text-sm">save</span> Save ESE Evaluation & Calculate Attainment
+        </button>
+      </div>
+    </div>
+  </div>
 
   @include('partials.support_desk_overlay')
 </body>

@@ -16,20 +16,26 @@
 
         @page {
             size: A4 portrait;
-            margin: 15mm 15mm;
+            margin: 15mm 15mm 15mm 15mm;
         }
 
         body {
-            background-color: #fff;
+            background-color: #f8fafc;
             color: #000;
             font-size: 12px;
             line-height: 1.4;
-            padding: 10px;
+            padding: 20px 0;
         }
 
         .a4-page {
-            width: 100%;
+            width: 210mm;
+            max-width: 95%;
             margin: 0 auto;
+            background: #ffffff;
+            padding: 15mm 15mm;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
         }
 
         .print-controls {
@@ -172,14 +178,28 @@
         }
 
         @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm 15mm 15mm 15mm;
+            }
+            html, body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            .a4-page {
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
             .print-controls {
                 display: none !important;
             }
             .header-meta td.label, .report-table th {
                 background-color: transparent !important;
-            }
-            body {
-                padding: 0;
             }
         }
     </style>

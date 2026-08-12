@@ -47,7 +47,7 @@
   .sig-lbl { font-weight: 700; color: #334155; }
 
   @media print {
-    @page { size: A4 portrait; margin: 12mm 12mm 12mm 12mm; }
+    @page { size: A4 portrait; margin: 15mm 12mm 15mm 12mm; }
     .no-print { display: none !important; }
     body { background: #fff; padding: 0; margin: 0; font-size: 11px; }
     .report-container { border: none; box-shadow: none; padding: 4mm 5mm; max-width: 100%; width: 100%; }

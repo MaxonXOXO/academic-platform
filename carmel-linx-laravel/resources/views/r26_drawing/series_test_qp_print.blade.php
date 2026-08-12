@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 8mm 10mm;
+            margin: 15mm 12mm 15mm 12mm;
         }
 
         * {

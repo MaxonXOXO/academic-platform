@@ -1896,83 +1896,87 @@
             let html = '';
             currentQpData.questions.forEach((q, qIndex) => {
                 html += `
-                    <div class="card bg-dark border-secondary mb-4 p-3 shadow">
-                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
-                            <h6 class="fw-bold text-info mb-0"><i class="fa-solid fa-list-check me-2"></i>${q.q_no} [${q.module} — ${q.co}] (Max ${q.total_marks} Marks)</h6>
+                    <div class="mb-4 p-3 rounded" style="background: #1e293b; border-left: 4px solid #0284c7;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary">
+                            <h6 class="fw-bold text-info mb-0">${q.q_no} — [${q.module} | ${q.co}] (Max ${q.total_marks} Marks)</h6>
                         </div>
                         
                         <!-- Option A -->
-                        <div class="border border-info rounded p-3 mb-3" style="background-color: rgba(14, 165, 233, 0.05);">
-                            <div class="fw-bold text-info mb-2"><i class="fa-solid fa-code-branch me-1"></i> Option A (Choice Title)</div>
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Option A Title / Heading</label>
-                                <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" 
+                        <div class="mb-3">
+                            <div class="fw-bold text-cyan mb-2"><i class="fa-solid fa-file-circle-check me-1"></i> OPTION A (Choice 1)</div>
+                            <div class="mb-2">
+                                <label class="form-label text-light small fw-semibold">Heading / Title</label>
+                                <input type="text" class="form-control form-control-sm text-light" style="background-color: #0f172a; border: 1px solid #334155;"
                                     value="${escapeHtml(q.option_a.title)}" onchange="updateQpData(${qIndex}, 'option_a', 'title', null, this.value)">
                             </div>
                             ${q.option_a.sub_questions.map((sub, sIndex) => `
-                                <div class="p-3 mb-2 bg-dark rounded border border-secondary">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="badge bg-primary fs-6">${sub.sub_no}</span>
+                                <div class="mb-3 p-3 rounded" style="background: #0f172a;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-cyan small">Sub-Question ${sub.sub_no}</span>
                                         <div class="d-flex align-items-center gap-1">
                                             <span class="text-muted small">Marks:</span>
-                                            <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary text-end" style="width: 70px;"
+                                            <input type="number" class="form-control form-control-sm text-light text-center" style="width: 60px; background-color: #1e293b; border: 1px solid #475569;"
                                                 value="${sub.marks}" onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'marks', this.value)">
                                         </div>
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label text-muted small">Question Description</label>
-                                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary" rows="2"
+                                        <label class="form-label text-muted small mb-0">Question Statement</label>
+                                        <textarea class="form-control form-control-sm text-light" rows="2" style="background-color: #1e293b; border: 1px solid #475569;"
                                             onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'text', this.value)">${escapeHtml(sub.text)}</textarea>
                                     </div>
-                                    <div class="mb-2">
-                                        <label class="form-label text-muted small">Valuation Scheme / Rubric Breakdown</label>
-                                        <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary"
-                                            value="${escapeHtml(sub.scheme)}" onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'scheme', this.value)">
-                                    </div>
-                                    <div>
-                                        <label class="form-label text-muted small">Model Answer Key / Solution Steps</label>
-                                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary" rows="2"
-                                            onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'answer_key', this.value)">${escapeHtml(sub.answer_key)}</textarea>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small mb-0">Valuation Scheme</label>
+                                            <input type="text" class="form-control form-control-sm text-light" style="background-color: #1e293b; border: 1px solid #475569;"
+                                                value="${escapeHtml(sub.scheme)}" onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'scheme', this.value)">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small mb-0">Model Answer Key</label>
+                                            <input type="text" class="form-control form-control-sm text-light" style="background-color: #1e293b; border: 1px solid #475569;"
+                                                value="${escapeHtml(sub.answer_key)}" onchange="updateSubQpData(${qIndex}, 'option_a', ${sIndex}, 'answer_key', this.value)">
+                                        </div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
 
                         <!-- Choice Divider -->
-                        <div class="text-center font-monospace text-danger fw-bold my-2 fs-6">--- EITHER OPTION A OR OPTION B ---</div>
+                        <div class="text-center font-monospace text-warning fw-bold my-3 small">--- OR (EITHER OPTION A OR OPTION B) ---</div>
 
                         <!-- Option B -->
-                        <div class="border border-warning rounded p-3 mb-2" style="background-color: rgba(245, 158, 11, 0.05);">
-                            <div class="fw-bold text-warning mb-2"><i class="fa-solid fa-code-branch me-1"></i> Option B (Choice Title)</div>
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Option B Title / Heading</label>
-                                <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" 
+                        <div>
+                            <div class="fw-bold text-warning mb-2"><i class="fa-solid fa-file-circle-check me-1"></i> OPTION B (Choice 2)</div>
+                            <div class="mb-2">
+                                <label class="form-label text-light small fw-semibold">Heading / Title</label>
+                                <input type="text" class="form-control form-control-sm text-light" style="background-color: #0f172a; border: 1px solid #334155;"
                                     value="${escapeHtml(q.option_b.title)}" onchange="updateQpData(${qIndex}, 'option_b', 'title', null, this.value)">
                             </div>
                             ${q.option_b.sub_questions.map((sub, sIndex) => `
-                                <div class="p-3 mb-2 bg-dark rounded border border-secondary">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="badge bg-warning text-dark fs-6">${sub.sub_no}</span>
+                                <div class="mb-3 p-3 rounded" style="background: #0f172a;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-warning small">Sub-Question ${sub.sub_no}</span>
                                         <div class="d-flex align-items-center gap-1">
                                             <span class="text-muted small">Marks:</span>
-                                            <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary text-end" style="width: 70px;"
+                                            <input type="number" class="form-control form-control-sm text-light text-center" style="width: 60px; background-color: #1e293b; border: 1px solid #475569;"
                                                 value="${sub.marks}" onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'marks', this.value)">
                                         </div>
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label text-muted small">Question Description</label>
-                                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary" rows="2"
+                                        <label class="form-label text-muted small mb-0">Question Statement</label>
+                                        <textarea class="form-control form-control-sm text-light" rows="2" style="background-color: #1e293b; border: 1px solid #475569;"
                                             onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'text', this.value)">${escapeHtml(sub.text)}</textarea>
                                     </div>
-                                    <div class="mb-2">
-                                        <label class="form-label text-muted small">Valuation Scheme / Rubric Breakdown</label>
-                                        <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary"
-                                            value="${escapeHtml(sub.scheme)}" onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'scheme', this.value)">
-                                    </div>
-                                    <div>
-                                        <label class="form-label text-muted small">Model Answer Key / Solution Steps</label>
-                                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary" rows="2"
-                                            onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'answer_key', this.value)">${escapeHtml(sub.answer_key)}</textarea>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small mb-0">Valuation Scheme</label>
+                                            <input type="text" class="form-control form-control-sm text-light" style="background-color: #1e293b; border: 1px solid #475569;"
+                                                value="${escapeHtml(sub.scheme)}" onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'scheme', this.value)">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small mb-0">Model Answer Key</label>
+                                            <input type="text" class="form-control form-control-sm text-light" style="background-color: #1e293b; border: 1px solid #475569;"
+                                                value="${escapeHtml(sub.answer_key)}" onchange="updateSubQpData(${qIndex}, 'option_b', ${sIndex}, 'answer_key', this.value)">
+                                        </div>
                                     </div>
                                 </div>
                             `).join('')}

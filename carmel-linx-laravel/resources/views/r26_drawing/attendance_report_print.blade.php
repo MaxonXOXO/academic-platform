@@ -59,7 +59,7 @@
   .sig-lbl { font-weight: 700; color: #334155; }
 
   @media print {
-    @page { size: A4 landscape; margin: 10mm 12mm 10mm 12mm; }
+    @page { size: A4 landscape; margin: 15mm 12mm 15mm 12mm; }
     .no-print { display: none !important; }
     body { background: #fff; padding: 0; margin: 0; font-size: 11px; }
     .report-container { border: none; box-shadow: none; padding: 3mm 4mm; max-width: 100%; width: 100%; }

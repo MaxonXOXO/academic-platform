@@ -36,7 +36,7 @@
   .sig-lbl { font-weight: 700; color: #334155; }
 
   @media print {
-    @page { size: A4 landscape; margin: 10mm; }
+    @page { size: A4 landscape; margin: 15mm 12mm 15mm 12mm; }
     body { background: #fff; padding: 0; color: #000; }
     .report-container { border: none; box-shadow: none; padding: 0; width: 100%; max-width: none; }
     .no-print { display: none !important; }

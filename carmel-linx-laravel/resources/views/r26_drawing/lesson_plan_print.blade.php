@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Plan - {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} ({{ $batchSubject->subject_name }})</title>
     <style>
-        @page {
-            size: A4 landscape;
-            margin: 12mm 15mm;
-        }
+            @page {
+                size: A4 landscape;
+                margin: 15mm 15mm 15mm 15mm;
+            }
 
         * {
             box-sizing: border-box;
@@ -182,7 +182,7 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 12mm 15mm;
+                margin: 15mm 15mm 15mm 15mm;
             }
 
             body {

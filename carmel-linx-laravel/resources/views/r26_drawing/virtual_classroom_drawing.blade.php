@@ -598,7 +598,7 @@
                                 <i class="fa-solid fa-print me-1"></i> Print List
                             </a>
                             <a href="/r26/classroom/drawing/ce-consolidated/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-outline-warning btn-sm">
-                                <i class="fa-solid fa-file-invoice me-1"></i> CE Ledger
+                                <i class="fa-solid fa-file-invoice me-1"></i> CE Report (50M)
                             </a>
                             <button class="btn btn-cyan btn-sm" id="saveCeBtn">
                                 <i class="fa-solid fa-floppy-disk me-1"></i> Save CE

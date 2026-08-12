@@ -6,7 +6,8 @@
 <title>Consolidated Attendance Report — {{ $batchSubject->subject_name }}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #fff; color: #1e293b; padding: 30px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #f1f5f9; color: #1e293b; padding: 24px 16px; }
+  .report-container { max-width: 1050px; margin: 0 auto; background: #ffffff; padding: 28px 32px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06); }
   .institution-header { text-align: center; border-bottom: 2.5px solid #1e3a5f; padding-bottom: 12px; margin-bottom: 20px; }
   .institution-header h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; }
   .institution-header p { font-size: 12px; color: #475569; margin-top: 3px; }
@@ -24,7 +25,7 @@
   .pct-m { color: #d97706; font-weight: 700; }
   .pct-l { color: #dc2626; font-weight: 700; }
   tr.short-row { background: #fef2f2 !important; }
-  .no-print { text-align: center; padding: 14px; background: #1e3a5f; border-radius: 8px; margin-bottom: 25px; }
+  .no-print { text-align: center; padding: 14px; background: #1e3a5f; border-radius: 8px; margin-bottom: 25px; max-width: 1050px; margin-left: auto; margin-right: auto; }
   .no-print button { background: #2563eb; color: #fff; border: none; padding: 10px 30px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; margin: 0 6px; }
   .no-print button.back-btn { background: #475569; }
   .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 50px; border-top: 1px solid #cbd5e1; padding-top: 20px; }
@@ -32,9 +33,10 @@
   .sig-line { border-bottom: 1px solid #475569; height: 45px; margin-bottom: 5px; }
   .sig-lbl { font-weight: 600; color: #475569; font-size: 11px; }
   @media print {
-    @page { size: A4 portrait; margin: 15mm; }
+    @page { size: A4 portrait; margin: 12mm 12mm 12mm 12mm; }
     .no-print { display: none !important; }
-    body { padding: 0; }
+    body { background: #fff; padding: 0; margin: 0; }
+    .report-container { border: none; box-shadow: none; padding: 4mm 5mm; max-width: 100%; width: 100%; }
     tr { page-break-inside: avoid; }
   }
 </style>
@@ -56,6 +58,8 @@ function goBackToClassroom() {
   <button class="back-btn" onclick="goBackToClassroom()">&#8592; Back to Classroom</button>
   <button onclick="window.print()">&#128424; Print / Save as PDF</button>
 </div>
+
+<div class="report-container">
 
 <div class="institution-header">
   <h1>CARMEL POLYTECHNIC COLLEGE</h1>
@@ -148,6 +152,8 @@ function goBackToClassroom() {
   <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Staff In-Charge</div><div style="font-weight:700;font-size:12px;">{{ $assignedStaff->count() ? $assignedStaff->first()->name : '_________________' }}</div></div>
   <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">HOD Signature</div><div style="font-weight:700;font-size:12px;">Head of Department</div></div>
   <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Principal Signature</div><div style="font-weight:700;font-size:12px;">Principal</div></div>
+</div>
+
 </div>
 
 </body>

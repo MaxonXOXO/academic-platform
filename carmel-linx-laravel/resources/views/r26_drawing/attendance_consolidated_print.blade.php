@@ -6,9 +6,10 @@
 <title>Consolidated A4 Attendance Sheet — {{ $batchSubject->subject_name }}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; background: #fff; color: #1e293b; padding: 24px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; background: #f1f5f9; color: #1e293b; padding: 24px 16px; }
+  .report-container { max-width: 1050px; margin: 0 auto; background: #ffffff; padding: 28px 32px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06); }
   
-  .no-print { text-align: center; padding: 12px; background: #1e3a5f; border-radius: 8px; margin-bottom: 20px; }
+  .no-print { text-align: center; padding: 12px; background: #1e3a5f; border-radius: 8px; margin-bottom: 20px; max-width: 1050px; margin-left: auto; margin-right: auto; }
   .no-print button { background: #2563eb; color: #fff; border: none; padding: 8px 24px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer; margin: 0 6px; }
   .no-print button.back-btn { background: #475569; }
 
@@ -46,9 +47,10 @@
   .sig-lbl { font-weight: 700; color: #334155; }
 
   @media print {
+    @page { size: A4 portrait; margin: 12mm 12mm 12mm 12mm; }
     .no-print { display: none !important; }
-    body { padding: 0; font-size: 11px; }
-    @page { size: A4 portrait; margin: 12mm; }
+    body { background: #fff; padding: 0; margin: 0; font-size: 11px; }
+    .report-container { border: none; box-shadow: none; padding: 4mm 5mm; max-width: 100%; width: 100%; }
     tr { page-break-inside: avoid; }
   }
 </style>
@@ -68,8 +70,10 @@ function goBackToDrawingLab() {
 
 <div class="no-print">
   <button class="back-btn" onclick="goBackToDrawingLab()">&#8592; Back to Drawing Lab</button>
-  <button onclick="window.print()">&#128424; Print / Save A4 Sheet PDF</button>
+  <button onclick="window.print()">&#128424; Print / Save as PDF</button>
 </div>
+
+<div class="report-container">
 
 <div class="institution-header">
   <h1>CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>

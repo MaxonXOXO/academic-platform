@@ -988,18 +988,18 @@
                             <tbody>
                                 @foreach($studentResults as $r)
                                 <tr>
-                                    <td class="fw-bold text-center text-cyan fs-6">{{ $r['roll_no'] }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-2 py-1 fs-6">{{ $r['reg_no'] }}</span></td>
-                                    <td class="fw-bold text-white fs-6">{{ $r['name'] }}</td>
-                                    <td>{{ $r['att_marks'] }}</td>
-                                    <td>{{ $r['ce_marks'] }}</td>
-                                    <td>{{ $r['practical_test_marks'] }}</td>
-                                    <td>{{ $r['oee_marks'] }}</td>
-                                    <td class="fw-bold text-info">{{ $r['total_cie_marks'] }}</td>
-                                    <td class="fw-bold text-warning">{{ $r['total_ese'] }}</td>
-                                    <td class="fw-bold fs-6 text-light">{{ $r['total_course_marks'] }}</td>
+                                    <td class="fw-bold text-center text-cyan text-xs">{{ $r['roll_no'] }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $r['reg_no'] }}</span></td>
+                                    <td class="fw-bold text-white text-xs">{{ $r['name'] }}</td>
+                                    <td class="text-xs">{{ $r['att_marks'] }}</td>
+                                    <td class="text-xs">{{ $r['ce_marks'] }}</td>
+                                    <td class="text-xs">{{ $r['practical_test_marks'] }}</td>
+                                    <td class="text-xs">{{ $r['oee_marks'] }}</td>
+                                    <td class="fw-bold text-info text-xs">{{ $r['total_cie_marks'] }}</td>
+                                    <td class="fw-bold text-warning text-xs">{{ $r['total_ese'] }}</td>
+                                    <td class="fw-bold text-light text-xs">{{ $r['total_course_marks'] }}</td>
                                     <td>
-                                        <span class="badge {{ $r['is_passed'] ? 'badge-emerald' : 'badge-rose' }}">
+                                        <span class="badge {{ $r['is_passed'] ? 'badge-emerald' : 'badge-rose' }}" style="font-size: 0.7rem;">
                                             {{ $r['is_passed'] ? 'PASSED' : 'FAILED' }}
                                         </span>
                                     </td>

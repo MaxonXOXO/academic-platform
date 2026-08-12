@@ -1,8 +1,8 @@
 <!-- TAB: STUDY MATERIALS & PRE-CLASS HUB -->
-<div id="tab-materials" class="tab-panel tab-content bg-panel border rounded-xl p-5 shadow-md space-y-5 hidden">
+<div class="tab-panel tab-content bg-panel border border-slate-800/80 rounded-xl p-5 shadow-md space-y-5">
   
   <!-- Header Bar -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/30 pb-3 gap-3">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/50 pb-3 gap-3">
     <div>
       <h3 class="text-base font-bold text-title flex items-center gap-2">
         <i class="fa-solid fa-folder-open text-amber-400"></i>
@@ -10,14 +10,14 @@
       </h3>
       <p class="text-xs text-muted mt-1">Publish lecture notes, PDFs, diagram images, and video clips for students with evening pre-class notifications.</p>
     </div>
-    <button onclick="toggleMaterialUploadForm()" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
+    <button onclick="toggleMaterialUploadForm(this)" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
       <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
       Publish New Material
     </button>
   </div>
 
   <!-- UPLOAD / PUBLISH FORM PANEL (HIDDEN BY DEFAULT) -->
-  <div id="materialUploadFormPanel" class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-4 hidden">
+  <div id="materialUploadFormPanel" class="materialUploadFormPanel bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-4 hidden">
     <div class="flex justify-between items-center border-b border-slate-800 pb-2">
       <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-1.5">
         <i class="fa-solid fa-circle-plus text-sky-400 text-sm"></i>
@@ -125,7 +125,7 @@
             <th class="p-3 pr-4 w-[14%] text-right">Actions</th>
           </tr>
         </thead>
-        <tbody id="materialsTableBody" class="divide-y divide-card text-sm font-normal">
+        <tbody id="materialsTableBody" class="vlm-table-body divide-y divide-card text-sm font-normal">
           <tr>
             <td colspan="6" class="p-6 text-center text-muted italic">Loading materials...</td>
           </tr>
@@ -150,32 +150,41 @@
 </div>
 
 <script>
-  function toggleMaterialUploadForm() {
-    const panel = document.getElementById('materialUploadFormPanel');
-    if (panel) panel.classList.toggle('hidden');
+  function toggleMaterialUploadForm(btn) {
+    if (btn && btn.closest) {
+      const parent = btn.closest('.tab-panel') || document;
+      const panel = parent.querySelector('.materialUploadFormPanel') || document.getElementById('materialUploadFormPanel');
+      if (panel) panel.classList.toggle('hidden');
+    } else {
+      const panel = document.getElementById('materialUploadFormPanel');
+      if (panel) panel.classList.toggle('hidden');
+    }
   }
 
-  function toggleMaterialInputFields() {
-    const type = document.getElementById('vlm_material_type').value;
-    const fileContainer = document.getElementById('vlm_file_input_container');
-    const urlContainer = document.getElementById('vlm_url_input_container');
+  function toggleMaterialInputFields(el) {
+    const parent = el ? el.closest('form') : document;
+    const type = parent.querySelector('[name="material_type"]')?.value || 'pdf';
+    const fileContainer = parent.querySelector('#vlm_file_input_container') || document.getElementById('vlm_file_input_container');
+    const urlContainer = parent.querySelector('#vlm_url_input_container') || document.getElementById('vlm_url_input_container');
     
     if (type === 'video' || type === 'link') {
-      fileContainer.classList.add('hidden');
-      urlContainer.classList.remove('hidden');
+      if (fileContainer) fileContainer.classList.add('hidden');
+      if (urlContainer) urlContainer.classList.remove('hidden');
     } else {
-      fileContainer.classList.remove('hidden');
-      urlContainer.classList.add('hidden');
+      if (fileContainer) fileContainer.classList.remove('hidden');
+      if (urlContainer) urlContainer.classList.add('hidden');
     }
   }
 
   async function handleMaterialUploadSubmit(event) {
     event.preventDefault();
-    const btn = document.getElementById('btnSubmitMaterial');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Publishing...';
+    const form = event.target;
+    const btn = form.querySelector('button[type="submit"]') || document.getElementById('btnSubmitMaterial');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Publishing...';
+    }
 
-    const form = document.getElementById('vlmUploadForm');
     const formData = new FormData(form);
 
     try {
@@ -191,7 +200,7 @@
       if (res.status === 'SUCCESS') {
         alert('✅ ' + res.message);
         form.reset();
-        toggleMaterialUploadForm();
+        toggleMaterialUploadForm(btn);
         loadSubjectMaterials();
       } else {
         alert('❌ Error: ' + res.message);
@@ -199,22 +208,24 @@
     } catch (e) {
       alert('❌ Upload failed: ' + e.message);
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i> Publish Now';
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i> Publish Now';
+      }
     }
   }
 
   async function loadSubjectMaterials() {
-    const tbody = document.getElementById('materialsTableBody');
-    if (!tbody) return;
+    const tbodies = document.querySelectorAll('.vlm-table-body, #materialsTableBody');
+    if (!tbodies || !tbodies.length) return;
 
     const subjectId = '{{ $batchSubject->id }}';
     try {
       const resp = await fetch('/api/virtual-room/materials/' + subjectId);
       const res = await resp.json();
 
+      let html = '';
       if (res.status === 'SUCCESS' && res.materials.length > 0) {
-        let html = '';
         res.materials.forEach(m => {
           let typeBadge = '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded font-bold text-xs">PDF</span>';
           if (m.material_type === 'video') typeBadge = '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>';
@@ -249,24 +260,29 @@
             </tr>
           `;
         });
-        tbody.innerHTML = html;
       } else {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-muted italic">No study materials published yet. Click "Publish New Material" above to upload lecture notes or videos.</td></tr>`;
+        html = `<tr><td colspan="6" class="p-6 text-center text-muted italic">No study materials published yet. Click "Publish New Material" above to upload lecture notes or videos.</td></tr>`;
       }
+      tbodies.forEach(tb => tb.innerHTML = html);
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-400 italic">Error loading materials.</td></tr>`;
+      tbodies.forEach(tb => tb.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-400 italic">Error loading materials.</td></tr>`);
     }
   }
 
   function openVlmVideoModal(title, url) {
-    document.getElementById('vlmModalVideoTitle').innerText = title;
-    document.getElementById('vlmModalIframe').src = url;
-    document.getElementById('vlmVideoModal').classList.remove('hidden');
+    const modalTitle = document.getElementById('vlmModalVideoTitle');
+    const modalIframe = document.getElementById('vlmModalIframe');
+    const modal = document.getElementById('vlmVideoModal');
+    if (modalTitle) modalTitle.innerText = title;
+    if (modalIframe) modalIframe.src = url;
+    if (modal) modal.classList.remove('hidden');
   }
 
   function closeVlmVideoModal() {
-    document.getElementById('vlmModalIframe').src = '';
-    document.getElementById('vlmVideoModal').classList.add('hidden');
+    const modalIframe = document.getElementById('vlmModalIframe');
+    const modal = document.getElementById('vlmVideoModal');
+    if (modalIframe) modalIframe.src = '';
+    if (modal) modal.classList.add('hidden');
   }
 
   async function deleteSubjectMaterial(id) {

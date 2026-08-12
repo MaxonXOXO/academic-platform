@@ -1966,7 +1966,12 @@
                 document.getElementById('theory-subcontent-' + t)?.classList.add('hidden');
                 document.getElementById('theory-tab-' + t)?.classList.remove('active', 'text-white');
             });
-            document.getElementById('theory-subcontent-' + tab)?.classList.remove('hidden');
+            const sub = document.getElementById('theory-subcontent-' + tab);
+            if (sub) {
+                sub.classList.remove('hidden');
+                const inner = sub.querySelector('.tab-panel');
+                if (inner) inner.classList.remove('hidden');
+            }
             document.getElementById('theory-tab-' + tab)?.classList.add('active', 'text-white');
             localStorage.setItem('active_theory_subtab', tab);
             if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
@@ -1979,7 +1984,12 @@
                 document.getElementById('lab-subcontent-' + t)?.classList.add('hidden');
                 document.getElementById('lab-tab-' + t)?.classList.remove('active', 'text-white');
             });
-            document.getElementById('lab-subcontent-' + tab)?.classList.remove('hidden');
+            const sub = document.getElementById('lab-subcontent-' + tab);
+            if (sub) {
+                sub.classList.remove('hidden');
+                const inner = sub.querySelector('.tab-panel');
+                if (inner) inner.classList.remove('hidden');
+            }
             document.getElementById('lab-tab-' + tab)?.classList.add('active', 'text-white');
             localStorage.setItem('active_lab_subtab', tab);
             if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {

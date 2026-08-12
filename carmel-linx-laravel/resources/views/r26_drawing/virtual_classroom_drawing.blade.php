@@ -2047,47 +2047,47 @@
 
     <!-- MODAL: ADD NEW DRAWING EXERCISE -->
     <div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-light border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title fw-bold text-cyan"><i class="fa-solid fa-plus-circle me-2"></i>Add New Drawing Exercise / CAD Sheet</h5>
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content text-light border-0 shadow-lg" style="background: #0f172a; border-radius: 12px;">
+                <div class="modal-header border-bottom border-secondary px-4 py-3" style="background: #1e293b; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h5 class="modal-title fw-bold text-info"><i class="fa-solid fa-plus-circle me-2"></i>Add New Drawing Exercise / CAD Sheet</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <form id="addExerciseForm">
                         <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Exercise Title / Task Description</label>
-                            <input type="text" class="form-control bg-secondary text-light border-0" id="newExTitle" placeholder="e.g. Drawing Sheet 10 - Isometric Projections" required>
+                            <label class="form-label text-light fw-bold mb-1">Exercise Title / Task Description</label>
+                            <textarea class="form-control text-light" id="newExTitle" rows="3" placeholder="e.g. Drawing Sheet 10 - Isometric Projections of Truncated Solids" style="background-color: #1e293b; color: #f8fafc; border: 1.5px solid #475569; resize: vertical;" required></textarea>
                         </div>
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-bold">Module</label>
-                                <select class="form-select bg-secondary text-light border-0" id="newExModule">
-                                    <option value="Module I">Module I</option>
-                                    <option value="Module II">Module II</option>
-                                    <option value="Module III">Module III</option>
-                                    <option value="Module IV">Module IV</option>
+                            <div class="col-md-4">
+                                <label class="form-label text-light fw-bold mb-1">Module</label>
+                                <select class="form-select text-light" id="newExModule" style="background-color: #1e293b; color: #f8fafc; border: 1.5px solid #475569;">
+                                    <option value="Module I" style="background: #0f172a; color: #fff;">Module I</option>
+                                    <option value="Module II" style="background: #0f172a; color: #fff;">Module II</option>
+                                    <option value="Module III" style="background: #0f172a; color: #fff;">Module III</option>
+                                    <option value="Module IV" style="background: #0f172a; color: #fff;">Module IV</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-bold">Mapped CO</label>
-                                <select class="form-select bg-secondary text-light border-0" id="newExCo">
-                                    <option value="CO1">CO1</option>
-                                    <option value="CO2">CO2</option>
-                                    <option value="CO3">CO3</option>
-                                    <option value="CO4">CO4</option>
+                            <div class="col-md-4">
+                                <label class="form-label text-light fw-bold mb-1">Mapped CO</label>
+                                <select class="form-select text-light" id="newExCo" style="background-color: #1e293b; color: #f8fafc; border: 1.5px solid #475569;">
+                                    <option value="CO1" style="background: #0f172a; color: #fff;">CO1</option>
+                                    <option value="CO2" style="background: #0f172a; color: #fff;">CO2</option>
+                                    <option value="CO3" style="background: #0f172a; color: #fff;">CO3</option>
+                                    <option value="CO4" style="background: #0f172a; color: #fff;">CO4</option>
                                 </select>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label text-muted small fw-bold">Duration (Hours)</label>
-                                <input type="number" class="form-control bg-secondary text-light border-0" id="newExHours" value="3.0" step="0.5" min="1">
+                            <div class="col-md-4">
+                                <label class="form-label text-light fw-bold mb-1">Duration (Hours)</label>
+                                <input type="number" class="form-control text-light" id="newExHours" value="3.0" step="0.5" min="1" style="background-color: #1e293b; color: #f8fafc; border: 1.5px solid #475569;">
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-cyan" id="confirmAddExBtn"><i class="fa-solid fa-check me-1"></i> Add & Select</button>
+                <div class="modal-footer border-top border-secondary px-4 py-3" style="background: #1e293b; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-cyan font-bold" id="confirmAddExBtn"><i class="fa-solid fa-check me-1"></i> Add & Select</button>
                 </div>
             </div>
         </div>

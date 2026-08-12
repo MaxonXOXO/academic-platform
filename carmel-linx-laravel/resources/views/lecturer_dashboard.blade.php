@@ -805,13 +805,13 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row md:h-screen md:overflow-hidden">
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Sidebar Navigation -->
   @if(session('userRole') !== 'Demonstrator')
-  <aside class="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl">
+  <aside id="mainSidebar" class="w-full md:w-64 bg-slate-950 text-white shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl md:h-screen md:overflow-y-auto transition-all duration-300">
     <div class="p-6 border-b border-slate-800/60 flex items-center gap-3">
       <img src="{{ asset('logo.jpg') }}" class="w-10 h-10 rounded-xl object-cover shadow-lg">
       <div>
@@ -909,23 +909,28 @@
   @endif
 
   <!-- Main Workspace -->
-  <main class="flex-grow flex flex-col relative">
+  <main class="flex-grow flex flex-col relative md:h-screen md:overflow-hidden min-w-0">
     
-    <!-- Top Header -->
-    <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
-      <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-2xl">My Batches</h1>
-      <div class="flex items-center gap-3">
-        @include('partials.fullscreen_btn')
+    <!-- Top Header Card (Stable Always) -->
+    <header class="h-16 shrink-0 sticky top-0 z-30 border-b border-slate-800/60 bg-slate-900/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shadow-md">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="headerBackBtn" onclick="switchPanel('dashboard')" class="hidden px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 rounded-xl text-xs font-extrabold items-center gap-1.5 transition cursor-pointer shadow-sm shrink-0">
+          <span class="material-symbols-rounded text-sm text-blue-400">arrow_back</span> <span class="hidden sm:inline">Back to Dashboard</span>
+        </button>
+        <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg md:text-2xl truncate flex items-center gap-2">My Batches</h1>
+      </div>
+      <div class="flex items-center gap-2 md:gap-3 shrink-0">
         <div id="aiStatusBadge" class="hidden"></div>
-        <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/80 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-premium cursor-pointer" title="Toggle Light/Dark Theme">
+        @include('partials.fullscreen_btn')
+        <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-premium cursor-pointer" title="Toggle Light/Dark Theme">
           <span id="themeToggleIcon" class="material-symbols-rounded text-lg">light_mode</span>
-          <span id="themeToggleText" class="text-xs font-bold uppercase tracking-wider">Light Mode</span>
+          <span id="themeToggleText" class="text-xs font-bold uppercase tracking-wider hidden sm:inline">Light Mode</span>
         </button>
       </div>
     </header>
 
-    <!-- Panel Container -->
-    <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6">
+    <!-- Panel Container (Scrollable Content Area) -->
+    <div class="flex-grow min-h-0 overflow-y-auto p-4 md:p-8 space-y-6">
       
       <!-- PANEL 1: DASHBOARD (BATCH CARDS) -->
       <div id="panelDashboard" class="space-y-6">
@@ -957,60 +962,28 @@
 
       <!-- PANEL: VIRTUAL CLASSROOM / LAB WORKSPACE -->
       <div id="panelClassroom" class="hidden space-y-4">
-        <!-- Locked Top Header Bar -->
-        <div class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800/80 px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-xl mb-3">
-          <div class="flex items-center gap-2">
-            @if(session('userRole') === 'Demonstrator')
-              <a href="/dashboard/demonstrator" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition no-underline shadow-sm">
-                <span class="material-symbols-rounded text-sm">arrow_back</span> Back to Console
-              </a>
-            @else
-              <button onclick="switchPanel('dashboard')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/60 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer shadow-sm">
-                <span class="material-symbols-rounded text-sm text-blue-400">arrow_back</span> Back to Dashboard
-              </button>
-            @endif
-            <div class="h-4 w-px bg-slate-800/80 mx-1"></div>
-            <h3 id="vcTitle" class="text-xs md:text-sm font-black text-slate-100 flex items-center gap-1.5">
-              <span class="material-symbols-rounded text-teal-400 text-base">science</span> Virtual Lab Workspace
-            </h3>
-          </div>
-          <button id="vcViewStudentsBtn" onclick="showVcStudentsList()" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-blue-500/40 shadow-sm">
-            <span class="material-symbols-rounded text-sm">groups</span> View Students
-          </button>
-        </div>
+        <!-- Sub-Header Metadata & Syllabus Card (Simple Layout) -->
+        <div class="bg-slate-950/80 border border-slate-800/80 p-4 rounded-2xl shadow-lg space-y-3 mb-3">
+          <!-- Row 1: Subject Code, Bold Subject Name & Right End Action Buttons -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-slate-800/70">
+            <!-- Left: Bold Subject Code & Name -->
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span id="vcSubjectFullCode" class="text-lg md:text-xl font-black font-mono text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2.5 py-0.5 rounded-lg shadow-sm">CE-401</span>
+              <span class="text-slate-500 font-bold text-base">•</span>
+              <h2 id="vcSubjectFullName" class="text-lg md:text-xl font-black text-white tracking-tight">Transportation Engineering Lab</h2>
+            </div>
 
-        <!-- Sub-Header Metadata & Syllabus Card (Below Card) -->
-        <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-2xl shadow-md space-y-2.5 mb-3">
-          <!-- Row 1: Badges & Identifiers -->
-          <div class="flex items-center gap-2 flex-wrap text-[11px] font-extrabold tracking-wide">
-            <span id="vcBatchBadge" class="bg-blue-950/90 border border-blue-800/70 text-blue-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Batch: Loading...</span>
-            <span id="vcSemBadge" class="bg-emerald-950/90 border border-emerald-800/70 text-emerald-300 px-2.5 py-0.5 rounded-md uppercase font-mono">SEM: S4</span>
-            <span id="vcBranchBadge" class="bg-indigo-950/90 border border-indigo-800/70 text-indigo-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Branch: CE</span>
-            <span id="vcRevisionBadge" class="bg-purple-950/90 border border-purple-800/70 text-purple-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Revision: R-2021</span>
-            <span id="vcHoursCreditsBadge" class="bg-slate-900/90 border border-slate-700/70 text-amber-300 px-2.5 py-0.5 rounded-md font-mono">Proposed Hours: 60 hrs (+2 tests) | Credits: 2.0</span>
-          </div>
-
-          <!-- Row 2: Subject Name & Code with Branch Code -->
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <span id="vcSubjectFullCode" class="text-xs font-black font-mono px-2 py-0.5 rounded bg-blue-950/90 text-blue-400 border border-blue-800/70">CE-401</span>
-            <h2 id="vcSubjectFullName" class="text-xs md:text-sm font-black text-slate-100 tracking-tight">Transportation Engineering Lab</h2>
-          </div>
-
-          <!-- Row 3: Action Buttons (Upload & View Syllabus) -->
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800/50">
-            <div class="flex items-center gap-3 flex-wrap">
-              <!-- Upload Syllabus Box -->
-              <div id="syllabusUploadBox" class="border border-dashed border-slate-700/80 rounded-xl px-3 py-1 bg-slate-900/40 hover:border-blue-500/60 hover:bg-slate-900/80 transition cursor-pointer flex items-center gap-2" onclick="document.getElementById('syllabusFileInput').click()">
-                <span class="material-symbols-rounded text-sm text-blue-400">upload_file</span>
-                <div class="flex flex-col">
-                  <span class="text-xs font-bold text-slate-200 leading-tight">Upload Syllabus PDF</span>
-                  <span class="text-[9px] text-slate-400">Max 10MB</span>
-                </div>
+            <!-- Right End: Action Buttons (Upload Syllabus, View Syllabus, View Students) -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Upload Syllabus Button / Box -->
+              <div id="syllabusUploadBox" class="border border-slate-700/80 rounded-xl px-3 py-1.5 bg-slate-900/80 hover:border-blue-500/60 hover:bg-slate-800 transition cursor-pointer flex items-center gap-2 shadow-sm" onclick="document.getElementById('syllabusFileInput').click()">
+                <span class="material-symbols-rounded text-base text-blue-400">upload_file</span>
+                <span class="text-xs font-bold text-slate-200">Upload Syllabus</span>
                 <input type="file" id="syllabusFileInput" class="hidden" accept="application/pdf" onchange="handleSyllabusUpload(this)">
               </div>
 
-              <!-- Upload Progress -->
-              <div id="syllabusUploadProgress" class="hidden relative z-10 flex-col justify-center min-w-[160px]">
+              <!-- Upload Progress Indicator -->
+              <div id="syllabusUploadProgress" class="hidden relative z-10 flex-col justify-center min-w-[140px]">
                 <div class="flex justify-between text-[10px] font-bold text-blue-400 mb-0.5">
                   <span>Extracting...</span>
                   <span id="syllabusProgressText" class="animate-pulse">Processing</span>
@@ -1020,54 +993,76 @@
                 </div>
               </div>
 
-              <!-- View / Download Active Syllabus Button -->
-              <div id="activeSyllabusCard" class="hidden items-center gap-2 bg-emerald-950/50 border border-emerald-800/60 px-3 py-1 rounded-xl text-xs font-bold text-emerald-300">
+              <!-- View Syllabus Button -->
+              <div id="activeSyllabusCard" class="hidden items-center gap-2 bg-emerald-950/60 border border-emerald-800/70 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-300 shadow-sm">
                 <span class="material-symbols-rounded text-sm text-emerald-400">check_circle</span>
-                <span class="text-xs">Active Syllabus</span>
-                <button id="downloadSyllabusBtn" onclick="downloadSyllabusPDF()" title="View / Download Syllabus PDF" class="ml-1 text-slate-200 hover:text-white bg-emerald-900/80 hover:bg-emerald-800 px-2 py-0.5 rounded-md transition cursor-pointer flex items-center gap-1 border border-emerald-700/60 text-[10px]">
+                <button id="downloadSyllabusBtn" onclick="downloadSyllabusPDF()" title="View / Download Syllabus PDF" class="text-slate-200 hover:text-white bg-emerald-900/80 hover:bg-emerald-800 px-2.5 py-0.5 rounded-lg transition cursor-pointer flex items-center gap-1 border border-emerald-700/60 text-xs font-bold">
                   <span class="material-symbols-rounded text-xs">visibility</span> View Syllabus
                 </button>
               </div>
-            </div>
 
-            <!-- Parse Status Badge -->
-            <span id="parseStatusBadge" class="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-slate-900/90 text-slate-400 border border-slate-800 whitespace-nowrap">Waiting for upload</span>
+              <!-- View Students List Button -->
+              <button id="vcViewStudentsBtn" onclick="showVcStudentsList()" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-blue-500/40 shadow-sm">
+                <span class="material-symbols-rounded text-sm">groups</span> View Students
+              </button>
+
+              <!-- Parse Status Badge -->
+              <span id="parseStatusBadge" class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-900 text-slate-400 border border-slate-800 whitespace-nowrap">Waiting for upload</span>
+            </div>
+          </div>
+
+          <!-- Row 2: Clean Unified Metadata (Batch, Sem, Branch Bold in Sleek Boxes) -->
+          <div class="flex items-center gap-2 flex-wrap text-xs font-medium text-slate-400 pt-0.5">
+            <span id="vcBatchBadge" class="font-mono font-bold text-slate-100 bg-slate-900/90 border border-slate-700/80 px-2 py-0.5 rounded-md shadow-sm">Batch: CE_2024_2027</span>
+            <span class="text-slate-600 font-bold">•</span>
+            <span id="vcSemBadge" class="font-mono font-bold text-slate-100 bg-slate-900/90 border border-slate-700/80 px-2 py-0.5 rounded-md shadow-sm">Sem: S4</span>
+            <span class="text-slate-600 font-bold">•</span>
+            <span id="vcBranchBadge" class="font-mono font-bold text-slate-100 bg-slate-900/90 border border-slate-700/80 px-2 py-0.5 rounded-md shadow-sm">Branch: CE</span>
+            <span class="text-slate-600 font-bold">•</span>
+            <span id="vcRevisionBadge" class="font-mono">Revision: R-2021</span>
+            <span class="text-slate-600 font-bold">•</span>
+            <span id="vcHoursCreditsBadge" class="font-mono">Proposed Hours: 60 hrs (+2 tests) | Credits: 2.0</span>
+            <span class="text-slate-600 font-bold">•</span>
+            <span id="vcMarksBadge" class="font-mono">CIA: 60M | ESE: 40M</span>
           </div>
         </div>
         
-         <!-- Toggle Buttons -->
-         <div class="flex flex-wrap items-center gap-2 border-b border-slate-800/60 pb-2.5 mb-3">
-             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/40 flex items-center gap-1.5 transition">
+         <!-- Professional Horizontal Tab Strip Navigation -->
+         <nav class="flex flex-wrap md:flex-nowrap items-center gap-1 border-b border-slate-800/80 mb-4 overflow-x-auto scrollbar-none pb-0">
+             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-extrabold text-blue-400 border-b-2 border-blue-500 bg-blue-500/10 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg shadow-sm">
                <span class="material-symbols-rounded text-sm">account_tree</span> Course Structure
              </button>
-             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">calendar_month</span> Lesson Planner
              </button>
-             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Formative Assessment
              </button>
-             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">school</span> Summative Assessment
              </button>
-             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">assessment</span> Reports
              </button>
-             <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">database</span> Question Bank
              </button>
-             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">rate_review</span> Mid-Sem Survey
              </button>
-             <button onclick="toggleClassroomTab('exit_survey')" id="tabExitSurvey" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('exit_survey')" id="tabExitSurvey" class="px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Exit Survey
              </button>
-             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="hidden px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="hidden px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
                <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
              </button>
-             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="hidden px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
-               <span class="material-symbols-rounded text-sm">science</span> Lab Evaluation
+             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="hidden px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
+               <span class="material-symbols-rounded text-sm text-teal-400">science</span> Lab Evaluation
              </button>
-         </div>
+             <button onclick="toggleClassroomTab('lab_copo')" id="tabLabCoPo" class="hidden px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg">
+               <span class="material-symbols-rounded text-sm text-cyan-400">analytics</span> CO-PO Mapping
+             </button>
+          </nav>
 
         <!-- Parsed Data View (Full Width) -->
         <div class="bg-slate-950/30 border border-slate-800/40 p-6 rounded-2xl min-h-[400px] flex flex-col w-full">
@@ -1665,6 +1660,14 @@
 
     function switchPanel(panelId) {
       activePanel = panelId;
+      const sidebar = document.getElementById('mainSidebar');
+      if (sidebar) {
+        if (panelId === 'classroom' || panelId === 'mobileSeminar') {
+          sidebar.classList.add('hidden');
+        } else {
+          sidebar.classList.remove('hidden');
+        }
+      }
       const panels = ['dashboard', 'security', 'classroom', 'mobileSeminar'];
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -1679,13 +1682,24 @@
         }
       });
 
-      const titles = {
-        'dashboard': 'My Batches',
-        'security': 'My Profile Security Log',
-        'classroom': 'Virtual Classroom',
-        'mobileSeminar': 'Seminar Evaluation'
-      };
-      document.getElementById('panelTitle').innerText = titles[panelId] || 'Lecturer Console';
+      const headerBackBtn = document.getElementById('headerBackBtn');
+      if (headerBackBtn) {
+        if (panelId === 'dashboard') {
+          headerBackBtn.classList.add('hidden');
+          headerBackBtn.classList.remove('flex');
+        } else {
+          headerBackBtn.classList.remove('hidden');
+          headerBackBtn.classList.add('flex');
+        }
+      }
+
+      if (panelId === 'dashboard') {
+        document.getElementById('panelTitle').innerHTML = '<span class="font-extrabold text-slate-100">My Batches</span>';
+      } else if (panelId === 'security') {
+        document.getElementById('panelTitle').innerHTML = '<span class="font-extrabold text-slate-100">My Profile Security Log</span>';
+      } else if (panelId === 'mobileSeminar') {
+        document.getElementById('panelTitle').innerHTML = '<span class="font-black text-slate-100">Seminar Evaluation</span>';
+      }
 
       if (panelId === 'security') loadSecurityLogs();
       if (panelId === 'dashboard') loadLecturerBatches();
@@ -1755,39 +1769,10 @@
           rolesHtml += `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-${color}-500/10 text-${color}-400 border border-${color}-500/20">${r}</span>`;
         });
 
-        let subjectsHtml = '';
-        if (b.subjects && b.subjects.length > 0) {
-          b.subjects.forEach(s => {
-            let topicsPct = s.total_topics > 0 ? Math.round((s.covered_topics / s.total_topics) * 100) : 0;
-            let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
-            let barPct    = topicsPct || hoursPct;
-            let barColor  = barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400';
-
-            subjectsHtml += `
-              <div class="w-full px-3 py-2.5 bg-slate-900/60 border border-slate-800/60 rounded-xl transition-premium group hover:border-blue-500/50">
-                <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${s.code}', '${s.syllabus_revision_code || 'REV2021'}', '${s.type}')">
-                  <div class="flex-1 min-w-0 pr-2">
-                    <div class="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-premium truncate">${s.name}</div>
-                    <div class="text-xs text-slate-400 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${s.code}</div>
-                  </div>
-                  <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-sm transition-premium flex-shrink-0">open_in_new</span>
-                </div>
-                <!-- Compact progress bar -->
-                <div class="mt-1.5 flex items-center gap-2">
-                  <div class="flex-1 bg-slate-950 rounded-full h-1 overflow-hidden">
-                    <div class="bg-gradient-to-r ${barColor} h-1 rounded-full transition-all duration-500" style="width: ${barPct}%"></div>
-                  </div>
-                  <span class="text-[11px] font-bold text-slate-400 whitespace-nowrap flex-shrink-0">${s.engaged_hours}/${s.total_hours} hrs</span>
-                </div>
-              </div>
-            `;
-          });
-        } else {
-          subjectsHtml = `<div class="text-xs text-slate-500 italic px-2 py-2">No subjects assigned in this batch.</div>`;
-        }
+        let brName = b.branch || (b.classroom_id ? b.classroom_id.split('_')[0] : 'CE');
+        let brPrefix = `${brName}-`;
 
         const card = document.createElement('div');
-        // Add a top accent border based on batch year to visually separate admission years
         let yearBorderColor = 'border-t-violet-500';
         if (b.batch_year % 3 === 0) yearBorderColor = 'border-t-sky-500';
         else if (b.batch_year % 3 === 1) yearBorderColor = 'border-t-emerald-500';
@@ -1799,11 +1784,11 @@
               <div>
                 <div class="flex items-center gap-1.5 flex-wrap mb-1">
                   <h4 class="font-black text-slate-100 text-lg tracking-tight">Admission ${b.batch_year}</h4>
-                  ${b.branch ? `<span class="px-2 py-0.5 bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.branch}</span>` : ''}
-                  <span class="px-2 py-0.5 bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded text-xs font-bold font-mono tracking-wide">${b.scheme || (b.classroom_id && b.classroom_id.includes('2026') ? 'R2026' : 'R2021')}</span>
+                  ${b.branch ? `<span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">${b.branch}</span>` : ''}
+                  <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">${b.scheme || (b.classroom_id && b.classroom_id.includes('2026') ? 'R2026' : 'R2021')}</span>
                   ${(b.current_semester || 1) > 6
-                    ? `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-bold text-sm select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`
-                    : `<span class="px-2.5 py-0.5 bg-indigo-600/80 text-white rounded-lg font-bold text-sm select-none">S-${b.current_semester || 1}</span>`
+                    ? `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`
+                    : `<span class="px-2.5 py-0.5 bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 rounded-lg font-black text-xs select-none">SEM-${b.current_semester || 1}</span>`
                   }
                 </div>
                 <span class="inline-block px-2.5 py-0.5 bg-slate-800 border border-slate-600/60 rounded-lg font-mono text-sm font-bold text-slate-300 tracking-wide">${b.classroom_id}</span>
@@ -1826,13 +1811,18 @@
                 let barPct    = topicsPct || hoursPct;
                 let barColor  = barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400';
                 
+                let rawCode = s.code || '';
+                let formattedCode = (rawCode.startsWith(brPrefix) || (rawCode.includes('-') && !rawCode.startsWith('S-')))
+                  ? rawCode
+                  : `${brPrefix}${rawCode.replace(/^[A-Z]+-/, '')}`;
+                
                 return `
                   <div class="${idx > 0 ? 'pt-3' : ''} w-full">
                     <div class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-blue-500/50 hover:bg-slate-900 flex flex-col gap-2">
-                      <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${s.code}', '${s.syllabus_revision_code || 'REV2021'}', '${s.type}')">
+                      <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${formattedCode}', '${s.syllabus_revision_code || 'REV2021'}', '${s.type}')">
                         <div class="flex-1 min-w-0 pr-2">
                           <div class="text-base font-extrabold text-slate-200 group-hover:text-blue-400 transition-premium truncate">${s.name}</div>
-                          <div class="text-xs text-slate-450 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${s.code}</div>
+                          <div class="text-xs text-slate-450 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${formattedCode}</div>
                         </div>
                         <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-base transition-premium flex-shrink-0">open_in_new</span>
                       </div>
@@ -1882,7 +1872,24 @@
         }
       } else {
         currentSubjectId = subjectId;
-        window.currentVirtualBatchId = batchId;
+        window.currentVirtualRevision = revision;
+
+        const isPractical = sTypeLower.includes('practical') || sTypeLower.includes('lab') || (type || '').includes('Practical') || (type || '').includes('Lab');
+        const isSeminar   = sTypeLower.includes('seminar') || sNameLower.includes('seminar');
+        const rStr        = revision ? revision.toString() : 'R-2021';
+        let revLabel      = 'R -2021';
+        if (rStr.includes('2026') || rStr.includes('26')) revLabel = 'R -2026';
+
+        const pTitle = document.getElementById('panelTitle');
+        if (pTitle) {
+          if (isSeminar) {
+            pTitle.innerHTML = '<span class="material-symbols-rounded text-emerald-400 text-xl md:text-2xl align-middle mr-1.5">co_present</span><span class="font-extrabold text-slate-100">Virtual Seminar Room</span>';
+          } else if (isPractical) {
+            pTitle.innerHTML = '<span class="material-symbols-rounded text-teal-400 text-xl md:text-2xl align-middle mr-1.5">science</span><span class="font-extrabold text-slate-100">Virtual Lab ( ' + revLabel + ' )</span>';
+          } else {
+            pTitle.innerHTML = '<span class="material-symbols-rounded text-blue-400 text-xl md:text-2xl align-middle mr-1.5">meeting_room</span><span class="font-extrabold text-slate-100">Virtual Classroom</span>';
+          }
+        }
 
         let latText = '';
         if (batchId && batchId.includes('_LET')) {
@@ -1891,26 +1898,36 @@
 
         const vcTitle = document.getElementById('vcTitle');
         if (vcTitle) {
-          vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
+          if (isPractical) {
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-base">science</span> Virtual Lab ( ${revLabel} )`;
+          } else {
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
+          }
         }
 
-        const bBadge = document.getElementById('vcBatchBadge');
-        if (bBadge) bBadge.innerHTML = `Batch: ${batchId || ''}${latText}`;
+        let brName = 'CE';
+        if (batchId) {
+          const parts = batchId.split('_');
+          if (parts.length > 0 && parts[0]) brName = parts[0];
+        }
 
         const fullCode = document.getElementById('vcSubjectFullCode');
         const fullName = document.getElementById('vcSubjectFullName');
-        if (fullCode) fullCode.innerText = subjectCode || '';
+        if (fullCode) {
+          const rawCode = subjectCode || '';
+          const brPrefix = `${brName}-`;
+          const formattedCode = (rawCode.startsWith(brPrefix) || (rawCode.includes('-') && !rawCode.startsWith('S-')))
+            ? rawCode
+            : `${brPrefix}${rawCode.replace(/^[A-Z]+-/, '')}`;
+          fullCode.innerText = formattedCode;
+        }
         if (fullName) fullName.innerText = subjectName || '';
 
+        const bBadge = document.getElementById('vcBatchBadge');
+        if (bBadge && batchId) bBadge.innerText = `Batch: ${batchId}`;
+
         const brBadge = document.getElementById('vcBranchBadge');
-        if (brBadge) {
-          let brName = 'CE';
-          if (batchId) {
-            const parts = batchId.split('_');
-            if (parts.length > 0 && parts[0]) brName = parts[0];
-          }
-          brBadge.innerText = `Branch: ${brName}`;
-        }
+        if (brBadge) brBadge.innerText = `Branch: ${brName}`;
 
         const revBadge = document.getElementById('vcRevisionBadge');
         if (revBadge) {
@@ -1989,19 +2006,20 @@
         const btn = document.getElementById(t.btn);
         const content = document.getElementById(t.content);
         
-        if (t.id === tabName) {
-          if (btn) {
-            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/40 flex items-center gap-1.5 transition";
+        if (btn) {
+          const isHidden = btn.classList.contains('hidden');
+          if (t.id === tabName) {
+            btn.className = "px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-extrabold text-blue-400 border-b-2 border-blue-500 bg-blue-500/10 flex items-center gap-1.5 md:gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg shadow-sm" + (isHidden ? " hidden" : "");
+          } else {
+            btn.className = "px-2.5 md:px-3.5 py-2 text-[11px] md:text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center gap-1.5 md:gap-2 transition cursor-pointer whitespace-nowrap -mb-px rounded-t-lg" + (isHidden ? " hidden" : "");
           }
-          if (content) {
+        }
+
+        if (content) {
+          if (t.id === tabName) {
             content.classList.remove('hidden');
             if (t.id !== 'structure') content.classList.add('flex');
-          }
-        } else {
-          if (btn) {
-            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition";
-          }
-          if (content) {
+          } else {
             content.classList.add('hidden');
             if (t.id !== 'structure') content.classList.remove('flex');
           }
@@ -2074,9 +2092,23 @@
           const fullCode = document.getElementById('vcSubjectFullCode');
           if (fullName) fullName.innerText = currentSubjectName;
           if (fullCode) {
-            const brPrefix = data.data.branch ? `${data.data.branch}-` : '';
+            let brName = data.data.branch || 'CE';
+            if (!brName && window.currentVirtualBatchId) {
+              const parts = window.currentVirtualBatchId.split('_');
+              if (parts.length > 0 && parts[0]) brName = parts[0];
+            }
+            const brPrefix = `${brName}-`;
             const rawCode = currentSubjectCode || '';
-            fullCode.innerText = (rawCode.startsWith(brPrefix) || rawCode.includes('-')) ? rawCode : `${brPrefix}${rawCode}`;
+            const formattedCode = (rawCode.startsWith(brPrefix) || (rawCode.includes('-') && !rawCode.startsWith('S-')))
+              ? rawCode
+              : `${brPrefix}${rawCode.replace(/^[A-Z]+-/, '')}`;
+            fullCode.innerText = formattedCode;
+          }
+
+          const bBadge = document.getElementById('vcBatchBadge');
+          if (bBadge) {
+            const bId = data.data.classroom_id || window.currentVirtualBatchId || '';
+            if (bId) bBadge.innerText = `Batch: ${bId}`;
           }
 
           const semBadge = document.getElementById('vcSemBadge');
@@ -2096,6 +2128,13 @@
             const pHours = data.data.proposed_total_hours || 60;
             const creds = data.data.credits || 2.0;
             hcBadge.innerText = `Proposed Hours: ${pHours} hrs (+2 tests) | Credits: ${creds}`;
+          }
+
+          const marksBadge = document.getElementById('vcMarksBadge');
+          if (marksBadge) {
+            const cia = data.data.cia_marks || 60;
+            const ese = data.data.ese_marks || 40;
+            marksBadge.innerText = `CIA: ${cia}M | ESE: ${ese}M`;
           }
 
           const activeCard = document.getElementById('activeSyllabusCard');
@@ -2138,11 +2177,15 @@
           const tabAssessment = document.getElementById('tabAssessment');
           const tabSummative = document.getElementById('tabSummative');
           const tabReports = document.getElementById('tabReports');
+          const tabQBank = document.getElementById('tabQBank');
+          const tabSurvey = document.getElementById('tabSurvey');
+          const tabExitSurvey = document.getElementById('tabExitSurvey');
           const pRepActions = document.getElementById('practicalReportsActions');
+          const vcTitle = document.getElementById('vcTitle');
 
           if (isSeminar) {
             document.getElementById('panelTitle').innerText = 'Virtual Seminar Room';
-            document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-emerald-400 text-sm">co_present</span> Virtual Seminar Room`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-emerald-400 text-sm">co_present</span> Virtual Seminar Room`;
             if (tabSeminar) tabSeminar.classList.remove('hidden');
             if (tabLab) tabLab.classList.add('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.add('hidden');
@@ -2150,11 +2193,15 @@
             if (tabPlanner) tabPlanner.classList.add('hidden');
             if (tabAssessment) tabAssessment.classList.add('hidden');
             if (tabSummative) tabSummative.classList.add('hidden');
+            if (tabReports) tabReports.classList.add('hidden');
+            if (tabQBank) tabQBank.classList.add('hidden');
+            if (tabSurvey) tabSurvey.classList.add('hidden');
+            if (tabExitSurvey) tabExitSurvey.classList.add('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab('seminar_evaluation');
           } else if (isPractical) {
             document.getElementById('panelTitle').innerText = 'Virtual Lab Workspace';
-            document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-teal-400 text-sm">science</span> Virtual Lab Workspace`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-sm">science</span> Virtual Lab Workspace`;
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.remove('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.remove('hidden');
@@ -2163,6 +2210,9 @@
             if (tabAssessment) tabAssessment.classList.add('hidden');
             if (tabSummative) tabSummative.classList.add('hidden');
             if (tabReports) tabReports.classList.remove('hidden');
+            if (tabQBank) tabQBank.classList.remove('hidden');
+            if (tabSurvey) tabSurvey.classList.remove('hidden');
+            if (tabExitSurvey) tabExitSurvey.classList.remove('hidden');
             if (pRepActions) {
               pRepActions.classList.remove('hidden');
               pRepActions.classList.add('flex');
@@ -2175,7 +2225,7 @@
             toggleClassroomTab('lab_evaluation');
           } else {
             document.getElementById('panelTitle').innerText = 'Virtual Classroom';
-            document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> Virtual Classroom`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> Virtual Classroom`;
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.add('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.add('hidden');
@@ -2183,13 +2233,17 @@
             if (tabPlanner) tabPlanner.classList.remove('hidden');
             if (tabAssessment) tabAssessment.classList.remove('hidden');
             if (tabSummative) tabSummative.classList.remove('hidden');
+            if (tabReports) tabReports.classList.remove('hidden');
+            if (tabQBank) tabQBank.classList.remove('hidden');
+            if (tabSurvey) tabSurvey.classList.remove('hidden');
+            if (tabExitSurvey) tabExitSurvey.classList.remove('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab('structure');
           }
 
           // Update vcTitle to include subject name for regular classrooms
-          if (!isSeminar && !isPractical) {
-            document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${currentSubjectName || 'Virtual Classroom'}`;
+          if (!isSeminar && !isPractical && vcTitle) {
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${currentSubjectName || 'Virtual Classroom'}`;
           }
 
           if (data.data.syllabus_pdf_path) {

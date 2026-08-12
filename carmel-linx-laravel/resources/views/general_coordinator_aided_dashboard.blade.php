@@ -551,24 +551,21 @@
     }
 
     function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
+      const sTypeLower = (type || '').toLowerCase();
+      const sNameLower = (subjectName || '').toLowerCase();
+
+      if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
+        window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
+        return;
+      } else if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sTypeLower.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
+        window.open(`/classroom/practical/${subjectId}`, '_blank');
+        return;
+      }
+
       const isR26 = revision === 'REV2026' || (batchId && batchId.includes('2026'));
       if (isR26) {
-        const sNameLower = (subjectName || '').toLowerCase();
-        const sTypeLower = (type || '').toLowerCase();
         if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
           window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
-          return;
-        } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
-          window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
-          return;
-        } else if (sTypeLower.includes('practicum') || type.includes('Practicum')) {
-          window.open(`/r26/classroom/practicum/${subjectId}`, '_blank');
-          return;
-        } else if (sTypeLower.includes('theory') || type.includes('Theory')) {
-          window.open(`/r26/classroom/theory/${subjectId}`, '_blank');
-          return;
-        } else if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || type.includes('Practical') || type.includes('Lab')) {
-          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
           return;
         } else {
           window.open(`/r26/classroom/theory/${subjectId}`, '_blank');

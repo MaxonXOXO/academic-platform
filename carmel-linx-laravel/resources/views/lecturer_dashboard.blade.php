@@ -104,60 +104,49 @@
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3) !important;
     }
 
-    /* Clean overrides to enlarge fonts in the virtual classroom and related containers to normal readable sizes */
-    #panelClassroom, 
-    #panelClassroom button,
-    #panelClassroom select,
-    #panelClassroom input,
-    #panelClassroom table,
-    #panelClassroom th,
-    #panelClassroom td,
-    #panelClassroom div,
-    #panelClassroom p,
-    #panelClassroom h3,
-    #panelClassroom h4,
-    #panelClassroom h5,
-    #panelClassroom span {
-      font-size: 13px !important;
-    }
-    
-    #panelClassroom h3#vcTitle,
-    #panelClassroom h3#vcTitle span {
-      font-size: 18px !important;
-      font-weight: 900 !important;
-    }
-    
-    #panelClassroom #vcSubtitle,
-    #panelClassroom #vcSubtitle span {
-      font-size: 14px !important;
-    }
-    
-    #panelClassroom #vcViewStudentsBtn,
-    #panelClassroom #vcViewStudentsBtn span {
-      font-size: 13px !important;
-      font-weight: bold !important;
+    /* High-density compact typography overrides for Virtual Classroom (#panelClassroom) */
+    #panelClassroom {
+      background-color: #060b13 !important;
+      border: 1px solid #111827 !important;
+      border-radius: 1rem !important;
+      padding: 1rem !important;
+      font-size: 0.75rem !important;
     }
 
-    #panelClassroom #tabStructure,
-    #panelClassroom #tabPlanner,
-    #panelClassroom #tabAssessment,
-    #panelClassroom #tabSummative {
-      font-size: 14px !important;
-      font-weight: 900 !important;
+    #panelClassroom h3#vcTitle {
+      font-size: 0.95rem !important;
+      font-weight: 700 !important;
+    }
+    
+    #panelClassroom #vcSubtitle {
+      font-size: 0.72rem !important;
+    }
+    
+    #panelClassroom #vcViewStudentsBtn {
+      font-size: 0.72rem !important;
+      padding: 0.35rem 0.75rem !important;
     }
 
-    #panelClassroom #tabStructure span,
-    #panelClassroom #tabPlanner span,
-    #panelClassroom #tabAssessment span,
-    #panelClassroom #tabSummative span {
-      font-size: 16px !important;
+    #panelClassroom button {
+      font-size: 0.75rem;
     }
 
-    /* Course structure, lesson planner, formative, summative & online test setup container headings */
-    #panelClassroom h4, 
-    #panelClassroom h5 {
-      font-size: 15px !important;
-      font-weight: bold !important;
+    #panelClassroom table {
+      font-size: 0.72rem !important;
+    }
+
+    #panelClassroom table th {
+      font-size: 0.68rem !important;
+      font-weight: 600 !important;
+      padding: 0.35rem 0.5rem !important;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    #panelClassroom table td {
+      font-size: 0.72rem !important;
+      padding: 0.3rem 0.5rem !important;
+      font-weight: 500 !important;
     }
 
     /* Manual mark entry table title, names, and internal grid data font sizes */
@@ -1038,36 +1027,36 @@
         </div>
         
          <!-- Toggle Buttons -->
-         <div class="flex flex-wrap items-center gap-4 border-b border-slate-800/60 pb-3 mb-4">
-             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="text-base font-black text-blue-400 flex items-center gap-1.5 transition-premium border-b-2 border-blue-500 pb-1">
-               <span class="material-symbols-rounded text-lg">account_tree</span> Course Structure
+         <div class="flex flex-wrap items-center gap-2 border-b border-slate-800/60 pb-2.5 mb-3">
+             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/40 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">account_tree</span> Course Structure
              </button>
-             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">calendar_month</span> Lesson Planner
+             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">calendar_month</span> Lesson Planner
              </button>
-             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">assignment_turned_in</span> Formative Assessment
+             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Formative Assessment
              </button>
-             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">school</span> Summative Assessment
+             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">school</span> Summative Assessment
              </button>
-             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">assessment</span> Reports
+             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">assessment</span> Reports
              </button>
-             <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">database</span> Question Bank
+             <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">database</span> Question Bank
              </button>
-             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">rate_review</span> Mid-Sem Survey
+             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">rate_review</span> Mid-Sem Survey
              </button>
-             <button onclick="toggleClassroomTab('exit_survey')" id="tabExitSurvey" class="text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">assignment_turned_in</span> Course Exit Survey
+             <button onclick="toggleClassroomTab('exit_survey')" id="tabExitSurvey" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Exit Survey
              </button>
-             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="hidden text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">co_present</span> Seminar Evaluation
+             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="hidden px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
              </button>
-             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="hidden text-base font-bold text-slate-500 hover:text-slate-300 flex items-center gap-1.5 transition-premium pb-1 border-b-2 border-transparent hover:border-slate-600">
-               <span class="material-symbols-rounded text-lg">science</span> Lab Evaluation
+             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="hidden px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition">
+               <span class="material-symbols-rounded text-sm">science</span> Lab Evaluation
              </button>
          </div>
 
@@ -1272,42 +1261,27 @@
                 </div>
               </div>
 
-              <!-- Lab Statistics Widgets -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <!-- Card 1: Avg Internal Mark -->
-                <div class="bg-gradient-to-br from-slate-900/90 to-teal-950/20 border border-teal-500/15 hover:border-teal-500/40 p-5 rounded-2xl shadow-lg transition-all duration-300 group flex flex-col justify-between">
-                  <div class="flex justify-between items-start">
-                    <span class="text-sm font-bold text-teal-400 uppercase tracking-wider">Avg Internal Mark</span>
-                    <span class="material-symbols-rounded text-teal-450 bg-teal-500/10 p-2 rounded-xl text-xl">analytics</span>
-                  </div>
-                  <div class="text-2xl font-black text-slate-100 mt-4 tracking-tight" id="statLabAvgInternal">0.00 / 75</div>
+              <!-- Compact Lab Statistics Micro-Bar -->
+              <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-teal-500/20 rounded-lg">
+                  <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
+                  <span class="text-[11px] text-slate-400 font-semibold">Avg Internal:</span>
+                  <span class="text-xs font-mono font-bold text-teal-300" id="statLabAvgInternal">0.00 / 75</span>
                 </div>
-
-                <!-- Card 2: Avg Board Exam Mark -->
-                <div class="bg-gradient-to-br from-slate-900/90 to-blue-950/20 border border-blue-500/15 hover:border-blue-500/40 p-5 rounded-2xl shadow-lg transition-all duration-300 group flex flex-col justify-between">
-                  <div class="flex justify-between items-start">
-                    <span class="text-sm font-bold text-blue-400 uppercase tracking-wider">Avg Board Exam Mark</span>
-                    <span class="material-symbols-rounded text-blue-450 bg-blue-500/10 p-2 rounded-xl text-xl">school</span>
-                  </div>
-                  <div class="text-2xl font-black text-slate-100 mt-4 tracking-tight" id="statLabAvgBoard">0.00 / 50</div>
+                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-blue-500/20 rounded-lg">
+                  <span class="material-symbols-rounded text-blue-400 text-sm">school</span>
+                  <span class="text-[11px] text-slate-400 font-semibold">Avg Board:</span>
+                  <span class="text-xs font-mono font-bold text-blue-300" id="statLabAvgBoard">0.00 / 50</span>
                 </div>
-
-                <!-- Card 3: Pass Percentage -->
-                <div class="bg-gradient-to-br from-slate-900/90 to-emerald-950/20 border border-emerald-500/15 hover:border-emerald-500/40 p-5 rounded-2xl shadow-lg transition-all duration-300 group flex flex-col justify-between">
-                  <div class="flex justify-between items-start">
-                    <span class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Pass Percentage</span>
-                    <span class="material-symbols-rounded text-emerald-450 bg-emerald-500/10 p-2 rounded-xl text-xl">trending_up</span>
-                  </div>
-                  <div class="text-2xl font-black text-slate-100 mt-4 tracking-tight" id="statLabPassPercent">0%</div>
+                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-emerald-500/20 rounded-lg">
+                  <span class="material-symbols-rounded text-emerald-400 text-sm">trending_up</span>
+                  <span class="text-[11px] text-slate-400 font-semibold">Pass Rate:</span>
+                  <span class="text-xs font-mono font-bold text-emerald-300" id="statLabPassPercent">0%</span>
                 </div>
-
-                <!-- Card 4: Total Experiments -->
-                <div class="bg-gradient-to-br from-slate-900/90 to-purple-950/20 border border-purple-500/15 hover:border-purple-500/40 p-5 rounded-2xl shadow-lg transition-all duration-300 group flex flex-col justify-between">
-                  <div class="flex justify-between items-start">
-                    <span class="text-sm font-bold text-purple-400 uppercase tracking-wider">Total Experiments</span>
-                    <span class="material-symbols-rounded text-purple-450 bg-purple-500/10 p-2 rounded-xl text-xl">biotech</span>
-                  </div>
-                  <div class="text-2xl font-black text-slate-100 mt-4 tracking-tight" id="statLabTotalExps">0</div>
+                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-purple-500/20 rounded-lg">
+                  <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
+                  <span class="text-[11px] text-slate-400 font-semibold">Total Exps:</span>
+                  <span class="text-xs font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
                 </div>
               </div>
 
@@ -1876,23 +1850,25 @@
     window.currentVirtualSemester = '';
 
     function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
+      const sTypeLower = (type || '').toLowerCase();
+      const sNameLower = (subjectName || '').toLowerCase();
+
+      // Universal Direct Router for Drawing, Practical, and Lab subjects across all revisions
+      if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
+        window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
+        return;
+      }
+      if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sTypeLower.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
+        window.open(`/classroom/practical/${subjectId}`, '_blank');
+        return;
+      }
+
       if (revision === 'REV2026') {
-        const sNameLower = (subjectName || '').toLowerCase();
-        const sTypeLower = (type || '').toLowerCase();
         if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
           window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
           return;
-        } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
-          window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
-          return;
-        } else if (type.includes('Practicum')) {
-          window.open(`/r26/classroom/practicum/${subjectId}`, '_blank');
-          return;
         } else if (type.includes('Theory')) {
           window.open(`/r26/classroom/theory/${subjectId}`, '_blank');
-          return;
-        } else if (type.includes('Practical') || type.includes('Lab')) {
-          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
           return;
         }
       }
@@ -1983,8 +1959,7 @@
         
         if (t.id === tabName) {
           if (btn) {
-            btn.classList.add('border-blue-500', 'text-blue-400');
-            btn.classList.remove('border-transparent', 'text-slate-500', 'hover:border-slate-600', 'hover:text-slate-300');
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/40 flex items-center gap-1.5 transition";
           }
           if (content) {
             content.classList.remove('hidden');
@@ -1992,8 +1967,7 @@
           }
         } else {
           if (btn) {
-            btn.classList.remove('border-blue-500', 'text-blue-400');
-            btn.classList.add('border-transparent', 'text-slate-500', 'hover:border-slate-600', 'hover:text-slate-300');
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900/60 text-slate-400 border border-slate-800/60 hover:text-slate-200 flex items-center gap-1.5 transition";
           }
           if (content) {
             content.classList.add('hidden');

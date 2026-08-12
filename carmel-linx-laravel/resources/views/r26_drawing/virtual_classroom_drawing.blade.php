@@ -181,7 +181,14 @@
             min-width: 90px;
         }
 
+        .rubric-input::-webkit-inner-spin-button,
+        .rubric-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
         .rubric-input {
+            -moz-appearance: textfield;
             width: 52px;
             text-align: center;
             font-weight: 700;
@@ -610,37 +617,37 @@
                                     <td class="fw-semibold">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p1" value="{{ $v1 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p1" value="{{ $v1 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v1 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p2" value="{{ $v2 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p2" value="{{ $v2 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v2 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p3" value="{{ $v3 }}" max="5" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p3" value="{{ $v3 }}" max="5" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v3 }}" max="5" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p4" value="{{ $v4 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p4" value="{{ $v4 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v4 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p5" value="{{ $v5 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p5" value="{{ $v5 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v5 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input p6" value="{{ $v6 }}" max="5" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input p6" value="{{ $v6 }}" max="5" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $v6 }}" max="5" min="0" step="0.5">
                                         </div>
                                     </td>
@@ -727,31 +734,31 @@
                                     <td class="fw-semibold">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ca-w" value="{{ $cw }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ca-w" value="{{ $cw }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $cw }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ca-s" value="{{ $cs }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ca-s" value="{{ $cs }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $cs }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ca-o" value="{{ $co }}" max="8" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ca-o" value="{{ $co }}" max="8" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $co }}" max="8" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ca-v" value="{{ $cv }}" max="8" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ca-v" value="{{ $cv }}" max="8" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $cv }}" max="8" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ca-r" value="{{ $cr }}" max="4" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ca-r" value="{{ $cr }}" max="4" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $cr }}" max="4" min="0" step="0.5">
                                         </div>
                                     </td>
@@ -807,31 +814,31 @@
                                     <td class="fw-semibold">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input oee-m1" value="{{ $m1 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input oee-m1" value="{{ $m1 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $m1 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input oee-m2" value="{{ $m2 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input oee-m2" value="{{ $m2 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $m2 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input oee-m3" value="{{ $m3 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input oee-m3" value="{{ $m3 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $m3 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input oee-m4" value="{{ $m4 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input oee-m4" value="{{ $m4 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $m4 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input oee-m5" value="{{ $m5 }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input oee-m5" value="{{ $m5 }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $m5 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
@@ -886,25 +893,25 @@
                                     <td class="fw-semibold">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ese-pa" value="{{ $pa }}" max="10" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ese-pa" value="{{ $pa }}" max="10" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $pa }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ese-pb" value="{{ $pb }}" max="18" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ese-pb" value="{{ $pb }}" max="18" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $pb }}" max="18" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ese-pc" value="{{ $pc }}" max="8" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ese-pc" value="{{ $pc }}" max="8" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $pc }}" max="8" min="0" step="0.5">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="mark-cell">
-                                            <input type="number" class="rubric-input ese-pd" value="{{ $pd }}" max="4" min="0" step="0.5">
+                                            <input type="text" inputmode="decimal" class="rubric-input ese-pd" value="{{ $pd }}" max="4" min="0" step="0.5">
                                             <input type="range" class="mark-slider" value="{{ $pd }}" max="4" min="0" step="0.5">
                                         </div>
                                     </td>
@@ -1119,7 +1126,7 @@
         // Initialize Slider & Number Input Bidirectional Sync
         function initSliderSync() {
             document.querySelectorAll('.mark-cell').forEach(cell => {
-                const numInput = cell.querySelector('input[type="number"]');
+                const numInput = cell.querySelector('.rubric-input') || cell.querySelector('input[type="number"]');
                 const sliderInput = cell.querySelector('input[type="range"]');
                 if (!numInput || !sliderInput) return;
 

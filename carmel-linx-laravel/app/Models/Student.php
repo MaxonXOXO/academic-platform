@@ -95,6 +95,24 @@ class Student extends Model
                       ->orWhere('sbte_reg_no', 'like', '%L');
                 });
         }
-        return self::where('classroom_id', $classroomId);
+
+        $classroom = ClassManagement::where('classroom_id', $classroomId)->first()
+            ?? R26ClassManagement::where('classroom_id', $classroomId)->first();
+
+        $branch = $classroom->branch ?? null;
+        $batchYear = $classroom->batch_year ?? null;
+
+        return self::where(function($query) use ($classroomId, $branch, $batchYear) {
+            $query->where('classroom_id', $classroomId)
+                  ->orWhere('classroom_id', str_replace('_', '-', $classroomId))
+                  ->orWhere('classroom_id', str_replace('-', '_', $classroomId));
+            
+            if ($branch && $batchYear) {
+                $query->orWhere(function($sub) use ($branch, $batchYear) {
+                    $sub->where('branch', $branch)
+                        ->where('admission_year', $batchYear);
+                });
+            }
+        });
     }
 }

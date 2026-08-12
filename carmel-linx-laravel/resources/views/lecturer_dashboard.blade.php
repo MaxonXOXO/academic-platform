@@ -1164,7 +1164,7 @@
                       <span class="material-symbols-rounded text-xs">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('course_file')" class="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-blue-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
-                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">folder_open</span> Comprehensive Course File PDF</span>
+                      <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm">folder_open</span> Comprehensive Course File (2021)</span>
                       <span class="material-symbols-rounded text-xs">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('self_learning')" class="w-full px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer">
@@ -5407,7 +5407,7 @@
           url = `/r26/classroom/lesson-plan/print/${currentSubjectId}`;
           break;
         case 'course_file':
-          url = `/r26/classroom/course-file/${currentSubjectId}/print-pdf`;
+          url = '/course-files';
           break;
         case 'self_learning':
           url = `/r26/classroom/self-learning/print/${currentSubjectId}`;

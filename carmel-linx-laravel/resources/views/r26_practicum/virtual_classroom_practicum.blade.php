@@ -2412,10 +2412,15 @@
                 const pedagogy = document.getElementById('lp-pedagogy-' + planId)?.value || 'Lecture (L)';
                 const propDate = document.getElementById('lp-prop-' + planId)?.value || '';
                 const actDate = document.getElementById('lp-act-' + planId)?.value || '';
-                const topic = document.getElementById('lp-topic-' + planId)?.value || '';
+                const topic = (document.getElementById('lp-topic-' + planId)?.value || '').trim();
                 const coId = document.getElementById('lp-co-' + planId)?.value || 'CO1';
                 const batch = document.getElementById('lp-batch-' + planId)?.value || '';
                 const remarks = document.getElementById('lp-remarks-' + planId)?.value || '';
+
+                // If new row with no text entered, never save or calculate that row
+                if (planId.startsWith('new_') && !topic) {
+                    return;
+                }
 
                 targetIds.forEach(id => {
                     plans.push({

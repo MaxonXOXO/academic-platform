@@ -847,95 +847,182 @@
 
             <!-- Subtab 5: Theory ESE & Consolidated Results -->
             <div id="theory-subcontent-ese" class="space-y-5 hidden">
-                <div class="glass-card p-5 rounded-xl border border-slate-800">
-                    <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Written Theory End Semester Exam (60 Marks)</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">Board Theory ESE Grades evaluated per Official Revision 2026 Grading System Standard</p>
+                @php
+                    $totalStudentsCount = count($studentResults);
+                    $gradedCount = 0;
+                    $passedCount = 0;
+                    $failedCount = 0;
+                    $pendingCount = 0;
+
+                    foreach ($studentResults as $r) {
+                        $g = strtoupper($r['ese_theory_grade'] ?? '-');
+                        if ($g !== '-' && $g !== '') {
+                            $gradedCount++;
+                            if (in_array($g, ['F', 'FE', 'ABSENT', 'ABS'])) {
+                                $failedCount++;
+                            } else {
+                                $passedCount++;
+                            }
+                        } else {
+                            $pendingCount++;
+                        }
+                    }
+                @endphp
+
+                <!-- Card 1: Written Theory End Semester Exam -->
+                <div class="glass-card p-5.5 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                    <!-- Subtle background accent glow -->
+                    <div class="absolute -top-24 -right-24 w-60 h-60 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- Header Bar -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-5 gap-4">
+                        <div class="flex items-start space-x-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/25 to-purple-600/20 border border-indigo-500/40 flex items-center justify-center shadow-inner flex-shrink-0 mt-0.5">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
+                                    <h3 class="text-lg font-bold text-white tracking-tight">Written Theory End Semester Exam</h3>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-extrabold tracking-wide">60 MARKS (ESE)</span>
+                                </div>
+                                <p class="text-slate-400 text-xs mt-1">Official Board Theory ESE Grades evaluated per SBTE Revision 2026 Academic Grading Standard</p>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="printSubtabReport('Theory ESE & Overall Results Report', 'theory-subcontent-ese')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openEseTheoryModal()" class="header-btn px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-sm">Enter Theory ESE Grades</button>
+                        <div class="flex items-center space-x-2.5 flex-shrink-0">
+                            <button onclick="printSubtabReport('Theory ESE & Overall Results Report', 'theory-subcontent-ese')" class="header-btn px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all flex items-center space-x-1.5 no-print cursor-pointer">
+                                <span>🖨️ Print Report</span>
+                            </button>
+                            <button onclick="openEseTheoryModal()" class="header-btn px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-900/40 transition-all flex items-center space-x-1.5 cursor-pointer">
+                                <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <span>Enter Theory ESE Grades</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metric Quick Summary Pills -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Total Enrolled</div>
+                                <div class="text-base font-extrabold text-white mt-0.5">{{ $totalStudentsCount }}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">👨‍🎓</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Graded</div>
+                                <div class="text-base font-extrabold text-indigo-300 mt-0.5">{{ $gradedCount }} <span class="text-xs font-normal text-slate-400">/ {{ $totalStudentsCount }}</span></div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">📝</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/20 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-medium text-emerald-400 uppercase tracking-wider">Passed (S - E)</div>
+                                <div class="text-base font-extrabold text-emerald-300 mt-0.5">{{ $passedCount }}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">✓</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-rose-500/20 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-medium text-rose-400 uppercase tracking-wider">Reappear (F)</div>
+                                <div class="text-base font-extrabold text-rose-300 mt-0.5">{{ $failedCount }}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-xs">⚠️</div>
                         </div>
                     </div>
 
                     <!-- Official R2026 Grade Scale Legend Box -->
-                    <div class="p-3 mb-4 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
-                        <div class="font-bold text-slate-300 mb-2 uppercase tracking-wide">Revision 2026 Official Grading System Standard (Theory ESE)</div>
-                        <div class="grid grid-cols-7 gap-1 text-center font-mono">
-                            <div class="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                                <div class="font-bold text-sm">S</div>
-                                <div class="text-[10px] opacity-80">≥90%</div>
-                                <div class="text-[10px] text-slate-400">GP: 10</div>
+                    <div class="p-3.5 mb-5 rounded-xl bg-slate-900/90 border border-slate-800">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-indigo-400 inline-block animate-pulse"></span>
+                                <span>Revision 2026 SBTE Official Grading Standard</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono">End Semester Theory Exam (60 Marks)</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center font-mono">
+                            <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-sm">
+                                <div class="font-extrabold text-base">S</div>
+                                <div class="text-[10px] font-semibold text-emerald-300">≥ 90%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 10</div>
                             </div>
-                            <div class="p-1.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">
-                                <div class="font-bold text-sm">A</div>
-                                <div class="text-[10px] opacity-80">80–89%</div>
-                                <div class="text-[10px] text-slate-400">GP: 9</div>
+                            <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 shadow-sm">
+                                <div class="font-extrabold text-base">A</div>
+                                <div class="text-[10px] font-semibold text-blue-300">80 – 89%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 9</div>
                             </div>
-                            <div class="p-1.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                                <div class="font-bold text-sm">B</div>
-                                <div class="text-[10px] opacity-80">70–79%</div>
-                                <div class="text-[10px] text-slate-400">GP: 8</div>
+                            <div class="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 shadow-sm">
+                                <div class="font-extrabold text-base">B</div>
+                                <div class="text-[10px] font-semibold text-indigo-300">70 – 79%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 8</div>
                             </div>
-                            <div class="p-1.5 rounded bg-purple-500/10 border border-purple-500/30 text-purple-400">
-                                <div class="font-bold text-sm">C</div>
-                                <div class="text-[10px] opacity-80">60–69%</div>
-                                <div class="text-[10px] text-slate-400">GP: 7</div>
+                            <div class="p-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 shadow-sm">
+                                <div class="font-extrabold text-base">C</div>
+                                <div class="text-[10px] font-semibold text-purple-300">60 – 69%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 7</div>
                             </div>
-                            <div class="p-1.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                                <div class="font-bold text-sm">D</div>
-                                <div class="text-[10px] opacity-80">50–59%</div>
-                                <div class="text-[10px] text-slate-400">GP: 6</div>
+                            <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-sm">
+                                <div class="font-extrabold text-base">D</div>
+                                <div class="text-[10px] font-semibold text-amber-300">50 – 59%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 6</div>
                             </div>
-                            <div class="p-1.5 rounded bg-orange-500/10 border border-orange-500/30 text-orange-400">
-                                <div class="font-bold text-sm">E</div>
-                                <div class="text-[10px] opacity-80">40–49%</div>
-                                <div class="text-[10px] text-slate-400">GP: 5</div>
+                            <div class="p-2 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 shadow-sm">
+                                <div class="font-extrabold text-base">E</div>
+                                <div class="text-[10px] font-semibold text-orange-300">40 – 49%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 5</div>
                             </div>
-                            <div class="p-1.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400">
-                                <div class="font-bold text-sm">F</div>
-                                <div class="text-[10px] opacity-80">&lt;40%</div>
-                                <div class="text-[10px] text-slate-400">GP: 0</div>
+                            <div class="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 shadow-sm">
+                                <div class="font-extrabold text-base">F</div>
+                                <div class="text-[10px] font-semibold text-rose-300">&lt; 40%</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">GP: 0</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs table-compact-header">
+                    <!-- Results Table -->
+                    <div class="rounded-xl border border-slate-800/80 overflow-hidden bg-slate-900/40">
+                        <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80">
-                                    <th class="p-2.5 w-12 text-center">Roll</th>
-                                    <th class="p-2.5">SBTE Reg No</th>
-                                    <th class="p-2.5">Student Name</th>
-                                    <th class="p-2.5 text-center">Board Theory ESE Grade</th>
-                                    <th class="p-2.5 text-center">Pass / Fail Status</th>
+                                <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-900/90">
+                                    <th class="p-3 w-14 text-center">Roll</th>
+                                    <th class="p-3 w-36">SBTE Reg No</th>
+                                    <th class="p-3">Student Name</th>
+                                    <th class="p-3 text-center w-36">Board ESE Grade</th>
+                                    <th class="p-3 text-center w-36">Pass / Fail Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60 text-xs">
                                 @foreach($studentResults as $res)
                                 @php
                                     $grade = strtoupper($res['ese_theory_grade'] ?? '-');
-                                    if ($grade === 'S') { $gc = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'; }
-                                    elseif ($grade === 'A') { $gc = 'text-blue-400 bg-blue-500/10 border-blue-500/30'; }
-                                    elseif ($grade === 'B') { $gc = 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30'; }
-                                    elseif ($grade === 'C') { $gc = 'text-purple-400 bg-purple-500/10 border-purple-500/30'; }
-                                    elseif ($grade === 'D') { $gc = 'text-amber-400 bg-amber-500/10 border-amber-500/30'; }
-                                    elseif ($grade === 'E') { $gc = 'text-orange-400 bg-orange-500/10 border-orange-500/30'; }
-                                    elseif (in_array($grade, ['F', 'FE', 'ABSENT', 'ABS'])) { $gc = 'text-rose-400 bg-rose-500/10 border-rose-500/30'; }
+                                    if ($grade === 'S') { $gc = 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40'; }
+                                    elseif ($grade === 'A') { $gc = 'text-blue-300 bg-blue-500/20 border-blue-500/40'; }
+                                    elseif ($grade === 'B') { $gc = 'text-indigo-300 bg-indigo-500/20 border-indigo-500/40'; }
+                                    elseif ($grade === 'C') { $gc = 'text-purple-300 bg-purple-500/20 border-purple-500/40'; }
+                                    elseif ($grade === 'D') { $gc = 'text-amber-300 bg-amber-500/20 border-amber-500/40'; }
+                                    elseif ($grade === 'E') { $gc = 'text-orange-300 bg-orange-500/20 border-orange-500/40'; }
+                                    elseif (in_array($grade, ['F', 'FE', 'ABSENT', 'ABS'])) { $gc = 'text-rose-300 bg-rose-500/20 border-rose-500/40'; }
                                     else { $gc = 'text-slate-400 bg-slate-800 border-slate-700'; }
 
                                     $isFail = in_array($grade, ['F', 'FE', 'ABSENT', 'ABS']);
                                 @endphp
-                                <tr class="hover:bg-slate-800/30 transition-all">
-                                    <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                    <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                    <td class="p-2.5 font-bold text-white">{{ $res['name'] }}</td>
-                                    <td class="p-2.5 text-center font-bold">
-                                        <span class="px-3 py-0.5 rounded-full border text-xs font-bold {{ $gc }}">{{ $grade !== '-' ? $grade : 'Not Entered' }}</span>
+                                <tr class="hover:bg-slate-800/40 transition-all">
+                                    <td class="p-3 text-center font-mono font-medium text-slate-300">{{ $res['roll_no'] }}</td>
+                                    <td class="p-3 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                    <td class="p-3 font-bold text-white">{{ $res['name'] }}</td>
+                                    <td class="p-3 text-center font-bold">
+                                        <span class="inline-block px-3 py-1 rounded-lg border font-mono text-xs font-extrabold shadow-sm {{ $gc }}">
+                                            {{ $grade !== '-' ? $grade : 'Not Entered' }}
+                                        </span>
                                     </td>
-                                    <td class="p-2.5 text-center font-semibold {{ !$isFail && $grade !== '-' ? 'text-emerald-400' : ($isFail ? 'text-rose-400' : 'text-slate-400') }}">
-                                        {{ $grade === '-' ? '-' : (!$isFail ? 'PASSED' : 'REAPPEAR / FAIL') }}
+                                    <td class="p-3 text-center font-bold">
+                                        @if($grade === '-')
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-normal">Pending</span>
+                                        @elseif(!$isFail)
+                                            <span class="inline-block px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-extrabold tracking-wide shadow-sm">PASSED</span>
+                                        @else
+                                            <span class="inline-block px-3 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-extrabold tracking-wide shadow-sm">REAPPEAR / FAIL</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach

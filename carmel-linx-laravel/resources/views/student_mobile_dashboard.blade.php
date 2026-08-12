@@ -1508,7 +1508,7 @@
             <div class="modal-content bg-dark border border-secondary border-opacity-25 text-white shadow-lg" style="border-radius: 16px;">
                 <div class="modal-header border-bottom border-secondary border-opacity-25 py-2.5">
                     <h6 class="modal-title fw-bold text-warning d-flex align-items-center gap-2" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-folder-special text-warning"></i> Study Materials & Pre-Class Vault
+                        <i class="fa-solid fa-folder-open text-warning"></i> Study Materials & Pre-Class Vault
                     </h6>
                     <button type="button" class="btn-close btn-close-white" onclick="closeMobileMaterialsModal()"></button>
                 </div>

@@ -2030,6 +2030,17 @@
             const sel = document.getElementById('sl-student-select');
             if (sel && sel.value) {
                 loadSlStudent(sel.value);
+            } else {
+                const container = document.getElementById('sl-sliders-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="p-8 text-center bg-slate-900/80 rounded-xl border border-slate-800 space-y-3 my-4">
+                            <div class="text-amber-400 text-3xl">⚠️</div>
+                            <h4 class="font-bold text-white text-base">No Students Enrolled</h4>
+                            <p class="text-slate-400 text-xs max-w-md mx-auto">There are currently no students added to this classroom or batch. Please add students first to evaluate self-learning activity marks.</p>
+                        </div>
+                    `;
+                }
             }
         }
 

@@ -136,7 +136,7 @@
           CONSOLIDATED TIMETABLE SHEET
         </span>
         <span class="text-slate-200 text-sm font-semibold">
-          {{ $department }} • {{ implode(', ', array_keys($timetables)) }}
+          {{ $department }} • {{ implode(', ', array_map(fn($id, $info) => "$id (Sem " . ($info['semester'] ?? 1) . ")", array_keys($timetables), $timetables)) }}
         </span>
       </div>
       <div class="flex items-center space-x-3">
@@ -161,7 +161,7 @@
         <!-- Metadata Strip: Branch, Batches, Academic Year -->
         <div class="flex justify-center flex-wrap gap-x-6 gap-y-0.5 mt-1 text-[11px] font-black text-black">
           <div>Branch: <strong class="text-black font-black">{{ $department }}</strong></div>
-          <div>Batches: <strong class="text-black font-black">{{ implode(', ', array_keys($timetables)) }}</strong></div>
+          <div>Batches: <strong class="text-black font-black">{{ implode(', ', array_map(fn($id, $info) => "$id (Sem " . ($info['semester'] ?? 1) . ")", array_keys($timetables), $timetables)) }}</strong></div>
           <div>Year: <strong class="text-black font-black">{{ $currentYear }} - {{ $currentYear + 1 }}</strong></div>
         </div>
       </div>
@@ -208,7 +208,7 @@
                     <td rowspan="{{ $batchCount }}" class="p-1 text-center font-black bg-day text-black uppercase text-[10px]">{{ $day }}</td>
                   @endif
                   
-                  <td class="p-1 font-black batch-cell text-black text-[9.5px] border-r border-black">{{ $classroomId }}</td>
+                  <td class="p-1 font-black batch-cell text-black text-[9.5px] border-r border-black">{{ $classroomId }}<br><span class="text-[8px] font-bold text-slate-700">(Sem {{ $info['semester'] ?? 1 }})</span></td>
 
                   {{-- Forenoon Slots --}}
                   @if ($s1['subject'] && $s1['subject'] === $s2['subject'] && $s2['subject'] === $s3['subject'])

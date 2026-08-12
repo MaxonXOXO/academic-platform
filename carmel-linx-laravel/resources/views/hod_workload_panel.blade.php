@@ -141,21 +141,15 @@
           <div class="grid grid-cols-2 gap-2 pt-0.5">
             <div class="space-y-0.5">
               <label class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Classroom</label>
-              <select id="singleBatchSelect" class="w-full bg-slate-950 border border-slate-800 rounded-md h-7 px-2 text-xs text-slate-200 focus:border-violet-500 outline-none">
+              <select id="singleBatchSelect" onchange="updateSemesterOptions()" class="w-full bg-slate-950 border border-slate-800 rounded-md h-7 px-2 text-xs text-slate-200 focus:border-violet-500 outline-none">
                 @foreach ($batches as $b)
-                  <option value="{{ $b->classroom_id }}">{{ $b->classroom_id }}</option>
+                  <option value="{{ $b->classroom_id }}" data-semester="{{ $b->current_semester ?? 1 }}">{{ $b->classroom_id }} (Sem {{ $b->current_semester ?? 1 }})</option>
                 @endforeach
               </select>
             </div>
             <div class="space-y-0.5">
               <label class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Semester</label>
               <select id="singleSemSelect" class="w-full bg-slate-950 border border-slate-800 rounded-md h-7 px-2 text-xs text-slate-200 focus:border-violet-500 outline-none">
-                <option value="1">Semester 1</option>
-                <option value="2">Semester 2</option>
-                <option value="3" selected>Semester 3</option>
-                <option value="4">Semester 4</option>
-                <option value="5">Semester 5</option>
-                <option value="6">Semester 6</option>
               </select>
             </div>
           </div>
@@ -200,7 +194,7 @@
               <input type="checkbox" name="batches[]" value="{{ $b->classroom_id }}" class="w-3.5 h-3.5 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-900 accent-emerald-500 batch-checkbox" />
               <div class="min-w-0">
                 <span class="text-[11px] font-bold text-slate-200 block truncate">{{ $b->classroom_id }}</span>
-                <span class="text-[9.5px] text-slate-500 block truncate">Adm: {{ $b->batch_year }}</span>
+                <span class="text-[9.5px] text-slate-500 block truncate">Adm: {{ $b->batch_year }} • Sem {{ $b->current_semester ?? 1 }}</span>
               </div>
             </label>
           @empty
@@ -230,6 +224,32 @@
   </main>
 
   <script>
+    function updateSemesterOptions() {
+      const batchSelect = document.getElementById('singleBatchSelect');
+      const semSelect = document.getElementById('singleSemSelect');
+      if (!batchSelect || !semSelect) return;
+
+      const selectedOpt = batchSelect.options[batchSelect.selectedIndex];
+      if (!selectedOpt) return;
+
+      const rawSem = parseInt(selectedOpt.getAttribute('data-semester') || '1', 10);
+      const maxSem = Math.max(1, Math.min(isNaN(rawSem) ? 1 : rawSem, 6));
+
+      semSelect.innerHTML = '';
+      for (let s = 1; s <= maxSem; s++) {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `Semester ${s}`;
+        if (s === maxSem) {
+          opt.selected = true;
+        }
+        semSelect.appendChild(opt);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      updateSemesterOptions();
+    });
     // Max 3 validation for consolidated checkboxes
     const checkboxes = document.querySelectorAll('.batch-checkbox');
     const selectionStatus = document.getElementById('selectionStatus');

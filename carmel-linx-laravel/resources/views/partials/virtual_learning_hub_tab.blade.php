@@ -1,17 +1,17 @@
 <!-- TAB: STUDY MATERIALS & PRE-CLASS HUB -->
-<div id="tab-materials" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5">
+<div id="tab-materials" class="tab-panel tab-content bg-panel border rounded-xl p-5 shadow-md space-y-5 hidden">
   
   <!-- Header Bar -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/30 pb-3 gap-3">
     <div>
       <h3 class="text-base font-bold text-title flex items-center gap-2">
-        <span class="material-symbols-rounded text-amber-400">folder_special</span>
+        <i class="fa-solid fa-folder-open text-amber-400"></i>
         Study Materials & Pre-Class / Pre-Lab Hub
       </h3>
       <p class="text-xs text-muted mt-1">Publish lecture notes, PDFs, diagram images, and video clips for students with evening pre-class notifications.</p>
     </div>
     <button onclick="toggleMaterialUploadForm()" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
-      <span class="material-symbols-rounded text-sm">cloud_upload</span>
+      <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
       Publish New Material
     </button>
   </div>
@@ -20,7 +20,7 @@
   <div id="materialUploadFormPanel" class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-4 hidden">
     <div class="flex justify-between items-center border-b border-slate-800 pb-2">
       <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-1.5">
-        <span class="material-symbols-rounded text-sky-400 text-sm">add_circle</span>
+        <i class="fa-solid fa-circle-plus text-sky-400 text-sm"></i>
         Publish Resource / Pre-Class Guidelines
       </h4>
       <button onclick="toggleMaterialUploadForm()" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Close</button>
@@ -94,7 +94,7 @@
       <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
         <button type="button" onclick="toggleMaterialUploadForm()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold cursor-pointer">Cancel</button>
         <button type="submit" id="btnSubmitMaterial" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5">
-          <span class="material-symbols-rounded text-xs">send</span>
+          <i class="fa-solid fa-paper-plane text-xs"></i>
           Publish Now
         </button>
       </div>
@@ -105,11 +105,11 @@
   <div class="bg-panel border border-card rounded-xl p-4 space-y-3">
     <div class="flex justify-between items-center border-b border-card pb-2">
       <h4 class="font-bold text-title text-sm flex items-center gap-1.5">
-        <span class="material-symbols-rounded text-emerald-450 text-base">list_alt</span>
+        <i class="fa-solid fa-list-check text-emerald-400 text-base"></i>
         Published Learning Resources & Pre-Class Log
       </h4>
       <button onclick="loadSubjectMaterials()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer">
-        <span class="material-symbols-rounded text-xs">refresh</span> Reload
+        <i class="fa-solid fa-rotate-right text-xs"></i> Reload
       </button>
     </div>
 
@@ -173,7 +173,7 @@
     event.preventDefault();
     const btn = document.getElementById('btnSubmitMaterial');
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">sync</span> Publishing...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Publishing...';
 
     const form = document.getElementById('vlmUploadForm');
     const formData = new FormData(form);
@@ -200,7 +200,7 @@
       alert('❌ Upload failed: ' + e.message);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-rounded text-xs">send</span> Publish Now';
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i> Publish Now';
     }
   }
 
@@ -243,7 +243,7 @@
               <td class="p-3 pr-4 text-right flex justify-end gap-1.5 items-center">
                 ${actionBtn}
                 <button onclick="deleteSubjectMaterial(${m.id})" class="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded cursor-pointer" title="Delete Material">
-                  <span class="material-symbols-rounded text-sm">delete</span>
+                  <i class="fa-solid fa-trash-can text-sm"></i>
                 </button>
               </td>
             </tr>

@@ -192,7 +192,7 @@ class R26VirtualClassroomPracticalController extends Controller
         }
 
         // Parser mode indicator
-        $parseModeLabel = 'Local PDF Algorithm';
+        $parseModeLabel = 'AI Off - Local';
 
         return view('r26_practical.virtual_classroom_practical', compact(
             'batchSubject', 'classroom', 'students', 'labBatches',

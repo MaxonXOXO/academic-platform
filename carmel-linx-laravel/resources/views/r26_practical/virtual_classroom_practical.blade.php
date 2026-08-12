@@ -353,15 +353,15 @@
                 </a>
 
 
-                <span class="vl-badge vl-badge-blue" style="font-size:11px;font-weight:700;letter-spacing:.06em;">
-                    <i class="fa-solid fa-flask-vial"></i> VIRTUAL LAB · {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}
+                <span class="vl-badge vl-badge-blue" style="font-size:13.5px;font-weight:800;letter-spacing:.06em;padding:5px 12px;border-radius:7px;">
+                    <i class="fa-solid fa-flask-vial" style="font-size:14px;"></i> VIRTUAL LAB · {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}
                 </span>
 
-                <span class="vl-badge vl-badge-slate" id="header-subject-code" style="font-family:monospace;font-weight:700;">
+                <span class="vl-badge" id="header-subject-code" style="font-family:monospace;font-size:14px;font-weight:800;padding:5px 12px;border-radius:7px;color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);">
                     {{ $batchSubject->subject_code }}
                 </span>
 
-                <h1 id="header-subject-name" style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;">
+                <h1 id="header-subject-name" style="font-size:18px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;letter-spacing:-.01em;">
                     {{ $practicalCourseFile?->course_title ?: $batchSubject->subject_name }}
                 </h1>
             </div>
@@ -415,10 +415,10 @@
                 <span style="color:var(--text-muted);">Sem:</span>
                 <strong style="color:var(--text-primary);font-weight:600;">{{ $batchSubject->semester }}</strong>
             </span>
-            <span class="vl-badge vl-badge-slate" style="margin-left:auto;">
-                <i class="fa-solid fa-microchip" style="color:var(--text-muted);"></i>
-                <span style="color:var(--text-muted);">Parse:</span>
-                <strong style="color:var(--text-primary);font-weight:600;">{{ $parseModeLabel }}</strong>
+            <span class="vl-badge" style="margin-left:auto;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;box-shadow:0 0 10px rgba(245,158,11,0.15);" title="Gemini AI is deactivated to save API credits. Lesson plans, descriptive questions, and MCQs are generated from local databases and question banks.">
+                <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 8px #f59e0b;display:inline-block;"></span>
+                <span style="color:#fcd34d;">Parse:</span>
+                <strong style="color:#fef08a;font-weight:800;">{{ $parseModeLabel }}</strong>
             </span>
         </div>
 
@@ -490,7 +490,7 @@
                 </button>
                 <button type="button" onclick="switchTab('materials')" id="btn-materials" class="tab-btn">
                     <span style="display:flex;align-items:center;gap:9px;">
-                        <i class="fa-solid fa-folder-special tab-icon"></i> Learning Materials & Pre-Lab
+                        <i class="fa-solid fa-folder-open tab-icon"></i> Learning Materials & Pre-Lab
                     </span>
                 </button>
             </div>

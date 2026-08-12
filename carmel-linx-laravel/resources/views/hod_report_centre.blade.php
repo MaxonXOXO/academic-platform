@@ -463,9 +463,9 @@
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 font-bold">Select Semester Batch</label>
-            <select id="selectActivityBatch" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
+            <select id="selectActivityBatch" onchange="updateActivitySemesterOptions()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
               @foreach($batches as $batch)
-                <option value="{{ $batch->classroom_id }}">{{ $batch->classroom_id }} (Sem {{ $batch->current_semester }})</option>
+                <option value="{{ $batch->classroom_id }}" data-semester="{{ $batch->current_semester ?? 1 }}">{{ $batch->classroom_id }} (Sem {{ $batch->current_semester ?? 1 }})</option>
               @endforeach
             </select>
           </div>
@@ -473,13 +473,6 @@
           <div>
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 font-bold">Select Semester Scope</label>
             <select id="selectActivitySemester" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
-              <option value="all">All Semesters (Cumulative)</option>
-              <option value="1">Semester 1</option>
-              <option value="2">Semester 2</option>
-              <option value="3">Semester 3</option>
-              <option value="4">Semester 4</option>
-              <option value="5">Semester 5</option>
-              <option value="6">Semester 6</option>
             </select>
           </div>
         </div>
@@ -569,10 +562,31 @@
       window.open('/hod/course-files-report/print?classroom_id=' + encodeURIComponent(batchId), '_blank');
     }
 
+    function updateActivitySemesterOptions() {
+      const batchSelect = document.getElementById('selectActivityBatch');
+      const semSelect = document.getElementById('selectActivitySemester');
+      if (!batchSelect || !semSelect) return;
+
+      const selectedOpt = batchSelect.options[batchSelect.selectedIndex];
+      if (!selectedOpt) return;
+
+      const rawSem = parseInt(selectedOpt.getAttribute('data-semester') || '1', 10);
+      const maxSem = Math.max(1, Math.min(isNaN(rawSem) ? 1 : rawSem, 6));
+
+      semSelect.innerHTML = '<option value="all">All Semesters (Cumulative)</option>';
+      for (let s = 1; s <= maxSem; s++) {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `Semester ${s}`;
+        semSelect.appendChild(opt);
+      }
+    }
+
     function openActivityPointsModal() {
       const modal = document.getElementById('activityPointsModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      updateActivitySemesterOptions();
     }
 
     function closeActivityPointsModal() {

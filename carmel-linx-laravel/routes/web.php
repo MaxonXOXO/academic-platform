@@ -784,13 +784,20 @@ Route::middleware(['web'])->group(function () {
             if (file_exists($path)) {
                 $data = json_decode(file_get_contents($path), true);
             }
+
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first()
+                ?? DB::table('class_management')->where('classroom_id', $classroomId)->first();
+            $sem = $classroom ? ($classroom->current_semester ?? 1) : 1;
+
             $subjects = DB::table('batch_subjects')
                 ->where('classroom_id', $classroomId)
+                ->where('semester', $sem)
                 ->get();
                 
             $timetables[$classroomId] = [
                 'data' => $data,
-                'subjects' => $subjects
+                'subjects' => $subjects,
+                'semester' => $sem
             ];
         }
 

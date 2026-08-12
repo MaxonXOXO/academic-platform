@@ -233,6 +233,19 @@
             color: #000;
         }
 
+        .btn-outline-cyan {
+            background-color: rgba(6, 182, 212, 0.15);
+            color: #22d3ee !important;
+            border: 1px solid #06b6d4 !important;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 0.35rem 0.75rem;
+        }
+        .btn-outline-cyan:hover {
+            background-color: #06b6d4 !important;
+            color: #000 !important;
+        }
+
         @media (max-width: 768px) {
             .nav-tabs-custom {
                 flex-wrap: nowrap;

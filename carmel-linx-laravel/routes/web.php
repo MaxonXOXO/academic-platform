@@ -506,6 +506,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/practicum/{subjectId}/print-lesson-plan', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printLessonPlanPdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/print-timetable', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printClassroomTimetable']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'uploadSyllabus']);
+    Route::post('/api/r26/classroom/practicum/{subjectId}/copo-matrix/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveCoPoMatrix']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveLessonPlanRow']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save-all', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveAllLessonPlans']);
 

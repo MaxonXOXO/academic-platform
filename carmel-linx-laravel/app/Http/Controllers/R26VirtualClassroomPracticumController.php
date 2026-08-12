@@ -660,6 +660,43 @@ class R26VirtualClassroomPracticumController extends Controller
     }
 
     /**
+     * Save CO-PO & PSO Mapping Matrix for Practicum Course File & Syllabus Registry
+     */
+    public function saveCoPoMatrix(Request $request, $subjectId)
+    {
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$practicumCourseFile) {
+            $batchSubject = BatchSubject::findOrFail($subjectId);
+            $practicumCourseFile = R26PracticumCourseFile::create([
+                'batch_subject_id' => $subjectId,
+                'course_title' => $batchSubject->subject_name,
+                'course_code' => $batchSubject->subject_code,
+            ]);
+        }
+
+        $mappings = $request->input('mappings') ?? $request->input('mapping') ?? $request->input('co_po_mapping') ?? [];
+        $copoPayload = $practicumCourseFile->parsed_copo ?: [];
+        $copoPayload['mappings'] = $mappings;
+        $practicumCourseFile->parsed_copo = $copoPayload;
+        $practicumCourseFile->save();
+
+        // Sync globally to syllabus_registry table
+        $batchSubject = BatchSubject::find($subjectId);
+        if ($batchSubject) {
+            \DB::table('syllabus_registry')->updateOrInsert(
+                ['subject_code' => $batchSubject->subject_code],
+                ['co_po_mapping' => json_encode($mappings), 'updated_at' => now()]
+            );
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'success' => true,
+            'message' => 'Course Articulation Matrix (PO1-PO11 & PSO1-PSO3) saved successfully!'
+        ]);
+    }
+
+    /**
      * Save Continuous Practical Experiment Marks (Table 2.2 Rubrics - Max 50)
      */
     public function saveExperimentMarks(Request $request, $subjectId)

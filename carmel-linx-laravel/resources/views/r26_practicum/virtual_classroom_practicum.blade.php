@@ -482,10 +482,13 @@
                 <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-3">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
                         <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                            <span>🎯 Course Articulation Matrix (CO-PO Mapping)</span>
+                            <span>🎯 Course Articulation Matrix (CO-PO & CO-PSO Mapping)</span>
                         </h3>
                         <div class="flex items-center space-x-3">
                             <span class="text-slate-400 text-xs font-medium">Correlation: 3 = High, 2 = Med, 1 = Low</span>
+                            <button onclick="savePracticumCoPoMatrix()" id="saveCoPoMatrixBtn" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center space-x-1.5 cursor-pointer shadow-md no-print">
+                                <span>💾 Save / Update Matrix</span>
+                            </button>
                             <button onclick="printSubtabReport('Theory Modules & CO-PO Matrix Report', 'theory-subcontent-overview')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all flex items-center space-x-1.5 no-print">
                                 <span>🖨️ Print Report</span>
                             </button>
@@ -499,21 +502,34 @@
                                     <th class="p-3 text-left w-24">CO</th>
                                     <th class="p-3 text-left">Course Outcome Description</th>
                                     @for($p = 1; $p <= 11; $p++)
-                                    <th class="p-2.5 w-12 font-bold text-indigo-400">PO{{ $p }}</th>
+                                    <th class="p-2 w-10 font-bold text-indigo-400">PO{{ $p }}</th>
+                                    @endfor
+                                    @for($s = 1; $s <= 3; $s++)
+                                    <th class="p-2 w-10 font-bold text-sky-400">PSO{{ $s }}</th>
                                     @endfor
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800">
+                            <tbody class="divide-y divide-slate-800" id="practicumCoPoMatrixTbody">
                                 @foreach(($practicumCourseFile->parsed_cos ?? []) as $co)
                                 <tr class="hover:bg-slate-800/30">
                                     <td class="p-3 text-left font-bold text-amber-400">{{ $co['id'] }}</td>
                                     <td class="p-3 text-left text-slate-300 text-sm">{{ $co['description'] }}</td>
                                     @for($p = 1; $p <= 11; $p++)
                                         @php
-                                            $val = $mappings[$co['id']]['PO' . $p] ?? '-';
+                                            $val = $mappings[$co['id']]['PO' . $p] ?? '';
+                                            if ($val === '-') $val = '';
                                         @endphp
-                                        <td class="p-2.5 font-bold {{ $val !== '-' ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500' }}">
-                                            {{ $val }}
+                                        <td class="p-1">
+                                            <input type="text" maxlength="1" value="{{ $val }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-9 h-8 bg-slate-900 border border-slate-700 rounded px-1 text-center font-bold text-emerald-400 focus:border-cyan-400 outline-none text-xs" data-co="{{ $co['id'] }}" data-target="PO{{ $p }}">
+                                        </td>
+                                    @endfor
+                                    @for($s = 1; $s <= 3; $s++)
+                                        @php
+                                            $val = $mappings[$co['id']]['PSO' . $s] ?? '';
+                                            if ($val === '-') $val = '';
+                                        @endphp
+                                        <td class="p-1">
+                                            <input type="text" maxlength="1" value="{{ $val }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-9 h-8 bg-slate-900 border border-slate-700 rounded px-1 text-center font-bold text-sky-300 focus:border-cyan-400 outline-none text-xs" data-co="{{ $co['id'] }}" data-target="PSO{{ $s }}">
                                         </td>
                                     @endfor
                                 </tr>
@@ -1759,7 +1775,7 @@
                         </label>
                         @foreach(['case_study' => 'Case Study', 'quiz' => 'Quiz', 'activity' => 'Activity', 'microproject' => 'Microproject', 'mini_project' => 'Mini Project', 'report' => 'Report', 'exercises' => 'Exercises', 'presentation' => 'Presentation'] as $actKey => $actLabel)
                         <label class="flex items-center space-x-2 text-slate-200 cursor-pointer">
-                            <input type="checkbox" name="configs[{{ $coTag }}][{{ $actKey }}]" value="1" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
+                            <input type="checkbox" name="configs[{{ $coTag }}][{{ $actKey }}]" value="1" {{ !empty($slConfigs[$coTag][$actKey]) ? 'checked' : '' }} class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
                             <span>{{ $actLabel }}</span>
                         </label>
                         @endforeach
@@ -1776,59 +1792,125 @@
     </div>
 
     <!-- Enter Self-Learning Marks Modal (CA1 Activity-Wise Sliders) -->
-    <div id="sl-marks-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-3xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
+    <div id="sl-marks-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-2 sm:p-4">
+        <div class="glass-card max-w-6xl w-full p-4 sm:p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-3 max-h-[95vh] flex flex-col bg-slate-950 overflow-y-auto">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
                 <div>
-                    <h3 class="text-xl font-bold text-white">Continuous Assessment Activity Evaluator</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Adjust sliders or tap +/- steppers to evaluate activity-wise splitup for each student.</p>
+                    <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        <span>Continuous Assessment Activity Evaluator</span>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">CA1 - 5 CIA Marks</span>
+                    </h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Filter by CO & activity or adjust high-density sliders and steppers for each student.</p>
                 </div>
                 <button onclick="closeSlMarksModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
             </div>
 
-            <!-- Student Selection & Stepper Bar -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-shrink-0">
-                <button type="button" onclick="prevSlStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>◀ Prev</span>
-                </button>
-
-                <div class="flex-1 max-w-md">
-                    <select id="sl-student-select" onchange="loadSlStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white outline-none focus:border-emerald-500">
+            <!-- Student & CO / Activity Selection Controls Bar -->
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center space-x-2 flex-1 min-w-[280px]">
+                    <button type="button" onclick="prevSlStudent()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
+                        <span>◀ Prev</span>
+                    </button>
+                    <select id="sl-student-select" onchange="loadSlStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500">
                         @foreach($studentResults as $idx => $res)
                         <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }} (SBTE: {{ $res['sbte_reg_no'] ?: $res['reg_no'] }})</option>
                         @endforeach
                     </select>
+                    <button type="button" onclick="nextSlStudent()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
+                        <span>Next ▶</span>
+                    </button>
                 </div>
 
-                <button type="button" onclick="nextSlStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>Next ▶</span>
-                </button>
+                <!-- CO Filter Dropdown -->
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs font-bold text-amber-400 whitespace-nowrap">Target CO:</label>
+                    <select id="sl-co-filter" onchange="loadSlStudent(document.getElementById('sl-student-select').value)" class="bg-slate-950 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-lg px-3 py-1.5 outline-none focus:border-amber-400 cursor-pointer">
+                        <option value="ALL">All Outcomes (CO1 - CO4)</option>
+                        <option value="CO1">CO1</option>
+                        <option value="CO2">CO2</option>
+                        <option value="CO3">CO3</option>
+                        <option value="CO4">CO4</option>
+                    </select>
+                </div>
+
+                <!-- Activity Filter Dropdown -->
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs font-bold text-emerald-400 whitespace-nowrap">Activity:</label>
+                    <select id="sl-activity-filter" onchange="loadSlStudent(document.getElementById('sl-student-select').value)" class="bg-slate-950 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-lg px-3 py-1.5 outline-none focus:border-emerald-400 cursor-pointer">
+                        <option value="ALL">All Activities</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="mcq">MCQ</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="case_study">Case Study</option>
+                        <option value="activity">Activity</option>
+                        <option value="microproject">Microproject</option>
+                        <option value="report">Report</option>
+                        <option value="exercises">Exercises</option>
+                        <option value="presentation">Presentation</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Live Score Summary Card -->
-            <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-3 rounded-xl border border-indigo-500/30 flex items-center justify-between text-xs flex-shrink-0">
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-2.5 rounded-xl border border-indigo-500/30 flex items-center justify-between text-xs flex-shrink-0">
                 <div>
-                    <span class="text-slate-400 font-medium">Selected Student Average:</span>
+                    <span class="text-slate-400 font-medium">Selected Student Overall Raw Average:</span>
                     <span id="sl-student-total-raw" class="font-extrabold text-amber-400 text-sm ml-1.5">0.00 / 15.00 M</span>
                 </div>
-                <div class="flex items-center space-x-1">
-                    <span class="text-slate-400 font-medium">Converted CA1 CIA:</span>
-                    <span id="sl-student-converted-cia" class="font-black text-emerald-400 text-base ml-1.5 px-2.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30">0.00 / 5.00 M</span>
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400 font-medium">Converted CA1 CIA Score:</span>
+                    <span id="sl-student-converted-cia" class="font-black text-emerald-400 text-sm ml-1 px-2.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30">0.00 / 5.00 M</span>
                 </div>
             </div>
 
             <!-- Scrollable Activity Sliders Container -->
-            <div id="sl-sliders-container" class="overflow-y-auto space-y-4 flex-1 pr-1">
+            <div id="sl-sliders-container" class="space-y-3 pr-1 border border-slate-800/80 rounded-xl p-2.5 bg-slate-900/40 max-h-[340px] overflow-y-auto flex-shrink-0">
                 <!-- Dynamically populated by JS loadSlStudent() -->
             </div>
 
+            <!-- Live Evaluated Confirmation Table Section -->
+            <div class="border-t border-slate-800 pt-2 space-y-2 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-slate-200 flex items-center space-x-2">
+                        <span>📋 Faculty Evaluation Confirmation Ledger</span>
+                        <span id="sl-evaluated-count-badge" class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">0 Evaluated</span>
+                    </h4>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="printSlModalLedger()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 font-bold text-[11px] flex items-center space-x-1 transition-all cursor-pointer shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>🖨️ Print Ledger</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ledger Table Container -->
+                <div class="max-h-40 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-1 flex-shrink-0">
+                    <table class="w-full text-left border-collapse text-[11px]" id="sl-confirmation-table">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/80 text-[10px]">
+                                <th class="p-1.5 text-center w-10">Roll</th>
+                                <th class="p-1.5 w-32">SBTE Reg No</th>
+                                <th class="p-1.5">Student Name</th>
+                                <th class="p-1.5 text-center">CO Breakdown (Out of 15)</th>
+                                <th class="p-1.5 text-center w-24">Raw Score</th>
+                                <th class="p-1.5 text-center w-28">Converted CA1</th>
+                                <th class="p-1.5 text-center w-20">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sl-confirmation-tbody" class="divide-y divide-slate-800/60 font-normal text-slate-300">
+                            <!-- Populated / Appended dynamically when loaded & saved -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
                 <button type="button" onclick="closeSlMarksModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextSlStudent()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm">Next Student ▶</button>
-                    <button type="button" onclick="saveAllSlMarks()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextSlStudent()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllSlMarks()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -1951,6 +2033,61 @@
 
     <!-- JavaScript Switching & Handlers -->
     <script>
+        function savePracticumCoPoMatrix() {
+            const btn = document.getElementById('saveCoPoMatrixBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳ Saving...</span>';
+            }
+
+            const inputs = document.querySelectorAll('#practicumCoPoMatrixTbody input[data-co]');
+            const mappings = {};
+
+            inputs.forEach(input => {
+                const co = input.getAttribute('data-co');
+                const target = input.getAttribute('data-target');
+                const val = input.value ? input.value : '-';
+                if (!mappings[co]) {
+                    mappings[co] = {};
+                }
+                mappings[co][target] = val;
+            });
+
+            fetch(`/api/r26/classroom/practicum/{{ $batchSubject->id }}/copo-matrix/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ mappings: mappings })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                if (res.status === 'SUCCESS' || res.success) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: 'Saved!', text: res.message || 'Matrix saved successfully.', timer: 1500, showConfirmButton: false });
+                    } else {
+                        alert(res.message || 'Matrix saved successfully!');
+                    }
+                } else {
+                    alert(res.message || 'Failed to save matrix.');
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                console.error(err);
+                alert('An error occurred while saving matrix.');
+            });
+        }
+
         function switchMode(mode) {
             document.getElementById('mode-theory-container').classList.add('hidden');
             document.getElementById('mode-lab-container').classList.add('hidden');
@@ -2081,13 +2218,18 @@
             const formData = new FormData(form);
             const configs = {};
 
+            ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
+                configs[co] = { assignment: true, mcq: true };
+            });
+
             formData.forEach((val, key) => {
                 const matches = key.match(/configs\[(.*?)\]\[(.*?)\]/);
                 if (matches) {
                     const co = matches[1];
                     const act = matches[2];
-                    if (!configs[co]) configs[co] = { assignment: true, mcq: true };
-                    configs[co][act] = true;
+                    if (configs[co]) {
+                        configs[co][act] = true;
+                    }
                 }
             });
 
@@ -2103,7 +2245,15 @@
             .then(data => {
                 if (data.status === 'SUCCESS') {
                     closeSlConfigModal();
-                    Swal.fire('Configured!', data.message, 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Activities Configured!',
+                        text: data.message || 'Self-learning activities updated successfully!',
+                        timer: 1200,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
@@ -2163,25 +2313,38 @@
                 };
             }
 
+            const targetCo = document.getElementById('sl-co-filter') ? document.getElementById('sl-co-filter').value : 'ALL';
+            const targetAct = document.getElementById('sl-activity-filter') ? document.getElementById('sl-activity-filter').value : 'ALL';
+
+            const allCos = ['CO1', 'CO2', 'CO3', 'CO4'];
+            const cos = (targetCo === 'ALL') ? allCos : [targetCo];
+
             let html = '';
-            const cos = ['CO1', 'CO2', 'CO3', 'CO4'];
 
             cos.forEach(co => {
                 const activeActs = slConfigs[co] || { assignment: true, mcq: true };
-                const actKeys = Object.keys(activeActs).filter(k => activeActs[k]);
+                let actKeys = Object.keys(activeActs).filter(k => activeActs[k]);
+
+                if (targetAct !== 'ALL') {
+                    actKeys = actKeys.filter(k => k === targetAct);
+                }
+
+                if (actKeys.length === 0 && targetAct !== 'ALL') {
+                    return; // Skip COs that don't have the selected activity enabled
+                }
 
                 html += `
-                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-bold text-amber-400 text-sm flex items-center space-x-2">
-                                <span>${co} Assessment Activities</span>
-                                <span class="text-xs text-slate-400 font-normal">(${actKeys.length} Active)</span>
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-800/60">
+                            <h4 class="font-bold text-amber-400 text-xs flex items-center space-x-2">
+                                <span>🎯 ${co} Self-Learning Activities</span>
+                                <span class="text-[10px] text-slate-400 font-normal">(${actKeys.length} ${targetAct !== 'ALL' ? 'Filtered' : 'Active'})</span>
                             </h4>
-                            <span id="co-sum-${co}" class="text-xs font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                            <span id="co-sum-${co}" class="text-[10px] font-bold text-emerald-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
                                 Avg: 0.0 / 15.0
                             </span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="flex flex-wrap items-center justify-center gap-2">
                 `;
 
                 actKeys.forEach(actKey => {
@@ -2189,17 +2352,18 @@
                     const currentVal = slSplitupState[regNo][co] ? (slSplitupState[regNo][co][actKey] || 0) : 0;
 
                     html += `
-                        <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-200 text-xs uppercase">${label}</span>
-                                <span id="badge-${co}-${actKey}" class="px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-mono text-xs font-bold border border-amber-500/20">
-                                    ${parseFloat(currentVal).toFixed(1)} / 15.0
+                        <div class="p-2 rounded-lg bg-slate-950/80 border border-slate-800/80 space-y-1 hover:border-slate-700 transition-all flex-1 min-w-[190px] max-w-[225px]">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="font-bold text-slate-300 text-[10px] uppercase tracking-wide truncate">${label}</span>
+                                <span id="badge-${co}-${actKey}" class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/20 flex-shrink-0">
+                                    ${parseFloat(currentVal).toFixed(1)}/15
                                 </span>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">-</button>
-                                <input type="range" id="slider-${co}-${actKey}" min="0" max="15" step="0.5" value="${currentVal}" oninput="syncSlSlider('${regNo}', '${co}', '${actKey}', this.value)" class="flex-1 accent-emerald-400 h-2 bg-slate-800 rounded-lg cursor-pointer">
-                                <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', 0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">+</button>
+                            <div class="flex items-center space-x-1 pt-0.5">
+                                <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', -0.5)" class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 font-bold text-white text-[11px] flex items-center justify-center flex-shrink-0 cursor-pointer shadow-sm">-</button>
+                                <input type="range" id="slider-${co}-${actKey}" min="0" max="15" step="0.5" value="${currentVal}" oninput="syncSlSlider('${regNo}', '${co}', '${actKey}', this.value)" class="flex-1 accent-emerald-400 h-1 bg-slate-800 rounded cursor-pointer min-w-0">
+                                <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', 0.5)" class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 font-bold text-white text-[11px] flex items-center justify-center flex-shrink-0 cursor-pointer shadow-sm">+</button>
+                                <input type="number" id="input-${co}-${actKey}" min="0" max="15" step="0.5" value="${currentVal}" oninput="syncSlInput('${regNo}', '${co}', '${actKey}', this.value)" class="w-10 h-5 bg-slate-900 border border-slate-700 rounded text-center font-bold text-emerald-400 text-[11px] outline-none focus:border-emerald-400 flex-shrink-0">
                             </div>
                         </div>
                     `;
@@ -2211,12 +2375,21 @@
                 `;
             });
 
+            if (html === '') {
+                html = `
+                    <div class="p-6 text-center bg-slate-900/60 rounded-xl border border-slate-800 space-y-2">
+                        <div class="text-slate-400 text-xl">🔍</div>
+                        <p class="text-slate-400 text-xs font-semibold">No activities match the selected CO / Activity filter.</p>
+                    </div>
+                `;
+            }
+
             container.innerHTML = html;
             calculateSlLiveTotal(regNo);
         }
 
         function syncSlSlider(regNo, co, actKey, val) {
-            const num = parseFloat(val) || 0;
+            const num = Math.max(0, Math.min(15, parseFloat(val) || 0));
             if (!slSplitupState[regNo]) slSplitupState[regNo] = {};
             if (!slSplitupState[regNo][co]) slSplitupState[regNo][co] = {};
             slSplitupState[regNo][co][actKey] = num;
@@ -2224,16 +2397,32 @@
             const badge = document.getElementById(`badge-${co}-${actKey}`);
             if (badge) badge.innerText = `${num.toFixed(1)} / 15.0`;
 
+            const input = document.getElementById(`input-${co}-${actKey}`);
+            if (input && parseFloat(input.value) !== num) input.value = num;
+
+            calculateSlLiveTotal(regNo);
+        }
+
+        function syncSlInput(regNo, co, actKey, val) {
+            const num = Math.max(0, Math.min(15, parseFloat(val) || 0));
+            if (!slSplitupState[regNo]) slSplitupState[regNo] = {};
+            if (!slSplitupState[regNo][co]) slSplitupState[regNo][co] = {};
+            slSplitupState[regNo][co][actKey] = num;
+
+            const badge = document.getElementById(`badge-${co}-${actKey}`);
+            if (badge) badge.innerText = `${num.toFixed(1)} / 15.0`;
+
+            const slider = document.getElementById(`slider-${co}-${actKey}`);
+            if (slider && parseFloat(slider.value) !== num) slider.value = num;
+
             calculateSlLiveTotal(regNo);
         }
 
         function stepSlSlider(regNo, co, actKey, delta) {
             const slider = document.getElementById(`slider-${co}-${actKey}`);
-            if (!slider) return;
-
-            let current = parseFloat(slider.value) || 0;
+            let current = slider ? (parseFloat(slider.value) || 0) : (slSplitupState[regNo]?.[co]?.[actKey] || 0);
             let next = Math.max(0, Math.min(15, current + delta));
-            slider.value = next;
+            if (slider) slider.value = next;
             syncSlSlider(regNo, co, actKey, next);
         }
 
@@ -2269,6 +2458,177 @@
 
             if (rawElem) rawElem.innerText = `${overallAvg.toFixed(2)} / 15.00 M`;
             if (ciaElem) ciaElem.innerText = `${ciaConverted.toFixed(2)} / 5.00 M`;
+
+            renderSlConfirmationTable(regNo);
+        }
+
+        function renderSlConfirmationTable(currentRegNo) {
+            const tbody = document.getElementById('sl-confirmation-tbody');
+            const badge = document.getElementById('sl-evaluated-count-badge');
+            if (!tbody) return;
+
+            let html = '';
+            let evaluatedCount = 0;
+            const students = typeof studentsList !== 'undefined' && studentsList.length ? studentsList : [];
+
+            students.forEach(student => {
+                const regNo = student.reg_no;
+                const data = slSplitupState[regNo] || {};
+
+                let totalScore = 0;
+                let totalCount = 0;
+                let coBreakdownArr = [];
+
+                ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
+                    const coData = data[co] || {};
+                    let coSum = 0;
+                    let coCnt = 0;
+                    Object.values(coData).forEach(val => {
+                        coSum += parseFloat(val) || 0;
+                        coCnt++;
+                    });
+                    const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
+                    if (coCnt > 0) {
+                        coBreakdownArr.push(`<span class="px-1 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-amber-300 border border-slate-700">${co}:${coAvg.toFixed(1)}</span>`);
+                    }
+                    totalScore += coSum;
+                    totalCount += coCnt;
+                });
+
+                const overallAvg = totalCount > 0 ? (totalScore / totalCount) : 0;
+                const ciaConverted = Math.min(5.0, (overallAvg / 15.0) * 5.0);
+
+                if (overallAvg > 0 || (slSplitupState[regNo] && Object.keys(slSplitupState[regNo]).length > 0)) {
+                    evaluatedCount++;
+                }
+
+                const isCurrent = (regNo === currentRegNo);
+                const activeBg = isCurrent ? 'bg-indigo-950/70 border-l-2 border-indigo-400 font-semibold' : 'hover:bg-slate-900/50';
+
+                html += `
+                    <tr class="${activeBg} transition-all">
+                        <td class="p-1.5 text-center font-bold text-slate-400">${student.roll_no}</td>
+                        <td class="p-1.5 font-mono text-[10px] font-bold text-emerald-400/90">${student.sbte_reg_no || student.reg_no}</td>
+                        <td class="p-1.5 font-medium text-slate-200">
+                            <div class="text-[11px] font-bold text-white">${student.name}</div>
+                        </td>
+                        <td class="p-1.5 text-center">
+                            <div class="flex items-center justify-center gap-1 flex-wrap">${coBreakdownArr.join('') || '<span class="text-slate-600 text-[10px]">-</span>'}</div>
+                        </td>
+                        <td class="p-1.5 text-center font-bold text-amber-400 text-xs">${overallAvg.toFixed(2)} / 15.0</td>
+                        <td class="p-1.5 text-center font-black text-emerald-400 text-xs">
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">${ciaConverted.toFixed(2)} / 5.0</span>
+                        </td>
+                        <td class="p-1.5 text-center">
+                            <button type="button" onclick="jumpToSlStudent('${regNo}')" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/60 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                Edit ✏️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            if (badge) badge.innerText = `${evaluatedCount} Evaluated`;
+        }
+
+        function jumpToSlStudent(regNo) {
+            const sel = document.getElementById('sl-student-select');
+            if (sel) {
+                sel.value = regNo;
+                loadSlStudent(regNo);
+            }
+        }
+
+        function printSlModalLedger() {
+            const students = typeof studentsList !== 'undefined' && studentsList.length ? studentsList : [];
+            let printHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>CA1 Self-Learning Evaluation Confirmation Ledger</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #000; font-size: 11px; }
+                        h2, h4 { margin: 2px 0; text-align: center; }
+                        .meta { text-align: center; font-size: 10px; margin-bottom: 12px; color: #444; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #333; padding: 5px 8px; text-align: left; font-size: 10px; }
+                        th { background-color: #f2f2f2; font-weight: bold; text-align: center; text-transform: uppercase; }
+                        .text-center { text-align: center; }
+                        .signatures { margin-top: 45px; display: flex; justify-content: space-between; }
+                        .sig-box { text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>{{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</h2>
+                    <h4>Continuous Assessment (CA1) Self-Learning Evaluation Confirmation Ledger</h4>
+                    <div class="meta">Academic Semester: {{ $batchSubject->semester ?? 'R2026' }} | Printed: ${new Date().toLocaleString()}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 35px;">Roll</th>
+                                <th style="width: 110px;">SBTE Reg No</th>
+                                <th>Student Name</th>
+                                <th style="width: 160px;">CO Average (Out of 15)</th>
+                                <th style="width: 90px;">Raw Score (15M)</th>
+                                <th style="width: 90px;">CA1 CIA (5M)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            students.forEach(student => {
+                const regNo = student.reg_no;
+                const data = slSplitupState[regNo] || {};
+
+                let totalScore = 0;
+                let totalCount = 0;
+                let coParts = [];
+
+                ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
+                    const coData = data[co] || {};
+                    let coSum = 0;
+                    let coCnt = 0;
+                    Object.values(coData).forEach(val => {
+                        coSum += parseFloat(val) || 0;
+                        coCnt++;
+                    });
+                    const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
+                    coParts.push(`${co}: ${coAvg.toFixed(1)}`);
+                    totalScore += coSum;
+                    totalCount += coCnt;
+                });
+
+                const overallAvg = totalCount > 0 ? (totalScore / totalCount) : 0;
+                const ciaConverted = Math.min(5.0, (overallAvg / 15.0) * 5.0);
+
+                printHtml += `
+                    <tr>
+                        <td class="text-center">${student.roll_no}</td>
+                        <td>${student.sbte_reg_no || student.reg_no}</td>
+                        <td><strong>${student.name}</strong></td>
+                        <td class="text-center">${coParts.join(' | ')}</td>
+                        <td class="text-center"><strong>${overallAvg.toFixed(2)}</strong></td>
+                        <td class="text-center" style="font-weight: bold; background-color: #f9f9f9;">${ciaConverted.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            printHtml += `
+                        </tbody>
+                    </table>
+                    <div class="signatures">
+                        <div class="sig-box">Course Instructor Signature</div>
+                        <div class="sig-box">HOD Signature</div>
+                    </div>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+                </html>
+            `;
+
+            const printWin = window.open('', '_blank', 'width=900,height=650');
+            printWin.document.write(printHtml);
+            printWin.document.close();
         }
 
         function prevSlStudent() {

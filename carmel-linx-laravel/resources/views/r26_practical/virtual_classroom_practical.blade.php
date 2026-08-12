@@ -634,43 +634,52 @@
 
                 <!-- Articulation matrix (CO-PO Mapping) -->
                 <div class="mt-8 pt-6 border-t border-slate-800">
-                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-table text-slate-500"></i>
-                        CO-PO Articulation Matrix
-                        <span class="text-[10px] font-normal text-slate-600 ml-2">(1 = Low &nbsp;·&nbsp; 2 = Medium &nbsp;·&nbsp; 3 = High &nbsp;·&nbsp; - = No mapping)</span>
-                    </h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-table text-slate-500"></i>
+                            CO-PO & CO-PSO Articulation Matrix
+                            <span class="text-[10px] font-normal text-slate-600 ml-2">(1 = Low &nbsp;·&nbsp; 2 = Medium &nbsp;·&nbsp; 3 = High &nbsp;·&nbsp; - = No mapping)</span>
+                        </h3>
+                        <button onclick="savePracticalCoPoMatrixBtn()" id="savePracticalCoPoBtn" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-floppy-disk"></i> Save / Update Matrix
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-center text-xs text-slate-300 border border-slate-800 border-collapse rounded-xl overflow-hidden">
                             <thead>
-                                <tr class="bg-slate-900 font-bold text-slate-500 uppercase tracking-wider">
-                                    <th class="p-3 border border-slate-800 text-left text-slate-400 w-20">CO</th>
+                                <tr class="bg-slate-900 font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-3 border border-slate-800 text-left w-20">CO</th>
                                     @for($p = 1; $p <= 11; $p++)
-                                    <th class="p-3 border border-slate-800 text-center">PO{{ $p }}</th>
+                                    <th class="p-2 border border-slate-800 text-center text-indigo-400 w-10">PO{{ $p }}</th>
+                                    @endfor
+                                    @for($s = 1; $s <= 3; $s++)
+                                    <th class="p-2 border border-slate-800 text-center text-sky-400 w-10">PSO{{ $s }}</th>
                                     @endfor
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="practicalCoPoMatrixTbody">
                                 @php
                                     $mappings = $copoDecoded['mappings'] ?? [];
-                                    $badgeMap = [
-                                        '3' => 'bg-red-500/20 text-red-300 border border-red-500/30',
-                                        '2' => 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-                                        '1' => 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-                                        '-' => 'text-slate-700',
-                                    ];
                                 @endphp
                                 @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coId)
                                 <tr class="hover:bg-slate-900/20 transition">
-                                    <td class="p-3 border border-slate-800 text-left font-semibold font-mono text-slate-400">{{ $coId }}</td>
+                                    <td class="p-3 border border-slate-800 text-left font-semibold font-mono text-amber-400">{{ $coId }}</td>
                                     @for($p = 1; $p <= 11; $p++)
                                     @php
-                                        $poVal = $mappings[$coId]["PO$p"] ?? '-';
-                                        $badge = $badgeMap[$poVal] ?? $badgeMap['-'];
+                                        $poVal = $mappings[$coId]["PO$p"] ?? '';
+                                        if ($poVal === '-') $poVal = '';
                                     @endphp
-                                    <td class="p-2 border border-slate-800">
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg font-black text-sm {{ $badge }}">
-                                            {{ $poVal }}
-                                        </span>
+                                    <td class="p-1 border border-slate-800">
+                                        <input type="text" maxlength="1" value="{{ $poVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-8 h-8 bg-slate-950 border border-slate-800 rounded text-center font-bold text-emerald-400 focus:border-blue-500 outline-none text-xs" data-co="{{ $coId }}" data-target="PO{{ $p }}">
+                                    </td>
+                                    @endfor
+                                    @for($s = 1; $s <= 3; $s++)
+                                    @php
+                                        $psoVal = $mappings[$coId]["PSO$s"] ?? '';
+                                        if ($psoVal === '-') $psoVal = '';
+                                    @endphp
+                                    <td class="p-1 border border-slate-800">
+                                        <input type="text" maxlength="1" value="{{ $psoVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-8 h-8 bg-slate-950 border border-slate-800 rounded text-center font-bold text-sky-300 focus:border-blue-500 outline-none text-xs" data-co="{{ $coId }}" data-target="PSO{{ $s }}">
                                     </td>
                                     @endfor
                                 </tr>
@@ -2280,6 +2289,52 @@
                 }
             } catch(e) {
                 alert("Failed to save blueprint.");
+            }
+        }
+
+        async function savePracticalCoPoMatrixBtn() {
+            const btn = document.getElementById('savePracticalCoPoBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            }
+
+            const inputs = document.querySelectorAll('#practicalCoPoMatrixTbody input[data-co]');
+            const mappings = {};
+
+            inputs.forEach(input => {
+                const co = input.getAttribute('data-co');
+                const target = input.getAttribute('data-target');
+                const val = input.value ? input.value : '-';
+                if (!mappings[co]) {
+                    mappings[co] = {};
+                }
+                mappings[co][target] = val;
+            });
+
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/copo-mapping/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({ mappings: mappings })
+                });
+                const data = await res.json();
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                if (data.success || data.status === 'SUCCESS') {
+                    alert(data.message || 'Matrix saved!');
+                } else {
+                    alert(data.message || 'Failed to save matrix.');
+                }
+            } catch(e) {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                alert('Network error saving matrix.');
             }
         }
 

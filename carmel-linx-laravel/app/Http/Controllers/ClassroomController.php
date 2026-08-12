@@ -3869,23 +3869,33 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
     }
 
     /**
-     * Save CO-PO/PSO mapping to syllabus registry
+     * Save CO-PO/PSO mapping to syllabus registry and practicum course file
      */
     public function savePracticalCoPoMapping(Request $request, $subjectId)
     {
         $batchSubject = \App\Models\BatchSubject::findOrFail($subjectId);
-        $mapping = $request->input('co_po_mapping');
+        $mapping = $request->input('co_po_mapping') ?? $request->input('mapping') ?? $request->input('mappings');
 
         \DB::table('syllabus_registry')->updateOrInsert(
             ['subject_code' => $batchSubject->subject_code],
             ['co_po_mapping' => json_encode($mapping), 'updated_at' => now()]
         );
 
+        $practicumFile = \App\Models\R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if ($practicumFile) {
+            $copoPayload = $practicumFile->parsed_copo ?: [];
+            $copoPayload['mappings'] = $mapping;
+            $practicumFile->parsed_copo = $copoPayload;
+            $practicumFile->save();
+        }
+
         return response()->json([
             'status' => 'SUCCESS',
+            'success' => true,
             'message' => 'CO-PO & PSO Mapping saved successfully.'
         ]);
     }
+
 
     /**
      * Save Theory CO-PO/PSO mapping to CourseFile and syllabus_registry

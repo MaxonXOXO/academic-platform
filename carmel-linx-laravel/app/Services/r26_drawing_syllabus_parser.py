@@ -199,10 +199,15 @@ def parse_drawing_syllabus(pdf_path):
             hrs_match = re.search(r'(\d+)\s*$', line)
             hrs = float(hrs_match.group(1)) if hrs_match else 3.0
             
+            clean_title = re.sub(r'^CO\d+\s*', '', line.strip())
+            clean_title = re.sub(r'\s*(Understand|Apply|Analyze|Remember|Evaluate|Create)\s*$', '', clean_title, flags=re.IGNORECASE)
+            clean_title = re.sub(r'\s*\d+\s*$', '', clean_title)
+
+            ex_idx = len(exercises) + 1
             exercises.append({
-                'exercise_no': f"EXE-0{len(exercises)+1}",
+                'exercise_no': f"EXE-{ex_idx:02d}",
                 'module': current_module,
-                'title': line[:100].strip(),
+                'title': f"Drawing Sheet {ex_idx} - {clean_title[:80]}",
                 'co_id': co_id,
                 'hours': hrs
             })

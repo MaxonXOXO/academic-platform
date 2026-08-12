@@ -400,9 +400,16 @@
                                     <i class="fa-solid fa-gears me-1"></i> Parse & Extract Syllabus
                                 </button>
                             </form>
+                            @if(!empty($drawingCourseFile->syllabus_pdf_path))
+                            <div class="mt-3">
+                                <a href="/storage/{{ str_replace('/storage/', '', $drawingCourseFile->syllabus_pdf_path) }}" target="_blank" class="btn btn-outline-info btn-sm w-100 fw-bold py-2 shadow-sm">
+                                    <i class="fa-solid fa-file-pdf me-1.5 text-danger fs-6"></i> View Uploaded Syllabus PDF
+                                </a>
+                            </div>
+                            @endif
                             <div class="mt-3 p-3 rounded" style="background: rgba(6,182,212,0.1); border: 1px dashed var(--accent-cyan);">
                                 <small class="text-info d-block fw-semibold mb-1"><i class="fa-solid fa-circle-info me-1"></i> Auto Extraction Support</small>
-                                <small class="text-muted">Parses Course Title, Code, L:T:P:R, Credits, CO1-CO4 descriptions, Bloom's levels, CO-PO Matrix, and Drawing Exercises automatically.</small>
+                                <small class="text-muted">Parses Course Title, Code, L:T:P:R, Credits, CO1-CO5 descriptions, Bloom's levels, CO-PO Matrix, and Drawing Exercises automatically from the PDF.</small>
                             </div>
                         </div>
                     </div>

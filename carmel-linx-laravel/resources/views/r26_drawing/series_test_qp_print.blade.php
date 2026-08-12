@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Series {{ $testNo }} - {{ strtoupper($docType) }} - {{ $batchSubject->subject_code }}</title>
+    <title>Series {{ $testNo }} - {{ strtoupper($docType) }} - {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -224,7 +224,7 @@
             </td>
         </tr>
         <tr>
-            <td style="width: 35%;"><strong>Course:</strong> {{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
+            <td style="width: 35%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
             <td style="width: 25%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
             <td style="width: 20%;"><strong>Batch:</strong> {{ $classroom->batch_year ? $classroom->batch_year.'-'.($classroom->batch_year+3) : '2026-2029' }}</td>
             <td style="width: 20%;"><strong>Acad Year:</strong> {{ date('Y').'-'.(date('Y')+1) }}</td>
@@ -306,7 +306,7 @@
             </td>
         </tr>
         <tr>
-            <td style="width: 40%;"><strong>Course:</strong> {{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
+            <td style="width: 40%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
             <td style="width: 20%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
             <td style="width: 20%;"><strong>Test:</strong> Series {{ $testNo }}</td>
             <td style="width: 20%;"><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks</td>
@@ -364,7 +364,7 @@
             </td>
         </tr>
         <tr>
-            <td style="width: 40%;"><strong>Course:</strong> {{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
+            <td style="width: 40%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
             <td style="width: 20%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
             <td style="width: 20%;"><strong>Test:</strong> Series {{ $testNo }}</td>
             <td style="width: 20%;"><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks</td>

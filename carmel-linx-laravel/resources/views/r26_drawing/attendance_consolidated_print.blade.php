@@ -87,7 +87,7 @@ function goBackToDrawingLab() {
     <td class="lbl">Course Name</td>
     <td class="val">{{ $batchSubject->subject_name }}</td>
     <td class="lbl">Course Code</td>
-    <td class="val">{{ $batchSubject->subject_code }}</td>
+    <td class="val">{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</td>
   </tr>
   <tr>
     <td class="lbl">Semester</td>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $batchSubject->subject_name }} ({{ $batchSubject->subject_code }}) - Virtual Drawing Hall (R2026)</title>
+    <title>[{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}] {{ $batchSubject->subject_name }} - Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R2021' : 'R2026' }})</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -326,7 +326,7 @@
                         </span>
                     </div>
                     <h5 class="fw-bold mb-1 text-white" style="font-size: 1.05rem;">
-                        <span class="text-info me-1.5">[{{ $drawingCourseFile->course_code ?? $batchSubject->subject_code }}]</span>
+                        <span class="text-info me-1.5">[{{ $batchSubject->formatted_subject_code ?? ($drawingCourseFile->course_code ?? $batchSubject->subject_code) }}]</span>
                         <span>{{ $drawingCourseFile->course_title ?? $batchSubject->subject_name }}</span>
                     </h5>
                     <p class="mb-0" style="color: #cbd5e1; font-size: 0.8rem;">

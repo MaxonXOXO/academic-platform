@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Plan - {{ $batchSubject->subject_code }} ({{ $batchSubject->subject_name }})</title>
+    <title>Lesson Plan - {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} ({{ $batchSubject->subject_name }})</title>
     <style>
         @page {
             size: A4 landscape;
@@ -249,7 +249,7 @@
             </tr>
             <tr>
                 <td class="lbl">Subject Code & Title:</td>
-                <td class="val">[{{ $batchSubject->subject_code }}] {{ $batchSubject->subject_name }}</td>
+                <td class="val">[{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}] {{ $batchSubject->subject_name }}</td>
                 <td class="lbl">Academic Batch:</td>
                 <td class="val">{{ !empty($classroom?->batch_year) ? $classroom->batch_year.'-'.($classroom->batch_year+3) : ($classroom?->classroom_id ?? $batchSubject->classroom_id ?? '2026-2029') }}</td>
             </tr>

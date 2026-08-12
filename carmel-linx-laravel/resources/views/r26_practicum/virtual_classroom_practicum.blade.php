@@ -320,9 +320,9 @@
                                 <span>AI Active</span>
                             </span>
                         @else
-                            <span class="px-2.5 py-0.5 rounded-full bg-slate-800/90 text-slate-400 border border-slate-700 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI Support API Deactivated">
-                                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                                <span>AI Off</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-950/40 text-amber-400 border border-amber-900/60 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span>AI Offline (Local DB)</span>
                             </span>
                         @endif
                     </div>

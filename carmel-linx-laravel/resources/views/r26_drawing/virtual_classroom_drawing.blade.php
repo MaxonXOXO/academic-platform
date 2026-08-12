@@ -315,9 +315,9 @@
                                 <span>AI Active</span>
                             </span>
                         @else
-                            <span class="badge bg-secondary text-light px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Deactivated">
-                                <span class="rounded-circle bg-secondary-subtle d-inline-block" style="width:5px; height:5px;"></span>
-                                <span>AI Off</span>
+                            <span class="badge bg-dark text-warning border border-warning-subtle px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
+                                <span class="rounded-circle bg-warning d-inline-block" style="width:5px; height:5px;"></span>
+                                <span>AI Offline (Local DB)</span>
                             </span>
                         @endif
 

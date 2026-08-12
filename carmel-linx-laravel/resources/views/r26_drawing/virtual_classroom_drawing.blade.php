@@ -1233,6 +1233,7 @@
                 });
                 const data = await res.json();
                 if(data.status === 'SUCCESS') {
+                    this.reset();
                     alert('Syllabus uploaded and parsed successfully!');
                     window.location.reload();
                 } else {
@@ -1241,6 +1242,7 @@
             } catch(err) {
                 alert('Parsing failed: ' + err.message);
             } finally {
+                this.reset();
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-gears me-1"></i> Parse & Extract Syllabus';
             }

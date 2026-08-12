@@ -447,30 +447,21 @@
                 </div>
             </div>
 
-            <!-- TAB 2: 45-HOUR DRAWING LAB LESSON PLANNER -->
+            <!-- TAB 2: LESSON PLANNER -->
             <div class="tab-pane fade" id="tab-lessonplan" role="tabpanel">
                 <div class="glass-card p-4">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom border-secondary">
                         <div>
-                            <h5 class="fw-bold mb-1 text-warning"><i class="fa-solid fa-list-check me-2"></i>45-Hour Drawing Lab Lesson Plan</h5>
+                            <h5 class="fw-bold mb-1 text-warning"><i class="fa-solid fa-list-check me-2"></i>{{ $drawingCourseFile->contact_hours ?? 45 }}-Hour {{ $drawingCourseFile->type_of_course ?? 'Drawing' }} Lesson Plan</h5>
                             <small class="text-muted">Single Batch (Whole Class) practical sessions covering Manual Drawing & CAD Drafting, Series Exams & OEE Project</small>
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <input type="hidden" id="lesson_planner_mode" value="single">
-                            <span class="badge badge-cyan px-3 py-2 fw-semibold fs-6">
-                                <i class="fa-solid fa-users me-1"></i> Single Batch Lab
-                            </span>
                             <button onclick="generateLessonTimeline()" class="btn btn-sm btn-primary fw-bold">
                                 <i class="fa-solid fa-arrows-rotate me-1"></i> Generate Planner
                             </button>
                             <a href="/r26/classroom/drawing/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-sm btn-outline-light fw-bold">
-                                <i class="fa-solid fa-print me-1"></i> Print Plan
-                            </a>
-                            <a href="/r26/classroom/drawing/{{ $batchSubject->id }}/attendance-report" target="_blank" class="btn btn-sm btn-outline-info fw-bold">
-                                <i class="fa-solid fa-clipboard-user me-1"></i> Register Matrix
-                            </a>
-                            <a href="/r26/classroom/drawing/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="btn btn-sm btn-info fw-bold text-dark">
-                                <i class="fa-solid fa-file-contract me-1"></i> Consolidated A4 Sheet
+                                <i class="fa-solid fa-print me-1"></i> Print Lesson Plan
                             </a>
                             <button onclick="saveLessonPlannerBulk()" class="btn btn-sm btn-success fw-bold">
                                 <i class="fa-solid fa-floppy-disk me-1"></i> Save Planner
@@ -478,24 +469,24 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-custom table-hover align-middle mb-0" id="lesson-plan-table">
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="table table-custom table-hover align-middle mb-0 w-100" id="lesson-plan-table" style="table-layout: auto;">
                             <thead>
                                 <tr>
-                                    <th style="width: 65px;">Hour</th>
-                                    <th style="width: 130px;">Proposed Date</th>
-                                    <th style="width: 130px;">Actual Date</th>
+                                    <th style="width: 50px;">Hour</th>
+                                    <th style="width: 125px;">Proposed Date</th>
+                                    <th style="width: 125px;">Actual Date</th>
                                     <th>Topic & Exercise Content (Growable Field)</th>
-                                    <th style="width: 90px;">Mapped CO</th>
-                                    <th style="width: 65px;">Hrs</th>
-                                    <th style="width: 160px;">Pedagogy / Activity</th>
-                                    <th style="width: 110px;">Status</th>
+                                    <th style="width: 85px;">Mapped CO</th>
+                                    <th style="width: 55px;">Hrs</th>
+                                    <th style="width: 145px;">Pedagogy / Activity</th>
+                                    <th style="width: 100px;">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="lesson-plan-rows-container">
                                 @forelse($lessonPlans as $lp)
                                 <tr class="lesson-plan-row" data-id="{{ $lp->id }}">
-                                    <td class="fw-bold text-center text-info">#{{ $lp->day_no }}</td>
+                                    <td class="fw-bold text-center text-info lp-day-no">#{{ $lp->day_no }}</td>
                                     <td>
                                         <input type="date" value="{{ $lp->proposed_date ?: $lp->planned_date }}" class="form-control form-control-custom form-control-sm lp-proposed">
                                     </td>
@@ -507,13 +498,13 @@
                                     </td>
                                     <td>
                                         <select class="form-select form-control-custom form-select-sm lp-co">
-                                            @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coId)
+                                            @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5'] as $coId)
                                             <option value="{{ $coId }}" {{ ($lp->co_tag ?: $lp->co_id) == $coId ? 'selected' : '' }}>{{ $coId }}</option>
                                             @endforeach
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" value="{{ $lp->allocated_hours ?: 1 }}" class="form-control form-control-custom form-control-sm text-center lp-hours" min="1" max="6">
+                                        <input type="number" value="{{ $lp->allocated_hours ?: 1 }}" class="form-control form-control-custom form-control-sm text-center lp-hours" min="1" max="6" onchange="updateLpHoursTotal()">
                                     </td>
                                     <td>
                                         <select class="form-select form-control-custom form-select-sm lp-pedagogy">
@@ -533,11 +524,26 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-4 italic">No planner generated yet. Click "Generate Planner" to populate 45-hour single batch schedule.</td>
+                                    <td colspan="8" class="text-center text-muted py-4 italic">No planner generated yet. Click "Generate Planner" or "Add Row" to start building schedule.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Bottom Action Controls -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top border-secondary">
+                        <button onclick="addLessonPlanRow()" class="btn btn-outline-info btn-sm fw-bold px-3">
+                            <i class="fa-solid fa-plus me-1"></i> Add Row
+                        </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge-amber px-2.5 py-1.5 fs-6" id="lpTotalHoursBadge">
+                                Total: {{ $lessonPlans->sum('allocated_hours') }} Hours
+                            </span>
+                            <button onclick="saveLessonPlannerBulk()" class="btn btn-success btn-sm fw-bold px-3">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Planner
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1347,12 +1353,86 @@
             }
         }
 
+        // Add New Lesson Plan Row at Bottom
+        function addLessonPlanRow() {
+            const tbody = document.getElementById('lesson-plan-rows-container');
+            if (!tbody) return;
+            if (tbody.querySelector('td[colspan]')) {
+                tbody.innerHTML = '';
+            }
+            const rowCount = tbody.querySelectorAll('.lesson-plan-row').length + 1;
+            const newId = 'new_' + Date.now();
+
+            const tr = document.createElement('tr');
+            tr.className = 'lesson-plan-row';
+            tr.dataset.id = newId;
+            tr.innerHTML = `
+                <td class="fw-bold text-center text-info lp-day-no">#${rowCount}</td>
+                <td>
+                    <input type="date" class="form-control form-control-custom form-control-sm lp-proposed">
+                </td>
+                <td>
+                    <input type="date" class="form-control form-control-custom form-control-sm lp-actual">
+                </td>
+                <td>
+                    <textarea class="growable-textarea lp-topic" rows="1" oninput="autoGrow(this)" placeholder="Enter exercise topic or lesson content..."></textarea>
+                </td>
+                <td>
+                    <select class="form-select form-control-custom form-select-sm lp-co">
+                        <option value="CO1">CO1</option>
+                        <option value="CO2">CO2</option>
+                        <option value="CO3">CO3</option>
+                        <option value="CO4">CO4</option>
+                        <option value="CO5">CO5</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" value="1" class="form-control form-control-custom form-control-sm text-center lp-hours" min="1" max="6" onchange="updateLpHoursTotal()">
+                </td>
+                <td>
+                    <select class="form-select form-control-custom form-select-sm lp-pedagogy">
+                        <option value="Drawing Lab Practical (P)">Drawing Lab Practical (P)</option>
+                        <option value="Series Test Examination (CA1)">Series Test Examination (CA1)</option>
+                        <option value="Series Test Examination (CA2)">Series Test Examination (CA2)</option>
+                        <option value="Open-Ended Project (OEE)">Open-Ended Project (OEE)</option>
+                        <option value="Drawing Lab Revision (P)">Drawing Lab Revision (P)</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-select form-control-custom form-select-sm fw-bold lp-status">
+                        <option value="Pending" class="text-warning">Pending</option>
+                        <option value="Completed" class="text-success">Completed</option>
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const textarea = tr.querySelector('.lp-topic');
+            if (textarea) textarea.focus();
+            updateLpHoursTotal();
+        }
+
+        // Recalculate Total Hours Badge
+        function updateLpHoursTotal() {
+            let total = 0;
+            document.querySelectorAll('.lp-hours').forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            const badge = document.getElementById('lpTotalHoursBadge');
+            if (badge) {
+                badge.innerText = `Total: ${total} Hours`;
+            }
+        }
+
         // Save Bulk Lesson Planner Entries
         async function saveLessonPlannerBulk() {
             const plans = {};
+            let count = 1;
             document.querySelectorAll('.lesson-plan-row').forEach(row => {
                 const id = row.dataset.id;
                 plans[id] = {
+                    day_no: count,
                     proposed_date: row.querySelector('.lp-proposed').value,
                     actual_date: row.querySelector('.lp-actual').value,
                     topic_content: row.querySelector('.lp-topic').value,
@@ -1361,6 +1441,7 @@
                     pedagogy: row.querySelector('.lp-pedagogy').value,
                     status: row.querySelector('.lp-status').value
                 };
+                count++;
             });
 
             try {

@@ -665,6 +665,7 @@ class R26VirtualClassroomDrawingController extends Controller
     public function bulkUpdateLessonPlans(Request $request, $subjectId)
     {
         $plans = $request->input('plans', []);
+        $dayNoCounter = 1;
         foreach ($plans as $id => $data) {
             $actualDate = $data['actual_date'] ?? null;
             $status = $data['status'] ?? 'Pending';
@@ -672,7 +673,9 @@ class R26VirtualClassroomDrawingController extends Controller
                 $status = 'Completed';
             }
 
-            LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update([
+            $payload = [
+                'batch_subject_id' => $subjectId,
+                'day_no' => intval($data['day_no'] ?? $dayNoCounter),
                 'topic_content' => $data['topic_content'] ?? '',
                 'co_tag' => $data['co_tag'] ?? ($data['co_id'] ?? 'CO1'),
                 'co_id' => $data['co_tag'] ?? ($data['co_id'] ?? 'CO1'),
@@ -682,7 +685,14 @@ class R26VirtualClassroomDrawingController extends Controller
                 'planned_date' => $data['proposed_date'] ?? null,
                 'actual_date' => $actualDate,
                 'status' => $status,
-            ]);
+            ];
+
+            if (is_numeric($id) && intval($id) > 0) {
+                LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update($payload);
+            } else {
+                LessonPlan::create($payload);
+            }
+            $dayNoCounter++;
         }
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Drawing Lab Lesson Plan updated successfully!']);

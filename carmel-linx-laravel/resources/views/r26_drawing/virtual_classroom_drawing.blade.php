@@ -253,8 +253,11 @@
                 <i class="fa-solid fa-drafting-compass text-info fs-4"></i>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="fw-bold brand-font text-white" style="font-size: 1rem;">Carmel Linx</span>
-                    <span class="text-info brand-font d-none d-sm-inline" style="font-size: 0.9rem;">|</span>
-                    <span class="fw-bold text-info brand-font" style="font-size: 0.9rem;">Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})</span>
+                    <span class="text-secondary brand-font d-none d-sm-inline" style="font-size: 0.9rem;">|</span>
+                    <span class="fw-bold brand-font px-2.5 py-1 rounded-2 shadow-sm" style="font-size: 0.85rem; background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(6, 182, 212, 0.15)); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-palette text-info fs-6"></i>
+                        Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
+                    </span>
                 </div>
             </a>
             <div class="d-flex align-items-center gap-2">

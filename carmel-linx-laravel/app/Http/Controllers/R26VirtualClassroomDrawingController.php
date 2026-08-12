@@ -667,6 +667,14 @@ class R26VirtualClassroomDrawingController extends Controller
         $plans = $request->input('plans', []);
         $dayNoCounter = 1;
         foreach ($plans as $id => $data) {
+            $topic = trim($data['topic_content'] ?? '');
+            if (empty($topic)) {
+                if (is_numeric($id) && intval($id) > 0) {
+                    LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->delete();
+                }
+                continue;
+            }
+
             $actualDate = $data['actual_date'] ?? null;
             $status = $data['status'] ?? 'Pending';
             if ($actualDate && $status === 'Pending') {
@@ -676,7 +684,7 @@ class R26VirtualClassroomDrawingController extends Controller
             $payload = [
                 'batch_subject_id' => $subjectId,
                 'day_no' => intval($data['day_no'] ?? $dayNoCounter),
-                'topic_content' => $data['topic_content'] ?? '',
+                'topic_content' => $topic,
                 'co_tag' => $data['co_tag'] ?? ($data['co_id'] ?? 'CO1'),
                 'co_id' => $data['co_tag'] ?? ($data['co_id'] ?? 'CO1'),
                 'allocated_hours' => intval($data['allocated_hours'] ?? 1),

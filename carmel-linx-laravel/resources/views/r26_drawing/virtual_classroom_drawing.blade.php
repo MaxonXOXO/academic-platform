@@ -457,13 +457,13 @@
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <input type="hidden" id="lesson_planner_mode" value="single">
-                            <button onclick="generateLessonTimeline()" class="btn btn-sm btn-primary fw-bold">
-                                <i class="fa-solid fa-arrows-rotate me-1"></i> Generate Planner
+                            <button onclick="generateLessonTimeline()" class="btn btn-sm btn-outline-primary px-2.5 py-1 fw-bold">
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> Generate
                             </button>
-                            <a href="/r26/classroom/drawing/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-sm btn-outline-light fw-bold">
-                                <i class="fa-solid fa-print me-1"></i> Print Lesson Plan
+                            <a href="/r26/classroom/drawing/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-sm btn-outline-light px-2.5 py-1 fw-bold">
+                                <i class="fa-solid fa-print me-1"></i> Print Plan
                             </a>
-                            <button onclick="saveLessonPlannerBulk()" class="btn btn-sm btn-success fw-bold">
+                            <button onclick="saveLessonPlannerBulk()" class="btn btn-sm btn-success px-3 py-1 fw-bold">
                                 <i class="fa-solid fa-floppy-disk me-1"></i> Save Planner
                             </button>
                         </div>
@@ -494,7 +494,7 @@
                                         <input type="date" value="{{ $lp->actual_date }}" class="form-control form-control-custom form-control-sm lp-actual">
                                     </td>
                                     <td>
-                                        <textarea class="growable-textarea lp-topic" rows="1" oninput="autoGrow(this)">{{ $lp->topic_content }}</textarea>
+                                        <textarea class="growable-textarea lp-topic" rows="1" oninput="autoGrow(this); updateLpHoursTotal();">{{ $lp->topic_content }}</textarea>
                                     </td>
                                     <td>
                                         <select class="form-select form-control-custom form-select-sm lp-co">
@@ -524,7 +524,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-4 italic">No planner generated yet. Click "Generate Planner" or "Add Row" to start building schedule.</td>
+                                    <td colspan="8" class="text-center text-muted py-4 italic">No planner generated yet. Click "Generate" or "Add Row" to start building schedule.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -533,14 +533,14 @@
 
                     <!-- Bottom Action Controls -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top border-secondary">
-                        <button onclick="addLessonPlanRow()" class="btn btn-outline-info btn-sm fw-bold px-3">
+                        <button onclick="addLessonPlanRow()" class="btn btn-outline-info btn-sm px-3 py-1 fw-bold">
                             <i class="fa-solid fa-plus me-1"></i> Add Row
                         </button>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge badge-amber px-2.5 py-1.5 fs-6" id="lpTotalHoursBadge">
-                                Total: {{ $lessonPlans->sum('allocated_hours') }} Hours
+                            <span class="badge bg-dark text-warning border border-warning px-2.5 py-1.5 fs-6" id="lpTotalHoursBadge">
+                                Total: {{ $lessonPlans->reject(fn($lp) => empty(trim($lp->topic_content)))->sum('allocated_hours') }} Hours
                             </span>
-                            <button onclick="saveLessonPlannerBulk()" class="btn btn-success btn-sm fw-bold px-3">
+                            <button onclick="saveLessonPlannerBulk()" class="btn btn-success btn-sm px-3 py-1 fw-bold">
                                 <i class="fa-solid fa-floppy-disk me-1"></i> Save Planner
                             </button>
                         </div>
@@ -1375,7 +1375,7 @@
                     <input type="date" class="form-control form-control-custom form-control-sm lp-actual">
                 </td>
                 <td>
-                    <textarea class="growable-textarea lp-topic" rows="1" oninput="autoGrow(this)" placeholder="Enter exercise topic or lesson content..."></textarea>
+                    <textarea class="growable-textarea lp-topic" rows="1" oninput="autoGrow(this); updateLpHoursTotal();" placeholder="Enter exercise topic or lesson content..."></textarea>
                 </td>
                 <td>
                     <select class="form-select form-control-custom form-select-sm lp-co">
@@ -1413,11 +1413,15 @@
             updateLpHoursTotal();
         }
 
-        // Recalculate Total Hours Badge
+        // Recalculate Total Hours Badge (Only Count Rows With Content)
         function updateLpHoursTotal() {
             let total = 0;
-            document.querySelectorAll('.lp-hours').forEach(input => {
-                total += parseInt(input.value) || 0;
+            document.querySelectorAll('.lesson-plan-row').forEach(row => {
+                const topic = (row.querySelector('.lp-topic')?.value || '').trim();
+                if (topic) {
+                    const hrsInput = row.querySelector('.lp-hours');
+                    total += parseInt(hrsInput?.value) || 0;
+                }
             });
             const badge = document.getElementById('lpTotalHoursBadge');
             if (badge) {
@@ -1425,17 +1429,21 @@
             }
         }
 
-        // Save Bulk Lesson Planner Entries
+        // Save Bulk Lesson Planner Entries (Discard Blank Rows)
         async function saveLessonPlannerBulk() {
             const plans = {};
             let count = 1;
             document.querySelectorAll('.lesson-plan-row').forEach(row => {
+                const topic = (row.querySelector('.lp-topic')?.value || '').trim();
+                // Discard blank text rows
+                if (!topic) return;
+
                 const id = row.dataset.id;
                 plans[id] = {
                     day_no: count,
                     proposed_date: row.querySelector('.lp-proposed').value,
                     actual_date: row.querySelector('.lp-actual').value,
-                    topic_content: row.querySelector('.lp-topic').value,
+                    topic_content: topic,
                     co_tag: row.querySelector('.lp-co').value,
                     allocated_hours: row.querySelector('.lp-hours').value,
                     pedagogy: row.querySelector('.lp-pedagogy').value,

@@ -567,20 +567,29 @@
             <!-- TAB 3: CONTINUOUS EVALUATION (CE - 30 MARKS) WITH SLIDER INPUTS -->
             <div class="tab-pane fade" id="tab-ce" role="tabpanel">
                 <div class="glass-card p-4">
-                    <div class="row align-items-center g-3 mb-4">
-                        <div class="col-md-5">
+                    <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-4">
+                        <div>
                             <h5 class="fw-bold mb-1"><i class="fa-solid fa-pen-ruler me-2 text-success"></i>Continuous Practical Evaluation (CE)</h5>
                             <small class="text-muted">Split rubric scoring via slider controls (Max 50 -> Converted to 30 CIE Marks)</small>
                         </div>
-                        <div class="col-md-5">
-                            <select class="form-select form-control-custom" id="ceExerciseSelect">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <select class="form-select form-control-custom" id="ceExerciseSelect" style="max-width: 320px;">
                                 @foreach($drawingCourseFile->parsed_exercises ?? [] as $ex)
                                 <option value="{{ $ex['exercise_no'] }}">{{ $ex['exercise_no'] }}: {{ $ex['title'] }}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <button class="btn btn-cyan w-100" id="saveCeBtn"><i class="fa-solid fa-floppy-disk me-1"></i> Save CE</button>
+                            <button class="btn btn-outline-cyan btn-sm" data-bs-toggle="modal" data-bs-target="#addExerciseModal">
+                                <i class="fa-solid fa-plus me-1"></i> Add Exercise
+                            </button>
+                            <a href="/r26/classroom/drawing/exercises/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-outline-light btn-sm">
+                                <i class="fa-solid fa-print me-1"></i> Print List
+                            </a>
+                            <a href="/r26/classroom/drawing/ce-consolidated/print/{{ $batchSubject->id }}" target="_blank" class="btn btn-outline-warning btn-sm">
+                                <i class="fa-solid fa-file-invoice me-1"></i> CE Ledger
+                            </a>
+                            <button class="btn btn-cyan btn-sm" id="saveCeBtn">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save CE
+                            </button>
                         </div>
                     </div>
 
@@ -1967,6 +1976,108 @@
         }
 
         document.addEventListener('fullscreenchange', updateFullscreenBtnUI);
+
+        // Add New Exercise Handler
+        document.getElementById('confirmAddExBtn')?.addEventListener('click', function() {
+            const title = document.getElementById('newExTitle').value.trim();
+            const module = document.getElementById('newExModule').value;
+            const co_id = document.getElementById('newExCo').value;
+            const hours = document.getElementById('newExHours').value;
+
+            if (!title) {
+                alert('Please enter an exercise title.');
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
+
+            fetch('/api/r26/classroom/drawing/{{ $batchSubject->id }}/exercises/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ title, module, co_id, hours })
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.disabled = false;
+                this.innerHTML = '<i class="fa-solid fa-check me-1"></i> Add & Select';
+                if (data.status === 'SUCCESS') {
+                    const select = document.getElementById('ceExerciseSelect');
+                    const newEx = data.new_exercise;
+                    const opt = document.createElement('option');
+                    opt.value = newEx.exercise_no;
+                    opt.textContent = `${newEx.exercise_no}: ${newEx.title}`;
+                    opt.selected = true;
+                    select.appendChild(opt);
+
+                    const modalEl = document.getElementById('addExerciseModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    document.getElementById('addExerciseForm').reset();
+
+                    select.dispatchEvent(new Event('change'));
+                    alert('Exercise added successfully!');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                this.disabled = false;
+                this.innerHTML = '<i class="fa-solid fa-check me-1"></i> Add & Select';
+                alert('Network error adding exercise.');
+            });
+        });
     </script>
+
+    <!-- MODAL: ADD NEW DRAWING EXERCISE -->
+    <div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold text-cyan"><i class="fa-solid fa-plus-circle me-2"></i>Add New Drawing Exercise / CAD Sheet</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addExerciseForm">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Exercise Title / Task Description</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="newExTitle" placeholder="e.g. Drawing Sheet 10 - Isometric Projections" required>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Module</label>
+                                <select class="form-select bg-secondary text-light border-0" id="newExModule">
+                                    <option value="Module I">Module I</option>
+                                    <option value="Module II">Module II</option>
+                                    <option value="Module III">Module III</option>
+                                    <option value="Module IV">Module IV</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Mapped CO</label>
+                                <select class="form-select bg-secondary text-light border-0" id="newExCo">
+                                    <option value="CO1">CO1</option>
+                                    <option value="CO2">CO2</option>
+                                    <option value="CO3">CO3</option>
+                                    <option value="CO4">CO4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-muted small fw-bold">Duration (Hours)</label>
+                                <input type="number" class="form-control bg-secondary text-light border-0" id="newExHours" value="3.0" step="0.5" min="1">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-cyan" id="confirmAddExBtn"><i class="fa-solid fa-check me-1"></i> Add & Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

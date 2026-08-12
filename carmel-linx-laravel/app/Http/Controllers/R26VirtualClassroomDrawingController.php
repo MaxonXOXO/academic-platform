@@ -1411,4 +1411,195 @@ class R26VirtualClassroomDrawingController extends Controller
             'hod'
         ));
     }
+
+    /**
+     * API to add a new drawing exercise / CAD sheet to R26DrawingCourseFile
+     */
+    public function addExerciseApi(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 401);
+        }
+
+        $title = trim($request->input('title', ''));
+        $module = trim($request->input('module', 'Module I'));
+        $coId = trim($request->input('co_id', 'CO1'));
+        $hours = (float)$request->input('hours', 3.0);
+
+        if (empty($title)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Exercise title is required.']);
+        }
+
+        $cf = R26DrawingCourseFile::firstOrCreate(
+            ['batch_subject_id' => $subjectId],
+            [
+                'parsed_exercises' => []
+            ]
+        );
+
+        $exercises = $cf->parsed_exercises ?? [];
+        $nextNo = 'EXE-' . str_pad(count($exercises) + 1, 2, '0', STR_PAD_LEFT);
+
+        $newEx = [
+            'exercise_no' => $nextNo,
+            'module' => $module,
+            'title' => "Drawing Sheet " . (count($exercises) + 1) . " - " . $title,
+            'co_id' => $coId,
+            'hours' => $hours
+        ];
+
+        $exercises[] = $newEx;
+        $cf->parsed_exercises = $exercises;
+        $cf->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'New drawing exercise added successfully!',
+            'new_exercise' => $newEx,
+            'exercises' => $exercises
+        ]);
+    }
+
+    /**
+     * Print Official Drawing Hall List of Exercises Report
+     */
+    public function printExerciseList($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? \App\Models\R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+
+        $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
+        $exercises = $drawingCourseFile->parsed_exercises ?? [];
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation')
+            ->get();
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation')
+            ->first();
+
+        return view('r26_drawing.exercises_list_print', compact(
+            'batchSubject',
+            'classroom',
+            'drawingCourseFile',
+            'exercises',
+            'assignedStaff',
+            'hod'
+        ));
+    }
+
+    /**
+     * Print Consolidated Student Continuous Evaluation (CE) Report
+     */
+    public function printCeConsolidatedReport($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? \App\Models\R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderBy('roll_no', 'asc')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
+        $exercises = $drawingCourseFile->parsed_exercises ?? [];
+
+        // Fetch all Slot Evals for this subject
+        $slotEvals = DB::table('r26_drawing_slot_evals')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
+        // Build CE Summary per Student
+        $studentCeData = [];
+        foreach ($students as $st) {
+            $stEvals = $slotEvals->get($st->reg_no, collect());
+            $exScores = [];
+            $totalScoredSum = 0;
+            $exCount = 0;
+
+            foreach ($exercises as $ex) {
+                $exNo = $ex['exercise_no'];
+                $evalRec = $stEvals->firstWhere('exercise_no', $exNo);
+
+                if ($evalRec) {
+                    $p1 = $evalRec->prep_setup ?? 0;
+                    $p2 = $evalRec->drawing_execution ?? 0;
+                    $p3 = $evalRec->accuracy_standards ?? 0;
+                    $p4 = $evalRec->cad_drafting ?? 0;
+                    $p5 = $evalRec->viva_voce ?? 0;
+                    $p6 = $evalRec->timely_completion ?? 0;
+                    $tot = $p1 + $p2 + $p3 + $p4 + $p5 + $p6;
+                    $exScores[$exNo] = $tot;
+                    $totalScoredSum += $tot;
+                    $exCount++;
+                } else {
+                    $exScores[$exNo] = null;
+                }
+            }
+
+            $avg50 = $exCount > 0 ? round($totalScoredSum / $exCount, 2) : 0;
+            $cie30 = round(($avg50 / 50) * 30, 2);
+
+            $studentCeData[] = [
+                'roll_no' => $st->roll_no,
+                'reg_no' => $st->reg_no,
+                'name' => $st->name,
+                'ex_scores' => $exScores,
+                'avg_50' => $avg50,
+                'cie_30' => $cie30,
+                'eval_count' => $exCount
+            ];
+        }
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation')
+            ->get();
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation')
+            ->first();
+
+        return view('r26_drawing.ce_consolidated_print', compact(
+            'batchSubject',
+            'classroom',
+            'drawingCourseFile',
+            'exercises',
+            'studentCeData',
+            'assignedStaff',
+            'hod'
+        ));
+    }
 }

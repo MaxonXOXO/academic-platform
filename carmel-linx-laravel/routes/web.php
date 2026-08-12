@@ -541,6 +541,9 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/drawing/{subjectId}/series-qp/save', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'saveSeriesQpApi']);
     Route::get('/r26/classroom/drawing/{subjectId}/attendance-report', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printAttendanceReport']);
     Route::get('/r26/classroom/drawing/{subjectId}/attendance-consolidated', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printConsolidatedAttendanceReport']);
+    Route::post('/api/r26/classroom/drawing/{subjectId}/exercises/add', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'addExerciseApi']);
+    Route::get('/r26/classroom/drawing/exercises/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printExerciseList']);
+    Route::get('/r26/classroom/drawing/ce-consolidated/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printCeConsolidatedReport']);
 
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);

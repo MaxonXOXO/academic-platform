@@ -1852,43 +1852,47 @@
     function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
       const sTypeLower = (type || '').toLowerCase();
       const sNameLower = (subjectName || '').toLowerCase();
+      const isR26 = (revision === 'REV2026' || (batchId && batchId.includes('2026')));
 
-      // Universal Direct Router for Drawing, Practical, and Lab subjects across all revisions
-      if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
-        window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
-        return;
-      }
-      if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sTypeLower.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
-        window.open(`/classroom/practical/${subjectId}`, '_blank');
-        return;
-      }
-
-      if (revision === 'REV2026') {
+      if (isR26) {
         if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
           window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
           return;
-        } else if (type.includes('Theory')) {
+        } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
+          window.open(`/r26/classroom/drawing/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('practicum') || type.includes('Practicum')) {
+          window.open(`/r26/classroom/practicum/${subjectId}`, '_blank');
+          return;
+        } else if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || type.includes('Practical') || type.includes('Lab')) {
+          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
+          return;
+        } else {
           window.open(`/r26/classroom/theory/${subjectId}`, '_blank');
           return;
         }
+      } else {
+        if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
+          window.open(`/classroom/practical/${subjectId}`, '_blank');
+          return;
+        }
+        currentSubjectId = subjectId;
+        window.currentVirtualBatchId = batchId;
+        document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${subjectName}`;
+        let latText = '';
+        if (batchId.includes('_LET')) {
+          latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-xs px-2.5 py-1 rounded-full shadow-inner ml-2">LATERAL ENTRY (LET)</span>';
+        }
+        document.getElementById('vcSubtitle').innerHTML = `Batch: ${batchId}${latText}`;
+        const vcSubName = document.getElementById('vcSubjectName');
+        const vcSubCode = document.getElementById('vcSubjectCode');
+        const vcSubInfo = document.getElementById('vcSubjectInfo');
+        if (vcSubName) vcSubName.innerText = subjectName || '';
+        if (vcSubCode) vcSubCode.innerText = subjectCode || '';
+        if (vcSubInfo) vcSubInfo.style.display = (subjectName || subjectCode) ? 'flex' : 'none';
+        switchPanel('classroom');
+        loadCourseDetails(subjectId);
       }
-      currentSubjectId = subjectId;
-      window.currentVirtualBatchId = batchId;
-      document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${subjectName}`;
-      let latText = '';
-      if (batchId.includes('_LET')) {
-        latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-xs px-2.5 py-1 rounded-full shadow-inner ml-2">LATERAL ENTRY (LET)</span>';
-      }
-      document.getElementById('vcSubtitle').innerHTML = `Batch: ${batchId}${latText}`;
-      // Show subject name and code immediately near the upload button (before API loads)
-      const vcSubName = document.getElementById('vcSubjectName');
-      const vcSubCode = document.getElementById('vcSubjectCode');
-      const vcSubInfo = document.getElementById('vcSubjectInfo');
-      if (vcSubName) vcSubName.innerText = subjectName || '';
-      if (vcSubCode) vcSubCode.innerText = subjectCode || '';
-      if (vcSubInfo) vcSubInfo.style.display = (subjectName || subjectCode) ? 'flex' : 'none';
-      switchPanel('classroom');
-      loadCourseDetails(subjectId);
     }
 
     function handleSyllabusUpload(input) {

@@ -6,25 +6,25 @@
 <title>Attendance Report — {{ $batchSubject->subject_name }}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #fff; color: #1e293b; padding: 24px; }
-  .institution-header { text-align: center; border-bottom: 2.5px solid #1e3a5f; padding-bottom: 12px; margin-bottom: 16px; }
-  .institution-header h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; }
-  .institution-header p { font-size: 12px; color: #475569; margin-top: 3px; }
-  .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 20px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 18px; }
-  .meta-label { font-weight: 600; color: #475569; font-size: 11px; text-transform: uppercase; }
-  .meta-val { font-weight: 700; color: #1e293b; font-size: 13px; }
-  .section-header { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 5px; margin-bottom: 8px; margin-top: 22px; font-size: 13px; font-weight: 700; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; background: #fff; color: #1e293b; padding: 20px; }
+  .institution-header { text-align: center; border-bottom: 2.5px solid #1e3a5f; padding-bottom: 10px; margin-bottom: 14px; }
+  .institution-header h1 { font-size: 17px; font-weight: 700; color: #1e3a5f; }
+  .institution-header p { font-size: 11px; color: #475569; margin-top: 2px; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; }
+  .meta-label { font-weight: 600; color: #475569; font-size: 10px; text-transform: uppercase; }
+  .meta-val { font-weight: 700; color: #1e293b; font-size: 12px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 5px; margin-bottom: 8px; margin-top: 14px; font-size: 12px; font-weight: 700; }
   .theory-hdr { background: #dbeafe; color: #1d4ed8; border-left: 4px solid #2563eb; }
   .lab-hdr { background: #dcfce7; color: #15803d; border-left: 4px solid #16a34a; }
   .badge-t { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; background: #2563eb; color: #fff; }
   .badge-l { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; background: #16a34a; color: #fff; }
-  .att-table-wrap { overflow-x: auto; margin-bottom: 18px; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  thead th { background: #1e3a5f; color: #fff; padding: 5px 4px; text-align: center; font-weight: 600; font-size: 10px; border: 1px solid #2d5a8a; white-space: nowrap; }
-  thead th.tleft { text-align: left; padding-left: 8px; }
+  .att-table-wrap { overflow-x: auto; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  thead th { background: #1e3a5f; color: #fff; padding: 4px 3px; text-align: center; font-weight: 600; font-size: 9.5px; border: 1px solid #2d5a8a; white-space: nowrap; }
+  thead th.tleft { text-align: left; padding-left: 6px; }
   tbody tr:nth-child(even) { background: #f8fafc; }
-  tbody td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-size: 11px; white-space: nowrap; }
-  tbody td.tdleft { text-align: left; padding-left: 8px; }
+  tbody td { border: 1px solid #e2e8f0; padding: 3px; text-align: center; font-size: 10.5px; white-space: nowrap; }
+  tbody td.tdleft { text-align: left; padding-left: 6px; }
   .sP { color: #15803d; font-weight: 700; }
   .sL { color: #d97706; font-weight: 700; }
   .sA { color: #dc2626; font-weight: 700; }
@@ -34,32 +34,50 @@
   .pct-m { color: #d97706; font-weight: 700; }
   .pct-l { color: #dc2626; font-weight: 700; }
   tr.short-row { background: #fef2f2 !important; }
-  .sum-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; margin-bottom: 20px; }
-  .sum-tbl th { background: #334155; color: #fff; padding: 5px 8px; text-align: center; font-size: 11px; border: 1px solid #475569; }
-  .sum-tbl td { border: 1px solid #cbd5e1; padding: 4px 8px; text-align: center; }
-  .legend { display: flex; align-items: center; gap: 16px; font-size: 11px; margin-bottom: 12px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; flex-wrap: wrap; }
-  .no-data { padding: 20px; text-align: center; color: #94a3b8; font-style: italic; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 16px; }
-  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 40px; border-top: 1px solid #cbd5e1; padding-top: 16px; }
-  .sig-box { text-align: center; font-size: 12px; }
-  .sig-line { border-bottom: 1px solid #475569; height: 40px; margin-bottom: 5px; }
-  .sig-lbl { font-weight: 600; color: #475569; font-size: 11px; }
-  .no-print { text-align: center; padding: 14px; background: #1e3a5f; border-radius: 8px; margin-bottom: 20px; }
-  .no-print button { background: #2563eb; color: #fff; border: none; padding: 10px 30px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; margin: 0 6px; }
+  .sum-tbl { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; margin-bottom: 14px; }
+  .sum-tbl th { background: #334155; color: #fff; padding: 4px 6px; text-align: center; font-size: 10px; border: 1px solid #475569; }
+  .sum-tbl td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; }
+  .legend { display: flex; align-items: center; gap: 14px; font-size: 10.5px; margin-bottom: 10px; padding: 5px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; flex-wrap: wrap; }
+  .no-data { padding: 16px; text-align: center; color: #94a3b8; font-style: italic; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 14px; }
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 30px; border-top: 1px solid #cbd5e1; padding-top: 14px; page-break-inside: avoid; }
+  .sig-box { text-align: center; font-size: 11px; }
+  .sig-line { border-bottom: 1px solid #475569; height: 35px; margin-bottom: 4px; }
+  .sig-lbl { font-weight: 600; color: #475569; font-size: 10.5px; }
+  .no-print { text-align: center; padding: 12px; background: #1e3a5f; border-radius: 8px; margin-bottom: 16px; }
+  .no-print button { background: #2563eb; color: #fff; border: none; padding: 8px 24px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer; margin: 0 6px; }
   .no-print button.back-btn { background: #475569; }
-  @media print { .no-print { display: none !important; } body { padding: 10px; } tr { page-break-inside: avoid; } }
+
+  @media print {
+    @page { size: A4 landscape; margin: 8mm 10mm; }
+    .no-print { display: none !important; }
+    body { padding: 0; background: #fff; }
+    .page-break { page-break-before: always; break-before: page; margin-top: 10px; }
+    tr { page-break-inside: avoid; }
+  }
 </style>
+<script>
+function goBackToClassroom() {
+  if (window.opener && !window.opener.closed) {
+    window.close();
+  } else if (document.referrer && document.referrer.length > 0) {
+    window.location.href = document.referrer;
+  } else {
+    window.location.href = "{{ url('/r26/classroom/practicum/' . $batchSubject->id) }}";
+  }
+}
+</script>
 </head>
 <body>
 
 <div class="no-print">
-  <button class="back-btn" onclick="history.back()">&#8592; Back to Classroom</button>
+  <button class="back-btn" onclick="goBackToClassroom()">&#8592; Back to Classroom</button>
   <button onclick="window.print()">&#128424; Print / Save as PDF</button>
 </div>
 
 <div class="institution-header">
   <h1>CARMEL POLYTECHNIC COLLEGE</h1>
   <p>Affiliated to SBTE Kerala &nbsp;|&nbsp; Approved by AICTE, New Delhi</p>
-  <p style="font-size:13px;font-weight:700;margin-top:6px;color:#1e3a5f;">STUDENT ATTENDANCE REGISTER &mdash; REVISION 2026 PRACTICUM</p>
+  <p style="font-size:12px;font-weight:700;margin-top:4px;color:#1e3a5f;">STUDENT ATTENDANCE REGISTER &mdash; REVISION 2026 PRACTICUM (A4 LANDSCAPE)</p>
 </div>
 
 <div class="meta-grid">
@@ -83,172 +101,215 @@
   <span style="color:#dc2626;font-weight:600;margin-left:auto;">&#9888; = Shortage below 75%</span>
 </div>
 
-{{-- ===== THEORY SECTION ===== --}}
-<div class="section-header theory-hdr">
-  &#128216; Theory Attendance Register
-  <span class="badge-t">{{ $theoryPlans->count() }} Session(s) &nbsp;|&nbsp; 45 Theory Hours</span>
-</div>
+{{-- ===== THEORY SECTION (CHUNKED TO 45 HOURS MAX PER PAGE) ===== --}}
+@php $theoryChunks = $theoryPlans->chunk(45); @endphp
 
 @if($theoryPlans->isEmpty())
+  <div class="section-header theory-hdr">
+    <span>&#128216; Theory Attendance Register</span>
+    <span class="badge-t">0 Sessions</span>
+  </div>
   <div class="no-data">No theory sessions have been recorded yet for this subject.</div>
 @else
-<div class="att-table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th class="tleft" rowspan="2">Roll</th>
-      <th class="tleft" rowspan="2">Reg. No.</th>
-      <th class="tleft" rowspan="2" style="min-width:140px;">Student Name</th>
-      @foreach($theoryPlans as $plan)
-        <th style="min-width:24px;">H{{ $plan->day_no ?? '?' }}<br><span style="font-size:8px;font-weight:400;">{{ $plan->co_id ?? '' }}</span></th>
-      @endforeach
-      <th rowspan="2" style="background:#143d60;">Pres.</th>
-      <th rowspan="2" style="background:#143d60;">Total</th>
-      <th rowspan="2" style="background:#143d60;">%</th>
-      <th rowspan="2" style="background:#143d60;">Marks</th>
-    </tr>
-    <tr>
-      @foreach($theoryPlans as $plan)
-        <th style="font-size:8.5px;color:#a7c8f0;background:#264d7a;font-weight:400;">
-          @if($plan->actual_date) {{ \Carbon\Carbon::parse($plan->actual_date)->format('d/m') }}
-          @elseif($plan->proposed_date) {{ \Carbon\Carbon::parse($plan->proposed_date)->format('d/m') }}
-          @else --
-          @endif
-        </th>
-      @endforeach
-    </tr>
-  </thead>
-  <tbody>
-    @foreach($students as $st)
+  @foreach($theoryChunks as $chunkIdx => $chunkPlans)
+    @if($chunkIdx > 0)
+      <div class="page-break"></div>
+    @endif
+    <div class="section-header theory-hdr">
+      <span>
+        &#128216; Theory Attendance Register 
+        @if($theoryChunks->count() > 1) 
+          <span style="font-size:11px;opacity:0.8;">(Part {{ $chunkIdx + 1 }} of {{ $theoryChunks->count() }})</span> 
+        @endif
+      </span>
+      <span class="badge-t">{{ $chunkPlans->count() }} Hour(s) in this page &nbsp;|&nbsp; Hours H{{ $chunkPlans->first()->day_no }} to H{{ $chunkPlans->last()->day_no }}</span>
+    </div>
+
+    <div class="att-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="tleft" rowspan="2" style="width:30px;">Roll</th>
+            <th class="tleft" rowspan="2" style="width:90px;">Reg. No.</th>
+            <th class="tleft" rowspan="2" style="min-width:130px;">Student Name</th>
+            @foreach($chunkPlans as $plan)
+              <th style="min-width:20px;">H{{ $plan->day_no ?? '?' }}<br><span style="font-size:7.5px;font-weight:400;">{{ $plan->co_id ?? '' }}</span></th>
+            @endforeach
+            @if($loop->last)
+              <th rowspan="2" style="background:#143d60;">Pres.</th>
+              <th rowspan="2" style="background:#143d60;">Total</th>
+              <th rowspan="2" style="background:#143d60;">%</th>
+              <th rowspan="2" style="background:#143d60;">Marks</th>
+            @endif
+          </tr>
+          <tr>
+            @foreach($chunkPlans as $plan)
+              <th style="font-size:8px;color:#a7c8f0;background:#264d7a;font-weight:400;">
+                @if($plan->actual_date) {{ \Carbon\Carbon::parse($plan->actual_date)->format('d/m') }}
+                @elseif($plan->proposed_date) {{ \Carbon\Carbon::parse($plan->proposed_date)->format('d/m') }}
+                @else --
+                @endif
+              </th>
+            @endforeach
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($students as $st)
+            @php
+              $tot  = $theoryTotals[$st->reg_no]['total']   ?? 0;
+              $pres = $theoryTotals[$st->reg_no]['present']  ?? 0;
+              $pct  = $tot > 0 ? round(($pres / $tot) * 100, 1) : null;
+              $am   = 0;
+              if ($pct !== null) { if($pct>=90) $am=5; elseif($pct>=80) $am=4; elseif($pct>=75) $am=3; elseif($pct>=70) $am=2; elseif($pct>=65) $am=1; }
+              $short = ($pct !== null && $pct < 75);
+              $pc   = $pct === null ? 'sN' : ($pct >= 75 ? 'pct-h' : ($pct >= 65 ? 'pct-m' : 'pct-l'));
+            @endphp
+            <tr class="{{ $short ? 'short-row' : '' }}">
+              <td class="tdleft">{{ $st->roll_no }}</td>
+              <td class="tdleft" style="font-family:monospace;font-size:9.5px;">{{ $st->sbte_reg_no ?: $st->reg_no }}</td>
+              <td class="tdleft">{{ $st->name }}@if($short) <span style="color:#dc2626;font-size:9px;">&#9888;</span>@endif</td>
+              @foreach($chunkPlans as $plan)
+                @php $s = $theoryMatrix[$st->reg_no][$plan->id] ?? null; @endphp
+                <td class="s{{ $s ? $s[0] : 'N' }}">{{ $s ? $s[0] : '&mdash;' }}</td>
+              @endforeach
+              @if($loop->parent->last)
+                <td class="tot-td">{{ $tot > 0 ? $pres : '&mdash;' }}</td>
+                <td class="tot-td">{{ $tot > 0 ? $tot  : '&mdash;' }}</td>
+                <td class="{{ $pc }}">{{ $pct !== null ? $pct.'%' : '&mdash;' }}</td>
+                <td style="font-weight:700;color:#1d4ed8;">{{ $tot > 0 ? $am.'/5' : '&mdash;' }}</td>
+              @endif
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+
+    @if($loop->last)
       @php
-        $tot  = $theoryTotals[$st->reg_no]['total']   ?? 0;
-        $pres = $theoryTotals[$st->reg_no]['present']  ?? 0;
-        $pct  = $tot > 0 ? round(($pres / $tot) * 100, 1) : null;
-        $am   = 0;
-        if ($pct !== null) { if($pct>=90) $am=5; elseif($pct>=80) $am=4; elseif($pct>=75) $am=3; elseif($pct>=70) $am=2; elseif($pct>=65) $am=1; }
-        $short = ($pct !== null && $pct < 75);
-        $pc   = $pct === null ? 'sN' : ($pct >= 75 ? 'pct-h' : ($pct >= 65 ? 'pct-m' : 'pct-l'));
+        $thS=0; $thA=0; $thV=0;
+        foreach($students as $st){ $t=$theoryTotals[$st->reg_no]['total']??0; $p=$theoryTotals[$st->reg_no]['present']??0;
+          if($t>0){ $pc=round(($p/$t)*100,1); $thA+=$pc; $thV++; if($pc<75)$thS++; } }
+        $thA=$thV>0?round($thA/$thV,1):0;
       @endphp
-      <tr class="{{ $short ? 'short-row' : '' }}">
-        <td class="tdleft">{{ $st->roll_no }}</td>
-        <td class="tdleft" style="font-family:monospace;font-size:10px;">{{ $st->sbte_reg_no ?: $st->reg_no }}</td>
-        <td class="tdleft">{{ $st->name }}@if($short) <span style="color:#dc2626;font-size:9px;">&#9888;</span>@endif</td>
-        @foreach($theoryPlans as $plan)
-          @php $s = $theoryMatrix[$st->reg_no][$plan->id] ?? null; @endphp
-          <td class="s{{ $s ? $s[0] : 'N' }}">{{ $s ? $s[0] : '&mdash;' }}</td>
-        @endforeach
-        <td class="tot-td">{{ $tot > 0 ? $pres : '&mdash;' }}</td>
-        <td class="tot-td">{{ $tot > 0 ? $tot  : '&mdash;' }}</td>
-        <td class="{{ $pc }}">{{ $pct !== null ? $pct.'%' : '&mdash;' }}</td>
-        <td style="font-weight:700;color:#1d4ed8;">{{ $tot > 0 ? $am.'/5' : '&mdash;' }}</td>
-      </tr>
-    @endforeach
-  </tbody>
-</table>
-</div>
-@php
-  $thS=0; $thA=0; $thV=0;
-  foreach($students as $st){ $t=$theoryTotals[$st->reg_no]['total']??0; $p=$theoryTotals[$st->reg_no]['present']??0;
-    if($t>0){ $pc=round(($p/$t)*100,1); $thA+=$pc; $thV++; if($pc<75)$thS++; } }
-  $thA=$thV>0?round($thA/$thV,1):0;
-@endphp
-<table class="sum-tbl">
-  <thead><tr><th>Theory Sessions</th><th>Class Avg Attendance</th><th>Students with Shortage (&lt; 75%)</th><th>Students in Good Standing (&ge; 75%)</th></tr></thead>
-  <tbody><tr>
-    <td style="font-weight:700;">{{ $theoryPlans->count() }}</td>
-    <td style="font-weight:700;color:{{ $thA>=75?'#15803d':'#dc2626' }};">{{ $thA }}%</td>
-    <td style="font-weight:700;color:#dc2626;">{{ $thS }}</td>
-    <td style="font-weight:700;color:#15803d;">{{ $students->count()-$thS }}</td>
-  </tr></tbody>
-</table>
+      <table class="sum-tbl">
+        <thead><tr><th>Theory Total Sessions</th><th>Class Avg Attendance</th><th>Students with Shortage (&lt; 75%)</th><th>Students in Good Standing (&ge; 75%)</th></tr></thead>
+        <tbody><tr>
+          <td style="font-weight:700;">{{ $theoryPlans->count() }}</td>
+          <td style="font-weight:700;color:{{ $thA>=75?'#15803d':'#dc2626' }};">{{ $thA }}%</td>
+          <td style="font-weight:700;color:#dc2626;">{{ $thS }}</td>
+          <td style="font-weight:700;color:#15803d;">{{ $students->count()-$thS }}</td>
+        </tr></tbody>
+      </table>
+    @endif
+  @endforeach
 @endif
 
-{{-- ===== LAB SECTION ===== --}}
-<div class="section-header lab-hdr" style="margin-top:28px;">
-  &#128300; Lab (Practical) Attendance Register
-  <span class="badge-l">{{ $labPlans->count() }} Session(s) &nbsp;|&nbsp; 45 Practical Hours</span>
-</div>
+{{-- ===== LAB SECTION (CHUNKED TO 45 HOURS MAX PER PAGE) ===== --}}
+@php $labChunks = $labPlans->chunk(45); @endphp
 
 @if($labPlans->isEmpty())
+  <div class="section-header lab-hdr" style="margin-top:20px;">
+    <span>&#128300; Lab (Practical) Attendance Register</span>
+    <span class="badge-l">0 Sessions</span>
+  </div>
   <div class="no-data">No lab sessions have been recorded yet for this subject.</div>
 @else
-<div class="att-table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th class="tleft" rowspan="2" style="background:#1a4a2e;">Roll</th>
-      <th class="tleft" rowspan="2" style="background:#1a4a2e;">Reg. No.</th>
-      <th class="tleft" rowspan="2" style="background:#1a4a2e;min-width:140px;">Student Name</th>
-      @foreach($labPlans as $plan)
-        <th style="min-width:24px;background:#1a4a2e;border-color:#255c3a;">P{{ $plan->day_no ?? '?' }}<br><span style="font-size:8px;font-weight:400;">{{ $plan->co_id ?? '' }}</span></th>
-      @endforeach
-      <th rowspan="2" style="background:#124027;">Pres.</th>
-      <th rowspan="2" style="background:#124027;">Total</th>
-      <th rowspan="2" style="background:#124027;">%</th>
-      <th rowspan="2" style="background:#124027;">Status</th>
-    </tr>
-    <tr>
-      @foreach($labPlans as $plan)
-        <th style="font-size:8.5px;color:#6ee7b7;background:#1e4f33;font-weight:400;border-color:#255c3a;">
-          @if($plan->actual_date) {{ \Carbon\Carbon::parse($plan->actual_date)->format('d/m') }}
-          @elseif($plan->proposed_date) {{ \Carbon\Carbon::parse($plan->proposed_date)->format('d/m') }}
-          @else --
-          @endif
-        </th>
-      @endforeach
-    </tr>
-  </thead>
-  <tbody>
-    @foreach($students as $st)
+  @foreach($labChunks as $chunkIdx => $chunkPlans)
+    <div class="page-break"></div>
+    <div class="section-header lab-hdr">
+      <span>
+        &#128300; Lab (Practical) Attendance Register 
+        @if($labChunks->count() > 1) 
+          <span style="font-size:11px;opacity:0.8;">(Part {{ $chunkIdx + 1 }} of {{ $labChunks->count() }})</span> 
+        @endif
+      </span>
+      <span class="badge-l">{{ $chunkPlans->count() }} Hour(s) in this page &nbsp;|&nbsp; Hours P{{ $chunkPlans->first()->day_no }} to P{{ $chunkPlans->last()->day_no }}</span>
+    </div>
+
+    <div class="att-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="tleft" rowspan="2" style="background:#1a4a2e;width:30px;">Roll</th>
+            <th class="tleft" rowspan="2" style="background:#1a4a2e;width:90px;">Reg. No.</th>
+            <th class="tleft" rowspan="2" style="background:#1a4a2e;min-width:130px;">Student Name</th>
+            @foreach($chunkPlans as $plan)
+              <th style="min-width:20px;background:#1a4a2e;border-color:#255c3a;">P{{ $plan->day_no ?? '?' }}<br><span style="font-size:7.5px;font-weight:400;">{{ $plan->co_id ?? '' }}</span></th>
+            @endforeach
+            @if($loop->last)
+              <th rowspan="2" style="background:#124027;">Pres.</th>
+              <th rowspan="2" style="background:#124027;">Total</th>
+              <th rowspan="2" style="background:#124027;">%</th>
+              <th rowspan="2" style="background:#124027;">Status</th>
+            @endif
+          </tr>
+          <tr>
+            @foreach($chunkPlans as $plan)
+              <th style="font-size:8px;color:#6ee7b7;background:#1e4f33;font-weight:400;border-color:#255c3a;">
+                @if($plan->actual_date) {{ \Carbon\Carbon::parse($plan->actual_date)->format('d/m') }}
+                @elseif($plan->proposed_date) {{ \Carbon\Carbon::parse($plan->proposed_date)->format('d/m') }}
+                @else --
+                @endif
+              </th>
+            @endforeach
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($students as $st)
+            @php
+              $tot  = $labTotals[$st->reg_no]['total']   ?? 0;
+              $pres = $labTotals[$st->reg_no]['present']  ?? 0;
+              $pct  = $tot > 0 ? round(($pres / $tot) * 100, 1) : null;
+              $short= ($pct !== null && $pct < 75);
+              $pc   = $pct === null ? 'sN' : ($pct >= 75 ? 'pct-h' : ($pct >= 65 ? 'pct-m' : 'pct-l'));
+              $lst  = $pct === null ? '&mdash;' : ($pct >= 75 ? 'OK' : 'SHORT');
+              $lstC = $short ? '#dc2626' : '#15803d';
+            @endphp
+            <tr class="{{ $short ? 'short-row' : '' }}">
+              <td class="tdleft">{{ $st->roll_no }}</td>
+              <td class="tdleft" style="font-family:monospace;font-size:9.5px;">{{ $st->sbte_reg_no ?: $st->reg_no }}</td>
+              <td class="tdleft">{{ $st->name }}@if($short) <span style="color:#dc2626;font-size:9px;">&#9888;</span>@endif</td>
+              @foreach($chunkPlans as $plan)
+                @php $s = $labMatrix[$st->reg_no][$plan->id] ?? null; @endphp
+                <td class="s{{ $s ? $s[0] : 'N' }}">{{ $s ? $s[0] : '&mdash;' }}</td>
+              @endforeach
+              @if($loop->parent->last)
+                <td class="tot-td" style="background:#d1fae5;">{{ $tot > 0 ? $pres : '&mdash;' }}</td>
+                <td class="tot-td" style="background:#d1fae5;">{{ $tot > 0 ? $tot  : '&mdash;' }}</td>
+                <td class="{{ $pc }}">{{ $pct !== null ? $pct.'%' : '&mdash;' }}</td>
+                <td style="font-weight:700;color:{{ $lstC }};font-size:10.5px;">{!! $lst !!}</td>
+              @endif
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+
+    @if($loop->last)
       @php
-        $tot  = $labTotals[$st->reg_no]['total']   ?? 0;
-        $pres = $labTotals[$st->reg_no]['present']  ?? 0;
-        $pct  = $tot > 0 ? round(($pres / $tot) * 100, 1) : null;
-        $short= ($pct !== null && $pct < 75);
-        $pc   = $pct === null ? 'sN' : ($pct >= 75 ? 'pct-h' : ($pct >= 65 ? 'pct-m' : 'pct-l'));
-        $lst  = $pct === null ? '&mdash;' : ($pct >= 75 ? 'OK' : 'SHORT');
-        $lstC = $short ? '#dc2626' : '#15803d';
+        $lbS=0; $lbA=0; $lbV=0;
+        foreach($students as $st){ $t=$labTotals[$st->reg_no]['total']??0; $p=$labTotals[$st->reg_no]['present']??0;
+          if($t>0){ $pc=round(($p/$t)*100,1); $lbA+=$pc; $lbV++; if($pc<75)$lbS++; } }
+        $lbA=$lbV>0?round($lbA/$lbV,1):0;
       @endphp
-      <tr class="{{ $short ? 'short-row' : '' }}">
-        <td class="tdleft">{{ $st->roll_no }}</td>
-        <td class="tdleft" style="font-family:monospace;font-size:10px;">{{ $st->sbte_reg_no ?: $st->reg_no }}</td>
-        <td class="tdleft">{{ $st->name }}@if($short) <span style="color:#dc2626;font-size:9px;">&#9888;</span>@endif</td>
-        @foreach($labPlans as $plan)
-          @php $s = $labMatrix[$st->reg_no][$plan->id] ?? null; @endphp
-          <td class="s{{ $s ? $s[0] : 'N' }}">{{ $s ? $s[0] : '&mdash;' }}</td>
-        @endforeach
-        <td class="tot-td" style="background:#d1fae5;">{{ $tot > 0 ? $pres : '&mdash;' }}</td>
-        <td class="tot-td" style="background:#d1fae5;">{{ $tot > 0 ? $tot  : '&mdash;' }}</td>
-        <td class="{{ $pc }}">{{ $pct !== null ? $pct.'%' : '&mdash;' }}</td>
-        <td style="font-weight:700;color:{{ $lstC }};font-size:11px;">{!! $lst !!}</td>
-      </tr>
-    @endforeach
-  </tbody>
-</table>
-</div>
-@php
-  $lbS=0; $lbA=0; $lbV=0;
-  foreach($students as $st){ $t=$labTotals[$st->reg_no]['total']??0; $p=$labTotals[$st->reg_no]['present']??0;
-    if($t>0){ $pc=round(($p/$t)*100,1); $lbA+=$pc; $lbV++; if($pc<75)$lbS++; } }
-  $lbA=$lbV>0?round($lbA/$lbV,1):0;
-@endphp
-<table class="sum-tbl">
-  <thead><tr><th>Lab Sessions</th><th>Class Avg Attendance</th><th>Students with Shortage (&lt; 75%)</th><th>Students in Good Standing (&ge; 75%)</th></tr></thead>
-  <tbody><tr>
-    <td style="font-weight:700;">{{ $labPlans->count() }}</td>
-    <td style="font-weight:700;color:{{ $lbA>=75?'#15803d':'#dc2626' }};">{{ $lbA }}%</td>
-    <td style="font-weight:700;color:#dc2626;">{{ $lbS }}</td>
-    <td style="font-weight:700;color:#15803d;">{{ $students->count()-$lbS }}</td>
-  </tr></tbody>
-</table>
+      <table class="sum-tbl">
+        <thead><tr><th>Lab Total Sessions</th><th>Class Avg Attendance</th><th>Students with Shortage (&lt; 75%)</th><th>Students in Good Standing (&ge; 75%)</th></tr></thead>
+        <tbody><tr>
+          <td style="font-weight:700;">{{ $labPlans->count() }}</td>
+          <td style="font-weight:700;color:{{ $lbA>=75?'#15803d':'#dc2626' }};">{{ $lbA }}%</td>
+          <td style="font-weight:700;color:#dc2626;">{{ $lbS }}</td>
+          <td style="font-weight:700;color:#15803d;">{{ $students->count()-$lbS }}</td>
+        </tr></tbody>
+      </table>
+    @endif
+  @endforeach
 @endif
 
 <div class="sig-row">
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Staff In-Charge</div><div style="font-weight:700;font-size:12px;">{{ $assignedStaff->count() ? $assignedStaff->first()->name : '_________________' }}</div></div>
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">HOD Signature</div><div style="font-weight:700;font-size:12px;">Head of Department</div></div>
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Principal Signature</div><div style="font-weight:700;font-size:12px;">Principal</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Staff In-Charge</div><div style="font-weight:700;font-size:11px;">{{ $assignedStaff->count() ? $assignedStaff->first()->name : '_________________' }}</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">HOD Signature</div><div style="font-weight:700;font-size:11px;">Head of Department</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Principal Signature</div><div style="font-weight:700;font-size:11px;">Principal</div></div>
 </div>
 
 </body>
 </html>
-

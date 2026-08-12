@@ -52,11 +52,22 @@
     tr { page-break-inside: avoid; }
   }
 </style>
+<script>
+function goBackToDrawingLab() {
+  if (window.opener && !window.opener.closed) {
+    window.close();
+  } else if (document.referrer && document.referrer.length > 0) {
+    window.location.href = document.referrer;
+  } else {
+    window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+  }
+}
+</script>
 </head>
 <body>
 
 <div class="no-print">
-  <button class="back-btn" onclick="history.back()">&#8592; Back to Drawing Lab</button>
+  <button class="back-btn" onclick="goBackToDrawingLab()">&#8592; Back to Drawing Lab</button>
   <button onclick="window.print()">&#128424; Print / Save A4 Sheet PDF</button>
 </div>
 

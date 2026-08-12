@@ -45,9 +45,14 @@ def parse_drawing_syllabus(pdf_path):
     program = "Diploma Engineering"
 
     # Type of Course
-    match_type = re.search(r'Type of Course\s+(Lab|Drawing|Practicum|Theory|Practical)', full_text, re.IGNORECASE)
+    match_type = re.search(r'Type of Course\s+([^\n]+)', full_text, re.IGNORECASE)
     if match_type:
-        type_of_course = match_type.group(1).strip()
+        type_raw = match_type.group(1).strip()
+        for kw in ["Course Title", "Course Code", "Semester", "Credits", "Teaching Scheme", "CIE", "ESE"]:
+            if kw in type_raw:
+                type_raw = type_raw.split(kw)[0].strip()
+        if type_raw:
+            type_of_course = type_raw[:60]
 
     # Semester
     match_sem = re.search(r'Semester\s+([IVXLCDM\d]+)', full_text, re.IGNORECASE)
@@ -63,12 +68,12 @@ def parse_drawing_syllabus(pdf_path):
         program = prog_raw[:250]
 
     # CIE Marks
-    match_cie = re.search(r'CIE Marks\s+(\d+)', full_text, re.IGNORECASE)
+    match_cie = re.search(r'(?:CIE Marks|Continuous Internal Evaluation|CIE)\s*[:\-]?\s*(\d+)', full_text, re.IGNORECASE)
     if match_cie:
         cie_marks = int(match_cie.group(1))
 
     # ESE Marks
-    match_ese = re.search(r'ESE Marks\s+(\d+)', full_text, re.IGNORECASE)
+    match_ese = re.search(r'(?:ESE Marks|End Semester Examination|End Sem Exam|ESE)\s*[:\-]?\s*(\d+)', full_text, re.IGNORECASE)
     if match_ese:
         ese_marks = int(match_ese.group(1))
 
@@ -78,7 +83,7 @@ def parse_drawing_syllabus(pdf_path):
         credits_val = float(match_cred.group(1))
 
     # Course Code
-    match_code = re.search(r'Course Code\s+(\d+)', full_text, re.IGNORECASE)
+    match_code = re.search(r'Course Code\s*[:\-]?\s*([A-Za-z0-9\-]+)', full_text, re.IGNORECASE)
     if match_code:
         course_code = match_code.group(1).strip()
 
@@ -98,7 +103,7 @@ def parse_drawing_syllabus(pdf_path):
         ltpr_val = match_ltpr.group(1).strip()
 
     # Contact Hours
-    match_ch = re.search(r'Contact Hours\s+(\d+)', full_text, re.IGNORECASE)
+    match_ch = re.search(r'(?:Contact Hours|Total Hours|Hours)\s*[:\-]?\s*(\d+)', full_text, re.IGNORECASE)
     if match_ch:
         total_hours = int(match_ch.group(1))
 

@@ -249,19 +249,21 @@
     <!-- Header Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-3">
         <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard/lecturer">
-                <i class="fa-solid fa-drafting-compass text-info fs-3"></i>
-                <div>
-                    <span class="fs-5 fw-bold brand-font">Carmel Linx</span>
-                    <span class="badge badge-cyan ms-2">{{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }} Drawing Hall</span>
+            <a class="navbar-brand d-flex align-items-center gap-2.5" href="/dashboard/lecturer">
+                <i class="fa-solid fa-drafting-compass text-info fs-2"></i>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fs-3 fw-bold brand-font text-white">Carmel Linx</span>
+                    <span class="fs-4 fw-bold text-info brand-font d-none d-sm-inline">|</span>
+                    <span class="fs-4 fw-bold text-info brand-font">Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})</span>
                 </div>
             </a>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-md-block">
-                    <div class="fw-bold">{{ $batchSubject->subject_name }} ({{ $batchSubject->subject_code }})</div>
-                    <small class="text-muted">{{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}</small>
+                    <span class="badge bg-dark text-info border border-info px-2.5 py-1.5 fs-6 fw-semibold">
+                        <i class="fa-solid fa-graduation-cap me-1"></i> {{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}
+                    </span>
                 </div>
-                <a href="/dashboard/lecturer" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
+                <a href="/dashboard/lecturer" class="btn btn-outline-secondary btn-sm px-3"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
             </div>
         </div>
     </nav>
@@ -274,15 +276,21 @@
             <div class="row align-items-center g-3">
                 <div class="col-lg-7">
                     <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
-                        <span class="badge badge-cyan px-2 py-0.5" style="font-size: 0.68rem;"><i class="fa-solid fa-flask me-1"></i> R2026 Lab Paper</span>
+                        @php
+                            $courseType = $drawingCourseFile->type_of_course ?? 'Drawing';
+                            $isLab = str_contains(strtolower($courseType), 'lab') || str_contains(strtolower($courseType), 'practical');
+                        @endphp
+                        <span class="badge {{ $isLab ? 'badge-cyan' : 'badge-purple' }} px-2.5 py-1" style="font-size: 0.72rem;">
+                            <i class="fa-solid {{ $isLab ? 'fa-flask' : 'fa-pen-ruler' }} me-1"></i> {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R2021' : 'R2026' }} {{ $courseType }} Paper
+                        </span>
                         
                         <!-- Batch Badge -->
-                        <span class="badge badge-emerald px-2 py-0.5" style="font-size: 0.68rem;">
+                        <span class="badge badge-emerald px-2.5 py-1" style="font-size: 0.72rem;">
                             <i class="fa-solid fa-users me-1"></i> Batch: {{ $classroom->batch_year ?? 'R26' }} ({{ $batchSubject->classroom_id }})
                         </span>
 
                         <!-- Assigned Faculty Badge -->
-                        <span class="badge badge-purple px-2 py-0.5" style="font-size: 0.68rem;">
+                        <span class="badge badge-purple px-2.5 py-1" style="font-size: 0.72rem;">
                             <i class="fa-solid fa-user-tie me-1"></i> Faculty: 
                             @if(isset($assignedStaff) && count($assignedStaff) > 0)
                                 {{ $assignedStaff->pluck('name')->implode(', ') }}
@@ -296,34 +304,43 @@
                             $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
                         @endphp
                         @if($isAiActive)
-                            <span class="badge badge-cyan px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Active">
+                            <span class="badge badge-cyan px-2.5 py-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="AI Support API Active">
                                 <span class="rounded-circle bg-emerald-400 d-inline-block" style="width:5px; height:5px;"></span>
                                 <span>AI Active</span>
                             </span>
                         @else
-                            <span class="badge bg-secondary text-light px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Deactivated">
+                            <span class="badge bg-secondary text-light px-2.5 py-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="AI Support API Deactivated">
                                 <span class="rounded-circle bg-secondary-subtle d-inline-block" style="width:5px; height:5px;"></span>
                                 <span>AI Off</span>
                             </span>
                         @endif
 
-                        <span class="badge badge-amber px-2 py-0.5" style="font-size: 0.68rem;"><i class="fa-solid fa-clock me-1"></i> 45 Hours</span>
+                        <span class="badge badge-amber px-2.5 py-1" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-clock me-1"></i> {{ $drawingCourseFile->contact_hours ?? 45 }} Hours
+                        </span>
                     </div>
-                    <h3 class="fw-bold mb-1 fs-5">{{ $drawingCourseFile->course_title ?? $batchSubject->subject_name }}</h3>
-                    <p class="text-muted mb-0" style="font-size: 0.75rem;">Course Code: <strong>{{ $drawingCourseFile->course_code ?? $batchSubject->subject_code }}</strong> | Scheme L:T:P:R: <strong>{{ $drawingCourseFile->teaching_scheme }}</strong> | Credits: <strong>{{ $drawingCourseFile->credits }}</strong></p>
+                    <h3 class="fw-bold mb-1 fs-4 text-white">
+                        <span class="text-info me-2">[{{ $drawingCourseFile->course_code ?? $batchSubject->subject_code }}]</span>
+                        <span>{{ $drawingCourseFile->course_title ?? $batchSubject->subject_name }}</span>
+                    </h3>
+                    <p class="text-muted mb-0" style="font-size: 0.78rem;">
+                        Scheme L:T:P:R: <strong class="text-light">{{ $drawingCourseFile->teaching_scheme ?? '0:0:3:0' }}</strong> | 
+                        Credits: <strong class="text-light">{{ $drawingCourseFile->credits ?? 1.5 }}</strong> | 
+                        Contact Hours: <strong class="text-light">{{ $drawingCourseFile->contact_hours ?? 45 }} Hrs</strong>
+                    </p>
                 </div>
                 <div class="col-lg-5">
                     <div class="row g-2">
                         <div class="col-6">
-                            <div class="stat-card text-center py-1.5 px-2 rounded-lg" style="background: rgba(6, 182, 212, 0.12); border: 1px solid var(--accent-cyan);">
-                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #38bdf8; letter-spacing: 0.2px;">Continuous Assessment</div>
-                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 0.92rem;">60 Marks</span>
+                            <div class="stat-card text-center py-2 px-2 rounded-lg" style="background: rgba(6, 182, 212, 0.12); border: 1px solid var(--accent-cyan);">
+                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #38bdf8; letter-spacing: 0.2px;">Continuous Assessment (CIE)</div>
+                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 1rem;">{{ $drawingCourseFile->cie_marks ?? 60 }} Marks</span>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="stat-card text-center py-1.5 px-2 rounded-lg" style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--accent-amber);">
-                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #fbbf24; letter-spacing: 0.2px;">End Semester Exam</div>
-                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 0.92rem;">40 Marks</span>
+                            <div class="stat-card text-center py-2 px-2 rounded-lg" style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--accent-amber);">
+                                <div class="fw-bold text-uppercase" style="font-size: 0.68rem; color: #fbbf24; letter-spacing: 0.2px;">End Semester Exam (ESE)</div>
+                                <span class="stat-val d-block fw-bold text-white mt-0.5" style="font-size: 1rem;">{{ $drawingCourseFile->ese_marks ?? 40 }} Marks</span>
                             </div>
                         </div>
                     </div>
@@ -349,7 +366,7 @@
                 <button class="nav-link" id="tab-oee-link" data-bs-toggle="tab" data-bs-target="#tab-oee" type="button"><i class="fa-solid fa-lightbulb me-2 text-amber"></i>Open-Ended (10M)</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="tab-ese-link" data-bs-toggle="tab" data-bs-target="#tab-ese" type="button"><i class="fa-solid fa-desktop me-2 text-danger"></i>End Sem CAD Exam (40M)</button>
+                <button class="nav-link" id="tab-ese-link" data-bs-toggle="tab" data-bs-target="#tab-ese" type="button"><i class="fa-solid fa-desktop me-2 text-danger"></i>End Sem Exam ({{ $drawingCourseFile->ese_marks ?? 40 }}M)</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-cie-link" data-bs-toggle="tab" data-bs-target="#tab-cie" type="button"><i class="fa-solid fa-chart-pie me-2 text-purple"></i>Consolidated CIE & Reports</button>

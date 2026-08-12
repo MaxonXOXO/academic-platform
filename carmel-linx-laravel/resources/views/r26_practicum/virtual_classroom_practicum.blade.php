@@ -189,6 +189,31 @@
             padding-bottom: 0.25rem !important;
         }
 
+        .lp-table select {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+        }
+
+        .lp-table select option {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            font-weight: 600 !important;
+            padding: 6px 10px !important;
+        }
+
+        .lp-table select[id^="lp-co-"] {
+            background-color: #0f172a !important;
+            color: #fcd34d !important;
+            font-weight: 700 !important;
+            border-color: rgba(245, 158, 11, 0.4) !important;
+        }
+
+        .lp-table select[id^="lp-co-"] option {
+            background-color: #0f172a !important;
+            color: #fcd34d !important;
+            font-weight: 700 !important;
+        }
+
         /* Header Elements */
         .header-subtitle, .header-subtitle span {
             font-size: 0.8125rem !important;
@@ -496,13 +521,17 @@
                         <p class="text-slate-400 text-xs mt-0.5">Includes {{ $theoryHours ?? 45 }} Theory Lecture Hours (L) and Series Exams (ST).</p>
                     </div>
                     <div class="flex items-center space-x-3">
+                        <button onclick="addCustomLessonPlanRow('lp-theory-tbody', 'L')" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/35 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            <span>Add Row</span>
+                        </button>
                         <button onclick="saveAllLessonPlans()" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Save All Changes</span>
                         </button>
  
                         <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-lesson-plan" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 no-underline">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             <span>Print Lesson Plan</span>
                         </a>
                     </div>
@@ -517,13 +546,13 @@
                                 <th class="p-3 w-32">Proposed Date</th>
                                 <th class="p-3 w-32">Actual Date</th>
                                 <th class="p-3 w-[40%]">Topic & Content Description</th>
-                                <th class="p-3 w-24 text-center">CO</th>
+                                <th class="p-3 w-28 text-center">CO</th>
                                 <th class="p-3 w-32">Sub-Batch</th>
                                 <th class="p-3 w-24 text-center">Hours Needed</th>
                                 <th class="p-3 w-32">Remarks</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-sm">
+                        <tbody id="lp-theory-tbody" class="divide-y divide-slate-800/60 text-sm">
                             @foreach($lessonPlans->whereIn('mode', ['L', 'ST']) as $plan)
                             <tr id="lp-row-{{ $plan->id }}" data-plan-id="{{ $plan->id }}" class="hover:bg-slate-800/30 transition-all">
                                 <td class="p-2.5 font-normal text-center text-white">{{ $plan->day_no }}</td>
@@ -548,10 +577,11 @@
                                     <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $plan->topic_content }}</textarea>
                                 </td>
                                 <td class="p-2.5 text-center">
-                                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 text-xs font-mono font-normal inline-block">
-                                        {{ $plan->co_id }}
-                                    </span>
-                                    <input type="hidden" id="lp-co-{{ $plan->id }}" value="{{ $plan->co_id }}">
+                                    <select id="lp-co-{{ $plan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                                        @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
+                                            <option value="{{ $coOpt }}" {{ ($plan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td id="lp-batch-td-{{ $plan->id }}" class="p-2.5">
                                     @if(in_array($plan->mode, ['P', 'SP']) || (isset($plan->pedagogy) && (stripos($plan->pedagogy, 'Practical') !== false || stripos($plan->pedagogy, 'Lab') !== false)))
@@ -581,6 +611,14 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="addCustomLessonPlanRow('lp-theory-tbody', 'L')" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/35 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Row (Customization)</span>
+                    </button>
+                    <span class="text-xs text-slate-400">Add custom lesson topics or extra hours as needed. All CO fields are fully editable.</span>
                 </div>
             </div>
 
@@ -1297,10 +1335,11 @@
                                     <textarea id="lp-topic-{{ $firstPlan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-emerald-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">{{ $cleanTopic }}</textarea>
                                 </td>
                                 <td class="p-2.5 text-center">
-                                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 text-xs font-mono font-normal inline-block">
-                                        {{ $firstPlan->co_id }}
-                                    </span>
-                                    <input type="hidden" id="lp-co-{{ $firstPlan->id }}" value="{{ $firstPlan->co_id }}">
+                                    <select id="lp-co-{{ $firstPlan->id }}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                                        @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
+                                            <option value="{{ $coOpt }}" {{ ($firstPlan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td id="lp-batch-td-{{ $firstPlan->id }}" class="p-2.5">
                                     <select id="lp-batch-{{ $firstPlan->id }}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs text-emerald-400 w-full">
@@ -2229,6 +2268,73 @@
             .catch(err => {
                 Swal.fire('Error', err.message, 'error');
             });
+        }
+
+        function addCustomLessonPlanRow(tbodyId, defaultMode) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+
+            const newId = 'new_' + Date.now();
+            const rowCount = tbody.querySelectorAll('tr').length + 1;
+            const label = defaultMode === 'L' ? `Hr ${rowCount}` : `Session ${rowCount}`;
+
+            const tr = document.createElement('tr');
+            tr.id = `lp-row-${newId}`;
+            tr.setAttribute('data-plan-id', newId);
+            tr.className = 'hover:bg-slate-800/30 transition-all bg-indigo-950/20';
+
+            tr.innerHTML = `
+                <td class="p-2.5 font-normal text-center text-white">${label}</td>
+                <td class="p-2.5">
+                    <select id="lp-pedagogy-${newId}" onchange="onPedagogyChange('${newId}', this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs w-full text-blue-400">
+                        <option value="Lecture (L)" ${defaultMode === 'L' ? 'selected' : ''}>Lecture (L)</option>
+                        <option value="Practical Lab (P)" ${defaultMode === 'P' ? 'selected' : ''}>Practical Lab (P)</option>
+                        <option value="Theory Series Exam (ST)">Theory Series Exam (ST)</option>
+                        <option value="Practical Series Exam (SP)">Practical Series Exam (SP)</option>
+                        <option value="PPT Presentation">PPT Presentation</option>
+                        <option value="Demonstration">Demonstration</option>
+                        <option value="Group Activity">Group Activity</option>
+                    </select>
+                </td>
+                <td class="p-2.5">
+                    <input type="date" id="lp-prop-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                </td>
+                <td class="p-2.5">
+                    <input type="date" id="lp-act-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-full">
+                </td>
+                <td class="p-2.5">
+                    <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter custom lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-2 text-slate-100 text-sm font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug"></textarea>
+                </td>
+                <td class="p-2.5 text-center">
+                    <select id="lp-co-${newId}" class="bg-slate-900 border border-amber-500/40 rounded px-2 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                        <option value="CO1" selected style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO1</option>
+                        <option value="CO2" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO2</option>
+                        <option value="CO3" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO3</option>
+                        <option value="CO4" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO4</option>
+                        <option value="CO5" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO5</option>
+                        <option value="CO6" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO6</option>
+                    </select>
+                </td>
+                <td id="lp-batch-td-${newId}" class="p-2.5">
+                    <select id="lp-batch-${newId}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 font-normal text-xs text-slate-300 w-full">
+                        <option value="All Students" selected>All Students</option>
+                        <option value="Batch A & B">Batch A & B (Combined)</option>
+                        <option value="Batch A">Batch A</option>
+                        <option value="Batch B">Batch B</option>
+                    </select>
+                </td>
+                <td id="lp-hours-td-${newId}" class="p-2.5 text-center font-normal">
+                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">1 Hour</span>
+                </td>
+                <td class="p-2.5">
+                    <div class="flex items-center space-x-1">
+                        <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
+                        <button type="button" onclick="document.getElementById('lp-row-${newId}').remove()" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-1.5 py-1" title="Remove Row">&times;</button>
+                    </div>
+                </td>
+            `;
+
+            tbody.appendChild(tr);
         }
 
         function saveAllLessonPlans() {

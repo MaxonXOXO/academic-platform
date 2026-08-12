@@ -1327,22 +1327,39 @@ class R26VirtualClassroomPracticumController extends Controller
                 $mode = 'SP';
             }
 
-            LessonPlan::where('id', $item['id'])
-                ->where('batch_subject_id', $subjectId)
-                ->update([
-                    'topic_content' => $item['topic_content'] ?? '',
+            if (str_starts_with((string)$item['id'], 'new_')) {
+                $maxDay = LessonPlan::where('batch_subject_id', $subjectId)->max('day_no') ?? 0;
+                LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no' => $maxDay + 1,
+                    'topic_content' => $item['topic_content'] ?? 'Custom Lesson Topic',
                     'proposed_date' => $item['proposed_date'] ?? null,
                     'actual_date' => $item['actual_date'] ?? null,
                     'co_id' => $item['co_id'] ?? 'CO1',
-                    'sub_batch' => $item['sub_batch'] ?? '',
+                    'sub_batch' => $item['sub_batch'] ?? 'All Students',
                     'pedagogy' => $pedagogy,
                     'mode' => $mode,
                     'remarks' => $item['remarks'] ?? '',
-                    'status' => $item['status'] ?? 'Completed'
+                    'status' => 'Pending'
                 ]);
+            } else {
+                LessonPlan::where('id', $item['id'])
+                    ->where('batch_subject_id', $subjectId)
+                    ->update([
+                        'topic_content' => $item['topic_content'] ?? '',
+                        'proposed_date' => $item['proposed_date'] ?? null,
+                        'actual_date' => $item['actual_date'] ?? null,
+                        'co_id' => $item['co_id'] ?? 'CO1',
+                        'sub_batch' => $item['sub_batch'] ?? '',
+                        'pedagogy' => $pedagogy,
+                        'mode' => $mode,
+                        'remarks' => $item['remarks'] ?? '',
+                        'status' => $item['status'] ?? 'Completed'
+                    ]);
+            }
         }
 
-        return response()->json(['status' => 'SUCCESS', 'message' => 'All 90 lesson plan rows saved successfully!']);
+        return response()->json(['status' => 'SUCCESS', 'message' => 'All lesson plan rows saved successfully!']);
     }
 
     /**

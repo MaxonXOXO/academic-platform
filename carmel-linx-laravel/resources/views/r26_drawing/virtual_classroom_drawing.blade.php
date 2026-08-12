@@ -1818,42 +1818,40 @@
     <!-- Question Bank & Question Paper Editor Modal -->
     <div class="modal fade" id="questionBankModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content glass-card border-secondary text-light">
-                <div class="modal-header border-secondary">
-                    <div>
-                        <h5 class="modal-title fw-bold text-warning"><i class="fa-solid fa-pen-to-square me-2"></i>Question Bank & Series Test Paper Manager</h5>
-                        <small class="text-muted">Edit questions, choices, valuation rubrics, and answer keys. Saved changes persist in Question Bank database.</small>
-                    </div>
+            <div class="modal-content border-secondary text-light" style="background-color: #0f172a;">
+                <div class="modal-header border-secondary py-2 px-3 align-items-center" style="background-color: #1e293b;">
+                    <h6 class="modal-title fw-bold text-warning mb-0" style="font-size: 0.95rem;">
+                        <i class="fa-solid fa-pen-to-square me-1"></i>Question Bank & Series Test Paper Manager
+                    </h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="row g-3 mb-3 align-items-center">
-                        <div class="col-md-4">
-                            <label class="form-label text-muted small fw-bold">Select Series Test Exam</label>
-                            <select class="form-select bg-dark text-light border-secondary" id="qbModalTestNoSelect" onchange="loadQuestionBankData(this.value)">
-                                <option value="1">Series Test 1 (Manual Drawing - Modules I & II)</option>
-                                <option value="2">Series Test 2 (CAD Exam - Modules III & IV)</option>
+                <div class="modal-body p-3" style="background-color: #0f172a;">
+                    <!-- Ultra-Compact High-Contrast Header Controls -->
+                    <div class="row g-2 mb-3 align-items-center p-2 rounded" style="background-color: #1e293b; border: 1px solid #334155;">
+                        <div class="col-md-3">
+                            <label class="form-label text-cyan fw-bold mb-1" style="font-size: 0.75rem;">Series Test Exam</label>
+                            <select class="form-select form-select-sm text-light fw-semibold" id="qbModalTestNoSelect" style="background-color: #0f172a; border: 1px solid #0284c7; font-size: 0.8rem;" onchange="loadQuestionBankData(this.value)">
+                                <option value="1">Series Test 1 (Manual Drawing)</option>
+                                <option value="2">Series Test 2 (CAD Exam)</option>
                             </select>
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label text-muted small fw-bold">Paper Title</label>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="qbTestTitleInput">
+                        <div class="col-md-4">
+                            <label class="form-label text-cyan fw-bold mb-1" style="font-size: 0.75rem;">Paper Title</label>
+                            <input type="text" class="form-control form-control-sm text-light fw-semibold" id="qbTestTitleInput" style="background-color: #0f172a; border: 1px solid #334155; font-size: 0.8rem;">
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label text-muted small fw-bold">Instructions to Candidates</label>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="qbInstructionsInput">
+                        <div class="col-md-5">
+                            <label class="form-label text-cyan fw-bold mb-1" style="font-size: 0.75rem;">Instructions to Candidates</label>
+                            <input type="text" class="form-control form-control-sm text-light" id="qbInstructionsInput" style="background-color: #0f172a; border: 1px solid #334155; font-size: 0.8rem;">
                         </div>
                     </div>
-
-                    <hr class="border-secondary my-3">
 
                     <div id="qbQuestionsEditorContainer">
                         <!-- Dynamic Question Cards -->
                     </div>
                 </div>
-                <div class="modal-footer border-secondary justify-content-between">
+                <div class="modal-footer border-secondary py-2 px-3 justify-content-between" style="background-color: #1e293b;">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-cyan btn-sm" onclick="saveQuestionBankData()">
+                    <button type="button" class="btn btn-cyan btn-sm py-1 px-3 fw-bold" onclick="saveQuestionBankData()">
                         <i class="fa-solid fa-floppy-disk me-1"></i> Save to Question Bank & Update QP
                     </button>
                 </div>

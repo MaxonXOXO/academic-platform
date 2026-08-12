@@ -107,7 +107,8 @@
         .table-custom {
             color: var(--text-main);
             border-color: var(--border-color);
-            font-size: 0.82rem;
+            font-size: 0.72rem;
+            line-height: 1.25;
         }
 
         .table-custom th {
@@ -115,9 +116,9 @@
             color: var(--text-muted);
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.04em;
-            padding: 0.45rem 0.5rem;
+            font-size: 0.68rem;
+            letter-spacing: 0.03em;
+            padding: 0.35rem 0.4rem;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
         }
@@ -126,7 +127,8 @@
             background-color: var(--bg-card);
             border-color: var(--border-color);
             vertical-align: middle;
-            padding: 0.4rem 0.5rem;
+            padding: 0.25rem 0.4rem;
+            font-weight: 500;
         }
 
         .form-control-custom {
@@ -177,8 +179,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
-            min-width: 90px;
+            gap: 2px;
+            min-width: 70px;
         }
 
         .rubric-input::-webkit-inner-spin-button,
@@ -189,13 +191,13 @@
 
         .rubric-input {
             -moz-appearance: textfield;
-            width: 52px;
+            width: 44px;
             text-align: center;
-            font-weight: 700;
-            font-size: 0.82rem;
-            padding: 0.15rem 0.25rem;
-            height: 28px;
-            border-radius: 5px;
+            font-weight: 500;
+            font-size: 0.72rem;
+            padding: 0.1rem 0.15rem;
+            height: 22px;
+            border-radius: 4px;
             border: 1px solid var(--border-color);
             background-color: #111827;
             color: #fff;
@@ -204,11 +206,11 @@
         .mark-slider {
             width: 100%;
             accent-color: var(--accent-cyan);
-            height: 5px;
+            height: 4px;
             background: #374151;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
-            margin: 2px 0 0 0;
+            margin: 1px 0 0 0;
         }
 
         .mark-slider::-webkit-slider-thumb {
@@ -638,9 +640,9 @@
                                     $v6 = $stEval->workmanship_discipline ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
+                                    <td class="text-center text-cyan" style="font-size: 0.72rem; font-weight: 500;">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.7rem; font-weight: 500;">{{ $st->reg_no }}</span></td>
+                                    <td class="text-white" style="font-size: 0.72rem; font-weight: 500;">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input p1" value="{{ $v1 }}" max="10" min="0" step="0.5">
@@ -677,7 +679,7 @@
                                             <input type="range" class="mark-slider" value="{{ $v6 }}" max="5" min="0" step="0.5">
                                         </div>
                                     </td>
-                                    <td class="fw-bold text-info total-50 fs-6 text-center">{{ number_format($v1+$v2+$v3+$v4+$v5+$v6, 2) }}</td>
+                                    <td class="text-info total-50 text-center" style="font-size: 0.75rem; font-weight: 600;">{{ number_format($v1+$v2+$v3+$v4+$v5+$v6, 2) }}</td>
                                 @empty
                                 <tr>
                                     <td colspan="10" class="text-center py-4 text-muted">No students enrolled in this classroom batch yet.</td>
@@ -758,9 +760,9 @@
                                     $isAbs = $ca1->is_absent ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
+                                    <td class="text-center text-cyan" style="font-size: 0.72rem; font-weight: 500;">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.7rem; font-weight: 500;">{{ $st->reg_no }}</span></td>
+                                    <td class="text-white" style="font-size: 0.72rem; font-weight: 500;">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input ca-w" value="{{ $cw }}" max="10" min="0" step="0.5">
@@ -791,7 +793,7 @@
                                             <input type="range" class="mark-slider" value="{{ $cr }}" max="4" min="0" step="0.5">
                                         </div>
                                     </td>
-                                    <td class="fw-bold text-warning ca-total-40 fs-6 text-center">{{ number_format($cw+$cs+$co+$cv+$cr, 2) }}</td>
+                                    <td class="text-warning ca-total-40 text-center" style="font-size: 0.75rem; font-weight: 600;">{{ number_format($cw+$cs+$co+$cv+$cr, 2) }}</td>
                                     <td class="text-center"><input type="checkbox" class="form-check-input ca-absent" {{ $isAbs ? 'checked' : '' }}></td>
                                 </tr>
                                 @endforeach
@@ -838,9 +840,9 @@
                                     $m5 = $stOee->teamwork_innovation ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
+                                    <td class="text-center text-cyan" style="font-size: 0.72rem; font-weight: 500;">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.7rem; font-weight: 500;">{{ $st->reg_no }}</span></td>
+                                    <td class="text-white" style="font-size: 0.72rem; font-weight: 500;">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input oee-m1" value="{{ $m1 }}" max="10" min="0" step="0.5">
@@ -871,7 +873,7 @@
                                             <input type="range" class="mark-slider" value="{{ $m5 }}" max="10" min="0" step="0.5">
                                         </div>
                                     </td>
-                                    <td class="fw-bold text-amber oee-total-50 fs-6 text-center">{{ number_format($m1+$m2+$m3+$m4+$m5, 2) }}</td>
+                                    <td class="text-amber oee-total-50 text-center" style="font-size: 0.75rem; font-weight: 600;">{{ number_format($m1+$m2+$m3+$m4+$m5, 2) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -917,9 +919,9 @@
                                     $isAbsEse = $stEse->is_absent ?? 0;
                                 @endphp
                                 <tr data-reg-no="{{ $st->reg_no }}">
-                                    <td class="fw-bold text-center text-cyan text-xs">{{ $st->roll_no }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $st->reg_no }}</span></td>
-                                    <td class="fw-bold text-white text-xs">{{ $st->name }}</td>
+                                    <td class="text-center text-cyan" style="font-size: 0.72rem; font-weight: 500;">{{ $st->roll_no }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.7rem; font-weight: 500;">{{ $st->reg_no }}</span></td>
+                                    <td class="text-white" style="font-size: 0.72rem; font-weight: 500;">{{ $st->name }}</td>
                                     <td>
                                         <div class="mark-cell">
                                             <input type="text" inputmode="decimal" class="rubric-input ese-pa" value="{{ $pa }}" max="10" min="0" step="0.5">
@@ -944,7 +946,7 @@
                                             <input type="range" class="mark-slider" value="{{ $pd }}" max="4" min="0" step="0.5">
                                         </div>
                                     </td>
-                                    <td class="fw-bold text-danger ese-total-40 fs-6 text-center">{{ number_format($pa+$pb+$pc+$pd, 2) }}</td>
+                                    <td class="text-danger ese-total-40 text-center" style="font-size: 0.75rem; font-weight: 600;">{{ number_format($pa+$pb+$pc+$pd, 2) }}</td>
                                     <td class="text-center"><input type="checkbox" class="form-check-input ese-absent" {{ $isAbsEse ? 'checked' : '' }}></td>
                                 </tr>
                                 @endforeach
@@ -988,18 +990,18 @@
                             <tbody>
                                 @foreach($studentResults as $r)
                                 <tr>
-                                    <td class="fw-bold text-center text-cyan text-xs">{{ $r['roll_no'] }}</td>
-                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.75rem;">{{ $r['reg_no'] }}</span></td>
-                                    <td class="fw-bold text-white text-xs">{{ $r['name'] }}</td>
-                                    <td class="text-xs">{{ $r['att_marks'] }}</td>
-                                    <td class="text-xs">{{ $r['ce_marks'] }}</td>
-                                    <td class="text-xs">{{ $r['practical_test_marks'] }}</td>
-                                    <td class="text-xs">{{ $r['oee_marks'] }}</td>
-                                    <td class="fw-bold text-info text-xs">{{ $r['total_cie_marks'] }}</td>
-                                    <td class="fw-bold text-warning text-xs">{{ $r['total_ese'] }}</td>
-                                    <td class="fw-bold text-light text-xs">{{ $r['total_course_marks'] }}</td>
+                                    <td class="text-center text-cyan" style="font-size: 0.72rem; font-weight: 500;">{{ $r['roll_no'] }}</td>
+                                    <td><span class="badge bg-dark border border-cyan text-cyan font-monospace px-1.5 py-0.5" style="font-size: 0.7rem; font-weight: 500;">{{ $r['reg_no'] }}</span></td>
+                                    <td class="text-white" style="font-size: 0.72rem; font-weight: 500;">{{ $r['name'] }}</td>
+                                    <td style="font-size: 0.72rem;">{{ $r['att_marks'] }}</td>
+                                    <td style="font-size: 0.72rem;">{{ $r['ce_marks'] }}</td>
+                                    <td style="font-size: 0.72rem;">{{ $r['practical_test_marks'] }}</td>
+                                    <td style="font-size: 0.72rem;">{{ $r['oee_marks'] }}</td>
+                                    <td class="text-info" style="font-size: 0.75rem; font-weight: 600;">{{ $r['total_cie_marks'] }}</td>
+                                    <td class="text-warning" style="font-size: 0.75rem; font-weight: 600;">{{ $r['total_ese'] }}</td>
+                                    <td class="text-light" style="font-size: 0.75rem; font-weight: 600;">{{ $r['total_course_marks'] }}</td>
                                     <td>
-                                        <span class="badge {{ $r['is_passed'] ? 'badge-emerald' : 'badge-rose' }}" style="font-size: 0.7rem;">
+                                        <span class="badge {{ $r['is_passed'] ? 'badge-emerald' : 'badge-rose' }}" style="font-size: 0.68rem; font-weight: 500;">
                                             {{ $r['is_passed'] ? 'PASSED' : 'FAILED' }}
                                         </span>
                                     </td>

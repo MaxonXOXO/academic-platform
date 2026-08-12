@@ -3635,46 +3635,81 @@
         `;
       }
 
+      let coKeys = [];
       if (copo && Object.keys(copo).length > 0) {
-        let copoList = Object.keys(copo).map(coKey => {
-            let mapping = copo[coKey];
-            let poCells = '';
-            for(let i = 1; i <= 12; i++) {
-                let val = mapping['PO' + i];
-                let displayVal = (val !== null && val !== undefined && val !== '-' && val !== '0') ? val : '-';
-                let isMapped = displayVal !== '-';
-                poCells += `
-                  <td class="p-3 text-center text-sm md:text-base border-r border-slate-800/40 last:border-r-0 ${isMapped ? 'font-black text-emerald-400 bg-emerald-500/15' : 'text-slate-500 font-medium'}">
-                    ${displayVal}
-                  </td>`;
-            }
-            return `
-              <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium text-sm md:text-base">
-                <td class="p-3 font-black text-sky-400 whitespace-nowrap border-r border-slate-800/80 bg-slate-900/40 text-center">${coKey}</td>
-                ${poCells}
-              </tr>
-            `;
-        }).join('');
-        
+        coKeys = Object.keys(copo);
+      } else if (cos && cos.length > 0) {
+        coKeys = cos.map(c => c.id || c.co_id || 'CO1');
+      }
+
+      if (coKeys.length > 0) {
         let poHeaders = '';
-        for(let i=1; i<=12; i++) {
-            poHeaders += `<th class="p-3 text-center text-xs md:text-sm font-bold border-r border-slate-800/60 last:border-r-0 text-slate-200">PO${i}</th>`;
+        for (let i = 1; i <= 11; i++) {
+          poHeaders += `<th class="p-2 text-center text-xs md:text-sm font-bold border-r border-slate-800/60 text-slate-200 bg-slate-900/80">PO${i}</th>`;
         }
+        let psoHeaders = '';
+        for (let i = 1; i <= 3; i++) {
+          psoHeaders += `<th class="p-2 text-center text-xs md:text-sm font-bold border-r border-slate-800/60 last:border-r-0 text-blue-300 bg-blue-950/40">PSO${i}</th>`;
+        }
+
+        let copoList = coKeys.map(coKey => {
+          let mapping = (copo && copo[coKey]) ? copo[coKey] : {};
+          
+          let poCells = '';
+          for (let i = 1; i <= 11; i++) {
+            let val = mapping['PO' + i];
+            let valStr = (val !== null && val !== undefined && val !== '-' && val !== '0' && val !== 0) ? val : '';
+            poCells += `
+              <td class="p-1.5 text-center border-r border-slate-800/40">
+                <input type="text" maxlength="1" value="${valStr}" 
+                  oninput="this.value=this.value.replace(/[^1-3]/g,'')" 
+                  class="theory-copo-input w-9 h-8 bg-slate-900 border border-slate-700/80 rounded-lg text-center font-black text-emerald-400 focus:border-emerald-500 outline-none text-xs focus:ring-1 focus:ring-emerald-500/50 transition-premium" 
+                  data-co="${coKey}" data-target="PO${i}">
+              </td>`;
+          }
+
+          let psoCells = '';
+          for (let i = 1; i <= 3; i++) {
+            let val = mapping['PSO' + i];
+            let valStr = (val !== null && val !== undefined && val !== '-' && val !== '0' && val !== 0) ? val : '';
+            psoCells += `
+              <td class="p-1.5 text-center border-r border-slate-800/40 last:border-r-0 bg-blue-950/20">
+                <input type="text" maxlength="1" value="${valStr}" 
+                  oninput="this.value=this.value.replace(/[^1-3]/g,'')" 
+                  class="theory-copo-input w-9 h-8 bg-slate-900 border border-slate-700/80 rounded-lg text-center font-black text-blue-400 focus:border-blue-500 outline-none text-xs focus:ring-1 focus:ring-blue-500/50 transition-premium" 
+                  data-co="${coKey}" data-target="PSO${i}">
+              </td>`;
+          }
+
+          return `
+            <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium text-sm md:text-base">
+              <td class="p-3 font-black text-sky-400 whitespace-nowrap border-r border-slate-800/80 bg-slate-900/50 text-center">${coKey}</td>
+              ${poCells}
+              ${psoCells}
+            </tr>
+          `;
+        }).join('');
 
         html += `
           <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-lg mb-6">
-            <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800/80 font-bold text-sm text-slate-200 flex items-center justify-between tracking-wider uppercase">
+            <div class="px-5 py-3.5 bg-slate-900/90 border-b border-slate-800/80 font-bold text-sm text-slate-200 flex items-center justify-between flex-wrap gap-3 tracking-wider uppercase">
               <span class="flex items-center gap-2.5 text-amber-400 font-black text-sm">
-                <span class="material-symbols-rounded text-lg">grid_on</span> CO-PO Mapping Matrix
+                <span class="material-symbols-rounded text-lg">grid_on</span> CO-PO & PSO Mapping Articulation Matrix
               </span>
-              <span class="text-xs font-bold text-amber-400/80 bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full lowercase">Scale: 1 (Low) to 3 (High)</span>
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-amber-400/80 bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full lowercase">Scale: 1 (Low) to 3 (High)</span>
+                <button onclick="saveTheoryCoPoMapping(event)" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium flex items-center gap-1.5 shadow-md shadow-emerald-900/30 cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">save</span> Save Matrix
+                </button>
+              </div>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[700px]">
+                <table class="w-full text-left border-collapse min-w-[750px]">
                   <thead>
                     <tr class="bg-slate-900/70 text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800/80">
-                      <th class="p-3 w-16 border-r border-slate-800/80 text-center bg-slate-900/50">CO</th>
+                      <th class="p-3 w-16 border-r border-slate-800/80 text-center bg-slate-900/60">CO</th>
                       ${poHeaders}
+                      ${psoHeaders}
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-800/40">
@@ -8117,6 +8152,59 @@
     }
 
     // CO-PO Matrix
+    function saveTheoryCoPoMapping(e) {
+      const inputs = document.querySelectorAll('.theory-copo-input');
+      if (!inputs.length) return;
+
+      const mapping = {};
+
+      inputs.forEach(input => {
+        const co = input.getAttribute('data-co');
+        const target = input.getAttribute('data-target');
+        const val = input.value ? parseInt(input.value) : null;
+
+        if (!mapping[co]) {
+          mapping[co] = {};
+        }
+        mapping[co][target] = val;
+      });
+
+      const btn = e ? e.currentTarget : null;
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = `<span class="material-symbols-rounded text-sm animate-spin">sync</span> Saving...`;
+        btn.disabled = true;
+      }
+
+      fetch(`/api/classroom/${currentSubjectId}/copo-mapping/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ copo_mapping: mapping })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (btn) {
+          btn.innerHTML = origHtml;
+          btn.disabled = false;
+        }
+        if (res.status === 'SUCCESS') {
+          alert('CO-PO & PSO Mapping Matrix saved successfully!');
+        } else {
+          alert(res.message || 'Failed to save matrix.');
+        }
+      })
+      .catch(() => {
+        if (btn) {
+          btn.innerHTML = origHtml;
+          btn.disabled = false;
+        }
+        alert('Network error while saving matrix.');
+      });
+    }
+
     function fetchPracticalCoPoMapping() {
       const tbody = document.getElementById('labCoPoMappingTbody');
       if (!tbody) return;
@@ -8145,13 +8233,13 @@
             // PO1 to PO11 inputs
             for (let i = 1; i <= 11; i++) {
               const val = matrix[co] && matrix[co]['PO' + i] ? matrix[co]['PO' + i] : '';
-              cells += `<td class="p-1"><input type="number" min="1" max="3" value="${val}" class="w-10 bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-center font-bold text-emerald-450 focus:border-blue-500 outline-none text-xs" data-co="${co}" data-target="PO${i}"></td>`;
+              cells += `<td class="p-1"><input type="text" maxlength="1" value="${val}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-9 h-8 bg-slate-900 border border-slate-800 rounded px-1 text-center font-bold text-emerald-450 focus:border-blue-500 outline-none text-xs" data-co="${co}" data-target="PO${i}"></td>`;
             }
 
             // PSO1 to PSO3 inputs
             for (let i = 1; i <= 3; i++) {
               const val = matrix[co] && matrix[co]['PSO' + i] ? matrix[co]['PSO' + i] : '';
-              cells += `<td class="p-1"><input type="number" min="1" max="3" value="${val}" class="w-10 bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-center font-bold text-blue-405 focus:border-blue-500 outline-none text-xs" data-co="${co}" data-target="PSO${i}"></td>`;
+              cells += `<td class="p-1"><input type="text" maxlength="1" value="${val}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-9 h-8 bg-slate-900 border border-slate-800 rounded px-1 text-center font-bold text-blue-405 focus:border-blue-500 outline-none text-xs" data-co="${co}" data-target="PSO${i}"></td>`;
             }
 
             tr.innerHTML = cells;

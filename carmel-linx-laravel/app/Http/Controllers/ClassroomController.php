@@ -205,10 +205,10 @@ class ClassroomController extends Controller
                 ];
 
                 $extractedCoPo = [
-                    'CO1' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO2' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO3' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null],
-                    'CO4' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PO12' => null]
+                    'CO1' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PSO1' => null, 'PSO2' => null, 'PSO3' => null],
+                    'CO2' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PSO1' => null, 'PSO2' => null, 'PSO3' => null],
+                    'CO3' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PSO1' => null, 'PSO2' => null, 'PSO3' => null],
+                    'CO4' => ['PO1' => 3, 'PO2' => null, 'PO3' => null, 'PO4' => null, 'PO5' => null, 'PO6' => null, 'PO7' => null, 'PO8' => null, 'PO9' => null, 'PO10' => null, 'PO11' => null, 'PSO1' => null, 'PSO2' => null, 'PSO3' => null]
                 ];
 
                 $extractedModules = [
@@ -3899,6 +3899,34 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         return response()->json([
             'status' => 'SUCCESS',
             'message' => 'CO-PO & PSO Mapping saved successfully.'
+        ]);
+    }
+
+    /**
+     * Save Theory CO-PO/PSO mapping to CourseFile and syllabus_registry
+     */
+    public function saveTheoryCoPoMapping(Request $request, $subjectId)
+    {
+        $batchSubject = \App\Models\BatchSubject::findOrFail($subjectId);
+        $mapping = $request->input('copo_mapping') ?? $request->input('co_po_mapping');
+
+        if (!is_array($mapping)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Invalid mapping data.'], 400);
+        }
+
+        CourseFile::updateOrCreate(
+            ['batch_subject_id' => $subjectId],
+            ['parsed_copo' => $mapping]
+        );
+
+        \DB::table('syllabus_registry')->updateOrInsert(
+            ['subject_code' => $batchSubject->subject_code],
+            ['co_po_mapping' => json_encode($mapping), 'updated_at' => now()]
+        );
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'CO-PO & PSO Mapping Matrix saved successfully.'
         ]);
     }
 

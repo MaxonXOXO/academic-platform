@@ -247,23 +247,23 @@
 <body>
 
     <!-- Header Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-3">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2">
         <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center gap-2.5" href="/dashboard/lecturer">
-                <i class="fa-solid fa-drafting-compass text-info fs-2"></i>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard/lecturer">
+                <i class="fa-solid fa-drafting-compass text-info fs-4"></i>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="fs-3 fw-bold brand-font text-white">Carmel Linx</span>
-                    <span class="fs-4 fw-bold text-info brand-font d-none d-sm-inline">|</span>
-                    <span class="fs-4 fw-bold text-info brand-font">Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})</span>
+                    <span class="fw-bold brand-font text-white" style="font-size: 1rem;">Carmel Linx</span>
+                    <span class="text-info brand-font d-none d-sm-inline" style="font-size: 0.9rem;">|</span>
+                    <span class="fw-bold text-info brand-font" style="font-size: 0.9rem;">Virtual Drawing Hall ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})</span>
                 </div>
             </a>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
                 <div class="text-end d-none d-md-block">
-                    <span class="badge bg-dark text-info border border-info px-2.5 py-1.5 fs-6 fw-semibold">
+                    <span class="badge bg-dark text-info border border-info px-2 py-1" style="font-size: 0.72rem; font-weight: 600;">
                         <i class="fa-solid fa-graduation-cap me-1"></i> {{ $classroom->classroom_id }} | Sem {{ $classroom->current_semester ?? 'I' }}
                     </span>
                 </div>
-                <a href="/dashboard/lecturer" class="btn btn-outline-secondary btn-sm px-3"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
+                <a href="/dashboard/lecturer" class="btn btn-outline-secondary btn-sm px-2.5 py-1" style="font-size: 0.75rem;"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
             </div>
         </div>
     </nav>
@@ -280,17 +280,17 @@
                             $courseType = $drawingCourseFile->type_of_course ?? 'Drawing';
                             $isLab = str_contains(strtolower($courseType), 'lab') || str_contains(strtolower($courseType), 'practical');
                         @endphp
-                        <span class="badge {{ $isLab ? 'badge-cyan' : 'badge-purple' }} px-2.5 py-1" style="font-size: 0.72rem;">
+                        <span class="badge {{ $isLab ? 'badge-cyan' : 'badge-purple' }} px-2 py-0.5" style="font-size: 0.68rem;">
                             <i class="fa-solid {{ $isLab ? 'fa-flask' : 'fa-pen-ruler' }} me-1"></i> {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R2021' : 'R2026' }} {{ $courseType }} Paper
                         </span>
                         
                         <!-- Batch Badge -->
-                        <span class="badge badge-emerald px-2.5 py-1" style="font-size: 0.72rem;">
+                        <span class="badge badge-emerald px-2 py-0.5" style="font-size: 0.68rem;">
                             <i class="fa-solid fa-users me-1"></i> Batch: {{ $classroom->batch_year ?? 'R26' }} ({{ $batchSubject->classroom_id }})
                         </span>
 
                         <!-- Assigned Faculty Badge -->
-                        <span class="badge badge-purple px-2.5 py-1" style="font-size: 0.72rem;">
+                        <span class="badge badge-purple px-2 py-0.5" style="font-size: 0.68rem;">
                             <i class="fa-solid fa-user-tie me-1"></i> Faculty: 
                             @if(isset($assignedStaff) && count($assignedStaff) > 0)
                                 {{ $assignedStaff->pluck('name')->implode(', ') }}
@@ -304,29 +304,29 @@
                             $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
                         @endphp
                         @if($isAiActive)
-                            <span class="badge badge-cyan px-2.5 py-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="AI Support API Active">
+                            <span class="badge badge-cyan px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Active">
                                 <span class="rounded-circle bg-emerald-400 d-inline-block" style="width:5px; height:5px;"></span>
                                 <span>AI Active</span>
                             </span>
                         @else
-                            <span class="badge bg-secondary text-light px-2.5 py-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="AI Support API Deactivated">
+                            <span class="badge bg-secondary text-light px-2 py-0.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" title="AI Support API Deactivated">
                                 <span class="rounded-circle bg-secondary-subtle d-inline-block" style="width:5px; height:5px;"></span>
                                 <span>AI Off</span>
                             </span>
                         @endif
 
-                        <span class="badge badge-amber px-2.5 py-1" style="font-size: 0.72rem;">
+                        <span class="badge badge-amber px-2 py-0.5" style="font-size: 0.68rem;">
                             <i class="fa-solid fa-clock me-1"></i> {{ $drawingCourseFile->contact_hours ?? 45 }} Hours
                         </span>
                     </div>
-                    <h3 class="fw-bold mb-1 fs-4 text-white">
-                        <span class="text-info me-2">[{{ $drawingCourseFile->course_code ?? $batchSubject->subject_code }}]</span>
+                    <h5 class="fw-bold mb-1 text-white" style="font-size: 1.05rem;">
+                        <span class="text-info me-1.5">[{{ $drawingCourseFile->course_code ?? $batchSubject->subject_code }}]</span>
                         <span>{{ $drawingCourseFile->course_title ?? $batchSubject->subject_name }}</span>
-                    </h3>
-                    <p class="text-muted mb-0" style="font-size: 0.78rem;">
-                        Scheme L:T:P:R: <strong class="text-light">{{ $drawingCourseFile->teaching_scheme ?? '0:0:3:0' }}</strong> | 
-                        Credits: <strong class="text-light">{{ $drawingCourseFile->credits ?? 1.5 }}</strong> | 
-                        Contact Hours: <strong class="text-light">{{ $drawingCourseFile->contact_hours ?? 45 }} Hrs</strong>
+                    </h5>
+                    <p class="mb-0" style="color: #cbd5e1; font-size: 0.8rem;">
+                        <span style="color: #94a3b8;">Scheme L:T:P:R:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->teaching_scheme ?? '0:0:3:0' }}</strong> &nbsp;|&nbsp; 
+                        <span style="color: #94a3b8;">Credits:</span> <strong style="color: #38bdf8; font-weight: 700;">{{ $drawingCourseFile->credits ?? 1.5 }}</strong> &nbsp;|&nbsp; 
+                        <span style="color: #94a3b8;">Contact Hours:</span> <strong style="color: #fbbf24; font-weight: 700;">{{ $drawingCourseFile->contact_hours ?? 45 }} Hrs</strong>
                     </p>
                 </div>
                 <div class="col-lg-5">

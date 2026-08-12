@@ -1358,6 +1358,9 @@ Syllabus text:
 
         $syllabus = \DB::table('syllabus_registry')->where('subject_code', $batchSubject->subject_code)->first();
         $syllabusRevision = $syllabus->revision_year ?? '2021';
+        $classroom = \App\Models\Classroom::find($batchSubject->classroom_id);
+        $branch = $classroom->branch ?? (strtok($batchSubject->classroom_id ?? '', '_') ?: 'CE');
+        $credits = $syllabus->credits ?? ($batchSubject->credits ?? 2.0);
 
         $parsedCos = $courseFile ? ($courseFile->parsed_cos ?? []) : [];
         $coSum = array_sum(array_column($parsedCos, 'duration'));
@@ -1380,6 +1383,8 @@ Syllabus text:
                 'subject_code' => $batchSubject->subject_code ?? '',
                 'subject_type' => $batchSubject->subject_type ?? '',
                 'semester' => $batchSubject->semester ?? '',
+                'branch' => $branch,
+                'credits' => $credits,
                 'academic_year' => $batchSubject->academic_year ?? '',
                 'classroom_id' => $batchSubject->classroom_id ?? '',
                 'syllabus_revision' => $syllabusRevision,

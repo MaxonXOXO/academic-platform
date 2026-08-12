@@ -955,75 +955,84 @@
         </div>
       </div>
 
-      <!-- PANEL: VIRTUAL CLASSROOM -->
-      <div id="panelClassroom" class="hidden space-y-6">
-        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl flex items-center justify-between">
-          <div>
+      <!-- PANEL: VIRTUAL CLASSROOM / LAB WORKSPACE -->
+      <div id="panelClassroom" class="hidden space-y-4">
+        <!-- Locked Top Header Bar -->
+        <div class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800/80 px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-xl mb-3">
+          <div class="flex items-center gap-2">
             @if(session('userRole') === 'Demonstrator')
-              <a href="/dashboard/demonstrator" class="text-sm font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-2 transition-premium mb-2 cursor-pointer no-underline inline-flex items-center">
-                <span class="material-symbols-rounded text-lg text-blue-500 group-hover:text-blue-400">arrow_back</span> Back to Console
+              <a href="/dashboard/demonstrator" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition no-underline shadow-sm">
+                <span class="material-symbols-rounded text-sm">arrow_back</span> Back to Console
               </a>
             @else
-              <button onclick="switchPanel('dashboard')" class="text-sm font-bold text-slate-300 hover:text-white uppercase tracking-wider flex items-center gap-1.5 transition-premium mb-1 cursor-pointer">
-                <span class="material-symbols-rounded text-sm">arrow_back</span> Back to Dashboard
+              <button onclick="switchPanel('dashboard')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/60 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer shadow-sm">
+                <span class="material-symbols-rounded text-sm text-blue-400">arrow_back</span> Back to Dashboard
               </button>
             @endif
-            <h3 id="vcTitle" class="text-base font-black text-slate-200 flex items-center gap-2 mt-1">
-              <span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom
+            <div class="h-4 w-px bg-slate-800/80 mx-1"></div>
+            <h3 id="vcTitle" class="text-xs md:text-sm font-black text-slate-100 flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-teal-400 text-base">science</span> Virtual Lab Workspace
             </h3>
-            <p id="vcSubtitle" class="text-sm text-slate-400 mt-0.5 font-mono">Loading...</p>
           </div>
-          <button id="vcViewStudentsBtn" onclick="showVcStudentsList()" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md border border-slate-700/60">
+          <button id="vcViewStudentsBtn" onclick="showVcStudentsList()" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-blue-500/40 shadow-sm">
             <span class="material-symbols-rounded text-sm">groups</span> View Students
           </button>
         </div>
 
-        <!-- Top Banner: Course File Actions -->
-        <div class="flex flex-col md:flex-row gap-6 mb-6">
-             <!-- Syllabus Setup Card -->
-             <div class="flex-grow bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl relative overflow-hidden group flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                  <div id="syllabusUploadBox" class="border border-dashed border-slate-700/60 rounded-xl px-4 py-2 text-center hover:border-blue-500/50 hover:bg-slate-900/40 transition-premium cursor-pointer relative z-10 flex items-center gap-3" onclick="document.getElementById('syllabusFileInput').click()">
-                    <span class="material-symbols-rounded text-base text-slate-500">picture_as_pdf</span>
-                    <div class="text-left">
-                      <p class="text-sm font-bold text-slate-300">Upload Syllabus PDF</p>
-                      <p class="text-xs text-slate-500">Max 10MB</p>
-                    </div>
-                    <input type="file" id="syllabusFileInput" class="hidden" accept="application/pdf" onchange="handleSyllabusUpload(this)">
-                  </div>
-                  
-                  <div id="syllabusUploadProgress" class="hidden relative z-10 flex-col justify-center min-w-[200px]">
-                    <div class="flex justify-between text-xs font-bold text-blue-400 mb-1">
-                      <span>Extracting...</span>
-                      <span id="syllabusProgressText" class="animate-pulse">Processing</span>
-                    </div>
-                    <div class="w-full bg-slate-900 rounded-full h-1.5 border border-slate-800 overflow-hidden">
-                      <div class="bg-gradient-to-r from-blue-600 to-sky-400 h-1.5 rounded-full w-full animate-[progress_2s_ease-in-out_infinite]"></div>
-                    </div>
-                  </div>
+        <!-- Sub-Header Metadata & Syllabus Card (Below Card) -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-2xl shadow-md space-y-2.5 mb-3">
+          <!-- Row 1: Badges & Identifiers -->
+          <div class="flex items-center gap-2 flex-wrap text-[11px] font-extrabold tracking-wide">
+            <span id="vcBatchBadge" class="bg-blue-950/90 border border-blue-800/70 text-blue-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Batch: Loading...</span>
+            <span id="vcSemBadge" class="bg-emerald-950/90 border border-emerald-800/70 text-emerald-300 px-2.5 py-0.5 rounded-md uppercase font-mono">SEM: S4</span>
+            <span id="vcBranchBadge" class="bg-indigo-950/90 border border-indigo-800/70 text-indigo-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Branch: CE</span>
+            <span id="vcRevisionBadge" class="bg-purple-950/90 border border-purple-800/70 text-purple-300 px-2.5 py-0.5 rounded-md uppercase font-mono">Revision: R-2021</span>
+            <span id="vcHoursCreditsBadge" class="bg-slate-900/90 border border-slate-700/70 text-amber-300 px-2.5 py-0.5 rounded-md font-mono">Proposed Hours: 60 hrs (+2 tests) | Credits: 2.0</span>
+          </div>
 
-                  <div id="vcSubjectInfo" style="display:none" class="flex-col justify-center border-l border-slate-800/80 pl-4 relative z-10">
-                    <span id="vcSubjectName" class="text-sm font-bold text-slate-200"></span>
-                    <span id="vcSubjectCode" class="text-xs font-semibold text-blue-400 mt-0.5 font-mono"></span>
-                    <span id="vcSyllabusProposedHours" class="text-[11px] font-bold text-emerald-400 mt-0.5 whitespace-nowrap"></span>
-                  </div>
-                </div>
-                 <span id="parseStatusBadge" class="text-xs font-bold px-3 py-1.5 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/50 whitespace-nowrap">Waiting for upload</span>
-             </div>
+          <!-- Row 2: Subject Name & Code with Branch Code -->
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span id="vcSubjectFullCode" class="text-xs font-black font-mono px-2 py-0.5 rounded bg-blue-950/90 text-blue-400 border border-blue-800/70">CE-401</span>
+            <h2 id="vcSubjectFullName" class="text-xs md:text-sm font-black text-slate-100 tracking-tight">Transportation Engineering Lab</h2>
+          </div>
 
-             <!-- Download Active Syllabus Card -->
-             <div id="activeSyllabusCard" class="hidden bg-slate-950/30 border border-slate-800/40 p-4 rounded-2xl flex items-center gap-4 transition-premium border-l-2 border-l-emerald-500 min-w-[250px]">
-                <div class="bg-emerald-500/10 p-2 rounded-lg flex-shrink-0">
-                  <span class="material-symbols-rounded text-emerald-400 text-xs block">check_circle</span>
+          <!-- Row 3: Action Buttons (Upload & View Syllabus) -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800/50">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Upload Syllabus Box -->
+              <div id="syllabusUploadBox" class="border border-dashed border-slate-700/80 rounded-xl px-3 py-1 bg-slate-900/40 hover:border-blue-500/60 hover:bg-slate-900/80 transition cursor-pointer flex items-center gap-2" onclick="document.getElementById('syllabusFileInput').click()">
+                <span class="material-symbols-rounded text-sm text-blue-400">upload_file</span>
+                <div class="flex flex-col">
+                  <span class="text-xs font-bold text-slate-200 leading-tight">Upload Syllabus PDF</span>
+                  <span class="text-[9px] text-slate-400">Max 10MB</span>
                 </div>
-                <div class="flex-grow">
-                  <h4 class="text-sm font-black text-slate-200">Active Syllabus</h4>
-                   <p class="text-xs text-slate-400">Parsed &amp; ready</p>
+                <input type="file" id="syllabusFileInput" class="hidden" accept="application/pdf" onchange="handleSyllabusUpload(this)">
+              </div>
+
+              <!-- Upload Progress -->
+              <div id="syllabusUploadProgress" class="hidden relative z-10 flex-col justify-center min-w-[160px]">
+                <div class="flex justify-between text-[10px] font-bold text-blue-400 mb-0.5">
+                  <span>Extracting...</span>
+                  <span id="syllabusProgressText" class="animate-pulse">Processing</span>
                 </div>
-                <button id="downloadSyllabusBtn" onclick="downloadSyllabusPDF()" title="View / Download Syllabus PDF" class="text-slate-400 hover:text-blue-400 transition-premium bg-slate-900/50 p-1.5 rounded-lg border border-slate-800 hover:border-blue-500/50 cursor-pointer">
-                   <span class="material-symbols-rounded text-sm block">open_in_new</span>
+                <div class="w-full bg-slate-900 rounded-full h-1 border border-slate-800 overflow-hidden">
+                  <div class="bg-gradient-to-r from-blue-600 to-sky-400 h-1 rounded-full w-full animate-[progress_2s_ease-in-out_infinite]"></div>
+                </div>
+              </div>
+
+              <!-- View / Download Active Syllabus Button -->
+              <div id="activeSyllabusCard" class="hidden items-center gap-2 bg-emerald-950/50 border border-emerald-800/60 px-3 py-1 rounded-xl text-xs font-bold text-emerald-300">
+                <span class="material-symbols-rounded text-sm text-emerald-400">check_circle</span>
+                <span class="text-xs">Active Syllabus</span>
+                <button id="downloadSyllabusBtn" onclick="downloadSyllabusPDF()" title="View / Download Syllabus PDF" class="ml-1 text-slate-200 hover:text-white bg-emerald-900/80 hover:bg-emerald-800 px-2 py-0.5 rounded-md transition cursor-pointer flex items-center gap-1 border border-emerald-700/60 text-[10px]">
+                  <span class="material-symbols-rounded text-xs">visibility</span> View Syllabus
                 </button>
-             </div>
+              </div>
+            </div>
+
+            <!-- Parse Status Badge -->
+            <span id="parseStatusBadge" class="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-slate-900/90 text-slate-400 border border-slate-800 whitespace-nowrap">Waiting for upload</span>
+          </div>
         </div>
         
          <!-- Toggle Buttons -->
@@ -1874,18 +1883,41 @@
       } else {
         currentSubjectId = subjectId;
         window.currentVirtualBatchId = batchId;
-        document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${subjectName}`;
+
         let latText = '';
         if (batchId && batchId.includes('_LET')) {
-          latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-xs px-2.5 py-1 rounded-full shadow-inner ml-2">LATERAL ENTRY (LET)</span>';
+          latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-[10px] px-2 py-0.5 rounded-md ml-1">LATERAL ENTRY (LET)</span>';
         }
-        document.getElementById('vcSubtitle').innerHTML = `Batch: ${batchId || ''}${latText}`;
-        const vcSubName = document.getElementById('vcSubjectName');
-        const vcSubCode = document.getElementById('vcSubjectCode');
-        const vcSubInfo = document.getElementById('vcSubjectInfo');
-        if (vcSubName) vcSubName.innerText = subjectName || '';
-        if (vcSubCode) vcSubCode.innerText = subjectCode || '';
-        if (vcSubInfo) vcSubInfo.style.display = (subjectName || subjectCode) ? 'flex' : 'none';
+
+        const vcTitle = document.getElementById('vcTitle');
+        if (vcTitle) {
+          vcTitle.innerHTML = `<span class="material-symbols-rounded text-teal-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
+        }
+
+        const bBadge = document.getElementById('vcBatchBadge');
+        if (bBadge) bBadge.innerHTML = `Batch: ${batchId || ''}${latText}`;
+
+        const fullCode = document.getElementById('vcSubjectFullCode');
+        const fullName = document.getElementById('vcSubjectFullName');
+        if (fullCode) fullCode.innerText = subjectCode || '';
+        if (fullName) fullName.innerText = subjectName || '';
+
+        const brBadge = document.getElementById('vcBranchBadge');
+        if (brBadge) {
+          let brName = 'CE';
+          if (batchId) {
+            const parts = batchId.split('_');
+            if (parts.length > 0 && parts[0]) brName = parts[0];
+          }
+          brBadge.innerText = `Branch: ${brName}`;
+        }
+
+        const revBadge = document.getElementById('vcRevisionBadge');
+        if (revBadge) {
+          const rStr = revision ? revision.toString() : 'R-2021';
+          revBadge.innerText = `Revision: ${rStr.startsWith('R-') ? rStr : 'R-' + rStr.replace('REV', '')}`;
+        }
+
         switchPanel('classroom');
         loadCourseDetails(subjectId);
       }
@@ -2038,17 +2070,44 @@
           currentSummativeTests = data.data.summative_manual_tests || {};
           currentSubjectName = data.data.subject_name || '';
           currentSubjectCode = data.data.subject_code || '';
-          const vcSubName = document.getElementById('vcSubjectName');
-          const vcSubCode = document.getElementById('vcSubjectCode');
-          const vcSubInfo = document.getElementById('vcSubjectInfo');
-          const vcPropHours = document.getElementById('vcSyllabusProposedHours');
-          if (vcSubName) vcSubName.innerText = currentSubjectName;
-          if (vcSubCode) vcSubCode.innerText = currentSubjectCode;
-          if (vcPropHours) {
-              const pHours = data.data.proposed_total_hours || 60;
-              vcPropHours.innerText = `Proposed Hours: ${pHours} hrs (+2 tests)`;
+          const fullName = document.getElementById('vcSubjectFullName');
+          const fullCode = document.getElementById('vcSubjectFullCode');
+          if (fullName) fullName.innerText = currentSubjectName;
+          if (fullCode) {
+            const brPrefix = data.data.branch ? `${data.data.branch}-` : '';
+            const rawCode = currentSubjectCode || '';
+            fullCode.innerText = (rawCode.startsWith(brPrefix) || rawCode.includes('-')) ? rawCode : `${brPrefix}${rawCode}`;
           }
-          if (vcSubInfo) vcSubInfo.style.display = (currentSubjectName || currentSubjectCode) ? 'flex' : 'none';
+
+          const semBadge = document.getElementById('vcSemBadge');
+          if (semBadge) semBadge.innerText = `SEM: ${data.data.semester || 'S4'}`;
+
+          const brBadge = document.getElementById('vcBranchBadge');
+          if (brBadge && data.data.branch) brBadge.innerText = `Branch: ${data.data.branch}`;
+
+          const revBadge = document.getElementById('vcRevisionBadge');
+          if (revBadge && data.data.syllabus_revision) {
+            const rVal = data.data.syllabus_revision.toString();
+            revBadge.innerText = `Revision: ${rVal.startsWith('R-') ? rVal : 'R-' + rVal.replace('REV', '')}`;
+          }
+
+          const hcBadge = document.getElementById('vcHoursCreditsBadge');
+          if (hcBadge) {
+            const pHours = data.data.proposed_total_hours || 60;
+            const creds = data.data.credits || 2.0;
+            hcBadge.innerText = `Proposed Hours: ${pHours} hrs (+2 tests) | Credits: ${creds}`;
+          }
+
+          const activeCard = document.getElementById('activeSyllabusCard');
+          if (activeCard) {
+            if (data.data.syllabus_pdf_path) {
+              activeCard.classList.remove('hidden');
+              activeCard.classList.add('flex');
+            } else {
+              activeCard.classList.add('hidden');
+              activeCard.classList.remove('flex');
+            }
+          }
           currentSubjectSemester = data.data.semester || '';
           currentSubjectAcademicYear = data.data.academic_year || '';
           currentSubjectClassroomId = data.data.classroom_id || '';

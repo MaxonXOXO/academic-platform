@@ -1872,18 +1872,14 @@
           return;
         }
       } else {
-        if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
-          window.open(`/classroom/practical/${subjectId}`, '_blank');
-          return;
-        }
         currentSubjectId = subjectId;
         window.currentVirtualBatchId = batchId;
         document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> ${subjectName}`;
         let latText = '';
-        if (batchId.includes('_LET')) {
+        if (batchId && batchId.includes('_LET')) {
           latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-xs px-2.5 py-1 rounded-full shadow-inner ml-2">LATERAL ENTRY (LET)</span>';
         }
-        document.getElementById('vcSubtitle').innerHTML = `Batch: ${batchId}${latText}`;
+        document.getElementById('vcSubtitle').innerHTML = `Batch: ${batchId || ''}${latText}`;
         const vcSubName = document.getElementById('vcSubjectName');
         const vcSubCode = document.getElementById('vcSubjectCode');
         const vcSubInfo = document.getElementById('vcSubjectInfo');

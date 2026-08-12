@@ -581,10 +581,6 @@
           return;
         }
       } else {
-        if (sTypeLower.includes('practical') || sTypeLower.includes('lab') || sNameLower.includes('lab') || sNameLower.includes('practical')) {
-          window.open(`/classroom/practical/${subjectId}`, '_blank');
-          return;
-        }
         window.location.href = `/dashboard/lecturer?subject_id=${subjectId}`;
       }
     }

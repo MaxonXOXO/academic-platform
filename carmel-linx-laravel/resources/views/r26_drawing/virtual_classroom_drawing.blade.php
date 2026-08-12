@@ -407,10 +407,6 @@
                                 </a>
                             </div>
                             @endif
-                            <div class="mt-3 p-3 rounded" style="background: rgba(6,182,212,0.1); border: 1px dashed var(--accent-cyan);">
-                                <small class="text-info d-block fw-semibold mb-1"><i class="fa-solid fa-circle-info me-1"></i> Auto Extraction Support</small>
-                                <small class="text-muted">Parses Course Title, Code, L:T:P:R, Credits, CO1-CO5 descriptions, Bloom's levels, CO-PO Matrix, and Drawing Exercises automatically from the PDF.</small>
-                            </div>
                         </div>
                     </div>
                     <div class="col-lg-8">

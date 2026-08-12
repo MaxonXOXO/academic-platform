@@ -213,6 +213,17 @@
         <button onclick="window.print()" class="btn-print" style="background: #059669;">🖨️ Print View</button>
     </div>
 
+    @php
+        $partsList = isset($qpData['parts']) && !empty($qpData['parts']) ? $qpData['parts'] : [
+            [
+                'part_name' => 'QUESTIONS',
+                'part_instructions' => 'Answer all questions as specified.',
+                'total_marks' => $qpData['max_marks'] ?? 40,
+                'questions' => $qpData['questions'] ?? []
+            ]
+        ];
+    @endphp
+
     <!-- DOCUMENT 1: QUESTION PAPER (QP - STRICT SINGLE A4 PAGE FIT) -->
     @if($docType == 'qp' || $docType == 'all')
     <table class="meta-header-table">
@@ -241,6 +252,8 @@
         <strong>INSTRUCTIONS TO CANDIDATES:</strong> {{ $qpData['instructions'] }}
     </div>
 
+    @foreach($partsList as $part)
+    <div class="section-badge">{{ $part['part_name'] }} ({{ $part['total_marks'] }} MARKS) — {{ $part['part_instructions'] }}</div>
     <table class="qp-table">
         <thead>
             <tr>
@@ -252,7 +265,27 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($qpData['questions'] as $q)
+            @foreach($part['questions'] as $q)
+            @php
+                $isCompulsory = isset($q['option_a']) && isset($q['option_b']) && 
+                    ($q['option_a']['title'] === $q['option_b']['title'] || str_contains(strtolower($q['option_a']['title']), 'compulsory'));
+            @endphp
+            @if($isCompulsory)
+            <tr>
+                <td class="text-center" style="font-weight: 800; font-size: 11px;">{{ $q['q_no'] }}</td>
+                <td style="text-align: center; vertical-align: middle;">{{ $q['module'] }}</td>
+                <td style="text-align: center; font-weight: 700; vertical-align: middle;">{{ $q['co'] }}</td>
+                <td>
+                    @foreach($q['option_a']['sub_questions'] as $sub)
+                    <div class="sub-q-row">
+                        <span><strong>{{ $sub['sub_no'] }}</strong> {{ $sub['text'] }}</span>
+                        <strong style="white-space: nowrap; margin-left: 8px;">[{{ $sub['marks'] }}]</strong>
+                    </div>
+                    @endforeach
+                </td>
+                <td style="text-align: center; font-weight: 700; vertical-align: middle;">{{ $q['total_marks'] }}</td>
+            </tr>
+            @else
             <!-- Option A -->
             <tr>
                 <td rowspan="2" class="text-center" style="font-weight: 800; font-size: 11px;">{{ $q['q_no'] }}</td>
@@ -284,9 +317,11 @@
                     </div>
                 </td>
             </tr>
+            @endif
             @endforeach
         </tbody>
     </table>
+    @endforeach
 
     <div class="footer-signatures">
         <div class="signature-box">Faculty In-Charge</div>
@@ -313,8 +348,8 @@
         </tr>
     </table>
 
-    <div class="section-badge">PART B: VALUATION SCHEME & RUBRIC DISTRIBUTION</div>
-
+    @foreach($partsList as $part)
+    <div class="section-badge">{{ $part['part_name'] }}: VALUATION SCHEME & RUBRIC DISTRIBUTION ({{ $part['total_marks'] }} MARKS)</div>
     <table class="qp-table">
         <thead>
             <tr>
@@ -326,11 +361,16 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($qpData['questions'] as $q)
-            @foreach(['option_a', 'option_b'] as $optKey)
+            @foreach($part['questions'] as $q)
+            @php
+                $isCompulsory = isset($q['option_a']) && isset($q['option_b']) && 
+                    ($q['option_a']['title'] === $q['option_b']['title'] || str_contains(strtolower($q['option_a']['title']), 'compulsory'));
+                $optsToIterate = $isCompulsory ? ['option_a'] : ['option_a', 'option_b'];
+            @endphp
+            @foreach($optsToIterate as $optKey)
             @foreach($q[$optKey]['sub_questions'] as $sub)
             <tr>
-                <td style="text-align: center; font-weight: 700;">{{ $q['q_no'] }} ({{ $optKey == 'option_a' ? 'A' : 'B' }})</td>
+                <td style="text-align: center; font-weight: 700;">{{ $q['q_no'] }}{{ $isCompulsory ? '' : ' ('.($optKey == 'option_a' ? 'A' : 'B').')' }}</td>
                 <td style="text-align: center; font-weight: 700;">{{ $q['co'] }}</td>
                 <td><strong>{{ $sub['sub_no'] }}</strong> {{ Str::limit($sub['text'], 90) }}</td>
                 <td>
@@ -345,6 +385,7 @@
             @endforeach
         </tbody>
     </table>
+    @endforeach
 
     <div class="footer-signatures">
         <div class="signature-box">Evaluator Signature</div>
@@ -371,17 +412,24 @@
         </tr>
     </table>
 
-    <div class="section-badge">PART C: MODEL SOLUTION STEPS & ANSWER KEY</div>
-
-    @foreach($qpData['questions'] as $q)
+    @foreach($partsList as $part)
+    <div class="section-badge">{{ $part['part_name'] }}: MODEL SOLUTION STEPS & ANSWER KEY</div>
+    @foreach($part['questions'] as $q)
+    @php
+        $isCompulsory = isset($q['option_a']) && isset($q['option_b']) && 
+            ($q['option_a']['title'] === $q['option_b']['title'] || str_contains(strtolower($q['option_a']['title']), 'compulsory'));
+        $optsToIterate = $isCompulsory ? ['option_a'] : ['option_a', 'option_b'];
+    @endphp
     <div style="margin-bottom: 8px; border: 1px solid #000; padding: 6px;">
         <div style="font-weight: 800; font-size: 10.5px; color: #0284c7; margin-bottom: 4px;">
             {{ $q['q_no'] }} Solutions [{{ $q['module'] }} — {{ $q['co'] }}]:
         </div>
-        @foreach(['option_a', 'option_b'] as $optKey)
+        @foreach($optsToIterate as $optKey)
+        @if(!$isCompulsory)
         <div style="font-weight: 700; color: #475569; margin-top: 4px;">
             {{ $q[$optKey]['title'] }}:
         </div>
+        @endif
         @foreach($q[$optKey]['sub_questions'] as $sub)
         <div class="key-item">
             <strong>{{ $sub['sub_no'] }} Key Steps [{{ $sub['marks'] }} Marks]:</strong><br>
@@ -390,6 +438,7 @@
         @endforeach
         @endforeach
     </div>
+    @endforeach
     @endforeach
 
     <div class="footer-signatures">

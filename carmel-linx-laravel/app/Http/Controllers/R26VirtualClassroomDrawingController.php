@@ -909,97 +909,173 @@ class R26VirtualClassroomDrawingController extends Controller
     {
         if ($testNo == 1) {
             return [
-                'test_title' => 'SERIES EXAMINATION 1 (MANUAL DRAWING)',
+                'test_title' => 'FIRST INTERNAL EXAMINATION (MANUAL DRAWING)',
                 'modules_covered' => 'Module I (Geometrical Constructions & Conics) & Module II (Orthographic Projections)',
-                'duration' => '1.5 Hours / 2 Hours',
+                'duration' => '2 Hours',
                 'max_marks' => 40,
                 'co_tags' => 'CO1 & CO2',
-                'instructions' => 'Answer Question 1 (Module I) AND Question 2 (Module II). Choose EITHER Option A OR Option B in each question. Show all construction lines clearly.',
-                'questions' => [
+                'instructions' => 'Answer ALL questions in PART A (5 Marks). Answer ALL questions in PART B (35 Marks). Show all construction lines clearly.',
+                'parts' => [
                     [
-                        'q_no' => 'Q1',
-                        'module' => 'Module I',
-                        'co' => 'CO1',
-                        'total_marks' => 20,
-                        'option_a' => [
-                            'title' => 'Option A (Universal Circle Method & Concentric Ellipse)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Construct a regular Hexagon of side 40 mm using the universal circle method. Show all construction lines clearly.',
-                                    'marks' => 10,
-                                    'scheme' => 'Universal circle construction: 4 Marks | Hexagon geometry: 4 Marks | Dimensioning & neatness: 2 Marks',
-                                    'answer_key' => '1. Draw AB = 40 mm. 2. Erect perpendicular bisector. 3. Arc radius AB to locate 6-point. 4. Draw circle of radius 6-point to A, step off 40 mm sides.'
+                        'part_name' => 'PART A',
+                        'part_instructions' => 'Answer all 5 questions (1 Mark each — Total 5 Marks)',
+                        'total_marks' => 5,
+                        'questions' => [
+                            [
+                                'q_no' => 'Q1', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 1,
+                                'option_a' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'State the ratio of eccentricity (e) for an Ellipse.', 'marks' => 1, 'scheme' => 'Correct ratio (e < 1): 1 Mark', 'answer_key' => 'e < 1']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Draw an Ellipse having major axis = 100 mm and minor axis = 60 mm using the Concentric Circles Method.',
-                                    'marks' => 10,
-                                    'scheme' => 'Concentric circles: 3 Marks | 12-sector division: 4 Marks | Ellipse plot: 2 Marks | Dimensioning: 1 Mark',
-                                    'answer_key' => '1. Draw major circle Dia 100 mm & minor circle Dia 60 mm. 2. Divide into 12 equal 30° sectors. 3. Project vertical from major & horizontal from minor circle.'
+                                'option_b' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'State the ratio of eccentricity (e) for an Ellipse.', 'marks' => 1, 'scheme' => 'Correct ratio (e < 1): 1 Mark', 'answer_key' => 'e < 1']
+                                    ]
                                 ]
-                            ]
-                        ],
-                        'option_b' => [
-                            'title' => 'Option B (Parabola & Surface Development)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Draw a Parabola with focus 50 mm away from directrix using eccentricity method (e = 1).',
-                                    'marks' => 10,
-                                    'scheme' => 'Directrix & Axis setup: 3 Marks | Vertex & Focus points: 3 Marks | Parabolic curve plot: 4 Marks',
-                                    'answer_key' => '1. Draw directrix and axis. Mark Focus F at 50 mm. 2. Mark Vertex V at mid-point 25 mm. 3. Plot points where VF = VF’ to get parabola.'
+                            ],
+                            [
+                                'q_no' => 'Q2', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 1,
+                                'option_a' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'Name the polygon having 6 equal sides.', 'marks' => 1, 'scheme' => 'Correct name: 1 Mark', 'answer_key' => 'Regular Hexagon']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Draw the stretch-out development of a truncated square prism of base 30 mm and height 60 mm cut at 45° to base.',
-                                    'marks' => 10,
-                                    'scheme' => 'Prism elevation & cutting plane: 4 Marks | Development stretch-out: 4 Marks | True lengths & neatness: 2 Marks',
-                                    'answer_key' => '1. Draw Front View showing 45° cutting plane. 2. Project horizontal lines onto 4×30 = 120 mm stretch-out boundary.'
+                                'option_b' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'Name the polygon having 6 equal sides.', 'marks' => 1, 'scheme' => 'Correct name: 1 Mark', 'answer_key' => 'Regular Hexagon']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q3', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 1,
+                                'option_a' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'What is the interior angle of a regular Pentagon?', 'marks' => 1, 'scheme' => 'Correct angle (108°): 1 Mark', 'answer_key' => '108°']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'What is the interior angle of a regular Pentagon?', 'marks' => 1, 'scheme' => 'Correct angle (108°): 1 Mark', 'answer_key' => '108°']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q4', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 1,
+                                'option_a' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'Define Development of Surfaces.', 'marks' => 1, 'scheme' => 'Correct definition: 1 Mark', 'answer_key' => 'Unfolding 3D surface into 2D plane.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'Define Development of Surfaces.', 'marks' => 1, 'scheme' => 'Correct definition: 1 Mark', 'answer_key' => 'Unfolding 3D surface into 2D plane.']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q5', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 1,
+                                'option_a' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'What type of conic curve is generated when eccentricity e = 1?', 'marks' => 1, 'scheme' => 'Correct curve name: 1 Mark', 'answer_key' => 'Parabola']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Compulsory Question',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(a)', 'text' => 'What type of conic curve is generated when eccentricity e = 1?', 'marks' => 1, 'scheme' => 'Correct curve name: 1 Mark', 'answer_key' => 'Parabola']
+                                    ]
                                 ]
                             ]
                         ]
                     ],
                     [
-                        'q_no' => 'Q2',
-                        'module' => 'Module II',
-                        'co' => 'CO2',
-                        'total_marks' => 20,
-                        'option_a' => [
-                            'title' => 'Option A (Line Inclination & Step Block Orthographic)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'A line AB 70 mm long has end A 15 mm above HP and 20 mm in front of VP. Line is parallel to VP and inclined at 30° to HP. Draw Front View & Top View.',
-                                    'marks' => 10,
-                                    'scheme' => 'XY line & Point A setup: 2 Marks | Front View a’b’ at 30°: 4 Marks | Top View ab horizontal: 3 Marks | Dimensions: 1 Mark',
-                                    'answer_key' => '1. XY line: a’ 15 mm above, a 20 mm below. 2. a’b’ = 70 mm at 30° to XY. 3. Project b’ down to get Top View ab (length = 70 cos 30° = 60.6 mm).'
+                        'part_name' => 'PART B',
+                        'part_instructions' => 'Answer drawing problems (5 Questions × 7 Marks = Total 35 Marks)',
+                        'total_marks' => 35,
+                        'questions' => [
+                            [
+                                'q_no' => 'Q6', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: Regular Hexagon Construction',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Construct a regular Hexagon of side 40 mm using universal circle method.', 'marks' => 7, 'scheme' => 'Circle setup: 3M | Hexagon: 4M', 'answer_key' => 'Universal circle method step-by-step.']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Draw 1st Angle Orthographic Projections (Front View & Top View) of a rectangular step block (Base 60x40 mm, Height 30 mm, step 20x15 mm).',
-                                    'marks' => 10,
-                                    'scheme' => 'Front View step profile: 4 Marks | Top View alignment: 4 Marks | 1st Angle Symbol & dimensions: 2 Marks',
-                                    'answer_key' => '1. Draw Front View (60x30 mm with step cutout). 2. Project Top View (60x40 mm). 3. Add 1st Angle Projection symbol.'
+                                'option_b' => [
+                                    'title' => 'Option B: Concentric Circle Ellipse',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw an Ellipse with major axis = 100 mm and minor axis = 60 mm by Concentric Circles Method.', 'marks' => 7, 'scheme' => 'Concentric circles: 3M | Ellipse curve: 4M', 'answer_key' => 'Concentric circles method.']
+                                    ]
                                 ]
-                            ]
-                        ],
-                        'option_b' => [
-                            'title' => 'Option B (Line Projections & L-Bracket Orthographic)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'A line CD 80 mm long has end C 20 mm above HP and 25 mm in front of VP. Line is inclined at 45° to VP and parallel to HP. Draw its projections.',
-                                    'marks' => 10,
-                                    'scheme' => 'XY line & Point C setup: 2 Marks | Top View cd at 45°: 4 Marks | Front View c’d’ horizontal: 3 Marks | Dimensions: 1 Mark',
-                                    'answer_key' => '1. Mark c’ 20 mm above XY, c 25 mm below XY. 2. Top View cd = 80 mm at 45° to XY. 3. Project d up to meet horizontal line from c’.'
+                            ],
+                            [
+                                'q_no' => 'Q7', 'module' => 'Module 1', 'co' => 'CO1', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: Parabola Construction',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw a Parabola with focus 50 mm from directrix (e = 1).', 'marks' => 7, 'scheme' => 'Directrix: 3M | Curve: 4M', 'answer_key' => 'Eccentricity method.']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Draw 1st Angle Orthographic Projections (Front View, Top View, and Right Side View) of an L-bracket component (60x60x15 mm thick).',
-                                    'marks' => 10,
-                                    'scheme' => 'Front View: 3 Marks | Top View: 3 Marks | Side View: 3 Marks | Symbol & Neatness: 1 Mark',
-                                    'answer_key' => '1. Draw Front View L-shape (60x60x15 mm). 2. Project Top View rectangle. 3. Project Side View on left of Front View.'
+                                'option_b' => [
+                                    'title' => 'Option B: Surface Development',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw the stretch-out development of a truncated square prism of base 30 mm, height 60 mm.', 'marks' => 7, 'scheme' => 'Elevation: 3M | Stretch-out: 4M', 'answer_key' => 'Stretch-out development.']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q8', 'module' => 'Module 2', 'co' => 'CO2', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: Line Inclined to HP',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'A line AB 70 mm long has end A 15 mm above HP and 20 mm in front of VP. Line is inclined at 30° to HP and parallel to VP. Draw Front & Top View.', 'marks' => 7, 'scheme' => 'XY & Point A: 2M | FV at 30°: 3M | TV: 2M', 'answer_key' => 'Front view a’b’ at 30°, Top view ab horizontal.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Option B: Line Inclined to VP',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'A line CD 80 mm long has end C 20 mm above HP and 25 mm in front of VP. Line is inclined at 45° to VP and parallel to HP. Draw its projections.', 'marks' => 7, 'scheme' => 'XY & Point C: 2M | TV at 45°: 3M | FV: 2M', 'answer_key' => 'Top view cd at 45°, Front view c’d’ horizontal.']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q9', 'module' => 'Module 2', 'co' => 'CO2', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: Step Block Orthographic',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw 1st Angle Orthographic Projections (Front View & Top View) of a rectangular step block (Base 60x40 mm, Height 30 mm).', 'marks' => 7, 'scheme' => 'FV step profile: 4M | TV: 3M', 'answer_key' => 'First angle projections.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Option B: L-Bracket Orthographic',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw 1st Angle Orthographic Projections (Front View & Side View) of an L-bracket component (60x60x15 mm thick).', 'marks' => 7, 'scheme' => 'FV: 4M | Side View: 3M', 'answer_key' => 'L-bracket orthographic views.']
+                                    ]
+                                ]
+                            ],
+                            [
+                                'q_no' => 'Q10', 'module' => 'Module 2', 'co' => 'CO2', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: Sectional View of Cylinder',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw the Sectional Front View of a vertical cylinder (Dia 50 mm, Height 70 mm) cut by a horizontal section plane at mid-height.', 'marks' => 7, 'scheme' => 'Cylinder elevation: 3M | Section hatching: 4M', 'answer_key' => 'Sectional elevation with 45° hatch lines.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Option B: Sectional View of Cone',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draw the Sectional Top View of a vertical cone (Base Dia 60 mm, Axis 75 mm) cut by a section plane parallel to HP.', 'marks' => 7, 'scheme' => 'Cone elevation & plane: 3M | Sectional TV: 4M', 'answer_key' => 'Concentric circle section in TV.']
+                                    ]
                                 ]
                             ]
                         ]
@@ -1008,83 +1084,83 @@ class R26VirtualClassroomDrawingController extends Controller
             ];
         } else {
             return [
-                'test_title' => 'SERIES EXAMINATION 2 (CAD 2D DRAFTING & PLOTTING)',
+                'test_title' => 'SECOND INTERNAL EXAMINATION (CAD 2D DRAFTING & PLOTTING)',
                 'modules_covered' => 'Module III (CAD Commands & Layering) & Module IV (CAD 2D Component Drafting & Sectional Plotting)',
-                'duration' => '1.5 Hours / 2 Hours',
+                'duration' => '2 Hours',
                 'max_marks' => 40,
                 'co_tags' => 'CO3 & CO4',
-                'instructions' => 'Answer Question 1 (Module III) AND Question 2 (Module IV). Choose EITHER Option A OR Option B in each question.',
-                'questions' => [
+                'instructions' => 'Answer ALL questions in PART A (14 Marks). Answer ALL questions in PART B (26 Marks). Use CAD software for drafting.',
+                'parts' => [
                     [
-                        'q_no' => 'Q1',
-                        'module' => 'Module III',
-                        'co' => 'CO3',
-                        'total_marks' => 20,
-                        'option_a' => [
-                            'title' => 'Option A (CAD Environment & A4 Title Block)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Set up CAD environment: Units: Decimal (mm), Limits: (0,0) to (297,210). Create layers: OUTLINE (White, 0.4mm), CENTER (Red, 0.18mm), HIDDEN (Yellow, 0.25mm), DIM (Cyan, 0.18mm).',
-                                    'marks' => 10,
-                                    'scheme' => 'Units & Limits commands: 3 Marks | Layer setup & colors: 4 Marks | Linetypes & line weights: 3 Marks',
-                                    'answer_key' => 'UNITS -> Decimal 0.00 | LIMITS -> 0,0 to 297,210 -> ZOOM -> ALL | LAYER -> Create OUTLINE, CENTER, HIDDEN, DIM.'
+                        'part_name' => 'PART A',
+                        'part_instructions' => 'Answer questions from Module 3 (2 Questions × 7 Marks = Total 14 Marks)',
+                        'total_marks' => 14,
+                        'questions' => [
+                            [
+                                'q_no' => 'Q1', 'module' => 'Module 3', 'co' => 'CO3', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: CAD Setup & Layering',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Set up CAD environment: Units (mm), Limits (0,0 to 297,210). Create layers OUTLINE, CENTER, HIDDEN, DIM with colors.', 'marks' => 7, 'scheme' => 'Units & Limits: 3M | Layers & Colors: 4M', 'answer_key' => 'UNITS, LIMITS, LAYER commands.']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Create a standard A4 Title Block at bottom right containing College Name, Student Name, Reg No, Date, and Scale (1:1) using RECTANG, OFFSET, and MTEXT.',
-                                    'marks' => 10,
-                                    'scheme' => 'Title block border geometry: 4 Marks | Text formatting & alignment: 4 Marks | Scale & Reg No entries: 2 Marks',
-                                    'answer_key' => 'RECTANG -> @185,65 | EXPLODE | OFFSET -> 10, 20 | MTEXT -> Height 3.5mm for fields, 5mm for College Name.'
+                                'option_b' => [
+                                    'title' => 'Option B: A4 Title Block Creation',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Create a standard A4 Title Block in CAD containing College Name, Reg No, Date, and Scale (1:1).', 'marks' => 7, 'scheme' => 'Title block geometry: 4M | Text: 3M', 'answer_key' => 'RECTANG, OFFSET, MTEXT commands.']
+                                    ]
                                 ]
-                            ]
-                        ],
-                        'option_b' => [
-                            'title' => 'Option B (Coordinate Systems & Dimension Style)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Explain CAD coordinate entry systems (Absolute, Relative Rectangular, Relative Polar) with command syntax examples for a 50x30 mm rectangle.',
-                                    'marks' => 10,
-                                    'scheme' => 'Absolute coordinates explanation: 3 Marks | Relative rectangular syntax: 3 Marks | Relative polar syntax: 4 Marks',
-                                    'answer_key' => '1. Absolute: 0,0 to 50,0 to 50,30 to 0,30. 2. Relative Rectangular: @50,0 to @0,30 to @-50,0. 3. Relative Polar: @50<0 to @30<90.'
+                            ],
+                            [
+                                'q_no' => 'Q2', 'module' => 'Module 3', 'co' => 'CO3', 'total_marks' => 7,
+                                'option_a' => [
+                                    'title' => 'Option A: CAD Coordinate Systems',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Explain Absolute, Relative Rectangular, and Relative Polar coordinate entries in CAD with command syntax for a 50x30 rectangle.', 'marks' => 7, 'scheme' => 'Absolute: 2M | Relative Rect: 2M | Polar: 3M', 'answer_key' => 'Absolute, @X,Y, @R<Theta syntax.']
+                                    ]
                                 ],
-                                [
-                                    'sub_no' => '(ii)',
-                                    'text' => 'Configure a custom dimension style ISO-25 in CAD setting Text Height 3.5mm, Arrowhead 2.5mm, and Extension Line Offset 1.5mm.',
-                                    'marks' => 10,
-                                    'scheme' => 'DIMSTYLE manager setup: 3 Marks | Text & Arrow parameters: 4 Marks | Extension line offset & Save: 3 Marks',
-                                    'answer_key' => 'DIMSTYLE -> Modify -> Lines (Offset 1.5mm) -> Symbols & Arrows (Size 2.5mm) -> Text (Height 3.5mm).'
+                                'option_b' => [
+                                    'title' => 'Option B: Dimension Style Configuration',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Configure custom dimension style ISO-25 in CAD setting Text Height 3.5mm, Arrowhead 2.5mm, and Extension Line Offset 1.5mm.', 'marks' => 7, 'scheme' => 'DIMSTYLE manager: 3M | Text & Arrows: 4M', 'answer_key' => 'DIMSTYLE configuration steps.']
+                                    ]
                                 ]
                             ]
                         ]
                     ],
                     [
-                        'q_no' => 'Q2',
-                        'module' => 'Module IV',
-                        'co' => 'CO4',
-                        'total_marks' => 20,
-                        'option_a' => [
-                            'title' => 'Option A (Sectional Shaft Drafting & PDF Plotting)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Draft the 2D Sectional Front View and Top View of a Flanged Shaft Component in CAD. Apply HATCH (ANSI31, Scale 1.0), complete dimensioning, and Plot to PDF (RegNo_CA2.pdf).',
-                                    'marks' => 20,
-                                    'scheme' => '2D Geometry & Alignment: 8 Marks | Sectional Hatching: 4 Marks | Dimensioning style: 4 Marks | PDF Plot layout: 4 Marks',
-                                    'answer_key' => '1. Centerline on CENTER layer. 2. Draw upper profile on OUTLINE layer. 3. MIRROR. 4. HATCH (ANSI31). 5. Add dimensions on DIM. 6. PLOT -> DWG to PDF.pc3 A4.'
+                        'part_name' => 'PART B',
+                        'part_instructions' => 'Answer questions from Module 4 (2 Questions × 13 Marks = Total 26 Marks)',
+                        'total_marks' => 26,
+                        'questions' => [
+                            [
+                                'q_no' => 'Q3', 'module' => 'Module 4', 'co' => 'CO4', 'total_marks' => 13,
+                                'option_a' => [
+                                    'title' => 'Option A: Sectional Flanged Shaft Drafting',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draft 2D Sectional Front View of a Flanged Shaft Component in CAD with HATCH (ANSI31) and complete dimensioning.', 'marks' => 13, 'scheme' => 'Shaft Geometry: 6M | Hatching: 4M | Dimensions: 3M', 'answer_key' => 'LINE, MIRROR, HATCH, DIM.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Option B: Stepped Pulley Component Drafting',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draft 2D Front View and Top View of a Stepped Pulley with Keyway in CAD. Draw hidden lines on HIDDEN layer.', 'marks' => 13, 'scheme' => 'Pulley & Keyway: 6M | Hidden Layer: 4M | Dimensions: 3M', 'answer_key' => 'CIRCLE, RECTANG, HIDDEN layer.']
+                                    ]
                                 ]
-                            ]
-                        ],
-                        'option_b' => [
-                            'title' => 'Option B (Stepped Pulley & Keyway Drafting)',
-                            'sub_questions' => [
-                                [
-                                    'sub_no' => '(i)',
-                                    'text' => 'Draft the 2D Front View and Top View of a Stepped Pulley with Keyway in CAD. Draw hidden lines on HIDDEN layer, add complete dimensions, and plot to A4 PDF.',
-                                    'marks' => 20,
-                                    'scheme' => 'Pulley & Keyway Geometry: 8 Marks | Hidden Layer Detail: 4 Marks | Complete Dimensions: 4 Marks | PDF Plotting: 4 Marks',
-                                    'answer_key' => '1. Draw concentric circles for pulley steps and keyway slot. 2. Project Front View with hidden keyway lines on HIDDEN layer. 3. Plot to A4 PDF.'
+                            ],
+                            [
+                                'q_no' => 'Q4', 'module' => 'Module 4', 'co' => 'CO4', 'total_marks' => 13,
+                                'option_a' => [
+                                    'title' => 'Option A: CAD Plotting to A4 PDF',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Plot a completed CAD drawing component to A4 PDF format (DWG to PDF.pc3, Window selection, Scale 1:1, Center Plot).', 'marks' => 13, 'scheme' => 'Plot setup: 5M | Window & Scale: 5M | PDF Output: 3M', 'answer_key' => 'PLOT -> DWG to PDF.pc3 -> A4 -> Window.']
+                                    ]
+                                ],
+                                'option_b' => [
+                                    'title' => 'Option B: Orthographic Component Assembly in CAD',
+                                    'sub_questions' => [
+                                        ['sub_no' => '(i)', 'text' => 'Draft 2D Orthographic Front View and Top View of a Coupler Assembly component in CAD with complete dimensioning.', 'marks' => 13, 'scheme' => 'Assembly Geometry: 6M | View Alignment: 4M | Dimensions: 3M', 'answer_key' => 'Coupler orthographic drafting.']
+                                    ]
                                 ]
                             ]
                         ]

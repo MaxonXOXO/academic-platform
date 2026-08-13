@@ -8305,7 +8305,11 @@
           document.getElementById('eseThresholdPercent').value = cfg.ese_threshold_percent || cfg.target_threshold_percent || 50;
           document.getElementById('eseThresholdGrade').value = cfg.ese_threshold_grade || cfg.target_grade || 'D';
           document.getElementById('cieThresholdPercent').value = cfg.cie_threshold_percent || 50;
-          document.getElementById('targetStudentPercent').value = cfg.target_student_percent || cfg.level3_percent || 70;
+          const targetVal = cfg.target_student_percent || cfg.level3_percent || 70;
+          document.getElementById('targetStudentPercent').value = targetVal;
+          if (document.getElementById('inputLevel3Percent')) document.getElementById('inputLevel3Percent').value = cfg.level3_percent || targetVal;
+          if (document.getElementById('inputLevel2Percent')) document.getElementById('inputLevel2Percent').value = cfg.level2_percent || Math.max(0, targetVal - 10);
+          if (document.getElementById('inputLevel1Percent')) document.getElementById('inputLevel1Percent').value = cfg.level1_percent || Math.max(0, targetVal - 20);
 
           renderEseStudentRows(data.students || [], 'grades', cfg.max_marks || 60);
           updateEseSummaryStats(data.summary);
@@ -8361,23 +8365,25 @@
       recalculateEseStats();
     }
 
-    function recalculateEseStats() {
+    function recalculateEseStats(fromTarget = false) {
       const mode = document.getElementById('eseEntryMode').value;
       const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
       const eseTargetPct = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
       const targetStudentPct = parseFloat(document.getElementById('targetStudentPercent').value || 70);
 
-      // Update Redefined Attainment Level Preview Labels
-      const lvl3Val = targetStudentPct;
-      const lvl2Val = Math.max(0, targetStudentPct - 10);
-      const lvl1Val = Math.max(0, targetStudentPct - 20);
+      const elL3Input = document.getElementById('inputLevel3Percent');
+      const elL2Input = document.getElementById('inputLevel2Percent');
+      const elL1Input = document.getElementById('inputLevel1Percent');
 
-      const elL3 = document.getElementById('previewLevel3');
-      const elL2 = document.getElementById('previewLevel2');
-      const elL1 = document.getElementById('previewLevel1');
-      if (elL3) elL3.innerText = `≥ ${lvl3Val}% Batch`;
-      if (elL2) elL2.innerText = `≥ ${lvl2Val}% Batch`;
-      if (elL1) elL1.innerText = `≥ ${lvl1Val}% Batch`;
+      if (fromTarget && elL3Input && elL2Input && elL1Input) {
+        elL3Input.value = targetStudentPct;
+        elL2Input.value = Math.max(0, targetStudentPct - 10);
+        elL1Input.value = Math.max(0, targetStudentPct - 20);
+      }
+
+      const lvl3Val = elL3Input ? parseFloat(elL3Input.value || targetStudentPct) : targetStudentPct;
+      const lvl2Val = elL2Input ? parseFloat(elL2Input.value || (targetStudentPct - 10)) : Math.max(0, targetStudentPct - 10);
+      const lvl1Val = elL1Input ? parseFloat(elL1Input.value || (targetStudentPct - 20)) : Math.max(0, targetStudentPct - 20);
 
       const inputs = document.querySelectorAll('.ese-val-input');
       const totalStudents = inputs.length;
@@ -8469,6 +8475,9 @@
       const eseThresholdPercent = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
       const cieThresholdPercent = parseFloat(document.getElementById('cieThresholdPercent').value || 50);
       const targetStudentPercent = parseFloat(document.getElementById('targetStudentPercent').value || 70);
+      const level3Percent = parseFloat(document.getElementById('inputLevel3Percent')?.value || targetStudentPercent);
+      const level2Percent = parseFloat(document.getElementById('inputLevel2Percent')?.value || Math.max(0, targetStudentPercent - 10));
+      const level1Percent = parseFloat(document.getElementById('inputLevel1Percent')?.value || Math.max(0, targetStudentPercent - 20));
 
       const inputs = document.querySelectorAll('.ese-val-input');
       const marks = {};
@@ -8484,6 +8493,9 @@
         ese_threshold_percent: eseThresholdPercent,
         cie_threshold_percent: cieThresholdPercent,
         target_student_percent: targetStudentPercent,
+        level3_percent: level3Percent,
+        level2_percent: level2Percent,
+        level1_percent: level1Percent,
         marks: marks
       };
 
@@ -8544,10 +8556,10 @@
       <div class="p-5 overflow-y-auto space-y-5 flex-grow" id="eseModalBody">
         
         <!-- Streamlined Threshold Config Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <!-- Card 1: Exam Threshold Settings -->
-          <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="bg-slate-950/50 border border-slate-800/80 p-3 rounded-xl space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
               <span class="text-xs font-black text-slate-200 uppercase tracking-wider">1. Assessment Threshold Settings</span>
               <span class="text-[10px] font-bold text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-800/50">CIE & ESE Targets</span>
             </div>
@@ -8557,11 +8569,11 @@
             <input type="hidden" id="eseMaxMarks" value="60">
             <input type="hidden" id="eseThresholdPercent" value="50">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <!-- ESE Threshold Grade (SBTE Kerala Board) -->
               <div>
-                <label class="block text-[11px] font-bold text-slate-400 mb-1">ESE Threshold Grade (SBTE)</label>
-                <select id="eseThresholdGrade" onchange="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-teal-400 font-bold text-xs px-2.5 py-2 rounded-lg outline-none focus:border-teal-500 overflow-ellipsis">
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">ESE Threshold Grade (SBTE)</label>
+                <select id="eseThresholdGrade" onchange="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-teal-400 font-bold text-xs px-2 py-1.5 rounded-lg outline-none focus:border-teal-500 overflow-ellipsis">
                   <option value="E">E Grade & Above (Pass - 40%+)</option>
                   <option value="D" selected>D Grade & Above (Average - 50%+)</option>
                   <option value="C">C Grade & Above (Good - 60%+)</option>
@@ -8573,42 +8585,53 @@
 
               <!-- Internal (CIE) Threshold -->
               <div>
-                <label class="block text-[11px] font-bold text-slate-400 mb-1">Internal (CIE) Threshold (%)</label>
-                <input type="number" id="cieThresholdPercent" value="50" min="30" max="90" step="1" oninput="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-indigo-400 font-mono font-bold text-xs px-3 py-2 rounded-lg outline-none focus:border-indigo-500">
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Internal (CIE) Threshold (%)</label>
+                <input type="number" id="cieThresholdPercent" value="50" min="30" max="90" step="1" oninput="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-indigo-400 font-mono font-bold text-xs px-2.5 py-1.5 rounded-lg outline-none focus:border-indigo-500">
               </div>
             </div>
           </div>
 
           <!-- Card 2: Target Student % & Attainment Levels -->
-          <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="bg-slate-950/50 border border-slate-800/80 p-3 rounded-xl space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
               <span class="text-xs font-black text-slate-200 uppercase tracking-wider">2. Batch Target & Attainment Levels</span>
               <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/50">NBA Criteria</span>
             </div>
 
-            <div>
-              <label class="block text-[11px] font-bold text-slate-400 mb-1">Target % of Total Batch Students</label>
-              <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg">
-                <span class="text-xs font-bold text-emerald-400">Target (T):</span>
-                <input type="number" id="targetStudentPercent" value="70" min="30" max="100" step="1" oninput="recalculateEseStats()" class="w-full bg-transparent text-emerald-400 font-mono font-black text-sm outline-none">
-                <span class="text-xs text-slate-500 font-bold">%</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 pt-1">
-              <div class="bg-slate-900/80 border border-emerald-500/30 p-2 rounded-lg text-center">
-                <span class="block text-[9px] font-bold text-emerald-400 uppercase">Level 3 (High)</span>
-                <span id="previewLevel3" class="text-xs font-mono font-bold text-emerald-300">≥ 70% Batch</span>
+            <div class="grid grid-cols-4 gap-2">
+              <div class="bg-slate-900/80 border border-emerald-500/40 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                <span class="block text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Target (T)</span>
+                <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                  <input type="number" id="targetStudentPercent" value="70" min="30" max="100" step="1" oninput="recalculateEseStats(true)" class="w-12 bg-transparent text-emerald-400 font-mono font-black text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                  <span class="text-[10px] text-slate-400 font-bold">%</span>
+                </div>
               </div>
 
-              <div class="bg-slate-900/80 border border-amber-500/30 p-2 rounded-lg text-center">
-                <span class="block text-[9px] font-bold text-amber-400 uppercase">Level 2 (Mod)</span>
-                <span id="previewLevel2" class="text-xs font-mono font-bold text-amber-300">≥ 60% Batch</span>
+              <div class="bg-slate-900/80 border border-emerald-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                <span class="block text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Level 3 (High)</span>
+                <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span class="text-[10px] text-emerald-300 font-bold">&ge;</span>
+                  <input type="number" id="inputLevel3Percent" value="70" min="0" max="100" step="1" oninput="recalculateEseStats(false)" class="w-10 bg-transparent text-emerald-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                  <span class="text-[10px] text-slate-400 font-bold">%</span>
+                </div>
               </div>
 
-              <div class="bg-slate-900/80 border border-blue-500/30 p-2 rounded-lg text-center">
-                <span class="block text-[9px] font-bold text-blue-400 uppercase">Level 1 (Low)</span>
-                <span id="previewLevel1" class="text-xs font-mono font-bold text-blue-300">≥ 50% Batch</span>
+              <div class="bg-slate-900/80 border border-amber-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                <span class="block text-[9px] font-bold text-amber-400 uppercase tracking-tight">Level 2 (Mod)</span>
+                <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span class="text-[10px] text-amber-300 font-bold">&ge;</span>
+                  <input type="number" id="inputLevel2Percent" value="60" min="0" max="100" step="1" oninput="recalculateEseStats(false)" class="w-10 bg-transparent text-amber-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                  <span class="text-[10px] text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+
+              <div class="bg-slate-900/80 border border-blue-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                <span class="block text-[9px] font-bold text-blue-400 uppercase tracking-tight">Level 1 (Low)</span>
+                <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span class="text-[10px] text-blue-300 font-bold">&ge;</span>
+                  <input type="number" id="inputLevel1Percent" value="50" min="0" max="100" step="1" oninput="recalculateEseStats(false)" class="w-10 bg-transparent text-blue-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                  <span class="text-[10px] text-slate-400 font-bold">%</span>
+                </div>
               </div>
             </div>
           </div>

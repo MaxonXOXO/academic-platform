@@ -129,7 +129,7 @@
               <span class="material-symbols-rounded text-sm">arrow_back</span> Back to Dashboard
             </button>
             <h3 id="vcTitle" class="text-sm font-black text-slate-200 flex items-center gap-2 mt-1">
-              <span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> Virtual Classroom
+              <span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021
             </h3>
             <p id="vcSubtitle" class="text-[10px] text-slate-400 mt-0.5 font-mono">Loading...</p>
           </div>
@@ -292,7 +292,7 @@
       const titles = {
         'dashboard': 'My Batches',
         'security': 'My Profile Security Log',
-        'classroom': 'Virtual Classroom'
+        'classroom': 'VIrtual theory classroom  R-2021'
       };
       document.getElementById('panelTitle').innerText = titles[panelId] || 'Lecturer Console';
 
@@ -392,8 +392,8 @@
 
     function openClassroom(batchId, subjectId, subjectName) {
       currentSubjectId = subjectId;
-      document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> ${subjectName}`;
-      document.getElementById('vcSubtitle').innerText = `Batch: ${batchId}`;
+      document.getElementById('vcTitle').innerHTML = `<span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021`;
+      document.getElementById('vcSubtitle').innerText = `${subjectName} • Batch: ${batchId}`;
       switchPanel('classroom');
       loadCourseDetails(subjectId);
     }
@@ -498,6 +498,7 @@
           currentSummativeTests = data.data.summative_manual_tests || {};
           currentSubjectName = data.data.subject_name || '';
           currentSubjectCode = data.data.subject_code || '';
+          currentCos = data.data.cos || [];
           
           renderCourseStructure(data.data.cos, data.data.modules, data.data.textbooks, data.data.copo);
           renderCoursePlanner(data.data.lesson_plans);
@@ -514,6 +515,7 @@
             document.getElementById('downloadSyllabusBtn').href = data.data.syllabus_pdf_path;
           }
         } else {
+          currentCos = [];
           document.getElementById('parseStatusBadge').innerText = 'Waiting for upload';
           document.getElementById('parseStatusBadge').className = 'text-[9px] font-bold px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-400 border border-slate-700/50';
           document.getElementById('courseStructureContent').innerHTML = `
@@ -525,73 +527,116 @@
               <p class="text-[10px] mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus PDF to automatically populate Course Outcomes, Modules, and Textbooks.</p>
             </div>
           `;
-          document.getElementById('coursePlannerContent').innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500 h-full">
-              <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
-                <span class="material-symbols-rounded text-4xl text-slate-600">event_note</span>
-              </div>
-              <p class="text-xs font-bold text-slate-400">Planner not generated.</p>
-              <p class="text-[10px] mt-1.5 max-w-xs text-slate-500 leading-relaxed">Upload a syllabus to automatically generate the lesson plan.</p>
-            </div>
-          `;
+          renderCoursePlanner([]);
         }
       });
     }
 
+    let currentCos = [];
+
+    function autoGrowTextarea(element) {
+      if (!element) return;
+      element.style.height = 'auto';
+      element.style.height = Math.max(38, element.scrollHeight) + 'px';
+    }
+
     function renderCoursePlanner(lessonPlans) {
-      if (!lessonPlans || lessonPlans.length === 0) return;
+      if (!lessonPlans) lessonPlans = [];
       
-      let totalHours = lessonPlans.reduce((sum, lp) => sum + (lp.allocated_hours || 0), 0);
+      let totalHours = lessonPlans.reduce((sum, lp) => sum + (parseInt(lp.allocated_hours) || 0), 0);
+
+      let availableCos = ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
+      if (currentCos && currentCos.length > 0) {
+        currentCos.forEach(c => {
+          if (c.id && !availableCos.includes(c.id)) availableCos.push(c.id);
+        });
+      }
+
       let html = `
         <div class="flex justify-between items-end mb-4">
           <div>
             <h4 class="text-sm font-black text-slate-200">Interactive Lesson Planner</h4>
-            <p class="text-[10px] text-slate-500 mt-1">Set proposed dates and pedagogy. Remarks can be added after class completion.</p>
+            <p class="text-[10px] text-slate-500 mt-1">Set proposed dates, select COs, edit multi-line topics, and record actual dates.</p>
           </div>
           <div class="text-[10px] font-bold text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/50">
-            Total Est. Hours: <span class="text-emerald-400 ml-1 text-xs">${totalHours}</span>
+            Total Est. Hours: <span id="lpTotalHoursDisplay" class="text-emerald-400 ml-1 text-xs font-mono">${totalHours}</span>
           </div>
         </div>
         
         <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner">
           <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse min-w-[800px]">
+              <table class="w-full text-left border-collapse min-w-[900px]">
                 <thead>
                   <tr class="bg-slate-900/80 text-[9px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
-                    <th class="p-3 w-12 text-center">Day No</th>
+                    <th class="p-3 w-16 text-center">Day No</th>
                     <th class="p-3 w-32">Proposed Date</th>
+                    <th class="p-3 w-24">CO</th>
                     <th class="p-3">Topic / Content</th>
                     <th class="p-3 text-center w-20">Hours</th>
                     <th class="p-3 w-32">Actual Date</th>
                     <th class="p-3 w-32">Pedagogy</th>
-                    <th class="p-3 w-40">Remarks</th>
+                    <th class="p-3 w-36">Remarks</th>
+                    <th class="p-3 w-12 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="lessonPlanTbody">
       `;
 
+      if (lessonPlans.length === 0) {
+        lessonPlans = [{ day_no: 1, proposed_date: '', co_id: 'CO1', topic_content: '', allocated_hours: 1, actual_date: '', pedagogy: 'Lecture', remarks: '' }];
+      }
+
       lessonPlans.forEach((lp, index) => {
-        let coBadge = lp.co_id ? `<span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] ml-2">${lp.co_id}</span>` : '';
         let proposed = lp.proposed_date ? lp.proposed_date : '';
-        let actual = lp.actual_date ? `<span class="text-emerald-400 font-mono">${lp.actual_date}</span>` : `<span class="text-slate-600 font-mono italic">Pending</span>`;
+        let actual = lp.actual_date ? lp.actual_date : '';
         let pedagogy = lp.pedagogy || 'Lecture';
         let remarks = lp.remarks || '';
         let dayNo = lp.day_no || (index + 1);
-        
+        let coVal = lp.co_id || 'CO1';
+
+        let coSelectOptions = `<option value="">-</option>`;
+        let coFound = false;
+        availableCos.forEach(co => {
+          let sel = (coVal === co) ? 'selected' : '';
+          if (coVal === co) coFound = true;
+          coSelectOptions += `<option value="${co}" ${sel}>${co}</option>`;
+        });
+        if (!coFound && coVal) {
+          coSelectOptions += `<option value="${coVal}" selected>${coVal}</option>`;
+        }
+
         html += `
           <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-[11px]">
-            <td class="p-3 text-center font-bold text-slate-500">${dayNo}</td>
-            <td class="p-3">
-              <input type="date" value="${proposed}" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 font-mono" onchange="updateProposedDate(${lp.id}, this.value)">
+            <td class="p-2.5 text-center">
+              <input type="number" value="${dayNo}" class="lp-day-no w-12 bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-slate-300 text-[10px] text-center font-bold focus:outline-none focus:border-blue-500/50 font-mono">
             </td>
-            <td class="p-3 text-slate-300 leading-relaxed">${lp.topic_content} ${coBadge}</td>
-            <td class="p-3 text-center font-mono text-slate-400 bg-slate-900/20">${lp.allocated_hours}</td>
-            <td class="p-3">${actual}</td>
-            <td class="p-3">
-              <input type="text" value="${pedagogy}" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Lecture, Demo...">
+            <td class="p-2.5">
+              <input type="date" value="${proposed}" class="lp-proposed-date w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 font-mono">
             </td>
-            <td class="p-3">
-              <input type="text" value="${remarks}" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Add remarks...">
+            <td class="p-2.5">
+              <select class="lp-co w-full bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-[10px] font-bold focus:outline-none focus:border-blue-500/50">
+                ${coSelectOptions}
+              </select>
+            </td>
+            <td class="p-2.5">
+              <textarea class="lp-topic w-full bg-slate-900/80 border border-slate-700/60 rounded p-2 text-slate-200 text-[11px] focus:outline-none focus:border-blue-500/50 leading-relaxed resize-none overflow-hidden" rows="2" oninput="autoGrowTextarea(this)" placeholder="Enter topic content...">${lp.topic_content || ''}</textarea>
+            </td>
+            <td class="p-2.5 text-center">
+              <input type="number" min="1" value="${lp.allocated_hours || 1}" class="lp-hours w-full bg-slate-900/80 border border-slate-700/60 rounded px-1 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 text-center font-mono" onchange="recalculateTotalHours()">
+            </td>
+            <td class="p-2.5">
+              <input type="date" value="${actual}" class="lp-actual-date w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 font-mono text-emerald-400">
+            </td>
+            <td class="p-2.5">
+              <input type="text" value="${pedagogy}" class="lp-pedagogy w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Lecture...">
+            </td>
+            <td class="p-2.5">
+              <input type="text" value="${remarks}" class="lp-remarks w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Remarks...">
+            </td>
+            <td class="p-2.5 text-center">
+              <button onclick="deleteLessonPlanRow(this)" class="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-premium cursor-pointer" title="Remove Row">
+                <span class="material-symbols-rounded text-sm block">delete</span>
+              </button>
             </td>
           </tr>
         `;
@@ -601,10 +646,163 @@
                 </tbody>
               </table>
           </div>
+
+          <!-- Bottom Action Controls (Add Row & Save Buttons) -->
+          <div class="p-4 bg-slate-900/60 border-t border-slate-800/60 flex items-center justify-between">
+            <button onclick="addLessonPlanRow()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 border border-slate-700/60 cursor-pointer shadow-md">
+              <span class="material-symbols-rounded text-base">add</span> Add Row
+            </button>
+
+            <button onclick="saveLessonPlans()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-900/20">
+              <span class="material-symbols-rounded text-base">save</span> Save Lesson Plan
+            </button>
+          </div>
         </div>
       `;
 
       document.getElementById('coursePlannerContent').innerHTML = html;
+
+      setTimeout(() => {
+        document.querySelectorAll('#lessonPlanTbody textarea.lp-topic').forEach(ta => autoGrowTextarea(ta));
+      }, 50);
+    }
+
+    function addLessonPlanRow() {
+      const tbody = document.getElementById('lessonPlanTbody');
+      if (!tbody) return;
+      const rowCount = tbody.querySelectorAll('tr').length;
+      const dayNo = rowCount + 1;
+      
+      let availableCos = ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
+      if (currentCos && currentCos.length > 0) {
+        currentCos.forEach(c => {
+          if (c.id && !availableCos.includes(c.id)) availableCos.push(c.id);
+        });
+      }
+      let coOptions = `<option value="">-</option>`;
+      availableCos.forEach(co => {
+        coOptions += `<option value="${co}">${co}</option>`;
+      });
+
+      const tr = document.createElement('tr');
+      tr.className = "border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-[11px]";
+      tr.innerHTML = `
+        <td class="p-2.5 text-center">
+          <input type="number" value="${dayNo}" class="lp-day-no w-12 bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-slate-300 text-[10px] text-center font-bold focus:outline-none focus:border-blue-500/50 font-mono">
+        </td>
+        <td class="p-2.5">
+          <input type="date" value="" class="lp-proposed-date w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 font-mono">
+        </td>
+        <td class="p-2.5">
+          <select class="lp-co w-full bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-[10px] font-bold focus:outline-none focus:border-blue-500/50">${coOptions}</select>
+        </td>
+        <td class="p-2.5">
+          <textarea class="lp-topic w-full bg-slate-900/80 border border-slate-700/60 rounded p-2 text-slate-200 text-[11px] focus:outline-none focus:border-blue-500/50 leading-relaxed resize-none overflow-hidden" rows="2" oninput="autoGrowTextarea(this)" placeholder="Enter topic content..."></textarea>
+        </td>
+        <td class="p-2.5 text-center">
+          <input type="number" min="1" value="1" class="lp-hours w-full bg-slate-900/80 border border-slate-700/60 rounded px-1 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 text-center font-mono" onchange="recalculateTotalHours()">
+        </td>
+        <td class="p-2.5">
+          <input type="date" value="" class="lp-actual-date w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50 font-mono text-emerald-400">
+        </td>
+        <td class="p-2.5">
+          <input type="text" value="Lecture" class="lp-pedagogy w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Lecture...">
+        </td>
+        <td class="p-2.5">
+          <input type="text" value="" class="lp-remarks w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-[10px] focus:outline-none focus:border-blue-500/50" placeholder="Remarks...">
+        </td>
+        <td class="p-2.5 text-center">
+          <button onclick="deleteLessonPlanRow(this)" class="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-premium cursor-pointer" title="Remove Row">
+            <span class="material-symbols-rounded text-sm block">delete</span>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      recalculateTotalHours();
+      const newTa = tr.querySelector('textarea.lp-topic');
+      if (newTa) {
+        autoGrowTextarea(newTa);
+        newTa.focus();
+      }
+    }
+
+    function deleteLessonPlanRow(btn) {
+      const tr = btn.closest('tr');
+      if (tr) {
+        tr.remove();
+        recalculateTotalHours();
+      }
+    }
+
+    function recalculateTotalHours() {
+      const hourInputs = document.querySelectorAll('#lessonPlanTbody .lp-hours');
+      let total = 0;
+      hourInputs.forEach(inp => {
+        total += (parseInt(inp.value) || 0);
+      });
+      const totalEl = document.getElementById('lpTotalHoursDisplay');
+      if (totalEl) totalEl.innerText = total;
+    }
+
+    function saveLessonPlans(subjectId) {
+      if (!subjectId) subjectId = currentSubjectId;
+      if (!subjectId) {
+        alert("No active subject selected.");
+        return;
+      }
+
+      const rows = document.querySelectorAll('#lessonPlanTbody tr');
+      let plansPayload = [];
+
+      rows.forEach(tr => {
+        const dayNo = tr.querySelector('.lp-day-no')?.value;
+        const proposedDate = tr.querySelector('.lp-proposed-date')?.value;
+        const coId = tr.querySelector('.lp-co')?.value;
+        const topicContent = tr.querySelector('.lp-topic')?.value;
+        const allocatedHours = tr.querySelector('.lp-hours')?.value;
+        const actualDate = tr.querySelector('.lp-actual-date')?.value;
+        const pedagogy = tr.querySelector('.lp-pedagogy')?.value;
+        const remarks = tr.querySelector('.lp-remarks')?.value;
+
+        if (topicContent && topicContent.trim() !== '') {
+          plansPayload.push({
+            day_no: dayNo,
+            proposed_date: proposedDate,
+            co_id: coId,
+            topic_content: topicContent,
+            allocated_hours: allocatedHours,
+            actual_date: actualDate,
+            pedagogy: pedagogy,
+            remarks: remarks
+          });
+        }
+      });
+
+      if (plansPayload.length === 0) {
+        alert("No lesson plan topics entered to save.");
+        return;
+      }
+
+      fetch(`/api/classroom/${subjectId}/save-lesson-plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ lesson_plans: plansPayload })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          alert("Lesson Plan saved successfully!");
+          loadCourseDetails(subjectId);
+        } else {
+          alert(data.message || "Failed to save lesson plan.");
+        }
+      })
+      .catch(err => {
+        alert("Error saving lesson plan.");
+      });
     }
 
     function renderFormativeAssessment(students) {

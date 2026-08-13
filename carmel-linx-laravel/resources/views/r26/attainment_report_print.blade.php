@@ -215,7 +215,7 @@
         
         <div class="header">
             <h1>Carmel College of Engineering</h1>
-            <h2>Department of {{ getFullBranchName($classroom->branch ?? '') }}</h2>
+            <h2>Department of {{ function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? $classroom->department ?? '') : ($classroom->branch ?? '') }}</h2>
             <h3>NBA accreditation course file - CO-PO Attainment Report</h3>
         </div>
 

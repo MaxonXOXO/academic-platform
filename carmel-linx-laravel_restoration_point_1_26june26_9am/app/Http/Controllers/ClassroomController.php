@@ -830,4 +830,32 @@ class ClassroomController extends Controller
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Config updated.']);
     }
+
+    public function saveLessonPlans(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
+
+        $plans = $request->input('lesson_plans', []);
+        
+        \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->delete();
+
+        foreach ($plans as $index => $lp) {
+            \App\Models\LessonPlan::create([
+                'batch_subject_id' => $subjectId,
+                'day_no' => !empty($lp['day_no']) ? $lp['day_no'] : ($index + 1),
+                'co_id' => !empty($lp['co_id']) ? $lp['co_id'] : null,
+                'topic_content' => !empty($lp['topic_content']) ? $lp['topic_content'] : 'Topic',
+                'allocated_hours' => isset($lp['allocated_hours']) && $lp['allocated_hours'] !== '' ? $lp['allocated_hours'] : 1,
+                'proposed_date' => !empty($lp['proposed_date']) ? $lp['proposed_date'] : null,
+                'actual_date' => !empty($lp['actual_date']) ? $lp['actual_date'] : null,
+                'pedagogy' => !empty($lp['pedagogy']) ? $lp['pedagogy'] : 'Lecture',
+                'remarks' => !empty($lp['remarks']) ? $lp['remarks'] : null,
+                'status' => !empty($lp['actual_date']) ? 'Completed' : 'Pending',
+            ]);
+        }
+
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Lesson Plan saved successfully.']);
+    }
 }
+

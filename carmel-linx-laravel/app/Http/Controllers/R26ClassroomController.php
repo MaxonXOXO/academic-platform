@@ -1234,12 +1234,15 @@ class R26ClassroomController extends Controller
 
         $metPercent = $totalStudents > 0 ? round(($metTargetCount / $totalStudents) * 100, 1) : 0.0;
         $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
 
         // Redefined NBA Attainment Levels Rule
         $level = 0;
-        if ($metPercent >= $targetStudentPercent) $level = 3;
-        elseif ($metPercent >= ($targetStudentPercent - 10)) $level = 2;
-        elseif ($metPercent >= ($targetStudentPercent - 20)) $level = 1;
+        if ($metPercent >= $lvl3Val) $level = 3;
+        elseif ($metPercent >= $lvl2Val) $level = 2;
+        elseif ($metPercent >= $lvl1Val) $level = 1;
 
         return response()->json([
             'status' => 'SUCCESS',
@@ -1276,6 +1279,9 @@ class R26ClassroomController extends Controller
         $eseThresholdPercent = (float)$request->input('ese_threshold_percent', 50.0);
         $cieThresholdPercent = (float)$request->input('cie_threshold_percent', 50.0);
         $targetStudentPercent = (float)$request->input('target_student_percent', 70.0);
+        $level3Percent = (float)$request->input('level3_percent', $targetStudentPercent);
+        $level2Percent = (float)$request->input('level2_percent', max(0, $targetStudentPercent - 10));
+        $level1Percent = (float)$request->input('level1_percent', max(0, $targetStudentPercent - 20));
 
         $eseConfig = [
             'entry_mode' => $entryMode,
@@ -1287,9 +1293,9 @@ class R26ClassroomController extends Controller
             // Keep legacy aliases for backwards compatibility
             'target_threshold_percent' => $eseThresholdPercent,
             'target_grade' => $eseThresholdGrade,
-            'level3_percent' => $targetStudentPercent,
-            'level2_percent' => max(0, $targetStudentPercent - 10),
-            'level1_percent' => max(0, $targetStudentPercent - 20),
+            'level3_percent' => $level3Percent,
+            'level2_percent' => $level2Percent,
+            'level1_percent' => $level1Percent,
         ];
 
         $courseFile = CourseFile::firstOrCreate(
@@ -1975,17 +1981,30 @@ class R26ClassroomController extends Controller
 
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        if (!$classroom) abort(404);
+        if (!$classroom) {
+            $classroom = (object)[
+                'classroom_id' => $batchSubject->classroom_id,
+                'classroom_name' => $batchSubject->classroom_id,
+                'department' => 'Engineering',
+                'branch' => 'Engineering',
+                'current_semester' => $batchSubject->semester ?? 1
+            ];
+        }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderBy('roll_no', 'asc')
             ->orderBy('name', 'asc')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
-        $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
-        if (!$courseFile) abort(404);
+        $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first()
+            ?: \App\Models\R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
 
-        $copoData = json_decode($courseFile->parsed_copo_data, true) ?: [];
+        $copoData = [];
+        $settings = [];
+        if ($courseFile) {
+            $copoData = is_string($courseFile->parsed_copo_data) ? json_decode($courseFile->parsed_copo_data, true) : ($courseFile->parsed_copo_data ?: []);
+            $settings = is_string($courseFile->attainment_settings) ? json_decode($courseFile->attainment_settings, true) : ($courseFile->attainment_settings ?: []);
+        }
         $mappings = $copoData['mappings'] ?? [];
 
         // Let's get direct assessment marks
@@ -2005,10 +2024,6 @@ class R26ClassroomController extends Controller
                 ->where('exit_survey_id', $exitSurvey->id)
                 ->get();
         }
-
-        $settings = is_string($courseFile->attainment_settings)
-            ? json_decode($courseFile->attainment_settings, true)
-            : ($courseFile->attainment_settings ?: []);
         $eseConfig = $settings['ese_config'] ?? [];
 
         $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);

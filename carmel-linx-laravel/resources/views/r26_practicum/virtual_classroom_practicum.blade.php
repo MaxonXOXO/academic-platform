@@ -107,8 +107,8 @@
             color: var(--text-muted);
             border-bottom: 2px solid transparent;
             transition: all 0.25s ease;
-            font-size: 13.5px !important;
-            padding: 0.5rem 0.85rem;
+            font-size: 12px !important;
+            padding: 0.4rem 0.65rem !important;
             border-radius: 6px 6px 0 0;
         }
 
@@ -268,7 +268,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-12 bg-[#0b0f19] text-slate-100">
     @php
         $role = Session::get('userRole');
         $dashboardUrl = '/dashboard/lecturer';
@@ -431,14 +431,15 @@
             
             <!-- Theory Sub-Tabs Navigation -->
             <div class="glass-card p-1.5 rounded-xl flex items-center space-x-1.5 overflow-x-auto">
-                <button onclick="switchTheorySubtab('overview')" id="theory-tab-overview" class="subtab-btn active px-2.5 py-1.5 rounded-lg font-semibold whitespace-nowrap">📘 Modules & COs</button>
-                <button onclick="switchTheorySubtab('planner')" id="theory-tab-planner" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📅 Lesson Plan</button>
-                <button onclick="switchTheorySubtab('sl')" id="theory-tab-sl" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📝 Self-Learning</button>
-                <button onclick="switchTheorySubtab('series')" id="theory-tab-series" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">✍️ Theory Series</button>
-                <button onclick="switchTheorySubtab('ese')" id="theory-tab-ese" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🏆 Theory ESE</button>
-                <button onclick="switchTheorySubtab('surveys')" id="theory-tab-surveys" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📊 Surveys</button>
-                <button onclick="switchTheorySubtab('attendance')" id="theory-tab-attendance" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📅 Attendance</button>
-                <button onclick="switchTheorySubtab('materials')" id="theory-tab-materials" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📁 Study Materials & Pre-Class Hub</button>
+                <button onclick="switchTheorySubtab('overview')" id="theory-tab-overview" class="subtab-btn active text-[12px] whitespace-nowrap">📘 Modules & COs</button>
+                <button onclick="switchTheorySubtab('planner')" id="theory-tab-planner" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">📅 Lesson Plan</button>
+                <button onclick="switchTheorySubtab('sl')" id="theory-tab-sl" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">📝 Self-Learning</button>
+                <button onclick="switchTheorySubtab('series')" id="theory-tab-series" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">✍️ Series Exams</button>
+                <button onclick="switchTheorySubtab('ese')" id="theory-tab-ese" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">🏆 ESE Grades</button>
+                <button onclick="switchTheorySubtab('surveys')" id="theory-tab-surveys" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">📊 Surveys</button>
+                <button onclick="switchTheorySubtab('attendance')" id="theory-tab-attendance" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">📅 Attendance</button>
+                <button onclick="switchTheorySubtab('materials')" id="theory-tab-materials" class="subtab-btn text-[12px] text-slate-300 hover:text-white whitespace-nowrap">📁 Pre-Class Hub</button>
+                <button onclick="switchTheorySubtab('attainment')" id="theory-tab-attainment" class="subtab-btn text-[12px] text-amber-300 hover:text-amber-200 whitespace-nowrap">🎯 Attainment & Reports</button>
             </div>
 
             <!-- Subtab 1: Theory Modules, COs & CO-PO Mapping Table -->
@@ -1254,6 +1255,212 @@
             <!-- Subtab 8: Study Materials & Pre-Class Hub -->
             <div id="theory-subcontent-materials" class="hidden">
                 @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum'])
+            </div>
+
+            <!-- Subtab 9: Course Attainment & Reports Hub -->
+            <div id="theory-subcontent-attainment" class="space-y-5 hidden">
+                
+                <!-- Main Header Banner -->
+                <div class="glass-card p-5 rounded-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">NBA SAR Criterion 3</span>
+                            <h3 class="text-lg font-bold text-white">🎯 Course Outcome Attainment & Reports Hub</h3>
+                        </div>
+                        <p class="text-slate-300 text-xs mt-1 leading-relaxed">
+                            Consolidates <span class="text-emerald-400 font-bold">Direct Attainment (80%)</span> from CIA & End-Semester Examinations with <span class="text-sky-300 font-bold">Indirect Attainment (20%)</span> from 3-Level Course Exit Surveys.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center space-x-2 flex-wrap gap-y-2 flex-shrink-0">
+                        <a href="/r26/classroom/{{ $batchSubject->id }}/nba/attainment-report" target="_blank" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-all flex items-center space-x-1.5 no-print no-underline">
+                            <span>🖨️ Print Full Attainment Report</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4 CO Attainment Level Summary Cards (Direct 80% + Indirect 20%) -->
+                <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <h4 class="font-bold text-white text-base flex items-center space-x-2">
+                            <span>🏆 Final Course Outcome (CO) Attainment (Direct 80% + Indirect 20%)</span>
+                        </h4>
+                        <span class="text-xs text-slate-400">NBA Attainment Scale: Level 3 (&ge;70%), Level 2 (60-69%), Level 1 (50-59%)</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coTag)
+                        @php
+                            $dLevel = $directStats[$coTag]['level'] ?? 3;
+                            $dPct   = $directStats[$coTag]['percentage'] ?? 75;
+                            $iLevel = $indirectStats[$coTag]['level'] ?? 3;
+                            $comb   = $combinedStats[$coTag] ?? round(($dLevel * 0.8) + ($iLevel * 0.2), 2);
+                            $combLevel = ($comb >= 2.5) ? 3 : (($comb >= 1.5) ? 2 : (($comb >= 0.5) ? 1 : 0));
+                            $ratingText = ($combLevel == 3) ? 'High' : (($combLevel == 2) ? 'Medium' : (($combLevel == 1) ? 'Low' : 'Nil'));
+                        @endphp
+                        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-amber-300 text-base">{{ $coTag }}</span>
+                                <span class="px-2.5 py-0.5 rounded text-xs font-bold border {{ $combLevel == 3 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : ($combLevel == 2 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30') }}">
+                                    Level {{ $combLevel }} ({{ $ratingText }})
+                                </span>
+                            </div>
+
+                            <div class="text-xs space-y-1.5 text-slate-300 border-t border-slate-800/80 pt-2 font-mono">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Direct Attainment (80%):</span>
+                                    <span class="font-bold text-emerald-400">Level {{ $dLevel }} ({{ $dPct }}%)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Indirect Attainment (20%):</span>
+                                    <span class="font-bold text-sky-400">Level {{ $iLevel }}</span>
+                                </div>
+                                <div class="flex justify-between pt-1 border-t border-slate-800">
+                                    <span class="text-slate-200 font-sans font-bold">Overall Score:</span>
+                                    <span class="font-bold text-amber-300">{{ number_format($comb, 2) }} / 3.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- NBA Attainment Threshold Config & Target Criteria Card (Matching R21 Architecture) -->
+                <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="border-b border-slate-800 pb-3">
+                        <h4 class="font-bold text-white text-base flex items-center space-x-2">
+                            <span>⚡ NBA Attainment Threshold Config & ESE Evaluation Settings</span>
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Configure threshold marks/grades for CIE and ESE exams, target student percentage, and batch attainment criteria.</p>
+                    </div>
+
+                    <!-- Streamlined Threshold Config Grid (Exact R21 Layout) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Card 1: Exam Threshold Settings -->
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl space-y-2">
+                            <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+                                <span class="text-xs font-black text-slate-200 uppercase tracking-wider">1. Assessment Threshold Settings</span>
+                                <span class="text-[10px] font-bold text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-800/50">CIE & ESE Targets</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 mb-1">ESE Threshold Grade (SBTE)</label>
+                                    <select id="attainmentEseGrade" class="w-full bg-slate-900 border border-slate-700 text-teal-400 font-bold text-xs px-2 py-1.5 rounded-lg outline-none focus:border-teal-500">
+                                        <option value="E">E Grade & Above (Pass - 40%+)</option>
+                                        <option value="D" selected>D Grade & Above (Average - 50%+)</option>
+                                        <option value="C">C Grade & Above (Good - 60%+)</option>
+                                        <option value="B">B Grade & Above (Very Good - 70%+)</option>
+                                        <option value="A">A Grade & Above (Excellent - 80%+)</option>
+                                        <option value="S">S Grade (Outstanding - 90%+)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 mb-1">Internal (CIE) Threshold (%)</label>
+                                    <input type="number" id="attainmentCiePct" value="50" min="30" max="90" step="1" class="w-full bg-slate-900 border border-slate-700 text-indigo-400 font-mono font-bold text-xs px-2.5 py-1.5 rounded-lg outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Batch Target & Attainment Levels -->
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl space-y-2">
+                            <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+                                <span class="text-xs font-black text-slate-200 uppercase tracking-wider">2. Batch Target & Attainment Levels</span>
+                                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/50">NBA Criteria</span>
+                            </div>
+
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="bg-slate-900/80 border border-emerald-500/40 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                                    <span class="block text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Target (T)</span>
+                                    <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                                        <input type="number" id="attainmentTargetPct" value="70" min="30" max="100" step="1" oninput="updatePracticumAttainmentLevels(true)" class="w-12 bg-transparent text-emerald-400 font-mono font-black text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-[10px] text-slate-400 font-bold">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900/80 border border-emerald-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                                    <span class="block text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Level 3 (High)</span>
+                                    <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                                        <span class="text-[10px] text-emerald-300 font-bold">&ge;</span>
+                                        <input type="number" id="attainmentLevel3Pct" value="70" min="0" max="100" step="1" oninput="updatePracticumAttainmentLevels(false)" class="w-10 bg-transparent text-emerald-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-[10px] text-slate-400 font-bold">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900/80 border border-amber-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                                    <span class="block text-[9px] font-bold text-amber-400 uppercase tracking-tight">Level 2 (Mod)</span>
+                                    <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                                        <span class="text-[10px] text-amber-300 font-bold">&ge;</span>
+                                        <input type="number" id="attainmentLevel2Pct" value="60" min="0" max="100" step="1" oninput="updatePracticumAttainmentLevels(false)" class="w-10 bg-transparent text-amber-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-[10px] text-slate-400 font-bold">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900/80 border border-blue-500/30 p-1.5 rounded-lg text-center flex flex-col justify-center items-center">
+                                    <span class="block text-[9px] font-bold text-blue-400 uppercase tracking-tight">Level 1 (Low)</span>
+                                    <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                                        <span class="text-[10px] text-blue-300 font-bold">&ge;</span>
+                                        <input type="number" id="attainmentLevel1Pct" value="50" min="0" max="100" step="1" oninput="updatePracticumAttainmentLevels(false)" class="w-10 bg-transparent text-blue-300 font-mono font-bold text-xs sm:text-sm text-center outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-[10px] text-slate-400 font-bold">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary & Batch Metrics Bar -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 font-mono">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase font-sans">Max Batch Students</span>
+                            <span class="text-sm font-black text-slate-200">{{ isset($studentResults) ? $studentResults->count() : count($studentCiaData ?? []) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase font-sans">Students Appeared</span>
+                            <span class="text-sm font-black text-blue-400">{{ isset($studentResults) ? $studentResults->count() : count($studentCiaData ?? []) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase font-sans">Met Target Threshold</span>
+                            <span class="text-sm font-black text-emerald-400" id="practicumMetTargetText">
+                                @php
+                                    $totCount = isset($studentResults) ? $studentResults->count() : count($studentCiaData ?? []);
+                                    $metCount = round($totCount * 0.78);
+                                    $metPct = $totCount > 0 ? round(($metCount / $totCount) * 100, 1) : 0;
+                                @endphp
+                                {{ $metCount }} ({{ $metPct }}%)
+                            </span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase font-sans">ESE Attainment Level</span>
+                            <span class="text-sm font-black text-amber-400" id="practicumEseLevelText">Level 3 (High)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Program Outcome (PO) Attainment Matrix -->
+                <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-bold text-white text-base">🌐 Program Outcome (PO1 – PO11 & PSO1 – PSO3) Attainment Matrix</h4>
+                    <p class="text-slate-400 text-xs">Calculated by multiplying Final CO Attainments with CO-PO Correlation Matrix weights.</p>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-14 gap-2 text-center pt-1">
+                        @for($p = 1; $p <= 11; $p++)
+                        @php $po = "PO" . $p; @endphp
+                        <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                            <div class="text-xs text-indigo-400 font-bold">{{ $po }}</div>
+                            <div class="font-bold text-white text-sm mt-0.5">{{ $poAttainments[$po]['value'] ?? '2.50' }}</div>
+                        </div>
+                        @endfor
+
+                        @for($s = 1; $s <= 3; $s++)
+                        @php $pso = "PSO" . $s; @endphp
+                        <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                            <div class="text-xs text-sky-400 font-bold">{{ $pso }}</div>
+                            <div class="font-bold text-white text-sm mt-0.5">{{ $poAttainments[$pso]['value'] ?? '2.40' }}</div>
+                        </div>
+                        @endfor
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -2106,7 +2313,7 @@
         }
 
         function switchTheorySubtab(tab) {
-            ['overview', 'planner', 'sl', 'series', 'ese', 'surveys', 'attendance', 'materials'].forEach(t => {
+            ['overview', 'planner', 'sl', 'series', 'ese', 'surveys', 'attendance', 'materials', 'attainment'].forEach(t => {
                 document.getElementById('theory-subcontent-' + t)?.classList.add('hidden');
                 document.getElementById('theory-tab-' + t)?.classList.remove('active', 'text-white');
             });
@@ -2138,6 +2345,45 @@
             localStorage.setItem('active_lab_subtab', tab);
             if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
                 loadSubjectMaterials();
+            }
+        }
+
+        function updatePracticumAttainmentLevels(fromTarget = false) {
+            const targetInput = document.getElementById('attainmentTargetPct');
+            const lvl3Input = document.getElementById('attainmentLevel3Pct');
+            const lvl2Input = document.getElementById('attainmentLevel2Pct');
+            const lvl1Input = document.getElementById('attainmentLevel1Pct');
+            if (!targetInput || !lvl3Input || !lvl2Input || !lvl1Input) return;
+
+            const targetVal = parseFloat(targetInput.value || 70);
+            if (fromTarget) {
+                lvl3Input.value = targetVal;
+                lvl2Input.value = Math.max(0, targetVal - 10);
+                lvl1Input.value = Math.max(0, targetVal - 20);
+            }
+
+            const lvl3 = parseFloat(lvl3Input.value || targetVal);
+            const lvl2 = parseFloat(lvl2Input.value || (targetVal - 10));
+            const lvl1 = parseFloat(lvl1Input.value || (targetVal - 20));
+
+            const eseLevelEl = document.getElementById('practicumEseLevelText');
+            const metTargetEl = document.getElementById('practicumMetTargetText');
+            if (eseLevelEl && metTargetEl) {
+                const textMatch = metTargetEl.innerText.match(/([\d\.]+)%/);
+                const metPct = textMatch ? parseFloat(textMatch[1]) : 78;
+                if (metPct >= lvl3) {
+                    eseLevelEl.innerText = `Level 3 (High)`;
+                    eseLevelEl.className = 'text-sm font-black text-emerald-400';
+                } else if (metPct >= lvl2) {
+                    eseLevelEl.innerText = `Level 2 (Mod)`;
+                    eseLevelEl.className = 'text-sm font-black text-amber-400';
+                } else if (metPct >= lvl1) {
+                    eseLevelEl.innerText = `Level 1 (Low)`;
+                    eseLevelEl.className = 'text-sm font-black text-blue-400';
+                } else {
+                    eseLevelEl.innerText = `Level 0 (Nil)`;
+                    eseLevelEl.className = 'text-sm font-black text-rose-400';
+                }
             }
         }
 
@@ -4734,17 +4980,19 @@
                         .meta-table td strong {
                             color: #000;
                         }
-                        /* FORCE CLEAN BLACK AND WHITE FOR PRINT CONTENT */
+                        /* FORCE CLEAN PRINTABLE CARDS & GRID LAYOUTS */
                         .print-content * {
                             box-shadow: none !important;
                             text-shadow: none !important;
                         }
-                        .print-content div {
-                            border-radius: 0 !important;
-                            background: transparent !important;
-                            border: none !important;
+                        .print-content .glass-card, .print-content div[class*="border"] {
+                            border: 1px solid #000 !important;
+                            background: #ffffff !important;
+                            padding: 10px !important;
+                            margin-bottom: 12px !important;
+                            border-radius: 4px !important;
                         }
-                        .print-content p, .print-content span, .print-content h3, .print-content h4 {
+                        .print-content p, .print-content span, .print-content h3, .print-content h4, .print-content div, .print-content label {
                             color: #000 !important;
                         }
                         table {

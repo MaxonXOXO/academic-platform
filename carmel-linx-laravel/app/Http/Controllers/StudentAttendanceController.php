@@ -222,21 +222,7 @@ class StudentAttendanceController extends Controller
         ];
 
         // 7. Active Universal Day Order & Student Classroom Timetable
-        $dayMap = [
-            'Monday' => 'Day 1',
-            'Tuesday' => 'Day 2',
-            'Wednesday' => 'Day 3',
-            'Thursday' => 'Day 4',
-            'Friday' => 'Day 5',
-        ];
-        $activeDayOrder = $dayMap[date('l')] ?? 'Day 1';
-        $activeDayOrderPath = storage_path('app/active_day_order.json');
-        if (file_exists($activeDayOrderPath)) {
-            $activeDayData = json_decode(file_get_contents($activeDayOrderPath), true);
-            if ($activeDayData && ($activeDayData['date'] ?? '') === now()->toDateString()) {
-                $activeDayOrder = $activeDayData['day_order'];
-            }
-        }
+        $activeDayOrder = \App\Services\DayOrderService::getActiveDayOrder();
 
         // Today's Hour-Wise Attendance Grid
         $todayDate = now()->toDateString();

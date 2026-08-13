@@ -366,7 +366,7 @@
 <body>
 
     <header class="mobile-header">
-        <a href="/staff/mobile" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
+        <a href="/staff/mobile" class="back-btn" title="Back to Mobile Dashboard"><i class="fa-solid fa-arrow-left me-1"></i> Back</a>
         <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Time Punch</h1>
         <span class="staff-badge">SF Staff</span>
     </header>

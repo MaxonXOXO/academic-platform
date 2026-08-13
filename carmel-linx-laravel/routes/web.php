@@ -377,39 +377,18 @@ Route::middleware(['web'])->group(function () {
     // Universal Day Order Management
     Route::post('/api/system/set-day-order', function (Illuminate\Http\Request $request) {
         $dayOrder = $request->input('day_order');
-        $validDays = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
-        if (!in_array($dayOrder, $validDays)) {
+        if (!in_array($dayOrder, \App\Services\DayOrderService::DAY_ORDERS)) {
             return response()->json(['status' => 'ERROR', 'message' => 'Invalid Day Order']);
         }
         $todayStr = date('Y-m-d');
-        $payload = [
-            'date' => $todayStr,
-            'day_order' => $dayOrder,
-            'updated_at' => now()->toDateTimeString(),
-            'updated_by' => session('userId')
-        ];
-        file_put_contents(storage_path('app/active_day_order.json'), json_encode($payload, JSON_PRETTY_PRINT));
+        \App\Services\DayOrderService::setDayOrder($dayOrder, $todayStr, session('userId'));
         return response()->json(['status' => 'SUCCESS', 'day_order' => $dayOrder, 'date' => $todayStr]);
     });
 
     Route::get('/api/system/get-day-order', function () {
-        $path = storage_path('app/active_day_order.json');
         $todayStr = date('Y-m-d');
-        if (file_exists($path)) {
-            $data = json_decode(file_get_contents($path), true);
-            if ($data && ($data['date'] ?? '') === $todayStr) {
-                return response()->json(['status' => 'SUCCESS', 'day_order' => $data['day_order'], 'date' => $todayStr]);
-            }
-        }
-        $dayMap = [
-            'Monday' => 'Day 1',
-            'Tuesday' => 'Day 2',
-            'Wednesday' => 'Day 3',
-            'Thursday' => 'Day 4',
-            'Friday' => 'Day 5',
-        ];
-        $default = $dayMap[date('l')] ?? 'Day 1';
-        return response()->json(['status' => 'SUCCESS', 'day_order' => $default, 'date' => $todayStr]);
+        $dayOrder = \App\Services\DayOrderService::getActiveDayOrder($todayStr);
+        return response()->json(['status' => 'SUCCESS', 'day_order' => $dayOrder, 'date' => $todayStr]);
     });
 
     // Admin/Super Admin Endpoints

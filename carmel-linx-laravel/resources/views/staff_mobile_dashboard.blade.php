@@ -26,6 +26,99 @@
             --accent-blue: #3b82f6;
         }
 
+        /* Utility Dark Classes for Tailwind Parity & Dark Theme Consistency */
+        .bg-slate-950 { background-color: #020617 !important; }
+        .bg-slate-900 { background-color: #0f172a !important; }
+        .bg-slate-800 { background-color: #1e293b !important; }
+        .bg-slate-900\/90 { background-color: rgba(15, 23, 42, 0.9) !important; }
+        .border-slate-800 { border-color: rgba(255, 255, 255, 0.1) !important; }
+        .border-slate-700 { border-color: rgba(255, 255, 255, 0.15) !important; }
+        .text-slate-100 { color: #f8fafc !important; }
+        .text-slate-200 { color: #e2e8f0 !important; }
+        .text-slate-300 { color: #cbd5e1 !important; }
+        .text-slate-400 { color: #94a3b8 !important; }
+
+        .modal-content {
+            background-color: #090d16 !important;
+            color: #f3f4f6 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        .modal-header {
+            background-color: #0f172a !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+
+        .modal-body {
+            background-color: #090d16 !important;
+            color: #f3f4f6 !important;
+        }
+
+        .modal-footer {
+            background-color: #0f172a !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .btn-cyan {
+            background-color: #06b6d4 !important;
+            color: #0f172a !important;
+            font-weight: 700;
+        }
+
+        .btn-outline-cyan {
+            color: #06b6d4 !important;
+            border-color: rgba(6, 182, 212, 0.4) !important;
+        }
+
+        .btn-outline-cyan:hover, .btn-check:checked + .btn-outline-cyan {
+            background-color: #06b6d4 !important;
+            color: #0f172a !important;
+        }
+
+        /* Large Touch-Friendly Responsive Period Circle Buttons */
+        .period-circle-btn {
+            width: 44px;
+            height: 44px;
+            max-width: 48px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.95rem;
+            font-family: monospace;
+            color: #06b6d4;
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.08);
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            user-select: none;
+            margin: 0 auto;
+        }
+
+        .period-circle-btn:hover {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.2);
+        }
+
+        .btn-check:checked + .period-circle-btn {
+            background-color: #06b6d4 !important;
+            color: #0f172a !important;
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+            transform: scale(1.08);
+        }
+
+        /* Compact Dropdown List Options Styling */
+        select option, #attLessonPlanSelect option {
+            font-size: 0.74rem !important;
+            padding: 6px 10px !important;
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+
         body {
             background-color: var(--app-bg);
             color: #f3f4f6;
@@ -227,13 +320,13 @@
         <!-- Mobile Header -->
         <header class="mobile-header d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                <img src="{{ asset('logo.jpg') }}" alt="Logo" style="width: 32px; height: 32px; border-radius: 10px;" class="shadow-sm">
+                <img src="{{ asset('logo.jpg') }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 8px;" class="shadow-sm">
                 <div>
-                    <h5 class="brand-title mb-0" style="font-size: 1.18rem; font-weight: 900 !important;">Carmel Linx</h5>
-                    <span class="badge badge-app px-2 py-0.5" style="background-color: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.45); font-size: 0.68rem; font-weight: 800; border-radius: 6px;">My Leave & Staff Portal</span>
+                    <h5 class="brand-title mb-0" style="font-size: 1.1rem; font-weight: 900 !important;">Carmel Linx</h5>
+                    <span class="badge badge-app px-1.5 py-0.5" style="background-color: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.45); font-size: 0.65rem; font-weight: 800; border-radius: 6px;">Staff Portal</span>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-1.5">
                 <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm btn-outline-danger px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;" title="Sign Out">
                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                 </a>
@@ -243,30 +336,21 @@
         <!-- Main Body Content -->
         <div class="p-3">
 
-            <!-- Desktop Header Switcher Banner -->
-            <div class="desktop-banner bg-slate-900/90 border border-info/30 rounded-3 p-3 mb-3 align-items-center justify-between text-white shadow-sm" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.25);">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="fa-solid fa-desktop text-info fs-5"></i>
-                    <div>
-                        <strong class="d-block text-sm" style="font-size: 0.92rem; font-weight: 800;">My Leave & Staff Portal (Desktop View)</strong>
-                        <small class="text-secondary text-xs" style="font-size: 0.78rem;">You can return to your role management console anytime.</small>
-                    </div>
-                </div>
-                <a href="{{ $desktopUrl }}" class="btn btn-sm btn-outline-info text-cyan font-bold rounded-pill px-3 py-1.5 flex-shrink-0" style="font-weight: 700; font-size: 0.82rem;">
-                    <i class="fa-solid fa-gauge-high me-1.5"></i> Switch to Desktop Dashboard
-                </a>
-            </div>
-
             <!-- Staff Identity Banner -->
             <div class="app-card border-start border-2 border-info">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    @if(!empty($staff->photo_url))
-                        <img src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile">
-                    @else
-                        <div class="avatar-mobile bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-white" style="font-size: 1.1rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
-                            {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
-                        </div>
-                    @endif
+                    <div class="position-relative flex-shrink-0">
+                        @if(!empty($staff->photo_url))
+                            <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile">
+                        @else
+                            <div id="staffBannerPhotoPlaceholder" class="avatar-mobile bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-white" style="font-size: 1.1rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
+                            </div>
+                        @endif
+                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 22px; height: 22px; font-size: 0.6rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a;" title="Change Photo">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                    </div>
                     <div class="overflow-hidden">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 1.05rem;">{{ $staff->name ?? session('userName') }}</h6>
                         <small class="text-info font-mono font-bold d-block" style="font-size: 0.78rem;">{{ $staff->mobile_no ?? session('userId') }}</small>
@@ -541,34 +625,6 @@
                         <!-- Populated dynamically via JS -->
                     </div>
                 </div>
-
-                <!-- Assigned Subjects & Classes -->
-                <div class="app-card">
-                    <h6 class="fw-bold text-info mb-3" style="font-size: 0.95rem;">
-                        <i class="fa-solid fa-chalkboard-user me-1"></i> Assigned Subjects & Attendance
-                    </h6>
-
-                    @forelse($assignments as $subj)
-                    <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-2">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <div>
-                                <strong class="text-white d-block" style="font-size: 0.88rem;">{{ $subj->subject_code }} - {{ $subj->subject_name }}</strong>
-                                <small class="text-secondary" style="font-size: 0.75rem;">Batch: <strong class="text-cyan">{{ $subj->classroom_id }}</strong> | Sem {{ $subj->semester }}</small>
-                            </div>
-                            <span class="badge bg-info bg-opacity-20 text-info badge-app">{{ $subj->subject_type ?? 'Theory' }}</span>
-                        </div>
-                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
-                            <a href="{{ $desktopUrl }}" class="btn btn-sm btn-info px-3 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-clipboard-user me-1"></i> Mark Attendance
-                            </a>
-                        </div>
-                    </div>
-                    @empty
-                    <div class="text-center text-secondary py-3" style="font-size: 0.8rem;">
-                        No direct subject assignments found for this academic session.
-                    </div>
-                    @endforelse
-                </div>
             </div>
 
             <!-- TAB 2: TO-DO WORKS -->
@@ -591,16 +647,28 @@
                                     <small class="text-secondary d-block" style="font-size: 0.76rem;">{{ $item->subtitle }}</small>
                                 </div>
                             </div>
-                            @if(!empty($item->link) && $item->link !== '#')
+                            @if($item->type === 'attendance')
                             <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
-                                <a href="{{ $item->link }}" class="btn btn-sm btn-outline-info px-3 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
-                                    <i class="fa-solid fa-arrow-right-long me-1"></i> Open Task / Portal
-                                </a>
+                                <button type="button" onclick="switchStaffTab(event, 'tab-classes')" class="btn btn-sm btn-cyan px-3 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-clipboard-user me-1"></i> Take Attendance
+                                </button>
                             </div>
                             @elseif($item->type === 'leave')
                             <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
-                                <a href="#" onclick="switchStaffTab(event, 'tab-mentoring')" class="btn btn-sm btn-outline-warning px-3 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                <button type="button" onclick="switchStaffTab(event, 'tab-mentoring')" class="btn btn-sm btn-outline-warning px-3 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
                                     <i class="fa-solid fa-clock-rotate-left me-1"></i> Review Leaves
+                                </button>
+                            </div>
+                            @elseif($item->type === 'remedial')
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
+                                <button type="button" onclick="switchStaffTab(event, 'tab-remedial')" class="btn btn-sm px-3 py-1 rounded-pill fw-bold text-white" style="font-size: 0.72rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none;">
+                                    <i class="fa-solid fa-kit-medical me-1"></i> Remedial Classes
+                                </button>
+                            </div>
+                            @elseif(!empty($item->link) && $item->link !== '#')
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
+                                <a href="{{ $item->link }}" class="btn btn-sm btn-outline-info px-3 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-arrow-right-long me-1"></i> Open Task / Portal
                                 </a>
                             </div>
                             @endif
@@ -771,6 +839,31 @@
             <!-- TAB 5: PROFILE & SECURITY -->
             <div id="tab-profile" class="tab-pane d-none fade-in">
                 
+                <!-- Staff Profile Photo Card -->
+                <div class="app-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="position-relative flex-shrink-0">
+                                @if(!empty($staff->photo_url))
+                                    <img id="staffProfileTabPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 52px; height: 52px;">
+                                @else
+                                    <div id="staffProfileTabPlaceholder" class="avatar-mobile flex items-center justify-center font-black text-white" style="width: 52px; height: 52px; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                        {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">Profile Photo</h6>
+                                <small class="text-secondary d-block" style="font-size: 0.74rem;">JPG, PNG, or WebP up to 10MB</small>
+                            </div>
+                        </div>
+                        <label for="staffPhotoFileInput" class="btn btn-sm btn-cyan px-3 py-1.5 rounded-pill fw-bold text-dark cursor-pointer flex-shrink-0 ms-2" style="font-size: 0.76rem;">
+                            <i class="fa-solid fa-camera me-1"></i> Change Photo
+                        </label>
+                    </div>
+                    <div id="staffPhotoUploadAlert" class="small mt-2 d-none font-bold"></div>
+                </div>
+
                 <div class="app-card">
                     <h6 class="fw-bold text-white mb-3" style="font-size: 0.95rem;">
                         <i class="fa-solid fa-id-card me-1 text-info"></i> Staff Profile Overview
@@ -940,6 +1033,159 @@
         </div>
     </div>
 
+    <!-- CLASS ATTENDANCE & LOG MODAL -->
+    <div class="modal fade" id="classAttendanceModal" tabindex="-1" aria-hidden="true" style="display: none; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(12px);">
+        <div class="modal-dialog modal-dialog-centered modal-lg my-0 my-sm-3" style="max-height: 100vh; height: 100%;">
+            <div class="modal-content bg-slate-950 border border-slate-800 text-white shadow-2xl rounded-0 rounded-sm-4" style="background-color: #090d16 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; max-height: 100vh; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                
+                <!-- Unified Fixed Title Card on Top -->
+                <div class="modal-header py-2.5 px-3 d-flex align-items-center justify-content-between flex-wrap gap-1.5 flex-shrink-0" style="background-color: #0f172a !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; position: sticky; top: 0; z-index: 1060; box-shadow: 0 4px 14px rgba(0,0,0,0.6);">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-white border-secondary border-opacity-50 flex-shrink-0" onclick="closeClassAttendanceModal()" title="Back to Mobile Dashboard" style="font-size: 0.74rem;">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Back
+                        </button>
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="fw-black text-cyan" style="font-size: 0.88rem;" id="attSubjectConfirmCode">---</span>
+                            <span id="attBatchConfirmCode" class="d-none"></span>
+                            <span id="attSubjectConfirmName" class="d-none"></span>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-pills p-0.5 rounded-pill bg-slate-950 border border-slate-800 d-inline-flex ms-auto" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;">
+                        <li class="nav-item">
+                            <button class="nav-link active py-1 px-2 rounded-pill text-white fw-bold" id="tabBtnTakeAtt" onclick="switchAttModalTab('take')" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Mark Attendance
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 px-2 rounded-pill text-secondary fw-bold" id="tabBtnPastLogs" onclick="switchAttModalTab('logs')" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i> Past Logs
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Smooth Scrollable Body Underneath -->
+                <div class="modal-body p-3 bg-slate-950 flex-grow-1" style="background-color: #090d16 !important; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+
+                    <div id="attModalAlert" class="alert d-none py-2 px-3 small font-bold mb-2.5"></div>
+
+                    <!-- TAB 1: TAKE ATTENDANCE & LOG FORM -->
+                    <div id="paneTakeAtt">
+                        
+                        <!-- Compact Top Options Bar -->
+                        <div class="p-3 mb-3.5 rounded-3 bg-slate-900 border border-slate-800 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12 col-sm-4 mb-1 mb-sm-0">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Date</label>
+                                    <input type="date" id="attLogDate" class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none fw-bold" value="{{ date('Y-m-d') }}" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.85rem;">
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <label class="form-label text-slate-300 mb-1.5 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Select Period / Hour:</label>
+                                    <div class="d-flex justify-content-between align-items-center w-100 gap-1" id="attPeriodsContainer">
+                                        @for ($p = 1; $p <= 7; $p++)
+                                        <input type="checkbox" class="btn-check" name="attPeriods" id="attP{{ $p }}" value="{{ $p }}" autocomplete="off">
+                                        <label class="period-circle-btn flex-fill" for="attP{{ $p }}">P{{ $p }}</label>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-batch Selector (for Labs) -->
+                            <div id="attSubBatchBox" class="mt-2.5 pt-2 border-top border-slate-800 d-none" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">
+                                <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Lab Sub-Batch Partitioning:</label>
+                                <div class="d-flex gap-2">
+                                    <input type="radio" class="btn-check" name="attSubBatch" id="sbWhole" value="Whole" checked onchange="filterAttStudentsByBatch()">
+                                    <label class="btn btn-sm btn-outline-secondary flex-fill rounded-pill py-1 small text-white" for="sbWhole">Whole Class</label>
+
+                                    <input type="radio" class="btn-check" name="attSubBatch" id="sb1" value="1" onchange="filterAttStudentsByBatch()">
+                                    <label class="btn btn-sm btn-outline-secondary flex-fill rounded-pill py-1 small text-white" id="sb1Label" for="sb1">Batch 1</label>
+
+                                    <input type="radio" class="btn-check" name="attSubBatch" id="sb2" value="2" onchange="filterAttStudentsByBatch()">
+                                    <label class="btn btn-sm btn-outline-secondary flex-fill rounded-pill py-1 small text-white" id="sb2Label" for="sb2">Batch 2</label>
+                                </div>
+                            </div>
+
+                            <!-- Topic selection -->
+                            <div class="row g-2 mt-1.5">
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Syllabus Lesson Topic</label>
+                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.84rem; padding-top: 5px; padding-bottom: 5px;">
+                                        <option value="">-- Manual Entry --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Topics Covered</label>
+                                    <input type="text" id="attTopicsCovered" placeholder="Describe topics covered in class..." class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none" style="font-size:0.84rem; background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hero Roster Toolbar Header (Structured 2-row layout) -->
+                        <div class="p-2.5 mb-2.5 rounded-3 bg-slate-900 border border-slate-800 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                            <!-- Row 1: Student Count & Stats -->
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-slate-800 text-cyan border border-slate-700 px-2.5 py-1 font-black" id="attStudentCountLabel" style="background-color: #1e293b !important; color: #06b6d4 !important; font-size: 0.85rem;">Students: 0</span>
+                                    <div style="font-size: 0.76rem;">
+                                        <span class="fw-bold" style="color: #34d399;" id="attPresentCountText">0 Present</span>
+                                        <span class="text-slate-500 mx-1">•</span>
+                                        <span class="fw-bold" style="color: #fb7185;" id="attAbsentCountText">0 Absent</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Action Toolbar (Mark All Absent on Left, List/Grid on Right) -->
+                            <div class="d-flex align-items-center justify-content-between gap-2 border-top pt-2 border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.08) !important;">
+                                <button type="button" onclick="toggleAllAttStudents()" id="btnAttCheckAll" class="btn btn-sm btn-outline-warning py-1 px-2.5 font-extrabold" style="font-size:0.78rem;">
+                                    <i class="fa-solid fa-user-xmark me-1"></i> Mark All Absent
+                                </button>
+
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" onclick="switchAttViewMode('list')" id="btnAttModeList" class="btn btn-cyan btn-sm py-1 px-2.5 font-extrabold" style="font-size:0.8rem;"><i class="fa-solid fa-list me-1"></i> List</button>
+                                    <button type="button" onclick="switchAttViewMode('grid')" id="btnAttModeGrid" class="btn btn-outline-secondary btn-sm py-1 px-2.5 font-extrabold" style="font-size:0.8rem;"><i class="fa-solid fa-border-all me-1"></i> Grid</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hero Roster Container (TIGHTLY FITTED TO ROSTER & SAVE BUTTON) -->
+                        <div id="attModeListContainer" class="border border-slate-800 rounded-3 bg-slate-900 mb-1" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                            <table class="table table-dark table-hover table-sm mb-0 align-middle" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr class="text-slate-300 border-bottom border-slate-800" style="background-color: #1e293b; color: #cbd5e1;">
+                                        <th class="text-center py-2.5" style="width: 60px;">Roll</th>
+                                        <th class="py-2.5">Student Name</th>
+                                        <th class="text-center py-2.5" style="width: 85px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attStudentListTbody">
+                                    <!-- Rendered via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="attModeGridContainer" class="d-none border border-slate-800 rounded-3 bg-slate-900 p-3 mb-1" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                            <div class="row g-2" id="attStudentGridRow">
+                                <!-- Rendered via JS -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- TAB 2: PAST CLASS LOGS -->
+                    <div id="panePastLogs" class="d-none">
+                        <div id="attPastLogsContainer" class="overflow-auto" style="max-height: 360px;">
+                            <div class="text-center py-4 text-slate-400" style="color: #94a3b8 !important;">
+                                <i class="fa-solid fa-spinner fa-spin fs-4 mb-2 text-cyan"></i>
+                                <div>Loading past attendance logs...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
 
@@ -950,7 +1196,7 @@
         let workArrangementsArray = [];
 
         function switchStaffTab(e, tabId) {
-            e.preventDefault();
+            if (e && e.preventDefault) e.preventDefault();
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
             document.querySelectorAll('.nav-link-mobile').forEach(el => el.classList.remove('active'));
 
@@ -958,7 +1204,11 @@
             if (targetPane) {
                 targetPane.classList.remove('d-none');
             }
-            e.currentTarget.classList.add('active');
+            
+            const matchingNav = document.querySelector(`.nav-link-mobile[onclick*="${tabId}"]`);
+            if (matchingNav) {
+                matchingNav.classList.add('active');
+            }
 
             if (tabId === 'tab-leave') {
                 loadMyLeaveHistory();
@@ -1237,27 +1487,73 @@
             if (!container) return;
             if (slots.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center text-secondary py-3" style="font-size: 0.82rem;">
-                        <i class="fa-solid fa-calendar-xmark d-block mb-1 text-warning" style="font-size: 1.2rem;"></i>
-                        No timetable slots scheduled for <strong>${dayKey}</strong>.<br>Use the assigned subjects list below for attendance taking.
+                    <div class="text-center py-4 px-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px dashed rgba(255, 255, 255, 0.12);">
+                        <i class="fa-solid fa-mug-hot text-cyan mb-2" style="font-size: 1.6rem; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));"></i>
+                        <strong class="text-white d-block mb-1" style="font-size: 0.92rem;">No Classes Scheduled for You Today</strong>
+                        <span class="text-secondary d-block" style="font-size: 0.76rem;">You have no allotted teaching periods on <strong>${dayKey}</strong>.</span>
                     </div>`;
                 return;
             }
 
+            // Group continuous periods for the same subject & classroom
+            const sortedSlots = [...slots].sort((a, b) => parseInt(a.period) - parseInt(b.period));
+            const mergedSlots = [];
+            sortedSlots.forEach(st => {
+                const pNum = parseInt(st.period);
+                if (mergedSlots.length > 0) {
+                    const lastGroup = mergedSlots[mergedSlots.length - 1];
+                    const lastPNum = lastGroup.periods[lastGroup.periods.length - 1];
+                    
+                    if (
+                        st.subject_code === lastGroup.subject_code &&
+                        st.classroom_id === lastGroup.classroom_id &&
+                        pNum === lastPNum + 1
+                    ) {
+                        lastGroup.periods.push(pNum);
+                        return;
+                    }
+                }
+                
+                mergedSlots.push({
+                    periods: [pNum],
+                    classroom_id: st.classroom_id,
+                    subject_code: st.subject_code,
+                    subject_name: st.subject_name,
+                    batch_subject_id: st.batch_subject_id,
+                    progress_percent: st.progress_percent || 0,
+                    completed_lesson_plans: st.completed_lesson_plans || 0,
+                    total_lesson_plans: st.total_lesson_plans || 0
+                });
+            });
+
             let html = '';
-            slots.forEach(st => {
+            mergedSlots.forEach(st => {
+                const periodText = st.periods.length > 1 ? `Periods ${st.periods.join(', ')}` : `Period ${st.periods[0]}`;
+                const periodArg = st.periods.join(',');
+                const hasProgress = st.total_lesson_plans > 0;
+                
                 html += `
-                    <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-2">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="p-3 rounded-3 bg-slate-900 border border-slate-800 mb-2.5 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
                             <div>
-                                <span class="badge bg-info text-dark fw-bold me-1" style="font-size: 0.72rem;">Period ${st.period}</span>
-                                <strong class="text-white" style="font-size: 0.88rem;">${st.subject_code}</strong>
-                                <small class="text-secondary d-block mt-0.5" style="font-size: 0.75rem;">${st.subject_name || ''} | Batch: <strong class="text-cyan">${st.classroom_id}</strong></small>
+                                <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">${periodText}</span>
+                                <strong class="text-white" style="font-size: 0.9rem;">${st.subject_code}</strong>
+                                <small class="text-slate-400 d-block mt-0.5" style="font-size: 0.76rem; color: #94a3b8 !important;">${st.subject_name || ''} | Batch: <strong class="text-cyan">${st.classroom_id}</strong></small>
                             </div>
-                            <a href="${desktopAttendanceUrl}" class="btn btn-sm btn-info px-2.5 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.72rem;">
+                            <button onclick="openClassAttendanceModal('${st.batch_subject_id || ''}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')" class="btn btn-sm btn-cyan px-3 py-1.5 rounded-pill fw-black shadow-sm flex-shrink-0 ms-2" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.76rem;">
                                 <i class="fa-solid fa-clipboard-user me-1"></i> Attendance
-                            </a>
+                            </button>
                         </div>
+                        ${hasProgress ? `
+                        <div class="mt-2.5 pt-2 border-top border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.72rem;">
+                                <span class="text-slate-400" style="color: #94a3b8 !important;">Syllabus / Topic Coverage</span>
+                                <span class="text-cyan font-mono fw-bold" style="color: #06b6d4 !important;">${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} topics)</span>
+                            </div>
+                            <div class="progress rounded-pill" style="height: 5px; background-color: rgba(255, 255, 255, 0.1);">
+                                <div class="progress-bar rounded-pill" role="progressbar" style="width: ${st.progress_percent}%; background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%) !important;"></div>
+                            </div>
+                        </div>` : ''}
                     </div>`;
             });
             container.innerHTML = html;
@@ -1351,6 +1647,555 @@
             });
         }
 
+        /* --- Class Log & Attendance Modal Logic --- */
+        let currentAttBatchSubjectId = null;
+        let currentAttStudents = [];
+        let currentAttSubjectType = '';
+        let currentAttViewMode = 'list';
+        let isAttAllChecked = true;
+
+        function openClassAttendanceModal(batchSubjectId, period, subjectCode, classroomId, subjectName) {
+            if (!batchSubjectId) {
+                const assignmentsData = @json($assignments);
+                const found = assignmentsData.find(a => a.subject_code === subjectCode && a.classroom_id === classroomId);
+                if (found) {
+                    batchSubjectId = found.id;
+                    if (!subjectName) subjectName = found.subject_name;
+                }
+            }
+
+            if (!batchSubjectId) {
+                alert("Subject assignment record not found for attendance marking.");
+                return;
+            }
+
+            currentAttBatchSubjectId = batchSubjectId;
+            const modal = document.getElementById('classAttendanceModal');
+            const alertBox = document.getElementById('attModalAlert');
+            if (alertBox) alertBox.classList.add('d-none');
+
+            document.getElementById('attSubjectConfirmCode').textContent = subjectCode || 'Class';
+            document.getElementById('attSubjectConfirmName').textContent = subjectName ? ` - ${subjectName}` : '';
+            document.getElementById('attBatchConfirmCode').textContent = classroomId || 'Active Batch';
+
+            document.querySelectorAll('input[name="attPeriods"]').forEach(cb => cb.checked = false);
+            if (period) {
+                const periodArr = String(period).split(',').map(p => p.trim());
+                periodArr.forEach(pVal => {
+                    const targetCb = document.getElementById(`attP${pVal}`);
+                    if (targetCb) targetCb.checked = true;
+                });
+            } else {
+                const p1 = document.getElementById('attP1');
+                if (p1) p1.checked = true;
+            }
+
+            switchAttModalTab('take');
+
+            fetch(`/api/staff/attendance/subjects/${batchSubjectId}/details`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS') {
+                        currentAttStudents = (data.students || []).map(s => ({ ...s, present: true }));
+                        currentAttSubjectType = data.subject_type || 'Theory';
+                        const badgeElem = document.getElementById('attSubjectTypeBadge');
+                        if (badgeElem) badgeElem.textContent = currentAttSubjectType;
+
+                        const isLab = (currentAttSubjectType && (
+                            currentAttSubjectType.toLowerCase().includes('lab') ||
+                            currentAttSubjectType.toLowerCase().includes('practical') ||
+                            currentAttSubjectType.toLowerCase().includes('practicum')
+                        ));
+                        const subBatchBox = document.getElementById('attSubBatchBox');
+                        if (isLab) {
+                            subBatchBox.classList.remove('d-none');
+                            const half = Math.ceil(currentAttStudents.length / 2);
+                            document.getElementById('sb1Label').textContent = `Batch 1 (1-${half})`;
+                            document.getElementById('sb2Label').textContent = `Batch 2 (${half + 1}+)`;
+                        } else {
+                            subBatchBox.classList.add('d-none');
+                            document.getElementById('sbWhole').checked = true;
+                        }
+
+                        const lpSelect = document.getElementById('attLessonPlanSelect');
+                        lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+                        (data.lesson_plans || []).forEach(lp => {
+                            const opt = document.createElement('option');
+                            opt.value = lp.id;
+                            let rawTopic = lp.topic_content || '';
+                            let displayTopic = rawTopic.length > 42 ? rawTopic.substring(0, 40) + '...' : rawTopic;
+                            opt.textContent = `[${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
+                            opt.title = rawTopic;
+                            lpSelect.appendChild(opt);
+                        });
+
+                        document.getElementById('attTopicsCovered').value = '';
+
+                        filterAttStudentsByBatch();
+
+                        if (modal) {
+                            modal.style.display = 'block';
+                            modal.classList.add('show');
+                        }
+                    } else {
+                        alert(data.message || "Failed to load class details.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Network error fetching class details.");
+                });
+        }
+
+        function closeClassAttendanceModal() {
+            const modal = document.getElementById('classAttendanceModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+            }
+        }
+
+        function switchAttModalTab(tab) {
+            const btnTake = document.getElementById('tabBtnTakeAtt');
+            const btnLogs = document.getElementById('tabBtnPastLogs');
+            const paneTake = document.getElementById('paneTakeAtt');
+            const paneLogs = document.getElementById('panePastLogs');
+
+            if (tab === 'take') {
+                btnTake.className = 'nav-link active py-1 px-2.5 rounded-pill text-white fw-bold';
+                btnLogs.className = 'nav-link py-1 px-2.5 rounded-pill text-secondary fw-bold';
+                paneTake.classList.remove('d-none');
+                paneLogs.classList.add('d-none');
+            } else {
+                btnLogs.className = 'nav-link active py-1 px-2.5 rounded-pill text-white fw-bold';
+                btnTake.className = 'nav-link py-1 px-2.5 rounded-pill text-secondary fw-bold';
+                paneLogs.classList.remove('d-none');
+                paneTake.classList.add('d-none');
+                loadClassAttendanceReports();
+            }
+        }
+
+        function onAttLessonPlanChange() {
+            const select = document.getElementById('attLessonPlanSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && select.value) {
+                const text = selectedOption.textContent;
+                const topic = text.substring(text.indexOf(']') + 2);
+                document.getElementById('attTopicsCovered').value = topic.replace(/\(Pending\)|\(In Progress\)|\(Completed\)/i, '').trim();
+            } else {
+                document.getElementById('attTopicsCovered').value = '';
+            }
+        }
+
+        function getFilteredAttStudents() {
+            const subBatchBox = document.getElementById('attSubBatchBox');
+            if (subBatchBox.classList.contains('d-none')) {
+                return currentAttStudents;
+            }
+            const selected = document.querySelector('input[name="attSubBatch"]:checked');
+            const val = selected ? selected.value : 'Whole';
+            if (val === 'Whole') return currentAttStudents;
+
+            const half = Math.ceil(currentAttStudents.length / 2);
+            if (val === '1') {
+                return currentAttStudents.slice(0, half);
+            } else {
+                return currentAttStudents.slice(half);
+            }
+        }
+
+        function filterAttStudentsByBatch() {
+            const filtered = getFilteredAttStudents();
+            document.getElementById('attStudentCountLabel').textContent = `Students: ${filtered.length}`;
+            renderAttRoster();
+        }
+
+        function switchAttViewMode(mode) {
+            currentAttViewMode = mode;
+            const btnList = document.getElementById('btnAttModeList');
+            const btnGrid = document.getElementById('btnAttModeGrid');
+            const contList = document.getElementById('attModeListContainer');
+            const contGrid = document.getElementById('attModeGridContainer');
+
+            if (mode === 'list') {
+                btnList.className = 'btn btn-cyan btn-sm py-1.5 px-3 font-extrabold';
+                btnGrid.className = 'btn btn-outline-secondary btn-sm py-1.5 px-3 font-extrabold';
+                contList.classList.remove('d-none');
+                contGrid.classList.add('d-none');
+            } else {
+                btnGrid.className = 'btn btn-cyan btn-sm py-1.5 px-3 font-extrabold';
+                btnList.className = 'btn btn-outline-secondary btn-sm py-1.5 px-3 font-extrabold';
+                contGrid.classList.remove('d-none');
+                contList.classList.add('d-none');
+            }
+            renderAttRoster();
+        }
+
+        function renderAttRoster() {
+            const filtered = getFilteredAttStudents();
+            const presentCount = filtered.filter(s => s.present).length;
+            const absentCount = filtered.length - presentCount;
+            
+            const countLabel = document.getElementById('attStudentCountLabel');
+            const presText = document.getElementById('attPresentCountText');
+            const absText = document.getElementById('attAbsentCountText');
+            
+            if (countLabel) countLabel.textContent = `Students: ${filtered.length}`;
+            if (presText) presText.textContent = `${presentCount} Present`;
+            if (absText) absText.textContent = `${absentCount} Absent`;
+
+            if (currentAttViewMode === 'list') {
+                const tbody = document.getElementById('attStudentListTbody');
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-slate-400 py-4 fs-6">No students found.</td></tr>';
+                    return;
+                }
+                let html = '';
+                filtered.forEach((s, idx) => {
+                    const roll = s.roll_no || (idx + 1);
+                    html += `<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); cursor: pointer;" onclick="toggleAttStudentRowClick('${s.reg_no}', event)">
+                        <td class="text-center py-2.5" style="width: 55px;">
+                            <span class="badge bg-slate-800 text-cyan border border-slate-700 font-mono px-2 py-1" style="font-size: 0.82rem; background-color: #1e293b !important; color: #06b6d4 !important;">${roll}</span>
+                        </td>
+                        <td class="py-2.5">
+                            <div class="fw-bold text-white fs-6 mb-0">${s.name}</div>
+                            <div class="text-slate-400 font-mono" style="font-size: 0.72rem; color: #94a3b8 !important;">${s.reg_no}</div>
+                        </td>
+                        <td class="text-center py-2.5" style="width: 85px;">
+                            <input type="checkbox" id="chkAtt_${s.reg_no}" onchange="toggleAttStudentPresent('${s.reg_no}', this.checked)" ${s.present ? 'checked' : ''} class="form-check-input" style="width: 24px; height: 24px; cursor: pointer; accent-color: #06b6d4;">
+                        </td>
+                    </tr>`;
+                });
+                html += `<tr>
+                    <td colspan="3" class="text-center py-3 border-0" style="background-color: #090d16 !important;">
+                        <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att px-4 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.92rem;">
+                            <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
+                        </button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML = html;
+            } else {
+                const gridRow = document.getElementById('attStudentGridRow');
+                if (filtered.length === 0) {
+                    gridRow.innerHTML = '<div class="col-12 text-center text-slate-400 py-4 fs-6">No students found.</div>';
+                    return;
+                }
+                let html = '';
+                filtered.forEach((s, idx) => {
+                    const roll = s.roll_no || (idx + 1);
+                    const btnStyle = s.present
+                        ? 'background: rgba(16, 185, 129, 0.25); color: #34d399; border: 2px solid rgba(52, 211, 153, 0.6);'
+                        : 'background: rgba(244, 63, 94, 0.25); color: #fb7185; border: 2px solid rgba(251, 113, 133, 0.6);';
+                    html += `<div class="col-3 col-sm-2 text-center p-1">
+                        <button type="button" onclick="toggleAttStudentGrid('${s.reg_no}')" class="btn w-100 font-black rounded-3 shadow-sm py-2 font-mono" style="${btnStyle} font-size: 1.18rem; font-weight: 900; min-height: 52px;">
+                            ${roll}
+                        </button>
+                    </div>`;
+                });
+                html += `<div class="col-12 text-center py-3 mt-2">
+                    <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att px-4 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.92rem;">
+                        <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
+                    </button>
+                </div>`;
+                gridRow.innerHTML = html;
+            }
+        }
+
+        function toggleAttStudentRowClick(regNo, event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
+            const s = currentAttStudents.find(st => st.reg_no === regNo);
+            if (s) {
+                s.present = !s.present;
+                renderAttRoster();
+            }
+        }
+
+        function toggleAttStudentPresent(regNo, isPresent) {
+            const s = currentAttStudents.find(st => st.reg_no === regNo);
+            if (s) s.present = isPresent;
+        }
+
+        function toggleAttStudentGrid(regNo) {
+            const s = currentAttStudents.find(st => st.reg_no === regNo);
+            if (s) {
+                s.present = !s.present;
+                renderAttRoster();
+            }
+        }
+
+        function toggleAllAttStudents() {
+            isAttAllChecked = !isAttAllChecked;
+            const filtered = getFilteredAttStudents();
+            filtered.forEach(s => s.present = isAttAllChecked);
+            document.getElementById('btnAttCheckAll').textContent = isAttAllChecked ? "Mark All Absent" : "Mark All Present";
+            renderAttRoster();
+        }
+
+        function saveClassAttendance() {
+            const date = document.getElementById('attLogDate').value;
+            const checkedPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(el => parseInt(el.value));
+            const lpId = document.getElementById('attLessonPlanSelect').value;
+            const topics = document.getElementById('attTopicsCovered').value.trim();
+            const alertBox = document.getElementById('attModalAlert');
+            const btn = document.getElementById('btnSaveClassAtt');
+
+            if (!currentAttBatchSubjectId) {
+                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
+                alertBox.textContent = 'Invalid subject session.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+            if (checkedPeriods.length === 0) {
+                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
+                alertBox.textContent = 'Please select at least one Period / Hour.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+            if (!topics) {
+                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
+                alertBox.textContent = 'Please enter the topics covered.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            const present = [];
+            const absent = [];
+            const filtered = getFilteredAttStudents();
+            filtered.forEach(s => {
+                if (s.present) present.push(s.reg_no);
+                else absent.push(s.reg_no);
+            });
+
+            const subBatchBox = document.getElementById('attSubBatchBox');
+            const selectedSb = document.querySelector('input[name="attSubBatch"]:checked');
+            const subBatchVal = subBatchBox.classList.contains('d-none') ? 'Whole' : (selectedSb ? selectedSb.value : 'Whole');
+
+            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
+            allSaveBtns.forEach(b => {
+                b.disabled = true;
+                b.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Saving...';
+            });
+
+            fetch('/api/staff/attendance/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    batch_subject_id: currentAttBatchSubjectId,
+                    date: date,
+                    periods: checkedPeriods,
+                    lesson_plan_id: lpId ? parseInt(lpId) : null,
+                    topics_covered: topics,
+                    present_students: present,
+                    absent_students: absent,
+                    sub_batch: subBatchVal
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                allSaveBtns.forEach(b => {
+                    b.disabled = false;
+                    b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+                });
+                if (data.status === 'SUCCESS') {
+                    alertBox.className = 'alert alert-success py-2 px-3 small font-bold mb-3';
+                    alertBox.textContent = data.message;
+                    alertBox.classList.remove('d-none');
+                    setTimeout(() => {
+                        closeClassAttendanceModal();
+                    }, 1200);
+                } else {
+                    alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
+                    alertBox.textContent = data.message || 'Failed to save attendance log.';
+                    alertBox.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                allSaveBtns.forEach(b => {
+                    b.disabled = false;
+                    b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+                });
+                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
+                alertBox.textContent = 'Network error saving class log.';
+                alertBox.classList.remove('d-none');
+            });
+        }
+
+        window.attPastLogsCache = [];
+
+        function loadClassAttendanceReports() {
+            const container = document.getElementById('attPastLogsContainer');
+            if (!container || !currentAttBatchSubjectId) return;
+
+            fetch(`/api/staff/attendance/subjects/${currentAttBatchSubjectId}/reports`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS' && data.logs && data.logs.length > 0) {
+                        window.attPastLogsCache = data.logs;
+                        let html = '';
+                        data.logs.forEach((log, idx) => {
+                            html += `<div class="p-2.5 rounded-3 border border-slate-800 bg-slate-900 mb-2 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">Period ${log.period} &bull; ${log.date}</span>
+                                    <button type="button" onclick="editPastClassLog(${idx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.76rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Log
+                                    </button>
+                                </div>
+                                <div class="text-white small fw-bold mb-1" style="font-size:0.82rem;">${log.topics_covered || 'No topic description'}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">Sub-batch: ${log.sub_batch || 'Whole'} &bull; Recorded: ${log.recorded_by || ''}</small>
+                                    <small class="font-mono fw-bold" style="font-size:0.74rem;">
+                                        <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
+                                    </small>
+                                </div>
+                            </div>`;
+                        });
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="text-center py-4 text-slate-400 small">No past class logs recorded for this subject yet.</div>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    container.innerHTML = '<div class="text-center py-3 text-rose small" style="color: #fb7185;">Error loading class log history.</div>';
+                });
+        }
+
+        function editPastClassLog(idx) {
+            const log = window.attPastLogsCache[idx];
+            if (!log) return;
+
+            // 1. Set Date
+            if (log.date) {
+                document.getElementById('attLogDate').value = log.date;
+            }
+
+            // 2. Set Period
+            document.querySelectorAll('input[name="attPeriods"]').forEach(chk => {
+                chk.checked = (parseInt(chk.value) === parseInt(log.period));
+            });
+
+            // 3. Set Sub-batch if applicable
+            if (log.sub_batch === '1') {
+                const el = document.getElementById('sb1');
+                if (el) el.checked = true;
+            } else if (log.sub_batch === '2') {
+                const el = document.getElementById('sb2');
+                if (el) el.checked = true;
+            } else {
+                const el = document.getElementById('sbWhole');
+                if (el) el.checked = true;
+            }
+
+            // 4. Set Topics Covered
+            document.getElementById('attTopicsCovered').value = log.topics_covered || '';
+
+            // 5. Select Lesson Plan if matched
+            if (log.lesson_plan_id) {
+                document.getElementById('attLessonPlanSelect').value = log.lesson_plan_id;
+            }
+
+            // 6. Update student attendance states from saved JSON
+            let presentArr = [];
+            try {
+                presentArr = typeof log.present_students === 'string' ? JSON.parse(log.present_students || '[]') : (log.present_students || []);
+            } catch (e) {
+                presentArr = [];
+            }
+
+            currentAttStudents.forEach(s => {
+                s.present = presentArr.includes(s.reg_no);
+            });
+
+            // 7. Switch to Take Attendance tab and refresh roster
+            switchAttModalTab('take');
+            filterAttStudentsByBatch();
+        }
+
+        // Handle Staff Profile Photo Upload
+        function handleStaffPhotoUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+
+            if (file.size > 10 * 1024 * 1024) {
+                showStaffPhotoAlert('File size exceeds 10MB limit.', 'text-danger');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('photo', file);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            showStaffPhotoAlert('<i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading photo...', 'text-cyan');
+
+            fetch('/api/staff/profile/upload-photo', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS' && data.photo_url) {
+                    const cacheBustedUrl = data.photo_url + '?t=' + new Date().getTime();
+
+                    const bannerImg = document.getElementById('staffBannerPhoto');
+                    if (bannerImg) {
+                        bannerImg.src = cacheBustedUrl;
+                    } else {
+                        const placeholder = document.getElementById('staffBannerPhotoPlaceholder');
+                        if (placeholder) {
+                            const newImg = document.createElement('img');
+                            newImg.id = 'staffBannerPhoto';
+                            newImg.src = cacheBustedUrl;
+                            newImg.className = 'avatar-mobile';
+                            placeholder.parentNode.replaceChild(newImg, placeholder);
+                        }
+                    }
+
+                    const tabImg = document.getElementById('staffProfileTabPhoto');
+                    if (tabImg) {
+                        tabImg.src = cacheBustedUrl;
+                    } else {
+                        const tabPlaceholder = document.getElementById('staffProfileTabPlaceholder');
+                        if (tabPlaceholder) {
+                            const newTabImg = document.createElement('img');
+                            newTabImg.id = 'staffProfileTabPhoto';
+                            newTabImg.src = cacheBustedUrl;
+                            newTabImg.className = 'avatar-mobile';
+                            newTabImg.style.width = '52px';
+                            newTabImg.style.height = '52px';
+                            tabPlaceholder.parentNode.replaceChild(newTabImg, tabPlaceholder);
+                        }
+                    }
+
+                    showStaffPhotoAlert('<i class="fa-solid fa-circle-check me-1"></i> Profile photo updated successfully!', 'text-success');
+                    setTimeout(() => {
+                        const alertEl = document.getElementById('staffPhotoUploadAlert');
+                        if (alertEl) alertEl.classList.add('d-none');
+                    }, 4000);
+                } else {
+                    showStaffPhotoAlert(data.message || 'Failed to upload photo.', 'text-danger');
+                }
+            })
+            .catch(err => {
+                console.error('Photo upload error:', err);
+                showStaffPhotoAlert('Server error during photo upload.', 'text-danger');
+            });
+        }
+
+        function showStaffPhotoAlert(msg, colorClass) {
+            const alertEl = document.getElementById('staffPhotoUploadAlert');
+            if (alertEl) {
+                alertEl.className = 'small mt-2 font-bold ' + colorClass;
+                alertEl.innerHTML = msg;
+                alertEl.classList.remove('d-none');
+            }
+        }
+
         // Prevent back-button viewing after logout
         window.addEventListener('pageshow', function (event) {
             if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
@@ -1358,5 +2203,8 @@
             }
         });
     </script>
+
+    <!-- Hidden Input for Photo File Upload -->
+    <input type="file" id="staffPhotoFileInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" style="display: none;" onchange="handleStaffPhotoUpload(this)">
 </body>
 </html>

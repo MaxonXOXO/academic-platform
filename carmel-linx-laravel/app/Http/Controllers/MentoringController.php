@@ -1847,6 +1847,14 @@ class MentoringController extends Controller
             ->select('batch_subjects.*', 'subject_staff_assignments.batch_subject_id')
             ->get();
 
+        foreach ($assignments as $subj) {
+            $tot = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->count();
+            $comp = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->where('status', 'Completed')->count();
+            $subj->total_lesson_plans = $tot;
+            $subj->completed_lesson_plans = $comp;
+            $subj->progress_percent = $tot > 0 ? round(($comp / $tot) * 100) : 0;
+        }
+
         // 2. Classrooms where staff is Tutor (Mentor-1) or Mentor-2
         $cls21 = ClassManagement::where('tutor_mobile_no', $userId)
             ->orWhere('mentor_mobile_no', $userId)
@@ -1885,15 +1893,7 @@ class MentoringController extends Controller
             'Thursday' => 'Day 4',
             'Friday' => 'Day 5',
         ];
-        $currentDayName = date('l');
-        $defaultDayOrder = $dayMap[$currentDayName] ?? 'Day 1';
-        $activeDayOrderPath = storage_path('app/active_day_order.json');
-        if (file_exists($activeDayOrderPath)) {
-            $activeDayData = json_decode(file_get_contents($activeDayOrderPath), true);
-            if ($activeDayData && ($activeDayData['date'] ?? '') === now()->toDateString()) {
-                $defaultDayOrder = $activeDayData['day_order'];
-            }
-        }
+        $defaultDayOrder = \App\Services\DayOrderService::getActiveDayOrder();
 
         $fullTimetablesByDay = [
             'Day 1' => [],
@@ -1906,6 +1906,8 @@ class MentoringController extends Controller
         $dir = storage_path("app/timetables");
         if (is_dir($dir)) {
             $files = glob($dir . "/*.json");
+            $staffObjName = isset($staff->name) ? trim($staff->name) : '';
+
             foreach ($files as $file) {
                 $cId = str_replace(['.json', $dir . '/'], '', $file);
                 $ttData = json_decode(file_get_contents($file), true);
@@ -1918,15 +1920,39 @@ class MentoringController extends Controller
                                 if (!empty($details)) {
                                     $subCode = is_array($details) ? ($details['subject'] ?? ($details['subject_code'] ?? '')) : $details;
                                     $staffName = is_array($details) ? ($details['staff'] ?? '') : '';
-                                    
-                                    $matchesSub = $assignments->firstWhere('subject_code', $subCode);
-                                    if ($matchesSub || (isset($staff->name) && str_contains($staffName, $staff->name)) || count($assignments) > 0) {
+                                    $staffNameClean = trim($staffName);
+
+                                    $matchesName = false;
+                                    if (!empty($staffObjName) && !empty($staffNameClean)) {
+                                        if (str_contains(strtolower($staffNameClean), strtolower($staffObjName)) || 
+                                            str_contains(strtolower($staffObjName), strtolower($staffNameClean)) ||
+                                            $staffNameClean === $userId) {
+                                            $matchesName = true;
+                                        }
+                                    }
+
+                                    $assignedSub = $assignments->first(function ($item) use ($subCode, $cId) {
+                                        if (($item->subject_code ?? '') !== $subCode) return false;
+                                        if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                                        return true;
+                                    });
+                                    if (!$assignedSub) {
+                                        $assignedSub = $assignments->firstWhere('subject_code', $subCode);
+                                    }
+
+                                    $isOwnClass = $matchesName || ($assignedSub && (empty($staffNameClean) || $matchesName));
+
+                                    if ($isOwnClass) {
                                         $fullTimetablesByDay[$dayKey][] = (object) [
-                                            'period' => $period,
+                                            'period' => (int)$period,
                                             'classroom_id' => $cId,
                                             'subject_code' => $subCode,
-                                            'subject_name' => $matchesSub->subject_name ?? $subCode,
-                                            'staff_name' => $staffName
+                                            'subject_name' => $assignedSub->subject_name ?? $subCode,
+                                            'staff_name' => $staffName,
+                                            'batch_subject_id' => $assignedSub->id ?? null,
+                                            'progress_percent' => $assignedSub->progress_percent ?? 0,
+                                            'completed_lesson_plans' => $assignedSub->completed_lesson_plans ?? 0,
+                                            'total_lesson_plans' => $assignedSub->total_lesson_plans ?? 0,
                                         ];
                                     }
                                 }
@@ -2075,7 +2101,7 @@ class MentoringController extends Controller
                 'badge' => 'Daily Task',
                 'badge_class' => 'bg-info text-dark',
                 'icon' => 'fa-solid fa-clipboard-user text-info',
-                'link' => '/dashboard/lecturer?mode=desktop'
+                'link' => '#'
             ];
         }
 

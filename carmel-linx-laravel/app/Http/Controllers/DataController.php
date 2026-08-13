@@ -558,7 +558,14 @@ class DataController extends Controller
                     return response()->json(['status' => 'ERROR', 'message' => 'Student record not found.']);
                 }
                 $targetName = $student->name;
-                $student->update(['status' => $newStatus]);
+                $updateData = ['status' => $newStatus];
+                if (empty($student->classroom_id) && $student->branch && $student->admission_year) {
+                    $isLet = ($student->admission_type === 'LET');
+                    $startYear = $isLet ? ($student->admission_year - 1) : $student->admission_year;
+                    $endYear = $startYear + 3;
+                    $updateData['classroom_id'] = "{$student->branch}_{$startYear}_{$endYear}";
+                }
+                $student->update($updateData);
             } else {
                 $staff = StaffProfile::where('mobile_no', $userId)->first();
                 if (!$staff) {
@@ -3096,12 +3103,7 @@ class DataController extends Controller
                 $endYear = $startYear + 3;
                 $classroomId = "{$branch}_{$startYear}_{$endYear}";
 
-                $batchExists = \App\Models\ClassManagement::where('classroom_id', $classroomId)->exists()
-                    || \App\Models\R26ClassManagement::where('classroom_id', $classroomId)->exists();
-                if (!$batchExists) {
-                    $classroomId = null;
-                }
-
+                // Always retain calculated classroom_id so students belong to their batch
                 $existing = Student::where('reg_no', $regNo)
                     ->orWhere('adm_no', $admNo)
                     ->first();

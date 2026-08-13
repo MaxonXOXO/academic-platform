@@ -118,21 +118,7 @@ class HodMobileController extends Controller
             ->get();
 
         // 8. Active Day Order
-        $dayMap = [
-            'Monday' => 'Day 1',
-            'Tuesday' => 'Day 2',
-            'Wednesday' => 'Day 3',
-            'Thursday' => 'Day 4',
-            'Friday' => 'Day 5',
-        ];
-        $defaultDayOrder = $dayMap[date('l')] ?? 'Day 1';
-        $activeDayOrderPath = storage_path('app/active_day_order.json');
-        if (file_exists($activeDayOrderPath)) {
-            $activeDayData = json_decode(file_get_contents($activeDayOrderPath), true);
-            if ($activeDayData && ($activeDayData['date'] ?? '') === now()->toDateString()) {
-                $defaultDayOrder = $activeDayData['day_order'];
-            }
-        }
+        $defaultDayOrder = \App\Services\DayOrderService::getActiveDayOrder();
 
         // 9. Branch Timetables & Live Class Status for 3 Semesters (S1, S3, S5)
         $periodTimings = [

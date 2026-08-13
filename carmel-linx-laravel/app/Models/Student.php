@@ -19,6 +19,23 @@ class Student extends Model
 
     protected $keyType = 'string';
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($student) {
+            if (empty($student->classroom_id) && !empty($student->branch) && !empty($student->admission_year)) {
+                $isLet = ($student->admission_type === 'LET');
+                $startYear = $isLet ? ($student->admission_year - 1) : (int)$student->admission_year;
+                $endYear = $startYear + 3;
+                $student->classroom_id = "{$student->branch}_{$startYear}_{$endYear}";
+            }
+            if (empty($student->academic_status)) {
+                $student->academic_status = 'Active';
+            }
+        });
+    }
+
     protected $fillable = [
         'reg_no',
         'adm_no',

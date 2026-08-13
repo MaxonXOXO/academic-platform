@@ -91,8 +91,10 @@ class AttendanceController extends Controller
         $batchSubject = BatchSubject::findOrFail($id);
 
         // Fetch students ordered by roll number, then name
-        $students = Student::where('classroom_id', $batchSubject->classroom_id)
-            ->where('status', 'Approved')
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->where(function($q) {
+                $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
             ->orderBy('name', 'asc')
             ->get(['reg_no', 'name', 'roll_no']);

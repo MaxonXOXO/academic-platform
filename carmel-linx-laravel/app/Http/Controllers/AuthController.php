@@ -34,7 +34,8 @@ class AuthController extends Controller
                     ->orWhere('sbte_reg_no', strtoupper($userId))
                     ->first();
 
-                if (!$student || $student->password !== $password) {
+                $isPasswordValid = ($student->password === $password) || Hash::check($password, $student->password);
+                if (!$student || !$isPasswordValid) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Invalid ID/Admission Number or Password.']);
                 }
 
@@ -190,7 +191,8 @@ class AuthController extends Controller
         // Only assign if the batch has been created by the HOD.
         // If the HOD hasn't created the batch yet, leave classroom_id as null.
         // The student will be backfilled when the HOD creates the batch later.
-        $batchExists = \App\Models\ClassManagement::where('classroom_id', $classroomId)->exists();
+        $batchExists = \App\Models\ClassManagement::where('classroom_id', $classroomId)->exists()
+            || \App\Models\R26ClassManagement::where('classroom_id', $classroomId)->exists();
         if (!$batchExists) {
             $classroomId = null;
         }
@@ -202,7 +204,19 @@ class AuthController extends Controller
         // Save Photo if uploaded
         $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = '/storage/' . $request->file('photo')->store('avatars', 'public');
+            $photoFile = $request->file('photo');
+            if (!$photoFile->isValid()) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image upload failed due to file size or type mismatch. Please select a valid photo under 5MB.']);
+            }
+            $mime = strtolower($photoFile->getMimeType() ?: $photoFile->getClientMimeType());
+            $allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!in_array($mime, $allowed)) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image type mismatch: Only JPG, PNG, or WebP photo formats are allowed.']);
+            }
+            if ($photoFile->getSize() > 5 * 1024 * 1024) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image size mismatch: Photo size exceeds 5MB limit.']);
+            }
+            $photoPath = '/storage/' . $photoFile->store('avatars', 'public');
         }
 
         try {
@@ -292,7 +306,19 @@ class AuthController extends Controller
         // Save Photo
         $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = '/storage/' . $request->file('photo')->store('avatars', 'public');
+            $photoFile = $request->file('photo');
+            if (!$photoFile->isValid()) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image upload failed due to file size or type mismatch. Please select a valid photo under 5MB.']);
+            }
+            $mime = strtolower($photoFile->getMimeType() ?: $photoFile->getClientMimeType());
+            $allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!in_array($mime, $allowed)) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image type mismatch: Only JPG, PNG, or WebP photo formats are allowed.']);
+            }
+            if ($photoFile->getSize() > 5 * 1024 * 1024) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Image size mismatch: Photo size exceeds 5MB limit.']);
+            }
+            $photoPath = '/storage/' . $photoFile->store('avatars', 'public');
         }
 
         $status = ($designation === 'Principal') ? 'Approved' : 'Pending';

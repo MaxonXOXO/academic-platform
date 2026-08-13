@@ -311,15 +311,63 @@
       const fileInput = document.getElementById('regPhoto');
       const preview = document.getElementById('photoPreview');
       const container = document.getElementById('photoPreviewContainer');
+      const regAlert = document.getElementById('regAlert');
+      const spinner = document.getElementById('regSpinner');
+      const btnText = document.getElementById('regBtnText');
 
-      const file = fileInput.files[0];
+      base64Photo = "";
+      const file = fileInput ? fileInput.files[0] : null;
       if (!file) return;
 
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+      if (!validTypes.includes(file.type.toLowerCase()) && !file.type.startsWith('image/')) {
+        showRegError(regAlert, spinner, btnText, "Image type mismatch: Selected file is not a valid photo. Please select a JPG, PNG, or WebP image.");
+        if (fileInput) fileInput.value = "";
+        container.classList.add('hidden');
+        preview.src = "";
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = function () {
-        base64Photo = reader.result;
-        preview.src = base64Photo;
-        container.classList.remove('hidden');
+      reader.onload = function (e) {
+        const image = new Image();
+        image.onerror = function() {
+          showRegError(regAlert, spinner, btnText, "Image format mismatch: File is damaged or not a valid image.");
+          if (fileInput) fileInput.value = "";
+          container.classList.add('hidden');
+          preview.src = "";
+        };
+
+        image.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let width = image.width;
+          let height = image.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(image, 0, 0, width, height);
+
+          base64Photo = canvas.toDataURL('image/jpeg', 0.85);
+          preview.src = base64Photo;
+          container.classList.remove('hidden');
+        };
+
+        image.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }

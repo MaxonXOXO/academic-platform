@@ -479,6 +479,23 @@
             </dl>
           </div>
 
+          <!-- Email Address Update Card -->
+          <div class="bg-slate-950/30 border border-blue-500/20 rounded-2xl p-6">
+            <div class="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
+              <span class="material-symbols-rounded text-blue-400 text-xs">mail</span>
+              <h3 class="text-xs font-black text-slate-300 uppercase tracking-wider">Email Address</h3>
+            </div>
+            <?php $studentEmail = session('userEmail', ''); ?>
+            <p class="text-xs text-slate-400 mb-4 font-medium">Keep your primary contact email address up to date for official notices and password recovery.</p>
+            <div class="flex gap-3">
+              <input type="email" id="studentEmailInput" value="{{ str_ends_with($studentEmail, '@carmelpoly.in') ? '' : $studentEmail }}" placeholder="e.g. student@gmail.com" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 outline-none">
+              <button onclick="updateStudentEmail()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition-premium flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-rounded text-xs">save</span> Update Email
+              </button>
+            </div>
+            <div id="emailAlert" class="hidden p-3 rounded-xl text-xs font-bold border mt-3"></div>
+          </div>
+
           <!-- SBTE Register Number Card -->
           <div class="bg-slate-950/30 border border-amber-500/20 rounded-2xl p-6">
             <div class="flex items-center gap-2 border-b border-slate-800/60 pb-3 mb-4">
@@ -1357,61 +1374,145 @@
       });
     }
 
+    function updateStudentEmail() {
+      const email = document.getElementById('studentEmailInput').value.trim();
+      const alertEl = document.getElementById('emailAlert');
+      if (!email) {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+        alertEl.innerText = 'Please enter your email address.';
+        return;
+      }
+      fetch('/api/student/update-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ email: email })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 block';
+          alertEl.innerText = 'Email address updated successfully!';
+        } else {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+          alertEl.innerText = data.message || 'Failed to update email.';
+        }
+      })
+      .catch(() => {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+        alertEl.innerText = 'Network error. Please try again.';
+      });
+    }
+
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const statusEl = document.getElementById('photoUploadStatus');
       statusEl.classList.remove('hidden');
-      statusEl.className = "text-sm font-bold mt-2 text-blue-450";
-      statusEl.innerText = "Uploading photo...";
+      statusEl.className = "text-xs font-bold mt-2 text-blue-400";
+      statusEl.innerText = "Analyzing & processing image...";
 
-      const formData = new FormData();
-      formData.append('photo', file);
+      // Client-side MIME check
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!validTypes.includes(file.type.toLowerCase())) {
+        statusEl.className = "text-xs font-bold mt-2 text-rose-400";
+        statusEl.innerText = "Photo restricted: Please upload a valid JPG, PNG, or WebP image file.";
+        return;
+      }
 
-      fetch('/api/student/profile/upload-photo', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'SUCCESS') {
-          statusEl.className = "text-sm font-bold mt-2 text-green-400";
-          statusEl.innerText = "Photo updated successfully!";
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const w = img.width;
+          const h = img.height;
+          const aspectRatio = w / h;
 
-          // Update main profile picture
-          const imgEl = document.getElementById('studentProfileImg');
-          if (imgEl) {
-            imgEl.src = data.photo_url;
-          } else {
-            const wrapper = document.getElementById('studentAvatarWrapper');
-            wrapper.innerHTML = `<img id="studentProfileImg" src="${data.photo_url}" class="w-full h-full object-cover">`;
+          // Enforce passport style clear face aspect ratio restriction
+          // Rejects full body tall vertical shots or wide horizontal group/landscape shots
+          if (aspectRatio < 0.65 || aspectRatio > 1.35) {
+            statusEl.className = "text-xs font-bold mt-2 text-rose-400 leading-snug";
+            statusEl.innerText = "Photo restricted: Please upload a close-up clear face photo (passport style). Full-body photos or wide landscape shots are not allowed.";
+            return;
           }
 
-          // Update sidebar picture
-          const sidebarImg = document.getElementById('sidebarStudentImg');
-          if (sidebarImg) {
-            sidebarImg.src = data.photo_url;
-          } else {
-            const sidebarWrapper = document.getElementById('sidebarAvatarContainer');
-            if (sidebarWrapper) {
-              sidebarWrapper.innerHTML = `<img id="sidebarStudentImg" src="${data.photo_url}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">`;
+          // Auto-crop to 1:1 passport face square canvas & downscale (400x400)
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const minDim = Math.min(w, h);
+          canvas.width = 400;
+          canvas.height = 400;
+
+          // Center crop around upper head/face area
+          const cropX = (w - minDim) / 2;
+          const cropY = Math.max(0, (h - minDim) * 0.2);
+
+          ctx.drawImage(img, cropX, cropY, minDim, minDim, 0, 0, 400, 400);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              statusEl.className = "text-xs font-bold mt-2 text-rose-400";
+              statusEl.innerText = "Error processing image.";
+              return;
             }
-          }
 
-          setTimeout(() => statusEl.classList.add('hidden'), 3000);
-        } else {
-          statusEl.className = "text-sm font-bold mt-2 text-rose-450";
-          statusEl.innerText = data.message || "Upload failed.";
-        }
-      })
-      .catch(() => {
-        statusEl.className = "text-sm font-bold mt-2 text-rose-450";
-        statusEl.innerText = "Network error. Please try again.";
-      });
+            statusEl.innerText = "Uploading photo...";
+            const formData = new FormData();
+            formData.append('photo', blob, 'passport_photo.jpg');
+
+            fetch('/api/student/profile/upload-photo', {
+              method: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+              },
+              body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'SUCCESS') {
+                statusEl.className = "text-xs font-bold mt-2 text-emerald-400";
+                statusEl.innerText = "Passport photo updated successfully!";
+
+                const imgEl = document.getElementById('studentProfileImg');
+                if (imgEl) {
+                  imgEl.src = data.photo_url;
+                } else {
+                  const wrapper = document.getElementById('studentAvatarWrapper');
+                  wrapper.innerHTML = `<img id="studentProfileImg" src="${data.photo_url}" class="w-full h-full object-cover">`;
+                }
+
+                const sidebarImg = document.getElementById('sidebarStudentImg');
+                if (sidebarImg) {
+                  sidebarImg.src = data.photo_url;
+                } else {
+                  const sidebarWrapper = document.getElementById('sidebarAvatarContainer');
+                  if (sidebarWrapper) {
+                    sidebarWrapper.innerHTML = `<img id="sidebarStudentImg" src="${data.photo_url}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">`;
+                  }
+                }
+
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+              } else {
+                statusEl.className = "text-xs font-bold mt-2 text-rose-400";
+                statusEl.innerText = data.message || "Upload failed.";
+              }
+            })
+            .catch(() => {
+              statusEl.className = "text-xs font-bold mt-2 text-rose-400";
+              statusEl.innerText = "Network error. Please try again.";
+            });
+          }, 'image/jpeg', 0.88);
+        };
+        img.onerror = function() {
+          statusEl.className = "text-xs font-bold mt-2 text-rose-400";
+          statusEl.innerText = "Image format mismatch or file damaged.";
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     // Init stub stats and load tests

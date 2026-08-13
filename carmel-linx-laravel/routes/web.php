@@ -703,6 +703,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/executive/profile/details', [AuthController::class, 'getExecutiveProfile']);
     Route::post('/api/executive/profile/update', [AuthController::class, 'updateExecutiveProfile']);
     Route::post('/api/student/profile/upload-photo', [DataController::class, 'uploadStudentPhoto']);
+    Route::post('/api/student/update-email', [DataController::class, 'updateStudentEmail']);
+    Route::post('/api/students/bulk-import', [DataController::class, 'bulkImportStudents']);
+    Route::get('/api/students/template/download', [DataController::class, 'downloadStudentImportTemplate']);
     Route::post('/api/staff/profile/upload-photo', [DataController::class, 'uploadStaffPhoto']);
     Route::post('/api/staff/update-photo', [DataController::class, 'uploadStaffPhoto']);
     Route::post('/api/staff/change-password', [AuthController::class, 'changeStaffPassword']);

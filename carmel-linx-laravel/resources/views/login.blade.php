@@ -475,26 +475,98 @@
       }
     }
 
+    let compressedPhotoBlob = null;
+
     function previewRegistrationPhoto(event) {
       const file = event.target.files[0];
       const container = document.getElementById('regPhotoPreviewContainer');
       const img = document.getElementById('regPhotoPreviewImg');
       const name = document.getElementById('regPhotoFileName');
+      const regAlert = document.getElementById('regAlert');
+      const spinner = document.getElementById('regSpinner');
+      const btnText = document.getElementById('regBtnText');
       
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          img.src = e.target.result;
-          name.innerText = file.name;
-          container.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      } else {
+      compressedPhotoBlob = null;
+
+      if (!file) {
         clearRegistrationPhoto();
+        return;
       }
+
+      // Validate Image Type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+      if (!validTypes.includes(file.type.toLowerCase()) && !file.type.startsWith('image/')) {
+        showRegError(regAlert, spinner, btnText, "Image type mismatch: Selected file is not a valid photo. Please select a JPG, PNG, or WebP image.");
+        clearRegistrationPhoto();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onerror = function() {
+        showRegError(regAlert, spinner, btnText, "Image read error: Unable to read selected photo file.");
+        clearRegistrationPhoto();
+      };
+
+      reader.onload = function(e) {
+        const image = new Image();
+        image.onerror = function() {
+          showRegError(regAlert, spinner, btnText, "Image format mismatch: File appears to be damaged or not a valid image format.");
+          clearRegistrationPhoto();
+        };
+
+        image.onload = function() {
+          // Perform Client-Side Canvas Downscaling & Compression (Max 800px)
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let width = image.width;
+          let height = image.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(image, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              showRegError(regAlert, spinner, btnText, "Image compression error: Failed to process photo for upload.");
+              clearRegistrationPhoto();
+              return;
+            }
+
+            if (blob.size > 5 * 1024 * 1024) {
+              showRegError(regAlert, spinner, btnText, "Image size mismatch: Selected photo exceeds the maximum allowed size of 5MB.");
+              clearRegistrationPhoto();
+              return;
+            }
+
+            compressedPhotoBlob = blob;
+            img.src = canvas.toDataURL('image/jpeg', 0.85);
+            name.innerText = file.name + ` (${Math.round(blob.size / 1024)} KB)`;
+            container.classList.remove('hidden');
+          }, 'image/jpeg', 0.85);
+        };
+
+        image.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
     }
 
     function clearRegistrationPhoto() {
+      compressedPhotoBlob = null;
       const fileInput = document.getElementById('regPhoto');
       if (fileInput) fileInput.value = '';
       const container = document.getElementById('regPhotoPreviewContainer');
@@ -635,8 +707,11 @@
       formData.append('email', document.getElementById('regEmail').value);
       formData.append('password', document.getElementById('regPassword').value);
       
-      const photoFile = document.getElementById('regPhoto').files[0];
-      if (photoFile) {
+      const photoFileInput = document.getElementById('regPhoto');
+      const photoFile = photoFileInput ? photoFileInput.files[0] : null;
+      if (compressedPhotoBlob) {
+        formData.append('photo', compressedPhotoBlob, photoFile ? photoFile.name : 'photo.jpg');
+      } else if (photoFile) {
         formData.append('photo', photoFile);
       }
 
@@ -662,9 +737,27 @@
         },
         body: formData
       })
-      .then(res => res.json())
+      .then(async res => {
+        let data = null;
+        try {
+          data = await res.json();
+        } catch (err) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          if (res.status === 413) {
+            throw new Error("Image size mismatch: Photo payload is too large for the server limit. Please upload a photo under 5MB.");
+          } else if (res.status === 422) {
+            throw new Error((data && data.message) ? data.message : "Image size or format mismatch. Please upload a valid JPG/PNG photo under 5MB.");
+          }
+          throw new Error((data && data.message) ? data.message : `Registration request failed (HTTP ${res.status}).`);
+        }
+
+        return data;
+      })
       .then(data => {
-        if (data.status === "SUCCESS") {
+        if (data && data.status === "SUCCESS") {
           spinner.classList.add('hidden');
           btnText.innerText = "Register";
           if (activeRole === 'student') {
@@ -678,11 +771,15 @@
             setTimeout(() => showLogin(), 2000);
           }
         } else {
-          showRegError(regAlert, spinner, btnText, data.message);
+          showRegError(regAlert, spinner, btnText, (data && data.message) ? data.message : "Registration error occurred.");
         }
       })
       .catch(err => {
-        showRegError(regAlert, spinner, btnText, "Registration request failed.");
+        let msg = err.message || "Registration request failed.";
+        if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+          msg = "Photo upload or network error: Image size or type mismatch. Please select a valid photo file (JPG/PNG under 5MB).";
+        }
+        showRegError(regAlert, spinner, btnText, msg);
       });
     }
 

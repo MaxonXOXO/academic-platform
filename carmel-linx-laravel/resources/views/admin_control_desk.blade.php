@@ -1937,6 +1937,7 @@
         formData.append('branch', document.getElementById('directRegStudentBranch').value);
         formData.append('admissionYear', document.getElementById('directRegStudentYear').value);
         formData.append('admissionType', 'Regular');
+        formData.append('semester', 'S1');
       } else {
         url = '/register/staff';
         formData.append('mobileNo', document.getElementById('directRegStaffMobile').value);

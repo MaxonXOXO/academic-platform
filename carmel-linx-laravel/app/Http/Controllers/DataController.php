@@ -1195,6 +1195,9 @@ class DataController extends Controller
 
         try {
             $batch = ClassManagement::where('classroom_id', $classroomId)->first();
+            if (!$batch) {
+                $batch = \App\Models\R26ClassManagement::where('classroom_id', $classroomId)->first();
+            }
             if (!$batch || strtoupper($batch->branch) !== strtoupper($branch)) {
                 return response()->json(['status' => 'ERROR', 'message' => 'Invalid batch or department mismatch.']);
             }
@@ -1384,6 +1387,11 @@ class DataController extends Controller
         $batch = ClassManagement::where('classroom_id', $classroomId)
             ->where('branch', strtoupper($currentBranch))
             ->first();
+        if (!$batch) {
+            $batch = \App\Models\R26ClassManagement::where('classroom_id', $classroomId)
+                ->where('branch', strtoupper($currentBranch))
+                ->first();
+        }
         if (!$batch) {
             return response()->json(['status' => 'ERROR', 'message' => 'Batch not found or not in your department.']);
         }
@@ -1746,6 +1754,12 @@ class DataController extends Controller
                 ->first();
 
             if (!$batch) {
+                $batch = \App\Models\R26ClassManagement::where('classroom_id', $classroomId)
+                    ->where('branch', strtoupper($branch))
+                    ->first();
+            }
+
+            if (!$batch) {
                 return response()->json(['status' => 'ERROR', 'message' => 'Batch not found or not in your department.']);
             }
 
@@ -1850,6 +1864,11 @@ class DataController extends Controller
             $classroom = \App\Models\ClassManagement::where('classroom_id', $classroomId)
                 ->where('branch', strtoupper($branch))
                 ->first();
+            if (!$classroom) {
+                $classroom = \App\Models\R26ClassManagement::where('classroom_id', $classroomId)
+                    ->where('branch', strtoupper($branch))
+                    ->first();
+            }
             if (!$classroom) {
                 return response()->json(['status' => 'ERROR', 'message' => 'Batch not found or not in your department.']);
             }
@@ -2941,6 +2960,206 @@ class DataController extends Controller
     }
 
     /**
+     * Student: Update email address.
+     */
+    public function updateStudentEmail(Request $request)
+    {
+        $userId = Session::get('userId');
+        $userRole = Session::get('userRole');
+
+        if (!$userId || $userRole !== 'Student') {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.']);
+        }
+
+        $email = strtolower(trim($request->input('email', '')));
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Please enter a valid email address.']);
+        }
+
+        $existing = Student::where('email', $email)->where('reg_no', '!=', $userId)->first();
+        if ($existing) {
+            return response()->json(['status' => 'ERROR', 'message' => 'This email address is already registered to another student.']);
+        }
+
+        $student = Student::where('reg_no', $userId)->first();
+        if (!$student) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Student record not found.']);
+        }
+
+        $student->email = $email;
+        $student->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Email address updated successfully!'
+        ]);
+    }
+
+    /**
+     * Download sample CSV template for bulk student import.
+     */
+    public function downloadStudentImportTemplate()
+    {
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=student_bulk_import_template.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Name', 'Admission_No', 'Branch', 'Admission_Year', 'Admission_Type', 'Semester', 'Email', 'SBTE_Reg_No'];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fputcsv($file, ['Arun Kumar', 'ADM24CT01', 'CT', '2024', 'Regular', 'S1', '', '']);
+            fputcsv($file, ['Beena S', 'ADM24ECL02', 'EL', '2024', 'LET', 'S3', 'beena@carmelpoly.in', '2403210451']);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Bulk Import Students from Excel / CSV roster.
+     */
+    public function bulkImportStudents(Request $request)
+    {
+        $userRole = Session::get('userRole');
+        if (!in_array($userRole, ['Super_Admin', 'Admin', 'HOD', 'Principal', 'Lecturer', 'Demonstrator'])) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.']);
+        }
+
+        $rows = $request->input('rows');
+        if (!is_array($rows) || count($rows) < 1) {
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $handle = fopen($file->getRealPath(), 'r');
+                $header = fgetcsv($handle);
+                $rows = [];
+                while (($row = fgetcsv($handle)) !== false) {
+                    if (!empty(array_filter($row))) {
+                        $rows[] = $row;
+                    }
+                }
+                fclose($handle);
+            } else {
+                return response()->json(['status' => 'ERROR', 'message' => 'Please select a valid CSV/Excel file or roster.']);
+            }
+        }
+
+        try {
+            $importedCount = 0;
+            $updatedCount = 0;
+            $commonHashedPassword = \Illuminate\Support\Facades\Hash::make('carmel2026');
+
+            foreach ($rows as $index => $row) {
+                if ($index === 0 && (strcasecmp($row[0] ?? '', 'Name') === 0 || strcasecmp($row[0] ?? '', 'Full Name') === 0)) {
+                    continue;
+                }
+
+                $name = trim($row[0] ?? '');
+                $admNo = strtoupper(trim($row[1] ?? ''));
+                $branch = strtoupper(trim($row[2] ?? ''));
+                $admissionYear = intval(trim($row[3] ?? date('Y')));
+
+                if (empty($name) || empty($admNo) || empty($branch)) {
+                    continue;
+                }
+
+                $admissionType = trim($row[4] ?? 'Regular');
+                if (strcasecmp($admissionType, 'LET') !== 0 && strcasecmp($admissionType, 'Lateral') !== 0) {
+                    $admissionType = 'Regular';
+                } else {
+                    $admissionType = 'LET';
+                }
+
+                $semRaw = strtoupper(trim($row[5] ?? '1'));
+                $semester = (int) filter_var($semRaw, FILTER_SANITIZE_NUMBER_INT);
+                if ($semester < 1 || $semester > 6) {
+                    $semester = 1;
+                }
+
+                $email = strtolower(trim($row[6] ?? ''));
+                if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $email = strtolower($admNo) . '@carmelpoly.in';
+                }
+
+                $sbteRegNo = trim($row[7] ?? null);
+
+                $isLet = ($admissionType === 'LET');
+                $yy = substr((string)$admissionYear, -2);
+                $regNo = $yy . $branch . $admNo . ($isLet ? 'L' : '');
+
+                $startYear = $isLet ? ($admissionYear - 1) : $admissionYear;
+                $endYear = $startYear + 3;
+                $classroomId = "{$branch}_{$startYear}_{$endYear}";
+
+                $batchExists = \App\Models\ClassManagement::where('classroom_id', $classroomId)->exists()
+                    || \App\Models\R26ClassManagement::where('classroom_id', $classroomId)->exists();
+                if (!$batchExists) {
+                    $classroomId = null;
+                }
+
+                $existing = Student::where('reg_no', $regNo)
+                    ->orWhere('adm_no', $admNo)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'name' => $name,
+                        'email' => ($existing->email && !str_ends_with($existing->email, '@carmelpoly.in')) ? $existing->email : $email,
+                        'password' => $commonHashedPassword,
+                        'branch' => $branch,
+                        'admission_year' => $admissionYear,
+                        'admission_type' => $admissionType,
+                        'semester' => $semester,
+                        'classroom_id' => $classroomId,
+                        'sbte_reg_no' => $sbteRegNo ?: $existing->sbte_reg_no,
+                        'status' => 'Approved'
+                    ]);
+                    $updatedCount++;
+                } else {
+                    Student::create([
+                        'reg_no' => $regNo,
+                        'adm_no' => $admNo,
+                        'name' => $name,
+                        'email' => $email,
+                        'password' => $commonHashedPassword,
+                        'branch' => $branch,
+                        'admission_year' => $admissionYear,
+                        'admission_type' => $admissionType,
+                        'semester' => $semester,
+                        'classroom_id' => $classroomId,
+                        'sbte_reg_no' => $sbteRegNo,
+                        'status' => 'Approved',
+                        'academic_status' => 'Active'
+                    ]);
+                    $importedCount++;
+
+                    AuditLog::create([
+                        'performed_by' => Session::get('userId') ?: 'HOD/Tutor',
+                        'performed_by_name' => Session::get('userName') ?: 'Bulk Import',
+                        'action' => 'Bulk Student Registration',
+                        'details' => "Registered student {$regNo} ({$name}) in classroom " . ($classroomId ?: 'Unassigned'),
+                        'ip_address' => request()->ip()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => 'SUCCESS',
+                'message' => "Bulk import completed successfully! Newly registered: {$importedCount} students. Existing roster updated: {$updatedCount} students.",
+                'imported_count' => $importedCount,
+                'updated_count' => $updatedCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Bulk import failed: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Student: Upload or update profile photo.
      */
     public function uploadStudentPhoto(Request $request)
@@ -2949,12 +3168,19 @@ class DataController extends Controller
         $userRole = Session::get('userRole');
         
         if (!$userId || $userRole !== 'Student') {
-            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.']);
         }
 
-        $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Image format mismatch: Only JPG, PNG, or WebP photo formats under 5MB are allowed.'
+            ]);
+        }
 
         try {
             $student = Student::where('reg_no', $userId)->first();
@@ -2963,13 +3189,27 @@ class DataController extends Controller
             }
 
             if ($request->hasFile('photo')) {
+                $file = $request->file('photo');
+
+                // Passport-style clear face aspect ratio check
+                list($width, $height) = @getimagesize($file->getRealPath());
+                if ($width && $height) {
+                    $aspectRatio = $width / $height;
+                    if ($aspectRatio < 0.65 || $aspectRatio > 1.35) {
+                        return response()->json([
+                            'status' => 'ERROR',
+                            'message' => 'Photo restricted: Please upload a close-up clear face photo (passport style). Full body photos or wide landscape shots are not allowed.'
+                        ]);
+                    }
+                }
+
                 // Delete old photo file if exists on disk
                 if ($student->photo_url) {
                     $oldPath = str_replace('/storage/', '', $student->photo_url);
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
                 }
 
-                $photoPath = '/storage/' . $request->file('photo')->store('avatars', 'public');
+                $photoPath = '/storage/' . $file->store('avatars', 'public');
                 $student->photo_url = $photoPath;
                 $student->save();
 
@@ -2978,7 +3218,7 @@ class DataController extends Controller
 
                 return response()->json([
                     'status' => 'SUCCESS',
-                    'message' => 'Profile photo updated successfully!',
+                    'message' => 'Passport photo updated successfully!',
                     'photo_url' => $photoPath
                 ]);
             }

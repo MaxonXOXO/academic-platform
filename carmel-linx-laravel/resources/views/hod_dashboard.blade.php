@@ -12,6 +12,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- Google Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- SheetJS for Excel (.xlsx/.xls) template download & parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <style>
     @media (max-width: 1440px) {
@@ -340,14 +342,22 @@
       <div id="panelDirectory" class="hidden space-y-6">
         
         <!-- Directory Header -->
-        <div class="flex justify-between items-center bg-slate-950/30 border border-slate-800/40 p-4 rounded-2xl">
+        <div class="flex justify-between items-center bg-slate-950/30 border border-slate-800/40 p-4 rounded-2xl flex-wrap gap-3">
           <div>
             <h3 class="text-sm font-bold text-slate-200 text-sm">Department Registered Accounts ({{ $activeBranch }})</h3>
             <p class="text-sm text-slate-400 mt-0.5">Filter, search, audit, and manage profile lifecycle states for students and staff in your branch.</p>
           </div>
-          <button onclick="openRegisterModal()" class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-blue-500/10 text-sm">
-            <span class="material-symbols-rounded text-base">person_add</span> Register User
-          </button>
+          <div class="flex items-center gap-3">
+            <button onclick="downloadStudentExcelTemplate()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">download</span> Excel Template
+            </button>
+            <button onclick="openBulkImportModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-emerald-500/10">
+              <span class="material-symbols-rounded text-sm">upload_file</span> Bulk Import
+            </button>
+            <button onclick="openRegisterModal()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-blue-500/10">
+              <span class="material-symbols-rounded text-sm">person_add</span> Register User
+            </button>
+          </div>
         </div>
 
         <!-- Filters Console -->
@@ -1817,6 +1827,7 @@
         formData.append('branch', document.getElementById('directRegStudentBranch').value);
         formData.append('admissionYear', document.getElementById('directRegStudentYear').value);
         formData.append('admissionType', document.getElementById('directRegAdmType').value);
+        formData.append('semester', document.getElementById('directRegStudentSem').value);
       } else {
         url = '/register/staff';
         formData.append('mobileNo', document.getElementById('directRegStaffMobile').value);
@@ -3510,7 +3521,7 @@
           countBadge.innerText = data.students.length;
           data.students.forEach(s => {
             let statusBadge = `<span class="px-2 py-0.5 rounded-full text-sm font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>`;
-            if (s.status === 'Approved') statusBadge = `<span class="px-2 py-0.5 rounded-full text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/20">Approved</span>`;
+            if (s.status === 'Approved' || s.status === 'Active') statusBadge = `<span class="px-2 py-0.5 rounded-full text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/20">Approved</span>`;
             else if (s.status === 'Suspended') statusBadge = `<span class="px-2 py-0.5 rounded-full text-sm font-bold bg-red-500/10 text-red-400 border border-red-500/20">Suspended</span>`;
 
             const admTypeBadge = s.admission_type === 'LET'
@@ -4293,6 +4304,134 @@
       .catch(err => console.error('Failed to load today seminars:', err));
     }
 
+    // Bulk Import JS handlers
+    function openBulkImportModal() {
+      const modal = document.getElementById('bulkImportModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('bulkImportAlert').classList.add('hidden');
+      document.getElementById('bulkImportFileInput').value = '';
+    }
+
+    function closeBulkImportModal() {
+      const modal = document.getElementById('bulkImportModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function downloadStudentExcelTemplate() {
+      if (typeof XLSX !== 'undefined') {
+        const templateData = [
+          ["Name", "Admission_No", "Branch", "Admission_Year", "Admission_Type", "Semester", "Email", "SBTE_Reg_No"],
+          ["Arun Kumar", "ADM24CT01", "CT", 2024, "Regular", "S1", "", ""],
+          ["Beena S", "ADM24ECL02", "EL", 2024, "LET", "S3", "beena@carmelpoly.in", "2403210451"]
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Student_Roster");
+        XLSX.writeFile(wb, "Student_Bulk_Import_Template.xlsx");
+      } else {
+        window.location.href = "/api/students/template/download";
+      }
+    }
+
+    function submitBulkImport() {
+      const fileInput = document.getElementById('bulkImportFileInput');
+      const alertEl = document.getElementById('bulkImportAlert');
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+        alertEl.innerText = 'Please select an Excel (.xlsx, .xls) or CSV file to upload.';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-blue-950/40 text-blue-400 border border-blue-900/60 block';
+      alertEl.innerText = 'Reading file and preparing import...';
+
+      if (typeof XLSX !== 'undefined') {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            if (!rows || rows.length < 2) {
+              alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+              alertEl.innerText = 'The uploaded file is empty or missing student rows.';
+              return;
+            }
+
+            alertEl.innerText = 'Uploading and processing ' + (rows.length - 1) + ' student records...';
+
+            fetch('/api/students/bulk-import', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+              },
+              body: JSON.stringify({ rows: rows })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'SUCCESS') {
+                alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 block';
+                alertEl.innerText = data.message || 'Bulk import completed successfully!';
+                setTimeout(() => {
+                  closeBulkImportModal();
+                  if (typeof loadUsers === 'function') loadUsers();
+                }, 2000);
+              } else {
+                alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+                alertEl.innerText = data.message || 'Bulk import failed.';
+              }
+            })
+            .catch(() => {
+              alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+              alertEl.innerText = 'Network error during bulk import. Please try again.';
+            });
+          } catch (err) {
+            console.error(err);
+            alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+            alertEl.innerText = 'Could not parse file. Please ensure it is a valid Excel (.xlsx, .xls) or CSV document.';
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/students/bulk-import', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS') {
+            alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 block';
+            alertEl.innerText = data.message || 'Bulk import completed successfully!';
+            setTimeout(() => {
+              closeBulkImportModal();
+              if (typeof loadUsers === 'function') loadUsers();
+            }, 2000);
+          } else {
+            alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+            alertEl.innerText = data.message || 'Bulk import failed.';
+          }
+        })
+        .catch(() => {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 block';
+          alertEl.innerText = 'Network error during file upload. Please check connection.';
+        });
+      }
+    }
+
     // Live AI Status Indicator for HOD
     document.addEventListener("DOMContentLoaded", () => {
       fetch('/api/system/ai-status')
@@ -4346,6 +4485,48 @@
       <div class="flex justify-between items-center">
         <span class="text-slate-400 text-sm">End-Sem Survey:</span>
         <span id="popupEndSemStatus" class="font-bold text-slate-500">Not Initiated</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK IMPORT STUDENTS MODAL -->
+  <div id="bulkImportModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-5">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-black text-slate-200 text-sm flex items-center gap-2">
+          <span class="material-symbols-rounded text-emerald-400 text-base">upload_file</span> Bulk Import Student Roster
+        </h3>
+        <button onclick="closeBulkImportModal()" class="text-slate-400 hover:text-white cursor-pointer"><span class="material-symbols-rounded text-xs">close</span></button>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Upload an Excel (.xlsx / .xls) or CSV file containing student roster details. Accounts will be auto-created with a common default password (<code class="text-amber-300 font-mono bg-slate-950 px-1.5 py-0.5 rounded">carmel2026</code>) and marked for mandatory profile verification upon first login.
+      </p>
+
+      <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-300">Download Excel Template</span>
+          <button onclick="downloadStudentExcelTemplate()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg text-xs font-bold transition-premium flex items-center gap-1 border border-slate-700 cursor-pointer">
+            <span class="material-symbols-rounded text-xs">download</span> Excel Template (.xlsx)
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-400">
+          <strong>Excel / CSV Columns:</strong> <code class="text-slate-300">Name, Admission_No, Branch, Admission_Year, Admission_Type, Semester, Email, SBTE_Reg_No</code>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Select Roster File (.xlsx, .xls, .csv)</label>
+        <input type="file" id="bulkImportFileInput" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer">
+      </div>
+
+      <div id="bulkImportAlert" class="hidden p-3 rounded-xl text-xs font-bold border"></div>
+
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeBulkImportModal()" class="flex-1 py-2.5 border border-slate-800 hover:bg-slate-800 rounded-xl font-bold text-xs text-slate-300 transition-premium cursor-pointer">Cancel</button>
+        <button onclick="submitBulkImport()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/10">
+          <span class="material-symbols-rounded text-xs">cloud_upload</span> Start Import
+        </button>
       </div>
     </div>
   </div>

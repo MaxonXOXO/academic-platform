@@ -470,6 +470,11 @@
                     || str_contains($staffBranch, 'SF');
             @endphp
 
+            <!-- TAB PANES -->
+
+            <!-- TAB 1: TODAY'S TIMETABLE & ATTENDANCE -->
+            <div id="tab-classes" class="tab-pane fade-in">
+
             @if($isSfStaff)
             <!-- SF Staff Mobile Face Recognition Time Punch Card -->
             <div class="app-card mb-3 p-3 rounded-4" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(16, 185, 129, 0.12)); border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
@@ -588,11 +593,6 @@
                 </div>
             </div>
             @endif
-
-            <!-- TAB PANES -->
-
-            <!-- TAB 1: TODAY'S TIMETABLE & ATTENDANCE -->
-            <div id="tab-classes" class="tab-pane fade-in">
 
                 <!-- Timetable Day Order Selection Card -->
                 <div class="app-card border-start border-2 border-cyan" style="border: 1px solid rgba(56, 189, 248, 0.3);">

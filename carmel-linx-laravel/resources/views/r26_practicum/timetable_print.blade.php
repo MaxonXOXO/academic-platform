@@ -61,7 +61,7 @@
       }
       @page {
         size: A4 landscape;
-        margin: 6mm 8mm;
+        margin: 10mm 12mm;
       }
       html, body {
         background-color: #ffffff !important;
@@ -75,7 +75,7 @@
       .page-container {
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 2mm 4mm !important;
         background-color: #ffffff !important;
         box-shadow: none !important;
         border: none !important;
@@ -227,40 +227,42 @@
               <tr>
                 <td class="p-1 font-black bg-day text-black uppercase text-[11px]">{{ $day }}</td>
 
-                <!-- Forenoon Periods 1-3 -->
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p1['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p1['staff'] ?: '' }}</div>
-                </td>
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p2['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p2['staff'] ?: '' }}</div>
-                </td>
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p3['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p3['staff'] ?: '' }}</div>
-                </td>
+                {{-- Forenoon Slots --}}
+                @if ($p1['subject'] && $p1['subject'] === $p2['subject'] && $p2['subject'] === $p3['subject'])
+                  {!! renderPrintCellHtml($p1, 3, $allocatedSubjects) !!}
+                @elseif ($p1['subject'] && $p1['subject'] === $p2['subject'])
+                  {!! renderPrintCellHtml($p1, 2, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p3, 1, $allocatedSubjects) !!}
+                @elseif ($p2['subject'] && $p2['subject'] === $p3['subject'])
+                  {!! renderPrintCellHtml($p1, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p2, 2, $allocatedSubjects) !!}
+                @else
+                  {!! renderPrintCellHtml($p1, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p2, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p3, 1, $allocatedSubjects) !!}
+                @endif
 
-                <!-- Lunch Break -->
+                {{-- Lunch Break --}}
                 @if($idx === 0)
                   <td rowspan="5" class="bg-lunch text-black font-extrabold text-[10px] uppercase tracking-widest" style="writing-mode: vertical-rl; transform: rotate(180deg); vertical-align: middle;">
                     LUNCH BREAK
                   </td>
                 @endif
 
-                <!-- Afternoon Periods 4-6 -->
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p4['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p4['staff'] ?: '' }}</div>
-                </td>
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p5['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p5['staff'] ?: '' }}</div>
-                </td>
-                <td class="p-1 text-center">
-                  <div class="font-black text-black text-[10.5px] leading-tight">{{ $p6['subject'] ?: '--' }}</div>
-                  <div class="text-[9px] font-bold text-black mt-0.5">{{ $p6['staff'] ?: '' }}</div>
-                </td>
+                {{-- Afternoon Slots --}}
+                @if ($p4['subject'] && $p4['subject'] === $p5['subject'] && $p5['subject'] === $p6['subject'])
+                  {!! renderPrintCellHtml($p4, 3, $allocatedSubjects) !!}
+                @elseif ($p4['subject'] && $p4['subject'] === $p5['subject'])
+                  {!! renderPrintCellHtml($p4, 2, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p6, 1, $allocatedSubjects) !!}
+                @elseif ($p5['subject'] && $p5['subject'] === $p6['subject'])
+                  {!! renderPrintCellHtml($p4, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p5, 2, $allocatedSubjects) !!}
+                @else
+                  {!! renderPrintCellHtml($p4, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p5, 1, $allocatedSubjects) !!}
+                  {!! renderPrintCellHtml($p6, 1, $allocatedSubjects) !!}
+                @endif
               </tr>
             @endforeach
           </tbody>
@@ -321,3 +323,65 @@
 
 </body>
 </html>
+
+@php
+  function renderPrintCellHtml($slot, $colspan = 1, $subjectsList = []) {
+    $colspanAttr = $colspan > 1 ? "colspan=\"{$colspan}\"" : "";
+    if (empty($slot['subject'])) {
+      return "<td {$colspanAttr} class=\"p-0.5 text-center text-slate-400 italic\">-- Free --</td>";
+    }
+    
+    $matchedSub = is_array($subjectsList) 
+      ? collect($subjectsList)->firstWhere('subject_code', $slot['subject'])
+      : $subjectsList->firstWhere('subject_code', $slot['subject']);
+
+    $subjectName = $matchedSub ? ($matchedSub->subject_name ?? '') : '';
+    
+    $staffDisplay = '';
+    
+    if ($matchedSub) {
+      $assignments = DB::table('subject_staff_assignments')
+          ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+          ->where('subject_staff_assignments.batch_subject_id', $matchedSub->id)
+          ->select('staff_profiles.name', 'staff_profiles.designation')
+          ->get();
+
+      if ($assignments->count() > 0) {
+        if ($colspan == 1) {
+          // 1 Hour Slot: Show ONLY Lecturer name (filter out Demonstrators/Trade Instructors/Lab staff)
+          $lecturers = $assignments->filter(function($st) {
+            $d = strtolower(str_replace(['_', ' ', '-'], '', $st->designation ?? ''));
+            return !str_contains($d, 'demonstrator') && 
+                   !str_contains($d, 'tradeinstructor') && 
+                   !str_contains($d, 'tradesman') && 
+                   !str_contains($d, 'workshop') && 
+                   !str_contains($d, 'lab');
+          })->pluck('name')->toArray();
+
+          $staffDisplay = count($lecturers) > 0 ? implode(', ', $lecturers) : $assignments->first()->name;
+        } else {
+          // More than 1 Hour Slot (Lab/Practicum Block): Show ALL assigned staff names
+          $staffDisplay = implode(', ', $assignments->pluck('name')->toArray());
+        }
+      }
+    }
+    
+    if (empty($staffDisplay) && !empty($slot['staff'])) {
+      $rawStaff = $slot['staff'];
+      if ($colspan == 1 && str_contains($rawStaff, ',')) {
+        $parts = array_map('trim', explode(',', $rawStaff));
+        $staffDisplay = $parts[0] ?? $rawStaff;
+      } else {
+        $staffDisplay = $rawStaff;
+      }
+    }
+
+    return "
+      <td {$colspanAttr} class=\"p-1 text-center\">
+        <div style=\"font-weight: 900; font-size: 10.5px; line-height: 1.1; color: #000000;\">{$slot['subject']}</div>
+        <div style=\"font-weight: 700; font-size: 9px; margin-top: 0.5px; line-height: 1.05; color: #000000;\">{$subjectName}</div>
+        <div style=\"font-size: 8px; font-weight: 700; margin-top: 0.5px; line-height: 1.05; color: #000000;\">{$staffDisplay}</div>
+      </td>
+    ";
+  }
+@endphp

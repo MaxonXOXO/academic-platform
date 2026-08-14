@@ -1540,6 +1540,7 @@ class DataController extends Controller
                             'mobile_no' => $sa->staff_mobile_no,
                             'name' => $sa->staffProfile ? $sa->staffProfile->name : 'Unknown',
                             'branch' => $sa->staffProfile ? $sa->staffProfile->branch : '',
+                            'designation' => $sa->staffProfile ? $sa->staffProfile->designation : '',
                         ];
                     })
                 ];

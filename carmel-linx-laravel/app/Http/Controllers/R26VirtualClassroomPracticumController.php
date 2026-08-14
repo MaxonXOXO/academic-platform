@@ -1059,13 +1059,16 @@ class R26VirtualClassroomPracticumController extends Controller
         $deptNames = [
             "EL" => "Electronics Engineering",
             "CS" => "Computer Engineering",
+            "CT" => "Computer Engineering",
             "ME" => "Mechanical Engineering",
             "EE" => "Electrical & Electronics Engineering",
+            "EEE" => "Electrical & Electronics Engineering",
             "CE" => "Civil Engineering",
-            "CH" => "Chemical Engineering"
+            "CH" => "Chemical Engineering",
+            "AU" => "Automobile Engineering"
         ];
-        $deptShort = explode('-', $classroomId)[0] ?? 'DEPT';
-        $fullDept = $deptNames[strtoupper($deptShort)] ?? $deptShort;
+        $deptShort = preg_split('/[_ -]/', $classroomId)[0] ?? 'DEPT';
+        $fullDept = $deptNames[strtoupper($deptShort)] ?? (function_exists('getFullBranchName') ? getFullBranchName($deptShort) : $deptShort);
 
         return view('r26_practicum.timetable_print', compact(
             'batchSubject',

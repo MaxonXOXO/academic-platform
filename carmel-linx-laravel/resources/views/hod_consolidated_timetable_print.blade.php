@@ -66,7 +66,7 @@
       }
       @page {
         size: A4 landscape;
-        margin: 5mm 6mm;
+        margin: 10mm 12mm;
       }
       html, body {
         background-color: #ffffff !important;
@@ -80,7 +80,7 @@
       .page-container {
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 2mm 4mm !important;
         background-color: #ffffff !important;
         box-shadow: none !important;
         border: none !important;
@@ -286,19 +286,50 @@
       return "<td {$colspanAttr} class=\"p-0.5 text-center free-period\">-- Free --</td>";
     }
     
-    $matchedSub = $subjectsList->firstWhere('subject_code', $slot['subject']);
-    $subjectName = $matchedSub ? $matchedSub->subject_name : '';
+    $matchedSub = is_array($subjectsList) 
+      ? collect($subjectsList)->firstWhere('subject_code', $slot['subject'])
+      : $subjectsList->firstWhere('subject_code', $slot['subject']);
+
+    $subjectName = $matchedSub ? ($matchedSub->subject_name ?? '') : '';
     
-    // Find assigned staff names
-    $assignedStaff = [];
+    $staffDisplay = '';
+    
     if ($matchedSub) {
-      $assignedStaff = DB::table('subject_staff_assignments')
+      $assignments = DB::table('subject_staff_assignments')
           ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
           ->where('subject_staff_assignments.batch_subject_id', $matchedSub->id)
-          ->pluck('staff_profiles.name')
-          ->toArray();
+          ->select('staff_profiles.name', 'staff_profiles.designation')
+          ->get();
+
+      if ($assignments->count() > 0) {
+        if ($colspan == 1) {
+          // 1 Hour Slot: Show ONLY Lecturer name (filter out Demonstrators/Trade Instructors/Lab staff)
+          $lecturers = $assignments->filter(function($st) {
+            $d = strtolower(str_replace(['_', ' ', '-'], '', $st->designation ?? ''));
+            return !str_contains($d, 'demonstrator') && 
+                   !str_contains($d, 'tradeinstructor') && 
+                   !str_contains($d, 'tradesman') && 
+                   !str_contains($d, 'workshop') && 
+                   !str_contains($d, 'lab');
+          })->pluck('name')->toArray();
+
+          $staffDisplay = count($lecturers) > 0 ? implode(', ', $lecturers) : $assignments->first()->name;
+        } else {
+          // More than 1 Hour Slot (Lab/Practicum Block): Show ALL assigned staff names
+          $staffDisplay = implode(', ', $assignments->pluck('name')->toArray());
+        }
+      }
     }
-    $staffDisplay = count($assignedStaff) > 0 ? implode(', ', $assignedStaff) : ($slot['staff'] ?? '');
+    
+    if (empty($staffDisplay) && !empty($slot['staff'])) {
+      $rawStaff = $slot['staff'];
+      if ($colspan == 1 && str_contains($rawStaff, ',')) {
+        $parts = array_map('trim', explode(',', $rawStaff));
+        $staffDisplay = $parts[0] ?? $rawStaff;
+      } else {
+        $staffDisplay = $rawStaff;
+      }
+    }
 
     return "
       <td {$colspanAttr} class=\"p-0.5 text-center\">

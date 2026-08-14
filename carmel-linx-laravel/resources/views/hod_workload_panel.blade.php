@@ -385,9 +385,22 @@
         let subjectName = matchedSub ? matchedSub.subject_name : '';
         let staffDisplay = '';
         if (matchedSub && matchedSub.staff && matchedSub.staff.length > 0) {
-          staffDisplay = matchedSub.staff.map(s => s.name).join(', ');
+          if (colspan === 1) {
+            const lecturers = matchedSub.staff.filter(st => {
+              const d = (st.designation || '').toLowerCase().replace(/[_ -]/g, '');
+              return !d.includes('demonstrator') && !d.includes('tradeinstructor') && !d.includes('tradesman') && !d.includes('workshop') && !d.includes('lab');
+            });
+            staffDisplay = lecturers.length > 0 ? lecturers.map(s => s.name).join(', ') : (matchedSub.staff[0] ? matchedSub.staff[0].name : '');
+          } else {
+            staffDisplay = matchedSub.staff.map(s => s.name).join(', ');
+          }
         } else {
-          staffDisplay = slot.staff || 'N/A';
+          let rawStaff = slot.staff || '';
+          if (colspan === 1 && rawStaff.includes(',')) {
+            staffDisplay = rawStaff.split(',')[0].trim();
+          } else {
+            staffDisplay = rawStaff;
+          }
         }
 
         return `
@@ -427,10 +440,13 @@
       const deptNames = {
         "EL": "Electronics Engineering",
         "CS": "Computer Engineering",
+        "CT": "Computer Engineering",
         "ME": "Mechanical Engineering",
         "EE": "Electrical & Electronics Engineering",
+        "EEE": "Electrical & Electronics Engineering",
         "CE": "Civil Engineering",
-        "CH": "Chemical Engineering"
+        "CH": "Chemical Engineering",
+        "AU": "Automobile Engineering"
       };
       const deptShort = classroomId.split('_')[0];
       const fullDept = deptNames[deptShort.toUpperCase()] || deptShort;
@@ -536,7 +552,7 @@
               }
               @page {
                 size: A4 landscape;
-                margin: 6mm 8mm;
+                margin: 10mm 12mm;
               }
               html, body {
                 background-color: #ffffff !important;
@@ -550,7 +566,7 @@
               .page-container {
                 max-width: 100% !important;
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 2mm 4mm !important;
                 background-color: #ffffff !important;
                 box-shadow: none !important;
                 border: none !important;

@@ -34,7 +34,7 @@ class AuthController extends Controller
                     ->orWhere('sbte_reg_no', strtoupper($userId))
                     ->first();
 
-                $isPasswordValid = ($student->password === $password) || Hash::check($password, $student->password);
+                $isPasswordValid = $student && $this->verifyPassword($password, $student->password);
                 if (!$student || !$isPasswordValid) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Invalid ID/Admission Number or Password.']);
                 }
@@ -80,7 +80,7 @@ class AuthController extends Controller
                     return response()->json(['status' => 'ERROR', 'message' => 'Invalid Mobile Number or Password.']);
                 }
 
-                $isPasswordValid = ($staff->password === $password) || Hash::check($password, $staff->password);
+                $isPasswordValid = $this->verifyPassword($password, $staff->password);
                 if (!$isPasswordValid) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Invalid Mobile Number or Password.']);
                 }
@@ -418,8 +418,8 @@ class AuthController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Student profile not found.']);
         }
 
-        if ($student->password !== $oldPassword) {
-            return response()->json(['status' => 'ERROR', 'message' => 'Current password matches incorrectly.']);
+        if (!$this->verifyPassword($oldPassword, $student->password)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Current password is incorrect.']);
         }
 
         try {
@@ -600,7 +600,7 @@ class AuthController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Staff profile not found.']);
         }
 
-        $isPasswordValid = ($staff->password === $oldPassword) || Hash::check($oldPassword, $staff->password);
+        $isPasswordValid = $this->verifyPassword($oldPassword, $staff->password);
         if (!$isPasswordValid) {
             return response()->json(['status' => 'ERROR', 'message' => 'Current password is incorrect.']);
         }
@@ -623,5 +623,29 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => 'Failed to update password: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Helper to safely verify plain-text or Bcrypt hashed passwords.
+     */
+    private function verifyPassword(?string $inputPassword, ?string $storedPassword): bool
+    {
+        if (empty($storedPassword) || empty($inputPassword)) {
+            return false;
+        }
+
+        if ($storedPassword === $inputPassword) {
+            return true;
+        }
+
+        if (str_starts_with($storedPassword, '$2y$') || str_starts_with($storedPassword, '$2a$') || str_starts_with($storedPassword, '$2b$')) {
+            try {
+                return Hash::check($inputPassword, $storedPassword);
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

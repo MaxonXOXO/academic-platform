@@ -16,13 +16,17 @@ use Illuminate\Support\Facades\DB;
 
 if (!function_exists('getFullBranchName')) {
     function getFullBranchName($code) {
+        if (empty($code)) return 'General';
         $branches = [
             'EL' => 'Electronics Engineering',
             'ME' => 'Mechanical Engineering',
             'CE' => 'Civil Engineering',
             'EEE' => 'Electrical & Electronics Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
             'CT' => 'Computer Engineering',
+            'CS' => 'Computer Engineering',
             'AU' => 'Automobile Engineering',
+            'CH' => 'Chemical Engineering',
             'GEN_AIDED' => 'General Department (Aided)',
             'GEN_SF' => 'General Department (Self Finance)',
             'GEN_DEPT_COORDINATOR_AIDED' => 'General Department (Aided)',
@@ -1144,17 +1148,22 @@ Route::middleware(['web'])->group(function () {
         $branchCode = Session::get('userBranch');
         $dept = getFullBranchName($branchCode);
         
-        // 1. Get lecturers, demonstrators, physical instructors, and HOD in the department
-        $staffList = DB::table('staff_profiles')
+        // 1. Get base lecturers, demonstrators, physical instructors, and HOD in the department
+        $deptStaff = DB::table('staff_profiles')
             ->where('branch', $branchCode)
-            ->whereIn('designation', ['Lecturer', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor', 'HOD'])
+            ->whereIn('designation', [
+                'Lecturer', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor', 
+                'HOD', 'Trade_Instructor', 'Trade Instructor', 'Workshop_Superintendent'
+            ])
             ->get();
             
         $workload = [];
-        foreach ($staffList as $staff) {
+        foreach ($deptStaff as $staff) {
             $workload[$staff->name] = [
                 'mobile' => $staff->mobile_no,
                 'designation' => $staff->designation,
+                'branch' => $staff->branch,
+                'is_external' => false,
                 'theory' => 0,
                 'lab' => 0,
                 'total' => 0
@@ -1163,7 +1172,13 @@ Route::middleware(['web'])->group(function () {
 
         $scannedSemesters = [];
 
-        // 2. Scan timetables JSON files
+        // Helper to check if designation is demonstrator/support staff
+        $isDemonstratorRole = function($designation) {
+            $desig = strtolower(str_replace('_', ' ', $designation ?? ''));
+            return str_contains($desig, 'demonstrator') || str_contains($desig, 'trade instructor') || str_contains($desig, 'lab assistant');
+        };
+
+        // 2. Scan timetables JSON files belonging to HOD's department
         $dir = storage_path("app/timetables");
         if (is_dir($dir)) {
             $files = glob($dir . "/*.json");
@@ -1176,52 +1191,126 @@ Route::middleware(['web'])->group(function () {
                 }
 
                 $timetable = json_decode(file_get_contents($file), true);
-                if (!$timetable) continue;
+                if (!$timetable || !is_array($timetable)) continue;
 
-                // Load all subjects and their staff assignments for this classroom
+                // Load all subjects for this classroom
                 $subjects = DB::table('batch_subjects')
                     ->where('classroom_id', $classroomId)
                     ->get();
                     
                 foreach ($timetable as $day => $slots) {
-                    for ($h = 1; $h <= 6; $h++) {
-                        if (empty($slots[$h]['subject'])) continue;
-                        
-                        $subjectCode = $slots[$h]['subject'];
+                    if (!is_array($slots)) continue;
+
+                    // Group period numbers by subject code for this day
+                    $subjectPeriods = [];
+                    for ($h = 1; $h <= 7; $h++) {
+                        if (!empty($slots[$h]['subject'])) {
+                            $code = trim($slots[$h]['subject']);
+                            $subjectPeriods[$code][] = $h;
+                        }
+                    }
+
+                    foreach ($subjectPeriods as $subjectCode => $periods) {
+                        sort($periods);
                         $subjInfo = $subjects->firstWhere('subject_code', $subjectCode);
                         if (!$subjInfo) continue;
 
                         $scannedSemesters[] = (int)$subjInfo->semester;
 
-                        $isLab = (stripos($subjInfo->subject_type, 'lab') !== false || stripos($subjInfo->subject_type, 'practical') !== false);
-                        
-                        // Find assigned staff members
+                        // Group period numbers into contiguous consecutive blocks
+                        $blocks = [];
+                        $currBlock = [];
+                        foreach ($periods as $p) {
+                            if (empty($currBlock) || $p === end($currBlock) + 1) {
+                                $currBlock[] = $p;
+                            } else {
+                                $blocks[] = $currBlock;
+                                $currBlock = [$p];
+                            }
+                        }
+                        if (!empty($currBlock)) {
+                            $blocks[] = $currBlock;
+                        }
+
+                        // Find assigned staff members from database
                         $assignedStaff = DB::table('subject_staff_assignments')
                             ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
                             ->where('subject_staff_assignments.batch_subject_id', $subjInfo->id)
-                            ->select('staff_profiles.name')
+                            ->select('staff_profiles.name', 'staff_profiles.mobile_no', 'staff_profiles.designation', 'staff_profiles.branch')
                             ->get();
 
-                        if ($assignedStaff->count() > 0) {
-                            foreach ($assignedStaff as $st) {
-                                if (isset($workload[$st->name])) {
-                                    if ($isLab) {
-                                        $workload[$st->name]['lab']++;
-                                    } else {
-                                        $workload[$st->name]['theory']++;
-                                    }
-                                    $workload[$st->name]['total']++;
+                        // Fallback to slot staff name if DB assignment is empty
+                        if ($assignedStaff->isEmpty()) {
+                            $slotStaffName = '';
+                            foreach ($periods as $p) {
+                                if (!empty($slots[$p]['staff'])) {
+                                    $slotStaffName = trim($slots[$p]['staff']);
+                                    break;
                                 }
                             }
-                        } else {
-                            $staffNameInSlot = $slots[$h]['staff'] ?? '';
-                            if ($staffNameInSlot && isset($workload[$staffNameInSlot])) {
-                                if ($isLab) {
-                                    $workload[$staffNameInSlot]['lab']++;
+                            if ($slotStaffName) {
+                                $matchedProfile = DB::table('staff_profiles')->where('name', $slotStaffName)->first();
+                                if ($matchedProfile) {
+                                    $assignedStaff = collect([$matchedProfile]);
                                 } else {
-                                    $workload[$staffNameInSlot]['theory']++;
+                                    $assignedStaff = collect([(object)[
+                                        'name' => $slotStaffName,
+                                        'mobile_no' => '',
+                                        'designation' => 'Lecturer',
+                                        'branch' => $branchCode
+                                    ]]);
                                 }
-                                $workload[$staffNameInSlot]['total']++;
+                            }
+                        }
+
+                        $subjTypeLower = strtolower($subjInfo->subject_type ?? '');
+                        $isPracticum = str_contains($subjTypeLower, 'practicum');
+
+                        $hasLecturerAssigned = $assignedStaff->contains(function($st) use ($isDemonstratorRole) {
+                            return !$isDemonstratorRole($st->designation ?? '');
+                        });
+
+                        foreach ($blocks as $block) {
+                            $hours = count($block);
+                            $isConsecutive = ($hours >= 2);
+
+                            $isLabBlock = false;
+                            if ($isPracticum) {
+                                // Practicum rule: >=2 consecutive hours is Lab, 1-hour standalone is Theory
+                                $isLabBlock = $isConsecutive;
+                            } else {
+                                $isLabBlock = (str_contains($subjTypeLower, 'lab') || str_contains($subjTypeLower, 'practical') || str_contains($subjTypeLower, 'drawing'));
+                            }
+
+                            foreach ($assignedStaff as $st) {
+                                $staffName = $st->name;
+
+                                // Include staff in workload list (including external/cross-dept staff)
+                                if (!isset($workload[$staffName])) {
+                                    $workload[$staffName] = [
+                                        'mobile' => $st->mobile_no ?? '',
+                                        'designation' => $st->designation ?? 'Lecturer',
+                                        'branch' => $st->branch ?? 'External',
+                                        'is_external' => ($st->branch ?? '') !== $branchCode,
+                                        'theory' => 0,
+                                        'lab' => 0,
+                                        'total' => 0
+                                    ];
+                                }
+
+                                $isDemo = $isDemonstratorRole($st->designation ?? '');
+
+                                if ($isLabBlock) {
+                                    // Lab / Practical slot: Credit BOTH Lecturer and Demonstrator
+                                    $workload[$staffName]['lab'] += $hours;
+                                    $workload[$staffName]['total'] += $hours;
+                                } else {
+                                    // Theory slot (1-hr standalone Practicum or standard Theory): Credit ONLY Lecturer
+                                    if (!$isDemo || !$hasLecturerAssigned) {
+                                        $workload[$staffName]['theory'] += $hours;
+                                        $workload[$staffName]['total'] += $hours;
+                                    }
+                                }
                             }
                         }
                     }
@@ -1246,9 +1335,80 @@ Route::middleware(['web'])->group(function () {
             $semTerm = "Odd & Even Semesters";
         }
 
+        // Designation rank ordering helper
+        $getRank = function($designation) {
+            $d = strtolower(str_replace(['_', ' '], '', $designation ?? ''));
+            if ($d === 'hod') return 1;
+            if (str_contains($d, 'lecturer')) return 2;
+            if (str_contains($d, 'demonstrator')) return 3;
+            if (str_contains($d, 'tradeinstructor') || str_contains($d, 'tradeinst')) return 4;
+            if (str_contains($d, 'workshop')) return 5;
+            if (str_contains($d, 'tradesman')) return 6;
+            if (str_contains($d, 'physical')) return 7;
+            return 8;
+        };
+
+        // Group into Home Department vs Inter-Department Staff
+        $homeWorkload = [];
+        $interWorkload = [];
+
+        foreach ($workload as $name => $data) {
+            $isExt = ($data['is_external'] ?? false) || (strtoupper($data['branch'] ?? '') !== strtoupper($branchCode));
+            if ($isExt) {
+                // Exclude external staff if 0 workload assigned to keep sheet clean
+                if (($data['total'] ?? 0) > 0) {
+                    $interWorkload[$name] = $data;
+                }
+            } else {
+                $homeWorkload[$name] = $data;
+            }
+        }
+
+        // Sort Home Dept staff by designation rank, then name
+        uksort($homeWorkload, function($a, $b) use ($homeWorkload, $getRank) {
+            $rankA = $getRank($homeWorkload[$a]['designation'] ?? '');
+            $rankB = $getRank($homeWorkload[$b]['designation'] ?? '');
+            if ($rankA !== $rankB) return $rankA <=> $rankB;
+            return strcmp($a, $b);
+        });
+
+        // Sort Inter-Dept staff by designation rank, then name
+        uksort($interWorkload, function($a, $b) use ($interWorkload, $getRank) {
+            $rankA = $getRank($interWorkload[$a]['designation'] ?? '');
+            $rankB = $getRank($interWorkload[$b]['designation'] ?? '');
+            if ($rankA !== $rankB) return $rankA <=> $rankB;
+            return strcmp($a, $b);
+        });
+
+        // 4. Fetch department active batches and admission years for report header
+        $batches2021 = DB::table('class_management')->where('branch', $branchCode)->get();
+        $batches2026 = DB::table('r26_class_management')->where('branch', $branchCode)->get();
+        $allDeptBatches = $batches2021->concat($batches2026);
+
+        $batchList = [];
+        $batchYears = [];
+        foreach ($allDeptBatches as $b) {
+            $semStr = isset($b->current_semester) ? "Sem {$b->current_semester}" : "";
+            $batchList[] = $b->classroom_id . ($semStr ? " ({$semStr})" : "");
+            if (!empty($b->batch_year)) {
+                $batchYears[] = $b->batch_year;
+            }
+        }
+        $batchYears = array_unique($batchYears);
+        sort($batchYears);
+
+        $batchSummary = !empty($batchList) ? implode(', ', $batchList) : 'All Department Batches';
+        $batchYearSummary = !empty($batchYears) ? implode(', ', $batchYears) : date('Y');
+        $academicYear = date('Y') . ' - ' . (date('Y') + 1);
+
         return view('hod_workload_report_print', [
             'department' => $dept,
-            'workload' => $workload,
+            'branchCode' => $branchCode,
+            'academicYear' => $academicYear,
+            'batchSummary' => $batchSummary,
+            'batchYearSummary' => $batchYearSummary,
+            'homeWorkload' => $homeWorkload,
+            'interWorkload' => $interWorkload,
             'semTerm' => $semTerm,
             'currentYear' => (int)date('Y')
         ]);

@@ -193,7 +193,16 @@
         <span class="material-symbols-rounded text-lg">dashboard</span> Dashboard Overview
       </button>
 
+      <!-- Today's Master Timetable Desk Link -->
+      <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-indigo-300 hover:bg-indigo-950/40 hover:text-indigo-200 cursor-pointer no-underline block border border-indigo-900/50 bg-indigo-950/30 shadow-sm">
+         <span class="flex items-center gap-2.5">
+           <span class="material-symbols-rounded text-lg text-indigo-400">calendar_view_day</span> Today's Timetable Desk
+         </span>
+         <span class="material-symbols-rounded text-sm text-indigo-400">open_in_new</span>
+      </a>
+
       <a href="/dashboard/lecturer" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-sky-400 hover:bg-sky-950/30 hover:text-sky-300 cursor-pointer no-underline block border border-sky-900/40 bg-sky-950/20">
+
          <span class="material-symbols-rounded text-lg text-sky-400">grid_view</span> My Batches & Virtual Classes
       </a>
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
@@ -545,8 +554,14 @@
                   <span class="font-extrabold text-xs text-slate-200">Gen-SF</span>
                 </a>
               </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-800/60">
+                <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-2 no-underline shadow-md">
+                  <span class="material-symbols-rounded text-sm">calendar_view_day</span> Open Institutional Today's Timetable Desk
+                </a>
+              </div>
             </div>
           </div>
+
 
           <!-- Institutional Flash Notice Broadcast Desk Card -->
           <div class="bg-slate-900/50 border border-slate-800/80 p-4 rounded-2xl flex flex-col justify-between shadow-xl shadow-slate-950/40 hover:border-slate-700/70 transition-all duration-300">

@@ -443,9 +443,15 @@
               <button id="btnHodFilterActive" onclick="loadBatches('active')" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-premium bg-violet-600/20 text-violet-400 text-sm">Current Batches</button>
               <button id="btnHodFilterHistorical" onclick="loadBatches('historical')" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-premium text-slate-500 hover:text-slate-300 text-sm">Previous Batches</button>
             </div>
+            @if($isPrincipalMode)
+            <a href="/dashboard/principal/today-timetable" target="_blank" class="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-indigo-500/10 no-underline text-xs">
+              <span class="material-symbols-rounded text-base">calendar_view_day</span> Master Timetable Desk
+            </a>
+            @endif
             <button onclick="openCreateBatchModal()" class="px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-violet-500/10 text-sm">
               <span class="material-symbols-rounded text-base">add</span> Create Batch
             </button>
+
           </div>
         </div>
 

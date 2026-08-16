@@ -272,6 +272,11 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
+    // Principal Institutional Today's Timetable Desk & API
+    Route::get('/dashboard/principal/today-timetable', [\App\Http\Controllers\PrincipalDashboardController::class, 'showTodayTimetable']);
+    Route::get('/api/principal/today-timetable', [\App\Http\Controllers\PrincipalDashboardController::class, 'getTodayTimetableData']);
+
+
     Route::get('/dashboard/general-coordinator-aided', function () {
         if (Session::get('userRole') !== 'Gen_Dept_Coordinator_Aided') return redirect('/');
         $ua = strtolower(request()->header('User-Agent', ''));

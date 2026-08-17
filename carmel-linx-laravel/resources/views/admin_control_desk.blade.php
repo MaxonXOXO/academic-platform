@@ -322,7 +322,6 @@
                 <span id="statTotalStaff" class="font-black text-white text-base sm:text-lg leading-none">0</span>
               </div>
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Staff</span>
-              <span id="subStatStaffCampus" class="text-[9px] text-cyan-400 font-mono font-bold mt-0.5 text-center truncate max-w-full">0 in campus</span>
             </div>
 
             <!-- Total Students -->
@@ -333,7 +332,6 @@
                 <span id="statTotalStudents" class="font-black text-white text-base sm:text-lg leading-none">0</span>
               </div>
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Students</span>
-              <span id="subStatStudentCampus" class="text-[9px] text-sky-400 font-mono font-bold mt-0.5 text-center truncate max-w-full">0 in campus</span>
             </div>
 
             <!-- Pending Approvals -->
@@ -2341,7 +2339,15 @@
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS') {
-            document.getElementById('execStaffLeaveTotal').innerText = `${data.leave_breakdown.total_on_leave} Active`;
+            const inCampusStaff = data.leave_breakdown.total_staff_in_campus || ((data.leave_breakdown.total_staff || 89) - (data.leave_breakdown.total_on_leave || 0));
+            document.getElementById('execStaffLeaveTotal').innerText = `${inCampusStaff} in campus • ${data.leave_breakdown.total_on_leave || 0} on leave`;
+
+            if (document.getElementById('execStudentAttPct')) {
+              const stdInCampus = data.students_in_campus || data.total_students || 0;
+              const stdOnLeave = data.students_on_leave || 0;
+              document.getElementById('execStudentAttPct').innerText = `${stdInCampus} in campus • ${stdOnLeave} on leave`;
+            }
+
             if (document.getElementById('execLeaveCL')) document.getElementById('execLeaveCL').innerText = data.leave_breakdown.CL || 0;
             if (document.getElementById('execLeaveCCL')) document.getElementById('execLeaveCCL').innerText = data.leave_breakdown.CCL || 0;
             if (document.getElementById('execLeaveDL')) document.getElementById('execLeaveDL').innerText = data.leave_breakdown.DL || 0;

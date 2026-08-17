@@ -24,15 +24,21 @@ class ExecutiveControlDeskController extends Controller
                 ->where('overall_status', '!=', 'Rejected')
                 ->get();
 
+            $totalStaffCount = DB::table('staff_profiles')->count();
+            $staffOnLeaveCount = $activeLeavesToday->count();
+            $staffInCampusCount = max(0, $totalStaffCount - $staffOnLeaveCount);
+
             $leaveBreakdown = [
-                'total_on_leave' => $activeLeavesToday->count(),
-                'CL'             => 0,
-                'CCL'            => 0,
-                'DL'             => 0,
-                'ML'             => 0,
-                'LOP'            => 0,
-                'OTHERS'         => 0,
-                'staff_by_type'  => [
+                'total_staff'           => $totalStaffCount,
+                'total_staff_in_campus' => $staffInCampusCount,
+                'total_on_leave'        => $staffOnLeaveCount,
+                'CL'                    => 0,
+                'CCL'                   => 0,
+                'DL'                    => 0,
+                'ML'                    => 0,
+                'LOP'                   => 0,
+                'OTHERS'                => 0,
+                'staff_by_type'         => [
                     'CL'     => [],
                     'CCL'    => [],
                     'DL'     => [],
@@ -74,6 +80,10 @@ class ExecutiveControlDeskController extends Controller
             // 2. Daily Student Attendance Summary
             $totalStudents = DB::table('students')->count();
             $approvedStudents = DB::table('students')->where('status', 'Approved')->count();
+            $studentsOnLeave = DB::getSchemaBuilder()->hasTable('leave_records') 
+                ? DB::table('leave_records')->where('leave_date', $todayStr)->count() 
+                : 0;
+            $studentsInCampus = max(0, $totalStudents - $studentsOnLeave);
 
             $branches = ['EL', 'ME', 'CE', 'EEE', 'CT', 'AU', 'GEN_AIDED', 'GEN_SF'];
             $branchAttendance = [];
@@ -197,6 +207,8 @@ class ExecutiveControlDeskController extends Controller
                 'leave_breakdown'   => $leaveBreakdown,
                 'total_students'    => $totalStudents,
                 'approved_students' => $approvedStudents,
+                'students_in_campus'=> $studentsInCampus,
+                'students_on_leave' => $studentsOnLeave,
                 'branch_attendance' => $branchAttendance,
                 'total_classrooms'  => $totalClassrooms,
                 'day_order'         => \App\Services\DayOrderService::getActiveDayOrder($todayStr),

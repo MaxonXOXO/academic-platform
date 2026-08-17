@@ -18,11 +18,11 @@ class R26DataController extends Controller
         $currentRole   = Session::get('userRole');
         $currentBranch = Session::get('userBranch');
 
-        if (!$currentUserId || !in_array($currentRole, ['HOD', 'Principal', 'Super_Admin'])) {
+        if (!$currentUserId || !in_array($currentRole, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
             return false;
         }
 
-        if (in_array($currentRole, ['Principal', 'Super_Admin'])) {
+        if (in_array($currentRole, ['Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
             $branchOut = $request->input('branch') ?? $request->query('branch') ?? $currentBranch;
         } else {
             $branchOut = $currentBranch;

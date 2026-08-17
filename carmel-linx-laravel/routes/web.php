@@ -736,11 +736,11 @@ Route::middleware(['web'])->group(function () {
         return view('remedial_dashboard');
     });
 
-    Route::get('/hod/report-centre', function () {
+    Route::get('/hod/report-centre', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');
         
-        $dept = Session::get('userBranch');
+        $dept = $request->query('branch') ?? Session::get('userBranch');
         $batches2021 = DB::table('class_management')
             ->where('branch', $dept)
             ->get();
@@ -754,11 +754,11 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::get('/hod/report-centre/workload-panel', function () {
+    Route::get('/hod/report-centre/workload-panel', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');
         
-        $dept = Session::get('userBranch');
+        $dept = $request->query('branch') ?? Session::get('userBranch');
         $batches2021 = DB::table('class_management')
             ->where('branch', $dept)
             ->get();
@@ -775,9 +775,9 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/hod/consolidated-timetable/print', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');
         
-        $dept = getFullBranchName(Session::get('userBranch'));
+        $dept = getFullBranchName($request->query('branch') ?? Session::get('userBranch'));
         $selectedBatches = $request->input('batches', []);
         
         $timetables = [];
@@ -813,7 +813,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/hod/attendance-summary/print', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');
         
         $classroomId = $request->input('classroom_id');
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
@@ -1424,7 +1424,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/api/hod/batches/{classroomId}/timetable', function ($classroomId) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) {
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
         $path = storage_path("app/timetables/" . preg_replace('/[^a-zA-Z0-9_-]/', '', $classroomId) . ".json");
@@ -1437,7 +1437,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::post('/api/hod/batches/{classroomId}/timetable', function (Illuminate\Http\Request $request, $classroomId) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) {
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
         $dir = storage_path("app/timetables");

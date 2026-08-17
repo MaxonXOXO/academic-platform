@@ -2301,9 +2301,11 @@
       // Populate dropdowns
       populateStaffDropdowns();
 
-      // Pre-select current tutor/mentor
+      // Pre-select current tutor/mentor & semester
       if (batch.tutor_mobile_no) document.getElementById('detailTutorSelect').value = batch.tutor_mobile_no;
       if (batch.mentor_mobile_no) document.getElementById('detailMentorSelect').value = batch.mentor_mobile_no;
+      const semSelect = document.getElementById('modalSubjectSemester');
+      if (semSelect) semSelect.value = batch.current_semester || 1;
 
       // Load roster
       loadBatchRoster(batch.classroom_id);
@@ -2686,14 +2688,12 @@
     function loadTimetable() {
       if (!activeBatchId) return;
       
-      const sem = document.getElementById('modalSubjectSemester') ? document.getElementById('modalSubjectSemester').value : 1;
-      
       const displayBody = document.getElementById('timetableDisplayBody');
       if (displayBody) displayBody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">Loading timetable...</td></tr>';
       
       toggleTimetableEdit(false);
 
-      fetch(`/api/hod/batches/${encodeURIComponent(activeBatchId)}/subjects?semester=${sem}`)
+      fetch(`/api/hod/batches/${encodeURIComponent(activeBatchId)}/subjects`)
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS') {

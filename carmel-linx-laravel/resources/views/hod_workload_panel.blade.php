@@ -292,7 +292,7 @@
 
       // Fetch subjects and timetable then trigger printing window
       Promise.all([
-        fetch(`/api/hod/batches/${encodeURIComponent(classroomId)}/subjects?semester=${sem}`).then(r => r.json()),
+        fetch(`/api/hod/batches/${encodeURIComponent(classroomId)}/subjects`).then(r => r.json()),
         fetch(`/api/hod/batches/${encodeURIComponent(classroomId)}/timetable`).then(r => r.json())
       ])
       .then(([subData, ttData]) => {

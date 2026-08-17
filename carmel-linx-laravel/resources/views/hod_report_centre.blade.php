@@ -136,7 +136,7 @@
         </div>
         <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between mt-1">
           <span class="text-[10px] text-slate-500">Commencement Week</span>
-          <a href="/hod/report-centre/workload-panel" class="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/30 text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-400 rounded-lg font-bold transition-premium cursor-pointer text-xs no-underline inline-block">
+          <a href="/hod/report-centre/workload-panel?branch={{ $dept ?? session('userBranch') }}" class="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/30 text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-400 rounded-lg font-bold transition-premium cursor-pointer text-xs no-underline inline-block">
             View Panel
           </a>
         </div>

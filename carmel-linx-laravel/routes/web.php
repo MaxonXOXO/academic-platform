@@ -1149,19 +1149,20 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::get('/hod/workload-report/print', function () {
+    Route::get('/hod/workload-report/print', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');
 
-        $branchCode = Session::get('userBranch');
+        $branchCode = $request->query('branch') ?? Session::get('userBranch');
         $dept = getFullBranchName($branchCode);
         
-        // 1. Get base lecturers, demonstrators, physical instructors, and HOD in the department
+        // 1. Get base lecturers, demonstrators, physical instructors, workshop instructors, tradesman, and HOD in the department
         $deptStaff = DB::table('staff_profiles')
             ->where('branch', $branchCode)
             ->whereIn('designation', [
                 'Lecturer', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor', 
-                'HOD', 'Trade_Instructor', 'Trade Instructor', 'Workshop_Superintendent'
+                'HOD', 'Trade_Instructor', 'Trade Instructor', 'Workshop_Superintendent',
+                'Workshop_Instructor', 'Workshop Instructor', 'Tradesman'
             ])
             ->get();
             
@@ -1183,7 +1184,7 @@ Route::middleware(['web'])->group(function () {
         // Helper to check if designation is demonstrator/support staff
         $isDemonstratorRole = function($designation) {
             $desig = strtolower(str_replace('_', ' ', $designation ?? ''));
-            return str_contains($desig, 'demonstrator') || str_contains($desig, 'trade instructor') || str_contains($desig, 'lab assistant');
+            return str_contains($desig, 'demonstrator') || str_contains($desig, 'trade instructor') || str_contains($desig, 'workshop instructor') || str_contains($desig, 'tradesman') || str_contains($desig, 'lab assistant');
         };
 
         // 2. Scan timetables JSON files belonging to HOD's department

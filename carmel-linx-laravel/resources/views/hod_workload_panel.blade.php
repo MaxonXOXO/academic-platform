@@ -113,7 +113,7 @@
 
         <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-between">
           <span class="text-[10px] font-medium text-slate-500">Commencement Format</span>
-          <a href="/hod/workload-report/print" target="_blank" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition-premium text-xs shadow-md no-underline flex items-center gap-1">
+          <a href="/hod/workload-report/print?branch={{ $department }}" target="_blank" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition-premium text-xs shadow-md no-underline flex items-center gap-1">
             <span class="material-symbols-rounded text-xs">print</span>
             <span>Print Workload</span>
           </a>

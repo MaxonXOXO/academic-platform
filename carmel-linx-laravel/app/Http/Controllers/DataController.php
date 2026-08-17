@@ -300,6 +300,42 @@ class DataController extends Controller
             $totalClassrooms = ClassManagement::count() + \Illuminate\Support\Facades\DB::table('r26_class_management')->count();
             $dayOrder = \App\Services\DayOrderService::getActiveDayOrder(date('Y-m-d'));
 
+            $todayStr = date('Y-m-d');
+
+            // 1. Staff Leave & Campus Presence Today
+            $activeStaffLeaves = [];
+            if (\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('staff_leave_requests')) {
+                $activeStaffLeaves = \Illuminate\Support\Facades\DB::table('staff_leave_requests')
+                    ->where('from_date', '<=', $todayStr)
+                    ->where('to_date', '>=', $todayStr)
+                    ->where('overall_status', '!=', 'Rejected')
+                    ->get();
+            }
+
+            $staffOnLeaveTodayCount = count($activeStaffLeaves);
+            $staffInCampusTodayCount = max(0, $totalStaff - $staffOnLeaveTodayCount);
+
+            $staffOnLeaveDetails = [];
+            foreach ($activeStaffLeaves as $leave) {
+                $staffOnLeaveDetails[] = [
+                    'name'       => $leave->staff_name ?? 'Faculty Member',
+                    'dept'       => $leave->department ?? 'General',
+                    'leave_type' => $leave->leave_type ?? 'Casual Leave',
+                    'from_date'  => $leave->from_date ?? $todayStr,
+                    'to_date'    => $leave->to_date ?? $todayStr,
+                    'total_days' => $leave->total_days ?? 1,
+                ];
+            }
+
+            // 2. Student Leave & Campus Presence Today
+            $studentsOnLeaveTodayCount = 0;
+            if (\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('leave_records')) {
+                $studentsOnLeaveTodayCount = \Illuminate\Support\Facades\DB::table('leave_records')
+                    ->where('leave_date', $todayStr)
+                    ->count();
+            }
+            $studentsInCampusTodayCount = max(0, $totalStudents - $studentsOnLeaveTodayCount);
+
             $currentMonth = date('F');
             $currentDay   = (string) date('j');
             $eventsTodayCount = 0;
@@ -324,7 +360,12 @@ class DataController extends Controller
                 'status' => 'SUCCESS',
                 'stats' => [
                     'totalStaff' => $totalStaff,
+                    'staffInCampusToday' => $staffInCampusTodayCount,
+                    'staffOnLeaveToday' => $staffOnLeaveTodayCount,
+                    'staffOnLeaveDetails' => $staffOnLeaveDetails,
                     'totalStudents' => $totalStudents,
+                    'studentsInCampusToday' => $studentsInCampusTodayCount,
+                    'studentsOnLeaveToday' => $studentsOnLeaveTodayCount,
                     'pendingApprovals' => $pendingStaff + $pendingStudents,
                     'pendingStaff' => $pendingStaff,
                     'pendingStudents' => $pendingStudents,

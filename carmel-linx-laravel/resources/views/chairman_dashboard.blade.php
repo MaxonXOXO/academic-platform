@@ -258,23 +258,25 @@
 
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-center justify-items-center">
             <!-- Total Staff -->
-            <div class="flex flex-col items-center group cursor-pointer w-full">
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openStaffCampusModal()">
               <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-500/40 bg-slate-900/90 hover:border-amber-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-amber-500/10 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-b from-amber-500/15 to-transparent opacity-60"></div>
                 <span class="material-symbols-rounded text-amber-400 text-base mb-0.5 group-hover:scale-110 transition-transform">badge</span>
                 <span id="statTotalStaff" class="font-black text-white text-base sm:text-lg leading-none">0</span>
               </div>
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Staff</span>
+              <span id="subStatStaffCampus" class="text-[9px] text-amber-400 font-mono font-bold mt-0.5 text-center truncate max-w-full">0 in campus</span>
             </div>
 
             <!-- Total Students -->
-            <div class="flex flex-col items-center group cursor-pointer w-full">
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openStudentCampusModal()">
               <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-sky-500/40 bg-slate-900/90 hover:border-sky-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-sky-500/10 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-b from-sky-500/15 to-transparent opacity-60"></div>
                 <span class="material-symbols-rounded text-sky-400 text-base mb-0.5 group-hover:scale-110 transition-transform">school</span>
                 <span id="statTotalStudents" class="font-black text-white text-base sm:text-lg leading-none">0</span>
               </div>
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Students</span>
+              <span id="subStatStudentCampus" class="text-[9px] text-sky-400 font-mono font-bold mt-0.5 text-center truncate max-w-full">0 in campus</span>
             </div>
 
             <!-- Pending Approvals -->
@@ -1159,6 +1161,8 @@
       }
     }
 
+    var currentStatsData = null;
+
     function loadStats() {
       showLoading(true);
       fetch('/api/admin/stats')
@@ -1166,8 +1170,18 @@
         .then(data => {
           showLoading(false);
           if (data.status === 'SUCCESS') {
+            currentStatsData = data.stats;
+
             document.getElementById('statTotalStaff').innerText = data.stats.totalStaff;
+            if (document.getElementById('subStatStaffCampus')) {
+              document.getElementById('subStatStaffCampus').innerText = `${data.stats.staffInCampusToday || 0} in campus • ${data.stats.staffOnLeaveToday || 0} on leave`;
+            }
+
             document.getElementById('statTotalStudents').innerText = data.stats.totalStudents;
+            if (document.getElementById('subStatStudentCampus')) {
+              document.getElementById('subStatStudentCampus').innerText = `${data.stats.studentsInCampusToday || 0} in campus`;
+            }
+
             document.getElementById('statPendingApprovals').innerText = data.stats.pendingApprovals;
             document.getElementById('statTotalClassrooms').innerText = data.stats.totalClassrooms;
             if (document.getElementById('statDayOrder')) {
@@ -2664,6 +2678,89 @@
       });
     }
 
+    function openStaffCampusModal() {
+      const modal = document.getElementById('staffCampusModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (currentStatsData) {
+        if (document.getElementById('modalTotalStaffCount')) {
+          document.getElementById('modalTotalStaffCount').innerText = currentStatsData.totalStaff || 0;
+        }
+        if (document.getElementById('modalStaffInCampusCount')) {
+          document.getElementById('modalStaffInCampusCount').innerText = currentStatsData.staffInCampusToday || 0;
+        }
+        if (document.getElementById('modalStaffOnLeaveCount')) {
+          document.getElementById('modalStaffOnLeaveCount').innerText = currentStatsData.staffOnLeaveToday || 0;
+        }
+
+        const list = document.getElementById('modalStaffOnLeaveList');
+        if (list) {
+          list.innerHTML = '';
+          if (currentStatsData.staffOnLeaveDetails && currentStatsData.staffOnLeaveDetails.length > 0) {
+            currentStatsData.staffOnLeaveDetails.forEach(s => {
+              const card = document.createElement('div');
+              card.className = "p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between gap-3 text-xs";
+              card.innerHTML = `
+                <div>
+                  <span class="font-extrabold text-white text-sm block">${s.name}</span>
+                  <span class="text-slate-400 font-mono text-[11px]">Dept: ${s.dept}</span>
+                </div>
+                <div class="text-right">
+                  <span class="px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] uppercase">${s.leave_type}</span>
+                  <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${s.from_date} to ${s.to_date}</span>
+                </div>
+              `;
+              list.appendChild(card);
+            });
+          } else {
+            list.innerHTML = `
+              <div class="p-6 text-center text-slate-400 bg-slate-950/40 rounded-xl border border-slate-800">
+                <span class="material-symbols-rounded text-emerald-400 text-2xl block mb-1">sentiment_satisfied</span>
+                <span class="text-xs font-bold text-slate-300">All staff members are present in campus today!</span>
+              </div>
+            `;
+          }
+        }
+      }
+    }
+
+    function closeStaffCampusModal() {
+      const modal = document.getElementById('staffCampusModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function openStudentCampusModal() {
+      const modal = document.getElementById('studentCampusModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (currentStatsData) {
+        if (document.getElementById('modalTotalStudentsCount')) {
+          document.getElementById('modalTotalStudentsCount').innerText = currentStatsData.totalStudents || 0;
+        }
+        if (document.getElementById('modalStudentsInCampusCount')) {
+          document.getElementById('modalStudentsInCampusCount').innerText = currentStatsData.studentsInCampusToday || 0;
+        }
+        if (document.getElementById('modalStudentsOnLeaveCount')) {
+          document.getElementById('modalStudentsOnLeaveCount').innerText = currentStatsData.studentsOnLeaveToday || 0;
+        }
+      }
+    }
+
+    function closeStudentCampusModal() {
+      const modal = document.getElementById('studentCampusModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
     function approveUserFromModal(userId, userType) {
       if (typeof changeStatus === 'function') {
         changeStatus(userId, userType, 'Approved');
@@ -2733,6 +2830,110 @@
       <div class="px-6 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs">
         <span class="text-slate-400 font-mono text-[11px]" id="pendingCountBadge">0 Application(s) Pending</span>
         <button onclick="closePendingApprovalsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-colors cursor-pointer">
+          Close Window
+        </button>
+      </div>
+
+  <!-- STAFF CAMPUS PRESENCE & LEAVE STATUS MODAL -->
+  <div id="staffCampusModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20">
+            <span class="material-symbols-rounded text-xl">badge</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white leading-tight">Staff Campus Presence &amp; Leave Status</h3>
+            <p class="text-xs text-slate-400 font-medium">Real-time daily staff presence and leave breakdown</p>
+          </div>
+        </div>
+        <button onclick="closeStaffCampusModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+          <span class="material-symbols-rounded text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards Grid inside Modal -->
+      <div class="p-6 overflow-y-auto space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-1">Total Registered Staff</span>
+            <span id="modalTotalStaffCount" class="text-2xl font-black text-white">0</span>
+          </div>
+          <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-emerald-400 font-extrabold uppercase tracking-wider mb-1">Staff In Campus Today</span>
+            <span id="modalStaffInCampusCount" class="text-2xl font-black text-emerald-300">0</span>
+          </div>
+          <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-amber-400 font-extrabold uppercase tracking-wider mb-1">Staff On Leave Today</span>
+            <span id="modalStaffOnLeaveCount" class="text-2xl font-black text-amber-300">0</span>
+          </div>
+        </div>
+
+        <!-- Staff On Leave Detail Roster -->
+        <div>
+          <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Staff Members On Leave Today
+          </h4>
+          <div id="modalStaffOnLeaveList" class="space-y-2.5">
+            <!-- Staff leave entries rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-end">
+        <button onclick="closeStaffCampusModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs transition-colors cursor-pointer">
+          Close Window
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- STUDENT CAMPUS PRESENCE MODAL -->
+  <div id="studentCampusModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-sky-500/10 text-sky-400 rounded-xl flex items-center justify-center border border-sky-500/20">
+            <span class="material-symbols-rounded text-xl">school</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white leading-tight">Student Campus Presence</h3>
+            <p class="text-xs text-slate-400 font-medium">Real-time daily student enrollment and campus attendance summary</p>
+          </div>
+        </div>
+        <button onclick="closeStudentCampusModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+          <span class="material-symbols-rounded text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards Grid inside Modal -->
+      <div class="p-6 overflow-y-auto space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-1">Total Enrolled Students</span>
+            <span id="modalTotalStudentsCount" class="text-2xl font-black text-white">0</span>
+          </div>
+          <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-emerald-400 font-extrabold uppercase tracking-wider mb-1">Students In Campus Today</span>
+            <span id="modalStudentsInCampusCount" class="text-2xl font-black text-emerald-300">0</span>
+          </div>
+          <div class="p-4 rounded-xl bg-sky-950/20 border border-sky-500/30 flex flex-col items-center justify-center text-center">
+            <span class="text-xs text-sky-400 font-extrabold uppercase tracking-wider mb-1">On Leave / Absent Today</span>
+            <span id="modalStudentsOnLeaveCount" class="text-2xl font-black text-sky-300">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-end">
+        <button onclick="closeStudentCampusModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs transition-colors cursor-pointer">
           Close Window
         </button>
       </div>

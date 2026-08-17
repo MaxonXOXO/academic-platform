@@ -414,8 +414,9 @@ class StaffAttendanceMobileController extends Controller
      */
     public function showAttendanceReport(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $today = now()->format('Y-m-d');
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
         $search = $request->input('search');
         $premisesFilter = $request->input('premises_status');
 

@@ -278,7 +278,7 @@
 <body>
 
     <header class="header">
-        <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Back</a>
+        <button type="button" onclick="goBackToDashboard()" class="back-btn" style="border:none; cursor:pointer;"><i class="fa-solid fa-chevron-left"></i> Back</button>
         <h1><i class="fa-solid fa-location-dot"></i> Campus GPS &amp; Google Map Setup</h1>
         <span style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 20px; font-weight: 600;">Desktop Admin</span>
     </header>
@@ -474,6 +474,29 @@
                 }, { enableHighAccuracy: true });
             } else {
                 alert("Geolocation is not supported by your browser.");
+            }
+        }
+
+        function goBackToDashboard() {
+            const ref = document.referrer;
+            if (ref && ref.includes(window.location.host) && !ref.includes('/sf-attendance/')) {
+                window.location.href = ref;
+                return;
+            }
+
+            const userRole = "{{ session('userRole') }}";
+            if (userRole === 'Super_Admin' || userRole === 'Principal') {
+                window.location.href = '/dashboard/principal';
+            } else if (userRole === 'Academic_Coordinator_SF' || userRole === 'ACADEMIC_COORDINATOR_SF') {
+                window.location.href = '/dashboard/academic-coordinator-sf';
+            } else if (userRole === 'Gen_Dept_Coordinator_Self_Finance' || userRole === 'GEN_DEPT_COORDINATOR_SELF_FINANCE') {
+                window.location.href = '/dashboard/general-coordinator-sf';
+            } else if (userRole === 'Admin') {
+                window.location.href = '/dashboard/admin';
+            } else if (window.history.length > 1 && ref && !ref.includes('/sf-attendance/')) {
+                window.history.back();
+            } else {
+                window.location.href = '/dashboard/principal';
             }
         }
     </script>

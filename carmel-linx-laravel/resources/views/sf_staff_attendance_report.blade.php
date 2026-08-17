@@ -401,9 +401,9 @@
                 <i class="fa-solid fa-print"></i> Print
             </button>
 
-            <a href="javascript:history.back()" class="btn-action btn-back">
+            <button type="button" onclick="goBackToDashboard()" class="btn-action btn-back">
                 <i class="fa-solid fa-chevron-left"></i> Back
-            </a>
+            </button>
         </div>
     </div>
 
@@ -454,6 +454,31 @@
 
         <!-- Filter Console -->
         <div class="filter-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Log View Mode:</span>
+                    @if($startDate === $endDate && $startDate === date('Y-m-d'))
+                        <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-calendar-day"></i> DAILY PUNCHING LOG (TODAY: {{ date('d M Y') }})
+                        </span>
+                    @else
+                        <span class="badge badge-info" style="font-size: 0.72rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-calendar-week"></i> HISTORY LOG VIEW ({{ date('d M Y', strtotime($startDate)) }} – {{ date('d M Y', strtotime($endDate)) }})
+                        </span>
+                    @endif
+                </div>
+
+                <!-- Quick Date View Presets -->
+                <div style="display: flex; gap: 6px;">
+                    <a href="/sf-attendance/attendance-report" class="btn-action {{ ($startDate === $endDate && $startDate === date('Y-m-d')) ? 'btn-geofence' : 'btn-back' }}" style="font-size: 0.7rem; padding: 5px 10px; text-decoration: none;">
+                        <i class="fa-solid fa-calendar-day"></i> Today's Daily Log
+                    </a>
+                    <a href="/sf-attendance/attendance-report?start_date={{ date('Y-m-01') }}&end_date={{ date('Y-m-d') }}" class="btn-action {{ !($startDate === $endDate && $startDate === date('Y-m-d')) ? 'btn-geofence' : 'btn-back' }}" style="font-size: 0.7rem; padding: 5px 10px; text-decoration: none;">
+                        <i class="fa-solid fa-calendar-days"></i> Full Month Log
+                    </a>
+                </div>
+            </div>
+
             <form action="/sf-attendance/attendance-report" method="GET" class="filter-grid">
                 <div class="form-group">
                     <label>From Date</label>
@@ -827,13 +852,23 @@
                 <h2><i class="fa-solid fa-file-invoice"></i> Month-End Executive Attendance Summary</h2>
                 <button class="modal-close" onclick="closeMonthEndModal()">&times;</button>
             </div>
-            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
-                Generates a formal monthly staff audit printout grouped by staff member with total campus hours and attendance metrics.
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:14px;">
+                Generates a formal monthly staff audit printout grouped by staff member with total campus hours and attendance metrics for range: <strong>{{ date('d M Y', strtotime($startDate)) }} to {{ date('d M Y', strtotime($endDate)) }}</strong>.
             </p>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
+            @if($startDate === $endDate && $startDate === date('Y-m-d'))
+                <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 10px 14px; border-radius: 10px; font-size: 0.75rem; color: #fbbf24; margin-bottom: 16px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> You are currently viewing <strong>Today's Daily Log</strong>. To print the full month summary, click <strong>"Print Full Month Report"</strong> below.
+                </div>
+            @endif
+            <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap: wrap;">
                 <button class="btn-action btn-back" onclick="closeMonthEndModal()">Cancel</button>
-                <button class="btn-action btn-monthend" onclick="printMonthEndReport()">
-                    <i class="fa-solid fa-print"></i> Print Month-End Report
+                @if($startDate === $endDate && $startDate === date('Y-m-d'))
+                    <a href="/sf-attendance/attendance-report?start_date={{ date('Y-m-01') }}&end_date={{ date('Y-m-d') }}&auto_print=1" class="btn-action btn-monthend" style="text-decoration: none;">
+                        <i class="fa-solid fa-calendar-days"></i> Print Full Month Report
+                    </a>
+                @endif
+                <button class="btn-action btn-print" onclick="printMonthEndReport()">
+                    <i class="fa-solid fa-print"></i> Print Loaded Range
                 </button>
             </div>
         </div>
@@ -1099,6 +1134,38 @@
                 if (regRow) regRow.style.opacity = '1';
             }
         }
+
+        function goBackToDashboard() {
+            const ref = document.referrer;
+            if (ref && ref.includes(window.location.host) && !ref.includes('/sf-attendance/')) {
+                window.location.href = ref;
+                return;
+            }
+
+            const userRole = "{{ session('userRole') }}";
+            if (userRole === 'Super_Admin' || userRole === 'Principal') {
+                window.location.href = '/dashboard/principal';
+            } else if (userRole === 'Academic_Coordinator_SF' || userRole === 'ACADEMIC_COORDINATOR_SF') {
+                window.location.href = '/dashboard/academic-coordinator-sf';
+            } else if (userRole === 'Gen_Dept_Coordinator_Self_Finance' || userRole === 'GEN_DEPT_COORDINATOR_SELF_FINANCE') {
+                window.location.href = '/dashboard/general-coordinator-sf';
+            } else if (userRole === 'Admin') {
+                window.location.href = '/dashboard/admin';
+            } else if (window.history.length > 1 && ref && !ref.includes('/sf-attendance/')) {
+                window.history.back();
+            } else {
+                window.location.href = '/dashboard/principal';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto_print') === '1') {
+                setTimeout(() => {
+                    printMonthEndReport();
+                }, 300);
+            }
+        });
     </script>
 </body>
 </html>

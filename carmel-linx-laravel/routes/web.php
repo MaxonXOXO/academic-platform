@@ -382,6 +382,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/tutor/classroom/{tutorMobile}', [DataController::class, 'getTutorClassroomRoster']);
     Route::post('/api/system/backup', [BackupController::class, 'backupDatabaseToDrive']);
     Route::get('/api/system/backup/download', [BackupController::class, 'downloadLocalBackup']);
+    Route::post('/api/system/restore', [BackupController::class, 'restoreDatabase']);
 
     // Universal Day Order Management
     Route::post('/api/system/set-day-order', function (Illuminate\Http\Request $request) {

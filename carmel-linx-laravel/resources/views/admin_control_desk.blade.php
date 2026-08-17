@@ -194,35 +194,36 @@
       </button>
 
       <!-- Today's Master Timetable Desk Link -->
-      <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-indigo-300 hover:bg-indigo-950/40 hover:text-indigo-200 cursor-pointer no-underline block border border-indigo-900/50 bg-indigo-950/30 shadow-sm">
-         <span class="flex items-center gap-2.5">
-           <span class="material-symbols-rounded text-lg text-indigo-400">calendar_view_day</span> Today's Timetable Desk
-         </span>
-         <span class="material-symbols-rounded text-sm text-indigo-400">open_in_new</span>
+      <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
+         <span class="material-symbols-rounded text-lg">calendar_view_day</span> Todays Timetable
       </a>
 
-      <a href="/dashboard/lecturer" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-sky-400 hover:bg-sky-950/30 hover:text-sky-300 cursor-pointer no-underline block border border-sky-900/40 bg-sky-950/20">
-
-         <span class="material-symbols-rounded text-lg text-sky-400">grid_view</span> My Batches & Virtual Classes
+      <a href="/dashboard/lecturer" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
+         <span class="material-symbols-rounded text-lg">grid_view</span> My batches
       </a>
+
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-lg">group</span> User Directory
       </button>
+
       <button id="navBackups" onclick="switchPanel('backups')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
-        <span class="material-symbols-rounded text-lg">database</span> Drive Backups
+        <span class="material-symbols-rounded text-lg">database</span> System Backup
       </button>
+
       <button id="navAudit" onclick="switchPanel('audit')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-lg">receipt_long</span> Audit Trail
       </button>
+
       <button id="navProfile" onclick="openExecutiveProfileModal()" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
-        <span class="material-symbols-rounded text-lg">manage_accounts</span> My Profile & Security
+        <span class="material-symbols-rounded text-lg">manage_accounts</span> My Profile &amp; Security
       </button>
+
       <button id="navSettings" onclick="switchPanel('settings')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-lg">settings</span> System Settings
       </button>
 
       @if(session('userRole') === 'Super_Admin')
-      <a href="/superadmin/show-users" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block border border-slate-800 bg-slate-900/40">
+      <a href="/superadmin/show-users" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
          <span class="material-symbols-rounded text-lg">key</span> User Credentials Table
       </a>
       @endif
@@ -232,12 +233,12 @@
       </a>
 
       <a href="/staff/leave/reports" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
-         <span class="material-symbols-rounded text-lg">event_note</span> All-Dept Master Leave Ledger
+         <span class="material-symbols-rounded text-lg">event_note</span> Master leave ledger
       </a>
 
       <!-- Self-Financing Staff Attendance Master Ledger Link -->
-      <a href="/sf-attendance/attendance-report" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-cyan-300 cursor-pointer no-underline block border border-cyan-900/40 bg-cyan-950/20">
-         <span class="material-symbols-rounded text-lg text-cyan-400">how_to_reg</span> SF Staff Attendance Master Log
+      <a href="/sf-attendance/attendance-report" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
+         <span class="material-symbols-rounded text-lg">how_to_reg</span> SF staff punching Log
       </a>
     </nav>
 
@@ -869,47 +870,88 @@
         </div>
       </div>
 
-      <!-- PANEL 3: DRIVE BACKUPS -->
+      <!-- PANEL 3: DRIVE BACKUPS & RESTORE -->
       <div id="panelBackups" class="hidden space-y-6">
-        <div class="bg-slate-950/30 border border-slate-800/40 p-6 rounded-2xl max-w-xl mx-auto space-y-5">
-          <div class="text-center space-y-2">
-            <span class="material-symbols-rounded text-blue-500 text-5xl">cloud_upload</span>
-            <h3 class="font-black text-slate-200 text-lg">Google Drive Sync Desk</h3>
-            <p class="text-[10px] text-slate-400 leading-relaxed text-[10px] text-xs">
-              Compile a complete `.sql` schema and table rows database dump to save locally and sync immediately to your Google Drive backup folder.
-            </p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+
+          <!-- BACKUP DESK CARD -->
+          <div class="bg-slate-950/30 border border-slate-800/40 p-6 rounded-2xl space-y-5 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="text-center space-y-2">
+                <span class="material-symbols-rounded text-blue-500 text-5xl">cloud_upload</span>
+                <h3 class="font-black text-slate-200 text-lg">SQL Backup &amp; Drive Sync Desk</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Compile a complete `.sql` schema and table rows database dump to save locally or sync directly to your Google Drive backup folder.
+                </p>
+              </div>
+
+              <div class="border-t border-slate-800/60 pt-4 space-y-3">
+                <div class="flex justify-between items-center text-xs border-b border-slate-800/30 pb-3">
+                  <span class="text-slate-400 font-medium">MySQL Connection</span>
+                  <span class="font-bold text-green-400">127.0.0.1 (Active)</span>
+                </div>
+                <div class="flex justify-between items-center text-xs border-b border-slate-800/30 pb-3">
+                  <span class="text-slate-400 font-medium">Backup Target Database</span>
+                  <span class="font-bold text-slate-200">{{ config('database.connections.mysql.database') }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs pb-1">
+                  <span class="text-slate-400 font-medium">Drive backup target ID</span>
+                  <span class="font-bold text-slate-400 truncate max-w-[180px]" title="{{ env('GOOGLE_DRIVE_FOLDER_ID') ?: 'Not configured' }}">
+                    {{ env('GOOGLE_DRIVE_FOLDER_ID') ?: 'Not configured' }}
+                  </span>
+                </div>
+              </div>
+
+              <div id="backupAlert" class="hidden p-4 rounded-xl font-bold transition-premium border text-xs"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <a href="/api/system/backup/download" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold transition-premium flex items-center justify-center gap-2 text-xs no-underline">
+                <span class="material-symbols-rounded text-base text-emerald-400">download</span>
+                <span>Download Instant SQL</span>
+              </a>
+
+              <button id="btnTriggerBackup" onclick="runBackup()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold transition-premium flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 cursor-pointer text-xs">
+                <span id="btnBackupText">Initialize Drive Sync</span>
+                <div id="backupSpinner" class="hidden w-4 h-4 border-2 border-slate-300 border-t-white rounded-full animate-spin"></div>
+              </button>
+            </div>
           </div>
 
-          <div class="border-t border-slate-800/60 pt-4 space-y-3">
-            <div class="flex justify-between items-center text-[10px] border-b border-slate-800/30 pb-3 text-[10px] text-xs">
-              <span class="text-slate-400 font-medium">MySQL Connection</span>
-              <span class="font-bold text-green-400">127.0.0.1 (Active)</span>
-            </div>
-            <div class="flex justify-between items-center text-[10px] border-b border-slate-800/30 pb-3 text-[10px] text-xs">
-              <span class="text-slate-400 font-medium">Backup Target Database</span>
-              <span class="font-bold text-slate-200">carmel_linx_db</span>
-            </div>
-            <div class="flex justify-between items-center text-[10px] pb-1 text-[10px] text-xs">
-              <span class="text-slate-400 font-medium">Drive backup target ID</span>
-              <span class="font-bold text-slate-400 truncate max-w-[200px]" title="{{ env('GOOGLE_DRIVE_FOLDER_ID') ?: 'Not configured' }}">
-                {{ env('GOOGLE_DRIVE_FOLDER_ID') ?: 'Not configured' }}
-              </span>
+          <!-- RESTORE DESK CARD -->
+          <div class="bg-slate-950/30 border border-slate-800/40 p-6 rounded-2xl space-y-5 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="text-center space-y-2">
+                <span class="material-symbols-rounded text-amber-400 text-5xl">settings_backup_restore</span>
+                <h3 class="font-black text-slate-200 text-lg">Restore SQL Database</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Select and upload a previously generated `.sql` backup file to restore system database tables and records.
+                </p>
+              </div>
+
+              <form id="restoreForm" onsubmit="runRestore(event)" class="space-y-4">
+                <div class="border-2 border-dashed border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 text-center transition-colors bg-slate-900/40 cursor-pointer" onclick="document.getElementById('sqlFileInput').click()">
+                  <input type="file" id="sqlFileInput" accept=".sql,.txt" class="hidden" onchange="updateSelectedFileName(this)">
+                  <span class="material-symbols-rounded text-slate-400 text-3xl mb-1">upload_file</span>
+                  <p id="sqlFileNameDisplay" class="text-xs text-slate-300 font-bold">Click to select .sql backup file</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">Supports SQL dumps (.sql)</p>
+                </div>
+
+                <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-[11px] flex items-start gap-2">
+                  <span class="material-symbols-rounded text-base text-amber-400 shrink-0">warning</span>
+                  <span><strong>Caution:</strong> Restoring will overwrite existing database records. Make sure you have downloaded a current backup first.</span>
+                </div>
+
+                <div id="restoreAlert" class="hidden p-4 rounded-xl font-bold transition-premium border text-xs"></div>
+
+                <button type="submit" id="btnTriggerRestore" class="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-bold transition-premium flex items-center justify-center gap-2 shadow-lg shadow-amber-600/15 cursor-pointer text-xs">
+                  <span id="btnRestoreText">Restore Database from SQL File</span>
+                  <div id="restoreSpinner" class="hidden w-4 h-4 border-2 border-slate-300 border-t-white rounded-full animate-spin"></div>
+                </button>
+              </form>
             </div>
           </div>
 
-          <div id="backupAlert" class="hidden p-4 rounded-xl text-[10px] font-bold transition-premium border text-[10px] text-xs"></div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <a href="/api/system/backup/download" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold transition-premium flex items-center justify-center gap-2 text-xs no-underline">
-              <span class="material-symbols-rounded text-base text-emerald-400">download</span>
-              <span>Download Instant SQL File</span>
-            </a>
-
-            <button id="btnTriggerBackup" onclick="runBackup()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold transition-premium flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 cursor-pointer text-xs">
-              <span id="btnBackupText">Initialize Drive Sync</span>
-              <div id="backupSpinner" class="hidden w-4 h-4 border-2 border-slate-300 border-t-white rounded-full animate-spin"></div>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1784,6 +1826,83 @@
         text.innerText = "Initialize Google Drive Backup";
         alert.className = "p-4 rounded-xl text-[10px] font-bold bg-red-950/40 text-red-400 border border-red-900 block";
         alert.innerText = "Google Drive backup failed. Verify API configuration keys.";
+        alert.classList.remove('hidden');
+      });
+    }
+
+    // Update selected SQL file name in restore desk
+    function updateSelectedFileName(input) {
+      const display = document.getElementById('sqlFileNameDisplay');
+      if (input.files && input.files[0]) {
+        display.innerText = 'Selected: ' + input.files[0].name + ' (' + (input.files[0].size / 1024).toFixed(1) + ' KB)';
+        display.className = "text-xs text-amber-400 font-bold";
+      } else {
+        display.innerText = 'Click to select .sql backup file';
+        display.className = "text-xs text-slate-300 font-bold";
+      }
+    }
+
+    // Database Restore AJAX Submission
+    function runRestore(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('sqlFileInput');
+      const btn = document.getElementById('btnTriggerRestore');
+      const spinner = document.getElementById('restoreSpinner');
+      const text = document.getElementById('btnRestoreText');
+      const alert = document.getElementById('restoreAlert');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert.className = "p-4 rounded-xl text-xs font-bold bg-amber-950/40 text-amber-400 border border-amber-900 block";
+        alert.innerText = "Please select a .sql file to restore.";
+        alert.classList.remove('hidden');
+        return;
+      }
+
+      if (!confirm("ARE YOU SURE YOU WANT TO RESTORE THE DATABASE?\n\nThis operation will overwrite tables and database records with data from the selected SQL file. Continue?")) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('sql_file', fileInput.files[0]);
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      text.innerText = "Restoring SQL database...";
+      alert.classList.add('hidden');
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      fetch('/api/system/restore', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.innerText = "Restore Database from SQL File";
+        
+        if (data.status === 'SUCCESS') {
+          alert.className = "p-4 rounded-xl text-xs font-bold bg-green-950/40 text-green-400 border border-green-900 block";
+          alert.innerText = data.message;
+          alert.classList.remove('hidden');
+          fileInput.value = '';
+          updateSelectedFileName(fileInput);
+        } else {
+          alert.className = "p-4 rounded-xl text-xs font-bold bg-red-950/40 text-red-400 border border-red-900 block";
+          alert.innerText = data.message || "Database restore failed.";
+          alert.classList.remove('hidden');
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.innerText = "Restore Database from SQL File";
+        alert.className = "p-4 rounded-xl text-xs font-bold bg-red-950/40 text-red-400 border border-red-900 block";
+        alert.innerText = "Database restore failed. Please verify server connection and SQL file format.";
         alert.classList.remove('hidden');
       });
     }

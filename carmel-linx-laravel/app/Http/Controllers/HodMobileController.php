@@ -46,15 +46,19 @@ class HodMobileController extends Controller
             ->select('batch_subjects.*', 'subject_staff_assignments.batch_subject_id')
             ->get();
 
-        // 2. Department Classroom Batches (R21 & R26)
-        $deptBatches2021 = ClassManagement::where('branch', $dept)
-            ->orWhere('classroom_id', 'like', "{$dept}%")
+        // 2. Department Classroom Batches (R21 for <= 2025 & R26 for >= 2026)
+        $deptBatches2021 = ClassManagement::where(function($q) use ($dept) {
+                $q->where('branch', $dept)->orWhere('classroom_id', 'like', "{$dept}%");
+            })
+            ->where('batch_year', '<=', 2025)
             ->orderBy('batch_year', 'desc')
             ->get();
 
         $deptBatches2026 = DB::table('r26_class_management')
-            ->where('branch', $dept)
-            ->orWhere('classroom_id', 'like', "{$dept}%")
+            ->where(function($q) use ($dept) {
+                $q->where('branch', $dept)->orWhere('classroom_id', 'like', "{$dept}%");
+            })
+            ->where('batch_year', '>=', 2026)
             ->orderBy('batch_year', 'desc')
             ->get();
 
@@ -171,6 +175,7 @@ class HodMobileController extends Controller
 
             // Load saved timetable JSON file for this classroom if available
             $dayTt = null;
+            $dayMap = ['Monday' => 'Day 1', 'Tuesday' => 'Day 2', 'Wednesday' => 'Day 3', 'Thursday' => 'Day 4', 'Friday' => 'Day 5'];
             if ($classroom && !empty($classroom->classroom_id)) {
                 $cIdClean = preg_replace('/[^a-zA-Z0-9_-]/', '', $classroom->classroom_id);
                 $ttFile = storage_path("app/timetables/{$cIdClean}.json");

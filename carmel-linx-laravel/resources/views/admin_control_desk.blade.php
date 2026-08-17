@@ -304,46 +304,74 @@
       <!-- PANEL 1: DASHBOARD OVERVIEW -->
       <div id="panelDashboard" class="space-y-6">
         
-        <!-- Metrics Grid (Top Row - 5 KPI Cards) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <!-- Total Staff -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-slate-700 transition">
-            <div class="bg-blue-500/10 text-blue-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">badge</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Total Staff</span>
-              <span id="statTotalStaff" class="font-black text-white text-lg leading-tight block">0</span>
-            </div>
+        <!-- Metrics Row (Top Executive Circular KPI Cards) -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-2xl shadow-xl backdrop-blur-md">
+          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2 mb-3">
+            <span class="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-sm text-cyan-400">donut_large</span> Institutional Overview Metrics
+            </span>
+            <span class="text-[10px] text-slate-500 font-mono font-bold">Real-time Platform Sync</span>
           </div>
-          <!-- Total Students -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-slate-700 transition">
-            <div class="bg-sky-500/10 text-sky-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">school</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Total Students</span>
-              <span id="statTotalStudents" class="font-black text-white text-lg leading-tight block">0</span>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-center justify-items-center">
+            <!-- Total Staff -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-cyan-500/40 bg-slate-900/90 hover:border-cyan-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-cyan-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-cyan-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-cyan-400 text-base mb-0.5 group-hover:scale-110 transition-transform">badge</span>
+                <span id="statTotalStaff" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Staff</span>
             </div>
-          </div>
-          <!-- Pending Approvals -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-slate-700 transition">
-            <div class="bg-amber-500/10 text-amber-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">pending_actions</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Pending Approvals</span>
-              <span id="statPendingApprovals" class="font-black text-white text-lg leading-tight block">0</span>
+
+            <!-- Total Students -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-sky-500/40 bg-slate-900/90 hover:border-sky-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-sky-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-sky-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-sky-400 text-base mb-0.5 group-hover:scale-110 transition-transform">school</span>
+                <span id="statTotalStudents" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Students</span>
             </div>
-          </div>
-          <!-- Classrooms -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-slate-700 transition">
-            <div class="bg-emerald-500/10 text-emerald-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">meeting_room</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Classrooms</span>
-              <span id="statTotalClassrooms" class="font-black text-white text-lg leading-tight block">0</span>
+
+            <!-- Pending Approvals -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openPendingApprovalsModal()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-500/40 bg-slate-900/90 hover:border-amber-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-amber-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-amber-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-amber-400 text-base mb-0.5 group-hover:scale-110 transition-transform">pending_actions</span>
+                <span id="statPendingApprovals" class="font-black text-amber-300 text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Pending Approvals</span>
             </div>
-          </div>
-          <!-- Academic Pass Rate (Moved to Top Row!) -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-slate-700 transition">
-            <div class="bg-indigo-500/10 text-indigo-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">insights</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Academic Pass Rate</span>
-              <span id="execAcademicPassRate" class="font-black text-indigo-300 text-lg leading-tight block">91.4% Overall</span>
+
+            <!-- Classrooms -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-emerald-500/40 bg-slate-900/90 hover:border-emerald-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-emerald-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-emerald-400 text-base mb-0.5 group-hover:scale-110 transition-transform">meeting_room</span>
+                <span id="statTotalClassrooms" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Classrooms</span>
+            </div>
+
+            <!-- Day Order -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openDepartmentTimetables()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-rose-500/40 bg-slate-900/90 hover:border-rose-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-rose-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-rose-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-rose-400 text-base mb-0.5 group-hover:scale-110 transition-transform">calendar_today</span>
+                <span id="statDayOrder" class="font-black text-rose-300 text-xs sm:text-sm leading-none truncate max-w-[90%] text-center">Day 1</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Day Order</span>
+            </div>
+
+            <!-- Events Today (6th Circular Card) -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openTodayEventsModal()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-indigo-500/40 bg-slate-900/90 hover:border-indigo-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-indigo-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-indigo-400 text-base mb-0.5 group-hover:scale-110 transition-transform">event</span>
+                <span id="statEventsToday" class="font-black text-indigo-300 text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Events Today</span>
             </div>
           </div>
         </div>
@@ -783,9 +811,14 @@
             <h3 class="text-base font-bold text-slate-200">Registered Accounts</h3>
             <p class="text-sm text-slate-400 mt-0.5">Filter, search, audit, and manage profile lifecycle states.</p>
           </div>
-          <button onclick="openRegisterModal()" class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-blue-500/10 text-sm">
-            <span class="material-symbols-rounded text-sm">person_add</span> Register User
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openBatchUploadModal()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-emerald-500/10 text-sm">
+              <span class="material-symbols-rounded text-sm">upload_file</span> 2026 Batch Excel Upload
+            </button>
+            <button onclick="openRegisterModal()" class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-blue-500/10 text-sm">
+              <span class="material-symbols-rounded text-sm">person_add</span> Register User
+            </button>
+          </div>
         </div>
 
         <!-- Filters Console -->
@@ -1299,10 +1332,140 @@
     </div>
   </div>
 
+  <!-- BATCH STUDENT EXCEL UPLOAD MODAL -->
+  <div id="batchStudentUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 transition-premium">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-black text-slate-200 flex items-center gap-2 text-base">
+          <span class="material-symbols-rounded text-emerald-400 text-xl">upload_file</span> Automated 2026 Batch Student Excel Upload
+        </h3>
+        <button onclick="closeBatchUploadModal()" class="text-slate-400 hover:text-white cursor-pointer"><span class="material-symbols-rounded text-lg">close</span></button>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Upload the official Joining List (<strong class="text-slate-200">Regular.xls</strong> or standard <strong class="text-slate-200">.xlsx / .csv</strong>) containing 2026 batch student records across departments.
+      </p>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+        <div class="font-bold text-amber-400 uppercase tracking-wider text-[11px] flex items-center gap-1">
+          <span class="material-symbols-rounded text-sm">info</span> Automated Registration Rules:
+        </div>
+        <ul class="list-disc list-inside space-y-1 text-slate-300">
+          <li>Registers all students instantly with account status <strong class="text-emerald-400">APPROVED</strong>.</li>
+          <li>Auto-calculates department batch classrooms (e.g. <span class="font-mono text-cyan-300">AU_2026_2029</span>, <span class="font-mono text-cyan-300">CT_2026_2029</span>).</li>
+          <li>Sets common default password: <strong class="font-mono text-amber-300">carmel2026</strong>.</li>
+          <li>Students log in using their <strong class="text-white">Admission Number</strong> (e.g., <span class="font-mono text-slate-200">4613/26</span> or <span class="font-mono text-slate-200">4613</span>).</li>
+          <li>Enforces compulsory profile update wizard on student's first login.</li>
+        </ul>
+      </div>
+
+      <form id="batchStudentUploadForm" onsubmit="handleBatchStudentUpload(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Select Excel / CSV Joining List File</label>
+          <div class="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-2xl p-6 text-center bg-slate-950/40 transition-colors cursor-pointer" onclick="document.getElementById('batchUploadFileInput').click()">
+            <span class="material-symbols-rounded text-4xl text-emerald-400 mb-2 block">description</span>
+            <span class="font-bold text-sm text-slate-200 block" id="batchUploadFileName">Click to select Regular.xls or Excel file</span>
+            <span class="text-xs text-slate-500 mt-1 block">Supports Regular.xls, .xlsx, or .csv up to 10MB</span>
+            <input type="file" id="batchUploadFileInput" accept=".xls,.xlsx,.csv" class="hidden" onchange="updateBatchFileName(this)">
+          </div>
+        </div>
+
+        <div id="batchUploadResult" class="hidden p-4 rounded-xl text-xs font-bold border"></div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" onclick="closeBatchUploadModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs transition-premium cursor-pointer">Cancel</button>
+          <button type="submit" id="btnSubmitBatchUpload" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-premium shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-rounded text-sm">cloud_upload</span> Process &amp; Register Students
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT LOGIC -->
   <script>
     let activePanel = "dashboard";
     let selectedUserForReset = null;
+
+    function openBatchUploadModal() {
+      document.getElementById('batchStudentUploadForm').reset();
+      document.getElementById('batchUploadFileName').innerText = "Click to select Regular.xls or Excel file";
+      document.getElementById('batchUploadResult').classList.add('hidden');
+      const modal = document.getElementById('batchStudentUploadModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBatchUploadModal() {
+      const modal = document.getElementById('batchStudentUploadModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function updateBatchFileName(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('batchUploadFileName').innerText = input.files[0].name + ' (' + (input.files[0].size / 1024).toFixed(1) + ' KB)';
+      }
+    }
+
+    function handleBatchStudentUpload(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('batchUploadFileInput');
+      const resultDiv = document.getElementById('batchUploadResult');
+      const submitBtn = document.getElementById('btnSubmitBatchUpload');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        resultDiv.className = "p-4 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-300 border border-rose-900/60 block";
+        resultDiv.innerText = "Please select a valid Excel or CSV file first.";
+        resultDiv.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="material-symbols-rounded text-sm animate-spin">sync</span> Processing Roster...`;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      fetch('/api/admin/batch-student-upload', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span class="material-symbols-rounded text-sm">cloud_upload</span> Process & Register Students`;
+
+        if (data.status === 'SUCCESS') {
+          let deptMsg = '';
+          if (data.department_stats) {
+            deptMsg = Object.entries(data.department_stats).map(([d, c]) => `${d}: ${c}`).join(' | ');
+          }
+          resultDiv.className = "p-4 rounded-xl text-xs font-bold bg-emerald-950/40 text-emerald-300 border border-emerald-900/60 block space-y-1";
+          resultDiv.innerHTML = `<div>✓ ${data.message}</div>` + (deptMsg ? `<div class="text-[11px] font-mono text-emerald-200/80">${deptMsg}</div>` : '');
+          resultDiv.classList.remove('hidden');
+
+          setTimeout(() => {
+            closeBatchUploadModal();
+            if (typeof loadUsers === 'function') loadUsers();
+          }, 3000);
+        } else {
+          resultDiv.className = "p-4 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-300 border border-rose-900/60 block";
+          resultDiv.innerText = "Error: " + data.message;
+          resultDiv.classList.remove('hidden');
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span class="material-symbols-rounded text-sm">cloud_upload</span> Process & Register Students`;
+        resultDiv.className = "p-4 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-300 border border-rose-900/60 block";
+        resultDiv.innerText = "Connection error: " + err.message;
+        resultDiv.classList.remove('hidden');
+      });
+    }
 
     // Load initial data on mount
     document.addEventListener("DOMContentLoaded", () => {
@@ -1469,6 +1632,12 @@
             document.getElementById('statTotalStudents').innerText = data.stats.totalStudents;
             document.getElementById('statPendingApprovals').innerText = data.stats.pendingApprovals;
             document.getElementById('statTotalClassrooms').innerText = data.stats.totalClassrooms;
+            if (document.getElementById('statDayOrder')) {
+              document.getElementById('statDayOrder').innerText = data.stats.dayOrder || 'Day 1';
+            }
+            if (document.getElementById('statEventsToday')) {
+              document.getElementById('statEventsToday').innerText = data.stats.eventsToday || 0;
+            }
           }
         })
         .catch(() => indicator.classList.add('hidden'));
@@ -3233,8 +3402,172 @@
       }).join('');
     }
 
+    function openDepartmentTimetables() {
+      window.open('/dashboard/principal/today-timetable', '_blank');
+    }
+
+    function openPendingApprovalsModal() {
+      const modal = document.getElementById('pendingApprovalsModal');
+      const loading = document.getElementById('pendingApprovalsModalLoading');
+      const list = document.getElementById('pendingApprovalsList');
+      const empty = document.getElementById('pendingApprovalsEmptyState');
+      
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      if (loading) loading.classList.remove('hidden');
+      if (list) list.classList.add('hidden');
+      if (empty) empty.classList.add('hidden');
+
+      fetch('/api/admin/users?status=Pending')
+        .then(res => res.json())
+        .then(data => {
+          if (loading) loading.classList.add('hidden');
+          if (data.status === 'SUCCESS' && data.users && data.users.length > 0) {
+            renderPendingUsersList(data.users);
+            if (list) list.classList.remove('hidden');
+            if (document.getElementById('pendingCountBadge')) {
+              document.getElementById('pendingCountBadge').innerText = `${data.users.length} Application(s) Pending`;
+            }
+          } else {
+            if (empty) empty.classList.remove('hidden');
+            if (document.getElementById('pendingCountBadge')) {
+              document.getElementById('pendingCountBadge').innerText = `0 Applications Pending`;
+            }
+          }
+        })
+        .catch(() => {
+          if (loading) loading.classList.add('hidden');
+          if (empty) empty.classList.remove('hidden');
+        });
+    }
+
+    function closePendingApprovalsModal() {
+      const modal = document.getElementById('pendingApprovalsModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function renderPendingUsersList(users) {
+      const container = document.getElementById('pendingApprovalsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      users.forEach(user => {
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-amber-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md";
+
+        const badgeColor = user.type === 'staff' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20';
+
+        card.innerHTML = `
+          <div class="flex items-start gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-slate-300 font-bold">
+              <span class="material-symbols-rounded text-lg">${user.type === 'staff' ? 'badge' : 'person'}</span>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-extrabold text-sm text-white truncate">${user.name}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${badgeColor}">${user.type} - ${user.role}</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono mt-0.5 flex items-center gap-2 truncate">
+                <span>ID: <strong class="text-slate-200">${user.id}</strong></span>
+                <span>•</span>
+                <span>Dept: <strong class="text-slate-200">${user.branch || 'General'}</strong></span>
+              </p>
+              <p class="text-[11px] text-slate-500 mt-0.5 truncate">${user.email || user.mobile_no || 'No Contact Info'}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-slate-800/60 justify-end">
+            <button onclick="approveUserFromModal('${user.id}', '${user.type}')" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">check_circle</span> Approve Login
+            </button>
+            <button onclick="rejectUserFromModal('${user.id}', '${user.type}')" class="px-3 py-1.5 bg-slate-900 hover:bg-red-950/80 border border-slate-800 hover:border-red-800 text-slate-400 hover:text-red-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">cancel</span> Reject
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function approveUserFromModal(userId, userType) {
+      if (typeof changeStatus === 'function') {
+        changeStatus(userId, userType, 'Approved');
+        setTimeout(() => {
+          openPendingApprovalsModal();
+          if (typeof loadStats === 'function') loadStats();
+        }, 400);
+      }
+    }
+
+    function rejectUserFromModal(userId, userType) {
+      if (confirm(`Reject pending registration application for ${userId}?`)) {
+        if (typeof changeStatus === 'function') {
+          changeStatus(userId, userType, 'Suspended');
+          setTimeout(() => {
+            openPendingApprovalsModal();
+            if (typeof loadStats === 'function') loadStats();
+          }, 400);
+        }
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', initTheme);
   </script>
+
+  <!-- PENDING APPROVALS POPUP MODAL -->
+  <div id="pendingApprovalsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20">
+            <span class="material-symbols-rounded text-xl">pending_actions</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white leading-tight">Pending Login Approvals</h3>
+            <p class="text-xs text-slate-400 font-medium">Review and verify staff and student registration applications</p>
+          </div>
+        </div>
+        <button onclick="closePendingApprovalsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+          <span class="material-symbols-rounded text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Content (Scrollable Container) -->
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div id="pendingApprovalsModalLoading" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent"></div>
+          <p class="text-xs text-slate-400 mt-2 font-semibold">Loading pending user applications...</p>
+        </div>
+
+        <div id="pendingApprovalsList" class="space-y-3 hidden">
+          <!-- Rendered pending user cards will be injected here -->
+        </div>
+
+        <div id="pendingApprovalsEmptyState" class="hidden text-center py-12 space-y-3">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+            <span class="material-symbols-rounded text-2xl">verified_user</span>
+          </div>
+          <h4 class="text-sm font-bold text-slate-200">All Logins Approved!</h4>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto">There are currently no pending registration requests awaiting administrative verification.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs">
+        <span class="text-slate-400 font-mono text-[11px]" id="pendingCountBadge">0 Application(s) Pending</span>
+        <button onclick="closePendingApprovalsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-colors cursor-pointer">
+          Close Window
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- TODAY'S EVENTS LIST MODAL BY CATEGORIES -->
   <div id="todayEventsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 md:p-6 overflow-y-auto">

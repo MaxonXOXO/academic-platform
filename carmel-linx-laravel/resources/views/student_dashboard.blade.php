@@ -2336,6 +2336,140 @@
       }).catch(err => console.error(err));
     }
   </script>
+
+  <!-- COMPULSORY FIRST LOGIN SETUP MODAL -->
+  @if(session('must_update_profile'))
+  <div id="firstLoginProfileModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl space-y-5 fade-up">
+      <div class="text-center space-y-1.5 border-b border-slate-800 pb-4">
+        <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
+          <span class="material-symbols-rounded text-3xl text-white">lock_reset</span>
+        </div>
+        <h3 class="font-black text-xl text-white tracking-tight">Complete Student Profile Setup</h3>
+        <p class="text-xs text-slate-400">
+          Welcome to Carmel Linx! Because your account was initialized with the common default password, please update your details to activate your student portal.
+        </p>
+      </div>
+
+      <form id="firstLoginProfileForm" onsubmit="handleFirstLoginProfileSetup(event)" class="space-y-4">
+        <!-- New Password & Confirmation -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">New Password *</label>
+            <input type="password" id="setupNewPassword" required minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="Min 6 characters">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Confirm Password *</label>
+            <input type="password" id="setupConfirmPassword" required minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="Re-enter new password">
+          </div>
+        </div>
+
+        <!-- Email & Mobile -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Email Address *</label>
+            <input type="email" id="setupEmail" required value="{{ session('userEmail') }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="student@gmail.com">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Mobile Number</label>
+            <input type="text" id="setupPhone" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="10-digit mobile number">
+          </div>
+        </div>
+
+        <!-- SBTE Register Number & Photo Upload -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">SBTE Register No</label>
+            <input type="text" id="setupSbteReg" value="{{ session('sbteRegNo') }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="e.g. 2601004613">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Profile Photo</label>
+            <input type="file" id="setupPhoto" accept="image/*" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-300 focus:border-amber-500 outline-none">
+          </div>
+        </div>
+
+        <div id="setupAlert" class="hidden p-3.5 rounded-xl text-xs font-bold border"></div>
+
+        <button type="submit" id="btnSubmitFirstSetup" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer mt-2">
+          <span class="material-symbols-rounded text-lg">verified_user</span> Save Credentials &amp; Unlock Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function handleFirstLoginProfileSetup(e) {
+      e.preventDefault();
+      const pass = document.getElementById('setupNewPassword').value.trim();
+      const confirmPass = document.getElementById('setupConfirmPassword').value.trim();
+      const email = document.getElementById('setupEmail').value.trim();
+      const alertDiv = document.getElementById('setupAlert');
+      const submitBtn = document.getElementById('btnSubmitFirstSetup');
+
+      if (pass !== confirmPass) {
+        alertDiv.className = "p-3.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-300 border border-rose-800 block";
+        alertDiv.innerText = "Passwords do not match. Please re-enter carefully.";
+        alertDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (pass === 'carmel2026') {
+        alertDiv.className = "p-3.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-300 border border-rose-800 block";
+        alertDiv.innerText = "New password cannot be the default password 'carmel2026'.";
+        alertDiv.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="material-symbols-rounded text-lg animate-spin">sync</span> Saving Profile Setup...`;
+
+      const formData = new FormData();
+      formData.append('new_password', pass);
+      formData.append('email', email);
+      formData.append('phone', document.getElementById('setupPhone').value.trim());
+      formData.append('sbte_reg_no', document.getElementById('setupSbteReg').value.trim());
+      
+      const photoInput = document.getElementById('setupPhoto');
+      if (photoInput.files && photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+
+      fetch('/api/student/complete-first-login-profile', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span class="material-symbols-rounded text-lg">verified_user</span> Save Credentials & Unlock Dashboard`;
+
+        if (data.status === 'SUCCESS') {
+          alertDiv.className = "p-3.5 rounded-xl text-xs font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800 block";
+          alertDiv.innerText = "✓ " + data.message;
+          alertDiv.classList.remove('hidden');
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          alertDiv.className = "p-3.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-300 border border-rose-800 block";
+          alertDiv.innerText = "Error: " + data.message;
+          alertDiv.classList.remove('hidden');
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span class="material-symbols-rounded text-lg">verified_user</span> Save Credentials & Unlock Dashboard`;
+        alertDiv.className = "p-3.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-300 border border-rose-800 block";
+        alertDiv.innerText = "Connection error: " + err.message;
+        alertDiv.classList.remove('hidden');
+      });
+    }
+  </script>
+  @endif
 </body>
 </html>
 

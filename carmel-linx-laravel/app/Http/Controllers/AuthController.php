@@ -29,8 +29,14 @@ class AuthController extends Controller
 
         try {
             if ($roleType === 'student') {
+                $cleanAdmNo = strtok($userId, '/');
                 $student = Student::where('reg_no', strtoupper($userId))
                     ->orWhere('adm_no', strtoupper($userId))
+                    ->orWhere('adm_no', $userId)
+                    ->orWhere('adm_no', $cleanAdmNo)
+                    ->orWhere('adm_no', 'LIKE', $cleanAdmNo . '/%')
+                    ->orWhere('adm_no', 'LIKE', '%' . $cleanAdmNo)
+                    ->orWhere('reg_no', 'LIKE', '%' . $cleanAdmNo)
                     ->orWhere('sbte_reg_no', strtoupper($userId))
                     ->first();
 
@@ -43,6 +49,12 @@ class AuthController extends Controller
                     return response()->json(['status' => 'ERROR', 'message' => 'Your registration is pending approval by your Class Tutor.']);
                 }
 
+                // Check if student is logging in with default common password "carmel2026"
+                $isDefaultPassword = ($password === 'carmel2026') || ($this->verifyPassword('carmel2026', $student->password) && !str_starts_with($student->password, '$2y$'));
+                if ($isDefaultPassword || $password === 'carmel2026') {
+                    Session::put('must_update_profile', true);
+                }
+
                 // Set session data
                 Session::put([
                     'userRole' => 'Student',
@@ -53,6 +65,7 @@ class AuthController extends Controller
                     'userPhoto' => $student->photo_url ?? '',
                     'classroomId' => $student->classroom_id,
                     'sbteRegNo' => $student->sbte_reg_no,
+                    'userEmail' => $student->email,
                     'semester' => $student->semester,
                 ]);
 
@@ -62,6 +75,7 @@ class AuthController extends Controller
                     'id' => $student->reg_no,
                     'name' => $student->name,
                     'branch' => $student->branch,
+                    'must_update_profile' => Session::get('must_update_profile', false),
                     'route' => '/dashboard/student'
                 ]);
             } else {

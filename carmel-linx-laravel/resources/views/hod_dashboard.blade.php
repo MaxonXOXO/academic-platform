@@ -1949,7 +1949,10 @@
           let b1 = (res1.status === 'SUCCESS' && Array.isArray(res1.batches)) ? res1.batches : [];
           let b2 = (res2.status === 'SUCCESS' && Array.isArray(res2.batches)) ? res2.batches : [];
           
-          let combined = b1.concat(b2);
+          const combinedMap = new Map();
+          b1.forEach(b => { if (b && b.classroom_id) combinedMap.set(b.classroom_id, b); });
+          b2.forEach(b => { if (b && b.classroom_id) combinedMap.set(b.classroom_id, b); });
+          let combined = Array.from(combinedMap.values());
           
           // sort by batch_year desc, then classroom_id asc
           combined.sort((x, y) => {

@@ -1572,6 +1572,125 @@
                 </div>
             </div>
         </div>
+    <!-- COMPULSORY FIRST LOGIN SETUP MODAL (MOBILE) -->
+    @if(session('must_update_profile'))
+    <div id="firstLoginProfileModalMobile" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999;">
+        <div class="modal-dialog modal-dialog-centered p-2">
+            <div class="modal-content bg-dark border border-warning border-opacity-50 text-white shadow-2xl" style="border-radius: 20px;">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 text-center d-block">
+                    <div class="mx-auto mb-2 text-warning" style="font-size: 2rem;">
+                        <i class="fa-solid fa-lock-open"></i>
+                    </div>
+                    <h5 class="modal-title fw-extrabold text-white">Complete Profile Setup</h5>
+                    <p class="text-secondary small mb-0 mt-1" style="font-size: 0.76rem;">
+                        Welcome to Carmel Linx! Please update your credentials and email to activate your student account.
+                    </p>
+                </div>
+                <div class="modal-body p-3">
+                    <form id="firstLoginMobileForm" onsubmit="handleMobileFirstLoginProfileSetup(event)">
+                        <div class="mb-2">
+                            <label class="form-label text-secondary small mb-1">New Password *</label>
+                            <input type="password" id="mSetupNewPassword" required minlength="6" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="Min 6 characters">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label text-secondary small mb-1">Confirm New Password *</label>
+                            <input type="password" id="mSetupConfirmPassword" required minlength="6" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="Re-enter password">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label text-secondary small mb-1">Email Address *</label>
+                            <input type="email" id="mSetupEmail" required value="{{ session('userEmail') }}" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="student@gmail.com">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label text-secondary small mb-1">Mobile Number</label>
+                            <input type="text" id="mSetupPhone" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="10-digit number">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label text-secondary small mb-1">SBTE Register No</label>
+                            <input type="text" id="mSetupSbteReg" value="{{ session('sbteRegNo') }}" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="e.g. 2601004613">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small mb-1">Profile Photo</label>
+                            <input type="file" id="mSetupPhoto" accept="image/*" class="form-control bg-slate-900 text-white border-secondary border-opacity-25">
+                        </div>
+
+                        <div id="mSetupAlert" class="alert d-none py-2 px-3 small font-bold mb-3"></div>
+
+                        <button type="submit" id="btnSubmitMobileSetup" class="btn btn-warning w-100 py-2.5 fw-bold text-dark rounded-pill shadow">
+                            <i class="fa-solid fa-shield-check me-1"></i> Save Credentials & Unlock Dashboard
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function handleMobileFirstLoginProfileSetup(e) {
+            e.preventDefault();
+            const pass = document.getElementById('mSetupNewPassword').value.trim();
+            const confirmPass = document.getElementById('mSetupConfirmPassword').value.trim();
+            const email = document.getElementById('mSetupEmail').value.trim();
+            const alertDiv = document.getElementById('mSetupAlert');
+            const submitBtn = document.getElementById('btnSubmitMobileSetup');
+
+            if (pass !== confirmPass) {
+                alertDiv.className = "alert alert-danger py-2 px-3 small font-bold mb-3 d-block";
+                alertDiv.innerText = "Passwords do not match.";
+                return;
+            }
+
+            if (pass === 'carmel2026') {
+                alertDiv.className = "alert alert-danger py-2 px-3 small font-bold mb-3 d-block";
+                alertDiv.innerText = "New password cannot be 'carmel2026'.";
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving Profile...`;
+
+            const formData = new FormData();
+            formData.append('new_password', pass);
+            formData.append('email', email);
+            formData.append('phone', document.getElementById('mSetupPhone').value.trim());
+            formData.append('sbte_reg_no', document.getElementById('mSetupSbteReg').value.trim());
+            
+            const photoInput = document.getElementById('mSetupPhoto');
+            if (photoInput.files && photoInput.files[0]) {
+                formData.append('photo', photoInput.files[0]);
+            }
+
+            fetch('/api/student/complete-first-login-profile', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-shield-check me-1"></i> Save Credentials & Unlock Dashboard`;
+
+                if (data.status === 'SUCCESS') {
+                    alertDiv.className = "alert alert-success py-2 px-3 small font-bold mb-3 d-block";
+                    alertDiv.innerText = "✓ " + data.message;
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alertDiv.className = "alert alert-danger py-2 px-3 small font-bold mb-3 d-block";
+                    alertDiv.innerText = "Error: " + data.message;
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-shield-check me-1"></i> Save Credentials & Unlock Dashboard`;
+                alertDiv.className = "alert alert-danger py-2 px-3 small font-bold mb-3 d-block";
+                alertDiv.innerText = "Connection error: " + err.message;
+            });
+        }
+    </script>
+    @endif
 </body>
 </html>

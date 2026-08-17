@@ -690,7 +690,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <h4 class="font-bold text-sm text-blue-400">{{ $b->classroom_id }}</h4>
-                                @if(!empty($b->is_r26) || ($b->batch_year ?? 0) == 2026)
+                                @if(!empty($b->is_r26) || ($b->batch_year ?? 0) >= 2026)
                                     <span class="px-1.5 py-0.5 text-[9px] font-black rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">R26</span>
                                 @endif
                             </div>

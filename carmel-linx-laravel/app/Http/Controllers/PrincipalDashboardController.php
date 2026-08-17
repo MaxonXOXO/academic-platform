@@ -52,13 +52,15 @@ class PrincipalDashboardController extends Controller
         $targetDate = $request->query('date', Carbon::now()->toDateString());
         $activeDayOrder = DayOrderService::getActiveDayOrder($targetDate);
 
-        // Fetch all classrooms from both Rev 2021 & Rev 2026 schemes
+        // Fetch all classrooms from both Rev 2021 (<=2025) & Rev 2026 (>=2026) schemes
         $r21Classrooms = DB::table('class_management')
             ->whereIn('branch', array_merge(self::TARGET_BRANCHES, ['EE']))
+            ->where('batch_year', '<=', 2025)
             ->get(['classroom_id', 'branch', 'current_semester', 'batch_year', 'tutor_mobile_no']);
 
         $r26Classrooms = DB::table('r26_class_management')
             ->whereIn('branch', array_merge(self::TARGET_BRANCHES, ['EE']))
+            ->where('batch_year', '>=', 2026)
             ->get(['classroom_id', 'branch', 'current_semester', 'batch_year', 'tutor_mobile_no']);
 
 

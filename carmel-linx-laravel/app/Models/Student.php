@@ -64,6 +64,10 @@ class Student extends Model
         'profile_verified_by',
         'academic_status',
         'status_notes',
+        'date_of_birth',
+        'application_no',
+        'quota',
+        'date_of_joining',
     ];
 
     protected $hidden = [

@@ -694,6 +694,8 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/student/profile/upload-photo', [DataController::class, 'uploadStudentPhoto']);
     Route::post('/api/student/update-email', [DataController::class, 'updateStudentEmail']);
     Route::post('/api/students/bulk-import', [DataController::class, 'bulkImportStudents']);
+    Route::post('/api/admin/batch-student-upload', [\App\Http\Controllers\BatchStudentUploadController::class, 'uploadBatchStudents']);
+    Route::post('/api/student/complete-first-login-profile', [\App\Http\Controllers\BatchStudentUploadController::class, 'completeFirstLoginProfile']);
     Route::get('/api/students/template/download', [DataController::class, 'downloadStudentImportTemplate']);
     Route::post('/api/staff/profile/upload-photo', [DataController::class, 'uploadStaffPhoto']);
     Route::post('/api/staff/update-photo', [DataController::class, 'uploadStaffPhoto']);

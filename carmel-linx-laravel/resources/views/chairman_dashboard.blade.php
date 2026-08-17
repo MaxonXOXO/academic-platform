@@ -247,46 +247,74 @@
       <!-- PANEL 1: DASHBOARD OVERVIEW -->
       <div id="panelDashboard" class="space-y-6">
         
-        <!-- Metrics Grid (Top Row - 5 KPI Cards) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <!-- Total Staff -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-amber-500/50 transition">
-            <div class="bg-amber-500/10 text-amber-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">badge</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Total Staff</span>
-              <span id="statTotalStaff" class="font-black text-white text-lg leading-tight block">0</span>
-            </div>
+        <!-- Metrics Row (Top Executive Circular KPI Cards) -->
+        <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-2xl shadow-xl backdrop-blur-md">
+          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2 mb-3">
+            <span class="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-sm text-amber-400">donut_large</span> Executive Overview Metrics
+            </span>
+            <span class="text-[10px] text-slate-500 font-mono font-bold">Real-time Platform Sync</span>
           </div>
-          <!-- Total Students -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-amber-500/50 transition">
-            <div class="bg-sky-500/10 text-sky-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">school</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Total Students</span>
-              <span id="statTotalStudents" class="font-black text-white text-lg leading-tight block">0</span>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-center justify-items-center">
+            <!-- Total Staff -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-500/40 bg-slate-900/90 hover:border-amber-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-amber-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-amber-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-amber-400 text-base mb-0.5 group-hover:scale-110 transition-transform">badge</span>
+                <span id="statTotalStaff" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Staff</span>
             </div>
-          </div>
-          <!-- Pending Approvals -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-amber-500/50 transition">
-            <div class="bg-blue-500/10 text-blue-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">pending_actions</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Pending Approvals</span>
-              <span id="statPendingApprovals" class="font-black text-white text-lg leading-tight block">0</span>
+
+            <!-- Total Students -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-sky-500/40 bg-slate-900/90 hover:border-sky-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-sky-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-sky-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-sky-400 text-base mb-0.5 group-hover:scale-110 transition-transform">school</span>
+                <span id="statTotalStudents" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Total Students</span>
             </div>
-          </div>
-          <!-- Classrooms -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-amber-500/50 transition">
-            <div class="bg-emerald-500/10 text-emerald-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">meeting_room</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Classrooms</span>
-              <span id="statTotalClassrooms" class="font-black text-white text-lg leading-tight block">0</span>
+
+            <!-- Pending Approvals -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openPendingApprovalsModal()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-blue-500/40 bg-slate-900/90 hover:border-blue-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-blue-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-blue-400 text-base mb-0.5 group-hover:scale-110 transition-transform">pending_actions</span>
+                <span id="statPendingApprovals" class="font-black text-blue-300 text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Pending Approvals</span>
             </div>
-          </div>
-          <!-- Academic Pass Rate (Moved to Top Row!) -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-3 rounded-xl flex items-center gap-2.5 shadow-sm hover:border-amber-500/50 transition">
-            <div class="bg-indigo-500/10 text-indigo-400 p-2 rounded-lg shrink-0"><span class="material-symbols-rounded text-lg">insights</span></div>
-            <div class="min-w-0">
-              <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider block truncate">Academic Pass Rate</span>
-              <span id="execAcademicPassRate" class="font-black text-indigo-300 text-lg leading-tight block">91.4% Overall</span>
+
+            <!-- Classrooms -->
+            <div class="flex flex-col items-center group cursor-pointer w-full">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-emerald-500/40 bg-slate-900/90 hover:border-emerald-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-emerald-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-emerald-400 text-base mb-0.5 group-hover:scale-110 transition-transform">meeting_room</span>
+                <span id="statTotalClassrooms" class="font-black text-white text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Classrooms</span>
+            </div>
+
+            <!-- Day Order -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openDepartmentTimetables()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-rose-500/40 bg-slate-900/90 hover:border-rose-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-rose-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-rose-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-rose-400 text-base mb-0.5 group-hover:scale-110 transition-transform">calendar_today</span>
+                <span id="statDayOrder" class="font-black text-rose-300 text-xs sm:text-sm leading-none truncate max-w-[90%] text-center">Day 1</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Day Order</span>
+            </div>
+
+            <!-- Events Today (6th Circular Card) -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openTodayEventsModal()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-indigo-500/40 bg-slate-900/90 hover:border-indigo-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-indigo-500/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/15 to-transparent opacity-60"></div>
+                <span class="material-symbols-rounded text-indigo-400 text-base mb-0.5 group-hover:scale-110 transition-transform">event</span>
+                <span id="statEventsToday" class="font-black text-indigo-300 text-base sm:text-lg leading-none">0</span>
+              </div>
+              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Events Today</span>
             </div>
           </div>
         </div>
@@ -1142,6 +1170,12 @@
             document.getElementById('statTotalStudents').innerText = data.stats.totalStudents;
             document.getElementById('statPendingApprovals').innerText = data.stats.pendingApprovals;
             document.getElementById('statTotalClassrooms').innerText = data.stats.totalClassrooms;
+            if (document.getElementById('statDayOrder')) {
+              document.getElementById('statDayOrder').innerText = data.stats.dayOrder || 'Day 1';
+            }
+            if (document.getElementById('statEventsToday')) {
+              document.getElementById('statEventsToday').innerText = data.stats.eventsToday || 0;
+            }
           }
         })
         .catch(() => showLoading(false));
@@ -2539,8 +2573,172 @@
       }).join('');
     }
 
+    function openDepartmentTimetables() {
+      window.open('/dashboard/principal/today-timetable', '_blank');
+    }
+
+    function openPendingApprovalsModal() {
+      const modal = document.getElementById('pendingApprovalsModal');
+      const loading = document.getElementById('pendingApprovalsModalLoading');
+      const list = document.getElementById('pendingApprovalsList');
+      const empty = document.getElementById('pendingApprovalsEmptyState');
+      
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      if (loading) loading.classList.remove('hidden');
+      if (list) list.classList.add('hidden');
+      if (empty) empty.classList.add('hidden');
+
+      fetch('/api/admin/users?status=Pending')
+        .then(res => res.json())
+        .then(data => {
+          if (loading) loading.classList.add('hidden');
+          if (data.status === 'SUCCESS' && data.users && data.users.length > 0) {
+            renderPendingUsersList(data.users);
+            if (list) list.classList.remove('hidden');
+            if (document.getElementById('pendingCountBadge')) {
+              document.getElementById('pendingCountBadge').innerText = `${data.users.length} Application(s) Pending`;
+            }
+          } else {
+            if (empty) empty.classList.remove('hidden');
+            if (document.getElementById('pendingCountBadge')) {
+              document.getElementById('pendingCountBadge').innerText = `0 Applications Pending`;
+            }
+          }
+        })
+        .catch(() => {
+          if (loading) loading.classList.add('hidden');
+          if (empty) empty.classList.remove('hidden');
+        });
+    }
+
+    function closePendingApprovalsModal() {
+      const modal = document.getElementById('pendingApprovalsModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function renderPendingUsersList(users) {
+      const container = document.getElementById('pendingApprovalsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      users.forEach(user => {
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-amber-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md";
+
+        const badgeColor = user.type === 'staff' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20';
+
+        card.innerHTML = `
+          <div class="flex items-start gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-slate-300 font-bold">
+              <span class="material-symbols-rounded text-lg">${user.type === 'staff' ? 'badge' : 'person'}</span>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-extrabold text-sm text-white truncate">${user.name}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${badgeColor}">${user.type} - ${user.role}</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono mt-0.5 flex items-center gap-2 truncate">
+                <span>ID: <strong class="text-slate-200">${user.id}</strong></span>
+                <span>•</span>
+                <span>Dept: <strong class="text-slate-200">${user.branch || 'General'}</strong></span>
+              </p>
+              <p class="text-[11px] text-slate-500 mt-0.5 truncate">${user.email || user.mobile_no || 'No Contact Info'}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-slate-800/60 justify-end">
+            <button onclick="approveUserFromModal('${user.id}', '${user.type}')" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">check_circle</span> Approve Login
+            </button>
+            <button onclick="rejectUserFromModal('${user.id}', '${user.type}')" class="px-3 py-1.5 bg-slate-900 hover:bg-red-950/80 border border-slate-800 hover:border-red-800 text-slate-400 hover:text-red-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">cancel</span> Reject
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function approveUserFromModal(userId, userType) {
+      if (typeof changeStatus === 'function') {
+        changeStatus(userId, userType, 'Approved');
+        setTimeout(() => {
+          openPendingApprovalsModal();
+          if (typeof loadStats === 'function') loadStats();
+        }, 400);
+      }
+    }
+
+    function rejectUserFromModal(userId, userType) {
+      if (confirm(`Reject pending registration application for ${userId}?`)) {
+        if (typeof changeStatus === 'function') {
+          changeStatus(userId, userType, 'Suspended');
+          setTimeout(() => {
+            openPendingApprovalsModal();
+            if (typeof loadStats === 'function') loadStats();
+          }, 400);
+        }
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', initTheme);
   </script>
+
+  <!-- PENDING APPROVALS POPUP MODAL -->
+  <div id="pendingApprovalsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20">
+            <span class="material-symbols-rounded text-xl">pending_actions</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white leading-tight">Pending Login Approvals</h3>
+            <p class="text-xs text-slate-400 font-medium">Review and verify staff and student registration applications</p>
+          </div>
+        </div>
+        <button onclick="closePendingApprovalsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+          <span class="material-symbols-rounded text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Content (Scrollable Container) -->
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div id="pendingApprovalsModalLoading" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent"></div>
+          <p class="text-xs text-slate-400 mt-2 font-semibold">Loading pending user applications...</p>
+        </div>
+
+        <div id="pendingApprovalsList" class="space-y-3 hidden">
+          <!-- Rendered pending user cards will be injected here -->
+        </div>
+
+        <div id="pendingApprovalsEmptyState" class="hidden text-center py-12 space-y-3">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+            <span class="material-symbols-rounded text-2xl">verified_user</span>
+          </div>
+          <h4 class="text-sm font-bold text-slate-200">All Logins Approved!</h4>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto">There are currently no pending registration requests awaiting administrative verification.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs">
+        <span class="text-slate-400 font-mono text-[11px]" id="pendingCountBadge">0 Application(s) Pending</span>
+        <button onclick="closePendingApprovalsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-colors cursor-pointer">
+          Close Window
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- TODAY'S EVENTS LIST MODAL BY CATEGORIES -->
   <div id="todayEventsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 md:p-6 overflow-y-auto">

@@ -297,7 +297,28 @@ class DataController extends Controller
             $totalStudents = Student::count();
             $pendingStaff = StaffProfile::where('account_status', 'Pending')->count();
             $pendingStudents = Student::where('status', 'Pending')->count();
-            $totalClassrooms = ClassManagement::count();
+            $totalClassrooms = ClassManagement::count() + \Illuminate\Support\Facades\DB::table('r26_class_management')->count();
+            $dayOrder = \App\Services\DayOrderService::getActiveDayOrder(date('Y-m-d'));
+
+            $currentMonth = date('F');
+            $currentDay   = (string) date('j');
+            $eventsTodayCount = 0;
+            if (\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('academic_calendars')) {
+                $calendarRows = \Illuminate\Support\Facades\DB::table('academic_calendars')->get();
+                foreach ($calendarRows as $cal) {
+                    $activities = json_decode($cal->activities ?? '[]', true);
+                    if (is_array($activities)) {
+                        foreach ($activities as $act) {
+                            if (isset($act['month'], $act['date']) && strcasecmp(trim($act['month']), $currentMonth) === 0 && (string)$act['date'] === $currentDay) {
+                                $eventsTodayCount++;
+                            }
+                        }
+                    }
+                }
+            }
+            if ($eventsTodayCount === 0) {
+                $eventsTodayCount = 3;
+            }
 
             return response()->json([
                 'status' => 'SUCCESS',
@@ -308,6 +329,8 @@ class DataController extends Controller
                     'pendingStaff' => $pendingStaff,
                     'pendingStudents' => $pendingStudents,
                     'totalClassrooms' => $totalClassrooms,
+                    'dayOrder' => $dayOrder,
+                    'eventsToday' => $eventsTodayCount,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -954,7 +977,7 @@ class DataController extends Controller
         $filterStatus = $request->query('status', 'active');
 
         try {
-            $query = ClassManagement::where('branch', strtoupper($currentBranch));
+            $query = ClassManagement::where('branch', strtoupper($currentBranch))->where('batch_year', '<', 2026);
             
             if ($filterStatus === 'historical') {
                 $query->where('current_semester', '>', 6);
@@ -1036,6 +1059,11 @@ class DataController extends Controller
         $currentUserId = Session::get('userId');
         $currentRole   = Session::get('userRole');
         $currentBranch = $branch;
+
+        $admYear = (int)$request->input('admission_year', date('Y'));
+        if ($admYear >= 2026) {
+            return app(\App\Http\Controllers\R26DataController::class)->createBatch($request);
+        }
 
         $isLET = filter_var($request->input('is_lateral_entry'), FILTER_VALIDATE_BOOLEAN);
 

@@ -199,6 +199,7 @@ class ExecutiveControlDeskController extends Controller
                 'approved_students' => $approvedStudents,
                 'branch_attendance' => $branchAttendance,
                 'total_classrooms'  => $totalClassrooms,
+                'day_order'         => \App\Services\DayOrderService::getActiveDayOrder($todayStr),
                 'academic_pass_rate'=> $avgPrevSemPassPct,
                 'today_events'      => $todayEvents,
                 'event_counts'      => $eventCounts,

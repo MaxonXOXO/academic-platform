@@ -1940,7 +1940,7 @@ class MentoringController extends Controller
                                         $assignedSub = $assignments->firstWhere('subject_code', $subCode);
                                     }
 
-                                    $isOwnClass = $matchesName || ($assignedSub && (empty($staffNameClean) || $matchesName));
+                                    $isOwnClass = $matchesName || ($assignedSub !== null);
 
                                     if ($isOwnClass) {
                                         $fullTimetablesByDay[$dayKey][] = (object) [

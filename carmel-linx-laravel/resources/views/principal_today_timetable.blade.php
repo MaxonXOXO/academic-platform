@@ -62,7 +62,7 @@
   <!-- Top Navigation Bar -->
   <header class="bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-30 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-4 no-print">
     <div class="flex items-center gap-3">
-      <a href="/dashboard/principal" class="p-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-xl transition-premium flex items-center justify-center cursor-pointer no-underline" title="Return to Principal Desk">
+      <a href="javascript:void(0)" onclick="if (document.referrer && !document.referrer.includes('/today-timetable')) { window.location.href = document.referrer; } else { window.location.href = '/dashboard/principal'; }" class="p-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-xl transition-premium flex items-center justify-center cursor-pointer no-underline" title="Return to Home / Desk">
         <span class="material-symbols-rounded text-lg">arrow_back</span>
       </a>
       <img src="{{ asset('logo.jpg') }}" class="w-9 h-9 rounded-xl object-cover border border-slate-750 shadow-md">

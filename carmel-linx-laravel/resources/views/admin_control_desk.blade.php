@@ -194,7 +194,7 @@
       </button>
 
       <!-- Today's Master Timetable Desk Link -->
-      <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
+      <a href="/dashboard/principal/today-timetable" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
          <span class="material-symbols-rounded text-lg">calendar_view_day</span> Todays Timetable
       </a>
 
@@ -584,7 +584,7 @@
                 </a>
               </div>
               <div class="mt-3 pt-2.5 border-t border-slate-800/60">
-                <a href="/dashboard/principal/today-timetable" target="_blank" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-2 no-underline shadow-md">
+                <a href="/dashboard/principal/today-timetable" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-2 no-underline shadow-md">
                   <span class="material-symbols-rounded text-sm">calendar_view_day</span> Open Institutional Today's Timetable Desk
                 </a>
               </div>
@@ -3423,7 +3423,7 @@
     }
 
     function openDepartmentTimetables() {
-      window.open('/dashboard/principal/today-timetable', '_blank');
+      window.location.href = '/dashboard/principal/today-timetable';
     }
 
     function openPendingApprovalsModal() {

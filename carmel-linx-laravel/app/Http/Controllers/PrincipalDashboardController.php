@@ -126,8 +126,22 @@ class PrincipalDashboardController extends Controller
                     $staffNameOrMobile = '';
 
                     if (is_array($slot)) {
-                        $subCode = trim($slot['subject'] ?? ($slot['subject_code'] ?? ''));
-                        $staffNameOrMobile = trim($slot['staff'] ?? ($slot['staff_name'] ?? ''));
+                        if (!empty($slot['is_parallel']) && !empty($slot['parallel_labs'])) {
+                            $pCodes = [];
+                            $pStaff = [];
+                            foreach ($slot['parallel_labs'] as $pLab) {
+                                if (!empty($pLab['subject'])) $pCodes[] = trim($pLab['subject']);
+                                if (!empty($pLab['staff'])) {
+                                    $stArr = is_array($pLab['staff']) ? $pLab['staff'] : explode(',', $pLab['staff']);
+                                    foreach ($stArr as $st) { if ($st) $pStaff[] = trim($st); }
+                                }
+                            }
+                            $subCode = implode(' / ', array_unique($pCodes));
+                            $staffNameOrMobile = implode(', ', array_unique($pStaff));
+                        } else {
+                            $subCode = trim($slot['subject'] ?? ($slot['subject_code'] ?? ''));
+                            $staffNameOrMobile = trim($slot['staff'] ?? ($slot['staff_name'] ?? ''));
+                        }
                     } elseif (is_string($slot)) {
                         $subCode = trim($slot);
                     }

@@ -252,7 +252,20 @@ class StudentAttendanceController extends Controller
         $hourlyStatus = [];
         for ($p = 1; $p <= 6; $p++) {
             $slotDetails = $classTtSlots[$p] ?? null;
-            $ttSubCode = is_array($slotDetails) ? ($slotDetails['subject'] ?? ($slotDetails['subject_code'] ?? '')) : $slotDetails;
+            $ttSubCode = '';
+            if (is_array($slotDetails)) {
+                if (!empty($slotDetails['is_parallel']) && !empty($slotDetails['parallel_labs'])) {
+                    $pCodes = [];
+                    foreach ($slotDetails['parallel_labs'] as $pLab) {
+                        if (!empty($pLab['subject'])) $pCodes[] = trim($pLab['subject']);
+                    }
+                    $ttSubCode = implode(' / ', array_unique($pCodes));
+                } else {
+                    $ttSubCode = $slotDetails['subject'] ?? ($slotDetails['subject_code'] ?? '');
+                }
+            } else {
+                $ttSubCode = $slotDetails;
+            }
             $matchedSub = $batchSubjects->firstWhere('subject_code', $ttSubCode);
 
             $hourlyStatus[$p] = [

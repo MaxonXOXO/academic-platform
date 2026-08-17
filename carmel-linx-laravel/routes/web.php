@@ -1212,9 +1212,29 @@ Route::middleware(['web'])->group(function () {
 
                     // Group period numbers by subject code for this day
                     $subjectPeriods = [];
+                    $parallelStaffMap = [];
+
                     for ($h = 1; $h <= 7; $h++) {
-                        if (!empty($slots[$h]['subject'])) {
-                            $code = trim($slots[$h]['subject']);
+                        $slotData = $slots[$h] ?? null;
+                        if (!$slotData) continue;
+
+                        if (!empty($slotData['is_parallel']) && !empty($slotData['parallel_labs'])) {
+                            foreach ($slotData['parallel_labs'] as $pLab) {
+                                if (!empty($pLab['subject'])) {
+                                    $code = trim($pLab['subject']);
+                                    $subjectPeriods[$code][] = $h;
+                                    if (!empty($pLab['staff'])) {
+                                        $staffList = is_array($pLab['staff']) ? $pLab['staff'] : array_map('trim', explode(',', $pLab['staff']));
+                                        foreach ($staffList as $stName) {
+                                            if ($stName) {
+                                                $parallelStaffMap[$code][$h][] = $stName;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (!empty($slotData['subject'])) {
+                            $code = trim($slotData['subject']);
                             $subjectPeriods[$code][] = $h;
                         }
                     }
@@ -1247,6 +1267,41 @@ Route::middleware(['web'])->group(function () {
                             ->where('subject_staff_assignments.batch_subject_id', $subjInfo->id)
                             ->select('staff_profiles.name', 'staff_profiles.mobile_no', 'staff_profiles.designation', 'staff_profiles.branch')
                             ->get();
+
+                        // Merge explicit parallel lab staff assigned in timetable JSON
+                        if (!empty($parallelStaffMap[$subjectCode])) {
+                            $slotStaffNames = [];
+                            foreach ($parallelStaffMap[$subjectCode] as $pList) {
+                                foreach ($pList as $stName) {
+                                    if ($stName) $slotStaffNames[] = $stName;
+                                }
+                            }
+                            $slotStaffNames = array_unique($slotStaffNames);
+
+                            if (!empty($slotStaffNames)) {
+                                $explicitStaffProfiles = DB::table('staff_profiles')
+                                    ->whereIn('name', $slotStaffNames)
+                                    ->get(['name', 'mobile_no', 'designation', 'branch']);
+
+                                foreach ($slotStaffNames as $stName) {
+                                    $found = $explicitStaffProfiles->firstWhere('name', $stName);
+                                    if ($found) {
+                                        if (!$assignedStaff->contains('name', $stName)) {
+                                            $assignedStaff->push($found);
+                                        }
+                                    } else {
+                                        if (!$assignedStaff->contains('name', $stName)) {
+                                            $assignedStaff->push((object)[
+                                                'name' => $stName,
+                                                'mobile_no' => '',
+                                                'designation' => 'Lecturer',
+                                                'branch' => $branchCode
+                                            ]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         // Fallback to slot staff name if DB assignment is empty
                         if ($assignedStaff->isEmpty()) {

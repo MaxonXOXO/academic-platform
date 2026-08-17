@@ -2728,6 +2728,19 @@
 
     function slotsEqual(slotA, slotB) {
       if (!slotA || !slotB) return false;
+      if (slotA.is_parallel || slotB.is_parallel) {
+        if (slotA.is_parallel !== slotB.is_parallel) return false;
+        const labsA = slotA.parallel_labs || [];
+        const labsB = slotB.parallel_labs || [];
+        if (labsA.length !== labsB.length) return false;
+        return labsA.every((labA, idx) => {
+          const labB = labsB[idx];
+          if (!labB) return false;
+          const staffA = (Array.isArray(labA.staff) ? labA.staff.join(',') : (labA.staff || ''));
+          const staffB = (Array.isArray(labB.staff) ? labB.staff.join(',') : (labB.staff || ''));
+          return labA.subject === labB.subject && staffA === staffB;
+        });
+      }
       return slotA.subject === slotB.subject;
     }
 
@@ -2757,12 +2770,12 @@
         const s6 = dayData[6] || { subject: '', staff: '' };
 
         // Forenoon continuous slots (1, 2, 3) merging logic
-        if (s1.subject && slotsEqual(s1, s2) && slotsEqual(s2, s3)) {
+        if ((s1.subject || s1.is_parallel) && slotsEqual(s1, s2) && slotsEqual(s2, s3)) {
           dispCellsHtml += renderTimetableDisplayCell(s1, 3);
-        } else if (s1.subject && slotsEqual(s1, s2)) {
+        } else if ((s1.subject || s1.is_parallel) && slotsEqual(s1, s2)) {
           dispCellsHtml += renderTimetableDisplayCell(s1, 2);
           dispCellsHtml += renderTimetableDisplayCell(s3, 1);
-        } else if (s2.subject && slotsEqual(s2, s3)) {
+        } else if ((s2.subject || s2.is_parallel) && slotsEqual(s2, s3)) {
           dispCellsHtml += renderTimetableDisplayCell(s1, 1);
           dispCellsHtml += renderTimetableDisplayCell(s2, 2);
         } else {
@@ -2777,12 +2790,12 @@
         }
         
         // Afternoon continuous slots (4, 5, 6) merging logic
-        if (s4.subject && slotsEqual(s4, s5) && slotsEqual(s5, s6)) {
+        if ((s4.subject || s4.is_parallel) && slotsEqual(s4, s5) && slotsEqual(s5, s6)) {
           dispCellsHtml += renderTimetableDisplayCell(s4, 3);
-        } else if (s4.subject && slotsEqual(s4, s5)) {
+        } else if ((s4.subject || s4.is_parallel) && slotsEqual(s4, s5)) {
           dispCellsHtml += renderTimetableDisplayCell(s4, 2);
           dispCellsHtml += renderTimetableDisplayCell(s6, 1);
-        } else if (s5.subject && slotsEqual(s5, s6)) {
+        } else if ((s5.subject || s5.is_parallel) && slotsEqual(s5, s6)) {
           dispCellsHtml += renderTimetableDisplayCell(s4, 1);
           dispCellsHtml += renderTimetableDisplayCell(s5, 2);
         } else {
@@ -2794,16 +2807,20 @@
         trDisp.innerHTML = dispCellsHtml;
         displayBody.appendChild(trDisp);
 
-        // 2. Render Edit Row (always unmerged for individual slot selection)
+        // 2. Render Edit Row (Merged single card for 3-hour parallel lab blocks on Hours 1-3 & 4-6)
         const trEdit = document.createElement('tr');
         trEdit.className = 'border-b border-slate-800/40';
         
         let editCellsHtml = `<td class="p-3 text-center font-bold text-slate-300 bg-slate-900/40">${day}</td>`;
         
         // Forenoon hours (1, 2, 3)
-        for (let h = 1; h <= 3; h++) {
-          const slot = dayData[h] || { subject: '', staff: '' };
-          editCellsHtml += renderTimetableEditCell(day, h, slot);
+        if (s1 && s1.is_parallel) {
+          editCellsHtml += renderTimetableEditCell(day, 1, s1, 3);
+        } else {
+          for (let h = 1; h <= 3; h++) {
+            const slot = dayData[h] || { subject: '', staff: '' };
+            editCellsHtml += renderTimetableEditCell(day, h, slot, 1);
+          }
         }
         
         // Lunch Break Column (merged vertically)
@@ -2812,9 +2829,13 @@
         }
         
         // Afternoon hours (4, 5, 6)
-        for (let h = 4; h <= 6; h++) {
-          const slot = dayData[h] || { subject: '', staff: '' };
-          editCellsHtml += renderTimetableEditCell(day, h, slot);
+        if (s4 && s4.is_parallel) {
+          editCellsHtml += renderTimetableEditCell(day, 4, s4, 3);
+        } else {
+          for (let h = 4; h <= 6; h++) {
+            const slot = dayData[h] || { subject: '', staff: '' };
+            editCellsHtml += renderTimetableEditCell(day, h, slot, 1);
+          }
         }
         
         trEdit.innerHTML = editCellsHtml;
@@ -2824,6 +2845,44 @@
 
     function renderTimetableDisplayCell(slot, colspan = 1) {
       const colspanAttr = colspan > 1 ? `colspan="${colspan}"` : '';
+      if (!slot) {
+        return `<td ${colspanAttr} class="p-4 text-center text-slate-600 italic text-sm">-- Free Period --</td>`;
+      }
+
+      if (slot.is_parallel && slot.parallel_labs && slot.parallel_labs.length > 0) {
+        const labsHtml = slot.parallel_labs.map((lab, idx) => {
+          const matchedSub = currentAllocatedSubjects.find(s => s.subject_code === lab.subject);
+          const subName = matchedSub ? matchedSub.subject_name : '';
+          let staffDisplay = '';
+          if (Array.isArray(lab.staff) && lab.staff.length > 0) {
+            staffDisplay = lab.staff.filter(Boolean).join(', ');
+          } else if (matchedSub && matchedSub.staff && matchedSub.staff.length > 0) {
+            staffDisplay = matchedSub.staff.map(s => s.name).join(', ');
+          } else {
+            staffDisplay = lab.staff || '';
+          }
+          const divider = idx > 0 ? 'border-t-2 border-dashed border-amber-500/40 pt-3 mt-3' : '';
+          const labTitle = idx === 0 ? 'LAB 1 (TOP)' : 'LAB 2 (BOTTOM)';
+          const badgeBg = idx === 0 ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+          return `
+            <div class="${divider} text-center space-y-1">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${badgeBg}">
+                <span>${labTitle}</span>
+              </div>
+              <div class="font-black text-slate-100 text-base leading-snug">${lab.subject} ${subName ? '<span class="text-xs text-slate-400 font-normal">(' + subName + ')</span>' : ''}</div>
+              <div class="text-amber-300 text-xs font-bold">${staffDisplay ? 'Faculty: ' + staffDisplay : 'No Faculty Assigned'}</div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <td ${colspanAttr} class="p-4 text-center align-middle bg-slate-950/70 border-2 border-amber-500/40 rounded-xl shadow-2xl">
+            ${colspan === 3 ? '<div class="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2 border-b border-amber-500/20 pb-1">⚡ 3-HOUR SHARED PARALLEL LAB SESSION</div>' : ''}
+            ${labsHtml}
+          </td>
+        `;
+      }
+
       if (!slot.subject) {
         return `<td ${colspanAttr} class="p-4 text-center text-slate-600 italic text-sm">-- Free Period --</td>`;
       }
@@ -2857,34 +2916,152 @@
       `;
     }
 
-    function renderTimetableEditCell(day, hour, slot) {
+    function getSubjectOptionsHtml(selectedCode = '') {
       let subOptions = `<option value="">-- Free Period --</option>`;
       currentAllocatedSubjects.forEach(sub => {
-        const isSelected = sub.subject_code === slot.subject ? 'selected' : '';
+        const isSelected = sub.subject_code === selectedCode ? 'selected' : '';
         subOptions += `<option value="${sub.subject_code}" ${isSelected}>${sub.subject_code} - ${sub.subject_name}</option>`;
       });
+      return subOptions;
+    }
 
+    function getStaffOptionsHtml(subjectCode = '', selectedStaff = '') {
       let staffOptions = `<option value="">-- No Staff --</option>`;
-      const matchedSub = currentAllocatedSubjects.find(s => s.subject_code === slot.subject);
+      const matchedSub = currentAllocatedSubjects.find(s => s.subject_code === subjectCode);
       if (matchedSub && matchedSub.staff) {
         matchedSub.staff.forEach(st => {
-          const isSelected = st.name === slot.staff ? 'selected' : '';
+          const isSelected = st.name === selectedStaff ? 'selected' : '';
           staffOptions += `<option value="${st.name}" ${isSelected}>${st.name}</option>`;
         });
       }
+      return staffOptions;
+    }
+
+    function renderTimetableEditCell(day, hour, slot, colspan = 1) {
+      const isParallel = slot && slot.is_parallel;
+      const labs = (isParallel && slot.parallel_labs) ? slot.parallel_labs : [];
+      const lab1 = labs[0] || { subject: '', staff: [] };
+      const lab2 = labs[1] || { subject: '', staff: [] };
+
+      const lab1Staff = Array.isArray(lab1.staff) ? lab1.staff : [lab1.staff].filter(Boolean);
+      const lab2Staff = Array.isArray(lab2.staff) ? lab2.staff : [lab2.staff].filter(Boolean);
+
+      const colspanAttr = colspan > 1 ? `colspan="${colspan}"` : '';
+
+      if (isParallel) {
+        const blockText = hour <= 3 ? 'Periods 1–3 (Forenoon)' : 'Periods 4–6 (Afternoon)';
+        return `
+          <td ${colspanAttr} class="p-3 align-top bg-amber-950/20 border-2 border-amber-500/40 rounded-xl" data-day="${day}" data-hour="${hour}" data-mode="parallel">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between pb-1 border-b border-amber-500/20">
+                <span class="text-[11px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1">⚡ 3-Hour Parallel Lab Block (${blockText})</span>
+                <button type="button" onclick="switchSlotMode(this, '${day}', ${hour}, 'single')" class="text-[10px] text-slate-400 hover:text-slate-200 underline cursor-pointer font-medium">Switch to Standard</button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <!-- Lab 1 (Top) -->
+                <div class="space-y-1 bg-slate-900/90 p-2 rounded-lg border border-sky-500/30">
+                  <div class="text-[11px] font-bold text-sky-400 flex items-center justify-between">
+                    <span>LAB 1 (BATCH A)</span>
+                    <span class="text-[9px] text-slate-400 font-normal">2 Faculty</span>
+                  </div>
+                  <select onchange="updateParallelSubStaff(this)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-xs text-white outline-none select-parallel-sub-1">
+                    ${getSubjectOptionsHtml(lab1.subject)}
+                  </select>
+                  <div class="grid grid-cols-2 gap-1">
+                    <select class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] text-slate-300 outline-none select-parallel-staff-1a">
+                      ${getStaffOptionsHtml(lab1.subject, lab1Staff[0] || '')}
+                    </select>
+                    <select class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] text-slate-300 outline-none select-parallel-staff-1b">
+                      ${getStaffOptionsHtml(lab1.subject, lab1Staff[1] || '')}
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Lab 2 (Bottom) -->
+                <div class="space-y-1 bg-slate-900/90 p-2 rounded-lg border border-emerald-500/30">
+                  <div class="text-[11px] font-bold text-emerald-400 flex items-center justify-between">
+                    <span>LAB 2 (BATCH B)</span>
+                    <span class="text-[9px] text-slate-400 font-normal">2 Faculty</span>
+                  </div>
+                  <select onchange="updateParallelSubStaff(this)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-xs text-white outline-none select-parallel-sub-2">
+                    ${getSubjectOptionsHtml(lab2.subject)}
+                  </select>
+                  <div class="grid grid-cols-2 gap-1">
+                    <select class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] text-slate-300 outline-none select-parallel-staff-2a">
+                      ${getStaffOptionsHtml(lab2.subject, lab2Staff[0] || '')}
+                    </select>
+                    <select class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] text-slate-300 outline-none select-parallel-staff-2b">
+                      ${getStaffOptionsHtml(lab2.subject, lab2Staff[1] || '')}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        `;
+      }
+
+      // Show parallel button ONLY for hour 1 and hour 4
+      const showParallelBtn = (hour === 1 || hour === 4);
+      const parallelBtnHtml = showParallelBtn ? `
+        <button type="button" onclick="switchSlotMode(this, '${day}', ${hour}, 'parallel')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold hover:underline flex items-center gap-0.5 cursor-pointer">⚡ 2 Labs (3-Hr Block)</button>
+      ` : '';
 
       return `
-        <td class="p-2 w-44">
+        <td ${colspanAttr} class="p-2 w-44 align-top" data-day="${day}" data-hour="${hour}" data-mode="single">
           <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-slate-500 font-bold">Hour ${hour}</span>
+              ${parallelBtnHtml}
+            </div>
             <select onchange="updateTimetableStaffDropdown(this)" data-day="${day}" data-hour="${hour}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-sm text-white focus:border-violet-500 outline-none select-subject">
-              ${subOptions}
+              ${getSubjectOptionsHtml(slot ? slot.subject : '')}
             </select>
             <select data-day="${day}" data-hour="${hour}" class="w-full bg-slate-950 border border-slate-850 rounded-lg p-1 text-sm text-slate-300 focus:border-violet-500 outline-none select-staff">
-              ${staffOptions}
+              ${getStaffOptionsHtml(slot ? slot.subject : '', slot ? slot.staff : '')}
             </select>
           </div>
         </td>
       `;
+    }
+
+    function switchSlotMode(btn, day, hour, targetMode) {
+      const hNum = parseInt(hour);
+      const blockHours = (hNum <= 3) ? [1, 2, 3] : [4, 5, 6];
+
+      if (!currentTimetableData[day]) currentTimetableData[day] = {};
+
+      if (targetMode === 'parallel') {
+        const dummyParallelSlot = {
+          is_parallel: true,
+          parallel_labs: [
+            { subject: '', staff: [] },
+            { subject: '', staff: [] }
+          ]
+        };
+        blockHours.forEach(h => {
+          currentTimetableData[day][h] = JSON.parse(JSON.stringify(dummyParallelSlot));
+        });
+      } else {
+        blockHours.forEach(h => {
+          currentTimetableData[day][h] = { subject: '', staff: '' };
+        });
+      }
+
+      renderTimetable();
+    }
+
+    function updateParallelSubStaff(subSelect) {
+      const container = subSelect.closest('div.space-y-1');
+      if (!container) return;
+      const subjectCode = subSelect.value;
+      const staffSelects = container.querySelectorAll('select.select-parallel-staff-1a, select.select-parallel-staff-1b, select.select-parallel-staff-2a, select.select-parallel-staff-2b');
+
+      staffSelects.forEach(sel => {
+        const currentVal = sel.value;
+        sel.innerHTML = getStaffOptionsHtml(subjectCode, currentVal);
+      });
     }    function printTimetable() {
       if (!activeBatchId) return;
 
@@ -2922,18 +3099,22 @@
 
         // Collect scheduled subject codes
         [s1, s2, s3, s4, s5, s6].forEach(s => {
-          if (s.subject) scheduledSubjects.add(s.subject);
+          if (s.is_parallel && s.parallel_labs) {
+            s.parallel_labs.forEach(pl => { if (pl.subject) scheduledSubjects.add(pl.subject); });
+          } else if (s.subject) {
+            scheduledSubjects.add(s.subject);
+          }
         });
 
         let cellsHtml = `<td class="p-4 text-center font-bold bg-gray-100 day-cell">${day}</td>`;
 
         // Forenoon
-        if (s1.subject && slotsEqual(s1, s2) && slotsEqual(s2, s3)) {
+        if ((s1.subject || s1.is_parallel) && slotsEqual(s1, s2) && slotsEqual(s2, s3)) {
           cellsHtml += renderPrintCell(s1, 3);
-        } else if (s1.subject && slotsEqual(s1, s2)) {
+        } else if ((s1.subject || s1.is_parallel) && slotsEqual(s1, s2)) {
           cellsHtml += renderPrintCell(s1, 2);
           cellsHtml += renderPrintCell(s3, 1);
-        } else if (s2.subject && slotsEqual(s2, s3)) {
+        } else if ((s2.subject || s2.is_parallel) && slotsEqual(s2, s3)) {
           cellsHtml += renderPrintCell(s1, 1);
           cellsHtml += renderPrintCell(s2, 2);
         } else {
@@ -2948,12 +3129,12 @@
         }
 
         // Afternoon
-        if (s4.subject && slotsEqual(s4, s5) && slotsEqual(s5, s6)) {
+        if ((s4.subject || s4.is_parallel) && slotsEqual(s4, s5) && slotsEqual(s5, s6)) {
           cellsHtml += renderPrintCell(s4, 3);
-        } else if (s4.subject && slotsEqual(s4, s5)) {
+        } else if ((s4.subject || s4.is_parallel) && slotsEqual(s4, s5)) {
           cellsHtml += renderPrintCell(s4, 2);
           cellsHtml += renderPrintCell(s6, 1);
-        } else if (s5.subject && slotsEqual(s5, s6)) {
+        } else if ((s5.subject || s5.is_parallel) && slotsEqual(s5, s6)) {
           cellsHtml += renderPrintCell(s4, 1);
           cellsHtml += renderPrintCell(s5, 2);
         } else {
@@ -2967,6 +3148,24 @@
 
       function renderPrintCell(slot, colspan = 1) {
         const colspanAttr = colspan > 1 ? `colspan="${colspan}"` : '';
+        if (!slot) return `<td ${colspanAttr} class="p-1.5 text-center free-period">-- Free --</td>`;
+
+        if (slot.is_parallel && slot.parallel_labs && slot.parallel_labs.length > 0) {
+          let labsPrintHtml = slot.parallel_labs.map((lab, i) => {
+            const matchedSub = currentAllocatedSubjects.find(s => s.subject_code === lab.subject);
+            const subjectName = matchedSub ? matchedSub.subject_name : '';
+            let staffStr = Array.isArray(lab.staff) ? lab.staff.filter(Boolean).join(', ') : (lab.staff || '');
+            const border = i > 0 ? 'border-t: 1px dashed #cbd5e1; margin-top: 2px; padding-top: 2px;' : '';
+            return `
+              <div style="${border}">
+                <div style="font-weight: 900; font-size: 10px; line-height: 1.1; color: #000000;">${lab.subject} ${subjectName ? '(' + subjectName + ')' : ''}</div>
+                <div style="font-size: 8.5px; font-weight: 700; color: #1e3a8a; margin-top: 1px;">${staffStr}</div>
+              </div>
+            `;
+          }).join('');
+          return `<td ${colspanAttr} class="p-1 text-center" style="vertical-align: middle;">${labsPrintHtml}</td>`;
+        }
+
         if (!slot.subject) {
           return `<td ${colspanAttr} class="p-1.5 text-center free-period">-- Free --</td>`;
         }
@@ -3351,19 +3550,65 @@
       const editArea = document.getElementById('timetableEditBody');
       if (!editArea) return;
 
-      const subjectSelects = editArea.querySelectorAll('.select-subject');
-      subjectSelects.forEach(sel => {
-        const day = sel.getAttribute('data-day');
-        const hour = sel.getAttribute('data-hour');
-        const subject = sel.value;
-        
-        const cell = sel.closest('td');
-        const staffSel = cell.querySelector('.select-staff');
-        const staff = staffSel ? staffSel.value : '';
+      const cells = editArea.querySelectorAll('td[data-day][data-hour]');
+      cells.forEach(cell => {
+        const day = cell.getAttribute('data-day');
+        const hour = cell.getAttribute('data-hour');
+        const mode = cell.getAttribute('data-mode');
 
-        if (day && hour) {
+        if (!day || !hour) return;
+
+        if (mode === 'parallel') {
+          const sub1 = cell.querySelector('.select-parallel-sub-1')?.value || '';
+          const staff1a = cell.querySelector('.select-parallel-staff-1a')?.value || '';
+          const staff1b = cell.querySelector('.select-parallel-staff-1b')?.value || '';
+
+          const sub2 = cell.querySelector('.select-parallel-sub-2')?.value || '';
+          const staff2a = cell.querySelector('.select-parallel-staff-2a')?.value || '';
+          const staff2b = cell.querySelector('.select-parallel-staff-2b')?.value || '';
+
+          const parallelLabs = [];
+          if (sub1) {
+            parallelLabs.push({
+              subject: sub1,
+              staff: [staff1a, staff1b].filter(Boolean)
+            });
+          }
+          if (sub2) {
+            parallelLabs.push({
+              subject: sub2,
+              staff: [staff2a, staff2b].filter(Boolean)
+            });
+          }
+
+          if (parallelLabs.length > 0) {
+            payload[day][hour] = {
+              is_parallel: true,
+              parallel_labs: parallelLabs
+            };
+          } else {
+            payload[day][hour] = { subject: '', staff: '' };
+          }
+        } else {
+          const selSub = cell.querySelector('.select-subject');
+          const selStaff = cell.querySelector('.select-staff');
+          const subject = selSub ? selSub.value : '';
+          const staff = selStaff ? selStaff.value : '';
           payload[day][hour] = { subject, staff };
         }
+      });
+
+      // Normalize parallel lab slots across 3-hour blocks (1-3 and 4-6) to ensure consistent cell merging
+      days.forEach(day => {
+        [[1,2,3], [4,5,6]].forEach(block => {
+          const firstHour = block[0];
+          const firstSlot = payload[day][firstHour];
+          if (firstSlot && firstSlot.is_parallel) {
+            block.forEach(h => {
+              payload[day][h] = JSON.parse(JSON.stringify(firstSlot));
+            });
+          }
+        });
       });
 
       fetch(`/api/hod/batches/${encodeURIComponent(activeBatchId)}/timetable`, {

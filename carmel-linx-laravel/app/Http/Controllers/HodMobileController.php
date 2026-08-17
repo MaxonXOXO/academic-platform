@@ -213,8 +213,28 @@ class HodMobileController extends Controller
                     }
 
                     if ($slotData && !empty($slotData)) {
-                        $subCode = is_array($slotData) ? ($slotData['subject'] ?? ($slotData['subject_code'] ?? '')) : $slotData;
-                        $staffName = is_array($slotData) ? ($slotData['staff'] ?? '') : '';
+                        $subCode = '';
+                        $staffName = '';
+                        if (is_array($slotData)) {
+                            if (!empty($slotData['is_parallel']) && !empty($slotData['parallel_labs'])) {
+                                $pCodes = [];
+                                $pStaff = [];
+                                foreach ($slotData['parallel_labs'] as $pLab) {
+                                    if (!empty($pLab['subject'])) $pCodes[] = trim($pLab['subject']);
+                                    if (!empty($pLab['staff'])) {
+                                        $stArr = is_array($pLab['staff']) ? $pLab['staff'] : explode(',', $pLab['staff']);
+                                        foreach ($stArr as $st) { if ($st) $pStaff[] = trim($st); }
+                                    }
+                                }
+                                $subCode = implode(' / ', array_unique($pCodes));
+                                $staffName = implode(', ', array_unique($pStaff));
+                            } else {
+                                $subCode = $slotData['subject'] ?? ($slotData['subject_code'] ?? '');
+                                $staffName = $slotData['staff'] ?? '';
+                            }
+                        } else {
+                            $subCode = $slotData;
+                        }
 
                         $matchedSub = $semSubjects->firstWhere('subject_code', $subCode);
                         if (!$matchedSub) {

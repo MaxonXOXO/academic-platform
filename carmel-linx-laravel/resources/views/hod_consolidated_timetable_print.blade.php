@@ -211,12 +211,12 @@
                   <td class="p-1 font-black batch-cell text-black text-[9.5px] border-r border-black">{{ $classroomId }}<br><span class="text-[8px] font-bold text-slate-700">(Sem {{ $info['semester'] ?? 1 }})</span></td>
 
                   {{-- Forenoon Slots --}}
-                  @if ($s1['subject'] && $s1['subject'] === $s2['subject'] && $s2['subject'] === $s3['subject'])
+                  @if (areSlotsEqualForPrint($s1, $s2) && areSlotsEqualForPrint($s2, $s3))
                     {!! renderPrintCellHtml($s1, 3, $info['subjects']) !!}
-                  @elseif ($s1['subject'] && $s1['subject'] === $s2['subject'])
+                  @elseif (areSlotsEqualForPrint($s1, $s2))
                     {!! renderPrintCellHtml($s1, 2, $info['subjects']) !!}
                     {!! renderPrintCellHtml($s3, 1, $info['subjects']) !!}
-                  @elseif ($s2['subject'] && $s2['subject'] === $s3['subject'])
+                  @elseif (areSlotsEqualForPrint($s2, $s3))
                     {!! renderPrintCellHtml($s1, 1, $info['subjects']) !!}
                     {!! renderPrintCellHtml($s2, 2, $info['subjects']) !!}
                   @else
@@ -233,12 +233,12 @@
                   @endif
 
                   {{-- Afternoon Slots --}}
-                  @if ($s4['subject'] && $s4['subject'] === $s5['subject'] && $s5['subject'] === $s6['subject'])
+                  @if (areSlotsEqualForPrint($s4, $s5) && areSlotsEqualForPrint($s5, $s6))
                     {!! renderPrintCellHtml($s4, 3, $info['subjects']) !!}
-                  @elseif ($s4['subject'] && $s4['subject'] === $s5['subject'])
+                  @elseif (areSlotsEqualForPrint($s4, $s5))
                     {!! renderPrintCellHtml($s4, 2, $info['subjects']) !!}
                     {!! renderPrintCellHtml($s6, 1, $info['subjects']) !!}
-                  @elseif ($s5['subject'] && $s5['subject'] === $s6['subject'])
+                  @elseif (areSlotsEqualForPrint($s5, $s6))
                     {!! renderPrintCellHtml($s4, 1, $info['subjects']) !!}
                     {!! renderPrintCellHtml($s5, 2, $info['subjects']) !!}
                   @else
@@ -280,8 +280,64 @@
 </html>
 
 @php
+  function areSlotsEqualForPrint($slotA, $slotB) {
+    if (!$slotA || !$slotB) return false;
+    if (!empty($slotA['is_parallel']) || !empty($slotB['is_parallel'])) {
+        if (empty($slotA['is_parallel']) || empty($slotB['is_parallel'])) return false;
+        $labsA = $slotA['parallel_labs'] ?? [];
+        $labsB = $slotB['parallel_labs'] ?? [];
+        if (count($labsA) !== count($labsB)) return false;
+        foreach ($labsA as $i => $labA) {
+            $labB = $labsB[$i] ?? [];
+            $staffA = is_array($labA['staff'] ?? '') ? implode(',', $labA['staff']) : ($labA['staff'] ?? '');
+            $staffB = is_array($labB['staff'] ?? '') ? implode(',', $labB['staff']) : ($labB['staff'] ?? '');
+            if (($labA['subject'] ?? '') !== ($labB['subject'] ?? '') || $staffA !== $staffB) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return ($slotA['subject'] ?? '') === ($slotB['subject'] ?? '') && !empty($slotA['subject']);
+  }
+
   function renderPrintCellHtml($slot, $colspan = 1, $subjectsList = []) {
     $colspanAttr = $colspan > 1 ? "colspan=\"{$colspan}\"" : "";
+    if (empty($slot)) {
+      return "<td {$colspanAttr} class=\"p-0.5 text-center free-period\">-- Free --</td>";
+    }
+
+    if (!empty($slot['is_parallel']) && !empty($slot['parallel_labs'])) {
+        $labsHtml = [];
+        foreach ($slot['parallel_labs'] as $idx => $lab) {
+            $subCode = $lab['subject'] ?? '';
+            $matchedSub = is_array($subjectsList) 
+              ? collect($subjectsList)->firstWhere('subject_code', $subCode)
+              : $subjectsList->firstWhere('subject_code', $subCode);
+
+            $subjectName = $matchedSub ? ($matchedSub->subject_name ?? '') : '';
+            $staffDisplay = is_array($lab['staff'] ?? null) ? implode(', ', array_filter($lab['staff'])) : ($lab['staff'] ?? '');
+            if (empty($staffDisplay) && $matchedSub) {
+                $assignments = DB::table('subject_staff_assignments')
+                    ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+                    ->where('subject_staff_assignments.batch_subject_id', $matchedSub->id)
+                    ->pluck('staff_profiles.name')
+                    ->toArray();
+                $staffDisplay = implode(', ', $assignments);
+            }
+            $labLabel = $idx === 0 ? 'LAB 1 (TOP)' : 'LAB 2 (BOTTOM)';
+            $border = $idx > 0 ? 'border-t: 1px dashed #000000; margin-top: 1.5px; padding-top: 1.5px;' : '';
+            $labsHtml[] = "
+              <div style=\"{$border}\">
+                <div style=\"font-weight: 900; font-size: 7px; color: #475569; text-transform: uppercase;\">{$labLabel}</div>
+                <div style=\"font-weight: 900; font-size: 8.5px; line-height: 1.1; color: #000000;\">{$subCode} " . ($subjectName ? "({$subjectName})" : "") . "</div>
+                <div style=\"font-size: 7px; font-weight: 700; color: #1e3a8a; margin-top: 0.5px;\">Faculty: {$staffDisplay}</div>
+              </div>
+            ";
+        }
+        $labsHtmlStr = implode('', $labsHtml);
+        return "<td {$colspanAttr} class=\"p-0.5 text-center\" style=\"vertical-align: middle;\">{$labsHtmlStr}</td>";
+    }
+
     if (empty($slot['subject'])) {
       return "<td {$colspanAttr} class=\"p-0.5 text-center free-period\">-- Free --</td>";
     }

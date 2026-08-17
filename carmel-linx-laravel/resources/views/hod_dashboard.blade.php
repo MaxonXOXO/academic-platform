@@ -665,16 +665,22 @@
           <h3 id="batchDetailTitle" class="font-black text-slate-100 text-sm">Batch Detail</h3>
           <p id="batchDetailSubtitle" class="text-sm text-slate-400 mt-0.5">Manage tutor, mentor, subjects, and enrolled students</p>
         </div>
-        <div class="flex items-center gap-2">
-          <!-- Graduate / Archive Batch button (NEW - purely additive) -->
-          <button id="btnGraduateBatch" onclick="confirmGraduateBatch()" class="hidden px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5">
-            <span class="material-symbols-rounded" style="font-size:15px">school</span> Graduate / Archive Batch
+        <div class="flex items-center gap-3">
+          <!-- Action Buttons Group (Delete & Graduate) -->
+          <div class="flex items-center gap-2 pr-3 border-r border-slate-800">
+            <!-- Delete Batch button (Placed safely away from close button) -->
+            <button id="btnDeleteBatch" onclick="confirmDeleteBatch()" class="hidden px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-rounded" style="font-size:15px">delete_forever</span> Delete Batch
+            </button>
+            <!-- Graduate / Archive Batch button -->
+            <button id="btnGraduateBatch" onclick="confirmGraduateBatch()" class="hidden px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-rounded" style="font-size:15px">school</span> Graduate / Archive Batch
+            </button>
+          </div>
+          <!-- Isolated Close Button -->
+          <button onclick="closeBatchDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-premium cursor-pointer" title="Close Modal">
+            <span class="material-symbols-rounded text-sm">close</span>
           </button>
-          <!-- Delete Batch button -->
-          <button id="btnDeleteBatch" onclick="confirmDeleteBatch()" class="hidden px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5">
-            <span class="material-symbols-rounded" style="font-size:15px">delete_forever</span> Delete Batch
-          </button>
-          <button onclick="closeBatchDetailModal()" class="text-slate-400 hover:text-white cursor-pointer"><span class="material-symbols-rounded text-xs">close</span></button>
         </div>
       </div>
 

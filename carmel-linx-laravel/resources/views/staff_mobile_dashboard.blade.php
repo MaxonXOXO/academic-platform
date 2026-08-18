@@ -697,7 +697,7 @@
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <div>
                                     <strong class="text-white d-block" style="font-size: 0.88rem;">Room: {{ $room->room_code ?? $room->id }}</strong>
-                                    <small class="text-secondary" style="font-size: 0.75rem;">Batch: <strong class="text-cyan">{{ $room->classroom_id ?? 'Academic' }}</strong></small>
+                                    <small class="text-secondary" style="font-size: 0.75rem;"><strong class="text-cyan">{{ $room->classroom_id ?? 'Academic' }}</strong></small>
                                 </div>
                                 <span class="badge badge-app" style="background-color: rgba(249, 115, 22, 0.18); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35);">{{ $room->status ?? 'Active' }}</span>
                             </div>
@@ -765,7 +765,7 @@
                     <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-2">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <div>
-                                <strong class="text-white d-block" style="font-size: 0.88rem;">Batch: {{ $cls->classroom_id }}</strong>
+                                <strong class="text-white d-block" style="font-size: 0.88rem;">{{ $cls->classroom_id }}</strong>
                                 <small class="text-secondary" style="font-size: 0.75rem;">Branch: {{ $cls->branch }} | Sem {{ $cls->current_semester }}</small>
                             </div>
                             <span class="badge bg-cyan bg-opacity-20 text-cyan badge-app">Tutor</span>
@@ -1536,8 +1536,8 @@
                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                             <div>
                                 <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">${periodText}</span>
-                                <strong class="text-white" style="font-size: 0.9rem;">${st.subject_code}</strong>
-                                <small class="text-slate-400 d-block mt-0.5" style="font-size: 0.76rem; color: #94a3b8 !important;">${st.subject_name || ''} | Batch: <strong class="text-cyan">${st.classroom_id}</strong></small>
+                                <span class="badge font-mono fw-black me-1" style="background-color: rgba(56, 189, 248, 0.15) !important; color: #38bdf8 !important; border: 1px solid rgba(56, 189, 248, 0.3) !important; font-size: 0.76rem;">${st.subject_code}</span>
+                                <small class="text-slate-400 d-block mt-1" style="font-size: 0.76rem; color: #94a3b8 !important;">${st.subject_name || ''}${st.subject_name ? ' | ' : ''}<strong class="text-cyan">${st.classroom_id}</strong></small>
                             </div>
                             <button onclick="openClassAttendanceModal('${st.batch_subject_id || ''}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')" class="btn btn-sm btn-cyan px-3 py-1.5 rounded-pill fw-black shadow-sm flex-shrink-0 ms-2" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.76rem;">
                                 <i class="fa-solid fa-clipboard-user me-1"></i> Attendance

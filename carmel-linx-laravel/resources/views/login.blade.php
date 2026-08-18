@@ -516,7 +516,8 @@
       const bioCard = document.getElementById('biometricFirstCard');
       const staffFields = document.getElementById('staffLoginFields');
       const passGroup = document.getElementById('passwordFieldsGroup');
-      const hasBioCred = !!(localStorage.getItem('carmel_biometric_cred_id') || localStorage.getItem('carmel_registered_biometric_mobile'));
+      const credId = localStorage.getItem('carmel_biometric_cred_id');
+      const hasBioCred = !!(credId && credId.trim().length > 0);
 
       if (window.PublicKeyCredential && activeRole === 'staff' && hasBioCred) {
         if (bioCard) bioCard.classList.remove('hidden');

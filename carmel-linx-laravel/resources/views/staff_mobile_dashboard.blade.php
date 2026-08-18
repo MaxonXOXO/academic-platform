@@ -328,11 +328,11 @@
 
         <!-- Mobile Header -->
         <header class="mobile-header d-flex align-items-center justify-content-between" style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 12px 16px;">
-            <div class="d-flex align-items-center gap-2.5">
+            <div class="d-flex align-items-center" style="gap: 14px;">
                 <div style="position: relative; padding: 2.5px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.45), rgba(99, 102, 241, 0.25)); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);">
                     <img src="{{ asset('logo.jpg') }}" alt="Carmel Linx Logo" style="width: 36px; height: 36px; border-radius: 9.5px; object-fit: cover; display: block;">
                 </div>
-                <div>
+                <div class="ps-1">
                     <h5 class="brand-title mb-0" style="font-size: 1.18rem; font-weight: 900 !important; line-height: 1.1;">Carmel Linx</h5>
                     <span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.63rem; font-weight: 800; border-radius: 20px; padding: 2px 8px; letter-spacing: 0.05em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
                         <span style="width: 5px; height: 5px; background-color: #38bdf8; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px #38bdf8;"></span> Staff Portal

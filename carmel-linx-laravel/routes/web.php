@@ -746,6 +746,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/student/complete-first-login-profile', [\App\Http\Controllers\BatchStudentUploadController::class, 'completeFirstLoginProfile']);
     Route::get('/api/students/template/download', [DataController::class, 'downloadStudentImportTemplate']);
     Route::post('/api/staff/profile/upload-photo', [DataController::class, 'uploadStaffPhoto']);
+    Route::post('/api/staff/profile/save-avatar-framing', [DataController::class, 'saveStaffAvatarFraming']);
     Route::post('/api/staff/update-photo', [DataController::class, 'uploadStaffPhoto']);
     Route::post('/api/staff/change-password', [AuthController::class, 'changeStaffPassword']);
     Route::post('/api/student/tasks/submit', [App\Http\Controllers\DataController::class, 'submitManualTask']);

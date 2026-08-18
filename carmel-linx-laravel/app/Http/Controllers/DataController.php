@@ -3497,6 +3497,53 @@ class DataController extends Controller
         }
     }
 
+    /**
+     * Staff: Save avatar zoom and vertical position framing.
+     */
+    public function saveStaffAvatarFraming(Request $request)
+    {
+        $userId = Session::get('userId');
+        $userRole = Session::get('userRole');
+        
+        if (!$userId || $userRole === 'Student') {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.']);
+        }
+
+        $zoom = floatval($request->input('zoom', 1.08));
+        $pos = intval($request->input('pos', 15));
+
+        $zoom = max(1.0, min(3.0, round($zoom, 2)));
+        $pos = max(0, min(100, $pos));
+
+        try {
+            $cleanMobile = preg_replace('/[^0-9]/', '', $userId);
+            $staff = StaffProfile::where(function($q) use ($userId, $cleanMobile) {
+                $q->where('mobile_no', $userId);
+                if (!empty($cleanMobile)) {
+                    $q->orWhere('mobile_no', $cleanMobile);
+                }
+            })->first();
+
+            if ($staff) {
+                $staff->avatar_zoom = $zoom;
+                $staff->avatar_pos = $pos;
+                $staff->save();
+            }
+
+            Session::put('avatarZoom', $zoom);
+            Session::put('avatarPos', $pos);
+
+            return response()->json([
+                'status' => 'SUCCESS',
+                'message' => 'Avatar framing and zoom saved to your profile!',
+                'zoom' => $zoom,
+                'pos' => $pos
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Failed to save avatar framing: ' . $e->getMessage()]);
+        }
+    }
+
     private function verifyPasswordHelper(?string $inputPassword, ?string $storedPassword): bool
     {
         if (empty($storedPassword) || empty($inputPassword)) return false;

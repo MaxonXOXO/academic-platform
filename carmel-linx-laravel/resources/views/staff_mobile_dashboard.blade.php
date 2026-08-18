@@ -881,9 +881,14 @@
                             <span class="text-white fw-bold" style="font-size: 0.78rem;">
                                 <i class="fa-solid fa-magnifying-glass-plus text-info me-1"></i> Avatar Zoom & Framing
                             </span>
-                            <button type="button" class="btn btn-sm text-secondary p-0" onclick="resetStaffAvatarAdjustments()" style="font-size: 0.7rem;">
-                                Reset
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm text-secondary p-0" onclick="resetStaffAvatarAdjustments()" style="font-size: 0.7rem;">
+                                    Reset
+                                </button>
+                                <button type="button" id="mobileSaveFramingBtn" onclick="saveStaffAvatarFramingToServer()" class="btn btn-sm btn-outline-info py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem;">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Framing
+                                </button>
+                            </div>
                         </div>
                         <div class="row g-2 align-items-center">
                             <div class="col-6">
@@ -891,14 +896,14 @@
                                     <span>Zoom:</span>
                                     <strong id="mobileZoomVal" class="text-cyan font-mono">1.08x</strong>
                                 </div>
-                                <input type="range" id="mobileZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" class="form-range custom-range" style="height: 4px;">
+                                <input type="range" id="mobileZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" onchange="saveStaffAvatarFramingToServer()" class="form-range custom-range" style="height: 4px;">
                             </div>
                             <div class="col-6">
                                 <div class="d-flex justify-content-between text-secondary" style="font-size: 0.7rem;">
                                     <span>Vertical Focus:</span>
                                     <strong id="mobilePosVal" class="text-info font-mono">15%</strong>
                                 </div>
-                                <input type="range" id="mobilePosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" class="form-range custom-range" style="height: 4px;">
+                                <input type="range" id="mobilePosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" onchange="saveStaffAvatarFramingToServer()" class="form-range custom-range" style="height: 4px;">
                             </div>
                         </div>
                     </div>
@@ -2284,11 +2289,60 @@
         function resetStaffAvatarAdjustments() {
             adjustStaffAvatarZoom(1.08);
             adjustStaffAvatarPos(15);
+            saveStaffAvatarFramingToServer();
+        }
+
+        function saveStaffAvatarFramingToServer() {
+            const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
+            const pos = localStorage.getItem('staffAvatarPos') || '15';
+
+            const btn = document.querySelectorAll('#saveFramingBtn, #mobileSaveFramingBtn');
+            btn.forEach(b => {
+                b.disabled = true;
+                b.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
+            });
+
+            fetch('/api/staff/profile/save-avatar-framing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ zoom: zoom, pos: pos })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.forEach(b => {
+                    b.disabled = false;
+                    b.innerHTML = '<i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Framing';
+                });
+                if (data.status === 'SUCCESS') {
+                    showStaffPhotoAlert('<i class="fa-solid fa-circle-check me-1"></i> ' + data.message, 'text-success');
+                } else {
+                    showStaffPhotoAlert(data.message || 'Failed to save framing.', 'text-danger');
+                }
+            })
+            .catch(err => {
+                console.error('Framing save error:', err);
+                btn.forEach(b => {
+                    b.disabled = false;
+                    b.innerHTML = '<i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Framing';
+                });
+            });
         }
 
         function applyStaffAvatarAdjustments() {
-            const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
-            const pos = localStorage.getItem('staffAvatarPos') || '15';
+            const serverZoom = '{{ $staff->avatar_zoom ?? session("avatarZoom") ?? "" }}';
+            const serverPos = '{{ $staff->avatar_pos ?? session("avatarPos") ?? "" }}';
+            if (serverZoom && !localStorage.getItem('staffAvatarZoom')) {
+                localStorage.setItem('staffAvatarZoom', serverZoom);
+            }
+            if (serverPos && !localStorage.getItem('staffAvatarPos')) {
+                localStorage.setItem('staffAvatarPos', serverPos);
+            }
+
+            const zoom = localStorage.getItem('staffAvatarZoom') || serverZoom || '1.08';
+            const pos = localStorage.getItem('staffAvatarPos') || serverPos || '15';
             
             document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = parseFloat(zoom).toFixed(2) + 'x');
             document.querySelectorAll('#avatarZoomSlider, #mobileZoomSlider').forEach(el => el.value = zoom);

@@ -38,13 +38,20 @@
               <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-blue-400">zoom_in</span> Zoom:</span>
               <span id="avatarZoomVal" class="text-blue-400 font-mono">1.08x</span>
             </div>
-            <input type="range" id="avatarZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            <input type="range" id="avatarZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" onchange="saveStaffAvatarFramingToServer()" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
             
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 pt-1 border-t border-slate-800/60">
               <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-teal-400">unfold_more</span> Vertical Focus:</span>
               <span id="avatarPosVal" class="text-teal-400 font-mono">15%</span>
             </div>
-            <input type="range" id="avatarPosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500">
+            <input type="range" id="avatarPosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" onchange="saveStaffAvatarFramingToServer()" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500">
+
+            <div class="pt-1.5 flex justify-between items-center border-t border-slate-800/60">
+              <button type="button" onclick="resetStaffAvatarAdjustments()" class="text-[10px] text-slate-400 hover:text-white font-semibold">Reset</button>
+              <button type="button" id="saveFramingBtn" onclick="saveStaffAvatarFramingToServer()" class="px-2.5 py-0.5 bg-blue-600/30 hover:bg-blue-600/50 text-blue-400 border border-blue-500/40 rounded-full text-[10px] font-bold flex items-center gap-1 transition-all">
+                <span class="material-symbols-rounded text-[11px]">cloud_upload</span> Save Framing
+              </button>
+            </div>
           </div>
 
           <div id="staffPhotoUploadStatus" class="text-xs font-bold mt-1 text-emerald-400 hidden"></div>
@@ -349,11 +356,63 @@
   function resetStaffAvatarAdjustments() {
     adjustStaffAvatarZoom(1.08);
     adjustStaffAvatarPos(15);
+    saveStaffAvatarFramingToServer();
+  }
+
+  function saveStaffAvatarFramingToServer() {
+    const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
+    const pos = localStorage.getItem('staffAvatarPos') || '15';
+
+    const btn = document.querySelectorAll('#saveFramingBtn, #mobileSaveFramingBtn');
+    btn.forEach(b => {
+      b.disabled = true;
+      b.innerHTML = '<span class="material-symbols-rounded text-[11px] animate-spin">sync</span> Saving...';
+    });
+
+    fetch('/api/staff/profile/save-avatar-framing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify({ zoom: zoom, pos: pos })
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.forEach(b => {
+        b.disabled = false;
+        b.innerHTML = '<span class="material-symbols-rounded text-[11px]">cloud_upload</span> Save Framing';
+      });
+      if (data.status === 'SUCCESS') {
+        const statusEl = document.getElementById('staffPhotoUploadStatus');
+        if (statusEl) {
+          statusEl.innerText = '✓ ' + data.message;
+          statusEl.classList.remove('hidden');
+          setTimeout(() => statusEl.classList.add('hidden'), 4000);
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Framing save error:', err);
+      btn.forEach(b => {
+        b.disabled = false;
+        b.innerHTML = '<span class="material-symbols-rounded text-[11px]">cloud_upload</span> Save Framing';
+      });
+    });
   }
 
   function applyStaffAvatarAdjustments() {
-    const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
-    const pos = localStorage.getItem('staffAvatarPos') || '15';
+    const serverZoom = '{{ session("avatarZoom") ?? "" }}';
+    const serverPos = '{{ session("avatarPos") ?? "" }}';
+    if (serverZoom && !localStorage.getItem('staffAvatarZoom')) {
+      localStorage.setItem('staffAvatarZoom', serverZoom);
+    }
+    if (serverPos && !localStorage.getItem('staffAvatarPos')) {
+      localStorage.setItem('staffAvatarPos', serverPos);
+    }
+
+    const zoom = localStorage.getItem('staffAvatarZoom') || serverZoom || '1.08';
+    const pos = localStorage.getItem('staffAvatarPos') || serverPos || '15';
     
     // Sync slider controls if present
     document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = parseFloat(zoom).toFixed(2) + 'x');

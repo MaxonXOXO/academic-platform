@@ -187,20 +187,20 @@
       <!-- Login Section -->
       <div id="loginSection">
         <!-- PWA Smart Mobile App Install Banner -->
-        <div id="pwaInstallBanner" class="hidden mb-4 p-3 rounded-2xl bg-gradient-to-r from-cyan-955/70 to-slate-900/90 border border-cyan-500/30 text-white shadow-lg transition-premium">
-          <div class="flex items-center justify-between gap-2">
+        <div id="pwaInstallBanner" class="hidden mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/90 via-slate-900/95 to-slate-950 border-2 border-cyan-400/50 text-white shadow-xl shadow-cyan-500/10 transition-premium">
+          <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <img src="/apple-touch-icon.png" class="w-9 h-9 rounded-xl shadow-md border border-cyan-400/40" alt="App Icon">
+              <img src="/apple-touch-icon.png" class="w-11 h-11 rounded-xl shadow-lg border-2 border-cyan-400/60 flex-shrink-0" alt="App Icon">
               <div>
-                <h4 class="font-extrabold text-xs text-white">Install Carmel Linx App</h4>
+                <h4 class="font-black text-sm sm:text-base text-white tracking-wide leading-tight">Install Carmel Linx App</h4>
               </div>
             </div>
-            <button id="pwaInstallBtn" type="button" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer">
-              Install
+            <button id="pwaInstallBtn" type="button" class="px-4 py-2 bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 rounded-xl font-black text-sm shadow-lg shadow-cyan-400/35 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0">
+              <span class="material-symbols-rounded text-lg font-bold">install_mobile</span> Install
             </button>
           </div>
-          <div id="pwaIosHint" class="hidden mt-2 pt-2 border-t border-cyan-500/20 text-[11px] text-cyan-300/90 text-center">
-            Tap <span class="font-bold text-white">Share</span> <span class="inline-block px-1 bg-slate-800 rounded">⎋</span> and select <span class="font-bold text-white">'Add to Home Screen'</span>
+          <div id="pwaIosHint" class="hidden mt-2.5 pt-2 border-t border-cyan-500/25 text-xs text-cyan-200 text-center font-medium">
+            Tap <span class="font-extrabold text-white">Share</span> <span class="inline-block px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs">⎋</span> and select <span class="font-extrabold text-white">'Add to Home Screen'</span>
           </div>
         </div>
 

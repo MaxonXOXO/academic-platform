@@ -748,7 +748,7 @@
         </div>
 
         <!-- Filters Console -->
-        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <!-- Search input -->
           <div>
             <label class="block text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Search User</label>
@@ -768,6 +768,19 @@
               <option value="GEN_AIDED">General Department Aided (GEN_AIDED)</option>
               <option value="GEN_SF">General Department Self Finance (GEN_SF)</option>
               <option value="Administration">Administration</option>
+            </select>
+          </div>
+          <!-- Semester select -->
+          <div>
+            <label class="block text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Semester</label>
+            <select id="filterSemester" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-amber-500 outline-none">
+              <option value="">All Semesters</option>
+              <option value="S1">Semester 1 (S1)</option>
+              <option value="S2">Semester 2 (S2)</option>
+              <option value="S3">Semester 3 (S3)</option>
+              <option value="S4">Semester 4 (S4)</option>
+              <option value="S5">Semester 5 (S5)</option>
+              <option value="S6">Semester 6 (S6)</option>
             </select>
           </div>
           <!-- Role filter -->
@@ -1199,8 +1212,9 @@
       const branch = document.getElementById('filterBranch').value;
       const role = document.getElementById('filterRole').value;
       const status = document.getElementById('filterStatus').value;
+      const semester = document.getElementById('filterSemester')?.value || '';
 
-      const query = new URLSearchParams({ search, branch, role, status }).toString();
+      const query = new URLSearchParams({ search, branch, role, status, semester }).toString();
       fetch(`/api/admin/users?${query}`)
         .then(res => res.json())
         .then(data => {
@@ -1232,7 +1246,12 @@
                   </div>
                 </td>
                 <td class="p-3 font-mono text-slate-300">${user.id}</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${user.branch || 'N/A'}</span></td>
+                <td class="p-3">
+                  <div class="flex items-center gap-1">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${user.branch || 'N/A'}</span>
+                    ${user.type === 'student' ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800/60">${user.semester || 'N/A'}</span>` : ''}
+                  </div>
+                </td>
                 <td class="p-3 font-semibold text-amber-400">${user.role}</td>
                 <td class="p-3">${statusBadge}</td>
               `;

@@ -439,7 +439,7 @@
           </div>
         </div>
 
-        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
             <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Search Student</label>
             <input type="text" id="studentSearch" oninput="loadStudents()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-[10px] text-white focus:border-blue-500 outline-none text-[10px] text-xs" placeholder="Name, Register No...">
@@ -454,6 +454,18 @@
               <option value="EEE">Electrical (EEE)</option>
               <option value="CT">Computer (CT)</option>
               <option value="AU">Automobile (AU)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Semester Filter</label>
+            <select id="studentSemester" onchange="loadStudents()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-[10px] text-white focus:border-blue-500 outline-none text-[10px] text-xs">
+              <option value="">All Semesters</option>
+              <option value="S1">Semester 1 (S1)</option>
+              <option value="S2">Semester 2 (S2)</option>
+              <option value="S3">Semester 3 (S3)</option>
+              <option value="S4">Semester 4 (S4)</option>
+              <option value="S5">Semester 5 (S5)</option>
+              <option value="S6">Semester 6 (S6)</option>
             </select>
           </div>
           <div>
@@ -788,8 +800,9 @@
       const search = document.getElementById('studentSearch').value;
       const branch = document.getElementById('studentBranch').value;
       const status = document.getElementById('studentStatus').value;
+      const semester = document.getElementById('studentSemester')?.value || '';
 
-      fetch(`/api/admin/users?search=${encodeURIComponent(search)}&role=student&branch=${branch}&status=${status}`)
+      fetch(`/api/admin/users?search=${encodeURIComponent(search)}&role=student&branch=${branch}&status=${status}&semester=${semester}`)
         .then(res => res.json())
         .then(data => {
           indicator.classList.add('hidden');
@@ -824,7 +837,12 @@
             </div>
           </td>
           <td class="p-4 font-mono font-bold text-slate-300">${user.id}</td>
-          <td class="p-4"><span class="font-bold font-mono text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
+          <td class="p-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold font-mono text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span>
+              <span class="font-bold font-mono text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/60">${user.semester || 'N/A'}</span>
+            </div>
+          </td>
           <td class="p-4">${statusBadge}</td>
           <td class="p-4 text-right space-x-1">
             <button onclick="viewUserAudit('${user.id}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-blue-900 border border-slate-800 text-slate-300 rounded text-[10px] font-bold transition-premium cursor-pointer">Audit</button>

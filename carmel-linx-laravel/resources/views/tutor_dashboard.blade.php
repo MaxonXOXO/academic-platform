@@ -328,11 +328,24 @@
 
         <div id="rosterContent" class="space-y-6 transition-all duration-300 origin-top" style="max-height: 0px; opacity: 0; overflow: hidden;">
           <!-- Filters Console -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Search input -->
             <div>
               <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Search Student</label>
               <input type="text" id="filterSearch" oninput="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm" placeholder="Name, Register No, Mobile...">
+            </div>
+            <!-- Semester filter -->
+            <div>
+              <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Filter Semester</label>
+              <select id="filterSemester" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 outline-none text-sm">
+                <option value="">All Semesters</option>
+                <option value="S1">Semester 1 (S1)</option>
+                <option value="S2">Semester 2 (S2)</option>
+                <option value="S3">Semester 3 (S3)</option>
+                <option value="S4">Semester 4 (S4)</option>
+                <option value="S5">Semester 5 (S5)</option>
+                <option value="S6">Semester 6 (S6)</option>
+              </select>
             </div>
             <!-- Status select -->
             <div>
@@ -947,8 +960,9 @@
 
       const search = document.getElementById('filterSearch').value;
       const status = document.getElementById('filterStatus').value;
+      const semester = document.getElementById('filterSemester')?.value || '';
 
-      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=student&status=${status}`;
+      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=student&status=${status}&semester=${semester}`;
 
       fetch(url)
         .then(res => res.json())

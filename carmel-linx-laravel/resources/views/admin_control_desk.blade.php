@@ -822,7 +822,7 @@
         </div>
 
         <!-- Filters Console -->
-        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <!-- Search input -->
           <div>
             <label class="block text-sm text-slate-450 font-bold uppercase tracking-wider mb-1.5">Search User</label>
@@ -843,6 +843,19 @@
               <option value="GEN_SF">General Department Self Finance (GEN_SF)</option>
               <option value="GEN">General Science (GEN)</option>
               <option value="Administration">Administration</option>
+            </select>
+          </div>
+          <!-- Semester select -->
+          <div>
+            <label class="block text-sm text-slate-450 font-bold uppercase tracking-wider mb-1.5">Semester</label>
+            <select id="filterSemester" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-500 outline-none">
+              <option value="">All Semesters</option>
+              <option value="S1">Semester 1 (S1)</option>
+              <option value="S2">Semester 2 (S2)</option>
+              <option value="S3">Semester 3 (S3)</option>
+              <option value="S4">Semester 4 (S4)</option>
+              <option value="S5">Semester 5 (S5)</option>
+              <option value="S6">Semester 6 (S6)</option>
             </select>
           </div>
           <!-- Role filter -->
@@ -1664,8 +1677,9 @@
       const branch = document.getElementById('filterBranch').value;
       const role = document.getElementById('filterRole').value;
       const status = document.getElementById('filterStatus').value;
+      const semester = document.getElementById('filterSemester')?.value || '';
 
-      const url = `/api/admin/users?search=${encodeURIComponent(search)}&branch=${branch}&role=${role}&status=${status}`;
+      const url = `/api/admin/users?search=${encodeURIComponent(search)}&branch=${branch}&role=${role}&status=${status}&semester=${semester}`;
 
       fetch(url)
         .then(res => res.json())
@@ -1773,7 +1787,12 @@
             </div>
           </td>
           <td class="p-2.5 md:p-3 font-mono text-xs md:text-sm shrink-0">${idColumnHtml}</td>
-          <td class="p-2.5 md:p-3"><span class="font-bold font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
+          <td class="p-2.5 md:p-3">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span>
+              ${user.type === 'student' ? `<span class="font-bold font-mono text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/60">${user.semester || 'N/A'}</span>` : ''}
+            </div>
+          </td>
           <td class="p-2.5 md:p-3">${roleCol}</td>
           <td class="p-2.5 md:p-3">${statusBadge}</td>
           <td class="p-2.5 md:p-3 text-right">

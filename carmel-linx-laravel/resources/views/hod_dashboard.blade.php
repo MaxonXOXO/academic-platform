@@ -367,6 +367,19 @@
             <label class="block text-sm text-slate-400 font-bold uppercase tracking-wider mb-1.5">Search User</label>
             <input type="text" id="filterSearch" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm" placeholder="Name, Register No, Mobile...">
           </div>
+          <!-- Semester select -->
+          <div>
+            <label class="block text-sm text-slate-400 font-bold uppercase tracking-wider mb-1.5">Semester</label>
+            <select id="filterSemester" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-500 outline-none text-sm">
+              <option value="">All Semesters</option>
+              <option value="S1">Semester 1 (S1)</option>
+              <option value="S2">Semester 2 (S2)</option>
+              <option value="S3">Semester 3 (S3)</option>
+              <option value="S4">Semester 4 (S4)</option>
+              <option value="S5">Semester 5 (S5)</option>
+              <option value="S6">Semester 6 (S6)</option>
+            </select>
+          </div>
           <!-- Role filter -->
           <div>
             <label class="block text-sm text-slate-400 font-bold uppercase tracking-wider mb-1.5">Designation / Role</label>
@@ -1373,8 +1386,9 @@
       const search = document.getElementById('filterSearch').value;
       const role = document.getElementById('filterRole').value;
       const status = document.getElementById('filterStatus').value;
+      const semester = document.getElementById('filterSemester')?.value || '';
 
-      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=${role}&status=${status}`;
+      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=${role}&status=${status}&semester=${semester}`;
 
       fetch(url)
         .then(res => res.json())

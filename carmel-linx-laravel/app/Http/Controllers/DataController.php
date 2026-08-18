@@ -448,6 +448,7 @@ class DataController extends Controller
         $branch = trim($request->query('branch', ''));
         $role = trim($request->query('role', '')); // 'student' or staff designation
         $status = trim($request->query('status', '')); // 'Pending' or 'Approved'
+        $semester = trim($request->query('semester', '')); // '1'...'6' or 'S1'...'S6'
 
         // Determine supervised class (Tutor scope check)
         $supervisedClass = ClassManagement::where('tutor_mobile_no', $currentUserId)
@@ -496,6 +497,13 @@ class DataController extends Controller
 
                 if (!empty($status)) {
                     $studentQuery->where('status', $status);
+                }
+
+                if (!empty($semester)) {
+                    $semClean = (int) preg_replace('/[^0-9]/', '', $semester);
+                    if ($semClean > 0) {
+                        $studentQuery->where('semester', $semClean);
+                    }
                 }
 
                 $students = $studentQuery->get()->map(function ($s) {

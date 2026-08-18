@@ -62,11 +62,18 @@
 
     /* Mobile Login & Registration Screen Adjustments */
     @media (max-width: 767px) {
+      body {
+        align-items: flex-start !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+      }
+
       /* Make card container slightly wider and more spacious on mobile */
       .max-w-md {
         max-width: 95% !important;
         width: 95% !important;
-        padding: 1.75rem 1.25rem !important;
+        padding: 1.5rem 1.25rem !important;
+        margin-top: 0.5rem !important;
       }
 
       /* Make ID and Password fields text-lg for high readability */
@@ -99,7 +106,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 min-h-screen flex items-center justify-center p-4 overflow-x-hidden relative">
+<body class="bg-slate-950 min-h-screen flex items-start md:items-center justify-center p-4 pt-6 md:pt-4 overflow-x-hidden relative">
 
   <!-- Premium Neon Mesh Background blobs -->
   <div class="absolute top-1/4 left-1/4 h-80 w-80 bg-blue-600/10 rounded-full blur-3xl animate-pulse duration-[8s] pointer-events-none"></div>

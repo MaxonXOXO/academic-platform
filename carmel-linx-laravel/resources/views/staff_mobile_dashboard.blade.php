@@ -252,6 +252,9 @@
             border-radius: 50%;
             border: 2px solid var(--accent-cyan);
             object-fit: cover;
+            object-position: center 15%;
+            transform: scale(var(--avatar-zoom, 1.08));
+            transition: transform 0.2s ease, object-position 0.2s ease;
         }
 
         /* Stat Mini Card */
@@ -851,11 +854,11 @@
                 <div class="app-card mb-3">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="position-relative flex-shrink-0">
+                            <div class="position-relative flex-shrink-0" style="width: 54px; height: 54px; overflow: hidden; border-radius: 50%; border: 2px solid var(--accent-cyan);">
                                 @if(!empty($staff->photo_url))
-                                    <img id="staffProfileTabPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 52px; height: 52px;">
+                                    <img id="staffProfileTabPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.08);">
                                 @else
-                                    <div id="staffProfileTabPlaceholder" class="avatar-mobile flex items-center justify-center font-black text-white" style="width: 52px; height: 52px; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                    <div id="staffProfileTabPlaceholder" class="avatar-mobile flex items-center justify-center font-black text-white" style="width: 100%; height: 100%; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
                                         {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
                                     </div>
                                 @endif
@@ -869,6 +872,35 @@
                             <i class="fa-solid fa-camera me-1"></i> Change Photo
                         </label>
                     </div>
+
+                    <!-- Photo Framing & Zoom Controls -->
+                    <div class="mt-3 pt-2.5 border-top border-secondary border-opacity-25">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-white fw-bold" style="font-size: 0.78rem;">
+                                <i class="fa-solid fa-magnifying-glass-plus text-info me-1"></i> Avatar Zoom & Framing
+                            </span>
+                            <button type="button" class="btn btn-sm text-secondary p-0" onclick="resetStaffAvatarAdjustments()" style="font-size: 0.7rem;">
+                                Reset
+                            </button>
+                        </div>
+                        <div class="row g-2 align-items-center">
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between text-secondary" style="font-size: 0.7rem;">
+                                    <span>Zoom:</span>
+                                    <strong id="mobileZoomVal" class="text-cyan font-mono">1.08x</strong>
+                                </div>
+                                <input type="range" id="mobileZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" class="form-range custom-range" style="height: 4px;">
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between text-secondary" style="font-size: 0.7rem;">
+                                    <span>Vertical Focus:</span>
+                                    <strong id="mobilePosVal" class="text-info font-mono">15%</strong>
+                                </div>
+                                <input type="range" id="mobilePosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" class="form-range custom-range" style="height: 4px;">
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="staffPhotoUploadAlert" class="small mt-2 d-none font-bold"></div>
                 </div>
 
@@ -2225,6 +2257,48 @@
                 console.error('Photo upload error:', err);
                 showStaffPhotoAlert('Server error during photo upload.', 'text-danger');
             });
+        }
+
+        function adjustStaffAvatarZoom(val) {
+            const zoom = parseFloat(val).toFixed(2);
+            document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = zoom + 'x');
+            document.querySelectorAll('#avatarZoomSlider, #mobileZoomSlider').forEach(el => el.value = val);
+            localStorage.setItem('staffAvatarZoom', val);
+            applyStaffAvatarAdjustments();
+        }
+
+        function adjustStaffAvatarPos(val) {
+            document.querySelectorAll('#avatarPosVal, #mobilePosVal').forEach(el => el.innerText = val + '%');
+            document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = val);
+            localStorage.setItem('staffAvatarPos', val);
+            applyStaffAvatarAdjustments();
+        }
+
+        function resetStaffAvatarAdjustments() {
+            adjustStaffAvatarZoom(1.08);
+            adjustStaffAvatarPos(15);
+        }
+
+        function applyStaffAvatarAdjustments() {
+            const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
+            const pos = localStorage.getItem('staffAvatarPos') || '15';
+            
+            document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = parseFloat(zoom).toFixed(2) + 'x');
+            document.querySelectorAll('#avatarZoomSlider, #mobileZoomSlider').forEach(el => el.value = zoom);
+            document.querySelectorAll('#avatarPosVal, #mobilePosVal').forEach(el => el.innerText = pos + '%');
+            document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = pos);
+
+            document.querySelectorAll('#staffProfileImg, .avatar-mobile, #staffBannerPhoto, #staffProfileTabPhoto, #sidebarAvatarContainer img, aside img.rounded-full, #sidebarStaffImg').forEach(img => {
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = `center ${pos}%`;
+                img.style.transform = `scale(${zoom})`;
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyStaffAvatarAdjustments);
+        } else {
+            applyStaffAvatarAdjustments();
         }
 
         function showStaffPhotoAlert(msg, colorClass) {

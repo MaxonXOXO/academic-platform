@@ -23,7 +23,7 @@
         <div class="flex flex-col items-center text-center space-y-3">
           <div class="relative group cursor-pointer" title="Click to change profile picture">
             <div id="staffAvatarWrapper" class="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 flex items-center justify-center shadow-xl relative transition-premium group-hover:border-blue-500">
-              <img id="staffProfileImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-full h-full object-cover">
+              <img id="staffProfileImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-full h-full object-cover" style="object-position: center 15%; transform: scale(var(--avatar-zoom, 1.08));">
             </div>
             <label for="staffPhotoUploadInput" class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer rounded-full text-white text-xs font-bold text-center gap-1 p-1">
               <span class="material-symbols-rounded text-xl">photo_camera</span>
@@ -31,6 +31,22 @@
             </label>
             <input type="file" id="staffPhotoUploadInput" accept="image/*" class="hidden" onchange="handleStaffPhotoUpload(event)">
           </div>
+
+          <!-- Avatar Zoom & Framing Controls -->
+          <div class="w-full max-w-[220px] bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 space-y-2 text-left">
+            <div class="flex justify-between items-center text-[10px] font-bold text-slate-400">
+              <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-blue-400">zoom_in</span> Zoom:</span>
+              <span id="avatarZoomVal" class="text-blue-400 font-mono">1.08x</span>
+            </div>
+            <input type="range" id="avatarZoomSlider" min="1.0" max="2.5" step="0.05" value="1.08" oninput="adjustStaffAvatarZoom(this.value)" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            
+            <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 pt-1 border-t border-slate-800/60">
+              <span class="flex items-center gap-1"><span class="material-symbols-rounded text-xs text-teal-400">unfold_more</span> Vertical Focus:</span>
+              <span id="avatarPosVal" class="text-teal-400 font-mono">15%</span>
+            </div>
+            <input type="range" id="avatarPosSlider" min="0" max="80" step="2" value="15" oninput="adjustStaffAvatarPos(this.value)" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500">
+          </div>
+
           <div id="staffPhotoUploadStatus" class="text-xs font-bold mt-1 text-emerald-400 hidden"></div>
           <div>
             <h3 class="font-extrabold text-white text-base leading-tight">{{ session('userName') }}</h3>
@@ -315,7 +331,51 @@
       });
   }
 
+  function adjustStaffAvatarZoom(val) {
+    const zoom = parseFloat(val).toFixed(2);
+    document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = zoom + 'x');
+    document.querySelectorAll('#avatarZoomSlider, #mobileZoomSlider').forEach(el => el.value = val);
+    localStorage.setItem('staffAvatarZoom', val);
+    applyStaffAvatarAdjustments();
+  }
+
+  function adjustStaffAvatarPos(val) {
+    document.querySelectorAll('#avatarPosVal, #mobilePosVal').forEach(el => el.innerText = val + '%');
+    document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = val);
+    localStorage.setItem('staffAvatarPos', val);
+    applyStaffAvatarAdjustments();
+  }
+
+  function resetStaffAvatarAdjustments() {
+    adjustStaffAvatarZoom(1.08);
+    adjustStaffAvatarPos(15);
+  }
+
+  function applyStaffAvatarAdjustments() {
+    const zoom = localStorage.getItem('staffAvatarZoom') || '1.08';
+    const pos = localStorage.getItem('staffAvatarPos') || '15';
+    
+    // Sync slider controls if present
+    document.querySelectorAll('#avatarZoomVal, #mobileZoomVal').forEach(el => el.innerText = parseFloat(zoom).toFixed(2) + 'x');
+    document.querySelectorAll('#avatarZoomSlider, #mobileZoomSlider').forEach(el => el.value = zoom);
+    document.querySelectorAll('#avatarPosVal, #mobilePosVal').forEach(el => el.innerText = pos + '%');
+    document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = pos);
+
+    document.querySelectorAll('#staffProfileImg, .avatar-mobile, #staffBannerPhoto, #staffProfileTabPhoto, #sidebarAvatarContainer img, aside img.rounded-full, #sidebarStaffImg').forEach(img => {
+      img.style.objectFit = 'cover';
+      img.style.objectPosition = `center ${pos}%`;
+      img.style.transform = `scale(${zoom})`;
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyStaffAvatarAdjustments);
+  } else {
+    applyStaffAvatarAdjustments();
+  }
+
   window.addEventListener('pageshow', function (event) {
+    applyStaffAvatarAdjustments();
     if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
       fetch('/api/system/session-check', { method: 'GET', cache: 'no-store' })
         .then(r => r.json())

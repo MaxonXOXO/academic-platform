@@ -64,44 +64,90 @@
     @media (max-width: 767px) {
       body {
         align-items: flex-start !important;
-        padding-top: 1.5rem !important;
+        padding-top: 1.25rem !important;
         padding-bottom: 2rem !important;
       }
 
-      /* Make card container slightly wider and more spacious on mobile */
+      /* Make card container wide and spacious on mobile */
       .max-w-md {
         max-width: 95% !important;
         width: 95% !important;
         padding: 1.5rem 1.25rem !important;
-        margin-top: 0.5rem !important;
+        margin-top: 0.25rem !important;
       }
 
-      /* Make ID and Password fields text-lg for high readability */
+      /* Role tab buttons on mobile */
+      #tabStudent,
+      #tabStaff {
+        font-size: 1rem !important; /* 16px */
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+      }
+      #tabStudent .material-symbols-rounded,
+      #tabStaff .material-symbols-rounded {
+        font-size: 1.25rem !important; /* 20px */
+      }
+
+      /* Labels and Helper Text */
+      #loginSection label,
+      #registerSection label {
+        font-size: 0.92rem !important; /* ~14.7px */
+        font-weight: 700 !important;
+        margin-bottom: 0.4rem !important;
+      }
+
+      #staffLoginFields p {
+        font-size: 0.82rem !important; /* 13px */
+        color: #94a3b8 !important; /* slate-400 */
+        margin-top: 0.35rem !important;
+      }
+
+      /* High readability input & select fields */
       #loginUserId,
       #loginMobileId,
-      #loginPassword {
-        font-size: 1.125rem !important; /* text-lg */
-        padding-top: 0.85rem !important;
-        padding-bottom: 0.85rem !important;
-      }
-
-      #loginSection label {
-        font-size: 0.875rem !important; /* text-sm */
-      }
-
-      /* Make text entry fields on the registration card big fonts */
+      #loginPassword,
       #registerSection input[type="text"],
       #registerSection input[type="email"],
       #registerSection input[type="number"],
       #registerSection input[type="password"],
       #registerSection select {
-        font-size: 1.125rem !important; /* text-lg */
-        padding-top: 0.85rem !important;
-        padding-bottom: 0.85rem !important;
+        font-size: 1.15rem !important; /* ~18.5px */
+        padding-top: 0.9rem !important;
+        padding-bottom: 0.9rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        border-radius: 0.85rem !important;
       }
 
-      #registerSection label {
-        font-size: 0.875rem !important; /* text-sm */
+      /* Large, touch-friendly primary buttons */
+      #loginSection button[type="submit"],
+      #staffBiometricBtnContainer button {
+        font-size: 1.05rem !important; /* 17px */
+        padding-top: 0.85rem !important;
+        padding-bottom: 0.85rem !important;
+        border-radius: 0.85rem !important;
+      }
+
+      #bioBtnText,
+      #loginBtnText {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+      }
+
+      #staffBiometricBtnContainer .material-symbols-rounded {
+        font-size: 1.35rem !important; /* 21.5px */
+      }
+
+      /* High-contrast, touchable footer links */
+      #loginSection .text-amber-400,
+      #loginSection .text-blue-400 {
+        font-size: 0.95rem !important; /* 15.2px */
+        padding: 0.35rem 0.5rem !important;
+        display: inline-block !important;
+      }
+
+      #loginSection .text-slate-400 {
+        font-size: 0.9rem !important; /* 14.4px */
       }
     }
   </style>

@@ -206,26 +206,39 @@
             </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
-            <input type="password" id="loginPassword" class="w-full px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-955/80 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-white font-medium transition-premium text-sm" placeholder="********">
+          <!-- Staff Biometric Quick-Pass Dedicated Card -->
+          <div id="biometricFirstCard" class="hidden p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-center space-y-3 slide-up">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center mx-auto text-indigo-400 shadow-inner">
+              <span class="material-symbols-rounded text-3xl">fingerprint</span>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-white text-base">Quick Fingerprint Login</h3>
+              <p class="text-xs text-indigo-300/80 mt-0.5">Touch sensor on your device to enter</p>
+            </div>
+            <button type="button" onclick="handleBiometricLogin()" class="w-full py-3 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/25 transition-premium flex items-center justify-center gap-2 cursor-pointer text-sm">
+              <span class="material-symbols-rounded text-xl">fingerprint</span>
+              <span id="bioBtnText">Scan Fingerprint to Enter</span>
+              <div id="bioSpinner" class="loader-spinner border-t-white hidden"></div>
+            </button>
+            <button type="button" onclick="showPasswordFallback()" class="text-xs font-bold text-slate-400 hover:text-slate-200 transition-premium underline block mx-auto pt-1 cursor-pointer">
+              Use Mobile ID & Password Instead
+            </button>
           </div>
 
           <!-- Alert Container -->
           <div id="loginAlert" class="hidden p-3 rounded-xl text-sm font-semibold"></div>
 
-          <!-- Submit -->
-          <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-premium flex items-center justify-center gap-2 cursor-pointer text-sm">
-            <span id="loginBtnText">Access Portal</span>
-            <div id="loginSpinner" class="loader-spinner border-t-white hidden"></div>
-          </button>
+          <!-- Password & Submit Fields Group -->
+          <div id="passwordFieldsGroup" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
+              <input type="password" id="loginPassword" class="w-full px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-955/80 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-white font-medium transition-premium text-sm" placeholder="********">
+            </div>
 
-          <!-- Staff Biometric Quick-Pass Button -->
-          <div id="staffBiometricBtnContainer" class="pt-2 hidden">
-            <button type="button" onclick="handleBiometricLogin()" class="w-full py-2.5 bg-slate-950/80 hover:bg-slate-800 border border-indigo-500/30 text-indigo-300 rounded-xl font-bold shadow-md transition-premium flex items-center justify-center gap-2 cursor-pointer text-sm">
-              <span class="material-symbols-rounded text-lg text-indigo-400">fingerprint</span>
-              <span id="bioBtnText">Login with Fingerprint</span>
-              <div id="bioSpinner" class="loader-spinner border-t-indigo-400 hidden"></div>
+            <!-- Submit -->
+            <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-premium flex items-center justify-center gap-2 cursor-pointer text-sm">
+              <span id="loginBtnText">Access Portal</span>
+              <div id="loginSpinner" class="loader-spinner border-t-white hidden"></div>
             </button>
           </div>
         </form>
@@ -500,12 +513,43 @@
     });
 
     function checkBiometricSupport() {
-      const bioBtn = document.getElementById('staffBiometricBtnContainer');
-      if (window.PublicKeyCredential && activeRole === 'staff') {
-        if (bioBtn) bioBtn.classList.remove('hidden');
+      const bioCard = document.getElementById('biometricFirstCard');
+      const staffFields = document.getElementById('staffLoginFields');
+      const passGroup = document.getElementById('passwordFieldsGroup');
+      const hasBioCred = !!(localStorage.getItem('carmel_biometric_cred_id') || localStorage.getItem('carmel_registered_biometric_mobile'));
+
+      if (window.PublicKeyCredential && activeRole === 'staff' && hasBioCred) {
+        if (bioCard) bioCard.classList.remove('hidden');
+        if (staffFields) staffFields.classList.add('hidden');
+        if (passGroup) passGroup.classList.add('hidden');
       } else {
-        if (bioBtn) bioBtn.classList.add('hidden');
+        if (bioCard) bioCard.classList.add('hidden');
+        if (activeRole === 'staff') {
+          if (staffFields) staffFields.classList.remove('hidden');
+          if (passGroup) passGroup.classList.remove('hidden');
+        }
       }
+    }
+
+    function showPasswordFallback() {
+      const bioCard = document.getElementById('biometricFirstCard');
+      const staffFields = document.getElementById('staffLoginFields');
+      const passGroup = document.getElementById('passwordFieldsGroup');
+      const mobileInput = document.getElementById('loginMobileId');
+
+      if (bioCard) bioCard.classList.add('hidden');
+      if (staffFields) staffFields.classList.remove('hidden');
+      if (passGroup) passGroup.classList.remove('hidden');
+
+      const lastMobile = localStorage.getItem('carmel_registered_biometric_mobile') || localStorage.getItem('carmel_last_staff_mobile');
+      if (lastMobile && mobileInput) {
+        mobileInput.value = lastMobile;
+      }
+
+      setTimeout(() => {
+        const pwdInput = document.getElementById('loginPassword');
+        if (pwdInput) pwdInput.focus();
+      }, 50);
     }
 
     function toggleRoleTab(role) {
@@ -514,17 +558,18 @@
       const tabStaff = document.getElementById('tabStaff');
       const sFields = document.getElementById('studentLoginFields');
       const fFields = document.getElementById('staffLoginFields');
+      const passGroup = document.getElementById('passwordFieldsGroup');
 
       if (role === 'student') {
         tabStudent.className = "flex-1 py-2 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-500 to-sky-600 shadow-md shadow-blue-500/15 transition-premium flex items-center justify-center gap-1.5 cursor-pointer";
         tabStaff.className = "flex-1 py-2 rounded-xl font-bold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/30 transition-premium flex items-center justify-center gap-1.5 cursor-pointer";
         sFields.classList.remove('hidden');
         fFields.classList.add('hidden');
+        if (passGroup) passGroup.classList.remove('hidden');
         setTimeout(() => document.getElementById('loginUserId').focus(), 50);
       } else {
         tabStaff.className = "flex-1 py-2 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-500 to-sky-600 shadow-md shadow-blue-500/15 transition-premium flex items-center justify-center gap-1.5 cursor-pointer";
         tabStudent.className = "flex-1 py-2 rounded-xl font-bold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/30 transition-premium flex items-center justify-center gap-1.5 cursor-pointer";
-        fFields.classList.remove('hidden');
         sFields.classList.add('hidden');
         setTimeout(() => document.getElementById('loginMobileId').focus(), 50);
       }
@@ -575,6 +620,7 @@
 
         if (optData.status !== 'SUCCESS') {
           showError(loginAlert, bioSpinner, bioBtnText, optData.message);
+          setTimeout(() => showPasswordFallback(), 1200);
           return;
         }
 
@@ -614,13 +660,15 @@
           window.location.href = authData.route;
         } else {
           showError(loginAlert, bioSpinner, bioBtnText, authData.message);
+          setTimeout(() => showPasswordFallback(), 1200);
         }
       } catch (err) {
         if (err.name === 'NotAllowedError') {
-          showError(loginAlert, bioSpinner, bioBtnText, "Fingerprint scan cancelled or timed out.");
+          showError(loginAlert, bioSpinner, bioBtnText, "Fingerprint scan cancelled.");
         } else {
-          showError(loginAlert, bioSpinner, bioBtnText, "Biometric login error: " + (err.message || "Failed to scan fingerprint."));
+          showError(loginAlert, bioSpinner, bioBtnText, "Biometric error: " + (err.message || "Failed to scan fingerprint."));
         }
+        setTimeout(() => showPasswordFallback(), 1200);
       }
     }
 

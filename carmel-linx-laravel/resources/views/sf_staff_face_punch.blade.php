@@ -38,9 +38,9 @@
 
         /* Top Header */
         .mobile-header {
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(12px);
-            padding: 16px 20px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -51,21 +51,51 @@
         }
 
         .mobile-header h1 {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1.02rem;
+            font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #60a5fa;
+            margin: 0;
         }
 
-        .back-btn {
-            color: var(--text-muted);
-            font-size: 1.2rem;
+        .back-btn-right {
+            color: #f87171;
+            font-size: 0.8rem;
+            font-weight: 700;
             text-decoration: none;
             padding: 6px 12px;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .back-btn-right:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ffffff;
+        }
+
+        .refresh-btn-top {
+            color: #38bdf8;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .refresh-btn-top:hover {
+            background: rgba(56, 189, 248, 0.3);
+            color: #ffffff;
         }
 
         .container {
@@ -366,9 +396,18 @@
 <body>
 
     <header class="mobile-header">
-        <a href="/staff/mobile" class="back-btn" title="Back to Mobile Dashboard"><i class="fa-solid fa-arrow-left me-1"></i> Back</a>
-        <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Time Punch</h1>
-        <span class="staff-badge">SF Staff</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Punch</h1>
+            <span class="staff-badge">SF</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" onclick="reloadPunchScanner()" class="refresh-btn-top" title="Refresh Scanner & GPS">
+                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
+            <a href="/staff/mobile" class="back-btn-right" title="Return to Home Dashboard">
+                <i class="fa-solid fa-house"></i> Back
+            </a>
+        </div>
     </header>
 
     <div class="container">
@@ -466,6 +505,10 @@
 
             <!-- Action Buttons -->
             <div class="action-group">
+                <button type="button" class="btn-punch" id="btnRefreshScanner" onclick="reloadPunchScanner()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid rgba(56, 189, 248, 0.4);">
+                    <i class="fa-solid fa-arrows-rotate me-1.5"></i> REFRESH &amp; RE-TRY SCAN
+                </button>
+
                 @if(!$registration)
                     <!-- Single Unified Biometric Registration Button -->
                     <button class="btn-punch btn-register" id="btnRegister" onclick="startSingleButtonRegistration()">
@@ -553,6 +596,30 @@
             if (videoFeed) {
                 videoFeed.srcObject = null;
             }
+        }
+
+        // Reload Scanner & Reset Verification
+        function reloadPunchScanner() {
+            stopCamera();
+            isPunchAutoExecuting = false;
+            isSmileVerified = false;
+            cooldownActive = false;
+            if (faceCircle) faceCircle.classList.remove('verified');
+            if (screenFlashBox) screenFlashBox.classList.remove('verified');
+            if (livenessBadge) {
+                livenessBadge.className = "pill-badge warning";
+                livenessText.innerHTML = IS_REGISTERED ? "Align Face inside Circle" : "Smile & Click Register";
+            }
+            if (guideText) {
+                guideText.innerHTML = `<i class="fa-solid fa-face-smile me-1.5" style="color: #38bdf8;"></i> Align your face inside circle`;
+            }
+            if (btnSinglePunch) {
+                btnSinglePunch.disabled = false;
+                btnSinglePunch.innerHTML = `<i class="fa-solid fa-fingerprint me-1"></i> RE-TRY PUNCH`;
+            }
+            startCamera();
+            initGPS();
+            showToast("Scanner & GPS Refreshed");
         }
 
         // Start Camera Stream
@@ -1058,34 +1125,37 @@
                 const data = await response.json();
                 if (data.success) {
                     stopCamera();
-                    showToast("✅ Attendance Punched: " + data.message);
+                    showToast("✅ Attendance Marked Successfully!");
                     if (guideText) {
                         guideText.innerHTML = `
-                            <div style="padding: 4px; text-align: center;">
-                                <i class="fa-solid fa-circle-check text-success" style="font-size: 1.4rem; display: block; margin-bottom: 4px;"></i>
-                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">Attendance Punched Successfully!</div>
-                                <div style="color: #94a3b8; font-size: 0.74rem; margin-top: 2px;">${data.message}</div>
-                                <div style="color: #38bdf8; font-size: 0.76rem; margin-top: 4px;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Returning to Staff Dashboard...</div>
+                            <div style="padding: 6px; text-align: center;">
+                                <i class="fa-solid fa-circle-check text-success" style="font-size: 1.8rem; display: block; margin-bottom: 4px;"></i>
+                                <div style="font-weight: 800; color: #fff; font-size: 1rem;">Attendance Marked Successfully!</div>
+                                <div style="color: #34d399; font-size: 0.8rem; margin-top: 2px;">${data.message}</div>
+                                <div style="color: #38bdf8; font-size: 0.8rem; font-weight: 700; margin-top: 6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Returning to Home Dashboard...</div>
                             </div>
                         `;
                     }
                     setTimeout(() => {
                         window.location.href = '/staff/mobile';
-                    }, 1400);
+                    }, 1000);
                 } else {
                     showToast(data.message || "Punch execution failed.");
                     if (guideText) {
                         guideText.innerHTML = `
-                            <div style="padding: 4px; text-align: center; color: #fbbf24;">
-                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem; display: block; margin-bottom: 2px;"></i>
-                                <div style="font-weight: 700; font-size: 0.82rem;">${data.message || 'Punch Failed'}</div>
+                            <div style="padding: 6px; text-align: center; color: #fbbf24;">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.4rem; display: block; margin-bottom: 4px;"></i>
+                                <div style="font-weight: 800; font-size: 0.88rem;">${data.message || 'Punch Failed'}</div>
+                                <button type="button" onclick="reloadPunchScanner()" style="margin-top: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Refresh &amp; Re-Try Scan
+                                </button>
                             </div>
                         `;
                     }
                     isPunchAutoExecuting = false;
                     if (btnSinglePunch) {
                         btnSinglePunch.disabled = false;
-                        btnSinglePunch.innerHTML = `<i class="fa-solid fa-fingerprint"></i> RE-TRY PUNCH`;
+                        btnSinglePunch.innerHTML = `<i class="fa-solid fa-fingerprint me-1"></i> RE-TRY PUNCH`;
                     }
                 }
             } catch (e) {
@@ -1093,16 +1163,19 @@
                 showToast("Error executing punch.");
                 if (guideText) {
                     guideText.innerHTML = `
-                        <div style="padding: 4px; text-align: center; color: #f87171;">
-                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem; display: block; margin-bottom: 2px;"></i>
-                            <div style="font-weight: 700; font-size: 0.82rem;">Network Connection Error</div>
+                        <div style="padding: 6px; text-align: center; color: #f87171;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.4rem; display: block; margin-bottom: 4px;"></i>
+                            <div style="font-weight: 800; font-size: 0.88rem;">Network Connection Error</div>
+                            <button type="button" onclick="reloadPunchScanner()" style="margin-top: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh &amp; Re-Try Scan
+                            </button>
                         </div>
                     `;
                 }
                 isPunchAutoExecuting = false;
                 if (btnSinglePunch) {
                     btnSinglePunch.disabled = false;
-                    btnSinglePunch.innerHTML = `<i class="fa-solid fa-fingerprint"></i> RE-TRY PUNCH`;
+                    btnSinglePunch.innerHTML = `<i class="fa-solid fa-fingerprint me-1"></i> RE-TRY PUNCH`;
                 }
             }
         }
@@ -1121,15 +1194,16 @@
                 if (guideText) {
                     guideText.innerHTML = `
                         <div class="text-center py-2">
-                            <i class="fa-solid fa-circle-check text-success fs-3 mb-1"></i><br>
-                            <strong class="text-white">Attendance Completed For Today</strong><br>
-                            <small class="text-secondary">Morning IN & Evening OUT logs recorded.</small><br>
-                            <a href="/staff/mobile" class="btn btn-sm btn-outline-light rounded-pill mt-2 px-3">
-                                <i class="fa-solid fa-arrow-left me-1"></i> Return to Staff Dashboard
-                            </a>
+                            <i class="fa-solid fa-circle-check text-success" style="font-size: 1.8rem; display: block; margin-bottom: 4px;"></i>
+                            <strong class="text-white" style="font-size: 0.95rem;">Attendance Completed For Today</strong><br>
+                            <small style="color:#94a3b8;">Morning IN &amp; Evening OUT logs recorded.</small><br>
+                            <div style="color: #38bdf8; font-size: 0.8rem; font-weight: 700; margin-top: 6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Returning to Home Dashboard...</div>
                         </div>`;
                 }
                 stopCamera();
+                setTimeout(() => {
+                    window.location.href = '/staff/mobile';
+                }, 1200);
             } else {
                 startCamera();
             }

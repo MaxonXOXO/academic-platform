@@ -105,6 +105,9 @@ class AttendanceController extends Controller
             ->get(['id', 'topic_content', 'co_id', 'status']);
 
         $lastLogCount = DB::table('class_logs_attendance')->where('batch_subject_id', $id)->count();
+        $hasLessonPlans = LessonPlan::where('batch_subject_id', $id)->exists();
+
+        $nextLogSlNo = ($lastLogCount > 0 || $hasLessonPlans) ? ($lastLogCount + 1) : 0;
 
         return response()->json([
             'status' => 'SUCCESS',
@@ -113,7 +116,7 @@ class AttendanceController extends Controller
             'classroom_id' => $batchSubject->classroom_id,
             'subject_type' => $batchSubject->subject_type,
             'last_log_sl_no' => $lastLogCount,
-            'next_log_sl_no' => $lastLogCount + 1
+            'next_log_sl_no' => $nextLogSlNo
         ]);
     }
 

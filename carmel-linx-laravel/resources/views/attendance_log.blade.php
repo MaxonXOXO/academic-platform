@@ -262,6 +262,14 @@
       const subjectId = document.getElementById('subjectSelect').value;
       if (!subjectId) return;
 
+      // Immediate UI reset to prevent data bleeding between subjects
+      const resetPointer = document.getElementById('logNextSlNoPointer');
+      if (resetPointer) resetPointer.innerText = 'Next Entry: #0';
+      const resetLpSelect = document.getElementById('lessonPlanSelect');
+      if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+      const resetTopics = document.getElementById('topicsCovered');
+      if (resetTopics) resetTopics.value = '';
+
       // Show cards
       document.getElementById('classLogCard').classList.remove('hidden');
       document.getElementById('attendanceCard').classList.remove('hidden');
@@ -288,8 +296,7 @@
             }
 
             // Load student count & serial number tracking
-            const lastSlNo = data.last_log_sl_no || 0;
-            const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
+            const nextSlNo = typeof data.next_log_sl_no !== 'undefined' ? data.next_log_sl_no : 0;
             const nextPointer = document.getElementById('logNextSlNoPointer');
             if (nextPointer) nextPointer.innerText = `Next Entry: #${nextSlNo}`;
 

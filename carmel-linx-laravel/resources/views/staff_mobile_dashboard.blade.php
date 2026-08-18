@@ -1799,6 +1799,18 @@
                 if (p1) p1.checked = true;
             }
 
+            // Immediate UI reset to prevent data bleeding between subjects
+            const resetNextPointer = document.getElementById('attNextLogPointer');
+            if (resetNextPointer) {
+                resetNextPointer.textContent = 'Next Entry: #0';
+                resetNextPointer.style.backgroundColor = '#06b6d4';
+                resetNextPointer.style.color = '#0f172a';
+            }
+            const resetLpSelect = document.getElementById('attLessonPlanSelect');
+            if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+            const resetTopics = document.getElementById('attTopicsCovered');
+            if (resetTopics) resetTopics.value = '';
+
             switchAttModalTab('take');
 
             fetch(`/api/staff/attendance/subjects/${batchSubjectId}/details`)
@@ -1811,8 +1823,7 @@
                         if (badgeElem) badgeElem.textContent = currentAttSubjectType;
 
                         // Set Serial Number Tracker Pointer
-                        const lastSlNo = data.last_log_sl_no || 0;
-                        const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
+                        const nextSlNo = typeof data.next_log_sl_no !== 'undefined' ? data.next_log_sl_no : 0;
                         const nextPointer = document.getElementById('attNextLogPointer');
                         if (nextPointer) {
                             nextPointer.textContent = `Next Entry: #${nextSlNo}`;

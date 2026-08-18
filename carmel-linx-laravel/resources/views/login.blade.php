@@ -193,7 +193,6 @@
               <img src="/apple-touch-icon.png" class="w-9 h-9 rounded-xl shadow-md border border-cyan-400/40" alt="App Icon">
               <div>
                 <h4 class="font-extrabold text-xs text-white">Install Carmel Linx App</h4>
-                <p class="text-[11px] text-cyan-200/80">Use full-screen app without address bar</p>
               </div>
             </div>
             <button id="pwaInstallBtn" type="button" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer">
@@ -551,8 +550,9 @@
       const pwaIosHint = document.getElementById('pwaIosHint');
 
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isAlreadyInstalled = localStorage.getItem('carmel_pwa_installed') === 'true';
 
-      if (!isStandalone) {
+      if (!isStandalone && !isAlreadyInstalled) {
         window.addEventListener('beforeinstallprompt', (e) => {
           e.preventDefault();
           deferredPwaPrompt = e;
@@ -567,13 +567,19 @@
         }
       }
 
+      window.addEventListener('appinstalled', () => {
+        localStorage.setItem('carmel_pwa_installed', 'true');
+        if (pwaBanner) pwaBanner.classList.add('hidden');
+      });
+
       if (pwaBtn) {
         pwaBtn.addEventListener('click', async () => {
           if (!deferredPwaPrompt) return;
           deferredPwaPrompt.prompt();
           const { outcome } = await deferredPwaPrompt.userChoice;
-          if (outcome === 'accepted' && pwaBanner) {
-            pwaBanner.classList.add('hidden');
+          if (outcome === 'accepted') {
+            localStorage.setItem('carmel_pwa_installed', 'true');
+            if (pwaBanner) pwaBanner.classList.add('hidden');
           }
           deferredPwaPrompt = null;
         });

@@ -338,8 +338,8 @@
 
             <!-- Staff Identity Banner -->
             <div class="app-card border-start border-2 border-info p-2.5 mb-2.5">
-                <div class="d-flex align-items-center gap-2.5 mb-2">
-                    <div class="position-relative flex-shrink-0">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="position-relative flex-shrink-0 me-1">
                         @if(!empty($staff->photo_url))
                             <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 42px; height: 42px;">
                         @else
@@ -351,7 +351,7 @@
                             <i class="fa-solid fa-camera"></i>
                         </label>
                     </div>
-                    <div class="overflow-hidden">
+                    <div class="overflow-hidden ps-2">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 0.98rem;">{{ $staff->name ?? session('userName') }}</h6>
                         @php
                             $rawBranch = $staff->branch ?? session('userBranch') ?? '';

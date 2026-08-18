@@ -498,22 +498,28 @@
 
             @if($isSfStaff)
             <!-- Ultra-Compact Staff Biometric Punch Card -->
-            <div class="app-card mb-2.5 p-2.5 rounded-3" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85)); border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);">
+            <div class="app-card mb-2.5 p-2.5 rounded-3" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85)); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);">
                 <!-- Compact Header & Action Row -->
                 <div class="d-flex align-items-center justify-content-between gap-2">
                     <div class="d-flex align-items-center gap-2 overflow-hidden">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #0ea5e9, #10b981); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 0.95rem; flex-shrink: 0;">
+                        <div style="width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #0ea5e9, #10b981); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);">
                             <i class="fa-solid fa-camera-rotate"></i>
                         </div>
                         <div class="overflow-hidden">
                             <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                <strong class="text-white text-truncate" style="font-size: 0.86rem; font-weight: 800;">Staff Biometric Punch</strong>
+                                <strong class="text-white text-truncate" style="font-size: 0.88rem; font-weight: 800;">Staff Biometric Punch</strong>
                                 @if($isCompleted)
-                                    <span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-1.5 py-0.5" style="font-size: 0.6rem; font-weight: 800;">COMPLETED</span>
+                                    <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.65rem; font-weight: 900; background: #059669; color: #ffffff; border: 1px solid #34d399; box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);">
+                                        <i class="fa-solid fa-circle-check me-1"></i> COMPLETED
+                                    </span>
                                 @elseif($isPunchedIn)
-                                    <span class="badge bg-info-subtle text-info border border-info border-opacity-25 px-1.5 py-0.5" style="font-size: 0.6rem; font-weight: 800;">CHECKED IN</span>
+                                    <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.65rem; font-weight: 900; background: #0284c7; color: #ffffff; border: 1px solid #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);">
+                                        <i class="fa-solid fa-right-to-bracket me-1"></i> CHECKED IN
+                                    </span>
                                 @else
-                                    <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 px-1.5 py-0.5" style="font-size: 0.6rem; font-weight: 800;">NOT PUNCHED</span>
+                                    <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.65rem; font-weight: 900; background: #d97706; color: #ffffff; border: 1px solid #fbbf24;">
+                                        <i class="fa-solid fa-clock me-1"></i> NOT PUNCHED
+                                    </span>
                                 @endif
                             </div>
                         </div>
@@ -521,36 +527,50 @@
 
                     <div class="flex-shrink-0">
                         @if($isCompleted)
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
+                            <a href="/sf-attendance/face-punch" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-black" style="font-size: 0.78rem;">
                                 <i class="fa-solid fa-circle-check me-1"></i> Log
                             </a>
                         @elseif($isPunchedIn)
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-2.5 py-1 fw-bold text-white shadow-sm" style="font-size: 0.74rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
+                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;">
                                 <i class="fa-solid fa-camera me-1"></i> Punch OUT
                             </a>
                         @else
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-2.5 py-1 fw-bold text-white shadow-sm" style="font-size: 0.74rem; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1px solid #34d399; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;">
                                 <i class="fa-solid fa-camera me-1"></i> Punch IN
                             </a>
                         @endif
                     </div>
                 </div>
 
-                <!-- Compact Inline Punch Status Strip -->
-                <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top border-secondary border-opacity-25" style="font-size: 0.72rem;">
+                <!-- High-Visibility Prominent Time Display Strip -->
+                <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2 border-top border-secondary border-opacity-25">
                     <div class="d-flex align-items-center gap-3">
-                        <span style="color: {{ $isPunchedIn ? '#34d399' : '#64748b' }}; font-weight: 700;">
-                            <i class="fa-solid fa-sun text-warning me-1"></i>IN: <span class="font-mono">{{ $inTimeFormatted ?? '--:--' }}</span>
-                        </span>
-                        <span style="color: {{ $isPunchedOut ? '#38bdf8' : '#64748b' }}; font-weight: 700;">
-                            <i class="fa-solid fa-moon text-info me-1"></i>OUT: <span class="font-mono">{{ $outTimeFormatted ?? '--:--' }}</span>
-                        </span>
+                        <!-- IN Time -->
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="text-uppercase fw-bold" style="font-size: 0.68rem; color: #cbd5e1; letter-spacing: 0.3px;">
+                                <i class="fa-solid fa-sun text-warning me-0.5"></i> IN:
+                            </span>
+                            <span class="font-mono fw-black" style="font-size: 1.05rem; color: {{ $isPunchedIn ? '#34d399' : '#94a3b8' }}; font-weight: 900; letter-spacing: -0.5px;">
+                                {{ $inTimeFormatted ?? '--:--' }}
+                            </span>
+                        </div>
+
+                        <!-- OUT Time -->
+                        <div class="d-flex align-items-center gap-1.5 ps-2 border-start border-secondary border-opacity-25">
+                            <span class="text-uppercase fw-bold" style="font-size: 0.68rem; color: #cbd5e1; letter-spacing: 0.3px;">
+                                <i class="fa-solid fa-moon text-info me-0.5"></i> OUT:
+                            </span>
+                            <span class="font-mono fw-black" style="font-size: 1.05rem; color: {{ $isPunchedOut ? '#38bdf8' : '#94a3b8' }}; font-weight: 900; letter-spacing: -0.5px;">
+                                {{ $outTimeFormatted ?? '--:--' }}
+                            </span>
+                        </div>
                     </div>
-                    <div style="color: #94a3b8; font-size: 0.7rem;">
+
+                    <div style="font-size: 0.72rem;">
                         @if($isCompleted && $campusHours)
-                            <span class="fw-bold" style="color: #34d399;"><i class="fa-solid fa-stopwatch me-1"></i>{{ $campusHours }}</span>
+                            <span class="fw-black text-emerald-400" style="color: #34d399; font-weight: 800;"><i class="fa-solid fa-stopwatch me-1"></i>{{ $campusHours }}</span>
                         @else
-                            <i class="fa-solid fa-location-dot text-info me-1"></i>Geofence Lock
+                            <span class="fw-semibold text-secondary" style="color: #94a3b8;"><i class="fa-solid fa-location-dot text-info me-1"></i>Geofence</span>
                         @endif
                     </div>
                 </div>

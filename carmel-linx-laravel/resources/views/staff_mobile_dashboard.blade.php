@@ -327,8 +327,8 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-1.5">
-                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm btn-outline-danger px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;" title="Sign Out">
-                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm btn-outline-danger rounded-circle d-inline-flex align-items-center justify-content-center p-0" style="width: 34px; height: 34px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444; background: rgba(239, 68, 68, 0.1);" title="Logout" aria-label="Logout">
+                    <i class="fa-solid fa-right-from-bracket" style="font-size: 0.85rem;"></i>
                 </a>
             </div>
         </header>

@@ -1240,6 +1240,14 @@
                             </div>
                         </div>
 
+                        <!-- Sticky / Prominent Save Attendance Action Bar -->
+                        <div class="sticky-bottom bg-slate-900 p-2.5 mt-2.5 rounded-3 border shadow-lg text-center" style="background-color: #0f172a !important; border: 1px solid rgba(6, 182, 212, 0.4) !important; position: sticky; bottom: 0; z-index: 10;">
+                            <div id="attSaveInlineAlert" class="alert alert-danger py-2 px-3 small font-bold mb-2 d-none"></div>
+                            <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att w-100 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.95rem;">
+                                <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
+                            </button>
+                        </div>
+
                     </div>
 
                     <!-- TAB 2: PAST CLASS LOGS -->
@@ -2014,31 +2022,62 @@
         }
 
         function saveClassAttendance() {
-            const date = document.getElementById('attLogDate').value;
+            const dateElem = document.getElementById('attLogDate');
+            const date = dateElem ? dateElem.value : '';
             const checkedPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(el => parseInt(el.value));
-            const lpId = document.getElementById('attLessonPlanSelect').value;
-            const topics = document.getElementById('attTopicsCovered').value.trim();
-            const alertBox = document.getElementById('attModalAlert');
-            const btn = document.getElementById('btnSaveClassAtt');
+            const lpSelect = document.getElementById('attLessonPlanSelect');
+            const lpId = lpSelect ? lpSelect.value : '';
+            const topicsElem = document.getElementById('attTopicsCovered');
+            const topics = topicsElem ? topicsElem.value.trim() : '';
+
+            // Reset field error highlights
+            if (topicsElem) {
+                topicsElem.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+            }
+
+            function displayAttFeedback(msg, isError = true, targetElem = null) {
+                const alertBoxes = document.querySelectorAll('#attModalAlert, #attSaveInlineAlert');
+                alertBoxes.forEach(box => {
+                    box.className = isError 
+                        ? 'alert alert-danger py-2 px-3 small font-bold mb-2.5 shadow-sm'
+                        : 'alert alert-success py-2 px-3 small font-bold mb-2.5 shadow-sm';
+                    box.innerHTML = isError
+                        ? `<i class="fa-solid fa-circle-exclamation me-1.5"></i> ${msg}`
+                        : `<i class="fa-solid fa-circle-check me-1.5"></i> ${msg}`;
+                    box.classList.remove('d-none');
+                });
+
+                if (targetElem) {
+                    targetElem.style.border = '2px solid #f43f5e';
+                    targetElem.focus();
+                    targetElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    const inlineAlert = document.getElementById('attSaveInlineAlert');
+                    if (inlineAlert && !isError) {
+                        inlineAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        const topAlert = document.getElementById('attModalAlert');
+                        if (topAlert) topAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
 
             if (!currentAttBatchSubjectId) {
-                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
-                alertBox.textContent = 'Invalid subject session.';
-                alertBox.classList.remove('d-none');
+                displayAttFeedback('Invalid subject session. Please close and re-open the class card.', true);
                 return;
             }
             if (checkedPeriods.length === 0) {
-                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
-                alertBox.textContent = 'Please select at least one Period / Hour.';
-                alertBox.classList.remove('d-none');
+                const periodsContainer = document.getElementById('attPeriodsContainer');
+                displayAttFeedback('Please select at least one Period / Hour (e.g. P1, P2).', true, periodsContainer);
                 return;
             }
             if (!topics) {
-                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
-                alertBox.textContent = 'Please enter the topics covered.';
-                alertBox.classList.remove('d-none');
+                displayAttFeedback('Please enter or select the topics covered in class today.', true, topicsElem);
                 return;
             }
+
+            // Hide previous alerts during submit
+            document.querySelectorAll('#attModalAlert, #attSaveInlineAlert').forEach(box => box.classList.add('d-none'));
 
             const present = [];
             const absent = [];
@@ -2050,58 +2089,67 @@
 
             const subBatchBox = document.getElementById('attSubBatchBox');
             const selectedSb = document.querySelector('input[name="attSubBatch"]:checked');
-            const subBatchVal = subBatchBox.classList.contains('d-none') ? 'Whole' : (selectedSb ? selectedSb.value : 'Whole');
+            const subBatchVal = (subBatchBox && !subBatchBox.classList.contains('d-none')) 
+                ? (selectedSb ? selectedSb.value : 'Whole') 
+                : 'Whole';
 
             const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
             allSaveBtns.forEach(b => {
                 b.disabled = true;
-                b.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Saving...';
+                b.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Saving Attendance...';
             });
+
+            const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
 
             fetch('/api/staff/attendance/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({
                     batch_subject_id: currentAttBatchSubjectId,
                     date: date,
                     periods: checkedPeriods,
-                    lesson_plan_id: lpId ? parseInt(lpId) : null,
+                    lesson_plan_id: (lpId && !isNaN(parseInt(lpId))) ? parseInt(lpId) : null,
                     topics_covered: topics,
                     present_students: present,
                     absent_students: absent,
                     sub_batch: subBatchVal
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errData => {
+                        throw new Error(errData.message || `Server returned status ${res.status}`);
+                    }).catch(() => {
+                        throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+                    });
+                }
+                return res.json();
+            })
             .then(data => {
                 allSaveBtns.forEach(b => {
                     b.disabled = false;
                     b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
                 });
                 if (data.status === 'SUCCESS') {
-                    alertBox.className = 'alert alert-success py-2 px-3 small font-bold mb-3';
-                    alertBox.textContent = data.message;
-                    alertBox.classList.remove('d-none');
+                    displayAttFeedback(data.message || 'Attendance saved successfully!', false);
                     setTimeout(() => {
                         closeClassAttendanceModal();
                     }, 1200);
                 } else {
-                    alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
-                    alertBox.textContent = data.message || 'Failed to save attendance log.';
-                    alertBox.classList.remove('d-none');
+                    displayAttFeedback(data.message || 'Failed to save attendance log.', true);
                 }
             })
             .catch(err => {
+                console.error('Attendance Save Error:', err);
                 allSaveBtns.forEach(b => {
                     b.disabled = false;
                     b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
                 });
-                alertBox.className = 'alert alert-danger py-2 px-3 small font-bold mb-3';
-                alertBox.textContent = 'Network error saving class log.';
-                alertBox.classList.remove('d-none');
+                displayAttFeedback(err.message || 'Network error saving class log.', true);
             });
         }
 

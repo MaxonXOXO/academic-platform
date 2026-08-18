@@ -444,23 +444,33 @@
     }
 
     function saveAttendanceAndLog() {
-      const subjectId = document.getElementById('subjectSelect').value;
-      const date = document.getElementById('logDate').value;
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      const dateSelect = document.getElementById('logDate');
+      const date = dateSelect ? dateSelect.value : '';
       
       const checkedPeriods = Array.from(document.querySelectorAll('input[name="logPeriods"]:checked')).map(el => parseInt(el.value));
-      const lpId = document.getElementById('lessonPlanSelect').value;
-      const topics = document.getElementById('topicsCovered').value.trim();
+      const lpSelect = document.getElementById('lessonPlanSelect');
+      const lpId = lpSelect ? lpSelect.value : '';
+      const topicsElem = document.getElementById('topicsCovered');
+      const topics = topicsElem ? topicsElem.value.trim() : '';
+
+      if (topicsElem) topicsElem.classList.remove('border-red-500');
 
       if (!subjectId) {
-        showMessage("Please select a subject first.", true);
+        showMessage("Please select a class subject / batch first.", true);
         return;
       }
       if (checkedPeriods.length === 0) {
-        showMessage("Please select at least one Period / Hour.", true);
+        showMessage("Please select at least one Period / Hour (e.g. P1, P2).", true);
         return;
       }
       if (!topics) {
-        showMessage("Please describe the topics covered.", true);
+        if (topicsElem) {
+          topicsElem.classList.add('border-red-500');
+          topicsElem.focus();
+        }
+        showMessage("Please describe the topics covered in class today.", true);
         return;
       }
 
@@ -475,40 +485,55 @@
         }
       });
 
-      const subBatchVal = document.getElementById('subBatchCard').classList.contains('hidden') ? 'Whole' : document.querySelector('input[name="subBatchSelect"]:checked').value;
+      const subBatchCard = document.getElementById('subBatchCard');
+      const selectedSubBatchRadio = document.querySelector('input[name="subBatchSelect"]:checked');
+      const subBatchVal = (subBatchCard && !subBatchCard.classList.contains('hidden') && selectedSubBatchRadio)
+        ? selectedSubBatchRadio.value 
+        : 'Whole';
+
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.content : '';
 
       fetch('/api/staff/attendance/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          'X-CSRF-TOKEN': csrfToken
         },
         body: JSON.stringify({
           batch_subject_id: subjectId,
           date: date,
           periods: checkedPeriods,
-          lesson_plan_id: lpId ? parseInt(lpId) : null,
+          lesson_plan_id: (lpId && !isNaN(parseInt(lpId))) ? parseInt(lpId) : null,
           topics_covered: topics,
           present_students: present,
           absent_students: absent,
           sub_batch: subBatchVal
         })
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(errData => {
+            throw new Error(errData.message || `Server returned status ${res.status}`);
+          }).catch(() => {
+            throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+          });
+        }
+        return res.json();
+      })
       .then(data => {
         if (data.status === 'SUCCESS') {
-          showMessage(data.message, false);
-          // Wait 2 seconds then redirect back to dashboard
+          showMessage(data.message || "Class log and attendance recorded successfully!", false);
           setTimeout(() => {
             window.location.href = "{{ $backLink }}";
-          }, 2000);
+          }, 1800);
         } else {
           showMessage(data.message || "Failed to save attendance log.", true);
         }
       })
       .catch(err => {
-        console.error(err);
-        showMessage("Error saving log and attendance.", true);
+        console.error('Attendance Save Error:', err);
+        showMessage(err.message || "Error saving log and attendance.", true);
       });
     }
   </script>

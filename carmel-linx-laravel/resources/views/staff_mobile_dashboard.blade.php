@@ -359,14 +359,16 @@
             <div class="app-card border-start border-2 border-info p-2.5 mb-2.5">
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <div class="position-relative flex-shrink-0">
-                        @if(!empty($staff->photo_url))
-                            <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 42px; height: 42px;">
-                        @else
-                            <div id="staffBannerPhotoPlaceholder" class="avatar-mobile bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-white" style="width: 42px; height: 42px; font-size: 0.95rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
-                                {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
-                            </div>
-                        @endif
-                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 18px; height: 18px; font-size: 0.55rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a;" title="Change Photo">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-cyan); display: flex; align-items: center; justify-content: center; background: #1e293b;">
+                            @if(!empty($staff->photo_url))
+                                <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.08);">
+                            @else
+                                <div id="staffBannerPhotoPlaceholder" class="w-100 h-100 flex items-center justify-center font-black text-white" style="font-size: 0.95rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                    {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
+                                </div>
+                            @endif
+                        </div>
+                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 18px; height: 18px; font-size: 0.55rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a; z-index: 2;" title="Change Photo">
                             <i class="fa-solid fa-camera"></i>
                         </label>
                     </div>
@@ -1276,6 +1278,9 @@
             if (tabId === 'tab-leave') {
                 loadMyLeaveHistory();
                 loadPendingApprovals();
+            }
+            if (tabId === 'tab-profile') {
+                setTimeout(applyStaffAvatarAdjustments, 50);
             }
         }
 
@@ -2238,11 +2243,13 @@
                             newTabImg.id = 'staffProfileTabPhoto';
                             newTabImg.src = cacheBustedUrl;
                             newTabImg.className = 'avatar-mobile';
-                            newTabImg.style.width = '52px';
-                            newTabImg.style.height = '52px';
+                            newTabImg.style.width = '100%';
+                            newTabImg.style.height = '100%';
                             tabPlaceholder.parentNode.replaceChild(newTabImg, tabPlaceholder);
                         }
                     }
+
+                    setTimeout(applyStaffAvatarAdjustments, 100);
 
                     showStaffPhotoAlert('<i class="fa-solid fa-circle-check me-1"></i> Profile photo updated successfully!', 'text-success');
                     setTimeout(() => {
@@ -2289,9 +2296,12 @@
             document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = pos);
 
             document.querySelectorAll('#staffProfileImg, .avatar-mobile, #staffBannerPhoto, #staffProfileTabPhoto, #sidebarAvatarContainer img, aside img.rounded-full, #sidebarStaffImg').forEach(img => {
-                img.style.objectFit = 'cover';
-                img.style.objectPosition = `center ${pos}%`;
-                img.style.transform = `scale(${zoom})`;
+                if (img && img.tagName === 'IMG') {
+                    img.style.objectFit = 'cover';
+                    img.style.objectPosition = `center ${pos}%`;
+                    img.style.transform = `scale(${zoom})`;
+                    img.style.transformOrigin = `center ${pos}%`;
+                }
             });
         }
 

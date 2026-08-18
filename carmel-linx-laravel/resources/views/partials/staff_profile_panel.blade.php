@@ -362,9 +362,12 @@
     document.querySelectorAll('#avatarPosSlider, #mobilePosSlider').forEach(el => el.value = pos);
 
     document.querySelectorAll('#staffProfileImg, .avatar-mobile, #staffBannerPhoto, #staffProfileTabPhoto, #sidebarAvatarContainer img, aside img.rounded-full, #sidebarStaffImg').forEach(img => {
-      img.style.objectFit = 'cover';
-      img.style.objectPosition = `center ${pos}%`;
-      img.style.transform = `scale(${zoom})`;
+      if (img && img.tagName === 'IMG') {
+        img.style.objectFit = 'cover';
+        img.style.objectPosition = `center ${pos}%`;
+        img.style.transform = `scale(${zoom})`;
+        img.style.transformOrigin = `center ${pos}%`;
+      }
     });
   }
 

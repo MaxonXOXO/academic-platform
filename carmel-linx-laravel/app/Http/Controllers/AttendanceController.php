@@ -184,10 +184,19 @@ class AttendanceController extends Controller
             }
         });
 
-        // If a lesson plan was selected, mark it as Completed
+        // If a lesson plan was selected or topic matches, update actual_date and set status to Completed
         if ($request->lesson_plan_id) {
             $lp = LessonPlan::find($request->lesson_plan_id);
-            if ($lp && $lp->status === 'Pending') {
+            if ($lp) {
+                $lp->status = 'Completed';
+                $lp->actual_date = $request->date;
+                $lp->save();
+            }
+        } else if (!empty($request->topics_covered)) {
+            $lp = LessonPlan::where('batch_subject_id', $request->batch_subject_id)
+                ->where('topic_content', trim($request->topics_covered))
+                ->first();
+            if ($lp) {
                 $lp->status = 'Completed';
                 $lp->actual_date = $request->date;
                 $lp->save();

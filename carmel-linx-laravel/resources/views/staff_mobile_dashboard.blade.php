@@ -368,9 +368,6 @@
                                 </div>
                             @endif
                         </div>
-                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 18px; height: 18px; font-size: 0.55rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a; z-index: 2;" title="Change Photo">
-                            <i class="fa-solid fa-camera"></i>
-                        </label>
                     </div>
                     <div class="overflow-hidden ps-1">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 0.98rem;">{{ $staff->name ?? session('userName') }}</h6>

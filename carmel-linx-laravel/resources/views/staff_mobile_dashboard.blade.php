@@ -358,8 +358,8 @@
                             $deptName = function_exists('getFullBranchName') ? getFullBranchName($rawBranch) : $rawBranch;
                         @endphp
                         @if(!empty($deptName))
-                            <small class="text-cyan fw-semibold d-block text-truncate mt-0.5" style="font-size: 0.78rem;">
-                                <i class="fa-solid fa-building-columns me-1" style="font-size: 0.72rem;"></i>{{ $deptName }}
+                            <small class="fw-medium d-block text-truncate mt-0.5" style="font-size: 0.78rem; color: #60a5fa !important;">
+                                <i class="fa-solid fa-building-columns me-1" style="font-size: 0.72rem; color: #60a5fa !important;"></i>{{ $deptName }}
                             </small>
                         @endif
                     </div>

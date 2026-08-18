@@ -336,6 +336,9 @@
         <!-- Main Body Content -->
         <div class="p-3">
 
+            <!-- Executive Flash Notice Broadcast Banner -->
+            <div id="executiveFlashNoticeBanner" class="d-none mb-3"></div>
+
             <!-- Staff Identity Banner -->
             <div class="app-card border-start border-2 border-info p-2.5 mb-2.5">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -2397,12 +2400,109 @@
             .catch(err => showStaffBioAlert('Failed to revoke device.', 'text-danger'));
         }
 
+        function loadExecutiveFlashNotices() {
+            const banner = document.getElementById('executiveFlashNoticeBanner');
+            if (!banner) return;
+
+            fetch('/api/flash-notices/active?t=' + new Date().getTime(), {
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS' && data.notices && data.notices.length > 0) {
+                    const dismissedIds = JSON.parse(localStorage.getItem('carmel_dismissed_flash_ids') || '[]');
+                    const activeNotices = data.notices.filter(n => !dismissedIds.includes(n.id));
+
+                    if (activeNotices.length === 0) {
+                        banner.classList.add('d-none');
+                        banner.innerHTML = '';
+                        return;
+                    }
+
+                    let html = '';
+                    activeNotices.forEach(n => {
+                        const isUrgent = n.priority === 'Urgent';
+                        const isCircular = n.priority === 'Circular';
+                        const badgeBg = isUrgent ? '#ef4444' : (isCircular ? '#8b5cf6' : '#3b82f6');
+                        const cardBorder = isUrgent ? 'border-danger' : 'border-info';
+
+                        let attachmentHtml = '';
+                        if (n.attachment_path) {
+                            const fileUrl = '/storage/' + n.attachment_path;
+                            if (n.attachment_type === 'image') {
+                                attachmentHtml = `
+                                    <div class="mt-2 text-center">
+                                        <a href="${fileUrl}" target="_blank">
+                                            <img src="${fileUrl}" class="img-fluid rounded border border-secondary" style="max-height: 180px; object-fit: cover;" alt="Attachment">
+                                        </a>
+                                    </div>
+                                `;
+                            } else {
+                                attachmentHtml = `
+                                    <div class="mt-2">
+                                        <a href="${fileUrl}" target="_blank" class="btn btn-sm btn-outline-info py-1 px-2.5 text-white fw-bold" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-file-pdf me-1 text-danger"></i> View Attachment Document
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                        }
+
+                        html += `
+                            <div class="app-card border-start border-4 ${cardBorder} p-3 mb-2 shadow-lg position-relative fade-in" style="background: rgba(15, 23, 42, 0.95);">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge px-2 py-1 font-bold text-white" style="background-color: ${badgeBg}; font-size: 0.68rem; letter-spacing: 0.5px;">
+                                        <i class="fa-solid ${isUrgent ? 'fa-triangle-exclamation me-1' : 'fa-bullhorn me-1'}"></i>${n.priority.toUpperCase()} BROADCAST
+                                    </span>
+                                    <button onclick="dismissFlashNotice(${n.id})" class="btn-close btn-close-white" style="font-size: 0.65rem;" title="Dismiss"></button>
+                                </div>
+                                <h6 class="fw-bold text-white mb-1.5" style="font-size: 0.96rem;">${n.title}</h6>
+                                <p class="text-slate-200 mb-2" style="font-size: 0.84rem; white-space: pre-line; line-height: 1.45;">${n.content}</p>
+                                ${attachmentHtml}
+                                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.72rem; color: #94a3b8;">
+                                    <span><i class="fa-solid fa-user-shield me-1 text-info"></i>${n.sender_name} (${n.sender_role})</span>
+                                    <span><i class="fa-solid fa-clock me-1"></i>${new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    banner.innerHTML = html;
+                    banner.classList.remove('d-none');
+                } else {
+                    banner.classList.add('d-none');
+                    banner.innerHTML = '';
+                }
+            })
+            .catch(err => console.error('Flash notice load error:', err));
+        }
+
+        function dismissFlashNotice(id) {
+            const dismissedIds = JSON.parse(localStorage.getItem('carmel_dismissed_flash_ids') || '[]');
+            if (!dismissedIds.includes(id)) {
+                dismissedIds.push(id);
+                localStorage.setItem('carmel_dismissed_flash_ids', JSON.stringify(dismissedIds));
+            }
+            loadExecutiveFlashNotices();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadRegisteredBioDevices();
+            loadExecutiveFlashNotices();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                loadExecutiveFlashNotices();
+            }
         });
 
         // Prevent back-button viewing after logout
         window.addEventListener('pageshow', function (event) {
+            loadExecutiveFlashNotices();
             if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
                 window.location.reload(true);
             }

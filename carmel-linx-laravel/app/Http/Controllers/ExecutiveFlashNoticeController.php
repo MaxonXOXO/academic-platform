@@ -126,4 +126,61 @@ class ExecutiveFlashNoticeController extends Controller
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Flash notice revoked successfully.']);
     }
+
+    /**
+     * Get active published flash notices targeted for the logged-in user.
+     */
+    public function getActiveNotices(Request $request)
+    {
+        $userId   = Session::get('userId');
+        $userRole = Session::get('userRole');
+
+        if (!$userId && !$userRole) {
+            return response()->json(['status' => 'SUCCESS', 'notices' => []]);
+        }
+
+        $staff = \App\Models\StaffProfile::where('mobile_no', $userId)->first();
+        if (!$staff && $userRole && $userRole !== 'Student') {
+            $staff = \App\Models\StaffProfile::where('designation', $userRole)->first();
+        }
+
+        $dept = $staff ? ($staff->department ?? 'ALL') : 'ALL';
+
+        $query = ExecutiveFlashNotice::where('is_published', true)
+            ->where(function ($q) {
+                $q->whereNull('dispatch_type')
+                  ->orWhere('dispatch_type', 'immediate')
+                  ->orWhere(function ($sq) {
+                      $sq->where('dispatch_type', 'scheduled')
+                         ->where('scheduled_at', '<=', now());
+                  });
+            });
+
+        if ($userRole === 'Student') {
+            $query->where(function ($q) {
+                $q->whereIn('target_audience', ['ALL_CAMPUS', 'STUDENTS_ALL', 'STUDENTS_DEPT_SEM']);
+            });
+        } else {
+            $query->where(function ($q) use ($dept) {
+                $q->whereIn('target_audience', ['ALL_CAMPUS', 'STAFF_ALL'])
+                  ->orWhere(function ($sq) use ($dept) {
+                      $sq->where('target_audience', 'STAFF_DEPT')
+                         ->where(function ($d) use ($dept) {
+                             $d->where('target_department', 'ALL')
+                               ->orWhere('target_department', $dept);
+                         });
+                  });
+            });
+        }
+
+        $notices = $query->orderByRaw("CASE WHEN priority = 'Urgent' THEN 1 WHEN priority = 'Circular' THEN 2 ELSE 3 END")
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json([
+            'status'  => 'SUCCESS',
+            'notices' => $notices,
+        ]);
+    }
 }

@@ -2076,6 +2076,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/admin/flash-notices/broadcast', [App\Http\Controllers\ExecutiveFlashNoticeController::class, 'broadcast']);
     Route::get('/api/admin/flash-notices', [App\Http\Controllers\ExecutiveFlashNoticeController::class, 'getNotices']);
     Route::post('/api/admin/flash-notices/revoke/{id}', [App\Http\Controllers\ExecutiveFlashNoticeController::class, 'revokeNotice']);
+    Route::get('/api/flash-notices/active', [App\Http\Controllers\ExecutiveFlashNoticeController::class, 'getActiveNotices']);
 
     // Principal Targeted Event Scheduling Desk
     Route::post('/api/principal/events/schedule', [App\Http\Controllers\PrincipalScheduledEventController::class, 'schedule']);

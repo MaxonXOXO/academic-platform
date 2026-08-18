@@ -619,6 +619,8 @@
         const optData = await optRes.json();
 
         if (optData.status !== 'SUCCESS') {
+          localStorage.removeItem('carmel_biometric_cred_id');
+          localStorage.removeItem('carmel_registered_biometric_mobile');
           showError(loginAlert, bioSpinner, bioBtnText, optData.message);
           setTimeout(() => showPasswordFallback(), 1200);
           return;
@@ -659,6 +661,8 @@
           loginAlert.innerText = "Fingerprint verified! Access granted...";
           window.location.href = authData.route;
         } else {
+          localStorage.removeItem('carmel_biometric_cred_id');
+          localStorage.removeItem('carmel_registered_biometric_mobile');
           showError(loginAlert, bioSpinner, bioBtnText, authData.message);
           setTimeout(() => showPasswordFallback(), 1200);
         }

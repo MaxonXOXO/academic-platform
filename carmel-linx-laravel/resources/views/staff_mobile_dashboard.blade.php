@@ -2363,6 +2363,8 @@
                     });
                     devicesDiv.innerHTML = html;
                 } else {
+                    localStorage.removeItem('carmel_biometric_cred_id');
+                    localStorage.removeItem('carmel_registered_biometric_mobile');
                     container.classList.add('d-none');
                 }
             })
@@ -2384,6 +2386,8 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'SUCCESS') {
+                    localStorage.removeItem('carmel_biometric_cred_id');
+                    localStorage.removeItem('carmel_registered_biometric_mobile');
                     showStaffBioAlert('<i class="fa-solid fa-circle-check me-1"></i> Biometric device revoked.', 'text-warning');
                     loadRegisteredBioDevices();
                 } else {

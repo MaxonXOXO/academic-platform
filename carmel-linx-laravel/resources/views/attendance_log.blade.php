@@ -147,7 +147,7 @@
 
       <div>
         <label class="block text-sm font-bold text-slate-400 mb-1.5">Syllabus / Lesson Plan Topic</label>
-        <select id="lessonPlanSelect" onchange="onLessonPlanChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
+        <select id="lessonPlanSelect" onchange="onLessonPlanChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
           <option value="">-- Manual Entry --</option>
         </select>
       </div>
@@ -306,10 +306,11 @@
             // Populate Lesson Plans dropdown
             const lpSelect = document.getElementById('lessonPlanSelect');
             lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
-            data.lesson_plans.forEach(lp => {
+            data.lesson_plans.forEach((lp, idx) => {
               const opt = document.createElement('option');
               opt.value = lp.id;
-              opt.innerText = `[${lp.co_id}] ${lp.topic_content} (${lp.status})`;
+              opt.dataset.topic = lp.topic_content || '';
+              opt.innerText = `Sl #${idx + 1} | [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
               lpSelect.appendChild(opt);
             });
 
@@ -329,10 +330,7 @@
       const select = document.getElementById('lessonPlanSelect');
       const selectedOption = select.options[select.selectedIndex];
       if (selectedOption && select.value) {
-        // Strip the bracket prefixes
-        const text = selectedOption.innerText;
-        const topic = text.substring(text.indexOf(']') + 2);
-        document.getElementById('topicsCovered').value = topic.replace(/\(Pending\)|\(In Progress\)|\(Completed\)/i, '').trim();
+        document.getElementById('topicsCovered').value = selectedOption.dataset.topic || selectedOption.innerText;
       } else {
         document.getElementById('topicsCovered').value = '';
       }

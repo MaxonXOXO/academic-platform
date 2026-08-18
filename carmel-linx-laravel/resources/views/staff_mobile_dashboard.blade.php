@@ -1200,7 +1200,7 @@
                                     <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
                                         <i class="fa-solid fa-book-bookmark text-cyan"></i> Syllabus / Lesson Plan Topic
                                     </label>
-                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.84rem; padding-top: 6px; padding-bottom: 6px;">
+                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.77rem; padding-top: 5px; padding-bottom: 5px;">
                                         <option value="">-- Manual Entry --</option>
                                     </select>
                                 </div>
@@ -1208,7 +1208,7 @@
                                     <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
                                         <i class="fa-solid fa-pen-nib text-cyan"></i> Topics Covered (Manual Entry / Edit)
                                     </label>
-                                    <input type="text" id="attTopicsCovered" placeholder="Describe topics covered in class today..." class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none" style="font-size:0.84rem; background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important;">
+                                    <input type="text" id="attTopicsCovered" placeholder="Describe topics covered in class today..." class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none" style="font-size:0.78rem; background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important;">
                                 </div>
                             </div>
                         </div>
@@ -1839,12 +1839,13 @@
 
                         const lpSelect = document.getElementById('attLessonPlanSelect');
                         lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
-                        (data.lesson_plans || []).forEach(lp => {
+                        (data.lesson_plans || []).forEach((lp, idx) => {
                             const opt = document.createElement('option');
                             opt.value = lp.id;
                             let rawTopic = lp.topic_content || '';
-                            let displayTopic = rawTopic.length > 42 ? rawTopic.substring(0, 40) + '...' : rawTopic;
-                            opt.textContent = `[${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
+                            opt.dataset.topic = rawTopic;
+                            let displayTopic = rawTopic.length > 48 ? rawTopic.substring(0, 45) + '...' : rawTopic;
+                            opt.textContent = `Sl #${idx + 1} | [${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
                             opt.title = rawTopic;
                             lpSelect.appendChild(opt);
                         });
@@ -1899,9 +1900,8 @@
             const select = document.getElementById('attLessonPlanSelect');
             const selectedOption = select.options[select.selectedIndex];
             if (selectedOption && select.value) {
-                const text = selectedOption.textContent;
-                const topic = text.substring(text.indexOf(']') + 2);
-                document.getElementById('attTopicsCovered').value = topic.replace(/\(Pending\)|\(In Progress\)|\(Completed\)/i, '').trim();
+                const topic = selectedOption.dataset.topic || selectedOption.title || '';
+                document.getElementById('attTopicsCovered').value = topic;
             } else {
                 document.getElementById('attTopicsCovered').value = '';
             }

@@ -283,12 +283,13 @@
 
         .brand-title {
             font-weight: 900 !important;
-            letter-spacing: -0.3px;
-            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #f43f5e 100%);
+            font-size: 1.22rem;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 45%, #f59e0b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.4));
+            filter: drop-shadow(0 2px 10px rgba(56, 189, 248, 0.4));
         }
 
         .fade-in {
@@ -326,16 +327,20 @@
     <div class="mobile-container">
 
         <!-- Mobile Header -->
-        <header class="mobile-header d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <img src="{{ asset('logo.jpg') }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 8px;" class="shadow-sm">
+        <header class="mobile-header d-flex align-items-center justify-content-between" style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 12px 16px;">
+            <div class="d-flex align-items-center gap-2.5">
+                <div style="position: relative; padding: 2.5px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.45), rgba(99, 102, 241, 0.25)); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);">
+                    <img src="{{ asset('logo.jpg') }}" alt="Carmel Linx Logo" style="width: 36px; height: 36px; border-radius: 9.5px; object-fit: cover; display: block;">
+                </div>
                 <div>
-                    <h5 class="brand-title mb-0" style="font-size: 1.1rem; font-weight: 900 !important;">Carmel Linx</h5>
-                    <span class="badge badge-app px-1.5 py-0.5" style="background-color: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.45); font-size: 0.65rem; font-weight: 800; border-radius: 6px;">Staff Portal</span>
+                    <h5 class="brand-title mb-0" style="font-size: 1.18rem; font-weight: 900 !important; line-height: 1.1;">Carmel Linx</h5>
+                    <span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.63rem; font-weight: 800; border-radius: 20px; padding: 2px 8px; letter-spacing: 0.05em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+                        <span style="width: 5px; height: 5px; background-color: #38bdf8; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px #38bdf8;"></span> Staff Portal
+                    </span>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-1.5">
-                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 shadow-sm" style="width: 36px; height: 36px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);" title="Logout" aria-label="Logout">
+                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 shadow-sm" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); transition: all 0.2s ease;" title="Logout" aria-label="Logout">
                     <i class="fa-solid fa-power-off" style="font-size: 0.95rem; filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));"></i>
                 </a>
             </div>

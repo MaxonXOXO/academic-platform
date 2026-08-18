@@ -397,8 +397,7 @@
 
     <header class="mobile-header">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Punch</h1>
-            <span class="staff-badge">SF</span>
+            <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Time Punch</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <button type="button" onclick="reloadPunchScanner()" class="refresh-btn-top" title="Refresh Scanner & GPS">
@@ -464,9 +463,6 @@
                 <div class="viewfinder-wrapper" id="viewfinderWrapper">
                     <video id="videoFeed" autoplay muted playsinline></video>
                     <div class="face-guide-circle" id="faceCircle"></div>
-                </div>
-                <div class="flash-indicator-badge">
-                    <i class="fa-solid fa-lightbulb" style="color: #fbbf24;"></i> Screen Flashlight Active (Face Illumination)
                 </div>
             </div>
 
@@ -699,7 +695,7 @@
                                             if (!isInsidePremises && currentLat !== null && currentLng !== null) {
                                                 const distance = calculateDistance(currentLat, currentLng, GEOFENCE_LAT, GEOFENCE_LNG);
                                                 const distLabel = distance >= 1000 ? (distance / 1000).toFixed(2) + ' km' : distance + ' m';
-                                                guideText.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Punch Blocked: ${distLabel} outside campus premises.`;
+                                                guideText.innerHTML = `<i class="fa-solid fa-location-dot me-1" style="color:#f87171;"></i> Outside Campus Premises (${distLabel})`;
                                             } else {
                                                 guideText.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Waiting for GPS location lock...`;
                                             }
@@ -707,8 +703,6 @@
                                             isSmileVerified = false;
                                             faceCircle.classList.remove('verified');
                                             if (screenFlashBox) screenFlashBox.classList.remove('verified');
-                                            livenessBadge.className = "pill-badge danger";
-                                            livenessText.innerHTML = "Outside Campus (Punch Blocked)";
                                             return;
                                         }
 
@@ -1090,9 +1084,16 @@
             if (!isInsidePremises) {
                 const distance = calculateDistance(currentLat, currentLng, GEOFENCE_LAT, GEOFENCE_LNG);
                 const distLabel = distance >= 1000 ? (distance / 1000).toFixed(2) + ' km' : distance + ' m';
-                showToast(`❌ Punch Blocked: You are currently ${distLabel} outside campus premises.`);
                 isPunchAutoExecuting = false;
-                if (guideText) guideText.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Punch Blocked: ${distLabel} outside campus.`;
+                if (guideText) {
+                    guideText.innerHTML = `
+                        <div style="padding: 6px; text-align: center; color: #f87171;">
+                            <i class="fa-solid fa-location-dot" style="font-size: 1.4rem; display: block; margin-bottom: 4px;"></i>
+                            <div style="font-weight: 800; font-size: 0.88rem;">Outside Campus Premises (${distLabel})</div>
+                            <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">Attendance punch is restricted to campus.</div>
+                        </div>
+                    `;
+                }
                 return;
             }
 

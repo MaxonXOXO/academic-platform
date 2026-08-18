@@ -92,6 +92,14 @@ Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/staff', [AuthController::class, 'registerStaff']);
 Route::get('/logout', [AuthController::class, 'logout']);
 
+// WebAuthn Biometric Authentication Routes
+Route::post('/api/webauthn/register-options', [\App\Http\Controllers\WebAuthnController::class, 'getRegisterOptions']);
+Route::post('/api/webauthn/register', [\App\Http\Controllers\WebAuthnController::class, 'registerCredential']);
+Route::post('/api/webauthn/auth-options', [\App\Http\Controllers\WebAuthnController::class, 'getAuthOptions']);
+Route::post('/api/webauthn/authenticate', [\App\Http\Controllers\WebAuthnController::class, 'authenticate']);
+Route::get('/api/webauthn/credentials', [\App\Http\Controllers\WebAuthnController::class, 'listUserCredentials']);
+Route::delete('/api/webauthn/credentials/{id}', [\App\Http\Controllers\WebAuthnController::class, 'deleteCredential']);
+
 Route::post('/api/auth/recover-account', function (Illuminate\Http\Request $request) {
     $request->validate([
         'email' => 'required|email'

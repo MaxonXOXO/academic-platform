@@ -913,6 +913,24 @@
                     </button>
                 </div>
 
+                <!-- Biometric & Fingerprint Quick-Pass -->
+                <div class="app-card mt-3">
+                    <h6 class="fw-bold mb-2" style="color: #818cf8; font-size: 0.95rem;">
+                        <i class="fa-solid fa-fingerprint me-1"></i> Biometric & Fingerprint Login
+                    </h6>
+                    <p class="text-secondary mb-3" style="font-size: 0.78rem; line-height: 1.4;">
+                        Enable one-touch fingerprint scan for fast, secure mobile login without typing your password each time.
+                    </p>
+                    <div id="staffBioAlert" class="small mb-2 d-none font-bold"></div>
+                    <button onclick="registerMobileBiometric()" class="btn w-100 fw-bold" style="font-size: 0.84rem; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: none; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+                        <i class="fa-solid fa-fingerprint me-1"></i> Enable Fingerprint on This Device
+                    </button>
+                    <div id="registeredBioDevicesList" class="mt-3 d-none">
+                        <span class="text-secondary d-block mb-2 fw-bold" style="font-size: 0.75rem;">Registered Fingerprint Devices:</span>
+                        <div id="bioDevicesContainer" class="space-y-2"></div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -2219,6 +2237,160 @@
                 alertEl.classList.remove('d-none');
             }
         }
+
+        function base64ToBuffer(base64) {
+            const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function bufferToBase64(buffer) {
+            const binary = String.fromCharCode(...new Uint8Array(buffer));
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        async function registerMobileBiometric() {
+            const alertEl = document.getElementById('staffBioAlert');
+            if (alertEl) alertEl.classList.add('d-none');
+
+            if (!window.PublicKeyCredential) {
+                showStaffBioAlert('WebAuthn / Biometric authentication is not supported on this browser.', 'text-danger');
+                return;
+            }
+
+            try {
+                showStaffBioAlert('Preparing biometric challenge...', 'text-warning');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                const optRes = await fetch('/api/webauthn/register-options', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                const optData = await optRes.json();
+
+                if (optData.status !== 'SUCCESS') {
+                    showStaffBioAlert(optData.message || 'Failed to initialize biometric registration.', 'text-danger');
+                    return;
+                }
+
+                const options = optData.options;
+                options.challenge = base64ToBuffer(options.challenge);
+                options.user.id = base64ToBuffer(options.user.id);
+
+                showStaffBioAlert('Please scan your fingerprint on your device sensor now...', 'text-info');
+                const credential = await navigator.credentials.create({ publicKey: options });
+
+                const credentialId = bufferToBase64(credential.rawId);
+                const deviceName = /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'Apple Touch/Face ID' : (/Android/.test(navigator.userAgent) ? 'Android Fingerprint' : 'Mobile Biometric Sensor');
+
+                showStaffBioAlert('Saving biometric credential...', 'text-warning');
+
+                const regRes = await fetch('/api/webauthn/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        credentialId: credentialId,
+                        deviceName: deviceName
+                    })
+                });
+                const regData = await regRes.json();
+
+                if (regData.status === 'SUCCESS') {
+                    showStaffBioAlert('<i class="fa-solid fa-circle-check me-1"></i> ' + regData.message, 'text-success');
+                    loadRegisteredBioDevices();
+                } else {
+                    showStaffBioAlert(regData.message || 'Failed to save biometric credential.', 'text-danger');
+                }
+            } catch (err) {
+                if (err.name === 'NotAllowedError') {
+                    showStaffBioAlert('Fingerprint registration cancelled or timed out.', 'text-warning');
+                } else {
+                    showStaffBioAlert('Biometric registration error: ' + (err.message || 'Sensor error.'), 'text-danger');
+                }
+            }
+        }
+
+        function showStaffBioAlert(msg, colorClass) {
+            const alertEl = document.getElementById('staffBioAlert');
+            if (alertEl) {
+                alertEl.className = 'small mb-2 font-bold ' + colorClass;
+                alertEl.innerHTML = msg;
+                alertEl.classList.remove('d-none');
+            }
+        }
+
+        function loadRegisteredBioDevices() {
+            const container = document.getElementById('registeredBioDevicesList');
+            const devicesDiv = document.getElementById('bioDevicesContainer');
+            if (!container || !devicesDiv) return;
+
+            fetch('/api/webauthn/credentials')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS' && data.data && data.data.length > 0) {
+                    container.classList.remove('d-none');
+                    let html = '';
+                    data.data.forEach(cred => {
+                        html += `
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-slate-900 border border-secondary border-opacity-25 text-white" style="font-size: 0.78rem;">
+                                <div>
+                                    <i class="fa-solid fa-mobile-screen me-1 text-info"></i>
+                                    <strong>${cred.device_name || 'Biometric Device'}</strong>
+                                    <small class="d-block text-secondary" style="font-size: 0.7rem;">Added: ${new Date(cred.created_at).toLocaleDateString()}</small>
+                                </div>
+                                <button onclick="revokeBioDevice(${cred.id})" class="btn btn-sm btn-outline-danger py-0 px-2 text-danger" style="font-size: 0.72rem;">
+                                    Revoke
+                                </button>
+                            </div>
+                        `;
+                    });
+                    devicesDiv.innerHTML = html;
+                } else {
+                    container.classList.add('d-none');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        function revokeBioDevice(id) {
+            if (!confirm('Are you sure you want to revoke biometric login for this device?')) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/api/webauthn/credentials/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    showStaffBioAlert('<i class="fa-solid fa-circle-check me-1"></i> Biometric device revoked.', 'text-warning');
+                    loadRegisteredBioDevices();
+                } else {
+                    showStaffBioAlert(data.message || 'Failed to revoke device.', 'text-danger');
+                }
+            })
+            .catch(err => showStaffBioAlert('Failed to revoke device.', 'text-danger'));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRegisteredBioDevices();
+        });
 
         // Prevent back-button viewing after logout
         window.addEventListener('pageshow', function (event) {

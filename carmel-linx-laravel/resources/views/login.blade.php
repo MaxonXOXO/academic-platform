@@ -173,6 +173,15 @@
             <span id="loginBtnText">Access Portal</span>
             <div id="loginSpinner" class="loader-spinner border-t-white hidden"></div>
           </button>
+
+          <!-- Staff Biometric Quick-Pass Button -->
+          <div id="staffBiometricBtnContainer" class="pt-2 hidden">
+            <button type="button" onclick="handleBiometricLogin()" class="w-full py-2.5 bg-slate-950/80 hover:bg-slate-800 border border-indigo-500/30 text-indigo-300 rounded-xl font-bold shadow-md transition-premium flex items-center justify-center gap-2 cursor-pointer text-sm">
+              <span class="material-symbols-rounded text-lg text-indigo-400">fingerprint</span>
+              <span id="bioBtnText">Login with Fingerprint</span>
+              <div id="bioSpinner" class="loader-spinner border-t-indigo-400 hidden"></div>
+            </button>
+          </div>
         </form>
 
         <div class="text-center mt-4 space-y-2">
@@ -420,6 +429,12 @@
     // Default to Staff tab on load
     document.addEventListener('DOMContentLoaded', () => {
       toggleRoleTab('staff');
+      
+      const lastMobile = localStorage.getItem('carmel_last_staff_mobile');
+      if (lastMobile && document.getElementById('loginMobileId')) {
+        document.getElementById('loginMobileId').value = lastMobile;
+      }
+      
       document.getElementById('loginMobileId').focus();
 
       // Enforce 10 digit numeric-only constraints on mobile fields
@@ -434,7 +449,18 @@
       };
       enforceMobileLimit(document.getElementById('loginMobileId'));
       enforceMobileLimit(document.getElementById('regStaffMobile'));
+
+      checkBiometricSupport();
     });
+
+    function checkBiometricSupport() {
+      const bioBtn = document.getElementById('staffBiometricBtnContainer');
+      if (window.PublicKeyCredential && activeRole === 'staff') {
+        if (bioBtn) bioBtn.classList.remove('hidden');
+      } else {
+        if (bioBtn) bioBtn.classList.add('hidden');
+      }
+    }
 
     function toggleRoleTab(role) {
       activeRole = role;
@@ -455,6 +481,93 @@
         fFields.classList.remove('hidden');
         sFields.classList.add('hidden');
         setTimeout(() => document.getElementById('loginMobileId').focus(), 50);
+      }
+
+      checkBiometricSupport();
+    }
+
+    function base64ToBuffer(base64) {
+      const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function bufferToBase64(buffer) {
+      const binary = String.fromCharCode(...new Uint8Array(buffer));
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    async function handleBiometricLogin() {
+      const loginAlert = document.getElementById('loginAlert');
+      const bioSpinner = document.getElementById('bioSpinner');
+      const bioBtnText = document.getElementById('bioBtnText');
+      const mobileNo = document.getElementById('loginMobileId').value.trim();
+
+      if (!mobileNo) {
+        showError(loginAlert, bioSpinner, bioBtnText, "Please enter your 10-digit mobile number (Login ID) first.");
+        return;
+      }
+
+      loginAlert.classList.add('hidden');
+      bioSpinner.classList.remove('hidden');
+      bioBtnText.innerText = "Scanning Fingerprint...";
+
+      try {
+        const optRes = await fetch('/api/webauthn/auth-options', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ mobileNo })
+        });
+        const optData = await optRes.json();
+
+        if (optData.status !== 'SUCCESS') {
+          showError(loginAlert, bioSpinner, bioBtnText, optData.message);
+          return;
+        }
+
+        const options = optData.options;
+        options.challenge = base64ToBuffer(options.challenge);
+        if (options.allowCredentials) {
+          options.allowCredentials = options.allowCredentials.map(c => ({
+            ...c,
+            id: base64ToBuffer(c.id)
+          }));
+        }
+
+        const credential = await navigator.credentials.get({ publicKey: options });
+
+        bioBtnText.innerText = "Authenticating...";
+
+        const credentialId = bufferToBase64(credential.rawId);
+
+        const authRes = await fetch('/api/webauthn/authenticate', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            mobileNo,
+            credentialId
+          })
+        });
+        const authData = await authRes.json();
+
+        if (authData.status === 'SUCCESS') {
+          localStorage.setItem('carmel_last_staff_mobile', mobileNo);
+          loginAlert.className = "p-4 rounded-xl text-sm font-semibold bg-green-950/40 text-green-400 border border-green-900/60 block";
+          loginAlert.innerText = "Fingerprint verified! Access granted...";
+          window.location.href = authData.route;
+        } else {
+          showError(loginAlert, bioSpinner, bioBtnText, authData.message);
+        }
+      } catch (err) {
+        if (err.name === 'NotAllowedError') {
+          showError(loginAlert, bioSpinner, bioBtnText, "Fingerprint scan cancelled or timed out.");
+        } else {
+          showError(loginAlert, bioSpinner, bioBtnText, "Biometric login error: " + (err.message || "Failed to scan fingerprint."));
+        }
       }
     }
 

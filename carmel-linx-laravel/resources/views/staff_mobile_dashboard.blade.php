@@ -603,26 +603,28 @@
                 <div class="app-card border-start border-2 border-cyan" style="border: 1px solid rgba(56, 189, 248, 0.3);">
                     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                         <h6 class="fw-bold text-white mb-0" style="font-size: 0.95rem;">
-                            <i class="fa-solid fa-calendar-day me-1 text-cyan"></i> Timetable & Day Selection
+                            <i class="fa-solid fa-calendar-day me-1 text-cyan"></i> Timetable
                         </h6>
-                        <span id="selectedDayBadge" class="badge text-dark fw-black px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-1.5" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); font-size: 1.1rem; font-weight: 900; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);">
-                            <i class="fa-solid fa-calendar-day fs-6"></i> {{ $defaultDayOrder }}
-                        </span>
-                    </div>
-
-                    <!-- Day Selection Pills (Day 1 to Day 5) -->
-                    <div class="d-flex gap-1 overflow-x-auto pb-2 mb-2">
-                        @foreach(['Day 1' => 'Mon', 'Day 2' => 'Tue', 'Day 3' => 'Wed', 'Day 4' => 'Thu', 'Day 5' => 'Fri'] as $dKey => $dShort)
-                        <button onclick="selectDayOrder('{{ $dKey }}')" 
-                                data-day="{{ $dKey }}" 
-                                class="btn btn-sm {{ $dKey === $defaultDayOrder ? 'btn-cyan fw-bold text-dark' : 'btn-outline-secondary' }} px-2.5 py-1.5 rounded-pill day-order-btn flex-fill" style="font-size: 0.8rem; font-weight: 700; whitespace: nowrap;">
-                            {{ $dKey }} <small class="opacity-75">({{ $dShort }})</small>
+                        <button type="button" id="selectedDayBadge" onclick="toggleDayPicker()" class="btn text-dark fw-black px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-1.5 cursor-pointer" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); font-size: 1.05rem; font-weight: 900; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 0 14px rgba(56, 189, 248, 0.4); border: none;" title="Tap to change Day Order">
+                            <i class="fa-solid fa-calendar-day fs-6"></i> <span>{{ $defaultDayOrder }}</span> <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.75rem;"></i>
                         </button>
-                        @endforeach
                     </div>
 
-                    <div class="text-secondary mb-3" style="font-size: 0.72rem;">
-                        <i class="fa-solid fa-circle-info text-cyan me-1"></i> If a holiday occurred, select the active <strong>Day Order (1-5)</strong> for attendance taking.
+                    <!-- Hidden Collapsible Day Selection Panel -->
+                    <div id="dayOrderPickerPanel" class="d-none mt-1 mb-3 p-2.5 rounded-3 bg-slate-900 border border-slate-800" style="background-color: #0f172a !important; border: 1px solid rgba(56, 189, 248, 0.25) !important;">
+                        <div class="text-slate-300 mb-2" style="font-size: 0.74rem; color: #cbd5e1 !important;">
+                            <i class="fa-solid fa-circle-info text-cyan me-1"></i> If a holiday occurred, tap an active <strong>Day Order (1-5)</strong> below to update the schedule globally:
+                        </div>
+                        <!-- Day Selection Pills (Day 1 to Day 5) -->
+                        <div class="d-flex gap-1 overflow-x-auto pb-1">
+                            @foreach(['Day 1' => 'Mon', 'Day 2' => 'Tue', 'Day 3' => 'Wed', 'Day 4' => 'Thu', 'Day 5' => 'Fri'] as $dKey => $dShort)
+                            <button onclick="selectDayOrder('{{ $dKey }}')" 
+                                    data-day="{{ $dKey }}" 
+                                    class="btn btn-sm {{ $dKey === $defaultDayOrder ? 'btn-cyan fw-bold text-dark' : 'btn-outline-secondary' }} px-2.5 py-1.5 rounded-pill day-order-btn flex-fill" style="font-size: 0.8rem; font-weight: 700; whitespace: nowrap;">
+                                {{ $dKey }} <small class="opacity-75">({{ $dShort }})</small>
+                            </button>
+                            @endforeach
+                        </div>
                     </div>
 
                     <!-- Dynamic Timetable Slots Container -->
@@ -1476,6 +1478,13 @@
         }
 
 
+        function toggleDayPicker() {
+            const panel = document.getElementById('dayOrderPickerPanel');
+            if (panel) {
+                panel.classList.toggle('d-none');
+            }
+        }
+
         function renderDayOrderView(dayKey) {
             document.querySelectorAll('.day-order-btn').forEach(btn => {
                 if (btn.dataset.day === dayKey) {
@@ -1490,7 +1499,7 @@
             const slots = allTimetablesByDay[dayKey] || [];
             const container = document.getElementById('timetableScheduleContainer');
             const badgeLabel = document.getElementById('selectedDayBadge');
-            if (badgeLabel) badgeLabel.innerHTML = `<i class="fa-solid fa-calendar-day fs-6 me-1"></i> ${dayKey}`;
+            if (badgeLabel) badgeLabel.innerHTML = `<i class="fa-solid fa-calendar-day fs-6 me-1"></i> <span>${dayKey}</span> <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.75rem;"></i>`;
 
             if (!container) return;
             if (slots.length === 0) {
@@ -1584,6 +1593,8 @@
                 const data = await response.json();
                 if (data.status === 'SUCCESS') {
                     renderDayOrderView(dayKey);
+                    const panel = document.getElementById('dayOrderPickerPanel');
+                    if (panel) panel.classList.add('d-none');
                     alert(`Institution-wide Day Order updated to "${dayKey}" for today.`);
                 } else {
                     alert('Error updating Day Order: ' + (data.message || 'Server Error'));

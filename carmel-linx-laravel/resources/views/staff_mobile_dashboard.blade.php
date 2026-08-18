@@ -121,8 +121,8 @@
 
         /* Compact Dropdown List Options Styling */
         select option, #attLessonPlanSelect option {
-            font-size: 0.74rem !important;
-            padding: 6px 10px !important;
+            font-size: 0.72rem !important;
+            padding: 5px 8px !important;
             background-color: #0f172a !important;
             color: #ffffff !important;
         }
@@ -1158,8 +1158,8 @@
                                 <div class="text-end">
                                     <span class="text-slate-400 d-block font-mono mb-1" style="font-size: 0.68rem; color: #94a3b8 !important;">LOG TRACKER POINTER</span>
                                     <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-slate-950 border" style="background-color: #020617 !important; border-color: rgba(6, 182, 212, 0.35) !important;">
-                                        <span class="badge bg-cyan text-dark font-mono fw-black px-2 py-0.5" id="attLastLogBadge" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">Last Log: Sl #0</span>
-                                        <span class="text-slate-300 font-mono fw-bold" id="attNextLogPointer" style="font-size: 0.75rem; color: #38bdf8 !important;">Next Entry: Log #1</span>
+                                        <span class="badge bg-cyan text-dark font-mono fw-black px-2 py-0.5" id="attLastLogBadge" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.72rem;">Last Log: #0</span>
+                                        <span class="text-slate-300 font-mono fw-bold" id="attNextLogPointer" style="font-size: 0.72rem; color: #38bdf8 !important;">Next Entry: #1</span>
                                     </div>
                                 </div>
                             </div>
@@ -1200,7 +1200,7 @@
                                     <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
                                         <i class="fa-solid fa-book-bookmark text-cyan"></i> Syllabus / Lesson Plan Topic
                                     </label>
-                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.77rem; padding-top: 5px; padding-bottom: 5px;">
+                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.72rem !important; padding-top: 4px; padding-bottom: 4px;">
                                         <option value="">-- Manual Entry --</option>
                                     </select>
                                 </div>
@@ -1818,8 +1818,8 @@
                         const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
                         const lastBadge = document.getElementById('attLastLogBadge');
                         const nextPointer = document.getElementById('attNextLogPointer');
-                        if (lastBadge) lastBadge.textContent = `Last Log: Sl #${lastSlNo}`;
-                        if (nextPointer) nextPointer.textContent = `Next Entry: Log #${nextSlNo}`;
+                        if (lastBadge) lastBadge.textContent = `Last Log: #${lastSlNo}`;
+                        if (nextPointer) nextPointer.textContent = `Next Entry: #${nextSlNo}`;
 
                         const isLab = (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
@@ -1845,7 +1845,7 @@
                             let rawTopic = lp.topic_content || '';
                             opt.dataset.topic = rawTopic;
                             let displayTopic = rawTopic.length > 48 ? rawTopic.substring(0, 45) + '...' : rawTopic;
-                            opt.textContent = `Sl #${idx + 1} | [${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
+                            opt.textContent = `#${idx + 1}. [${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
                             opt.title = rawTopic;
                             lpSelect.appendChild(opt);
                         });
@@ -2196,7 +2196,7 @@
                         window.attPastLogsCache = data.logs;
                         let html = '';
                         data.logs.forEach((log, idx) => {
-                            const slNoDisplay = log.sl_no ? `Log Sl. #${log.sl_no}` : `Log #${data.logs.length - idx}`;
+                            const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : `Log #${data.logs.length - idx}`;
                             html += `<div class="p-2.5 rounded-3 border border-slate-800 bg-slate-900 mb-2 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
                                 <div class="d-flex justify-content-between align-items-center mb-1.5">
                                     <div class="d-flex align-items-center gap-1.5">
@@ -2276,7 +2276,7 @@
             // Update Log Serial Pointer Badge to indicate editing
             const nextPointer = document.getElementById('attNextLogPointer');
             if (nextPointer && log.sl_no) {
-                nextPointer.textContent = `Editing: Log Sl. #${log.sl_no}`;
+                nextPointer.textContent = `Editing: #${log.sl_no}`;
             }
 
             // 7. Switch to Take Attendance tab and refresh roster

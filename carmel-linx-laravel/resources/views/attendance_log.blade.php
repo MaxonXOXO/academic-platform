@@ -119,9 +119,9 @@
           <h2 class="font-bold text-sm text-slate-200">Class Log Details</h2>
         </div>
         <div class="flex items-center gap-1.5 bg-slate-900 border border-indigo-500/30 rounded-full px-3 py-1">
-          <span id="logLastSlNoBadge" class="text-xs font-mono font-black text-indigo-400">Last Log: Sl #0</span>
+          <span id="logLastSlNoBadge" class="text-[11px] font-mono font-black text-indigo-400">Last Log: #0</span>
           <span class="text-slate-600 text-xs">•</span>
-          <span id="logNextSlNoPointer" class="text-xs font-mono font-bold text-emerald-400">Next Entry: Log #1</span>
+          <span id="logNextSlNoPointer" class="text-[11px] font-mono font-bold text-emerald-400">Next Entry: #1</span>
         </div>
       </div>
 
@@ -147,7 +147,7 @@
 
       <div>
         <label class="block text-sm font-bold text-slate-400 mb-1.5">Syllabus / Lesson Plan Topic</label>
-        <select id="lessonPlanSelect" onchange="onLessonPlanChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
+        <select id="lessonPlanSelect" onchange="onLessonPlanChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-[11px] text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
           <option value="">-- Manual Entry --</option>
         </select>
       </div>
@@ -294,8 +294,8 @@
             const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
             const lastBadge = document.getElementById('logLastSlNoBadge');
             const nextPointer = document.getElementById('logNextSlNoPointer');
-            if (lastBadge) lastBadge.innerText = `Last Log: Sl #${lastSlNo}`;
-            if (nextPointer) nextPointer.innerText = `Next Entry: Log #${nextSlNo}`;
+            if (lastBadge) lastBadge.innerText = `Last Log: #${lastSlNo}`;
+            if (nextPointer) nextPointer.innerText = `Next Entry: #${nextSlNo}`;
 
             const filtered = getFilteredStudents();
             document.getElementById('studentCountLabel').innerText = `Total Students: ${filtered.length}`;
@@ -310,7 +310,7 @@
               const opt = document.createElement('option');
               opt.value = lp.id;
               opt.dataset.topic = lp.topic_content || '';
-              opt.innerText = `Sl #${idx + 1} | [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
+              opt.innerText = `#${idx + 1}. [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
               lpSelect.appendChild(opt);
             });
 

@@ -353,10 +353,6 @@
                     </div>
                     <div class="overflow-hidden">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 1.05rem;">{{ $staff->name ?? session('userName') }}</h6>
-                        <small class="text-info font-mono font-bold d-block" style="font-size: 0.78rem;">{{ $staff->mobile_no ?? session('userId') }}</small>
-                        <div class="d-flex align-items-center gap-1.5 mt-1 flex-wrap">
-                            <span class="badge bg-cyan bg-opacity-20 text-cyan badge-app">{{ $staff->designation ?? session('userRole') }}</span>
-                        </div>
                     </div>
                 </div>
 

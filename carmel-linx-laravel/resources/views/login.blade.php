@@ -506,6 +506,7 @@
       const bioSpinner = document.getElementById('bioSpinner');
       const bioBtnText = document.getElementById('bioBtnText');
       let mobileNo = document.getElementById('loginMobileId').value.trim();
+      const savedCredId = localStorage.getItem('carmel_biometric_cred_id') || '';
 
       if (!mobileNo) {
         mobileNo = localStorage.getItem('carmel_registered_biometric_mobile') || localStorage.getItem('carmel_last_staff_mobile') || '';
@@ -522,7 +523,7 @@
         const optRes = await fetch('/api/webauthn/auth-options', {
           method: 'POST',
           headers: getHeaders(),
-          body: JSON.stringify({ mobileNo })
+          body: JSON.stringify({ mobileNo, credentialId: savedCredId })
         });
         const optData = await optRes.json();
 
@@ -538,8 +539,6 @@
             ...c,
             id: base64ToBuffer(c.id)
           }));
-        } else {
-          delete options.allowCredentials;
         }
 
         const credential = await navigator.credentials.get({ publicKey: options });
@@ -559,6 +558,7 @@
         const authData = await authRes.json();
 
         if (authData.status === 'SUCCESS') {
+          localStorage.setItem('carmel_biometric_cred_id', credentialId);
           if (authData.id) {
             localStorage.setItem('carmel_registered_biometric_mobile', authData.id);
             localStorage.setItem('carmel_last_staff_mobile', authData.id);

@@ -59,7 +59,8 @@ class WebAuthnController extends Controller
                     ['type' => 'public-key', 'alg' => -8],   // Ed25519
                 ],
                 'authenticatorSelection' => [
-                    'authenticatorAttachment' => 'platform', // Fingerprint / Touch ID / Face ID
+                    'authenticatorAttachment' => 'platform', // Local fingerprint sensor
+                    'residentKey' => 'preferred',
                     'userVerification' => 'preferred',
                 ],
                 'timeout' => 60000,
@@ -137,6 +138,7 @@ class WebAuthnController extends Controller
     public function getAuthOptions(Request $request)
     {
         $inputMobile = trim($request->input('mobileNo', ''));
+        $inputCredentialId = trim($request->input('credentialId', ''));
         $cleanMobile = preg_replace('/[^0-9]/', '', $inputMobile);
 
         $staff = null;
@@ -149,11 +151,16 @@ class WebAuthnController extends Controller
                     $q->orWhere('mobile_no', $cleanMobile);
                 }
             })->first();
+        }
 
-            if (!$staff) {
-                return response()->json(['status' => 'ERROR', 'message' => 'No staff account found with this ID / Mobile Number.']);
+        if (!$staff && !empty($inputCredentialId)) {
+            $cred = StaffBiometricCredential::where('credential_id', $inputCredentialId)->first();
+            if ($cred) {
+                $staff = StaffProfile::where('mobile_no', $cred->staff_mobile_no)->first();
             }
+        }
 
+        if ($staff) {
             if (strtoupper($staff->account_status) !== 'APPROVED') {
                 return response()->json(['status' => 'ERROR', 'message' => 'Your staff account is pending approval by Super Admin.']);
             }
@@ -175,6 +182,12 @@ class WebAuthnController extends Controller
                     'id' => $cred->credential_id,
                 ];
             }
+        } else {
+            // If neither mobile nor credential match, check if any credential exists or return friendly prompt
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Please enter your 10-digit mobile number once to verify your registered fingerprint.'
+            ]);
         }
 
         $challenge = Str::random(32);

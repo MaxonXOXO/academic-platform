@@ -1143,27 +1143,45 @@
                     <!-- TAB 1: TAKE ATTENDANCE & LOG FORM -->
                     <div id="paneTakeAtt">
                         
-                        <!-- Compact Top Options Bar -->
-                        <div class="p-3 mb-3.5 rounded-3 bg-slate-900 border border-slate-800 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-12 col-sm-4 mb-1 mb-sm-0">
-                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Date</label>
-                                    <input type="date" id="attLogDate" class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none fw-bold" value="{{ date('Y-m-d') }}" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.85rem;">
+                        <!-- Redesigned Class Log Options Card -->
+                        <div class="p-3 mb-3 rounded-3 bg-slate-900 border border-slate-800 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                            
+                            <!-- Header Row: Date & Serial Number Pointer Badge -->
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom border-slate-800" style="border-bottom-color: rgba(255, 255, 255, 0.08) !important;">
+                                <div class="flex-grow-1" style="max-width: 175px;">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
+                                        <i class="fa-regular fa-calendar text-cyan"></i> Date
+                                    </label>
+                                    <input type="date" id="attLogDate" class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none fw-bold" value="{{ date('Y-m-d') }}" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.84rem;">
                                 </div>
-                                <div class="col-12 col-sm-8">
-                                    <label class="form-label text-slate-300 mb-1.5 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Select Period / Hour:</label>
-                                    <div class="d-flex justify-content-between align-items-center w-100 gap-1" id="attPeriodsContainer">
-                                        @for ($p = 1; $p <= 7; $p++)
-                                        <input type="checkbox" class="btn-check" name="attPeriods" id="attP{{ $p }}" value="{{ $p }}" autocomplete="off">
-                                        <label class="period-circle-btn flex-fill" for="attP{{ $p }}">P{{ $p }}</label>
-                                        @endfor
+
+                                <div class="text-end">
+                                    <span class="text-slate-400 d-block font-mono mb-1" style="font-size: 0.68rem; color: #94a3b8 !important;">LOG TRACKER POINTER</span>
+                                    <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-slate-950 border" style="background-color: #020617 !important; border-color: rgba(6, 182, 212, 0.35) !important;">
+                                        <span class="badge bg-cyan text-dark font-mono fw-black px-2 py-0.5" id="attLastLogBadge" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">Last Log: Sl #0</span>
+                                        <span class="text-slate-300 font-mono fw-bold" id="attNextLogPointer" style="font-size: 0.75rem; color: #38bdf8 !important;">Next Entry: Log #1</span>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Row 2: Period / Class Hour Selector -->
+                            <div class="mb-2.5">
+                                <label class="form-label text-slate-300 mb-1.5 fw-bold d-flex align-items-center gap-1" style="font-size:0.78rem; color: #cbd5e1 !important;">
+                                    <i class="fa-solid fa-clock text-cyan"></i> Select Period / Class Hour:
+                                </label>
+                                <div class="d-flex justify-content-between align-items-center w-100 gap-1" id="attPeriodsContainer">
+                                    @for ($p = 1; $p <= 7; $p++)
+                                    <input type="checkbox" class="btn-check" name="attPeriods" id="attP{{ $p }}" value="{{ $p }}" autocomplete="off">
+                                    <label class="period-circle-btn flex-fill" for="attP{{ $p }}">P{{ $p }}</label>
+                                    @endfor
+                                </div>
+                            </div>
+
                             <!-- Sub-batch Selector (for Labs) -->
-                            <div id="attSubBatchBox" class="mt-2.5 pt-2 border-top border-slate-800 d-none" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">
-                                <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Lab Sub-Batch Partitioning:</label>
+                            <div id="attSubBatchBox" class="mt-2.5 pt-2 border-top border-slate-800 d-none" style="border-top-color: rgba(255, 255, 255, 0.08) !important;">
+                                <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
+                                    <i class="fa-solid fa-diagram-project text-cyan"></i> Lab Sub-Batch Partitioning:
+                                </label>
                                 <div class="d-flex gap-2">
                                     <input type="radio" class="btn-check" name="attSubBatch" id="sbWhole" value="Whole" checked onchange="filterAttStudentsByBatch()">
                                     <label class="btn btn-sm btn-outline-secondary flex-fill rounded-pill py-1 small text-white" for="sbWhole">Whole Class</label>
@@ -1176,17 +1194,21 @@
                                 </div>
                             </div>
 
-                            <!-- Topic selection -->
-                            <div class="row g-2 mt-1.5">
+                            <!-- Row 3: Topic Selection & Manual Entry -->
+                            <div class="row g-2 mt-1">
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Syllabus Lesson Topic</label>
-                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.84rem; padding-top: 5px; padding-bottom: 5px;">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
+                                        <i class="fa-solid fa-book-bookmark text-cyan"></i> Syllabus / Lesson Plan Topic
+                                    </label>
+                                    <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.84rem; padding-top: 6px; padding-bottom: 6px;">
                                         <option value="">-- Manual Entry --</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-slate-300 mb-1 fw-bold" style="font-size:0.78rem; color: #cbd5e1 !important;">Topics Covered</label>
-                                    <input type="text" id="attTopicsCovered" placeholder="Describe topics covered in class..." class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none" style="font-size:0.84rem; background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important;">
+                                    <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
+                                        <i class="fa-solid fa-pen-nib text-cyan"></i> Topics Covered (Manual Entry / Edit)
+                                    </label>
+                                    <input type="text" id="attTopicsCovered" placeholder="Describe topics covered in class today..." class="form-control form-control-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none" style="font-size:0.84rem; background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important;">
                                 </div>
                             </div>
                         </div>
@@ -1791,6 +1813,14 @@
                         const badgeElem = document.getElementById('attSubjectTypeBadge');
                         if (badgeElem) badgeElem.textContent = currentAttSubjectType;
 
+                        // Set Serial Number Tracker Badges
+                        const lastSlNo = data.last_log_sl_no || 0;
+                        const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
+                        const lastBadge = document.getElementById('attLastLogBadge');
+                        const nextPointer = document.getElementById('attNextLogPointer');
+                        if (lastBadge) lastBadge.textContent = `Last Log: Sl #${lastSlNo}`;
+                        if (nextPointer) nextPointer.textContent = `Next Entry: Log #${nextSlNo}`;
+
                         const isLab = (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
                             currentAttSubjectType.toLowerCase().includes('practical') ||
@@ -2166,9 +2196,13 @@
                         window.attPastLogsCache = data.logs;
                         let html = '';
                         data.logs.forEach((log, idx) => {
+                            const slNoDisplay = log.sl_no ? `Log Sl. #${log.sl_no}` : `Log #${data.logs.length - idx}`;
                             html += `<div class="p-2.5 rounded-3 border border-slate-800 bg-slate-900 mb-2 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
                                 <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                    <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">Period ${log.period} &bull; ${log.date}</span>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.76rem;">${slNoDisplay}</span>
+                                        <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.74rem;">Period ${log.period} &bull; ${log.date}</span>
+                                    </div>
                                     <button type="button" onclick="editPastClassLog(${idx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.76rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
                                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Log
                                     </button>
@@ -2238,6 +2272,12 @@
             currentAttStudents.forEach(s => {
                 s.present = presentArr.includes(s.reg_no);
             });
+
+            // Update Log Serial Pointer Badge to indicate editing
+            const nextPointer = document.getElementById('attNextLogPointer');
+            if (nextPointer && log.sl_no) {
+                nextPointer.textContent = `Editing: Log Sl. #${log.sl_no}`;
+            }
 
             // 7. Switch to Take Attendance tab and refresh roster
             switchAttModalTab('take');

@@ -113,9 +113,16 @@
 
     <!-- DAILY CLASS LOG DETAILS -->
     <div id="classLogCard" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center gap-2 pb-2 border-b border-slate-800/60">
-        <span class="material-symbols-rounded text-indigo-400 text-lg">edit_note</span>
-        <h2 class="font-bold text-sm text-slate-200">Class Log Details</h2>
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-rounded text-indigo-400 text-lg">edit_note</span>
+          <h2 class="font-bold text-sm text-slate-200">Class Log Details</h2>
+        </div>
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-indigo-500/30 rounded-full px-3 py-1">
+          <span id="logLastSlNoBadge" class="text-xs font-mono font-black text-indigo-400">Last Log: Sl #0</span>
+          <span class="text-slate-600 text-xs">•</span>
+          <span id="logNextSlNoPointer" class="text-xs font-mono font-bold text-emerald-400">Next Entry: Log #1</span>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -282,7 +289,14 @@
               if (wholeRadio) wholeRadio.checked = true;
             }
 
-            // Load student count
+            // Load student count & serial number tracking
+            const lastSlNo = data.last_log_sl_no || 0;
+            const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
+            const lastBadge = document.getElementById('logLastSlNoBadge');
+            const nextPointer = document.getElementById('logNextSlNoPointer');
+            if (lastBadge) lastBadge.innerText = `Last Log: Sl #${lastSlNo}`;
+            if (nextPointer) nextPointer.innerText = `Next Entry: Log #${nextSlNo}`;
+
             const filtered = getFilteredStudents();
             document.getElementById('studentCountLabel').innerText = `Total Students: ${filtered.length}`;
 

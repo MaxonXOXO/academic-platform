@@ -104,12 +104,16 @@ class AttendanceController extends Controller
             ->orderBy('id', 'asc')
             ->get(['id', 'topic_content', 'co_id', 'status']);
 
+        $lastLogCount = DB::table('class_logs_attendance')->where('batch_subject_id', $id)->count();
+
         return response()->json([
             'status' => 'SUCCESS',
             'students' => $students,
             'lesson_plans' => $lessonPlans,
             'classroom_id' => $batchSubject->classroom_id,
-            'subject_type' => $batchSubject->subject_type
+            'subject_type' => $batchSubject->subject_type,
+            'last_log_sl_no' => $lastLogCount,
+            'next_log_sl_no' => $lastLogCount + 1
         ]);
     }
 
@@ -182,7 +186,6 @@ class AttendanceController extends Controller
             $lp = LessonPlan::find($request->lesson_plan_id);
             if ($lp && $lp->status === 'Pending') {
                 $lp->status = 'Completed';
-                $lp->status = 'Completed'; // Set status to Completed when checked off
                 $lp->actual_date = $request->date;
                 $lp->save();
             }
@@ -276,12 +279,23 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
-        // 1. Fetch Class Attendance Logs
-        $logs = DB::table('class_logs_attendance')
+        // 1. Fetch Class Attendance Logs in chronological order to compute serial number
+        $rawLogs = DB::table('class_logs_attendance')
             ->where('batch_subject_id', $batchSubjectId)
-            ->orderBy('date', 'desc')
-            ->orderBy('period', 'desc')
+            ->orderBy('date', 'asc')
+            ->orderBy('period', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
+
+        $slNo = 1;
+        foreach ($rawLogs as $log) {
+            $log->sl_no = $slNo++;
+            $log->present_count = count(json_decode($log->present_students ?? '[]'));
+            $log->absent_count = count(json_decode($log->absent_students ?? '[]'));
+        }
+
+        // Return logs in reverse (newest first) for UI presentation
+        $logs = $rawLogs->reverse()->values();
 
         // Decode JSON arrays for counts
         foreach ($logs as $log) {

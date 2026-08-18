@@ -1996,13 +1996,6 @@
                         </td>
                     </tr>`;
                 });
-                html += `<tr>
-                    <td colspan="3" class="text-center py-3 border-0" style="background-color: #090d16 !important;">
-                        <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att px-4 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.92rem;">
-                            <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
-                        </button>
-                    </td>
-                </tr>`;
                 tbody.innerHTML = html;
             } else {
                 const gridRow = document.getElementById('attStudentGridRow');
@@ -2022,11 +2015,6 @@
                         </button>
                     </div>`;
                 });
-                html += `<div class="col-12 text-center py-3 mt-2">
-                    <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att px-4 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.92rem;">
-                        <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
-                    </button>
-                </div>`;
                 gridRow.innerHTML = html;
             }
         }

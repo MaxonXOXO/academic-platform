@@ -1903,52 +1903,163 @@ class MentoringController extends Controller
             'Day 5' => [],
         ];
 
+        // Master lookup for all batch subjects across DB
+        $allBatchSubjects = DB::table('batch_subjects')->get();
+
+        $normalizeName = function ($name) {
+            if (empty($name)) return '';
+            $s = strtolower(trim(preg_replace('/[^a-zA-Z0-9\s]/', '', (string)$name)));
+            return implode(' ', array_filter(explode(' ', $s)));
+        };
+
+        $staffNameNorm = $normalizeName($staff->name ?? Session::get('userName', ''));
+        $staffMobileNorm = trim((string)($staff->mobile_no ?? $userId));
+
+        $isStaffMatched = function ($slotStaff, $slotSubCode, $cId) use (
+            $normalizeName, $staffNameNorm, $staffMobileNorm, $assignments, $userId
+        ) {
+            // Check if staff is assigned to this subject in DB assignments
+            $assignedInDb = $assignments->first(function ($item) use ($slotSubCode, $cId) {
+                if (($item->subject_code ?? '') !== $slotSubCode) return false;
+                if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                return true;
+            });
+            if ($assignedInDb) return true;
+
+            if (empty($slotStaff)) return false;
+
+            $candidates = [];
+            if (is_array($slotStaff)) {
+                foreach ($slotStaff as $st) {
+                    if (is_string($st) || is_numeric($st)) $candidates[] = (string)$st;
+                    elseif (is_array($st) && isset($st['name'])) $candidates[] = (string)$st['name'];
+                }
+            } elseif (is_string($slotStaff)) {
+                $parts = preg_split('/[\/,;&]|(?:\band\b)/i', $slotStaff);
+                foreach ($parts as $p) $candidates[] = trim($p);
+            } elseif (is_numeric($slotStaff)) {
+                $candidates[] = (string)$slotStaff;
+            }
+
+            foreach ($candidates as $cand) {
+                $candStr = trim((string)$cand);
+                if (empty($candStr)) continue;
+
+                if (!empty($staffMobileNorm) && ($candStr === $staffMobileNorm || $candStr === (string)$userId)) {
+                    return true;
+                }
+
+                $candNorm = $normalizeName($candStr);
+                if (empty($candNorm) || empty($staffNameNorm)) continue;
+
+                if ($candNorm === $staffNameNorm) return true;
+
+                $candTokens = array_values(array_filter(explode(' ', $candNorm), function ($t) {
+                    return strlen($t) > 1 && !in_array($t, ['fr', 'dr', 'mr', 'mrs', 'prof']);
+                }));
+                $staffTokens = array_values(array_filter(explode(' ', $staffNameNorm), function ($t) {
+                    return strlen($t) > 1 && !in_array($t, ['fr', 'dr', 'mr', 'mrs', 'prof']);
+                }));
+
+                if (!empty($candTokens) && !empty($staffTokens)) {
+                    $intersect = array_intersect($candTokens, $staffTokens);
+                    if (count($intersect) === count($candTokens) || count($intersect) === count($staffTokens)) {
+                        return true;
+                    }
+                    if (count($intersect) >= 2) {
+                        return true;
+                    }
+                    if (count($candTokens) === 1 && count($staffTokens) === 1 && $candTokens[0] === $staffTokens[0]) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
         $dir = storage_path("app/timetables");
         if (is_dir($dir)) {
             $files = glob($dir . "/*.json");
-            $staffObjName = isset($staff->name) ? trim($staff->name) : '';
 
             foreach ($files as $file) {
                 $cId = str_replace(['.json', $dir . '/'], '', $file);
                 $ttData = json_decode(file_get_contents($file), true);
-                if ($ttData) {
+                if ($ttData && is_array($ttData)) {
                     foreach (['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'] as $dayKey) {
                         $dayAlt = array_search($dayKey, $dayMap);
                         $dayData = $ttData[$dayKey] ?? ($dayAlt ? ($ttData[$dayAlt] ?? null) : null);
                         if ($dayData && is_array($dayData)) {
                             foreach ($dayData as $period => $details) {
-                                if (!empty($details)) {
-                                    $subCode = is_array($details) ? ($details['subject'] ?? ($details['subject_code'] ?? '')) : $details;
-                                    $staffName = is_array($details) ? ($details['staff'] ?? '') : '';
-                                    $staffNameClean = trim($staffName);
+                                if (empty($details)) continue;
 
-                                    $matchesName = false;
-                                    if (!empty($staffObjName) && !empty($staffNameClean)) {
-                                        if (str_contains(strtolower($staffNameClean), strtolower($staffObjName)) || 
-                                            str_contains(strtolower($staffObjName), strtolower($staffNameClean)) ||
-                                            $staffNameClean === $userId) {
-                                            $matchesName = true;
+                                $slotsToProcess = [];
+
+                                // Handle Parallel Labs
+                                if (is_array($details) && !empty($details['is_parallel']) && !empty($details['parallel_labs']) && is_array($details['parallel_labs'])) {
+                                    foreach ($details['parallel_labs'] as $lab) {
+                                        if (is_array($lab)) {
+                                            $slotsToProcess[] = [
+                                                'subject_code' => $lab['subject'] ?? ($lab['subject_code'] ?? ''),
+                                                'staff' => $lab['staff'] ?? null,
+                                            ];
                                         }
                                     }
+                                } else {
+                                    $subCode = is_array($details) ? ($details['subject'] ?? ($details['subject_code'] ?? '')) : (string)$details;
+                                    $staffVal = is_array($details) ? ($details['staff'] ?? null) : null;
+                                    $slotsToProcess[] = [
+                                        'subject_code' => $subCode,
+                                        'staff' => $staffVal,
+                                    ];
+                                }
 
-                                    $assignedSub = $assignments->first(function ($item) use ($subCode, $cId) {
-                                        if (($item->subject_code ?? '') !== $subCode) return false;
-                                        if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
-                                        return true;
-                                    });
-                                    if (!$assignedSub) {
-                                        $assignedSub = $assignments->firstWhere('subject_code', $subCode);
-                                    }
+                                foreach ($slotsToProcess as $slotItem) {
+                                    $subCode = $slotItem['subject_code'];
+                                    $slotStaff = $slotItem['staff'];
+                                    if (empty($subCode)) continue;
 
-                                    $isOwnClass = $matchesName || ($assignedSub !== null);
+                                    if ($isStaffMatched($slotStaff, $subCode, $cId)) {
+                                        // Find batch subject details
+                                        $assignedSub = $assignments->first(function ($item) use ($subCode, $cId) {
+                                            if (($item->subject_code ?? '') !== $subCode) return false;
+                                            if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                                            return true;
+                                        });
 
-                                    if ($isOwnClass) {
+                                        if (!$assignedSub) {
+                                            $bsMatch = $allBatchSubjects->first(function ($item) use ($subCode, $cId) {
+                                                if (($item->subject_code ?? '') !== $subCode) return false;
+                                                if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                                                return true;
+                                            });
+                                            if (!$bsMatch) {
+                                                $bsMatch = $allBatchSubjects->firstWhere('subject_code', $subCode);
+                                            }
+
+                                            if ($bsMatch) {
+                                                $tot = DB::table('lesson_plans')->where('batch_subject_id', $bsMatch->id)->count();
+                                                $comp = DB::table('lesson_plans')->where('batch_subject_id', $bsMatch->id)->where('status', 'Completed')->count();
+                                                $assignedSub = (object) [
+                                                    'id' => $bsMatch->id,
+                                                    'subject_code' => $bsMatch->subject_code,
+                                                    'subject_name' => $bsMatch->subject_name,
+                                                    'classroom_id' => $cId,
+                                                    'total_lesson_plans' => $tot,
+                                                    'completed_lesson_plans' => $comp,
+                                                    'progress_percent' => $tot > 0 ? round(($comp / $tot) * 100) : 0,
+                                                ];
+                                            }
+                                        }
+
+                                        $staffNameDisplay = is_array($slotStaff) ? implode(', ', $slotStaff) : (string)($slotStaff ?? '');
+
                                         $fullTimetablesByDay[$dayKey][] = (object) [
                                             'period' => (int)$period,
                                             'classroom_id' => $cId,
                                             'subject_code' => $subCode,
                                             'subject_name' => $assignedSub->subject_name ?? $subCode,
-                                            'staff_name' => $staffName,
+                                            'staff_name' => $staffNameDisplay,
                                             'batch_subject_id' => $assignedSub->id ?? null,
                                             'progress_percent' => $assignedSub->progress_percent ?? 0,
                                             'completed_lesson_plans' => $assignedSub->completed_lesson_plans ?? 0,
@@ -1962,6 +2073,49 @@ class MentoringController extends Controller
                 }
             }
         }
+
+        // Deduplicate slots per day (same period, classroom_id, subject_code)
+        foreach ($fullTimetablesByDay as $dayKey => $slots) {
+            $unique = [];
+            $seen = [];
+            foreach ($slots as $slotItem) {
+                $key = $slotItem->period . '_' . $slotItem->classroom_id . '_' . $slotItem->subject_code;
+                if (!isset($seen[$key])) {
+                    $seen[$key] = true;
+                    $unique[] = $slotItem;
+                }
+            }
+            usort($unique, function($a, $b) {
+                return $a->period <=> $b->period;
+            });
+            $fullTimetablesByDay[$dayKey] = $unique;
+        }
+
+        // Merge matched subjects into $assignments collection so JS assignmentsData has all of them
+        $allAssignedSubjectIds = collect();
+        foreach ($fullTimetablesByDay as $slots) {
+            foreach ($slots as $sl) {
+                if (!empty($sl->batch_subject_id)) {
+                    $allAssignedSubjectIds->push($sl->batch_subject_id);
+                }
+            }
+        }
+        $missingSubjectIds = $allAssignedSubjectIds->unique()->diff($assignments->pluck('id'));
+        if ($missingSubjectIds->isNotEmpty()) {
+            $extraSubjects = DB::table('batch_subjects')
+                ->whereIn('id', $missingSubjectIds)
+                ->get();
+            foreach ($extraSubjects as $subj) {
+                $tot = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->count();
+                $comp = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->where('status', 'Completed')->count();
+                $subj->batch_subject_id = $subj->id;
+                $subj->total_lesson_plans = $tot;
+                $subj->completed_lesson_plans = $comp;
+                $subj->progress_percent = $tot > 0 ? round(($comp / $tot) * 100) : 0;
+            }
+            $assignments = $assignments->concat($extraSubjects);
+        }
+
         $todaySchedule = $fullTimetablesByDay[$defaultDayOrder] ?? [];
 
         // 6. Remedial Rooms Assigned to Staff

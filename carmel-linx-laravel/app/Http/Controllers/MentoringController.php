@@ -2358,6 +2358,15 @@ class MentoringController extends Controller
         ->where('punch_date', now()->format('Y-m-d'))
         ->first();
 
+        // 8. Count Active Events & Notices
+        $eventsCount = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('executive_flash_notices')) {
+            $eventsCount += DB::table('executive_flash_notices')->where('is_published', 1)->count();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('principal_scheduled_events')) {
+            $eventsCount += DB::table('principal_scheduled_events')->count();
+        }
+
         return response(view('staff_mobile_dashboard', compact(
             'staff',
             'assignments',
@@ -2369,7 +2378,8 @@ class MentoringController extends Controller
             'todos',
             'fullTimetablesByDay',
             'defaultDayOrder',
-            'todayPunch'
+            'todayPunch',
+            'eventsCount'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',

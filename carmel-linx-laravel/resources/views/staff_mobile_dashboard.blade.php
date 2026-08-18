@@ -391,8 +391,8 @@
                     </div>
                     <div class="col-3">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Remedial</span>
-                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ count($remedialRooms) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Events</span>
+                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ $eventsCount ?? 0 }}</strong>
                         </div>
                     </div>
                     @else
@@ -410,8 +410,8 @@
                     </div>
                     <div class="col-4">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Remedial</span>
-                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ count($remedialRooms) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Events</span>
+                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ $eventsCount ?? 0 }}</strong>
                         </div>
                     </div>
                     @endif

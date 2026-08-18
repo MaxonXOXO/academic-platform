@@ -1156,11 +1156,8 @@
                                 </div>
 
                                 <div class="text-end">
-                                    <span class="text-slate-400 d-block font-mono mb-1" style="font-size: 0.68rem; color: #94a3b8 !important;">LOG TRACKER POINTER</span>
-                                    <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-slate-950 border" style="background-color: #020617 !important; border-color: rgba(6, 182, 212, 0.35) !important;">
-                                        <span class="badge bg-cyan text-dark font-mono fw-black px-2 py-0.5" id="attLastLogBadge" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.72rem;">Last Log: #0</span>
-                                        <span class="text-slate-300 font-mono fw-bold" id="attNextLogPointer" style="font-size: 0.72rem; color: #38bdf8 !important;">Next Entry: #1</span>
-                                    </div>
+                                    <span class="text-slate-400 d-block font-mono mb-1" style="font-size: 0.68rem; color: #94a3b8 !important;">LOG POINTER</span>
+                                    <span class="badge font-mono fw-black px-2.5 py-1 rounded-pill" id="attNextLogPointer" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem; box-shadow: 0 0 10px rgba(6, 182, 212, 0.35);">Next Entry: #1</span>
                                 </div>
                             </div>
 
@@ -1813,13 +1810,15 @@
                         const badgeElem = document.getElementById('attSubjectTypeBadge');
                         if (badgeElem) badgeElem.textContent = currentAttSubjectType;
 
-                        // Set Serial Number Tracker Badges
+                        // Set Serial Number Tracker Pointer
                         const lastSlNo = data.last_log_sl_no || 0;
                         const nextSlNo = data.next_log_sl_no || (lastSlNo + 1);
-                        const lastBadge = document.getElementById('attLastLogBadge');
                         const nextPointer = document.getElementById('attNextLogPointer');
-                        if (lastBadge) lastBadge.textContent = `Last Log: #${lastSlNo}`;
-                        if (nextPointer) nextPointer.textContent = `Next Entry: #${nextSlNo}`;
+                        if (nextPointer) {
+                            nextPointer.textContent = `Next Entry: #${nextSlNo}`;
+                            nextPointer.style.backgroundColor = '#06b6d4';
+                            nextPointer.style.color = '#0f172a';
+                        }
 
                         const isLab = (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
@@ -2277,6 +2276,8 @@
             const nextPointer = document.getElementById('attNextLogPointer');
             if (nextPointer && log.sl_no) {
                 nextPointer.textContent = `Editing: #${log.sl_no}`;
+                nextPointer.style.backgroundColor = '#f59e0b';
+                nextPointer.style.color = '#0f172a';
             }
 
             // 7. Switch to Take Attendance tab and refresh roster

@@ -1990,6 +1990,36 @@ class MentoringController extends Controller
                         $dayAlt = array_search($dayKey, $dayMap);
                         $dayData = $ttData[$dayKey] ?? ($dayAlt ? ($ttData[$dayAlt] ?? null) : null);
                         if ($dayData && is_array($dayData)) {
+                            // Count subject frequency on this day order for this classroom
+                            $subjectCountsThisDay = [];
+                            foreach ($dayData as $period => $details) {
+                                if (empty($details)) continue;
+                                if (is_array($details) && !empty($details['is_parallel']) && !empty($details['parallel_labs']) && is_array($details['parallel_labs'])) {
+                                    foreach ($details['parallel_labs'] as $lab) {
+                                        if (is_array($lab)) {
+                                            $code = $lab['subject'] ?? ($lab['subject_code'] ?? '');
+                                            if (!empty($code)) {
+                                                $subjectCountsThisDay[$code] = ($subjectCountsThisDay[$code] ?? 0) + 1;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    $code = is_array($details) ? ($details['subject'] ?? ($details['subject_code'] ?? '')) : (string)$details;
+                                    if (!empty($code)) {
+                                        $subjectCountsThisDay[$code] = ($subjectCountsThisDay[$code] ?? 0) + 1;
+                                    }
+                                }
+                            }
+
+                            $nonLecturerRoles = [
+                                'demonstrator', 'trade_instructor', 'trade instructor', 
+                                'tradesman', 'workshop_instructor', 'workshop instructor', 
+                                'workshop_superintendent', 'workshop superintendent',
+                                'physical_instructor', 'physical instructor'
+                            ];
+                            $staffRoleNorm = strtolower(trim((string)($staff->designation ?? Session::get('userRole', ''))));
+                            $isNonLecturer = in_array($staffRoleNorm, $nonLecturerRoles);
+
                             foreach ($dayData as $period => $details) {
                                 if (empty($details)) continue;
 
@@ -2018,6 +2048,38 @@ class MentoringController extends Controller
                                     $subCode = $slotItem['subject_code'];
                                     $slotStaff = $slotItem['staff'];
                                     if (empty($subCode)) continue;
+
+                                    // Practicum single-period rule: Single period = theory (Lecturers only); Multi-period = Lab (All staff)
+                                    $periodCount = $subjectCountsThisDay[$subCode] ?? 1;
+                                    if ($periodCount === 1 && $isNonLecturer) {
+                                        $bsMatchForRule = $assignments->first(function ($item) use ($subCode, $cId) {
+                                            if (($item->subject_code ?? '') !== $subCode) return false;
+                                            if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                                            return true;
+                                        });
+                                        if (!$bsMatchForRule) {
+                                            $bsMatchForRule = $allBatchSubjects->first(function ($item) use ($subCode, $cId) {
+                                                if (($item->subject_code ?? '') !== $subCode) return false;
+                                                if (!empty($item->classroom_id) && $item->classroom_id !== $cId) return false;
+                                                return true;
+                                            });
+                                            if (!$bsMatchForRule) {
+                                                $bsMatchForRule = $allBatchSubjects->firstWhere('subject_code', $subCode);
+                                            }
+                                        }
+                                        $subTypeStr = strtolower($bsMatchForRule->subject_type ?? '');
+                                        $isPracticumType = empty($subTypeStr) || 
+                                            str_contains($subTypeStr, 'practicum') || 
+                                            str_contains($subTypeStr, 'lab') || 
+                                            str_contains($subTypeStr, 'drawing') || 
+                                            str_contains($subTypeStr, 'workshop') || 
+                                            str_contains($subTypeStr, 'practical');
+
+                                        if ($isPracticumType) {
+                                            // Single period theory class for Practicum paper - skip for non-lecturers
+                                            continue;
+                                        }
+                                    }
 
                                     if ($isStaffMatched($slotStaff, $subCode, $cId)) {
                                         // Find batch subject details

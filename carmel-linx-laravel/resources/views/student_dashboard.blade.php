@@ -903,13 +903,30 @@
 
             // Update Semester Attendance Gauge offset (radius r = 40, circumference = 251.2)
             const attendance = data.current_sem_attendance || { total_hours: 0, present_hours: 0, percentage: 0 };
-            const attendancePct = parseFloat(attendance.percentage) || 0;
-            document.getElementById('overallAttendancePct').innerText = attendancePct + '%';
+            const attendancePct = (attendance.total_hours > 0) ? (parseFloat(attendance.percentage) || 0) : 0;
+            const attGauge = document.getElementById('attendanceGaugeProgress');
+            const attText = document.getElementById('overallAttendancePct');
+            
+            document.getElementById('overallAttendancePct').innerText = (attendance.total_hours > 0 ? attendancePct + '%' : '0%');
             document.getElementById('attendanceHoursDetail').innerText = `${attendance.present_hours} / ${attendance.total_hours}`;
             
+            if (attendance.total_hours === 0) {
+              attText.className = 'text-3xl font-black text-slate-400';
+              if (attGauge) attGauge.setAttribute('stroke', '#64748b');
+            } else if (attendancePct >= 75) {
+              attText.className = 'text-3xl font-black text-emerald-400';
+              if (attGauge) attGauge.setAttribute('stroke', 'url(#attGradient)');
+            } else if (attendancePct >= 65) {
+              attText.className = 'text-3xl font-black text-amber-400';
+              if (attGauge) attGauge.setAttribute('stroke', '#f59e0b');
+            } else {
+              attText.className = 'text-3xl font-black text-rose-400';
+              if (attGauge) attGauge.setAttribute('stroke', '#f43f5e');
+            }
+
             const attendancePercent = Math.min(1.0, Math.max(0.0, attendancePct / 100.0));
             const attendanceOffset = 251.2 - (attendancePercent * 251.2);
-            document.getElementById('attendanceGaugeProgress').style.strokeDashoffset = attendanceOffset;
+            if (attGauge) attGauge.style.strokeDashoffset = attendanceOffset;
 
             // Always update sem in header
             document.getElementById('headerSemValue').innerText = 'Sem ' + (overall.current_semester || '?');

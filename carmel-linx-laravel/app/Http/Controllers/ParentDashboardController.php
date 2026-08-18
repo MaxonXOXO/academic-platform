@@ -251,7 +251,7 @@ class ParentDashboardController extends Controller
 
         $overallAttendancePct = $totalConductedClasses > 0 
             ? round(($totalAttendedClasses / $totalConductedClasses) * 100, 1) 
-            : 100.0;
+            : 0.0;
 
         // 5. Today's Assignments & Pending Works
         $assignments = collect();

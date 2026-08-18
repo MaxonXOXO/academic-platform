@@ -3371,4 +3371,135 @@ class DataController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Failed to upload photo: ' . $e->getMessage()]);
         }
     }
+
+    /**
+     * Student self-service update profile details (Email, Phone, DOB, Guardian Mobile, Photo, Password).
+     */
+    public function updateSelfStudentProfile(Request $request)
+    {
+        $userId = Session::get('userId');
+        $userRole = Session::get('userRole');
+
+        if (!$userId || $userRole !== 'Student') {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access. Student login required.']);
+        }
+
+        $student = Student::where('reg_no', $userId)->orWhere('adm_no', $userId)->first();
+        if (!$student) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Student profile record not found.']);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'guardian_mobile' => 'nullable|string|max:20',
+            'guardian_name' => 'nullable|string|max:255',
+            'guardian_address' => 'nullable|string|max:500',
+            'sbte_reg_no' => 'nullable|string|max:50',
+            'old_password' => 'nullable|string',
+            'new_password' => 'nullable|string|min:4',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        try {
+            // Password update check if new_password supplied
+            if ($request->filled('new_password')) {
+                $oldPwd = $request->input('old_password');
+                if (empty($oldPwd)) {
+                    return response()->json(['status' => 'ERROR', 'message' => 'Current password is required to update your account password.']);
+                }
+                if (!$this->verifyPasswordHelper($oldPwd, $student->password)) {
+                    return response()->json(['status' => 'ERROR', 'message' => 'Current password entered is incorrect.']);
+                }
+                $student->password = \Illuminate\Support\Facades\Hash::make(trim($request->input('new_password')));
+            }
+
+            if ($request->filled('email')) {
+                $emailInput = strtolower(trim($request->input('email')));
+                $student->email = $emailInput;
+                Session::put('userEmail', $student->email);
+            }
+
+            if ($request->has('phone')) {
+                $student->phone = trim($request->input('phone'));
+            }
+
+            if ($request->has('date_of_birth')) {
+                $student->date_of_birth = $request->input('date_of_birth');
+            }
+
+            if ($request->has('guardian_mobile')) {
+                $student->guardian_mobile = trim($request->input('guardian_mobile'));
+            }
+
+            if ($request->has('guardian_name')) {
+                $student->guardian_name = trim($request->input('guardian_name'));
+            }
+
+            if ($request->has('guardian_address')) {
+                $student->guardian_address = trim($request->input('guardian_address'));
+            }
+
+            if ($request->has('sbte_reg_no')) {
+                $student->sbte_reg_no = strtoupper(trim($request->input('sbte_reg_no')));
+                Session::put('sbteRegNo', $student->sbte_reg_no);
+            }
+
+            // Upload profile photo
+            if ($request->hasFile('photo')) {
+                $file = $request->file('photo');
+                $filename = 'student_' . preg_replace('/[^a-zA-Z0-9]/', '', $student->reg_no) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $publicPath = public_path('uploads/students');
+                if (!file_exists($publicPath)) {
+                    mkdir($publicPath, 0755, true);
+                }
+                $file->move($publicPath, $filename);
+                $photoUrl = '/uploads/students/' . $filename;
+                $student->photo_url = $photoUrl;
+                Session::put('userPhoto', $photoUrl);
+            }
+
+            $student->save();
+
+            AuditLog::create([
+                'performed_by' => $student->reg_no,
+                'performed_by_name' => $student->name,
+                'target_id' => $student->reg_no,
+                'target_name' => $student->name,
+                'action' => 'Profile Updated',
+                'details' => "Student updated personal profile details (Email, Phone, DOB, Guardian Mobile, Photo, Password).",
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'status' => 'SUCCESS',
+                'message' => 'Profile details updated successfully!',
+                'photo_url' => $student->photo_url
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Failed to update profile: ' . $e->getMessage()]);
+        }
+    }
+
+    private function verifyPasswordHelper(?string $inputPassword, ?string $storedPassword): bool
+    {
+        if (empty($storedPassword) || empty($inputPassword)) return false;
+        if ($storedPassword === $inputPassword) return true;
+        if (str_starts_with($storedPassword, '$2y$') || str_starts_with($storedPassword, '$2a$') || str_starts_with($storedPassword, '$2b$')) {
+            try {
+                return \Illuminate\Support\Facades\Hash::check($inputPassword, $storedPassword);
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+        return false;
+    }
 }

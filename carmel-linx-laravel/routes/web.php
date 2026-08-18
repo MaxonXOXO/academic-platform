@@ -428,6 +428,45 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/hod/batches/{classroomId}/update-semester', [DataController::class, 'updateBatchSemester']);
     Route::get('/api/hod/dept-staff', [DataController::class, 'getDeptStaff']);
 
+    // HOD Printable Student Credentials List
+    Route::get('/hod/batches/{classroomId}/credentials/print', function (Illuminate\Http\Request $request, $classroomId) {
+        $role = Session::get('userRole');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman', 'Tutor', 'Lecturer'])) return redirect('/');
+
+        $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
+        if (!$classroom) {
+            abort(404, 'Classroom / Batch not found.');
+        }
+        $classroom->branch_full = getFullBranchName($classroom->branch);
+
+        $students = DB::table('students')
+            ->where('classroom_id', $classroomId)
+            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $tutor = null;
+        if (!empty($classroom->tutor_mobile_no)) {
+            $tutor = DB::table('staff_profiles')->where('mobile_no', $classroom->tutor_mobile_no)->first();
+        }
+
+        $mentor = null;
+        if (!empty($classroom->mentor_mobile_no)) {
+            $mentor = DB::table('staff_profiles')->where('mobile_no', $classroom->mentor_mobile_no)->first();
+        }
+
+        return view('batch_student_credentials_print', [
+            'classroom' => $classroom,
+            'students' => $students,
+            'tutor' => $tutor,
+            'mentor' => $mentor,
+            'currentDate' => date('d-m-Y')
+        ]);
+    });
+
     // Revision 2026 Batch Management
     Route::get('/api/r26/hod/batches', [R26DataController::class, 'getBatches']);
     Route::post('/api/r26/hod/batches', [R26DataController::class, 'createBatch']);
@@ -692,6 +731,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/executive/profile/details', [AuthController::class, 'getExecutiveProfile']);
     Route::post('/api/executive/profile/update', [AuthController::class, 'updateExecutiveProfile']);
     Route::post('/api/student/profile/upload-photo', [DataController::class, 'uploadStudentPhoto']);
+    Route::post('/api/student/profile/update-self', [DataController::class, 'updateSelfStudentProfile']);
     Route::post('/api/student/update-email', [DataController::class, 'updateStudentEmail']);
     Route::post('/api/students/bulk-import', [DataController::class, 'bulkImportStudents']);
     Route::post('/api/admin/batch-student-upload', [\App\Http\Controllers\BatchStudentUploadController::class, 'uploadBatchStudents']);

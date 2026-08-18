@@ -185,8 +185,8 @@
                     </span>
                 </div>
                 <div class="mt-2">
-                    <span class="badge {{ $overallAttendancePct >= 75 ? 'bg-success' : ($overallAttendancePct >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app">
-                        {{ $overallAttendancePct >= 75 ? 'Good Standing (Eligible for Exams)' : ($overallAttendancePct >= 65 ? 'Warning: Low Attendance' : 'Critical: Condonation Alert') }}
+                    <span class="badge {{ $totalConductedClasses == 0 ? 'bg-secondary' : ($overallAttendancePct >= 75 ? 'bg-success' : ($overallAttendancePct >= 65 ? 'bg-warning text-dark' : 'bg-danger')) }} badge-app">
+                        {{ $totalConductedClasses == 0 ? 'No Attendance Marked Yet' : ($overallAttendancePct >= 75 ? 'Good Standing (Eligible for Exams)' : ($overallAttendancePct >= 65 ? 'Warning: Low Attendance' : 'Critical: Condonation Alert')) }}
                     </span>
                 </div>
                 <small class="text-secondary d-block mt-2" style="font-size: 0.75rem;">

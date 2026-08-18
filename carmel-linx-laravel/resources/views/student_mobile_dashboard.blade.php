@@ -177,11 +177,46 @@
         .form-control, .form-select {
             font-size: 0.88rem !important;
             padding: 8px 12px;
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #334155 !important;
         }
 
         .form-label {
-            font-size: 0.8rem !important;
+            font-size: 0.82rem !important;
             font-weight: 700;
+            color: #f8fafc !important;
+        }
+
+        .btn-cyan {
+            background-color: #06b6d4 !important;
+            color: #0f172a !important;
+            font-weight: 800 !important;
+            border: none !important;
+            opacity: 1 !important;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-cyan:hover, .btn-cyan:focus, .btn-cyan:active {
+            background-color: #22d3ee !important;
+            color: #0f172a !important;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4) !important;
+        }
+        .btn-outline-cyan {
+            background-color: #06b6d4 !important;
+            color: #0f172a !important;
+            border: 1.5px solid #06b6d4 !important;
+            font-weight: 800 !important;
+            opacity: 1 !important;
+        }
+        .btn-outline-cyan:hover {
+            background-color: #22d3ee !important;
+            color: #0f172a !important;
+        }
+        .w-full {
+            width: 100% !important;
+        }
+        .cursor-pointer {
+            cursor: pointer !important;
         }
 
         .fade-in {
@@ -506,8 +541,8 @@
                         </span>
                     </div>
                     <div class="mt-2">
-                        <span class="badge {{ $overallAttendancePct >= 75 ? 'bg-success' : ($overallAttendancePct >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app">
-                            {{ $overallAttendancePct >= 75 ? 'Good Standing (Eligible for Exams)' : ($overallAttendancePct >= 65 ? 'Warning: Low Attendance' : 'Critical: Condonation Alert') }}
+                        <span class="badge {{ $totalConductedClasses == 0 ? 'bg-secondary' : ($overallAttendancePct >= 75 ? 'bg-success' : ($overallAttendancePct >= 65 ? 'bg-warning text-dark' : 'bg-danger')) }} badge-app">
+                            {{ $totalConductedClasses == 0 ? 'No Attendance Marked Yet' : ($overallAttendancePct >= 75 ? 'Good Standing (Eligible for Exams)' : ($overallAttendancePct >= 65 ? 'Warning: Low Attendance' : 'Critical: Condonation Alert')) }}
                         </span>
                     </div>
                     <small class="text-secondary d-block mt-2" style="font-size: 0.75rem;">
@@ -827,40 +862,175 @@
             <!-- TAB 6: PROFILE & ACCOUNT SETTINGS -->
             <div id="tab-profile" class="tab-pane d-none fade-in">
                 
-                <div class="app-card">
-                    <h6 class="fw-bold text-white mb-3" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-user-gear me-1 text-cyan"></i> Profile & SBTE Info
-                    </h6>
-                    <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 mb-3">
-                        <div class="mb-2">
-                            <span class="text-secondary d-block" style="font-size: 0.7rem;">Register Number</span>
-                            <strong class="text-white font-monospace" style="font-size: 0.88rem;">{{ session('userId') }}</strong>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-secondary d-block" style="font-size: 0.7rem;">Branch & Classroom</span>
-                            <strong class="text-white" style="font-size: 0.85rem;">{{ session('userBranch') }} ({{ session('classroomId') }})</strong>
-                        </div>
-                        <div>
-                            <span class="text-secondary d-block" style="font-size: 0.7rem;">SBTE Exam Register No</span>
-                            <strong class="text-amber-400 font-monospace" style="font-size: 0.85rem;">{{ session('sbteRegNo') ?: 'Not Set' }}</strong>
+                <form id="mobileProfileForm" onsubmit="submitMobileProfileForm(event)" enctype="multipart/form-data" class="pb-5">
+                    @csrf
+
+                    <!-- Header Card with Quick Save Action -->
+                    <div class="app-card mb-3 p-3 border-cyan border-opacity-30 bg-slate-900 shadow">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="fw-bold text-white mb-0" style="font-size: 0.95rem; color: #ffffff !important;">
+                                    <i class="fa-solid fa-user-pen text-cyan me-1" style="color: #06b6d4 !important;"></i> Update Profile Details
+                                </h6>
+                                <p class="small mb-0" style="font-size: 0.75rem; color: #cbd5e1 !important;">
+                                    Edit personal, guardian & security information
+                                </p>
+                            </div>
+                            <button type="submit" class="btn btn-sm fw-bold px-3 py-1.5 rounded-3 shadow d-flex align-items-center gap-1.5" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.82rem; font-weight: 800 !important; border: none !important;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Change Password -->
-                    <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25">
-                        <h6 class="fw-bold text-white mb-2" style="font-size: 0.82rem;">Update Account Password</h6>
-                        <div class="mb-2">
-                            <input type="password" id="mOldPwd" placeholder="Current Password" class="form-control form-control-sm bg-slate-900 text-white border-secondary border-opacity-25">
+                    <!-- Card 1: Avatar / Profile Picture & Basic Info Header -->
+                    <div class="app-card mb-3 text-center p-3">
+                        <h6 class="fw-bold text-white mb-3 text-start d-flex align-items-center gap-2" style="font-size: 0.88rem; color: #ffffff !important;">
+                            <i class="fa-solid fa-camera text-cyan" style="color: #06b6d4 !important;"></i> Update Profile Picture
+                        </h6>
+                        
+                        <div class="position-relative d-inline-block mb-3">
+                            @if(isset($student->photo_url) && !empty($student->photo_url))
+                                <img id="mobileAvatarPreview" src="{{ asset($student->photo_url) }}" alt="Student Avatar" class="rounded-circle border border-cyan border-3 shadow" style="width: 90px; height: 90px; object-fit: cover;">
+                            @else
+                                <div id="mobileAvatarPreviewPlaceholder" class="rounded-circle bg-cyan bg-opacity-20 border border-cyan border-3 d-flex align-items-center justify-content-center text-cyan mx-auto fw-black shadow" style="width: 90px; height: 90px; font-size: 2rem;">
+                                    {{ strtoupper(substr($student->name ?? session('userName', 'S'), 0, 1)) }}
+                                </div>
+                                <img id="mobileAvatarPreview" src="" alt="Student Avatar" class="rounded-circle border border-cyan border-3 shadow d-none" style="width: 90px; height: 90px; object-fit: cover;">
+                            @endif
+                            <label for="mobilePhotoInput" class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center cursor-pointer shadow border border-2 border-dark" style="width: 34px; height: 34px; font-size: 0.9rem; background-color: #06b6d4 !important; color: #0f172a !important;" title="Change Profile Picture">
+                                <i class="fa-solid fa-camera"></i>
+                            </label>
+                            <input type="file" id="mobilePhotoInput" name="photo" accept="image/jpeg,image/png,image/jpg,image/webp" class="d-none" onchange="previewMobileAvatar(event)">
                         </div>
+
+                        <div>
+                            <label for="mobilePhotoInput" class="btn fw-bold rounded-pill px-4 py-2 cursor-pointer shadow-sm" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.85rem; font-weight: 800 !important; border: none !important;">
+                                <i class="fa-solid fa-cloud-arrow-up me-1.5"></i> UPLOAD / CHANGE PHOTO
+                            </label>
+                            <div class="fw-semibold mt-2" style="font-size: 0.75rem; color: #38bdf8 !important;">
+                                <i class="fa-solid fa-circle-info me-1"></i> Passport style face photo (JPG, PNG, WebP &lt; 5MB)
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary opacity-25 my-3">
+
+                        <h6 class="fw-bold text-white mb-1" style="font-size: 1rem; color: #ffffff !important;">{{ $student->name ?? session('userName') }}</h6>
+                        <div class="font-monospace fw-bold small mb-2" style="font-size: 0.82rem; color: #38bdf8 !important;">Reg No: {{ $student->reg_no ?? session('userId') }}</div>
+                        <span class="badge bg-secondary bg-opacity-40 text-white border border-secondary border-opacity-40 px-2.5 py-1" style="font-size: 0.72rem;">
+                            {{ $student->branch ?? session('userBranch') }} &bull; Semester {{ $student->semester ?? '1' }}
+                        </span>
+                    </div>
+
+                    <!-- Card 2: Personal Contact Information -->
+                    <div class="app-card mb-3 p-3">
+                        <h6 class="fw-bold text-white mb-3 d-flex align-items-center gap-2" style="font-size: 0.88rem; color: #ffffff !important;">
+                            <i class="fa-solid fa-id-card text-cyan" style="color: #06b6d4 !important;"></i> Personal Contact Details
+                        </h6>
+
+                        <!-- Email -->
                         <div class="mb-3">
-                            <input type="password" id="mNewPwd" placeholder="New Password (min 6 chars)" class="form-control form-control-sm bg-slate-900 text-white border-secondary border-opacity-25">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Student Email Address <span class="text-danger">*</span> <span class="text-info opacity-90 font-normal" style="font-size: 0.72rem;">(Required for Password Recovery)</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-slate-900 border-slate-700" style="color: #06b6d4 !important;"><i class="fa-solid fa-envelope"></i></span>
+                                @php
+                                    $studentEmailVal = $student->email ?? '';
+                                    if (!empty($studentEmailVal) && str_contains(strtolower($studentEmailVal), 'carmelpoly.in')) {
+                                        $studentEmailVal = '';
+                                    }
+                                @endphp
+                                <input type="email" name="email" value="{{ $studentEmailVal }}" required class="form-control bg-slate-900 text-white border-slate-700" placeholder="e.g. student@gmail.com" style="font-size: 0.85rem;">
+                            </div>
                         </div>
-                        <div id="mPwdAlert" class="d-none small mb-2 font-bold"></div>
-                        <button type="button" onclick="updateMobilePassword()" class="btn btn-sm btn-cyan w-full fw-bold text-dark" style="font-size: 0.75rem;">
-                            Update Password
+
+                        <!-- Mobile Number -->
+                        <div class="mb-3">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Student Mobile Number</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-slate-900 border-slate-700" style="color: #06b6d4 !important;"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" name="phone" value="{{ $student->phone ?? '' }}" class="form-control bg-slate-900 text-white border-slate-700" placeholder="e.g. 9876543210" style="font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-2">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Date of Birth (DOB)</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-slate-900 border-slate-700" style="color: #06b6d4 !important;"><i class="fa-solid fa-calendar-day"></i></span>
+                                <input type="date" name="date_of_birth" value="{{ $student->date_of_birth ?? '' }}" class="form-control bg-slate-900 text-white border-slate-700" style="font-size: 0.85rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Parent / Guardian Information -->
+                    <div class="app-card mb-3 p-3">
+                        <h6 class="fw-bold text-white mb-3 d-flex align-items-center gap-2" style="font-size: 0.88rem; color: #ffffff !important;">
+                            <i class="fa-solid fa-users text-cyan" style="color: #06b6d4 !important;"></i> Parent & Guardian Contact Info
+                        </h6>
+
+                        <!-- Parent Name -->
+                        <div class="mb-3">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Parent / Guardian Full Name</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-slate-900 border-slate-700" style="color: #06b6d4 !important;"><i class="fa-solid fa-user-tie"></i></span>
+                                <input type="text" name="guardian_name" value="{{ $student->guardian_name ?? '' }}" class="form-control bg-slate-900 text-white border-slate-700" placeholder="Parent or Guardian name" style="font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <!-- Parent Mobile -->
+                        <div class="mb-3">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Parent / Guardian Mobile Number</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-slate-900 border-slate-700" style="color: #06b6d4 !important;"><i class="fa-solid fa-mobile-screen"></i></span>
+                                <input type="tel" name="guardian_mobile" value="{{ $student->guardian_mobile ?? '' }}" class="form-control bg-slate-900 text-white border-slate-700" placeholder="e.g. 9876543210" style="font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-2">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Residential Home Address</label>
+                            <textarea name="guardian_address" rows="2" class="form-control form-control-sm bg-slate-900 text-white border-slate-700" placeholder="Permanent home address..." style="font-size: 0.82rem;">{{ $student->guardian_address ?? '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: SBTE Registration & Credentials -->
+                    <div class="app-card mb-3 p-3">
+                        <h6 class="fw-bold text-white mb-3 d-flex align-items-center gap-2" style="font-size: 0.88rem; color: #ffffff !important;">
+                            <i class="fa-solid fa-building-columns text-cyan" style="color: #06b6d4 !important;"></i> SBTE Board Examination Info
+                        </h6>
+
+                        <div>
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">SBTE Exam Register Number</label>
+                            <input type="text" name="sbte_reg_no" value="{{ $student->sbte_reg_no ?? '' }}" class="form-control form-control-sm bg-slate-900 text-white border-slate-700 font-monospace" placeholder="e.g. 2101021234" style="font-size: 0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Account Security / Change Password -->
+                    <div class="app-card mb-3 p-3">
+                        <h6 class="fw-bold text-white mb-2 d-flex align-items-center gap-2" style="font-size: 0.88rem; color: #ffffff !important;">
+                            <i class="fa-solid fa-lock text-cyan" style="color: #06b6d4 !important;"></i> Account Password & Security
+                        </h6>
+                        <p class="small mb-3" style="font-size: 0.75rem; color: #cbd5e1 !important;">Leave blank if you do not want to change your login password.</p>
+
+                        <div class="mb-2">
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">Current Password</label>
+                            <input type="password" name="old_password" id="mOldPwd" placeholder="Current Password" class="form-control form-control-sm bg-slate-900 text-white border-slate-700" style="font-size: 0.85rem;">
+                        </div>
+                        <div>
+                            <label class="form-label mb-1" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc !important;">New Password</label>
+                            <input type="password" name="new_password" id="mNewPwd" placeholder="New Password (min 4 characters)" class="form-control form-control-sm bg-slate-900 text-white border-slate-700" style="font-size: 0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Status Alert Banner -->
+                    <div id="mProfileStatus" class="d-none p-3 rounded-3 mb-3 small font-bold"></div>
+
+                    <!-- Bottom Main Save Button Container with Ample Bottom Margin -->
+                    <div class="p-2 bg-slate-900 rounded-3 border border-slate-700 mb-5 shadow-lg">
+                        <button type="submit" id="btnSaveMobileProfile" class="btn w-full py-3 rounded-3 shadow d-flex align-items-center justify-content-center gap-2" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.95rem; font-weight: 900 !important; border: none !important; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-floppy-disk"></i> SAVE & UPDATE PROFILE DETAILS
                         </button>
                     </div>
-                </div>
+                </form>
 
             </div>
 
@@ -1217,15 +1387,92 @@
             });
         }
 
+        function previewMobileAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('mobileAvatarPreview');
+                    const placeholder = document.getElementById('mobileAvatarPreviewPlaceholder');
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.classList.remove('d-none');
+                    }
+                    if (placeholder) {
+                        placeholder.classList.add('d-none');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitMobileProfileForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const btn = document.getElementById('btnSaveMobileProfile');
+            const statusDiv = document.getElementById('mProfileStatus');
+
+            if (!btn || !statusDiv) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving Profile...';
+
+            const formData = new FormData(form);
+
+            fetch('/api/student/profile/update-self', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Profile Details';
+
+                if (data.status === 'SUCCESS') {
+                    statusDiv.className = 'p-2.5 rounded-3 mb-3 small font-bold bg-success bg-opacity-20 text-success border border-success border-opacity-30';
+                    statusDiv.innerText = data.message || 'Profile updated successfully!';
+                    statusDiv.classList.remove('d-none');
+
+                    if (data.photo_url) {
+                        document.querySelectorAll('.avatar-mobile, #mobileAvatarPreview').forEach(img => {
+                            if (img.tagName === 'IMG') {
+                                img.src = data.photo_url + '?v=' + new Date().getTime();
+                            }
+                        });
+                    }
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1200);
+                } else {
+                    statusDiv.className = 'p-2.5 rounded-3 mb-3 small font-bold bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30';
+                    statusDiv.innerText = data.message || 'Failed to update profile details.';
+                    statusDiv.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Profile Details';
+                statusDiv.className = 'p-2.5 rounded-3 mb-3 small font-bold bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30';
+                statusDiv.innerText = 'Network error. Please check connection and try again.';
+                statusDiv.classList.remove('d-none');
+            });
+        }
+
         function updateMobilePassword() {
             const oldPwd = document.getElementById('mOldPwd').value;
             const newPwd = document.getElementById('mNewPwd').value;
             const alertDiv = document.getElementById('mPwdAlert');
 
             if (!oldPwd || !newPwd || newPwd.length < 6) {
-                alertDiv.className = 'small mb-2 font-bold text-danger';
-                alertDiv.innerText = 'Password must be at least 6 characters.';
-                alertDiv.classList.remove('d-none');
+                if (alertDiv) {
+                    alertDiv.className = 'small mb-2 font-bold text-danger';
+                    alertDiv.innerText = 'Password must be at least 6 characters.';
+                    alertDiv.classList.remove('d-none');
+                }
                 return;
             }
 
@@ -1239,13 +1486,16 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'SUCCESS') {
-                    alertDiv.className = 'small mb-2 font-bold text-success';
-                    alertDiv.innerText = 'Password updated successfully!';
-                    alertDiv.classList.remove('d-none');
-                } else {
-                    alertDiv.className = 'small mb-2 font-bold text-danger';
-                    alertDiv.innerText = data.message || 'Error updating password.';
+                if (alertDiv) {
+                    if (data.status === 'SUCCESS') {
+                        alertDiv.className = 'small mb-2 font-bold text-success';
+                        alertDiv.innerText = 'Password updated successfully!';
+                        alertDiv.classList.remove('d-none');
+                    } else {
+                        alertDiv.className = 'small mb-2 font-bold text-danger';
+                        alertDiv.innerText = data.message || 'Error updating password.';
+                        alertDiv.classList.remove('d-none');
+                    }
                 }
             });
         }
@@ -1597,8 +1847,14 @@
                             <input type="password" id="mSetupConfirmPassword" required minlength="6" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="Re-enter password">
                         </div>
                         <div class="mb-2">
-                            <label class="form-label text-secondary small mb-1">Email Address *</label>
-                            <input type="email" id="mSetupEmail" required value="{{ session('userEmail') }}" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="student@gmail.com">
+                            <label class="form-label text-secondary small mb-1">Email Address * <span class="text-info opacity-90">(Password Recovery)</span></label>
+                            @php
+                                $setupEmailVal = session('userEmail', '');
+                                if (!empty($setupEmailVal) && str_contains(strtolower($setupEmailVal), 'carmelpoly.in')) {
+                                    $setupEmailVal = '';
+                                }
+                            @endphp
+                            <input type="email" id="mSetupEmail" required value="{{ $setupEmailVal }}" class="form-control bg-slate-900 text-white border-secondary border-opacity-25" placeholder="e.g. student@gmail.com">
                         </div>
                         <div class="mb-2">
                             <label class="form-label text-secondary small mb-1">Mobile Number</label>

@@ -143,7 +143,7 @@ class StudentAttendanceController extends Controller
                 }
             }
 
-            $subjPct = $subjConducted > 0 ? round(($subjAttended / $subjConducted) * 100, 1) : 100.0;
+            $subjPct = $subjConducted > 0 ? round(($subjAttended / $subjConducted) * 100, 1) : 0.0;
             $subjectStats[] = [
                 'subject_code' => $subj->subject_code,
                 'subject_name' => $subj->subject_name,
@@ -155,7 +155,7 @@ class StudentAttendanceController extends Controller
 
         $overallAttendancePct = $totalConductedClasses > 0 
             ? round(($totalAttendedClasses / $totalConductedClasses) * 100, 1) 
-            : 100.0;
+            : 0.0;
 
         // Fetch Student Leave Request Records
         $leaveRecords = \App\Models\LeaveRecord::where('reg_no', $student->reg_no)
@@ -348,7 +348,7 @@ class StudentAttendanceController extends Controller
                 }
             }
 
-            $subjPct = $subjConducted > 0 ? round(($subjAttended / $subjConducted) * 100, 1) : 100.0;
+            $subjPct = $subjConducted > 0 ? round(($subjAttended / $subjConducted) * 100, 1) : 0.0;
             $subjectStats[] = [
                 'subject_code' => $subj->subject_code,
                 'subject_name' => $subj->subject_name,
@@ -360,7 +360,7 @@ class StudentAttendanceController extends Controller
 
         $overallAttendancePct = $totalConductedClasses > 0 
             ? round(($totalAttendedClasses / $totalConductedClasses) * 100, 1) 
-            : 100.0;
+            : 0.0;
 
         // Fetch Student Leave Request Records
         $leaveRecords = \App\Models\LeaveRecord::where('reg_no', $student->reg_no)

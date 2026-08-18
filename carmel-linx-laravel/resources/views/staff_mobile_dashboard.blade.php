@@ -774,7 +774,10 @@
                             </div>
                             <span class="badge bg-cyan bg-opacity-20 text-cyan badge-app">Tutor</span>
                         </div>
-                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
+                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-2">
+                            <a href="/hod/batches/{{ $cls->classroom_id }}/credentials/print" target="_blank" class="btn btn-sm btn-outline-warning px-3 py-1 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-print me-1"></i> Print Credentials
+                            </a>
                             <a href="/tutor/mentoring-diary/{{ $cls->classroom_id }}" class="btn btn-sm btn-cyan px-3 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.75rem;">
                                 <i class="fa-solid fa-book-open me-1"></i> Mentoring Diary
                             </a>

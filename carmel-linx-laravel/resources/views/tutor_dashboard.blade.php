@@ -359,6 +359,9 @@
                 <button onclick="printClassRegister()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md">
                   <span class="material-symbols-rounded text-sm">print</span> Print
                 </button>
+                <button onclick="printStudentCredentials()" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md" title="Print Student First Login Credentials List">
+                  <span class="material-symbols-rounded text-sm">key</span> Login Credentials
+                </button>
                 <button onclick="openBulkImportModal()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md">
                   <span class="material-symbols-rounded text-sm">upload_file</span> Import
                 </button>
@@ -483,6 +486,9 @@
             </select>
             <button onclick="loadMentoringData()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-2">
               <span class="material-symbols-rounded text-sm">sync</span> Refresh
+            </button>
+            <button onclick="printStudentCredentials()" class="px-4 py-2 bg-amber-600/90 hover:bg-amber-500 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-2 text-xs" title="Print Student First Login Credentials List">
+              <span class="material-symbols-rounded text-sm">key</span> Credentials
             </button>
             <button onclick="generateBacklogReport()" class="px-4 py-2 bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 border border-blue-800/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-2">
               <span class="material-symbols-rounded text-sm">summarize</span> Backlog Report
@@ -2029,6 +2035,29 @@
         console.error(err);
         showGlobalMessage("Error saving roll numbers.", true);
       });
+    }
+
+    function printStudentCredentials() {
+      const mentorSelect = document.getElementById('mentorClassroomSelect');
+      if (mentorSelect && mentorSelect.value) {
+        window.open(`/hod/batches/${mentorSelect.value}/credentials/print`, '_blank');
+        return;
+      }
+      
+      const tutorMobile = "{{ session('userId') }}";
+      fetch(`/api/tutor/classroom/${tutorMobile}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS' && data.classroom && data.classroom.classroom_id) {
+            window.open(`/hod/batches/${data.classroom.classroom_id}/credentials/print`, '_blank');
+          } else {
+            alert('Classroom batch record not found to generate print roster.');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Could not determine classroom batch ID.');
+        });
     }
 
     function printClassRegister() {

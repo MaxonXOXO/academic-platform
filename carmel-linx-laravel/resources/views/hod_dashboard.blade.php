@@ -665,9 +665,14 @@
           <h3 id="batchDetailTitle" class="font-black text-slate-100 text-sm">Batch Detail</h3>
           <p id="batchDetailSubtitle" class="text-sm text-slate-400 mt-0.5">Manage tutor, mentor, subjects, and enrolled students</p>
         </div>
-        <button onclick="closeBatchDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-premium cursor-pointer" title="Close Modal">
-          <span class="material-symbols-rounded text-sm">close</span>
-        </button>
+        <div class="flex items-center gap-3">
+          <a id="btnBatchPrintCredentials" href="#" target="_blank" class="px-3.5 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 no-underline" title="Print Student Credentials List">
+            <span class="material-symbols-rounded text-sm">badge</span> Print Credential List
+          </a>
+          <button onclick="closeBatchDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-premium cursor-pointer" title="Close Modal">
+            <span class="material-symbols-rounded text-sm">close</span>
+          </button>
+        </div>
       </div>
 
       <!-- Tabs Navigation -->
@@ -773,6 +778,9 @@
               Enrolled Students
               <span id="rosterCountBadge" class="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full text-sm font-mono">0</span>
             </h4>
+            <a id="btnTabPrintCredentials" href="#" target="_blank" class="px-3.5 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 no-underline" title="Print First Login Credentials">
+              <span class="material-symbols-rounded text-sm">print</span> Print Credential List
+            </a>
           </div>
           <div class="overflow-x-auto max-h-[450px] overflow-y-auto">
             <table class="min-w-[950px] w-full text-left text-sm border-collapse">
@@ -2293,6 +2301,12 @@
 
       document.getElementById('batchDetailTitle').innerText = `Batch ${batch.classroom_id}`;
       document.getElementById('batchDetailSubtitle').innerText = `Admission ${batch.batch_year} · ${batch.batch_year} - ${batch.batch_year + 3} Batch`;
+
+      const printUrl = `/hod/batches/${batch.classroom_id}/credentials/print`;
+      const btnHeader = document.getElementById('btnBatchPrintCredentials');
+      if (btnHeader) btnHeader.href = printUrl;
+      const btnTab = document.getElementById('btnTabPrintCredentials');
+      if (btnTab) btnTab.href = printUrl;
 
       // Show current tutor/mentor
       document.getElementById('tutorCurrentDisplay').innerHTML = batch.tutor_name

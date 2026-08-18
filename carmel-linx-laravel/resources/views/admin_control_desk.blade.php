@@ -354,17 +354,7 @@
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Classrooms</span>
             </div>
 
-            <!-- Day Order -->
-            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openDepartmentTimetables()">
-              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-rose-500/40 bg-slate-900/90 hover:border-rose-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-rose-500/10 relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-b from-rose-500/15 to-transparent opacity-60"></div>
-                <span class="material-symbols-rounded text-rose-400 text-base mb-0.5 group-hover:scale-110 transition-transform">calendar_today</span>
-                <span id="statDayOrder" class="font-black text-rose-300 text-xs sm:text-sm leading-none truncate max-w-[90%] text-center">Day 1</span>
-              </div>
-              <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Day Order</span>
-            </div>
-
-            <!-- Events Today (6th Circular Card) -->
+            <!-- Events Today -->
             <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openTodayEventsModal()">
               <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-indigo-500/40 bg-slate-900/90 hover:border-indigo-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-indigo-500/10 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/15 to-transparent opacity-60"></div>
@@ -372,6 +362,16 @@
                 <span id="statEventsToday" class="font-black text-indigo-300 text-base sm:text-lg leading-none">0</span>
               </div>
               <span class="text-[10px] text-slate-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Events Today</span>
+            </div>
+
+            <!-- Day Order (Right End with Light Coloured Background & Highlight Text) -->
+            <div class="flex flex-col items-center group cursor-pointer w-full" onclick="openDepartmentTimetables()">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-rose-100 to-amber-200 hover:border-amber-400 hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center shadow-lg shadow-amber-500/30 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent opacity-80"></div>
+                <span class="text-[8px] font-black uppercase tracking-wider text-rose-900 bg-rose-200/90 px-1.5 py-0.5 rounded-full mb-0.5 shadow-xs z-10">TODAY</span>
+                <span id="statDayOrder" class="font-black text-slate-900 text-xs sm:text-sm leading-none truncate max-w-[90%] text-center z-10">Day 1</span>
+              </div>
+              <span class="text-[10px] text-amber-300 uppercase font-extrabold tracking-wider mt-1.5 text-center leading-tight">Day Order</span>
             </div>
           </div>
         </div>

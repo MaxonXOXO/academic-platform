@@ -467,10 +467,17 @@
                 }
 
                 $campusHours = null;
-                if ($isCompleted) {
+                if ($isCompleted && isset($todayPunch->in_time) && isset($todayPunch->out_time)) {
                     $tIn = strtotime($todayPunch->punch_date . ' ' . $todayPunch->in_time);
                     $tOut = strtotime($todayPunch->punch_date . ' ' . $todayPunch->out_time);
                     $diffSec = max(0, $tOut - $tIn);
+                    $hrs = floor($diffSec / 3600);
+                    $mins = round(($diffSec % 3600) / 60);
+                    $campusHours = "{$hrs}h {$mins}m in Campus";
+                } elseif ($isPunchedIn && isset($todayPunch->in_time)) {
+                    $tIn = strtotime(($todayPunch->punch_date ?? date('Y-m-d')) . ' ' . $todayPunch->in_time);
+                    $tNow = time();
+                    $diffSec = max(0, $tNow - $tIn);
                     $hrs = floor($diffSec / 3600);
                     $mins = round(($diffSec % 3600) / 60);
                     $campusHours = "{$hrs}h {$mins}m in Campus";
@@ -543,9 +550,9 @@
                 </div>
 
                 <!-- High-Visibility Prominent Time Display Strip -->
-                <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2 border-top border-secondary border-opacity-25">
-                    <div class="d-flex align-items-center gap-3">
-                        <!-- IN Time -->
+                <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2 border-top border-secondary border-opacity-25 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                        <!-- IN Time & Status -->
                         <div class="d-flex align-items-center gap-1.5">
                             <span class="text-uppercase fw-bold" style="font-size: 0.68rem; color: #cbd5e1; letter-spacing: 0.3px;">
                                 <i class="fa-solid fa-sun text-warning me-0.5"></i> IN:
@@ -553,9 +560,14 @@
                             <span class="font-mono fw-black" style="font-size: 1.05rem; color: {{ $isPunchedIn ? '#34d399' : '#94a3b8' }}; font-weight: 900; letter-spacing: -0.5px;">
                                 {{ $inTimeFormatted ?? '--:--' }}
                             </span>
+                            @if($isPunchedIn)
+                                <span class="badge px-1.5 py-0.5" style="font-size: 0.58rem; font-weight: 900; border-radius: 4px; background: {{ $inStatusLabel === 'LATE IN' ? 'rgba(239, 68, 68, 0.25)' : ($inStatusLabel === 'EARLY IN' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(52, 211, 153, 0.25)') }}; color: {{ $inStatusLabel === 'LATE IN' ? '#f87171' : ($inStatusLabel === 'EARLY IN' ? '#38bdf8' : '#34d399') }}; border: 1px solid {{ $inStatusLabel === 'LATE IN' ? 'rgba(239, 68, 68, 0.5)' : ($inStatusLabel === 'EARLY IN' ? 'rgba(56, 189, 248, 0.5)' : 'rgba(52, 211, 153, 0.5)') }};">
+                                    {{ $inStatusLabel }}
+                                </span>
+                            @endif
                         </div>
 
-                        <!-- OUT Time -->
+                        <!-- OUT Time & Status -->
                         <div class="d-flex align-items-center gap-1.5 ps-2 border-start border-secondary border-opacity-25">
                             <span class="text-uppercase fw-bold" style="font-size: 0.68rem; color: #cbd5e1; letter-spacing: 0.3px;">
                                 <i class="fa-solid fa-moon text-info me-0.5"></i> OUT:
@@ -563,14 +575,22 @@
                             <span class="font-mono fw-black" style="font-size: 1.05rem; color: {{ $isPunchedOut ? '#38bdf8' : '#94a3b8' }}; font-weight: 900; letter-spacing: -0.5px;">
                                 {{ $outTimeFormatted ?? '--:--' }}
                             </span>
+                            @if($isPunchedOut)
+                                <span class="badge px-1.5 py-0.5" style="font-size: 0.58rem; font-weight: 900; border-radius: 4px; background: {{ $outStatusLabel === 'EARLY OUT' ? 'rgba(245, 158, 11, 0.25)' : ($outStatusLabel === 'LATE OUT' ? 'rgba(168, 85, 247, 0.25)' : 'rgba(52, 211, 153, 0.25)') }}; color: {{ $outStatusLabel === 'EARLY OUT' ? '#fbbf24' : ($outStatusLabel === 'LATE OUT' ? '#c084fc' : '#34d399') }}; border: 1px solid {{ $outStatusLabel === 'EARLY OUT' ? 'rgba(245, 158, 11, 0.5)' : ($outStatusLabel === 'LATE OUT' ? 'rgba(168, 85, 247, 0.5)' : 'rgba(52, 211, 153, 0.5)') }};">
+                                    {{ $outStatusLabel }}
+                                </span>
+                            @endif
                         </div>
                     </div>
 
-                    <div style="font-size: 0.72rem;">
-                        @if($isCompleted && $campusHours)
-                            <span class="fw-black text-emerald-400" style="color: #34d399; font-weight: 800;"><i class="fa-solid fa-stopwatch me-1"></i>{{ $campusHours }}</span>
+                    <!-- Time in Campus Badge -->
+                    <div style="font-size: 0.74rem;">
+                        @if($campusHours)
+                            <span class="fw-black px-2 py-0.5 rounded-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); font-size: 0.72rem; font-weight: 800;">
+                                <i class="fa-solid fa-stopwatch text-warning me-1"></i>{{ $campusHours }}
+                            </span>
                         @else
-                            <span class="fw-semibold text-secondary" style="color: #94a3b8;"><i class="fa-solid fa-location-dot text-info me-1"></i>Geofence</span>
+                            <span class="fw-semibold text-secondary" style="color: #94a3b8;"><i class="fa-solid fa-location-dot text-info me-1"></i>Geofence Lock</span>
                         @endif
                     </div>
                 </div>

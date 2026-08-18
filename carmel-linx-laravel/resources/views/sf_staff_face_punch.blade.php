@@ -400,9 +400,6 @@
             <h1><i class="fa-solid fa-camera-rotate"></i> Staff Biometric Time Punch</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <button type="button" onclick="reloadPunchScanner()" class="refresh-btn-top" title="Refresh Scanner & GPS">
-                <i class="fa-solid fa-arrows-rotate"></i> Refresh
-            </button>
             <a href="/staff/mobile" class="back-btn-right" title="Return to Home Dashboard">
                 <i class="fa-solid fa-house"></i> Back
             </a>

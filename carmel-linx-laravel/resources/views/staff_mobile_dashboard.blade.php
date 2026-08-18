@@ -353,6 +353,15 @@
                     </div>
                     <div class="overflow-hidden">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 1.05rem;">{{ $staff->name ?? session('userName') }}</h6>
+                        @php
+                            $rawBranch = $staff->branch ?? session('userBranch') ?? '';
+                            $deptName = function_exists('getFullBranchName') ? getFullBranchName($rawBranch) : $rawBranch;
+                        @endphp
+                        @if(!empty($deptName))
+                            <small class="text-cyan fw-semibold d-block text-truncate mt-0.5" style="font-size: 0.78rem;">
+                                <i class="fa-solid fa-building-columns me-1" style="font-size: 0.72rem;"></i>{{ $deptName }}
+                            </small>
+                        @endif
                     </div>
                 </div>
 

@@ -16,6 +16,15 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="author" content="Dhanush.A - Technical Support & Architecture, Carmel Polytechnic College">
   
+  <!-- Progressive Web App (PWA) & iOS Standalone App Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Carmel Linx">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
   <style>
     body {
         font-family: "Plus Jakarta Sans", sans-serif;
@@ -177,6 +186,25 @@
       
       <!-- Login Section -->
       <div id="loginSection">
+        <!-- PWA Smart Mobile App Install Banner -->
+        <div id="pwaInstallBanner" class="hidden mb-4 p-3 rounded-2xl bg-gradient-to-r from-cyan-955/70 to-slate-900/90 border border-cyan-500/30 text-white shadow-lg transition-premium">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+              <img src="/apple-touch-icon.png" class="w-9 h-9 rounded-xl shadow-md border border-cyan-400/40" alt="App Icon">
+              <div>
+                <h4 class="font-extrabold text-xs text-white">Install Carmel Linx App</h4>
+                <p class="text-[11px] text-cyan-200/80">Use full-screen app without address bar</p>
+              </div>
+            </div>
+            <button id="pwaInstallBtn" type="button" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer">
+              Install
+            </button>
+          </div>
+          <div id="pwaIosHint" class="hidden mt-2 pt-2 border-t border-cyan-500/20 text-[11px] text-cyan-300/90 text-center">
+            Tap <span class="font-bold text-white">Share</span> <span class="inline-block px-1 bg-slate-800 rounded">⎋</span> and select <span class="font-bold text-white">'Add to Home Screen'</span>
+          </div>
+        </div>
+
         <!-- Login Role Tabs -->
         <div class="flex bg-slate-950/60 p-1 rounded-2xl mb-4 border border-slate-800/60">
           <button id="tabStudent" onclick="toggleRoleTab('student')" class="flex-1 py-2 rounded-xl font-bold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/30 transition-premium flex items-center justify-center gap-1.5 cursor-pointer">
@@ -510,6 +538,46 @@
       enforceMobileLimit(document.getElementById('regStaffMobile'));
 
       checkBiometricSupport();
+
+      // Service Worker & PWA Installation Logic
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(err => console.log('SW Registration bypassed:', err));
+      }
+
+      let deferredPwaPrompt = null;
+      const pwaBanner = document.getElementById('pwaInstallBanner');
+      const pwaBtn = document.getElementById('pwaInstallBtn');
+      const pwaIosHint = document.getElementById('pwaIosHint');
+
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+      if (!isStandalone) {
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPwaPrompt = e;
+          if (pwaBanner) pwaBanner.classList.remove('hidden');
+        });
+
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIos && pwaBanner) {
+          pwaBanner.classList.remove('hidden');
+          if (pwaBtn) pwaBtn.classList.add('hidden');
+          if (pwaIosHint) pwaIosHint.classList.remove('hidden');
+        }
+      }
+
+      if (pwaBtn) {
+        pwaBtn.addEventListener('click', async () => {
+          if (!deferredPwaPrompt) return;
+          deferredPwaPrompt.prompt();
+          const { outcome } = await deferredPwaPrompt.userChoice;
+          if (outcome === 'accepted' && pwaBanner) {
+            pwaBanner.classList.add('hidden');
+          }
+          deferredPwaPrompt = null;
+        });
+      }
     });
 
     function checkBiometricSupport() {

@@ -544,15 +544,17 @@
           .catch(err => console.log('SW Registration bypassed:', err));
       }
 
+      // Clear legacy storage key if present
+      localStorage.removeItem('carmel_pwa_installed');
+
       let deferredPwaPrompt = null;
       const pwaBanner = document.getElementById('pwaInstallBanner');
       const pwaBtn = document.getElementById('pwaInstallBtn');
       const pwaIosHint = document.getElementById('pwaIosHint');
 
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      const isAlreadyInstalled = localStorage.getItem('carmel_pwa_installed') === 'true';
 
-      if (!isStandalone && !isAlreadyInstalled) {
+      if (!isStandalone) {
         window.addEventListener('beforeinstallprompt', (e) => {
           e.preventDefault();
           deferredPwaPrompt = e;
@@ -568,7 +570,6 @@
       }
 
       window.addEventListener('appinstalled', () => {
-        localStorage.setItem('carmel_pwa_installed', 'true');
         if (pwaBanner) pwaBanner.classList.add('hidden');
       });
 
@@ -578,7 +579,6 @@
           deferredPwaPrompt.prompt();
           const { outcome } = await deferredPwaPrompt.userChoice;
           if (outcome === 'accepted') {
-            localStorage.setItem('carmel_pwa_installed', 'true');
             if (pwaBanner) pwaBanner.classList.add('hidden');
           }
           deferredPwaPrompt = null;

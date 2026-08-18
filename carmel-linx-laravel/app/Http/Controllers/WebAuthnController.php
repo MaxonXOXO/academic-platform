@@ -136,49 +136,49 @@ class WebAuthnController extends Controller
      */
     public function getAuthOptions(Request $request)
     {
-        $request->validate([
-            'mobileNo' => 'required|string',
-        ]);
-
-        $inputMobile = trim($request->input('mobileNo'));
+        $inputMobile = trim($request->input('mobileNo', ''));
         $cleanMobile = preg_replace('/[^0-9]/', '', $inputMobile);
 
-        $staff = StaffProfile::where(function($q) use ($inputMobile, $cleanMobile) {
-            $q->where('mobile_no', $inputMobile)
-              ->orWhere('email', $inputMobile)
-              ->orWhere('name', $inputMobile);
-            if (!empty($cleanMobile)) {
-                $q->orWhere('mobile_no', $cleanMobile);
+        $staff = null;
+        if (!empty($inputMobile)) {
+            $staff = StaffProfile::where(function($q) use ($inputMobile, $cleanMobile) {
+                $q->where('mobile_no', $inputMobile)
+                  ->orWhere('email', $inputMobile)
+                  ->orWhere('name', $inputMobile);
+                if (!empty($cleanMobile)) {
+                    $q->orWhere('mobile_no', $cleanMobile);
+                }
+            })->first();
+
+            if (!$staff) {
+                return response()->json(['status' => 'ERROR', 'message' => 'No staff account found with this ID / Mobile Number.']);
             }
-        })->first();
 
-        if (!$staff) {
-            return response()->json(['status' => 'ERROR', 'message' => 'No staff account found with this ID / Mobile Number.']);
+            if (strtoupper($staff->account_status) !== 'APPROVED') {
+                return response()->json(['status' => 'ERROR', 'message' => 'Your staff account is pending approval by Super Admin.']);
+            }
         }
 
-        if (strtoupper($staff->account_status) !== 'APPROVED') {
-            return response()->json(['status' => 'ERROR', 'message' => 'Your staff account is pending approval by Super Admin.']);
-        }
+        $allowCredentials = [];
+        if ($staff) {
+            $credentials = StaffBiometricCredential::where('staff_mobile_no', $staff->mobile_no)->get();
+            if ($credentials->isEmpty()) {
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Fingerprint login is not registered on this account yet. Please log in with password once and enable fingerprint in your profile.'
+                ]);
+            }
 
-        $credentials = StaffBiometricCredential::where('staff_mobile_no', $staff->mobile_no)->get();
-        if ($credentials->isEmpty()) {
-            return response()->json([
-                'status' => 'ERROR',
-                'message' => 'Fingerprint login is not registered on this account yet. Please log in with password once and enable fingerprint in your profile.'
-            ]);
+            foreach ($credentials as $cred) {
+                $allowCredentials[] = [
+                    'type' => 'public-key',
+                    'id' => $cred->credential_id,
+                ];
+            }
         }
 
         $challenge = Str::random(32);
         Session::put('webauthn_auth_challenge', $challenge);
-        Session::put('webauthn_auth_staff_mobile', $staff->mobile_no);
-
-        $allowCredentials = [];
-        foreach ($credentials as $cred) {
-            $allowCredentials[] = [
-                'type' => 'public-key',
-                'id' => $cred->credential_id,
-            ];
-        }
 
         return response()->json([
             'status' => 'SUCCESS',
@@ -198,23 +198,32 @@ class WebAuthnController extends Controller
     {
         $request->validate([
             'credentialId' => 'required|string',
-            'mobileNo' => 'required|string',
         ]);
 
-        $inputMobile = trim($request->input('mobileNo'));
-        $cleanMobile = preg_replace('/[^0-9]/', '', $inputMobile);
         $credentialId = trim($request->input('credentialId'));
+        $inputMobile = trim($request->input('mobileNo', ''));
 
-        $staff = StaffProfile::where(function($q) use ($inputMobile, $cleanMobile) {
-            $q->where('mobile_no', $inputMobile)
-              ->orWhere('email', $inputMobile);
-            if (!empty($cleanMobile)) {
-                $q->orWhere('mobile_no', $cleanMobile);
-            }
-        })->first();
+        $staff = null;
+        if (!empty($inputMobile)) {
+            $cleanMobile = preg_replace('/[^0-9]/', '', $inputMobile);
+            $staff = StaffProfile::where(function($q) use ($inputMobile, $cleanMobile) {
+                $q->where('mobile_no', $inputMobile)
+                  ->orWhere('email', $inputMobile);
+                if (!empty($cleanMobile)) {
+                    $q->orWhere('mobile_no', $cleanMobile);
+                }
+            })->first();
+        }
 
         if (!$staff) {
-            return response()->json(['status' => 'ERROR', 'message' => 'Staff account not found.']);
+            $cred = StaffBiometricCredential::where('credential_id', $credentialId)->first();
+            if ($cred) {
+                $staff = StaffProfile::where('mobile_no', $cred->staff_mobile_no)->first();
+            }
+        }
+
+        if (!$staff) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Staff biometric credential not recognized on this device.']);
         }
 
         if (strtoupper($staff->account_status) !== 'APPROVED') {

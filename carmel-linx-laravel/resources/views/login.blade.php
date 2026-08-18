@@ -505,11 +505,13 @@
       const loginAlert = document.getElementById('loginAlert');
       const bioSpinner = document.getElementById('bioSpinner');
       const bioBtnText = document.getElementById('bioBtnText');
-      const mobileNo = document.getElementById('loginMobileId').value.trim();
+      let mobileNo = document.getElementById('loginMobileId').value.trim();
 
       if (!mobileNo) {
-        showError(loginAlert, bioSpinner, bioBtnText, "Please enter your 10-digit mobile number (Login ID) first.");
-        return;
+        mobileNo = localStorage.getItem('carmel_registered_biometric_mobile') || localStorage.getItem('carmel_last_staff_mobile') || '';
+        if (mobileNo) {
+          document.getElementById('loginMobileId').value = mobileNo;
+        }
       }
 
       loginAlert.classList.add('hidden');
@@ -531,11 +533,13 @@
 
         const options = optData.options;
         options.challenge = base64ToBuffer(options.challenge);
-        if (options.allowCredentials) {
+        if (options.allowCredentials && options.allowCredentials.length > 0) {
           options.allowCredentials = options.allowCredentials.map(c => ({
             ...c,
             id: base64ToBuffer(c.id)
           }));
+        } else {
+          delete options.allowCredentials;
         }
 
         const credential = await navigator.credentials.get({ publicKey: options });
@@ -555,7 +559,10 @@
         const authData = await authRes.json();
 
         if (authData.status === 'SUCCESS') {
-          localStorage.setItem('carmel_last_staff_mobile', mobileNo);
+          if (authData.id) {
+            localStorage.setItem('carmel_registered_biometric_mobile', authData.id);
+            localStorage.setItem('carmel_last_staff_mobile', authData.id);
+          }
           loginAlert.className = "p-4 rounded-xl text-sm font-semibold bg-green-950/40 text-green-400 border border-green-900/60 block";
           loginAlert.innerText = "Fingerprint verified! Access granted...";
           window.location.href = authData.route;

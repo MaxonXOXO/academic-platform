@@ -2308,6 +2308,10 @@
                 const regData = await regRes.json();
 
                 if (regData.status === 'SUCCESS') {
+                    if (optData.user && optData.user.name) {
+                        localStorage.setItem('carmel_registered_biometric_mobile', optData.user.name);
+                        localStorage.setItem('carmel_last_staff_mobile', optData.user.name);
+                    }
                     showStaffBioAlert('<i class="fa-solid fa-circle-check me-1"></i> ' + regData.message, 'text-success');
                     loadRegisteredBioDevices();
                 } else {

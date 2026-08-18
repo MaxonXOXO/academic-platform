@@ -397,7 +397,7 @@
 
     <header class="mobile-header">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <h1><i class="fa-solid fa-camera-rotate"></i> SF Staff Time Punch</h1>
+            <h1><i class="fa-solid fa-camera-rotate"></i> Staff Biometric Time Punch</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <button type="button" onclick="reloadPunchScanner()" class="refresh-btn-top" title="Refresh Scanner & GPS">

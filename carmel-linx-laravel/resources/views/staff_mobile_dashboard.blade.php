@@ -250,8 +250,8 @@
         .stat-card {
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            padding: 12px;
+            border-radius: 10px;
+            padding: 6px 4px;
         }
 
         .form-control, .form-select {
@@ -337,29 +337,29 @@
         <div class="p-3">
 
             <!-- Staff Identity Banner -->
-            <div class="app-card border-start border-2 border-info">
-                <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="app-card border-start border-2 border-info p-2.5 mb-2.5">
+                <div class="d-flex align-items-center gap-2.5 mb-2">
                     <div class="position-relative flex-shrink-0">
                         @if(!empty($staff->photo_url))
-                            <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile">
+                            <img id="staffBannerPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 42px; height: 42px;">
                         @else
-                            <div id="staffBannerPhotoPlaceholder" class="avatar-mobile bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-white" style="font-size: 1.1rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                            <div id="staffBannerPhotoPlaceholder" class="avatar-mobile bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-white" style="width: 42px; height: 42px; font-size: 0.95rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
                                 {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
                             </div>
                         @endif
-                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 22px; height: 22px; font-size: 0.6rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a;" title="Change Photo">
+                        <label for="staffPhotoFileInput" class="position-absolute bottom-0 end-0 bg-cyan text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm cursor-pointer" style="width: 18px; height: 18px; font-size: 0.55rem; margin-right: -2px; margin-bottom: -2px; border: 1.5px solid #0f172a;" title="Change Photo">
                             <i class="fa-solid fa-camera"></i>
                         </label>
                     </div>
                     <div class="overflow-hidden">
-                        <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 1.05rem;">{{ $staff->name ?? session('userName') }}</h6>
+                        <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 0.98rem;">{{ $staff->name ?? session('userName') }}</h6>
                         @php
                             $rawBranch = $staff->branch ?? session('userBranch') ?? '';
                             $deptName = function_exists('getFullBranchName') ? getFullBranchName($rawBranch) : $rawBranch;
                         @endphp
                         @if(!empty($deptName))
-                            <small class="fw-medium d-block text-truncate mt-0.5" style="font-size: 0.78rem; color: #60a5fa !important;">
-                                <i class="fa-solid fa-building-columns me-1" style="font-size: 0.72rem; color: #60a5fa !important;"></i>{{ $deptName }}
+                            <small class="fw-medium d-block text-truncate mt-0.5" style="font-size: 0.74rem; color: #60a5fa !important;">
+                                <i class="fa-solid fa-building-columns me-1" style="font-size: 0.68rem; color: #60a5fa !important;"></i>{{ $deptName }}
                             </small>
                         @endif
                     </div>
@@ -369,49 +369,49 @@
                     $isMentor = (count($classrooms) > 0);
                 @endphp
 
-                <div class="row g-2 text-center">
+                <div class="row g-1.5 text-center">
                     @if($isMentor)
                     <div class="col-3">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Subjects</span>
-                            <strong class="text-white" style="font-size: 1.05rem;">{{ count($assignments) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Subjects</span>
+                            <strong class="text-white" style="font-size: 0.95rem;">{{ count($assignments) }}</strong>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Tutorship</span>
-                            <strong class="text-cyan" style="font-size: 1.05rem;">{{ count($classrooms) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Tutorship</span>
+                            <strong class="text-cyan" style="font-size: 0.95rem;">{{ count($classrooms) }}</strong>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">To-Dos</span>
-                            <strong class="text-warning" style="font-size: 1.05rem;">{{ count($todos) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">To-Dos</span>
+                            <strong class="text-warning" style="font-size: 0.95rem;">{{ count($todos) }}</strong>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Events</span>
-                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ $eventsCount ?? 0 }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Events</span>
+                            <strong style="color: #fb923c; font-size: 0.95rem;">{{ $eventsCount ?? 0 }}</strong>
                         </div>
                     </div>
                     @else
                     <div class="col-4">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Subjects</span>
-                            <strong class="text-white" style="font-size: 1.05rem;">{{ count($assignments) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Subjects</span>
+                            <strong class="text-white" style="font-size: 0.95rem;">{{ count($assignments) }}</strong>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">To-Dos</span>
-                            <strong class="text-warning" style="font-size: 1.05rem;">{{ count($todos) }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">To-Dos</span>
+                            <strong class="text-warning" style="font-size: 0.95rem;">{{ count($todos) }}</strong>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.65rem; font-weight: 700;">Events</span>
-                            <strong style="color: #fb923c; font-size: 1.05rem;">{{ $eventsCount ?? 0 }}</strong>
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Events</span>
+                            <strong style="color: #fb923c; font-size: 0.95rem;">{{ $eventsCount ?? 0 }}</strong>
                         </div>
                     </div>
                     @endif

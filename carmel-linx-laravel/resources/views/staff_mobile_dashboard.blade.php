@@ -1049,30 +1049,31 @@
             <div class="modal-content bg-slate-950 border border-slate-800 text-white shadow-2xl rounded-0 rounded-sm-4" style="background-color: #090d16 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; max-height: 100vh; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
                 
                 <!-- Unified Fixed Title Card on Top -->
-                <div class="modal-header py-2.5 px-3 d-flex align-items-center justify-content-between flex-wrap gap-1.5 flex-shrink-0" style="background-color: #0f172a !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; position: sticky; top: 0; z-index: 1060; box-shadow: 0 4px 14px rgba(0,0,0,0.6);">
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-white border-secondary border-opacity-50 flex-shrink-0" onclick="closeClassAttendanceModal()" title="Back to Mobile Dashboard" style="font-size: 0.74rem;">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Back
-                        </button>
-                        <div class="d-flex align-items-center gap-1.5">
-                            <span class="fw-black text-cyan" style="font-size: 0.88rem;" id="attSubjectConfirmCode">---</span>
-                            <span id="attBatchConfirmCode" class="d-none"></span>
-                            <span id="attSubjectConfirmName" class="d-none"></span>
-                        </div>
+                <div class="modal-header py-2.5 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2 flex-shrink-0" style="background-color: #0f172a !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; position: sticky; top: 0; z-index: 1060; box-shadow: 0 4px 14px rgba(0,0,0,0.6);">
+                    <div class="d-flex align-items-center gap-1.5 overflow-hidden flex-shrink-1">
+                        <span class="fw-black text-cyan text-truncate" style="font-size: 0.9rem;" id="attSubjectConfirmCode">---</span>
+                        <span id="attBatchConfirmCode" class="d-none"></span>
+                        <span id="attSubjectConfirmName" class="d-none"></span>
                     </div>
 
-                    <ul class="nav nav-pills p-0.5 rounded-pill bg-slate-950 border border-slate-800 d-inline-flex ms-auto" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;">
-                        <li class="nav-item">
-                            <button class="nav-link active py-1 px-2 rounded-pill text-white fw-bold" id="tabBtnTakeAtt" onclick="switchAttModalTab('take')" style="font-size: 0.72rem;">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> Mark Attendance
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link py-1 px-2 rounded-pill text-secondary fw-bold" id="tabBtnPastLogs" onclick="switchAttModalTab('logs')" style="font-size: 0.72rem;">
-                                <i class="fa-solid fa-clock-rotate-left me-1"></i> Past Logs
-                            </button>
-                        </li>
-                    </ul>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+                        <ul class="nav nav-pills p-0.5 rounded-pill bg-slate-950 border border-slate-800 d-inline-flex" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;">
+                            <li class="nav-item">
+                                <button class="nav-link active py-1 px-2 rounded-pill text-white fw-bold" id="tabBtnTakeAtt" onclick="switchAttModalTab('take')" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> Mark Attendance
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-1 px-2 rounded-pill text-secondary fw-bold" id="tabBtnPastLogs" onclick="switchAttModalTab('logs')" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Past Logs
+                                </button>
+                            </li>
+                        </ul>
+
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 text-white fw-black flex-shrink-0 shadow-sm" onclick="closeClassAttendanceModal()" title="Back to Mobile Dashboard" style="font-size: 0.78rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Back
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Smooth Scrollable Body Underneath -->

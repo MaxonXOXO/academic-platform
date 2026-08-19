@@ -68,6 +68,7 @@ if (!function_exists('getBtShort')) {
                 <div><span class="font-bold">Subject:</span> {{ $practicumCourseFile->course_title ?: $batchSubject->subject_name }}</div>
                 <div><span class="font-bold">Subject Code:</span> {{ $batchSubject->subject_code }}</div>
                 <div><span class="font-bold">Batch / Semester:</span> {{ $batchName }}</div>
+                <div><span class="font-bold">Academic Year:</span> 2026-2027</div>
                 <div><span class="font-bold">Series Exam:</span> {{ $seriesNo }}</div>
                 <div><span class="font-bold">Date:</span> {{ date('d/m/Y') }}</div>
                 <div class="flex gap-6"><span><span class="font-bold">Duration:</span> {{ ($qpRecord->pattern_type === 'practical_series' || str_contains($qpRecord->co_tag ?? '', '+') || str_contains($qpRecord->co_tag ?? '', ',')) ? '3 Hours' : '1 Hour' }}</span> <span><span class="font-bold">Max Marks:</span> {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'practical_series' ? 40 : ($qpRecord->pattern_type === 'table_4_2_design' ? 50 : 25)) }}</span></div>

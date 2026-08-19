@@ -160,7 +160,7 @@
             </tr>
             <tr>
                 <td>Academic Year:</td>
-                <td style="font-weight: normal;">2026 Revision</td>
+                <td style="font-weight: normal;">2026-2027</td>
                 <td>Duration:</td>
                 <td style="font-weight: normal;">{{ $exam->duration_minutes }} Minutes</td>
             </tr>

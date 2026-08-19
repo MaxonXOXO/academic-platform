@@ -4611,7 +4611,15 @@
       const subjectCode = currentSubjectCode;
       const deptName = deptMap[sessionBranch.toUpperCase()] || sessionBranch;
 
-      const academicYear = data.academic_year || currentSubjectAcademicYear || "{{ session('academicYear', '2025 - 2026') }}";
+      let semNum1 = parseInt(currentSubjectSemester || '3');
+      let startYr1 = 2026;
+      if (typeof currentSubjectClassroomId !== 'undefined' && currentSubjectClassroomId) {
+        let matchYear = currentSubjectClassroomId.match(/(\d{4})/);
+        if (matchYear) startYr1 = parseInt(matchYear[1]);
+      }
+      let yearOffset1 = Math.floor((semNum1 - 1) / 2);
+      let calcAyStart1 = startYr1 + yearOffset1;
+      const academicYear = `${calcAyStart1} - ${calcAyStart1 + 1}`;
       const durationText = (totalMarks <= 20) ? '1 Hour' : '1.5 Hours';
 
       let coNum = coTag.replace(/[^0-9]/g, '');
@@ -4854,7 +4862,15 @@
       const subjectCode = currentSubjectCode;
       const deptName = deptMap[sessionBranch.toUpperCase()] || sessionBranch;
       
-      const academicYear = data.academic_year || currentSubjectAcademicYear || "{{ session('academicYear', '2025 - 2026') }}";
+      let semNum2 = parseInt(currentSubjectSemester || '3');
+      let startYr2 = 2026;
+      if (typeof currentSubjectClassroomId !== 'undefined' && currentSubjectClassroomId) {
+        let matchYear = currentSubjectClassroomId.match(/(\d{4})/);
+        if (matchYear) startYr2 = parseInt(matchYear[1]);
+      }
+      let yearOffset2 = Math.floor((semNum2 - 1) / 2);
+      let calcAyStart2 = startYr2 + yearOffset2;
+      const academicYear = `${calcAyStart2} - ${calcAyStart2 + 1}`;
       const durationText = (totalMarks <= 20) ? '1 Hour' : '1.5 Hours';
 
       let coNum = coTag.replace(/[^0-9]/g, '');

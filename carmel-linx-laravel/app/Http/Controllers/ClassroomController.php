@@ -1565,6 +1565,16 @@ Syllabus Text:
         $ciaMarks = $syllabus->cia_marks ?? 60;
         $eseMarks = $syllabus->ese_marks ?? 40;
 
+        $batchStartYear = intval(explode('-', $classroom->batch_year ?? $batchSubject->classroom->batch_year ?? '')[0]);
+        if ($batchStartYear <= 0) {
+            $batchStartYear = 2026;
+        }
+        $sem = intval($batchSubject->semester);
+        $yearOffset = floor(($sem - 1) / 2);
+        $calcStart = $batchStartYear + $yearOffset;
+        $calcEnd = $calcStart + 1;
+        $calculatedAcademicYear = "$calcStart - $calcEnd";
+
         return response()->json([
             'status' => 'SUCCESS',
             'data' => [
@@ -1584,7 +1594,7 @@ Syllabus Text:
                 'semester' => $batchSubject->semester ?? '',
                 'branch' => $branch,
                 'credits' => $credits,
-                'academic_year' => $batchSubject->academic_year ?? '',
+                'academic_year' => $calculatedAcademicYear,
                 'classroom_id' => $batchSubject->classroom_id ?? '',
                 'syllabus_revision' => $syllabusRevision,
                 'proposed_total_hours' => $proposedHours,
@@ -2388,15 +2398,19 @@ Return ONLY valid JSON matching this exact structure:
         $cleanedBatch = str_replace('_', ' - ', $cleanedBatch);
 
         // Assessment Year calculation
-        $batchStartYear = intval(explode('-', $batchSubject->classroom->batch_year ?? '')[0]);
-        if ($batchStartYear <= 0) {
-            $batchStartYear = date('Y');
-        }
         $sem = intval($batchSubject->semester);
-        $yearOffset = floor(($sem - 1) / 2);
-        $assessmentStart = $batchStartYear + $yearOffset;
-        $assessmentEnd = $assessmentStart + 1;
-        $assessmentYear = "$assessmentStart - $assessmentEnd";
+        if (in_array($sem, [1, 3, 5])) {
+            $assessmentYear = "2026 - 2027";
+        } else {
+            $batchStartYear = intval(explode('-', $batchSubject->classroom->batch_year ?? '')[0]);
+            if ($batchStartYear <= 0) {
+                $batchStartYear = date('Y');
+            }
+            $yearOffset = floor(($sem - 1) / 2);
+            $assessmentStart = $batchStartYear + $yearOffset;
+            $assessmentEnd = $assessmentStart + 1;
+            $assessmentYear = "$assessmentStart - $assessmentEnd";
+        }
 
         // Roman numeral semester
         $romanSemesters = [

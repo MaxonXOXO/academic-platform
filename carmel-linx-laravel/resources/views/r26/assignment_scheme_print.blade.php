@@ -186,7 +186,7 @@
             </tr>
             <tr>
                 <td class="meta-label">Academic Year:</td>
-                <td>2026 Revision</td>
+                <td>2026-2027</td>
                 <td class="meta-label">Max Marks:</td>
                 <td>15 Marks</td>
             </tr>

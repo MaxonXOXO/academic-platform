@@ -186,7 +186,7 @@
                 <td style="width: 15%;"><strong>Program:</strong></td>
                 <td style="width: 35%;">Diploma in Engineering</td>
                 <td style="width: 15%;"><strong>Academic Year:</strong></td>
-                <td style="width: 35%;">2026 Revision</td>
+                <td style="width: 35%;">2026-2027</td>
             </tr>
             <tr>
                 <td><strong>Course Title:</strong></td>

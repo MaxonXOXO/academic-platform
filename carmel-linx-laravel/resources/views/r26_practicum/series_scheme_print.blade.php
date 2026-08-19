@@ -67,6 +67,7 @@ if (!function_exists('getBtShort')) {
             <div><span class="font-bold">Subject:</span> {{ $practicumCourseFile->course_title ?: $batchSubject->subject_name }}</div>
             <div><span class="font-bold">Code:</span> {{ $batchSubject->subject_code }}</div>
             <div><span class="font-bold">Batch:</span> {{ $batchName }}</div>
+            <div><span class="font-bold">Academic Year:</span> 2026-2027</div>
             <div><span class="font-bold">Series Exam:</span> {{ $seriesNo }} | Max Marks: {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'practical_series' ? 40 : ($qpRecord->pattern_type === 'table_4_2_design' ? 50 : 25)) }}</div>
             <div><span class="font-bold">Pattern:</span> {{ $qpRecord->pattern_type === 'practical_series' ? 'Practical Series Exam (Table 3.1 Rubrics)' : ($qpRecord->pattern_type === 'table_4_2_design' ? 'Table 4.2 Design Paper' : 'Table 4.1 Standard') }}</div>
             <div><span class="font-bold">Lecturer Name:</span> {{ $lecturerName }}</div>

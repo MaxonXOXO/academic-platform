@@ -198,7 +198,7 @@
             </tr>
             <tr>
                 <td class="label">Academic Year:</td>
-                <td class="value">2026 Revision</td>
+                <td class="value">2026-2027</td>
                 <td class="label">Exam Date:</td>
                 <td class="value" id="display-exam-date" style="font-weight: bold;">N/A</td>
             </tr>

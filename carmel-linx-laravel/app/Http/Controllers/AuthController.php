@@ -41,6 +41,16 @@ class AuthController extends Controller
                     ->first();
 
                 $isPasswordValid = $student && $this->verifyPassword($password, $student->password);
+
+                // Fallback check for standard initial password "carmel2026" on legacy default passwords
+                if ($student && !$isPasswordValid && $password === 'carmel2026') {
+                    if ($this->verifyPassword('Carmel@123', $student->password)) {
+                        $isPasswordValid = true;
+                        // Auto-upgrade password hash to carmel2026
+                        $student->update(['password' => Hash::make('carmel2026')]);
+                    }
+                }
+
                 if (!$student || !$isPasswordValid) {
                     return response()->json(['status' => 'ERROR', 'message' => 'Invalid ID/Admission Number or Password.']);
                 }
@@ -50,7 +60,7 @@ class AuthController extends Controller
                 }
 
                 // Check if student is logging in with default common password "carmel2026"
-                $isDefaultPassword = ($password === 'carmel2026') || ($this->verifyPassword('carmel2026', $student->password) && !str_starts_with($student->password, '$2y$'));
+                $isDefaultPassword = ($password === 'carmel2026') || $this->verifyPassword('carmel2026', $student->password);
                 if ($isDefaultPassword || $password === 'carmel2026') {
                     Session::put('must_update_profile', true);
                 }

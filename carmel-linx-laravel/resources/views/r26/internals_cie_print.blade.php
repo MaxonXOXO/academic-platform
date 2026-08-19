@@ -228,7 +228,7 @@
             </tr>
             <tr>
                 <td class="label">Academic Year:</td>
-                <td class="value">2026 Revision</td>
+                <td class="value">2026-2027</td>
                 <td class="label">Report Date:</td>
                 <td class="value font-bold">{{ date('d/m/Y') }}</td>
             </tr>

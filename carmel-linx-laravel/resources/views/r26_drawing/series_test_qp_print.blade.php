@@ -238,7 +238,7 @@
             <td style="width: 35%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
             <td style="width: 25%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
             <td style="width: 20%;"><strong>Batch:</strong> {{ $classroom->batch_year ? $classroom->batch_year.'-'.($classroom->batch_year+3) : '2026-2029' }}</td>
-            <td style="width: 20%;"><strong>Acad Year:</strong> {{ date('Y').'-'.(date('Y')+1) }}</td>
+            <td style="width: 20%;"><strong>Acad Year:</strong> 2026-2027</td>
         </tr>
         <tr>
             <td><strong>Modules Covered:</strong> {{ $qpData['modules_covered'] }}</td>

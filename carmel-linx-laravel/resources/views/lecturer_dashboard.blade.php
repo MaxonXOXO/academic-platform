@@ -3594,32 +3594,32 @@
 
       if (cos && cos.length > 0) {
         let cosList = cos.map(co => `
-          <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium text-base">
-            <td class="p-4 font-black text-sky-400 whitespace-nowrap text-base border-r border-slate-800/40 text-center">${co.id}</td>
-            <td class="p-4 text-slate-100 leading-relaxed font-medium text-base">${co.description}</td>
-            <td class="p-4 text-center font-bold text-slate-200 whitespace-nowrap text-base border-l border-slate-800/40">${co.duration ? co.duration + ' hrs' : '-'}</td>
-            <td class="p-4 text-emerald-400 font-mono font-bold whitespace-nowrap text-sm border-l border-slate-800/40 text-center">${co.cognitive_level || '-'}</td>
+          <tr class="border-b border-slate-800/60 last:border-0 hover:bg-slate-900/50 transition-premium">
+            <td class="p-4 font-black text-sky-400 whitespace-nowrap text-lg md:text-xl border-r border-slate-800/60 text-center align-middle">${co.id}</td>
+            <td class="p-4 text-slate-100 leading-relaxed font-bold text-base md:text-xl align-middle">${co.description}</td>
+            <td class="p-4 text-center font-black text-slate-100 whitespace-nowrap text-base md:text-lg border-l border-slate-800/60 align-middle">${co.duration ? co.duration + ' hrs' : '-'}</td>
+            <td class="p-4 text-emerald-400 font-mono font-black whitespace-nowrap text-base md:text-lg border-l border-slate-800/60 text-center align-middle">${co.cognitive_level || '-'}</td>
           </tr>
         `).join('');
         html += `
-          <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-lg mb-6">
-            <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800/80 font-bold text-sm text-slate-200 flex items-center justify-between tracking-wider uppercase">
-              <span class="flex items-center gap-2.5 text-sky-400 font-black text-sm">
-                <span class="material-symbols-rounded text-lg">target</span> Course Outcomes (COs)
+          <div class="bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl mb-6">
+            <div class="px-6 py-4.5 bg-slate-900 border-b border-slate-800 font-black text-base text-slate-100 flex items-center justify-between tracking-wider uppercase">
+              <span class="flex items-center gap-3 text-sky-400 font-black text-base md:text-lg">
+                <span class="material-symbols-rounded text-2xl">target</span> Course Outcomes (COs)
               </span>
-              <span class="text-xs font-bold text-sky-400/80 bg-sky-950/60 border border-sky-500/30 px-3 py-1 rounded-full lowercase">${cos.length} outcomes extracted</span>
+              <span class="text-xs md:text-sm font-bold text-sky-300 bg-sky-950/80 border border-sky-500/40 px-3.5 py-1.5 rounded-full lowercase">${cos.length} outcomes extracted</span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-900/70 text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800/80">
-                    <th class="p-4 w-24 text-center border-r border-slate-800/40">CO ID</th>
+                  <tr class="bg-slate-900/90 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-slate-800">
+                    <th class="p-4 w-28 text-center border-r border-slate-800/60">CO ID</th>
                     <th class="p-4">Course Outcome Statement</th>
-                    <th class="p-4 text-center w-32 border-l border-slate-800/40">Duration</th>
-                    <th class="p-4 w-40 text-center border-l border-slate-800/40">Cognitive Level</th>
+                    <th class="p-4 text-center w-36 border-l border-slate-800/60">Duration</th>
+                    <th class="p-4 w-48 text-center border-l border-slate-800/60">Cognitive Level</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/40">
+                <tbody class="divide-y divide-slate-800/60">
                   ${cosList}
                 </tbody>
               </table>
@@ -8599,8 +8599,8 @@
             const tr = document.createElement('tr');
             tr.className = "border-b border-slate-800/40 hover:bg-slate-900/10 text-slate-300 font-medium";
             
-            let cells = `<td class="p-3 font-bold text-blue-400 whitespace-nowrap">${co}</td>`;
-            cells += `<td class="p-3 text-slate-350 leading-relaxed font-bold text-xs">${descriptions[co]}</td>`;
+            let cells = `<td class="p-3.5 font-black text-blue-400 whitespace-nowrap text-base md:text-lg align-middle">${co}</td>`;
+            cells += `<td class="p-3.5 text-slate-100 leading-relaxed font-bold text-base md:text-lg align-middle">${descriptions[co]}</td>`;
 
             // PO1 to PO11 inputs
             for (let i = 1; i <= 11; i++) {

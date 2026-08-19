@@ -337,34 +337,34 @@
           <!-- PARSED CONTENTS TABLES -->
           <div class="space-y-6">
             <!-- CO Details Table -->
-            <div class="bg-panel border border-card rounded-xl p-4 space-y-3">
-              <h4 class="font-bold text-title text-base md:text-lg flex items-center gap-2 border-b border-slate-800 pb-2">
-                <span class="material-symbols-rounded text-emerald-400 text-lg">stars</span>
+            <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
+              <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
+                <span class="material-symbols-rounded text-emerald-400 text-2xl md:text-3xl">stars</span>
                 Course Outcomes (COs)
               </h4>
-              <div class="border border-card rounded-lg overflow-hidden bg-slate-950/20">
+              <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
                 <table class="w-full text-left border-collapse">
                   <thead>
-                    <tr class="bg-slate-900/60 text-xs md:text-sm font-bold text-slate-200 uppercase tracking-wider border-b border-card">
-                      <th class="py-2.5 px-3 pl-4 w-[12%]">Outcome ID</th>
-                      <th class="py-2.5 px-3 w-[18%]">Cognitive Level</th>
-                      <th class="py-2.5 px-3 w-[15%]">Duration</th>
-                      <th class="py-2.5 px-3 pr-4">Description</th>
+                    <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
+                      <th class="py-4 px-4 pl-5 w-[14%] text-center">Outcome ID</th>
+                      <th class="py-4 px-4 w-[20%] text-center">Cognitive Level</th>
+                      <th class="py-4 px-4 w-[16%] text-center">Duration</th>
+                      <th class="py-4 px-4 pr-5">Description</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-card">
+                  <tbody class="divide-y divide-slate-800">
                     @foreach($cosList as $co)
-                      <tr class="hover:bg-slate-900/30 transition-colors">
-                        <td class="p-3.5 pl-4 font-bold text-emerald-400">
-                          <span class="px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-lg font-mono text-sm md:text-base font-extrabold text-emerald-400 shadow-xs">{{ $co['id'] }}</span>
+                      <tr class="hover:bg-slate-900/50 transition-colors">
+                        <td class="p-4 pl-5 font-black text-emerald-400 text-center align-middle">
+                          <span class="px-4 py-1.5 bg-emerald-500/20 border-2 border-emerald-500/40 rounded-xl font-mono text-base md:text-lg font-black text-emerald-400 shadow-md inline-block">{{ $co['id'] }}</span>
                         </td>
-                        <td class="p-3.5 text-title font-medium">
-                          <span class="px-3 py-1 bg-slate-800 text-slate-100 rounded-lg border border-slate-700 text-xs md:text-sm font-bold shadow-xs">{{ $co['cognitive_level'] ?? 'Understanding' }}</span>
+                        <td class="p-4 text-center align-middle">
+                          <span class="px-4 py-1.5 bg-slate-800 text-slate-100 rounded-xl border border-slate-700 text-sm md:text-base font-bold shadow-md inline-block">{{ $co['cognitive_level'] ?? 'Understanding' }}</span>
                         </td>
-                        <td class="p-3.5 text-title font-mono font-medium">
-                          <span class="px-3 py-1 bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs md:text-sm font-bold shadow-xs">{{ $co['duration'] ?? '12' }} Periods</span>
+                        <td class="p-4 text-center align-middle font-mono">
+                          <span class="px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl text-sm md:text-base font-bold shadow-md inline-block">{{ $co['duration'] ?? '12' }} Periods</span>
                         </td>
-                        <td class="p-3.5 pr-4 text-slate-100 leading-relaxed font-semibold text-sm md:text-base">{{ $co['description'] }}</td>
+                        <td class="p-4 pr-5 text-slate-100 leading-relaxed font-bold text-base md:text-xl align-middle">{{ $co['description'] }}</td>
                       </tr>
                     @endforeach
                   </tbody>
@@ -373,30 +373,30 @@
             </div>
 
             <!-- Modules Table (Major Topics) -->
-            <div class="bg-panel border border-card rounded-xl p-4 space-y-3">
-              <h4 class="font-bold text-title text-base md:text-lg flex items-center gap-2 border-b border-slate-800 pb-2">
-                <span class="material-symbols-rounded text-emerald-400 text-lg">collections_bookmark</span>
+            <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
+              <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
+                <span class="material-symbols-rounded text-emerald-400 text-2xl md:text-3xl">collections_bookmark</span>
                 Course Modules & Major Topics
               </h4>
-              <div class="border border-card rounded-lg overflow-hidden bg-slate-950/20">
+              <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
                 <table class="w-full text-left border-collapse">
                   <thead>
-                    <tr class="bg-slate-900/60 text-xs md:text-sm font-bold text-slate-200 uppercase tracking-wider border-b border-card">
-                      <th class="py-2.5 px-3 pl-4 w-[14%]">Module No</th>
-                      <th class="py-2.5 px-3 w-[18%]">Instructional Hours</th>
-                      <th class="py-2.5 px-3 pr-4">Major Topics Description</th>
+                    <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
+                      <th class="py-4 px-4 pl-5 w-[15%] text-center">Module No</th>
+                      <th class="py-4 px-4 w-[20%] text-center">Instructional Hours</th>
+                      <th class="py-4 px-4 pr-5">Major Topics Description</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-card">
+                  <tbody class="divide-y divide-slate-800">
                     @foreach($modulesList as $mod)
-                      <tr class="hover:bg-slate-900/30 transition-colors">
-                        <td class="p-3.5 pl-4 font-bold text-title text-sm">
-                          <span class="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 font-bold uppercase tracking-wide text-xs md:text-sm">Module {{ $mod['module_id'] }}</span>
+                      <tr class="hover:bg-slate-900/50 transition-colors">
+                        <td class="p-4 pl-5 font-bold text-title text-center align-middle">
+                          <span class="px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 font-black uppercase tracking-wide text-sm md:text-base inline-block">Module {{ $mod['module_id'] }}</span>
                         </td>
-                        <td class="p-3.5 text-title font-mono font-medium text-xs md:text-sm">
-                          <span class="px-3 py-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-lg font-bold">{{ $mod['hours'] ?? floor($totalHours / 4) }} Hours</span>
+                        <td class="p-4 text-center align-middle font-mono">
+                          <span class="px-3.5 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-sm md:text-base font-bold inline-block">{{ $mod['hours'] ?? floor($totalHours / 4) }} Hours</span>
                         </td>
-                        <td class="p-3.5 pr-4 text-slate-100 leading-relaxed font-semibold text-sm md:text-base">{{ $mod['content'] ?? '' }}</td>
+                        <td class="p-4 pr-5 text-slate-100 leading-relaxed font-bold text-base md:text-lg align-middle">{{ $mod['content'] ?? '' }}</td>
                       </tr>
                     @endforeach
                   </tbody>
@@ -406,42 +406,42 @@
           </div>
 
           <!-- CO-PO Mapping Matrix -->
-          <div class="bg-panel border border-card rounded-xl p-4 space-y-3">
-            <h4 class="font-bold text-title text-base md:text-lg flex items-center gap-2 border-b border-slate-800 pb-2">
-              <span class="material-symbols-rounded text-indigo-400 text-lg">grid_on</span>
+          <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
+            <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
+              <span class="material-symbols-rounded text-indigo-400 text-2xl md:text-3xl">grid_on</span>
               CO-PO Correlation Matrix
             </h4>
-            <div class="border border-card rounded-lg overflow-hidden bg-slate-950/20">
+            <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
               <table class="w-full text-center border-collapse">
                 <thead>
-                  <tr class="bg-slate-900/60 text-xs md:text-sm font-bold text-slate-200 uppercase tracking-wider border-b border-card">
-                    <th class="py-2.5 px-3 text-left pl-4 w-[16%]">Course Outcome</th>
+                  <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
+                    <th class="py-4 px-4 text-left pl-5 w-[16%]">Course Outcome</th>
                     @for($p = 1; $p <= 11; $p++)
-                      <th class="py-2.5 px-1.5">PO{{ $p }}</th>
+                      <th class="py-4 px-2 text-center">PO{{ $p }}</th>
                     @endfor
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-card">
+                <tbody class="divide-y divide-slate-800">
                   @foreach($cosList as $co)
                     @php
                       $coId = $co['id'];
                       $m = $mappings[$coId] ?? [];
                     @endphp
-                    <tr class="hover:bg-slate-900/30 transition-colors">
-                      <td class="p-3 text-left font-bold text-title pl-4">
-                        <span class="px-3 py-1 bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded-lg font-mono text-sm md:text-base font-extrabold">{{ $coId }}</span>
+                    <tr class="hover:bg-slate-900/50 transition-colors">
+                      <td class="p-4 text-left font-black text-title pl-5 align-middle">
+                        <span class="px-3.5 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl font-mono text-base md:text-lg font-black shadow-md inline-block">{{ $coId }}</span>
                       </td>
                       @for($p = 1; $p <= 11; $p++)
                         @php $val = $m["PO$p"] ?? '-'; @endphp
-                        <td class="p-3 font-bold font-mono">
+                        <td class="p-3.5 font-black font-mono align-middle">
                           @if($val == '3')
-                            <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-md text-xs md:text-sm font-extrabold">3</span>
+                            <span class="px-3 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">3</span>
                           @elseif($val == '2')
-                            <span class="px-2.5 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/40 rounded-md text-xs md:text-sm font-extrabold">2</span>
+                            <span class="px-3 py-1 bg-sky-500/25 text-sky-300 border border-sky-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">2</span>
                           @elseif($val == '1')
-                            <span class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-md text-xs md:text-sm font-extrabold">1</span>
+                            <span class="px-3 py-1 bg-amber-500/25 text-amber-300 border border-amber-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">1</span>
                           @else
-                            <span class="text-slate-500 font-bold">-</span>
+                            <span class="text-slate-500 font-bold text-base md:text-lg">-</span>
                           @endif
                         </td>
                       @endfor

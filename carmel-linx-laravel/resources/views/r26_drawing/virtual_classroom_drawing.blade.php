@@ -450,12 +450,12 @@
                             <div class="row g-3">
                                 @foreach($drawingCourseFile->parsed_cos ?? [] as $co)
                                 <div class="col-md-6">
-                                    <div class="p-3 rounded" style="background: #111827; border: 1px solid var(--border-color);">
+                                    <div class="p-3 rounded-3 shadow-sm" style="background: #111827; border: 1px solid var(--border-color);">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="badge badge-cyan fw-bold">{{ $co['id'] }}</span>
-                                            <span class="badge badge-purple">{{ $co['cognitive_level'] ?? 'Apply' }}</span>
+                                            <span class="badge badge-cyan fw-bold fs-6 px-2.5 py-1">{{ $co['id'] }}</span>
+                                            <span class="badge badge-purple fw-bold fs-6 px-2.5 py-1">{{ $co['cognitive_level'] ?? 'Apply' }}</span>
                                         </div>
-                                        <p class="small mb-0 text-light">{{ $co['description'] }}</p>
+                                        <p class="mb-0 text-white font-medium fs-6 leading-relaxed">{{ $co['description'] }}</p>
                                     </div>
                                 </div>
                                 @endforeach

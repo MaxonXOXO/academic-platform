@@ -619,11 +619,11 @@
                             $cosList = $practicalCourseFile ? json_decode($practicalCourseFile->parsed_cos, true) : [];
                         @endphp
                         @forelse($cosList as $co)
-                        <div class="p-4 rounded-xl bg-slate-900/30 border border-slate-800/60 flex gap-4">
-                            <span class="px-2.5 py-1 bg-slate-800 text-slate-400 font-semibold font-mono text-xs rounded border border-slate-700 h-fit">{{ $co['id'] }}</span>
-                            <div>
-                                <h4 class="text-sm font-medium text-slate-300">{{ $co['description'] }}</h4>
-                                <span class="text-xs text-slate-600 font-mono mt-1 block">Cognitive Level: {{ $co['cognitive_level'] }}</span>
+                        <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex gap-4 items-start shadow-sm">
+                            <span class="px-3 py-1 bg-slate-800 text-sky-300 font-bold font-mono text-sm md:text-base rounded-lg border border-slate-700 h-fit shrink-0 shadow-xs">{{ $co['id'] }}</span>
+                            <div class="space-y-1">
+                                <h4 class="text-sm md:text-base font-semibold text-slate-100 leading-relaxed">{{ $co['description'] }}</h4>
+                                <span class="text-xs md:text-sm text-slate-400 font-mono font-medium block">Cognitive Level: <strong class="text-purple-300">{{ $co['cognitive_level'] }}</strong></span>
                             </div>
                         </div>
                         @empty

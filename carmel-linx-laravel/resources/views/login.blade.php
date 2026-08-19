@@ -29,6 +29,11 @@
     body {
         font-family: "Plus Jakarta Sans", sans-serif;
     }
+    @media (min-width: 768px) {
+      #pwaInstallBanner {
+        display: none !important;
+      }
+    }
     @media (max-width: 1440px) {
       html, body {
         font-size: 13px !important;
@@ -186,8 +191,8 @@
       
       <!-- Login Section -->
       <div id="loginSection">
-        <!-- PWA Smart Mobile App Install Banner -->
-        <div id="pwaInstallBanner" class="hidden mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/90 via-slate-900/95 to-slate-950 border-2 border-cyan-400/50 text-white shadow-xl shadow-cyan-500/10 transition-premium">
+        <!-- PWA Smart Mobile App Install Banner (Mobile Only) -->
+        <div id="pwaInstallBanner" class="hidden md:hidden mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/90 via-slate-900/95 to-slate-950 border-2 border-cyan-400/50 text-white shadow-xl shadow-cyan-500/10 transition-premium">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <img src="/apple-touch-icon.png" class="w-11 h-11 rounded-xl shadow-lg border-2 border-cyan-400/60 flex-shrink-0" alt="App Icon">
@@ -553,8 +558,9 @@
       const pwaIosHint = document.getElementById('pwaIosHint');
 
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS|FxiOS/i.test(navigator.userAgent) || (navigator.userAgentData && navigator.userAgentData.mobile);
 
-      if (!isStandalone) {
+      if (!isStandalone && isMobileDevice) {
         window.addEventListener('beforeinstallprompt', (e) => {
           e.preventDefault();
           deferredPwaPrompt = e;

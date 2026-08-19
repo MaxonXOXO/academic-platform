@@ -2261,6 +2261,7 @@
     }
 
     function toggleClassroomTab(tabName) {
+      window.currentActiveVirtualTab = tabName;
       const tabs = [
         { id: 'structure', btn: 'tabStructure', content: 'courseStructureContent' },
         { id: 'planner', btn: 'tabPlanner', content: 'coursePlannerContent' },
@@ -2378,17 +2379,7 @@
           const fullCode = document.getElementById('vcSubjectFullCode');
           if (fullName) fullName.innerText = currentSubjectName;
           if (fullCode) {
-            let brName = data.data.branch || 'CE';
-            if (!brName && window.currentVirtualBatchId) {
-              const parts = window.currentVirtualBatchId.split('_');
-              if (parts.length > 0 && parts[0]) brName = parts[0];
-            }
-            const brPrefix = `${brName}-`;
-            const rawCode = currentSubjectCode || '';
-            const formattedCode = (rawCode.startsWith(brPrefix) || (rawCode.includes('-') && !rawCode.startsWith('S-')))
-              ? rawCode
-              : `${brPrefix}${rawCode.replace(/^[A-Z]+-/, '')}`;
-            fullCode.innerText = formattedCode;
+            fullCode.innerText = currentSubjectCode ? `[ ${currentSubjectCode} ]` : '';
           }
 
           const bBadge = document.getElementById('vcBatchBadge');
@@ -2477,6 +2468,8 @@
           let revLabelVal = 'R -2021';
           if (rStrVal.includes('2026') || rStrVal.includes('26')) revLabelVal = 'R -2026';
 
+          const activeTabToRestore = window.currentActiveVirtualTab || 'structure';
+
           if (isSeminar) {
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-emerald-400 text-lg">co_present</span> Virtual Seminar Room</span>`;
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-emerald-400 text-sm">co_present</span> Virtual Seminar Room`;
@@ -2492,7 +2485,7 @@
             if (tabSurvey) tabSurvey.classList.add('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.add('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
-            toggleClassroomTab('seminar_evaluation');
+            toggleClassroomTab(activeTabToRestore);
           } else if (isPractical) {
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-sm">science</span> Virtual Lab Workspace`;
@@ -2521,7 +2514,7 @@
               const btnProj = document.getElementById('pRepBtnProjects');
               if (btnProj) btnProj.href = `/classroom/${subjectId}/practical-report/print?type=projects`;
             }
-            toggleClassroomTab('structure');
+            toggleClassroomTab(activeTabToRestore);
           } else {
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021</span>`;
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xs">meeting_room</span> VIrtual theory classroom  R-2021`;
@@ -2537,7 +2530,7 @@
             if (tabSurvey) tabSurvey.classList.remove('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
-            toggleClassroomTab('structure');
+            toggleClassroomTab(activeTabToRestore);
           }
 
           // Update vcTitle to include subject name for regular classrooms
@@ -3858,11 +3851,17 @@
                 <div class="flex justify-between items-center mb-2">
                   <span class="text-sm font-bold text-emerald-400 uppercase tracking-widest">Generated Question Paper</span>
                   <div class="flex items-center gap-2">
-                    <button onclick="printSummativePaper('${co.id}', ${testData.total_marks})" class="flex items-center gap-1.5 text-sm bg-blue-700/30 hover:bg-blue-600 border border-blue-600/40 px-3 py-1.5 rounded-lg text-blue-300 hover:text-white transition-premium cursor-pointer">
-                      <span class="material-symbols-rounded text-base">print</span> Print Q Paper
+                    <button onclick="editSummativeQuestions('${co.id}')" class="flex items-center gap-1.5 text-xs bg-emerald-700/30 hover:bg-emerald-600 border border-emerald-600/40 px-2.5 py-1.5 rounded-lg text-emerald-300 hover:text-white transition-premium cursor-pointer" title="Edit Question Text & Bloom Levels">
+                      <span class="material-symbols-rounded text-sm">edit</span> Edit Questions
                     </button>
-                    <button onclick="printAnswerKey('${co.id}', ${testData.total_marks})" class="flex items-center gap-1.5 text-sm bg-amber-700/30 hover:bg-amber-600 border border-amber-600/40 px-3 py-1.5 rounded-lg text-amber-300 hover:text-white transition-premium cursor-pointer">
-                      <span class="material-symbols-rounded text-base">assignment</span> Print Answer Key
+                    <button onclick="printStudentExamPaper('${co.id}', ${testData.total_marks})" class="flex items-center gap-1.5 text-xs bg-blue-700/30 hover:bg-blue-600 border border-blue-600/40 px-2.5 py-1.5 rounded-lg text-blue-300 hover:text-white transition-premium cursor-pointer" title="Print Clean Examination Paper for Students Only">
+                      <span class="material-symbols-rounded text-sm">description</span> Print Exam Paper
+                    </button>
+                    <button onclick="printSummativePaper('${co.id}', ${testData.total_marks})" class="flex items-center gap-1.5 text-xs bg-purple-700/30 hover:bg-purple-600 border border-purple-600/40 px-2.5 py-1.5 rounded-lg text-purple-300 hover:text-white transition-premium cursor-pointer" title="Print Complete Assessment File with Cognitive Analysis & Scheme for Course File">
+                      <span class="material-symbols-rounded text-sm">folder_open</span> Course File Doc
+                    </button>
+                    <button onclick="printAnswerKey('${co.id}', ${testData.total_marks})" class="flex items-center gap-1.5 text-xs bg-amber-700/30 hover:bg-amber-600 border border-amber-600/40 px-2.5 py-1.5 rounded-lg text-amber-300 hover:text-white transition-premium cursor-pointer" title="Print Answer Key & Scheme of Valuation">
+                      <span class="material-symbols-rounded text-sm">assignment</span> Answer Key
                     </button>
                   </div>
                 </div>
@@ -4229,15 +4228,33 @@
        }
     }
 
+    function editSummativeQuestions(coId) {
+      const body = document.getElementById(`co_body_${coId}`);
+      if (body && body.classList.contains('hidden')) {
+          body.classList.remove('hidden');
+          const icon = document.getElementById(`co_icon_${coId}`);
+          if (icon) icon.innerText = 'expand_less';
+      }
+      const manualRadio = document.querySelector(`input[name="summ_mode_${coId}"][value="manual"]`);
+      if (manualRadio) {
+          manualRadio.checked = true;
+      }
+      toggleSummativeMode(coId);
+      const wrapper = document.getElementById(`manual_form_wrapper_${coId}`);
+      if (wrapper) {
+          wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
     function spawnManualFields(coTag) {
       let qA = parseInt(document.getElementById(`summ_q_A_${coTag}`).value) || 0;
       let qB = parseInt(document.getElementById(`summ_q_B_${coTag}`).value) || 0;
       let qC = parseInt(document.getElementById(`summ_q_C_${coTag}`).value) || 0;
 
       let testData = currentSummativeTests[coTag] || null;
-      let savedA = (testData && testData.manual_mode) ? (testData.part_a?.questions || []) : [];
-      let savedB = (testData && testData.manual_mode) ? (testData.part_b?.questions || []) : [];
-      let savedC = (testData && testData.manual_mode) ? (testData.part_c?.questions || []) : [];
+      let savedA = testData?.part_a?.questions || [];
+      let savedB = testData?.part_b?.questions || [];
+      let savedC = testData?.part_c?.questions || [];
 
       let html = `<div id="manual_form_${coTag}" class="mt-4 pt-4 border-t border-slate-800/60">`;
       html += `<div class="text-sm text-slate-300 bg-slate-950/50 p-4 rounded-xl border border-slate-800/40 space-y-4">`;
@@ -4286,12 +4303,26 @@
       let qC = parseInt(document.getElementById(`summ_q_C_${coTag}`).value) || 0;
       let mC = parseInt(document.getElementById(`summ_m_C_${coTag}`).value) || 0;
 
+      let testData = currentSummativeTests[coTag] || null;
+
       let gather = (count, marks, prefix) => {
          let questions = [];
+         let partKey = `part_${prefix.toLowerCase()}`;
+         let existingQuestions = testData?.[partKey]?.questions || [];
+
          for(let i=0; i<count; i++) {
             let elQ = document.getElementById(`man_q_${prefix}_${coTag}_${i}`);
             let elL = document.getElementById(`man_lvl_${prefix}_${coTag}_${i}`);
-            if(elQ) questions.push({ q: elQ.value, level: elL.value, marks: marks });
+            if(elQ) {
+               let qVal = elQ.value.trim();
+               let oldAns = existingQuestions[i]?.ans || ['Statement / Key point', 'Explanation details'];
+               questions.push({ 
+                  q: qVal, 
+                  ans: oldAns,
+                  level: elL?.value || 'U', 
+                  marks: marks 
+               });
+            }
          }
          return { q_count: count, marks_per_q: marks, total_marks: count * marks, questions: questions };
       };
@@ -4501,9 +4532,9 @@
                   ${tableRows}
                 </tbody>
               </table>
-              <script>
+              ${'<script>'}
                 window.onload = () => { window.print(); window.close(); }
-              <\/script>
+              ${'</' + 'script>'}
             </body>
             </html>`;
 
@@ -4561,6 +4592,249 @@
     function printSummativeReport(subjectId) {
       window.open(`/classroom/${subjectId}/summative-report`, '_blank');
     }
+
+    function printStudentExamPaper(coTag, totalMarks) {
+      const data = currentSummativeTests[coTag];
+      if(!data) return;
+
+      const deptMap = {
+        'EL': 'ELECTRONICS ENGINEERING',
+        'CS': 'COMPUTER SCIENCE AND ENGINEERING',
+        'CE': 'CIVIL ENGINEERING',
+        'ME': 'MECHANICAL ENGINEERING',
+        'EE': 'ELECTRICAL AND ELECTRONICS ENGINEERING',
+        'IT': 'INFORMATION TECHNOLOGY',
+        'ECE': 'ELECTRONICS AND COMMUNICATION ENGINEERING'
+      };
+      const sessionBranch = "{{ session('userBranch', 'ENGINEERING') }}";
+      const subjectName = currentSubjectName;
+      const subjectCode = currentSubjectCode;
+      const deptName = deptMap[sessionBranch.toUpperCase()] || sessionBranch;
+
+      const academicYear = data.academic_year || currentSubjectAcademicYear || "{{ session('academicYear', '2025 - 2026') }}";
+      const durationText = (totalMarks <= 20) ? '1 Hour' : '1.5 Hours';
+
+      let coNum = coTag.replace(/[^0-9]/g, '');
+      let seriesTestTitle = coNum ? `SERIES TEST ${coNum} (${coTag.toUpperCase()})` : `${coTag.toUpperCase()} SERIES TEST`;
+
+      let examDateRaw = data.date_of_exam || new Date().toISOString().split('T')[0];
+      let examDateFormatted = new Date(examDateRaw).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+
+      const buildExamRows = (part) => {
+        if (!part || !part.q_count || !part.questions) return '';
+        return part.questions.map((q, i) => {
+          let bt = (q.level || 'U').toUpperCase()[0];
+          return `<tr>
+            <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; font-weight: bold; vertical-align: top; width: 45px; font-size: 10pt;">${i+1}</td>
+            <td style="border: 1px solid #000; padding: 4px 8px; vertical-align: top; line-height: 1.3; font-size: 10pt;">${q.q}</td>
+            <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 50px; font-weight: bold; font-size: 10pt;">${coTag}</td>
+            <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 45px; font-weight: bold; font-size: 10pt;">${bt}</td>
+            <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 50px; font-weight: bold; font-size: 10pt;">${q.marks || part.marks_per_q}</td>
+          </tr>`;
+        }).join('');
+      };
+
+      let bodyHtml = '';
+
+      if (data.part_a && data.part_a.q_count > 0) {
+        bodyHtml += `
+          <div style="margin-top: 10px; margin-bottom: 10px;">
+            <h4 style="text-align:center; font-weight:bold; margin-bottom:2px; font-size:11pt; text-transform: uppercase;">PART A &nbsp;<small style="font-weight:normal; font-size:10pt;">(${data.part_a.q_count} &times; ${data.part_a.marks_per_q} = ${data.part_a.total_marks} Marks)</small></h4>
+            <p style="text-align:center; font-style:italic; font-size:9.5pt; margin-bottom:4px;">Answer all questions.</p>
+            <table style="width:100%; border-collapse:collapse; font-size:10pt; border:1px solid #000;">
+              <thead>
+                <tr style="background:#f5f5f5;">
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">Q.No</th>
+                  <th style="border:1px solid #000; padding:4px 6px; text-align:left; font-size:9.5pt;">Question</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">CO</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">BT</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">Marks</th>
+                </tr>
+              </thead>
+              <tbody>${buildExamRows(data.part_a)}</tbody>
+            </table>
+          </div>`;
+      }
+
+      if (data.part_b && data.part_b.q_count > 0) {
+        bodyHtml += `
+          <div style="margin-top: 12px; margin-bottom: 10px;">
+            <h4 style="text-align:center; font-weight:bold; margin-bottom:2px; font-size:11pt; text-transform: uppercase;">PART B &nbsp;<small style="font-weight:normal; font-size:10pt;">(${data.part_b.q_count} &times; ${data.part_b.marks_per_q} = ${data.part_b.total_marks} Marks)</small></h4>
+            <p style="text-align:center; font-style:italic; font-size:9.5pt; margin-bottom:4px;">Answer all questions.</p>
+            <table style="width:100%; border-collapse:collapse; font-size:10pt; border:1px solid #000;">
+              <thead>
+                <tr style="background:#f5f5f5;">
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">Q.No</th>
+                  <th style="border:1px solid #000; padding:4px 6px; text-align:left; font-size:9.5pt;">Question</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">CO</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">BT</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">Marks</th>
+                </tr>
+              </thead>
+              <tbody>${buildExamRows(data.part_b)}</tbody>
+            </table>
+          </div>`;
+      }
+
+      if (data.part_c && data.part_c.q_count > 0) {
+        bodyHtml += `
+          <div style="margin-top: 12px; margin-bottom: 10px;">
+            <h4 style="text-align:center; font-weight:bold; margin-bottom:2px; font-size:11pt; text-transform: uppercase;">PART C &nbsp;<small style="font-weight:normal; font-size:10pt;">(${data.part_c.q_count} &times; ${data.part_c.marks_per_q} = ${data.part_c.total_marks} Marks)</small></h4>
+            <p style="text-align:center; font-style:italic; font-size:9.5pt; margin-bottom:4px;">Answer all questions.</p>
+            <table style="width:100%; border-collapse:collapse; font-size:10pt; border:1px solid #000;">
+              <thead>
+                <tr style="background:#f5f5f5;">
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">Q.No</th>
+                  <th style="border:1px solid #000; padding:4px 6px; text-align:left; font-size:9.5pt;">Question</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">CO</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:45px; text-align:center; font-size:9.5pt;">BT</th>
+                  <th style="border:1px solid #000; padding:4px 6px; width:50px; text-align:center; font-size:9.5pt;">Marks</th>
+                </tr>
+              </thead>
+              <tbody>${buildExamRows(data.part_c)}</tbody>
+            </table>
+          </div>`;
+      }
+
+      const examHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Examination Question Paper - ${seriesTestTitle} - ${subjectCode}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm 10mm 12mm;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 10pt;
+      color: #000;
+      background: #0f172a;
+    }
+    .paper-container {
+      max-width: 210mm;
+      margin: 15px auto 30px auto;
+      padding: 12mm 15mm;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-radius: 2px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .header { text-align: center; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+    .college-name { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; line-height: 1.2; }
+    .dept-name { font-size: 11pt; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+    .subject-info { font-size: 10.5pt; margin-top: 3px; font-weight: bold; }
+    .exam-title { font-size: 11pt; margin-top: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 12px; display: inline-block; }
+    .meta-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 9.5pt; }
+    .meta-table td { padding: 2px 0; font-size: 9.5pt; }
+    table { width: 100%; border-collapse: collapse; }
+    .print-toolbar {
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 8px;
+      margin: 10px auto 16px auto;
+      max-width: 210mm;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .print-toolbar input[type="date"] {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .print-toolbar button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .print-toolbar button:hover { background: #1d4ed8; }
+    @media print {
+      .print-toolbar { display: none !important; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+      }
+      .paper-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label style="font-size: 12px; font-weight: 600; color: #94a3b8;">Select Exam Date:</label>
+      <input type="date" id="print-exam-date" value="${examDateRaw}" onchange="updateExamDate(this.value)">
+    </div>
+    <button onclick="window.print()">Print Student Exam Paper</button>
+  </div>
+
+  <div class="paper-container">
+    <div class="header">
+      <div class="college-name">CARMEL POLYTECHNIC COLLEGE</div>
+      <div class="dept-name">Department of ${deptName}</div>
+      <div class="subject-info">${subjectName ? subjectName : 'Subject'} &nbsp;&mdash;&nbsp; <strong>${subjectCode}</strong></div>
+      <div style="margin-top:2px;"><span class="exam-title">${seriesTestTitle}</span></div>
+      
+      <table class="meta-table">
+        <tr>
+          <td style="text-align: left; width: 33%;"><strong>Semester:</strong> Sem ${currentSubjectSemester}</td>
+          <td style="text-align: center; width: 34%;"><strong>Batch:</strong> ${currentSubjectClassroomId.replace(/^[A-Z]+_/, '').replace(/_/g, ' - ')}</td>
+          <td style="text-align: right; width: 33%;"><strong>Academic Year:</strong> ${academicYear}</td>
+        </tr>
+        <tr>
+          <td style="text-align: left; width: 33%;"><strong>Duration:</strong> ${durationText}</td>
+          <td style="text-align: center; width: 34%;"><strong>Date:</strong> <span class="summative-exam-date-display">${examDateFormatted}</span></td>
+          <td style="text-align: right; width: 33%;"><strong>Max Marks:</strong> ${totalMarks}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: right; font-size: 9pt; font-style: italic; margin-bottom: 6px;">[ CO: Course Outcome | BT: Bloom's Taxonomy (R: Remember, U: Understand, A: Apply) ]</div>
+
+    ${bodyHtml}
+  </div>
+
+  ${'<script>'}
+    function updateExamDate(val) {
+      if (!val) return;
+      const d = new Date(val);
+      const formatted = d.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+      document.querySelectorAll('.summative-exam-date-display').forEach(el => el.innerText = formatted);
+    }
+  ${'</' + 'script>'}
+</body>
+</html>`;
+
+      const pw = window.open('', '_blank', 'width=900,height=700');
+      pw.document.write(examHtml);
+      pw.document.close();
+      pw.focus();
+      setTimeout(() => { pw.print(); }, 500);
+    }
+
     function printSummativePaper(coTag, totalMarks) {
       const data = currentSummativeTests[coTag];
       if(!data) return;
@@ -4579,9 +4853,15 @@
       const subjectName = currentSubjectName;
       const subjectCode = currentSubjectCode;
       const deptName = deptMap[sessionBranch.toUpperCase()] || sessionBranch;
-      const examDate = data.date_of_exam
-        ? new Date(data.date_of_exam).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'})
-        : 'TBA';
+      
+      const academicYear = data.academic_year || currentSubjectAcademicYear || "{{ session('academicYear', '2025 - 2026') }}";
+      const durationText = (totalMarks <= 20) ? '1 Hour' : '1.5 Hours';
+
+      let coNum = coTag.replace(/[^0-9]/g, '');
+      let seriesTestTitle = coNum ? `SERIES TEST ${coNum} (${coTag.toUpperCase()})` : `${coTag.toUpperCase()} SERIES TEST`;
+
+      let examDateRaw = data.date_of_exam || new Date().toISOString().split('T')[0];
+      let examDateFormatted = new Date(examDateRaw).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
 
       let questionsToSolve = [];
       const collectQuestions = (part) => {
@@ -4629,7 +4909,7 @@
                   <th style="border:1px solid #000; padding:4px; width:45px; text-align:center;">Q.No.</th>
                   <th style="border:1px solid #000; padding:4px; text-align:left;">Question</th>
                   <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Module Outcome</th>
-                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Cognitive Level</th>
+                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Bloom's Taxonomy Level</th>
                 </tr>
               </thead>
               <tbody>${buildRows(data.part_a)}</tbody>
@@ -4645,7 +4925,7 @@
                   <th style="border:1px solid #000; padding:4px; width:45px; text-align:center;">Q.No.</th>
                   <th style="border:1px solid #000; padding:4px; text-align:left;">Question</th>
                   <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Module Outcome</th>
-                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Cognitive Level</th>
+                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Bloom's Taxonomy Level</th>
                 </tr>
               </thead>
               <tbody>${buildRows(data.part_b)}</tbody>
@@ -4661,14 +4941,13 @@
                   <th style="border:1px solid #000; padding:4px; width:45px; text-align:center;">Q.No.</th>
                   <th style="border:1px solid #000; padding:4px; text-align:left;">Question</th>
                   <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Module Outcome</th>
-                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Cognitive Level</th>
+                  <th style="border:1px solid #000; padding:4px; width:120px; text-align:center;">Bloom's Taxonomy Level</th>
                 </tr>
               </thead>
               <tbody>${buildRows(data.part_c)}</tbody>
             </table>`;
         }
 
-        // Calculate Cognitive Level wise Question Analysis
         let counts = {
           A: { R: 0, U: 0, A: 0, total: 0, marksPerQ: data.part_a?.marks_per_q || 1 },
           B: { R: 0, U: 0, A: 0, total: 0, marksPerQ: data.part_b?.marks_per_q || 3 },
@@ -4704,12 +4983,12 @@
 
         let cognitiveTableHtml = `
           <div style="margin-top:15px; page-break-inside: avoid;">
-            <h4 style="text-align:center; font-weight:bold; margin-bottom:6px; text-decoration: underline; font-size:12px;">Cognitive level wise Question Analysis</h4>
+            <h4 style="text-align:center; font-weight:bold; margin-bottom:6px; text-decoration: underline; font-size:12px;">Bloom's Taxonomy Level wise Question Analysis</h4>
             <table style="width:100%; border:1px solid #000; border-collapse:collapse; font-size:11px; text-align:center;">
               <thead>
                 <tr style="background:#f2f2f2;">
                   <th style="border:1px solid #000; padding:4px; text-align:left;" rowspan="2"></th>
-                  <th style="border:1px solid #000; padding:4px;" colspan="3">Cognitive Level</th>
+                  <th style="border:1px solid #000; padding:4px;" colspan="3">Bloom's Taxonomy Level</th>
                   <th style="border:1px solid #000; padding:4px;" rowspan="2">No. of Questions</th>
                 </tr>
                 <tr style="background:#f2f2f2;">
@@ -4760,7 +5039,6 @@
           </div>
         `;
 
-        // Build Scheme of Valuation Rows dynamically
         const buildSchemeRows = () => {
           let rowsHtml = '';
           const processPart = (part, partLabel) => {
@@ -4830,15 +5108,15 @@
               <div class="college-name">CARMEL POLYTECHNIC COLLEGE</div>
               <div class="dept-name">Department of ${deptName}</div>
               <div class="subject-info">${subjectName ? subjectName : 'Subject'} ${subjectCode ? '&nbsp;&mdash;&nbsp;<strong>' + subjectCode + '</strong>' : ''}</div>
-              <div style="margin-top:6px;"><span class="exam-title">&nbsp;${coTag} &ndash; SCHEME OF VALUATION&nbsp;</span></div>
+              <div style="margin-top:6px;"><span class="exam-title">&nbsp;${seriesTestTitle} &ndash; SCHEME OF VALUATION&nbsp;</span></div>
               <div class="meta-row" style="margin-top: 8px; font-size: 11px;">
                 <span><strong>Semester:</strong> Sem ${currentSubjectSemester}</span>
                 <span><strong>Batch:</strong> ${currentSubjectClassroomId.replace(/^[A-Z]+_/, '').replace(/_/g, ' - ')}</span>
-                <span><strong>Academic Year:</strong> ${currentSubjectAcademicYear}</span>
+                <span><strong>Academic Year:</strong> ${academicYear}</span>
               </div>
               <div class="meta-row" style="margin-top: 4px; font-size: 11px;">
-                <span><strong>Time:</strong> 1.5 Hours</span>
-                <span><strong>Date:</strong> ${examDate}</span>
+                <span><strong>Time:</strong> ${durationText}</span>
+                <span><strong>Date:</strong> <span class="summative-exam-date-display">${examDateFormatted}</span></span>
                 <span><strong>Max Marks:</strong> ${totalMarks}</span>
               </div>
             </div>
@@ -4863,50 +5141,127 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Question Paper - ${coTag}</title>
+  <title>Course File Document - ${seriesTestTitle} - ${subjectCode}</title>
   <style>
-    @page { size: A4 portrait; margin: 1cm 1.2cm; }
+    @page { size: A4 portrait; margin: 10mm 12mm 10mm 12mm; }
     * { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       font-family: 'Times New Roman', Times, serif;
-      font-size: 12px;
+      font-size: 10pt;
       color: #000;
-      background: #fff;
+      background: #0f172a;
+    }
+    .paper-container {
+      max-width: 210mm;
+      margin: 15px auto 30px auto;
+      padding: 12mm 15mm;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-radius: 2px;
+      box-sizing: border-box;
+      width: 100%;
     }
     h2, h3, h4, p { margin: 0; padding: 0; }
-    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
-    .college-name { font-size: 18px; font-weight: bold; letter-spacing: 0.5px; }
-    .dept-name { font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
-    .subject-info { font-size: 11px; margin-top: 3px; color: #222; }
-    .exam-title { font-size: 13px; margin-top: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #888; border-bottom: 1px solid #888; padding: 2px 0; display: inline-block; }
-    .meta-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; }
+    .header { text-align: center; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
+    .college-name { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; line-height: 1.2; }
+    .dept-name { font-size: 11pt; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+    .subject-info { font-size: 10.5pt; margin-top: 3px; font-weight: bold; }
+    .exam-title { font-size: 11pt; margin-top: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 12px; display: inline-block; }
+    .meta-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 9.5pt; }
     table { width: 100%; border-collapse: collapse; }
-    td { padding: 4px; vertical-align: top; line-height: 1.4; }
+    td { padding: 4px; vertical-align: top; line-height: 1.3; }
+    .print-toolbar {
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 8px;
+      margin: 10px auto 16px auto;
+      max-width: 210mm;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .print-toolbar input[type="date"] {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .print-toolbar button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .print-toolbar button:hover { background: #1d4ed8; }
+    @media print {
+      .print-toolbar { display: none !important; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+      }
+      .paper-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="college-name">CARMEL POLYTECHNIC COLLEGE</div>
-    <div class="dept-name">Department of ${deptName}</div>
-    <div class="subject-info">${subjectName ? subjectName : 'Subject'} ${subjectCode ? '&nbsp;&mdash;&nbsp;<strong>' + subjectCode + '</strong>' : ''}</div>
-    <div style="margin-top:6px;"><span class="exam-title">&nbsp;${coTag} &ndash; Written Test&nbsp;</span></div>
-    <div class="meta-row" style="margin-top: 8px; font-size: 11px;">
-      <span><strong>Semester:</strong> Sem ${currentSubjectSemester}</span>
-      <span><strong>Batch:</strong> ${currentSubjectClassroomId.replace(/^[A-Z]+_/, '').replace(/_/g, ' - ')}</span>
-      <span><strong>Academic Year:</strong> ${currentSubjectAcademicYear}</span>
+  <div class="print-toolbar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <label style="font-size: 12px; font-weight: 600; color: #94a3b8;">Select Exam Date:</label>
+      <input type="date" id="print-exam-date" value="${examDateRaw}" onchange="updateExamDate(this.value)">
     </div>
-    <div class="meta-row" style="margin-top: 4px; font-size: 11px;">
-      <span><strong>Time:</strong> 1.5 Hours</span>
-      <span><strong>Date:</strong> ${examDate}</span>
-      <span><strong>Max Marks:</strong> ${totalMarks}</span>
-    </div>
+    <button onclick="window.print()">Print Course File Document</button>
   </div>
-  ${bodyHtml}
-  ${cognitiveTableHtml}
-  ${signatureBlockHtml}
-  ${schemeTableHtml}
+
+  <div class="paper-container">
+    <div class="header">
+      <div class="college-name">CARMEL POLYTECHNIC COLLEGE</div>
+      <div class="dept-name">Department of ${deptName}</div>
+      <div class="subject-info">${subjectName ? subjectName : 'Subject'} ${subjectCode ? '&nbsp;&mdash;&nbsp;<strong>' + subjectCode + '</strong>' : ''}</div>
+      <div style="margin-top:6px;"><span class="exam-title">&nbsp;${seriesTestTitle}&nbsp;</span></div>
+      <div class="meta-row">
+        <span><strong>Semester:</strong> Sem ${currentSubjectSemester}</span>
+        <span><strong>Batch:</strong> ${currentSubjectClassroomId.replace(/^[A-Z]+_/, '').replace(/_/g, ' - ')}</span>
+        <span><strong>Academic Year:</strong> ${academicYear}</span>
+      </div>
+      <div class="meta-row" style="margin-top: 4px;">
+        <span><strong>Time:</strong> ${durationText}</span>
+        <span><strong>Date:</strong> <span class="summative-exam-date-display">${examDateFormatted}</span></span>
+        <span><strong>Max Marks:</strong> ${totalMarks}</span>
+      </div>
+    </div>
+
+    ${bodyHtml}
+    ${cognitiveTableHtml}
+    ${signatureBlockHtml}
+    ${schemeTableHtml}
+  </div>
+
+  ${'<script>'}
+    function updateExamDate(val) {
+      if (!val) return;
+      const d = new Date(val);
+      const formatted = d.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+      document.querySelectorAll('.summative-exam-date-display').forEach(el => el.innerText = formatted);
+    }
+  ${'</' + 'script>'}
 </body>
 </html>`;
 
@@ -4914,7 +5269,7 @@
         pw.document.write(fullHtml);
         pw.document.close();
         pw.focus();
-        setTimeout(() => { pw.print(); }, 400);
+        setTimeout(() => { pw.print(); }, 500);
       };
 
       proceedWithPrint(null);
@@ -5388,9 +5743,9 @@
           printHtml += `
                   </tbody>
                 </table>
-                <script>
+                ${'<script>'}
                   setTimeout(() => { window.print(); window.close(); }, 500);
-                <\/script>
+                ${'</' + 'script>'}
               </body>
             </html>
           `;

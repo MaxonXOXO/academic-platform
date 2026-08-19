@@ -1267,7 +1267,6 @@ Syllabus Text:
                     }
                     $seenCoIds[] = $coId;
                     
-                    // Search in the surrounding text for a duration near this CO tag
                     $duration = 15;
                     $descText = trim($match);
                     if (preg_match('/(?:duration|periods|hours)\s*:\s*(\d+)/i', $descText, $durMatch)) {
@@ -1288,12 +1287,12 @@ Syllabus Text:
     }
 
     /**
-     * Parse CO-PO Mapping Matrix from raw PDF text using header position alignment.
+     * Parse CO-PO Mapping Matrix from raw PDF text using sequence extraction and header position alignment.
      */
     private function extractCoPoMapping(string $text, array $cos = []): array
     {
         $copo = [];
-        $coIds = !empty($cos) ? array_column($cos, 'id') : ['CO1', 'CO2', 'CO3'];
+        $coIds = !empty($cos) ? array_column($cos, 'id') : ['CO1', 'CO2', 'CO3', 'CO4'];
 
         // Search for CO-PO matrix section in raw text
         $matrixPos = stripos($text, 'CO-PO');
@@ -1321,7 +1320,7 @@ Syllabus Text:
             }
         }
 
-        // Step 2: Extract CO rows and align numbers 1, 2, 3 to closest PO header position
+        // Step 2: Extract CO rows with priority ordering: Key-Value regex -> Sequential token extraction -> Relative position matching
         foreach ($coIds as $coId) {
             foreach ($lines as $line) {
                 if (preg_match('/\b' . $coId . '\b/i', $line) && preg_match('/[123]/', $line)) {
@@ -1330,8 +1329,36 @@ Syllabus Text:
                         $rowMapping['PO' . $k] = null;
                     }
 
-                    if (!empty($poPositions)) {
-                        // Position-based alignment relative to detected header positions
+                    // Strategy 1: Direct key-value notation like PO1:3, PO1(3), PO1-3
+                    if (preg_match_all('/PO\s*[\-_]?\s*(\d+)\s*[\:\-\=\(]?\s*([123])/i', $line, $allMatches, PREG_SET_ORDER)) {
+                        foreach ($allMatches as $mItem) {
+                            $pNum = (int)$mItem[1];
+                            $val = (int)$mItem[2];
+                            if ($pNum >= 1 && $pNum <= 12) {
+                                $rowMapping['PO' . $pNum] = $val;
+                            }
+                        }
+                    }
+
+                    // Strategy 2: Sequential rating token extraction after the CO identifier
+                    if (count(array_filter($rowMapping)) === 0) {
+                        $afterCo = preg_replace('/^.*?\b' . $coId . '\b/i', '', $line);
+                        // Find all single-digit ratings (1, 2, 3 or '-') following CO tag
+                        if (preg_match_all('/\b([123]|\-)\b/', $afterCo, $tokenMatches)) {
+                            $tokens = $tokenMatches[1];
+                            if (count($tokens) >= 1) {
+                                foreach ($tokens as $idx => $tok) {
+                                    $pNum = $idx + 1;
+                                    if ($pNum <= 12 && in_array($tok, ['1', '2', '3'])) {
+                                        $rowMapping['PO' . $pNum] = (int)$tok;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Strategy 3: Position-based alignment relative to detected header positions
+                    if (count(array_filter($rowMapping)) === 0 && !empty($poPositions)) {
                         $coOffset = stripos($line, $coId) + strlen($coId);
                         for ($p = $coOffset; $p < strlen($line); $p++) {
                             $char = $line[$p];
@@ -1352,46 +1379,6 @@ Syllabus Text:
                         }
                     }
 
-                    // Fallback 1: Direct key-value regex like PO1:3 or PO4-3 or PO1(3)
-                    if (count(array_filter($rowMapping)) === 0) {
-                        if (preg_match_all('/PO\s*[\-_]?\s*(\d+)\s*[\:\-\=\(]?\s*([123])/i', $line, $allMatches, PREG_SET_ORDER)) {
-                            foreach ($allMatches as $mItem) {
-                                $pNum = (int)$mItem[1];
-                                $val = (int)$mItem[2];
-                                if ($pNum >= 1 && $pNum <= 12) {
-                                    $rowMapping['PO' . $pNum] = $val;
-                                }
-                            }
-                        }
-                    }
-
-                    // Fallback 2: Estimate PO column index based on character spacing when no header was found
-                    if (count(array_filter($rowMapping)) === 0 && empty($poPositions)) {
-                        $coOffset = stripos($line, $coId) + strlen($coId);
-                        $digitPositions = [];
-                        for ($p = $coOffset; $p < strlen($line); $p++) {
-                            $char = $line[$p];
-                            if (in_array($char, ['1', '2', '3'])) {
-                                $digitPositions[] = ['pos' => $p, 'val' => (int)$char];
-                            }
-                        }
-                        if (!empty($digitPositions)) {
-                            // First digit pos establishes baseline for PO1 or first mapped PO
-                            $firstPos = $digitPositions[0]['pos'];
-                            foreach ($digitPositions as $dIdx => $dInfo) {
-                                if ($dIdx === 0) {
-                                    $rowMapping['PO1'] = $dInfo['val'];
-                                } else {
-                                    $relDist = $dInfo['pos'] - $firstPos;
-                                    // Average column spacing in PDF table text is ~5-8 characters per PO column
-                                    $estPoNum = 1 + (int)round($relDist / 6.5);
-                                    if ($estPoNum >= 1 && $estPoNum <= 12) {
-                                        $rowMapping['PO' . $estPoNum] = $dInfo['val'];
-                                    }
-                                }
-                            }
-                        }
-                    }
 
                     if (count(array_filter($rowMapping)) > 0) {
                         $copo[$coId] = $rowMapping;
@@ -1883,133 +1870,26 @@ Syllabus Text:
             return response()->json(['status' => 'ERROR', 'message' => 'This paper is locked and cannot be regenerated.']);
         }
 
-        // Mock Question Pools with Answer Points
-        $pools = [
-            'CO1' => [
-                'short' => [
-                    ['q' => 'Define embedded systems.', 'ans' => ['A microprocessor-based system designed to perform a dedicated function.', 'Contains both hardware and software tightly coupled.']],
-                    ['q' => 'List two applications of embedded systems.', 'ans' => ['Automotive engine control units (ECU).', 'Home appliances like washing machines or microwaves.']],
-                    ['q' => 'What is a microcontroller?', 'ans' => ['A compact integrated circuit designed to govern a specific operation.', 'Includes a processor, memory, and I/O peripherals on a single chip.']]
-                ],
-                'medium' => [
-                    ['q' => 'Explain the components of an embedded system.', 'ans' => ['Hardware: Processor, Memory, Timers, I/O ports.', 'Software: Application code, RTOS (optional), device drivers.', 'Mechanical components: Packaging, cooling.']],
-                    ['q' => 'Compare microprocessors and microcontrollers.', 'ans' => ['Microprocessor: CPU only, external memory/IO, high power, general purpose.', 'Microcontroller: CPU + Memory + IO on chip, low power, application specific.']]
-                ],
-                'long' => [
-                    ['q' => 'Describe the design challenges and metrics in embedded systems.', 'ans' => ['Power consumption: Must be optimized for battery life.', 'Size and weight constraints for portability.', 'Real-time performance: Strict deadlines for task completion.', 'Cost constraints for mass production.', 'Reliability and safety, especially in medical or automotive fields.']]
-                ]
-            ],
-            'CO2' => [
-                'short' => [
-                    ['q' => 'What is the AVR family?', 'ans' => ['A family of 8-bit RISC microcontrollers developed by Atmel.', 'Features a modified Harvard architecture.']],
-                    ['q' => 'List the ports in Atmega32.', 'ans' => ['PORTA, PORTB, PORTC, PORTD.', 'Each port is 8-bit wide and bidirectional.']],
-                    ['q' => 'Define watchdog timer.', 'ans' => ['A hardware timer that automatically resets the microcontroller if the software hangs or fails to execute properly.']]
-                ],
-                'medium' => [
-                    ['q' => 'Discuss the memory organization of Atmega32.', 'ans' => ['32KB of In-System Programmable Flash (for program code).', '1KB EEPROM (for non-volatile data storage).', '2KB Internal SRAM (for variables and stack).']],
-                    ['q' => 'Explain the criteria for selecting a microcontroller.', 'ans' => ['Processing power (8-bit vs 32-bit, clock speed).', 'Memory requirements (Flash, RAM size).', 'Number of I/O pins and specific peripherals (ADC, Timers, UART).', 'Power consumption and cost.']]
-                ],
-                'long' => [
-                    ['q' => 'Draw and explain the complete internal architecture and block diagram of the Atmega32.', 'ans' => ['Draw block diagram showing ALU, Registers, Flash, SRAM, EEPROM, and Peripherals.', 'Explain the Harvard architecture (separate data and instruction buses).', 'Detail the role of the General Purpose Working Registers (R0-R31).', 'Explain the status register (SREG) and its flags (C, Z, N, V, S, H, T, I).']]
-                ]
-            ],
-            'CO3' => [
-                'short' => [
-                    ['q' => 'What is a Seven Segment Display?', 'ans' => ['An electronic display device for displaying decimal numerals.', 'Comprises seven LED segments arranged in a figure-8 pattern.']],
-                    ['q' => 'Define PWM.', 'ans' => ['Pulse Width Modulation.', 'A technique used to encode a message into a pulsing signal, controlling average power delivered to a load (e.g., motor speed).']]
-                ],
-                'medium' => [
-                    ['q' => 'Explain the working of an optocoupler.', 'ans' => ['An electronic component that transfers electrical signals between two isolated circuits using light.', 'Prevents high voltages from affecting the system receiving the signal.', 'Contains an LED and a phototransistor.']],
-                    ['q' => 'Write an algorithm to interface an LCD.', 'ans' => ['Initialize the LCD by sending commands (e.g., 8-bit mode, 2 lines).', 'Set RS=0, RW=0, and send command data to data lines, pulse EN.', 'Set RS=1, RW=0, and send character data to data lines, pulse EN to write text.']]
-                ],
-                'long' => [
-                    ['q' => 'Explain the detailed working principle and interfacing of a DC motor using an L293D driver with AVR.', 'ans' => ['Explain the need for a motor driver (microcontroller cannot provide enough current).', 'Describe the L293D dual H-bridge motor driver IC.', 'Draw the circuit diagram connecting AVR, L293D, and the DC Motor.', 'Explain how setting IN1 and IN2 controls the direction (forward, reverse, stop).', 'Explain how PWM on the EN pin controls the speed.']]
-                ]
-            ],
-            'CO4' => [
-                'short' => [
-                    ['q' => 'Define RTOS.', 'ans' => ['Real-Time Operating System.', 'An OS intended to serve real-time applications that process data as it comes in, with strict timing constraints.']],
-                    ['q' => 'What is a task?', 'ans' => ['A basic unit of execution in an RTOS.', 'Has its own context (registers, stack) and state (running, ready, blocked).']]
-                ],
-                'medium' => [
-                    ['q' => 'Explain preemptive scheduling.', 'ans' => ['A scheduling method where a higher priority task can interrupt and take CPU control from a lower priority running task.', 'Ensures critical tasks meet their deadlines.']],
-                    ['q' => 'Describe task states in RTOS.', 'ans' => ['Running: Task is currently executing on the CPU.', 'Ready: Task is ready to execute but waiting for CPU time.', 'Blocked/Waiting: Task is waiting for an event (timer, semaphore, etc.).']]
-                ],
-                'long' => [
-                    ['q' => 'Analyze the priority inversion problem and explain how the Priority Inheritance Protocol solves it.', 'ans' => ['Priority Inversion occurs when a high-priority task is blocked waiting for a resource held by a low-priority task, while a medium-priority task preempts the low-priority task.', 'This unbounded delay violates real-time constraints.', 'Priority Inheritance solves this by temporarily elevating the priority of the low-priority task holding the resource to match the high-priority task waiting for it.', 'Once the resource is released, the low-priority task returns to its original priority.']]
-                ]
-            ]
-        ];
+        $batchSubject = \App\Models\BatchSubject::with(['classroom'])->find($subjectId);
+        $subjectCode = $batchSubject->subject_code ?? '';
+        $subjectName = $batchSubject->subject_name ?? 'Engineering Course';
+        $branchCode = $batchSubject->classroom->branch ?? 'General';
 
-        $pool = $pools[$coTag] ?? $pools['CO1']; // fallback
-
-        $generatePart = function($config, $typePool, $levels) {
-            $qCount = (int)($config['q_count'] ?? 0);
-            $marksPerQ = (int)($config['marks_per_q'] ?? 0);
-            if ($qCount <= 0 || $marksPerQ <= 0) return null;
-
-            $shuffled = $typePool;
-            shuffle($shuffled);
-            
-            // Duplicate pool if needed
-            while (count($shuffled) < $qCount) {
-                $shuffled = array_merge($shuffled, $typePool);
-            }
-            $selected = array_slice($shuffled, 0, $qCount);
-
-            // Rubric builder based on marks and cognitive level
-            $buildRubric = function($marks, $level) {
-                $rubricLines = [];
-                if ($marks <= 2) {
-                    $rubricLines = [
-                        ['desc' => 'Correct definition / answer', 'mark' => $marks]
-                    ];
-                } elseif ($marks <= 4) {
-                    $rubricLines = [
-                        ['desc' => 'Key definition / concept', 'mark' => 1],
-                        ['desc' => 'Explanation / relevant points (' . ($marks - 1) . ' points @ 1 mark each)', 'mark' => ($marks - 1)]
-                    ];
-                } elseif ($marks <= 7) {
-                    $half = (int)floor($marks / 2);
-                    $rest = $marks - $half - 1;
-                    $rubricLines = [
-                        ['desc' => 'Definition / Concept statement', 'mark' => 1],
-                        ['desc' => 'Explanation with supporting points (' . $half . ' points)', 'mark' => $half],
-                        ['desc' => $level === 'A' ? 'Application / Analysis / Design (' . $rest . ' pts)' : 'Diagram / Example (' . $rest . ' pts)', 'mark' => $rest]
-                    ];
-                } else {
-                    // High marks (8+)
-                    $defMark = 1;
-                    $diagMark = (int)floor($marks * 0.35);
-                    $expMark = $marks - $defMark - $diagMark;
-                    $rubricLines = [
-                        ['desc' => 'Definition / Introduction', 'mark' => $defMark],
-                        ['desc' => 'Diagram / Block diagram / Schematic (labeled)', 'mark' => $diagMark],
-                        ['desc' => 'Explanation of working / points (' . ceil($expMark / 2) . ' pts @ 1 each)', 'mark' => ceil($expMark / 2)],
-                        ['desc' => 'Advantages / Applications / Conclusion (' . floor($expMark / 2) . ' pts)', 'mark' => floor($expMark / 2)]
-                    ];
+        // Extract Course Outcome description for current CO
+        $coDesc = 'General core syllabus topics';
+        if ($courseFile->parsed_cos) {
+            $parsedCos = is_string($courseFile->parsed_cos) ? json_decode($courseFile->parsed_cos, true) : $courseFile->parsed_cos;
+            if (is_array($parsedCos)) {
+                foreach ($parsedCos as $c) {
+                    $cId = str_replace([' ', '-'], '', strtolower($c['id'] ?? ''));
+                    $targetTag = str_replace([' ', '-'], '', strtolower($coTag));
+                    if (!empty($cId) && $cId === $targetTag) {
+                        $coDesc = $c['description'] ?? 'General core syllabus topics';
+                        break;
+                    }
                 }
-                return $rubricLines;
-            };
-
-            $questions = [];
-            foreach ($selected as $qObj) {
-                $level = $levels[array_rand($levels)];
-                $questions[] = [
-                    'q' => $qObj['q'],
-                    'ans' => $qObj['ans'] ?? [],
-                    'level' => $level,
-                    'marks' => $marksPerQ,
-                    'rubric' => $buildRubric($marksPerQ, $level)
-                ];
             }
-            return [
-                'q_count' => $qCount,
-                'marks_per_q' => $marksPerQ,
-                'total_marks' => $qCount * $marksPerQ,
-                'questions' => $questions
-            ];
-        };
+        }
 
         $isManual = filter_var($request->input('manual_mode', false), FILTER_VALIDATE_BOOLEAN);
 
@@ -2018,9 +1898,215 @@ Syllabus Text:
             $generatedB = $request->input('manual_part_b') ?? ['q_count' => 0, 'marks_per_q' => 0, 'total_marks' => 0, 'questions' => []];
             $generatedC = $request->input('manual_part_c') ?? ['q_count' => 0, 'marks_per_q' => 0, 'total_marks' => 0, 'questions' => []];
         } else {
-            $generatedA = $generatePart($partAConfig, $pool['short'], ['U', 'R']);
-            $generatedB = $generatePart($partBConfig, $pool['medium'], ['U', 'A']);
-            $generatedC = $generatePart($partCConfig, $pool['long'], ['A']);
+            // Step 1: Check if AI Question Generation is enabled
+            $apiKey = env('GEMINI_API_KEY');
+            $aiData = null;
+
+            if (\App\Http\Controllers\SystemSettingController::isAiEnabled() && $apiKey) {
+                try {
+                    $cntA = (int)($partAConfig['q_count'] ?? 5);
+                    $mrkA = (int)($partAConfig['marks_per_q'] ?? 2);
+                    $cntB = (int)($partBConfig['q_count'] ?? 3);
+                    $mrkB = (int)($partBConfig['marks_per_q'] ?? 5);
+                    $cntC = (int)($partCConfig['q_count'] ?? 1);
+                    $mrkC = (int)($partCConfig['marks_per_q'] ?? 15);
+
+                    $prompt = "You are a senior academic examiner for the engineering course '{$subjectName}' (Subject Code: {$subjectCode}, Branch: {$branchCode}). Generate a summative examination question paper for Outcome '{$coTag}' strictly covering the syllabus topic: '{$coDesc}'.
+
+STRICT QUESTION FORMATTING RULES:
+1. Part A (Short Questions, {$mrkA} marks each):
+   - Questions must be small, single-line, direct prompts (e.g., 'State...', 'Define...', 'List two...').
+   - Provide exactly 1 or 2 short, concise answer points.
+
+2. Part B (Medium Questions, {$mrkB} marks each):
+   - Questions must require 3 clear key points, lists, comparisons, or descriptive explanations of figures/diagrams suitable for mark split-up.
+   - Provide exactly 3 structured, distinct answer points.
+
+3. Part C (Long Analytical Questions, {$mrkC} marks each):
+   - Questions must involve block diagrams, full algorithms/programs, circuit setups, or detailed step-by-step structural explanations.
+   - Provide a comprehensive multi-step answer breakdown (Overview, Block Diagram / Code Logic, Detailed Execution).
+
+Generate:
+- Exactly {$cntA} Part A questions (each {$mrkA} marks)
+- Exactly {$cntB} Part B questions (each {$mrkB} marks)
+- Exactly {$cntC} Part C questions (each {$mrkC} marks)
+
+Return ONLY valid JSON matching this exact structure:
+{
+  \"part_a\": [{\"q\": \"...\", \"ans\": [\"Point 1\", \"Point 2\"], \"level\": \"R\"}],
+  \"part_b\": [{\"q\": \"...\", \"ans\": [\"Point 1: ...\", \"Point 2: ...\", \"Point 3: ...\"], \"level\": \"U\"}],
+  \"part_c\": [{\"q\": \"...\", \"ans\": [\"Overview & Concept\", \"Block Diagram / Program Structure\", \"Execution & Working Details\"], \"level\": \"A\"}]
+}";
+
+                    $response = \Illuminate\Support\Facades\Http::timeout(60)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                        'contents' => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => ['responseMimeType' => 'application/json']
+                    ]);
+
+                    if ($response->successful()) {
+                        $jsonString = $response->json('candidates.0.content.parts.0.text');
+                        $cleanJson = trim(str_replace(['```json', '```JSON', '```'], '', $jsonString));
+                        $parsed = json_decode($cleanJson, true);
+                        if (is_array($parsed) && (isset($parsed['part_a']) || isset($parsed['part_b']) || isset($parsed['part_c']))) {
+                            $aiData = $parsed;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Gemini summative paper generation exception for {$subjectCode}: " . $e->getMessage());
+                }
+            }
+
+            // Rubric builder helper tailored for strict mark split-ups
+            $buildRubric = function($marks, $level) {
+                if ($marks <= 2) {
+                    if ($marks == 1) {
+                        return [['desc' => 'Direct single-point statement / definition', 'mark' => 1]];
+                    }
+                    return [
+                        ['desc' => 'Key definition / principle', 'mark' => 1],
+                        ['desc' => 'Core point / application context', 'mark' => 1]
+                    ];
+                } elseif ($marks <= 4) {
+                    // 3 or 4 marks: 3 distinct points / mark splitup
+                    $m1 = 1;
+                    $m2 = 1;
+                    $m3 = $marks - 2;
+                    return [
+                        ['desc' => 'Point 1: Basic concept / definition', 'mark' => $m1],
+                        ['desc' => 'Point 2: Core working / diagram description', 'mark' => $m2],
+                        ['desc' => 'Point 3: Key feature / comparative list', 'mark' => $m3]
+                    ];
+                } elseif ($marks <= 7) {
+                    // 5 to 7 marks: Block diagram / program / detailed explanation
+                    $introMark = 1;
+                    $blockMark = (int)floor($marks * 0.4);
+                    $expMark = $marks - $introMark - $blockMark;
+                    return [
+                        ['desc' => 'Introduction & Basic Concept', 'mark' => $introMark],
+                        ['desc' => 'Block Diagram / Circuit / Flowchart / Code', 'mark' => $blockMark],
+                        ['desc' => 'Detailed Working Explanation & Execution', 'mark' => $expMark]
+                    ];
+                } else {
+                    // 8 to 15+ marks: Comprehensive design / full program / architectural breakdown
+                    $introMark = 2;
+                    $blockMark = (int)floor($marks * 0.4);
+                    $expMark = $marks - $introMark - $blockMark;
+                    return [
+                        ['desc' => 'Problem Overview & System Requirements', 'mark' => $introMark],
+                        ['desc' => 'Complete Block Diagram / Full Program / Circuit Design', 'mark' => $blockMark],
+                        ['desc' => 'Detailed Step-by-Step Analysis, Derivation & Output', 'mark' => $expMark]
+                    ];
+                }
+            };
+
+            if ($aiData) {
+                // Construct parts from AI output
+                $formatAiPart = function($rawList, $config, $defaultLevel) use ($buildRubric) {
+                    $qCount = (int)($config['q_count'] ?? 0);
+                    $marksPerQ = (int)($config['marks_per_q'] ?? 0);
+                    if ($qCount <= 0 || $marksPerQ <= 0) return ['q_count' => 0, 'marks_per_q' => 0, 'total_marks' => 0, 'questions' => []];
+                    
+                    $questions = [];
+                    foreach (array_slice($rawList ?: [], 0, $qCount) as $qObj) {
+                        $lvl = $qObj['level'] ?? $defaultLevel;
+                        $questions[] = [
+                            'q' => $qObj['q'] ?? 'Question topic',
+                            'ans' => $qObj['ans'] ?? ['Key point 1', 'Key point 2'],
+                            'level' => $lvl,
+                            'marks' => $marksPerQ,
+                            'rubric' => $buildRubric($marksPerQ, $lvl)
+                        ];
+                    }
+                    return [
+                        'q_count' => count($questions),
+                        'marks_per_q' => $marksPerQ,
+                        'total_marks' => count($questions) * $marksPerQ,
+                        'questions' => $questions
+                    ];
+                };
+
+                $generatedA = $formatAiPart($aiData['part_a'] ?? [], $partAConfig, 'R');
+                $generatedB = $formatAiPart($aiData['part_b'] ?? [], $partBConfig, 'U');
+                $generatedC = $formatAiPart($aiData['part_c'] ?? [], $partCConfig, 'A');
+            } else {
+                // Step 2: Query Subject Question Bank or generate dynamic subject-aware fallback
+                $pool = \Illuminate\Support\Facades\DB::table('question_bank')
+                    ->where('subject_code', $subjectCode)
+                    ->where('co_tag', $coTag)
+                    ->where('type', 'Descriptive')
+                    ->get()
+                    ->toArray();
+
+                $generateSubjectPart = function($config, $level) use ($pool, $subjectName, $coDesc, $buildRubric) {
+                    $qCount = (int)($config['q_count'] ?? 0);
+                    $marksPerQ = (int)($config['marks_per_q'] ?? 0);
+                    if ($qCount <= 0 || $marksPerQ <= 0) return ['q_count' => 0, 'marks_per_q' => 0, 'total_marks' => 0, 'questions' => []];
+
+                    $questions = [];
+                    $shuffledPool = $pool;
+                    shuffle($shuffledPool);
+
+                    for ($i = 0; $i < $qCount; $i++) {
+                        if (isset($shuffledPool[$i])) {
+                            $qText = $shuffledPool[$i]->question_text;
+                            $ans = json_decode($shuffledPool[$i]->correct_answer ?? '[]', true) ?: ['Key point 1', 'Key point 2'];
+                        } else {
+                            // Dynamic subject-bound question generator with strict mark-aligned structure
+                            if ($marksPerQ <= 2) {
+                                $templates = [
+                                    "Define the fundamental term associated with {$coDesc} in {$subjectName}.",
+                                    "State the main purpose of {$coDesc}.",
+                                    "List two basic characteristics of {$coDesc} in {$subjectName}."
+                                ];
+                                $qText = $templates[$i % count($templates)];
+                                $ans = ["Core definition of {$coDesc}.", "Key operational purpose in {$subjectName}."];
+                            } elseif ($marksPerQ <= 5) {
+                                $templates = [
+                                    "Explain the working principle of {$coDesc} with 3 key points and a neat sketch.",
+                                    "Compare and contrast the main features of {$coDesc} in {$subjectName}.",
+                                    "List and describe 3 essential components involved in {$coDesc}."
+                                ];
+                                $qText = $templates[$i % count($templates)];
+                                $ans = [
+                                    "Point 1: Basic concept and operational framework of {$coDesc}.",
+                                    "Point 2: Key diagram / schematic layout and component functions.",
+                                    "Point 3: Practical output features and performance characteristics."
+                                ];
+                            } else {
+                                $templates = [
+                                    "Draw the block diagram / program flowchart and explain the detailed operation of {$coDesc} in {$subjectName}.",
+                                    "Design and implement a complete program / schematic layout for {$coDesc} with detailed working steps."
+                                ];
+                                $qText = $templates[$i % count($templates)];
+                                $ans = [
+                                    "Overview: Theoretical background and problem formulation.",
+                                    "Block Diagram / Program: Labeled schematic diagram or complete code structure.",
+                                    "Detailed Working: Step-by-Step operational analysis and expected output."
+                                ];
+                            }
+                        }
+
+                        $questions[] = [
+                            'q' => $qText,
+                            'ans' => $ans,
+                            'level' => $level,
+                            'marks' => $marksPerQ,
+                            'rubric' => $buildRubric($marksPerQ, $level)
+                        ];
+                    }
+
+                    return [
+                        'q_count' => count($questions),
+                        'marks_per_q' => $marksPerQ,
+                        'total_marks' => count($questions) * $marksPerQ,
+                        'questions' => $questions
+                    ];
+                };
+
+                $generatedA = $generateSubjectPart($partAConfig, 'R');
+                $generatedB = $generateSubjectPart($partBConfig, 'U');
+                $generatedC = $generateSubjectPart($partCConfig, 'A');
+            }
         }
 
         $totalMarks = ($generatedA['total_marks'] ?? 0) + ($generatedB['total_marks'] ?? 0) + ($generatedC['total_marks'] ?? 0);
@@ -2032,18 +2118,13 @@ Syllabus Text:
             'part_a' => $generatedA,
             'part_b' => $generatedB,
             'part_c' => $generatedC,
-            'date_of_exam' => $summativeTests[$coTag]['date_of_exam'] ?? null,
+            'date_of_exam' => $request->input('date_of_exam') ?? ($summativeTests[$coTag]['date_of_exam'] ?? null),
             'is_locked' => $summativeTests[$coTag]['is_locked'] ?? false,
             'created_at' => now()->toIso8601String()
         ];
 
         $courseFile->summative_manual_tests = $summativeTests;
         $courseFile->save();
-
-        // Persist to Question Bank
-        $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
-        $subjectCode = $batchSubject->subject_code;
-        $branchCode = $batchSubject->classroom->branch;
 
         // Clear previous descriptive questions for this CO & subject to prevent duplicates on re-saving updates
         \Illuminate\Support\Facades\DB::table('question_bank')
@@ -2053,23 +2134,28 @@ Syllabus Text:
             ->where('type', 'Descriptive')
             ->delete();
 
-        $persistToBank = function($partData) use ($subjectCode, $branchCode, $coTag) {
+        $persistToBank = function($partData) use ($subjectCode, $branchCode, $coTag, $subjectId) {
             if (!$partData || !isset($partData['questions'])) return;
             foreach ($partData['questions'] as $qObj) {
-                \Illuminate\Support\Facades\DB::table('question_bank')->insert([
-                    'question_id' => (string) \Illuminate\Support\Str::uuid(),
-                    'branch_code' => $branchCode,
-                    'subject_code' => $subjectCode,
-                    'type' => 'Descriptive',
-                    'question_text' => $qObj['q'],
-                    'options' => json_encode([]),
-                    'correct_answer' => json_encode($qObj['ans'] ?? []),
-                    'co_tag' => $coTag,
-                    'marks' => $qObj['marks'] ?? 5,
-                    'rubric' => json_encode($qObj['rubric'] ?? []),
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+                try {
+                    \Illuminate\Support\Facades\DB::table('question_bank')->insert([
+                        'question_id' => (string) \Illuminate\Support\Str::uuid(),
+                        'branch_code' => $branchCode,
+                        'subject_code' => $subjectCode,
+                        'batch_subject_id' => $subjectId,
+                        'type' => 'Descriptive',
+                        'question_text' => $qObj['q'],
+                        'options' => json_encode([]),
+                        'correct_answer' => json_encode($qObj['ans'] ?? []),
+                        'co_tag' => $coTag,
+                        'marks' => $qObj['marks'] ?? 5,
+                        'rubric' => json_encode($qObj['rubric'] ?? []),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::info("Question bank persist skipped for {$subjectCode}: " . $e->getMessage());
+                }
             }
         };
 

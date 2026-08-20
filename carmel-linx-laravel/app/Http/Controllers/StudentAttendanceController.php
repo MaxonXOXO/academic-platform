@@ -85,6 +85,8 @@ class StudentAttendanceController extends Controller
             'badge_class' => 'bg-slate-950 text-slate-500 border border-slate-800'
         ];
 
+        $studentIds = array_filter([$student->reg_no ?? null, $student->adm_no ?? null]);
+
         foreach ($todayLogs as $log) {
             $period = (int)$log->period;
             if ($period >= 1 && $period <= 7) {
@@ -95,10 +97,10 @@ class StudentAttendanceController extends Controller
                 $statusText = 'Absent';
                 $badgeClass = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
 
-                if (in_array($student->reg_no, $pList)) {
+                if (!empty(array_intersect($studentIds, $pList))) {
                     $statusText = 'Present';
                     $badgeClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                } elseif (in_array($student->reg_no, $aList)) {
+                } elseif (!empty(array_intersect($studentIds, $aList))) {
                     $statusText = 'Absent';
                     $badgeClass = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
                 }
@@ -133,10 +135,13 @@ class StudentAttendanceController extends Controller
                 $pList = json_decode($l->present_students ?? '[]', true) ?: [];
                 $aList = json_decode($l->absent_students ?? '[]', true) ?: [];
 
-                if (in_array($student->reg_no, $pList) || in_array($student->reg_no, $aList)) {
+                $hasP = !empty(array_intersect($studentIds, $pList));
+                $hasA = !empty(array_intersect($studentIds, $aList));
+
+                if ($hasP || $hasA) {
                     $subjConducted++;
                     $totalConductedClasses++;
-                    if (in_array($student->reg_no, $pList)) {
+                    if ($hasP) {
                         $subjAttended++;
                         $totalAttendedClasses++;
                     }
@@ -158,7 +163,7 @@ class StudentAttendanceController extends Controller
             : 0.0;
 
         // Fetch Student Leave Request Records
-        $leaveRecords = \App\Models\LeaveRecord::where('reg_no', $student->reg_no)
+        $leaveRecords = \App\Models\LeaveRecord::whereIn('reg_no', $studentIds)
             ->orderBy('leave_date', 'desc')
             ->get();
 
@@ -192,6 +197,8 @@ class StudentAttendanceController extends Controller
             return redirect('/dashboard/student')->with('error', 'Student profile not found.');
         }
 
+        $studentIds = array_filter([$student->reg_no ?? null, $student->adm_no ?? null]);
+
         // Classroom & Tutor details
         $classroom = DB::table('class_management')->where('classroom_id', $student->classroom_id)->first();
         if (!$classroom) {
@@ -223,6 +230,14 @@ class StudentAttendanceController extends Controller
 
         // 7. Active Universal Day Order & Student Classroom Timetable
         $activeDayOrder = \App\Services\DayOrderService::getActiveDayOrder();
+
+        $dayMap = [
+            'Monday' => 'Day 1',
+            'Tuesday' => 'Day 2',
+            'Wednesday' => 'Day 3',
+            'Thursday' => 'Day 4',
+            'Friday' => 'Day 5',
+        ];
 
         // Today's Hour-Wise Attendance Grid
         $todayDate = now()->toDateString();
@@ -300,10 +315,10 @@ class StudentAttendanceController extends Controller
                 $statusText = 'Absent';
                 $badgeClass = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
 
-                if (in_array($student->reg_no, $pList)) {
+                if (!empty(array_intersect($studentIds, $pList))) {
                     $statusText = 'Present';
                     $badgeClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                } elseif (in_array($student->reg_no, $aList)) {
+                } elseif (!empty(array_intersect($studentIds, $aList))) {
                     $statusText = 'Absent';
                     $badgeClass = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
                 }
@@ -338,10 +353,13 @@ class StudentAttendanceController extends Controller
                 $pList = json_decode($l->present_students ?? '[]', true) ?: [];
                 $aList = json_decode($l->absent_students ?? '[]', true) ?: [];
 
-                if (in_array($student->reg_no, $pList) || in_array($student->reg_no, $aList)) {
+                $hasP = !empty(array_intersect($studentIds, $pList));
+                $hasA = !empty(array_intersect($studentIds, $aList));
+
+                if ($hasP || $hasA) {
                     $subjConducted++;
                     $totalConductedClasses++;
-                    if (in_array($student->reg_no, $pList)) {
+                    if ($hasP) {
                         $subjAttended++;
                         $totalAttendedClasses++;
                     }
@@ -363,7 +381,7 @@ class StudentAttendanceController extends Controller
             : 0.0;
 
         // Fetch Student Leave Request Records
-        $leaveRecords = \App\Models\LeaveRecord::where('reg_no', $student->reg_no)
+        $leaveRecords = \App\Models\LeaveRecord::whereIn('reg_no', $studentIds)
             ->orderBy('leave_date', 'desc')
             ->get();
 

@@ -26,16 +26,44 @@
     input, select, textarea {
       font-size: 0.875rem !important; /* 14px (text-sm) minimum */
     }
+    .text-lg {
+      font-size: 1.05rem !important;
+    }
+    .text-base {
+      font-size: 0.875rem !important;
+    }
     nav.space-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
-      margin-top: 0.25rem !important;
+      margin-top: 0.125rem !important;
     }
     nav.space-y-1\.5 a, nav.space-y-1\.5 button {
-      padding-top: 0.5rem !important;
-      padding-bottom: 0.5rem !important;
+      padding-top: 0.375rem !important;
+      padding-bottom: 0.375rem !important;
     }
     .transition-premium { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     .scrollbar-hidden::-webkit-scrollbar { display: none; }
     .scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Compact Sidebar Navigation Sizing Standard (Matching Staff Console) */
+    @media (min-width: 768px) {
+      aside nav {
+        padding: 0.75rem !important;
+      }
+      aside nav > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0.125rem !important;
+      }
+      aside nav a, aside nav button, aside nav div {
+        padding-top: 0.375rem !important;
+        padding-bottom: 0.375rem !important;
+        padding-left: 0.875rem !important;
+        padding-right: 0.875rem !important;
+        font-size: 11px !important;
+        gap: 0.625rem !important;
+      }
+      aside nav span.material-symbols-rounded {
+        font-size: 16px !important;
+      }
+    }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }

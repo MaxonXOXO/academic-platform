@@ -9,29 +9,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
-    @media (max-width: 1440px) {
-      html, body {
-        font-size: 15px !important;
-      }
-      .p-6 {
-        padding: 1rem !important;
-      }
-      .p-8 {
-        padding: 1.25rem !important;
-      }
-      .gap-6 {
-        gap: 1rem !important;
-      }
-      .gap-8 {
-        gap: 1.25rem !important;
-      }
-      .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .text-nowrap {
-        white-space: nowrap !important;
+    /* Desktop Sizing Standard to match Staff Dashboard Density */
+    html {
+      font-size: 90%;
+    }
+    @media (min-width: 1024px) {
+      body {
+        font-size: 13px;
       }
     }
     /* Universal typography fix to avoid screen text spreading/bleeding on super bold weights */
@@ -95,51 +79,51 @@
     </div>
 
     <!-- Profile Card -->
-    <div class="p-4 bg-slate-900/40 border-b border-slate-800/40">
-      <div class="flex items-center gap-3" id="sidebarAvatarContainer">
+    <div class="p-3 bg-slate-900/40 border-b border-slate-800/40">
+      <div class="flex items-center gap-2.5" id="sidebarAvatarContainer">
         @if(session('userPhoto'))
-          <img id="sidebarStudentImg" src="{{ session('userPhoto') }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+          <img id="sidebarStudentImg" src="{{ session('userPhoto') }}" class="w-8 h-8 rounded-full border border-slate-700 object-cover shadow-inner">
         @else
-          <div id="sidebarStudentPlaceholder" class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-sky-700 flex items-center justify-center font-black shadow text-sm">
+          <div id="sidebarStudentPlaceholder" class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-sky-700 flex items-center justify-center font-black shadow text-xs">
             {{ strtoupper(substr(session('userName','S'), 0, 2)) }}
           </div>
         @endif
         <div class="overflow-hidden">
-          <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
-          <span class="text-xs font-bold text-teal-400 block font-mono">{{ session('userId') }}</span>
-          <span class="text-xs text-slate-500 font-semibold">{{ session('userBranch') }} &bull; Student</span>
+          <span class="font-black text-xs block truncate text-white leading-tight">{{ session('userName') }}</span>
+          <span class="text-[11px] font-bold text-teal-400 block font-mono">{{ session('userId') }}</span>
+          <span class="text-[10px] text-slate-500 font-semibold">{{ session('userBranch') }} &bull; Student</span>
         </div>
       </div>
     </div>
 
     <!-- Nav -->
-    <nav class="flex-grow p-4 space-y-1">
-      <a href="/dashboard/student?tab=exams" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">checklist</span> Works To Do
+    <nav class="flex-grow p-3 space-y-1">
+      <a href="/dashboard/student?tab=exams" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">checklist</span> Works To Do
       </a>
-      <a href="/dashboard/student?tab=marks" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">bar_chart_4_bars</span> Academic Stats
+      <a href="/dashboard/student?tab=marks" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">bar_chart_4_bars</span> Academic Stats
       </a>
-      <a href="/dashboard/student?tab=profile" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">manage_accounts</span> My Profile
+      <a href="/dashboard/student?tab=profile" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">manage_accounts</span> My Profile
       </a>
-      <div class="w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold text-sm flex items-center gap-3 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500">
-        <span class="material-symbols-rounded text-lg">menu_book</span> Mentoring Diary
+      <div class="w-full text-left px-3 py-2 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500">
+        <span class="material-symbols-rounded text-base">menu_book</span> Mentoring Diary
       </div>
-      <a href="/dashboard/student?tab=activity" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">star</span> Activity Points
+      <a href="/dashboard/student?tab=activity" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">star</span> Activity Points
       </a>
-      <a href="/dashboard/student?tab=seminar" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">co_present</span> My Seminar
+      <a href="/dashboard/student?tab=seminar" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">co_present</span> My Seminar
       </a>
-      <a href="/student/mock-test" target="_blank" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-teal-300 hover:bg-blue-950/20 cursor-pointer text-sm no-underline">
-        <span class="material-symbols-rounded text-lg text-teal-400 animate-pulse">rocket_launch</span> Mock Practice Test
+      <a href="/student/mock-test" target="_blank" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-teal-300 hover:bg-blue-950/20 cursor-pointer text-xs no-underline">
+        <span class="material-symbols-rounded text-base text-teal-400 animate-pulse">rocket_launch</span> Mock Practice Test
       </a>
     </nav>
 
     <!-- Logout -->
-    <div class="p-4 border-t border-slate-800/80">
-      <a href="{{ url('/logout') }}" class="w-full py-3 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-sm">
+    <div class="p-3 border-t border-slate-800/80">
+      <a href="{{ url('/logout') }}" class="w-full py-2 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-xs">
         <span class="material-symbols-rounded text-base">logout</span> Sign Out
       </a>
     </div>

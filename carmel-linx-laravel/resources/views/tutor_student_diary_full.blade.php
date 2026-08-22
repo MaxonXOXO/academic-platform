@@ -9,29 +9,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
-    @media (max-width: 1440px) {
-      html, body {
-        font-size: 13px !important;
-      }
-      .p-6 {
-        padding: 1rem !important;
-      }
-      .p-8 {
-        padding: 1.25rem !important;
-      }
-      .gap-6 {
-        gap: 1rem !important;
-      }
-      .gap-8 {
-        gap: 1.25rem !important;
-      }
-      .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .text-nowrap {
-        white-space: nowrap !important;
+    /* Desktop Sizing Standard to match Staff Dashboard Density */
+    html {
+      font-size: 90%;
+    }
+    @media (min-width: 1024px) {
+      body {
+        font-size: 13px;
       }
     }
     /* Universal typography fix to avoid screen text spreading/bleeding on super bold weights */
@@ -101,51 +85,51 @@
     </div>
 
     <!-- Mentor Profile Card -->
-    <div class="p-4 bg-slate-900/40 border-b border-slate-800/40">
-      <div class="flex items-center gap-3">
+    <div class="p-3 bg-slate-900/40 border-b border-slate-800/40">
+      <div class="flex items-center gap-2.5">
         @if(session('userPhoto'))
-          <img src="{{ session('userPhoto') }}" class="w-11 h-11 rounded-full border border-indigo-700 object-cover shadow-inner">
+          <img src="{{ session('userPhoto') }}" class="w-8 h-8 rounded-full border border-indigo-700 object-cover shadow-inner">
         @else
-          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black shadow text-sm">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black shadow text-xs">
             {{ strtoupper(substr(session('userName','M'), 0, 2)) }}
           </div>
         @endif
         <div class="overflow-hidden">
           <span class="font-bold text-xs block truncate text-slate-200">{{ session('userName') }}</span>
-          <span class="text-xs font-bold text-indigo-400 block font-mono">{{ session('userId') }}</span>
-          <span class="text-xs text-slate-500 font-semibold">{{ session('userRole') }}</span>
+          <span class="text-[11px] font-bold text-indigo-400 block font-mono">{{ session('userId') }}</span>
+          <span class="text-[10px] text-slate-500 font-semibold">{{ session('userRole') }}</span>
         </div>
       </div>
     </div>
 
     <!-- Student Info Card -->
-    <div class="p-4 bg-indigo-950/30 border-b border-indigo-900/40 flex items-center gap-3">
+    <div class="p-3 bg-indigo-950/30 border-b border-indigo-900/40 flex items-center gap-2.5">
       <div id="sidebarStudentPhotoContainer" class="flex-shrink-0">
-        <div class="w-12 h-12 rounded-full bg-indigo-800 flex items-center justify-center font-black text-lg text-white" id="sidebarStudentPhotoPlaceholder">
+        <div class="w-9 h-9 rounded-full bg-indigo-800 flex items-center justify-center font-black text-sm text-white" id="sidebarStudentPhotoPlaceholder">
           {{ strtoupper(substr($studentRegNo, 0, 2)) }}
         </div>
-        <img id="sidebarStudentPhoto" class="w-12 h-12 rounded-full border border-indigo-700 object-cover shadow-inner hidden">
+        <img id="sidebarStudentPhoto" class="w-9 h-9 rounded-full border border-indigo-700 object-cover shadow-inner hidden">
       </div>
       <div class="overflow-hidden">
         <p class="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-0.5">Viewing Diary For</p>
-        <p class="font-black text-white text-sm truncate" id="sidebarStudentName">Loading...</p>
-        <p class="text-xs font-bold text-indigo-300 font-mono">{{ $studentRegNo }}</p>
+        <p class="font-black text-white text-xs truncate" id="sidebarStudentName">Loading...</p>
+        <p class="text-[11px] font-bold text-indigo-300 font-mono">{{ $studentRegNo }}</p>
       </div>
     </div>
 
     <!-- Nav back to lecturer dashboard -->
-    <nav class="flex-grow p-4 space-y-1.5">
-      <a href="{{ $dashboardUrl }}" onclick="if(window.opener){ window.close(); return false; }" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-sm">
-        <span class="material-symbols-rounded text-lg">arrow_back</span> Back to Dashboard
+    <nav class="flex-grow p-3 space-y-1">
+      <a href="{{ $dashboardUrl }}" onclick="if(window.opener){ window.close(); return false; }" class="w-full text-left px-3 py-2 rounded-xl font-bold flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+        <span class="material-symbols-rounded text-base">arrow_back</span> Back to Dashboard
       </a>
-      <div class="w-full text-left px-4 py-2.5 rounded-r-xl rounded-l-none font-bold text-sm flex items-center gap-3 transition-premium bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500">
-        <span class="material-symbols-rounded text-lg">menu_book</span> Student Diary
+      <div class="w-full text-left px-3 py-2 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-2.5 transition-premium bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500">
+        <span class="material-symbols-rounded text-base">menu_book</span> Student Diary
       </div>
     </nav>
 
     <!-- Logout -->
-    <div class="p-4 border-t border-slate-800/80">
-      <a href="{{ url('/logout') }}" class="w-full py-3 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-sm">
+    <div class="p-3 border-t border-slate-800/80">
+      <a href="{{ url('/logout') }}" class="w-full py-2 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium text-xs">
         <span class="material-symbols-rounded text-base">logout</span> Sign Out
       </a>
     </div>

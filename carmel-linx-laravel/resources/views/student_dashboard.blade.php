@@ -1177,14 +1177,15 @@
         let tasksHtml = '';
         tasks.forEach((t, index) => {
           const isExp = t.status === 'Expired' || t.status === 'Completed';
-          const stCol = isExp ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-teal-400 bg-teal-500/10 border-teal-500/20';
+          const stCol = isExp ? 'text-rose-400 bg-rose-500/10 border border-rose-500/20' : 'text-teal-400 bg-teal-500/10 border border-teal-500/20';
           const icon = t.type === 'Assignment' ? 'assignment' : 'edit_document';
 
-          let qHtml = '';
-          if (t.questions && t.questions.length > 0) {
-            qHtml = `<div class="mt-4 pt-4 border-t border-slate-800 hidden" id="taskQ_${index}">
-              <h4 class="text-sm uppercase font-black text-slate-400 mb-2">Assignment Questions</h4>
-              <ul class="space-y-2 text-sm text-slate-300 font-medium list-disc pl-4">
+          let qQuestionsList = '';
+          let hasQuestions = t.questions && t.questions.length > 0;
+          if (hasQuestions) {
+            qQuestionsList = `<div class="mt-2 p-3 bg-slate-950/70 border border-slate-800 rounded-xl hidden" id="taskQ_${index}">
+              <h4 class="text-xs uppercase font-black text-slate-400 mb-1.5">Assignment Questions</h4>
+              <ul class="space-y-1 text-xs text-slate-300 font-medium list-disc pl-4">
                 ${t.questions.map(q => `<li>${q}</li>`).join('')}
               </ul>
             </div>`;
@@ -1192,41 +1193,36 @@
 
           let actionBtn = '';
           if (t.type === 'Assignment' && !isExp) {
-            actionBtn = `<button onclick="markManualTaskSubmitted('${t.subject_code}', '${t.co_tag}', 'Assignment')" class="mt-3 w-full py-2 bg-blue-600/80 hover:bg-blue-500 text-white rounded font-bold text-sm transition-premium">Mark as Submitted</button>`;
+            actionBtn = `<button onclick="markManualTaskSubmitted('${t.subject_code}', '${t.co_tag}', 'Assignment')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs transition-premium shadow-sm whitespace-nowrap cursor-pointer">Mark as Submitted</button>`;
           }
 
           tasksHtml += `
-            <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl overflow-hidden mb-1">
-            <!-- Collapsible Header -->
-            <div onclick="document.getElementById('co_task_${index}').classList.toggle('hidden'); this.querySelector('.arrow-icon').innerText = document.getElementById('co_task_${index}').classList.contains('hidden') ? 'expand_more' : 'expand_less';" 
-                 class="px-4 py-3.5 bg-slate-950/40 hover:bg-slate-950/70 border-b border-slate-800/60 flex justify-between items-center cursor-pointer transition-premium">
-              <div class="flex items-center gap-3">
-                <span class="material-symbols-rounded text-blue-400 text-base">${icon}</span>
-                <div>
-                  <h4 class="font-bold text-sm text-slate-200 uppercase">${t.type} - ${t.co_tag}</h4>
-                  <p class="text-sm font-black text-purple-400 uppercase tracking-wider mt-0.5">${t.subject_code} - ${t.subject}</p>
+            <div class="p-3.5 bg-slate-950/40 border border-slate-800/80 rounded-xl hover:border-slate-700/80 transition-all shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-rounded text-base">${icon}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-extrabold text-white text-xs uppercase tracking-wide">${t.type} — ${t.co_tag}</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${stCol}">${t.status}</span>
+                    </div>
+                    <p class="text-xs font-bold text-purple-300 truncate mt-0.5">${t.subject_code} - ${t.subject}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between sm:justify-end border-t sm:border-t-0 border-slate-800/60 pt-2 sm:pt-0">
+                  <div class="text-right text-[11px] font-semibold text-slate-400">
+                    <div>Start: <span class="text-slate-300 font-bold">${t.start ? new Date(t.start).toLocaleDateString() : '-'}</span></div>
+                    <div>Due: <span class="text-amber-400 font-bold font-mono">${t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</span></div>
+                  </div>
+                  ${hasQuestions ? `<button onclick="document.getElementById('taskQ_${index}').classList.toggle('hidden')" class="px-3 py-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/30 rounded-lg transition-premium flex items-center gap-1 cursor-pointer"><span class="material-symbols-rounded text-xs">visibility</span> Questions</button>` : ''}
+                  ${actionBtn}
                 </div>
               </div>
-              <span class="material-symbols-rounded text-slate-500 text-sm arrow-icon">expand_more</span>
+              ${qQuestionsList}
             </div>
-            <!-- Collapsible Content -->
-            <div id="co_task_${index}" class="hidden p-4 bg-slate-950/10 border-t border-slate-800/40">
-              <div class="flex items-center gap-2 mb-3">
-                  <span class="px-2 py-0.5 rounded text-sm font-black uppercase tracking-widest ${stCol}">${t.status}</span>
-              </div>
-              <div class="grid grid-cols-2 gap-4 mb-4 text-sm text-slate-400 font-semibold">
-                <div class="space-y-1">
-                  <div>Start: <span class="text-slate-200 font-bold">${t.start ? new Date(t.start).toLocaleDateString() : '-'}</span></div>
-                </div>
-                <div class="space-y-1">
-                  <div>Deadline: <span class="text-slate-200 font-bold font-mono">${t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</span></div>
-                </div>
-              </div>
-              ${qHtml ? `<button onclick="document.getElementById('taskQ_${index}').classList.toggle('hidden')" class="w-full mt-2 py-2 text-sm font-bold text-blue-400 hover:text-blue-300 bg-blue-500/5 rounded-xl transition-premium flex justify-center items-center gap-1"><span class="material-symbols-rounded text-sm">visibility</span> View Questions</button>` : ''}
-              ${qHtml}
-              ${actionBtn}
-            </div>
-          </div>
           `;
         });
         tasksContainer.innerHTML = tasksHtml;
@@ -1657,13 +1653,13 @@
             data.tests.forEach(t => {
               let actionHtml = '';
               if (t.can_take) {
-                actionHtml = `<button onclick="startOnlineTest('${t.test_id}')" class="w-full py-2 bg-purple-600/80 hover:bg-purple-500 text-white rounded font-bold text-sm transition-premium">Start Test</button>`;
+                actionHtml = `<button onclick="startOnlineTest('${t.test_id}')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold text-xs transition-premium shadow-sm whitespace-nowrap cursor-pointer">Start Test</button>`;
               } else if (t.status_message && t.status_message.startsWith('Starts')) {
-                actionHtml = `<button disabled class="w-full py-2 bg-slate-800/40 text-slate-400 rounded font-bold text-sm text-center border border-slate-700/50 mb-2 cursor-not-allowed flex items-center justify-center gap-2"><span class="material-symbols-rounded text-sm">lock</span> ${t.status_message}</button>`;
+                actionHtml = `<span class="px-3 py-1.5 bg-slate-800/60 text-slate-400 rounded-lg font-bold text-xs border border-slate-700/50 flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-rounded text-xs">lock</span> ${t.status_message}</span>`;
               } else if (t.my_attempts > 0) {
-                actionHtml = `<div class="w-full py-2 bg-emerald-900/40 text-emerald-400 rounded font-bold text-sm text-center border border-emerald-800/50 mb-2">Best Score: ${t.best_score || 0}</div>`;
+                actionHtml = `<span class="px-3 py-1.5 bg-emerald-950/60 text-emerald-400 rounded-lg font-bold text-xs border border-emerald-800/50 whitespace-nowrap">Score: ${t.best_score || 0}</span>`;
               } else {
-                actionHtml = `<div class="w-full py-2 bg-slate-800/40 text-slate-400 rounded font-bold text-sm text-center border border-slate-700/50 mb-2">${t.status_message || 'Expired'}</div>`;
+                actionHtml = `<span class="px-3 py-1.5 bg-slate-800/60 text-slate-400 rounded-lg font-bold text-xs border border-slate-700/50 whitespace-nowrap">${t.status_message || 'Expired'}</span>`;
               }
 
               let hasEnded = false;
@@ -1672,39 +1668,30 @@
                 hasEnded = (new Date() >= et);
               }
               if (hasEnded && t.my_attempts > 0) {
-                actionHtml += `<button onclick="viewAnswerKey('${t.test_id}')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition-premium">View Answer Key</button>`;
-              } else if (t.my_attempts > 0 && !t.can_take) {
-                let formattedEndTime = new Date(t.end_time).toLocaleString();
-                actionHtml += `<div class="text-sm text-center text-slate-400 font-semibold mt-1 bg-slate-950/30 p-1.5 rounded border border-slate-800/50">Answer key unlocks after test ends: <br/>${formattedEndTime}</div>`;
+                actionHtml += `<button onclick="viewAnswerKey('${t.test_id}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs transition-premium shadow-sm whitespace-nowrap cursor-pointer">Answer Key</button>`;
               }
 
               html += `
-                <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl overflow-hidden mb-1">
-                  <!-- Collapsible Header -->
-                  <div onclick="document.getElementById('co_exam_${t.test_id}').classList.toggle('hidden'); this.querySelector('.arrow-icon').innerText = document.getElementById('co_exam_${t.test_id}').classList.contains('hidden') ? 'expand_more' : 'expand_less';" 
-                       class="px-4 py-3.5 bg-slate-950/40 hover:bg-slate-950/70 border-b border-slate-800/60 flex justify-between items-center cursor-pointer transition-premium">
-                    <div class="flex items-center gap-3">
-                      <span class="material-symbols-rounded text-purple-400 text-sm">quiz</span>
-                      <div>
-                        <h4 class="font-bold text-sm text-slate-200">${t.test_name}</h4>
-                        <p class="text-sm font-black text-purple-400 uppercase tracking-wider mt-0.5">${t.subject_code} - ${t.subject_name || t.subject_code}</p>
+                <div class="p-3.5 bg-slate-950/40 border border-slate-800/80 rounded-xl hover:border-slate-700/80 transition-all shadow-sm">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-rounded text-base">quiz</span>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="font-extrabold text-white text-xs uppercase tracking-wide">${t.test_name}</span>
+                          <span class="text-[10px] font-bold text-slate-400 font-mono">${t.duration} Mins &bull; ${t.mcq_count} MCQs</span>
+                        </div>
+                        <p class="text-xs font-bold text-purple-300 truncate mt-0.5">${t.subject_code} - ${t.subject_name || t.subject_code}</p>
                       </div>
                     </div>
-                    <span class="material-symbols-rounded text-slate-500 text-sm arrow-icon">expand_more</span>
-                  </div>
-                  <!-- Collapsible Content -->
-                  <div id="co_exam_${t.test_id}" class="hidden p-4 bg-slate-950/10 border-t border-slate-800/40">
-                    <div class="grid grid-cols-2 gap-4 mb-4 text-sm text-slate-400 font-semibold">
-                      <div class="space-y-1">
-                        <div>Duration: <span class="text-slate-200 font-bold">${t.duration} Mins</span></div>
-                        <div>Total Questions: <span class="text-slate-200 font-bold">${t.mcq_count} MCQs</span></div>
+
+                    <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between sm:justify-end border-t sm:border-t-0 border-slate-800/60 pt-2 sm:pt-0">
+                      <div class="text-right text-[11px] font-semibold text-slate-400">
+                        <div>Attempts: <span class="text-slate-300 font-bold">${t.my_attempts}/${t.max_attempts}</span></div>
+                        <div>Due: <span class="text-amber-400 font-bold font-mono">${t.end_time ? new Date(t.end_time).toLocaleDateString() : 'No Limit'}</span></div>
                       </div>
-                      <div class="space-y-1">
-                        <div>Attempts: <span class="text-slate-200 font-bold">${t.my_attempts}/${t.max_attempts}</span></div>
-                        <div>Deadline: <span class="text-slate-200 font-bold font-mono">${t.end_time ? new Date(t.end_time).toLocaleString() : 'No Limit'}</span></div>
-                      </div>
-                    </div>
-                    <div class="mt-3">
                       ${actionHtml}
                     </div>
                   </div>

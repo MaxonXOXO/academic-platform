@@ -504,7 +504,7 @@
         </div>
 
         <!-- Academic Report Content (God Table) -->
-        <div id="academicReportContent" class="space-y-4 pb-12 overflow-x-auto">
+        <div id="academicReportContent" class="space-y-4 pb-12 overflow-x-auto scrollbar-hidden">
            <div class="text-slate-500 italic text-center p-4 text-[10px] text-xs">Loading stats...</div>
         </div>
       </div>
@@ -1331,38 +1331,38 @@
         const trClass = "border-b border-slate-800/50 hover:bg-slate-900/30 transition-premium";
         rows += `
           <tr class="${trClass}">
-            <td class="p-4 whitespace-nowrap max-w-[170px]">
-              <div class="font-black text-slate-200 text-sm">${sub.subject_code}</div>
-              <div class="text-xs text-slate-400 font-bold truncate max-w-[160px]" title="${sub.subject_name}">${sub.subject_name}</div>
+            <td class="px-3 py-2.5 whitespace-nowrap max-w-[170px]">
+              <div class="font-bold text-slate-200 text-xs">${sub.subject_code}</div>
+              <div class="text-[11px] text-slate-400 font-medium truncate max-w-[160px]" title="${sub.subject_name}">${sub.subject_name}</div>
             </td>
-            <td class="p-4 text-center text-base font-mono font-bold text-slate-300">${sub.CO1 !== null ? Math.round(sub.CO1) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-bold text-slate-300 bg-slate-950/20">${sub.CO2 !== null ? Math.round(sub.CO2) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-bold text-slate-300">${sub.CO3 !== null ? Math.round(sub.CO3) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-bold text-slate-300 bg-slate-950/20">${sub.CO4 !== null ? Math.round(sub.CO4) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-bold text-blue-400 border-l border-slate-800">
-              ${sub.Assg1 !== null ? Math.round(sub.Assg1) : (sub.Assg1_status === 'Submitted' ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-slate-300">${sub.CO1 !== null ? Math.round(sub.CO1) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-slate-300 bg-slate-950/20">${sub.CO2 !== null ? Math.round(sub.CO2) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-slate-300">${sub.CO3 !== null ? Math.round(sub.CO3) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-slate-300 bg-slate-950/20">${sub.CO4 !== null ? Math.round(sub.CO4) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-blue-400 border-l border-slate-800">
+              ${sub.Assg1 !== null ? Math.round(sub.Assg1) : (sub.Assg1_status === 'Submitted' ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
             </td>
-            <td class="p-4 text-center text-base font-mono font-bold text-blue-400">
-              ${sub.Assg2 !== null ? Math.round(sub.Assg2) : (sub.Assg2_status === 'Submitted' ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-blue-400">
+              ${sub.Assg2 !== null ? Math.round(sub.Assg2) : (sub.Assg2_status === 'Submitted' ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
             </td>
-            <td class="p-4 text-center text-base font-mono font-bold text-blue-400">
-              ${sub.Assg3 !== null ? Math.round(sub.Assg3) : (sub.Assg3_status === 'Submitted' ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-blue-400">
+              ${sub.Assg3 !== null ? Math.round(sub.Assg3) : (sub.Assg3_status === 'Submitted' ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
             </td>
-            <td class="p-4 text-center text-base font-mono font-bold text-blue-400">
-              ${sub.Assg4 !== null ? Math.round(sub.Assg4) : (sub.Assg4_status === 'Submitted' ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-bold text-blue-400">
+              ${sub.Assg4 !== null ? Math.round(sub.Assg4) : (sub.Assg4_status === 'Submitted' ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold tracking-wider animate-pulse">SUBMITTED</span>' : '-')}
             </td>
-            <td class="p-4 text-center text-base font-mono font-black text-emerald-400 border-l border-slate-800">${sub.WT1 !== null ? Math.round(sub.WT1) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-emerald-400">${sub.WT2 !== null ? Math.round(sub.WT2) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-emerald-400">${sub.WT3 !== null ? Math.round(sub.WT3) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-emerald-400">${sub.WT4 !== null ? Math.round(sub.WT4) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-purple-400 border-l border-slate-800">${sub.OT1 !== null ? Math.round(sub.OT1) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-purple-400">${sub.OT2 !== null ? Math.round(sub.OT2) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-purple-400">${sub.OT3 !== null ? Math.round(sub.OT3) : '-'}</td>
-            <td class="p-4 text-center text-base font-mono font-black text-purple-400">${sub.OT4 !== null ? Math.round(sub.OT4) : '-'}</td>
-            <td class="p-4 text-center text-base font-black border-l border-slate-800 ${sub.attendance_percentage < 75 ? 'text-rose-400' : 'text-slate-300'}">
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-emerald-400 border-l border-slate-800">${sub.WT1 !== null ? Math.round(sub.WT1) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-emerald-400">${sub.WT2 !== null ? Math.round(sub.WT2) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-emerald-400">${sub.WT3 !== null ? Math.round(sub.WT3) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-emerald-400">${sub.WT4 !== null ? Math.round(sub.WT4) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-purple-400 border-l border-slate-800">${sub.OT1 !== null ? Math.round(sub.OT1) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-purple-400">${sub.OT2 !== null ? Math.round(sub.OT2) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-purple-400">${sub.OT3 !== null ? Math.round(sub.OT3) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black text-purple-400">${sub.OT4 !== null ? Math.round(sub.OT4) : '-'}</td>
+            <td class="px-2 py-2.5 text-center text-xs font-bold border-l border-slate-800 ${sub.attendance_percentage < 75 ? 'text-rose-400' : 'text-slate-300'}">
               ${sub.attendance_percentage}%
             </td>
-            <td class="p-4 text-center text-base font-mono font-black border-l border-slate-800 text-sky-400 uppercase">
+            <td class="px-2 py-2.5 text-center text-xs font-mono font-black border-l border-slate-800 text-sky-400 uppercase">
               ${sub.board_grade ? sub.board_grade.toUpperCase() : '-'}
             </td>
           </tr>
@@ -1374,37 +1374,37 @@
           <div class="flex gap-4">
             <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 flex items-center gap-2 shadow-inner">
               <span class="material-symbols-rounded text-slate-400 text-sm">stars</span>
-              <span class="text-sm text-slate-400 font-bold uppercase tracking-widest">SGPA:</span>
-              <span class="text-sm font-black text-white">${semData.sgpa || '-'}</span>
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">SGPA:</span>
+              <span class="text-xs font-black text-white">${semData.sgpa || '-'}</span>
             </div>
             <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 flex items-center gap-2 shadow-inner">
               <span class="material-symbols-rounded text-slate-400 text-sm">local_activity</span>
-              <span class="text-sm text-slate-400 font-bold uppercase tracking-widest">Points:</span>
-              <span class="text-sm font-black text-white">${semData.activity_points || '-'}</span>
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Points:</span>
+              <span class="text-xs font-black text-white">${semData.activity_points || '-'}</span>
             </div>
           </div>
         </div>
 
-        <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-x-auto shadow-2xl">
-          <table class="w-full text-left border-collapse min-w-[1150px]">
+        <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-x-auto scrollbar-hidden shadow-2xl">
+          <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-slate-900/80 border-b border-slate-800 text-sm uppercase tracking-wider font-black text-slate-400">
-                <th class="p-4 font-black max-w-[170px]">Subject</th>
-                <th class="p-4 text-center" colspan="4">Sum COs</th>
-                <th class="p-4 text-center border-l border-slate-800 text-blue-400" colspan="4">Assignments</th>
-                <th class="p-4 text-center border-l border-slate-800 text-emerald-400" colspan="4">Written Tests</th>
-                <th class="p-4 text-center border-l border-slate-800 text-purple-400" colspan="4">Online Tests</th>
-                <th class="p-4 text-center border-l border-slate-800">Attend.</th>
-                <th class="p-4 text-center border-l border-slate-800 text-sky-400">Board Exam</th>
+              <tr class="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider font-black text-slate-400">
+                <th class="px-3 py-2.5 font-black max-w-[170px]">Subject</th>
+                <th class="px-2 py-2.5 text-center" colspan="4">Sum COs</th>
+                <th class="px-2 py-2.5 text-center border-l border-slate-800 text-blue-400" colspan="4">Assignments</th>
+                <th class="px-2 py-2.5 text-center border-l border-slate-800 text-emerald-400" colspan="4">Written Tests</th>
+                <th class="px-2 py-2.5 text-center border-l border-slate-800 text-purple-400" colspan="4">Online Tests</th>
+                <th class="px-2 py-2.5 text-center border-l border-slate-800">Attend.</th>
+                <th class="px-2 py-2.5 text-center border-l border-slate-800 text-sky-400">Board Exam</th>
               </tr>
-              <tr class="bg-slate-900/40 border-b border-slate-800/50 text-xs uppercase font-bold text-slate-500">
-                <th class="p-2 max-w-[170px]"></th>
-                <th class="p-2 text-center w-10 border-l border-slate-800/50">C1</th><th class="p-2 text-center w-10 bg-slate-950/20">C2</th><th class="p-2 text-center w-10">C3</th><th class="p-2 text-center w-10 bg-slate-950/20">C4</th>
-                <th class="p-2 text-center w-10 border-l border-slate-800">A1</th><th class="p-2 text-center w-10">A2</th><th class="p-2 text-center w-10">A3</th><th class="p-2 text-center w-10">A4</th>
-                <th class="p-2 text-center w-10 border-l border-slate-800">W1</th><th class="p-2 text-center w-10">W2</th><th class="p-2 text-center w-10">W3</th><th class="p-2 text-center w-10">W4</th>
-                <th class="p-2 text-center w-10 border-l border-slate-800">O1</th><th class="p-2 text-center w-10">O2</th><th class="p-2 text-center w-10">O3</th><th class="p-2 text-center w-10">O4</th>
-                <th class="p-2 text-center w-16 border-l border-slate-800">%</th>
-                <th class="p-2 text-center w-24 border-l border-slate-800">Grade</th>
+              <tr class="bg-slate-900/40 border-b border-slate-800/50 text-[11px] uppercase font-bold text-slate-500">
+                <th class="px-3 py-1.5 max-w-[170px]"></th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800/50">C1</th><th class="px-1 py-1.5 text-center bg-slate-950/20">C2</th><th class="px-1 py-1.5 text-center">C3</th><th class="px-1 py-1.5 text-center bg-slate-950/20">C4</th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800">A1</th><th class="px-1 py-1.5 text-center">A2</th><th class="px-1 py-1.5 text-center">A3</th><th class="px-1 py-1.5 text-center">A4</th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800">W1</th><th class="px-1 py-1.5 text-center">W2</th><th class="px-1 py-1.5 text-center">W3</th><th class="px-1 py-1.5 text-center">W4</th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800">O1</th><th class="px-1 py-1.5 text-center">O2</th><th class="px-1 py-1.5 text-center">O3</th><th class="px-1 py-1.5 text-center">O4</th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800">%</th>
+                <th class="px-1 py-1.5 text-center border-l border-slate-800">Grade</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/30">

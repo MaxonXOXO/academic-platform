@@ -79,57 +79,57 @@
       
       <!-- Personal Info Tab -->
       <div id="smdProfile" class="smd-content-pane space-y-4">
-        <h4 class="font-bold text-white border-b border-slate-800/60 pb-2 mb-4 text-sm">Additional Personal Info</h4>
+        <h4 class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 mb-4 text-xs uppercase tracking-wider">Additional Personal Info</h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Annual Income</label>
-            <input type="text" id="smd_annual_income" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm" placeholder="e.g. ₹2,00,000">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Annual Income</label>
+            <input type="text" id="smd_annual_income" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs" placeholder="e.g. ₹2,00,000">
           </div>
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Residential Status</label>
-            <select id="smd_residential_status" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Residential Status</label>
+            <select id="smd_residential_status" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs">
               <option value="Day Scholar">Day Scholar</option>
               <option value="Hosteller">Hosteller</option>
             </select>
           </div>
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Scholarships (if any)</label>
-            <input type="text" id="smd_scholarships" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm" placeholder="e.g. E-Grantz">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Scholarships (if any)</label>
+            <input type="text" id="smd_scholarships" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs" placeholder="e.g. E-Grantz">
           </div>
           <div class="flex items-center gap-2 mt-6">
             <input type="checkbox" id="smd_fee_waiver" class="rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500 focus:ring-2">
-            <label class="text-slate-300 font-bold text-sm">Fee Waiver Student</label>
+            <label class="text-slate-300 font-bold text-xs">Fee Waiver Student</label>
           </div>
         </div>
 
-        <h4 class="font-bold text-white border-b border-slate-800/60 pb-2 mb-4 mt-8 text-sm">Guardian Details</h4>
+        <h4 class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 mb-4 mt-8 text-xs uppercase tracking-wider">Guardian Details</h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Guardian Name</label>
-            <input type="text" id="smd_guardian_name" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Guardian Name</label>
+            <input type="text" id="smd_guardian_name" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs">
           </div>
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Relationship</label>
-            <input type="text" id="smd_guardian_relationship" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Relationship</label>
+            <input type="text" id="smd_guardian_relationship" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs">
           </div>
           <div>
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Mobile No</label>
-            <input type="text" id="smd_guardian_mobile" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 text-sm">
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Mobile No</label>
+            <input type="text" id="smd_guardian_mobile" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 text-xs">
           </div>
           <div class="md:col-span-2">
-            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-sm">Permanent Address</label>
-            <textarea id="smd_guardian_address" rows="3" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-blue-500 resize-none text-sm"></textarea>
+            <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1 text-xs">Permanent Address</label>
+            <textarea id="smd_guardian_address" rows="3" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 outline-none focus:border-blue-500 resize-none text-xs"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Family Details Tab -->
       <div id="smdFamily" class="smd-content-pane hidden space-y-4">
-        <h4 class="font-bold text-white border-b border-slate-800/60 pb-2 mb-4 text-sm">Family Members</h4>
+        <h4 class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 mb-4 text-xs uppercase tracking-wider">Family Members</h4>
         <div class="overflow-x-auto rounded-xl border border-slate-800/60">
-          <table class="w-full text-left border-collapse text-sm">
+          <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-900/40 text-slate-400 border-b border-slate-800/60">
+              <tr class="bg-slate-900/40 text-slate-400 border-b border-slate-800/60 text-xs">
                 <th class="p-3">Name</th>
                 <th class="p-3">Relationship</th>
                 <th class="p-3">Education</th>
@@ -143,16 +143,16 @@
             </tbody>
           </table>
         </div>
-        <button onclick="addFamilyRow()" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold cursor-pointer text-sm">+ Add Family Member</button>
+        <button onclick="addFamilyRow()" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold cursor-pointer text-xs">+ Add Family Member</button>
       </div>
 
       <!-- Prior Education Tab -->
       <div id="smdEducation" class="smd-content-pane hidden space-y-4">
-        <h4 class="font-bold text-white border-b border-slate-800/60 pb-2 mb-4 text-sm">Educational Background</h4>
+        <h4 class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 mb-4 text-xs uppercase tracking-wider">Educational Background</h4>
         <div class="overflow-x-auto rounded-xl border border-slate-800/60">
-          <table class="w-full text-left border-collapse text-sm">
+          <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-900/40 text-slate-400 border-b border-slate-800/60">
+              <tr class="bg-slate-900/40 text-slate-400 border-b border-slate-800/60 text-xs">
                 <th class="p-3">Course/Standard</th>
                 <th class="p-3">Institution</th>
                 <th class="p-3">Year</th>
@@ -165,13 +165,13 @@
             </tbody>
           </table>
         </div>
-        <button onclick="addEducationRow()" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold cursor-pointer text-sm">+ Add Education Record</button>
+        <button onclick="addEducationRow()" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold cursor-pointer text-xs">+ Add Education Record</button>
       </div>
 
       <!-- Academic Progress Tab -->
       <div id="smdAcademic" class="smd-content-pane hidden space-y-4">
-        <h4 class="font-bold text-white border-b border-slate-800/60 pb-2 mb-4 text-sm">Internal Progress Report</h4>
-        <p class="text-slate-400 mb-4 text-sm">These marks are generated automatically from your classroom assessments.</p>
+        <h4 class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 mb-4 text-xs uppercase tracking-wider">Internal Progress Report</h4>
+        <p class="text-slate-400 mb-4 text-xs">These marks are generated automatically from your classroom assessments.</p>
         <div id="smdAcademicReport" class="space-y-6">
           <!-- JS rendered academic tables (CO tests, assignments) -->
         </div>
@@ -180,10 +180,10 @@
       <!-- Board Exams Tab -->
       <div id="smdBoard" class="smd-content-pane hidden space-y-4">
         <div class="flex justify-between items-center border-b border-slate-800/60 pb-2 mb-4">
-          <h4 class="text-sm font-bold text-white">Board Exam Results</h4>
+          <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Board Exam Results</h4>
           <div class="flex items-center gap-2">
-            <label class="text-sm text-slate-400 font-bold uppercase tracking-wider">Select Semester:</label>
-            <select id="smdBoardSemSelect" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white font-bold outline-none focus:border-blue-500" onchange="renderStudentBoardExams()">
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">Select Semester:</label>
+            <select id="smdBoardSemSelect" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-white font-bold outline-none focus:border-blue-500" onchange="renderStudentBoardExams()">
               <option value="">-- Choose --</option>
               <option value="1">Semester 1</option>
               <option value="2">Semester 2</option>
@@ -212,7 +212,7 @@
           </table>
         </div>
         <div class="flex justify-end mt-4">
-          <button onclick="saveStudentMentoringData()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg text-sm">
+          <button onclick="saveStudentMentoringData()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md text-xs">
             <span class="material-symbols-rounded text-sm">save</span> Save Board Exam Results
           </button>
         </div>
@@ -270,14 +270,14 @@
       <!-- Leave Records Tab -->
       <div id="smdLeave" class="smd-content-pane hidden space-y-4">
         <div class="flex justify-between items-center border-b border-slate-800/60 pb-2 mb-4">
-            <h4 class="font-bold text-white text-sm">Leave Records</h4>
-            <button onclick="openLeaveModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-1 text-sm">
+            <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Leave Records</h4>
+            <button onclick="openLeaveModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-1 text-xs">
               <span class="material-symbols-rounded text-sm">add</span> Log Leave
             </button>
         </div>
         <div class="overflow-x-auto bg-slate-900/50 border border-slate-700 rounded-xl">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-800/80 text-slate-400 font-black uppercase">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-800/80 text-slate-400 font-black uppercase text-xs">
               <tr>
                 <th class="p-3">Semester</th>
                 <th class="p-3">Date</th>
@@ -295,8 +295,8 @@
 
       <!-- Mentor Meetings Tab -->
       <div id="smdMeetings" class="smd-content-pane hidden space-y-4">
-        <h4 class="text-sm font-bold text-white border-b border-slate-800/60 pb-2 mb-4">Mentor Remarks</h4>
-        <p class="text-sm text-slate-400 mb-4">These logs are maintained by your mentor.</p>
+        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/60 pb-2 mb-4">Mentor Remarks</h4>
+        <p class="text-xs text-slate-400 mb-4">These logs are maintained by your mentor.</p>
         <div id="smdMeetingsList" class="space-y-4">
           <!-- JS rendered meetings -->
         </div>

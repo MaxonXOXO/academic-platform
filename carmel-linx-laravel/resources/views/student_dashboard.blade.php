@@ -187,7 +187,7 @@
           </button>
           <div>
             <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Works To Do</h1>
-            <p class="font-bold text-slate-400 mt-0.5" id="panelSubtitle">Manage your pending assignments and active tests.</p>
+            <p class="text-xs text-slate-400 mt-0.5 font-medium" id="panelSubtitle">Manage your pending assignments and active tests.</p>
           </div>
         </div>
         <div class="flex items-center gap-4">

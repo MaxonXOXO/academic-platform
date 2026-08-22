@@ -43,7 +43,7 @@
     }
     body { font-family: 'Inter', system-ui, sans-serif; }
     input, select, textarea {
-      font-size: 0.875rem !important; /* 14px (text-sm) minimum */
+      font-size: 0.75rem !important; /* 12px (text-xs) compact */
     }
     .text-lg {
       font-size: 1.05rem !important;

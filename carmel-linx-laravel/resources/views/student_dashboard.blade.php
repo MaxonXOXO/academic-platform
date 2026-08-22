@@ -181,6 +181,69 @@
     <!-- Panels -->
     <div class="flex-grow overflow-y-auto p-6 md:p-8">
 
+      @php
+        $todayStr = date('Y-m-d');
+        $campusEventToday = \App\Models\PrincipalScheduledEvent::where('is_published', true)
+            ->whereDate('event_date', '<=', $todayStr)
+            ->whereDate('end_date', '>=', $todayStr)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        if ($campusEventToday && $campusEventToday->reopen_date) {
+            $campusEventToday->formatted_reopen_date = \Carbon\Carbon::parse($campusEventToday->reopen_date)->format('d M Y');
+        }
+      @endphp
+
+      @if($campusEventToday)
+      <!-- CAMPUS HOLIDAY & EVENT SUSPENSION BROADCAST BANNER -->
+      <div id="studentDesktopCampusEventBanner" class="mb-6 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/60 border-2 border-rose-500/60 rounded-2xl p-6 shadow-2xl relative overflow-hidden fade-up" style="border-left: 6px solid #f43f5e;">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center flex-shrink-0 shadow-lg text-rose-400">
+              <span class="material-symbols-rounded text-2xl">campaign</span>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                <span class="px-3 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-black uppercase tracking-wider">
+                  🚨 CAMPUS ANNOUNCEMENT &bull; {{ strtoupper($campusEventToday->event_category ?? 'OFFICIAL NOTICE') }}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold font-mono">
+                  {{ \Carbon\Carbon::parse($campusEventToday->event_date)->format('d M Y') }}
+                  @if($campusEventToday->end_date && \Carbon\Carbon::parse($campusEventToday->end_date)->format('Y-m-d') !== \Carbon\Carbon::parse($campusEventToday->event_date)->format('Y-m-d'))
+                    - {{ \Carbon\Carbon::parse($campusEventToday->end_date)->format('d M Y') }}
+                  @endif
+                </span>
+              </div>
+              <h3 class="font-black text-white text-lg tracking-tight">{{ $campusEventToday->title }}</h3>
+              <p class="text-sm text-slate-300 mt-1 font-semibold leading-relaxed">
+                {{ $campusEventToday->notice_text ?? ('Regular classes suspended due to ' . $campusEventToday->title . '.') }}
+              </p>
+              @if($campusEventToday->description)
+                <p class="text-xs text-slate-400 mt-1.5 italic">{{ $campusEventToday->description }}</p>
+              @endif
+            </div>
+          </div>
+
+          @if($campusEventToday->formatted_reopen_date)
+          <div class="flex-shrink-0 w-full md:w-auto">
+            <div class="p-3 px-4 rounded-xl flex items-center shadow-lg border border-emerald-400/40" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-950/20 flex-shrink-0 me-3">
+                <span class="material-symbols-rounded text-slate-950 text-xl font-bold">event_available</span>
+              </div>
+              <div>
+                <div class="text-slate-950 font-black uppercase text-[10px] tracking-wider opacity-90 leading-tight">
+                  COLLEGE REOPENS ON
+                </div>
+                <div class="text-slate-950 font-black text-base tracking-tight" style="white-space: nowrap; font-weight: 900 !important;">
+                  {{ $campusEventToday->formatted_reopen_date }}
+                </div>
+              </div>
+            </div>
+          </div>
+          @endif
+        </div>
+      </div>
+      @endif
+
       <!-- PRE-CLASS ACADEMIC READINESS & LEARNING VAULT ALERT BANNER -->
       <div id="vlmPreClassAlertBanner" class="mb-6 bg-gradient-to-r from-amber-950/70 via-slate-900 to-indigo-950/70 border-2 border-amber-500/60 rounded-2xl p-5 shadow-2xl relative overflow-hidden hidden fade-up">
         <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>

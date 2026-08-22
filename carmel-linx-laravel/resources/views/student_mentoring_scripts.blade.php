@@ -2,14 +2,17 @@
 function switchStudentMentoringTab(tabId) {
   document.querySelectorAll('.smd-content-pane').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.smd-tab').forEach(el => {
-    el.classList.remove('bg-slate-800/80', 'text-blue-400');
+    el.classList.remove('bg-slate-800/80', 'text-blue-400', 'border', 'border-slate-700/60', 'shadow-md');
     el.classList.add('text-slate-400');
   });
 
-  document.getElementById(tabId).classList.remove('hidden');
+  const pane = document.getElementById(tabId);
+  if (pane) pane.classList.remove('hidden');
   const btn = document.getElementById('tabBtn_' + tabId);
-  btn.classList.remove('text-slate-400');
-  btn.classList.add('bg-slate-800/80', 'text-blue-400');
+  if (btn) {
+    btn.classList.remove('text-slate-400');
+    btn.classList.add('bg-slate-800/80', 'text-blue-400', 'border', 'border-slate-700/60', 'shadow-md');
+  }
 }
 
 

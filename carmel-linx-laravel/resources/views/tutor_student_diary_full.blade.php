@@ -244,41 +244,39 @@
     </div>
   </div>
 
-  <div class="flex flex-col lg:flex-row gap-6">
-    <!-- Left Navigation Tabs -->
-    <div class="w-full lg:w-48 flex-shrink-0">
-      <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-hidden sticky top-24">
-        <button onclick="switchStudentMentoringTab('smdProfile')" id="tabBtn_smdProfile" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab bg-slate-800/80 text-blue-400 text-sm">
-          Personal Info
-        </button>
-        <button onclick="switchStudentMentoringTab('smdFamily')" id="tabBtn_smdFamily" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Family Details
-        </button>
-        <button onclick="switchStudentMentoringTab('smdEducation')" id="tabBtn_smdEducation" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Prior Education
-        </button>
-        <button onclick="switchStudentMentoringTab('smdAcademic')" id="tabBtn_smdAcademic" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Academic Progress
-        </button>
-        <button onclick="switchStudentMentoringTab('smdBoard')" id="tabBtn_smdBoard" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Board Exams
-        </button>        <button onclick="switchStudentMentoringTab('smdExtra')" id="tabBtn_smdExtra" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Extracurricular
-        </button>
-        <button onclick="switchStudentMentoringTab('smdLeave')" id="tabBtn_smdLeave" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Leave Records
-        </button>
-        <button onclick="switchStudentMentoringTab('smdDiscipline')" id="tabBtn_smdDiscipline" class="w-full text-left px-4 py-3 font-bold border-b border-slate-800/60 transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Disciplinary Actions
-        </button>
-        <button onclick="switchStudentMentoringTab('smdMeetings')" id="tabBtn_smdMeetings" class="w-full text-left px-4 py-3 font-bold transition-premium smd-tab text-slate-400 hover:bg-slate-900/50 text-sm">
-          Mentor Meetings
-        </button>
-      </div>
-    </div>
+  <!-- Mentoring Horizontal Tabs Header -->
+  <div class="bg-slate-950/60 border border-slate-800/60 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-inner">
+    <button onclick="switchStudentMentoringTab('smdProfile')" id="tabBtn_smdProfile" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab bg-slate-800/80 text-blue-400 text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">person</span> Personal Info
+    </button>
+    <button onclick="switchStudentMentoringTab('smdFamily')" id="tabBtn_smdFamily" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">family_restroom</span> Family Details
+    </button>
+    <button onclick="switchStudentMentoringTab('smdEducation')" id="tabBtn_smdEducation" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">school</span> Prior Education
+    </button>
+    <button onclick="switchStudentMentoringTab('smdAcademic')" id="tabBtn_smdAcademic" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">monitoring</span> Academic Progress
+    </button>
+    <button onclick="switchStudentMentoringTab('smdBoard')" id="tabBtn_smdBoard" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">assignment</span> Board Exams
+    </button>
+    <button onclick="switchStudentMentoringTab('smdExtra')" id="tabBtn_smdExtra" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">workspace_premium</span> Extracurricular
+    </button>
+    <button onclick="switchStudentMentoringTab('smdLeave')" id="tabBtn_smdLeave" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">event_busy</span> Leave Records
+    </button>
+    <button onclick="switchStudentMentoringTab('smdDiscipline')" id="tabBtn_smdDiscipline" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">gavel</span> Disciplinary Actions
+    </button>
+    <button onclick="switchStudentMentoringTab('smdMeetings')" id="tabBtn_smdMeetings" class="px-4 py-2.5 font-bold rounded-xl transition-premium smd-tab text-slate-400 hover:bg-slate-900/60 hover:text-white text-xs whitespace-nowrap cursor-pointer flex items-center gap-2">
+      <span class="material-symbols-rounded text-base">forum</span> Mentor Meetings
+    </button>
+  </div>
 
-    <!-- Tab Content -->
-    <div class="flex-grow bg-slate-950/30 border border-slate-800/40 rounded-2xl p-6 min-h-[400px]">
+  <!-- Full-Width Tab Content -->
+  <div class="w-full bg-slate-950/30 border border-slate-800/40 rounded-2xl p-6 min-h-[400px]">
       
       <!-- Personal Info Tab -->
       <div id="smdProfile" class="smd-content-pane space-y-4">
@@ -616,7 +614,6 @@
       </div>
 
     </div>
-  </div>
 </div>
 
 

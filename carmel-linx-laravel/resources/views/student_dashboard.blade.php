@@ -303,7 +303,7 @@
 
       <!-- PANEL: ACTIVE EXAMS -->
       <div id="panelExams" class="fade-up">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Assignments Card -->
             <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 flex items-center gap-4">
               <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 flex-shrink-0">

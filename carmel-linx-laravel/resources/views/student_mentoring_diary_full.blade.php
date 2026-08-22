@@ -9,14 +9,33 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
-    /* Desktop Sizing Standard to match Staff Dashboard Density */
+    @media (max-width: 1440px) {
+      html, body {
+        font-size: 13px !important;
+      }
+      .p-6 {
+        padding: 1rem !important;
+      }
+      .p-8 {
+        padding: 1.25rem !important;
+      }
+      .gap-6 {
+        gap: 1rem !important;
+      }
+      .gap-8 {
+        gap: 1.25rem !important;
+      }
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .text-nowrap {
+        white-space: nowrap !important;
+      }
+    }
     html {
       font-size: 90%;
-    }
-    @media (min-width: 1024px) {
-      body {
-        font-size: 13px;
-      }
     }
     /* Universal typography fix to avoid screen text spreading/bleeding on super bold weights */
     .font-extrabold, .font-black {

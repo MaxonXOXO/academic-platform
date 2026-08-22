@@ -70,7 +70,7 @@
       aside nav > :not([hidden]) ~ :not([hidden]) {
         margin-top: 0.125rem !important;
       }
-      aside nav a, aside nav button {
+      aside nav a, aside nav button, aside nav div {
         padding-top: 0.375rem !important;
         padding-bottom: 0.375rem !important;
         padding-left: 0.875rem !important;
@@ -151,9 +151,9 @@
       <button id="navProfile" onclick="switchPanel('profile')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-lg">manage_accounts</span> My Profile
       </button>
-      <a id="navMentoring" href="/student/mentoring-diary" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs no-underline block">
+      <button id="navMentoring" onclick="switchPanel('mentoring')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-lg">menu_book</span> Mentoring Diary
-      </a>
+      </button>
       <button id="navActivity" onclick="switchPanel('activity')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-lg">star</span> Activity Points
       </button>
@@ -829,6 +829,9 @@
         </div>
       </div>
 
+      <!-- Mentoring Diary Panel -->
+      @include('student_mentoring_panel')
+
     </div>
   </main>
 
@@ -857,7 +860,7 @@
       // Sync browser history state safely
       window.history.replaceState({}, '', '?tab=' + panelId);
 
-      const panels = ['exams', 'marks', 'profile', 'activity', 'seminar'];
+      const panels = ['exams', 'marks', 'profile', 'mentoring', 'activity', 'seminar'];
       
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -871,11 +874,12 @@
         }
       });
 
-      const titles = { exams: 'Works To Do', marks: 'Academic Stats', profile: 'My Profile', activity: 'Activity Points', seminar: 'My Seminar' };
+      const titles = { exams: 'Works To Do', marks: 'Academic Stats', profile: 'My Profile', mentoring: 'Mentoring Diary', activity: 'Activity Points', seminar: 'My Seminar' };
       const subtitles = { 
         exams: 'Manage your pending assignments and active tests.', 
         marks: 'Your semester-wise academic progress.', 
         profile: 'Your personal and academic details.',
+        mentoring: 'View and update your complete student mentoring diary.',
         activity: 'Track and claim your extracurricular points.',
         seminar: 'Register and view your seminar topics details.'
       };
@@ -886,13 +890,20 @@
         loadActivityPoints();
       } else if (panelId === 'seminar') {
         loadSeminarRegistration();
+      } else if (panelId === 'mentoring') {
+        if (!mentoringLoaded) {
+          if (typeof loadStudentMentoringDiary === 'function') {
+            loadStudentMentoringDiary();
+          }
+          mentoringLoaded = true;
+        }
       }
     }
 
       document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
-        if (tab && ['exams', 'marks', 'profile', 'activity', 'seminar'].includes(tab)) {
+        if (tab && ['exams', 'marks', 'profile', 'mentoring', 'activity', 'seminar'].includes(tab)) {
           switchPanel(tab);
         }
         loadStudentTests();
@@ -1603,7 +1614,7 @@
                 } else {
                   const sidebarWrapper = document.getElementById('sidebarAvatarContainer');
                   if (sidebarWrapper) {
-                    sidebarWrapper.innerHTML = `<img id="sidebarStudentImg" src="${data.photo_url}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">`;
+                    sidebarWrapper.innerHTML = `<img id="sidebarStudentImg" src="${data.photo_url}" class="w-10 h-10 rounded-full border border-slate-700 object-cover shadow-inner">`;
                   }
                 }
 
@@ -2574,6 +2585,7 @@
     }
   </script>
   @endif
+  @include('student_mentoring_scripts')
 </body>
 </html>
 

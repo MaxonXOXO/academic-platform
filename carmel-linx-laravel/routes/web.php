@@ -204,7 +204,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/student/mentoring-diary', function () {
         if (Session::get('userRole') !== 'Student') return redirect('/');
-        return noCacheView('student_mentoring_diary_full');
+        return redirect('/dashboard/student?tab=mentoring');
     });
 
     Route::get('/tutor/mentoring-diary/{regNo}', [\App\Http\Controllers\MentoringController::class, 'tutorViewFullDiary']);

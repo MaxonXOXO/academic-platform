@@ -2125,8 +2125,10 @@
                         if (reopenTextEl) {
                             if (data.event.formatted_reopen_date) {
                                 reopenTextEl.innerHTML = `
-                                    <div class="p-2.5 rounded-3 d-flex align-items-center gap-2.5 shadow-md w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399;">
-                                        <i class="fa-solid fa-calendar-check text-slate-950 fs-4"></i>
+                                    <div class="p-2.5 px-3 rounded-3 d-flex align-items-center shadow-md w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399;">
+                                        <div class="p-2 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center me-3" style="background: rgba(15, 23, 42, 0.18); width: 38px; height: 38px;">
+                                            <i class="fa-solid fa-calendar-check text-slate-950 fs-5"></i>
+                                        </div>
                                         <div>
                                             <div class="text-slate-950 fw-extrabold uppercase" style="font-size: 0.68rem; letter-spacing: 0.8px; opacity: 0.92; line-height: 1.2;">
                                                 COLLEGE REOPENS ON

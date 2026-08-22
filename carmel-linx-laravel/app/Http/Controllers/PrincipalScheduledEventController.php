@@ -231,8 +231,11 @@ class PrincipalScheduledEventController extends Controller
                 });
             });
 
-        if ($userRole === 'Student') {
-            $student = \App\Models\Student::where('mobile_no', $userId)->orWhere('reg_no', $userId)->first();
+        if (strtolower($userRole ?? '') === 'student') {
+            $student = \App\Models\Student::where('reg_no', $userId)
+                ->orWhere('adm_no', $userId)
+                ->orWhere('phone', $userId)
+                ->first();
             $dept = $student ? ($student->branch ?? 'ALL') : Session::get('userBranch', 'ALL');
 
             $query->where(function ($q) use ($dept) {

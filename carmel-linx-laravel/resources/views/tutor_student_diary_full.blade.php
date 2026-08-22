@@ -191,57 +191,45 @@
 <div class="flex-grow overflow-y-auto p-6 md:p-8">
 <div id="panelMentoring" class="fade-up space-y-6">
   
-  <div class="flex items-center justify-between bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl">
-    <div>
-      <h3 class="font-black text-slate-200 flex items-center gap-2 text-lg">
-        <span class="material-symbols-rounded text-indigo-400">menu_book</span> <span id="diaryStudentNameHeader">Student</span>'s Mentoring Diary
-      </h3>
-      <p class="text-slate-400 mt-1 text-[10px] text-xs">Full mentoring record. You can add Meeting Logs, Incidents, and approve Leave from the sidebar or tabs below.</p>
+  <!-- Student Quick Info Header Card -->
+  <div class="bg-gradient-to-r from-slate-950/60 to-indigo-950/20 border border-slate-800/80 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-xl fade-up">
+    <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left w-full md:w-auto">
+      <div class="flex-shrink-0">
+        <div id="diaryStudentPhotoContainer">
+          <!-- Dynamic photo populated via JS -->
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-xl text-white shadow-lg border border-indigo-500/30" id="diaryStudentPhotoPlaceholder">
+            {{ strtoupper(substr($studentRegNo, 0, 2)) }}
+          </div>
+          <img id="diaryStudentPhoto" class="w-16 h-16 rounded-2xl border-2 border-indigo-500/40 object-cover shadow-2xl hidden">
+        </div>
+      </div>
+      <div class="flex-grow space-y-1">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
+          <h2 class="font-black text-white text-lg tracking-tight" id="diaryHeaderStudentName">
+            Loading...
+          </h2>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 self-center">
+            Active Student
+          </span>
+        </div>
+        <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-semibold">
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">badge</span> <span id="diaryHeaderStudentSbteLabel">PRN No:</span> <strong class="text-slate-200 font-mono" id="diaryHeaderStudentSbteNo">{{ $studentRegNo }}</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">auto_stories</span> Sem: <strong class="text-slate-200" id="diaryHeaderStudentSem">-</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">-</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">meeting_room</span> Batch: <strong class="text-slate-200" id="diaryHeaderStudentBatch">-</strong></span>
+        </div>
+      </div>
     </div>
-    <div class="flex gap-2">
-      <button onclick="downloadMentoringPdf()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg text-[10px] text-xs">
+    <!-- Quick Action Buttons -->
+    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-center sm:justify-end border-t md:border-t-0 border-slate-800/80 pt-3 md:pt-0">
+      <button onclick="downloadMentoringPdf()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow border border-slate-700 text-[10px] text-xs">
         <span class="material-symbols-rounded text-sm">download</span> Download PDF
       </button>
-      <button onclick="saveStudentMentoringData()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg text-[10px] text-xs">
+      <button onclick="saveStudentMentoringData()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md text-[10px] text-xs">
         <span class="material-symbols-rounded text-sm">save</span> Save Changes
-      </button>
-    </div>
-  </div>
-
-  <!-- Student Quick Info Header Card -->
-  <div class="bg-gradient-to-r from-slate-950/60 to-indigo-950/20 border border-slate-800/80 p-6 rounded-2xl flex flex-col sm:flex-row items-center gap-5 shadow-xl fade-up">
-    <div class="flex-shrink-0">
-      <div id="diaryStudentPhotoContainer">
-        <!-- Dynamic photo populated via JS -->
-        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-2xl text-white shadow-lg border border-indigo-500/30" id="diaryStudentPhotoPlaceholder">
-          {{ strtoupper(substr($studentRegNo, 0, 2)) }}
-        </div>
-        <img id="diaryStudentPhoto" class="w-20 h-20 rounded-2xl border-2 border-indigo-500/40 object-cover shadow-2xl hidden">
-      </div>
-    </div>
-    <div class="text-center sm:text-left flex-grow space-y-1">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
-        <h2 class="font-black text-white text-xl tracking-tight" id="diaryHeaderStudentName">
-          Loading...
-        </h2>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 self-center">
-          Active Student
-        </span>
-      </div>
-      <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-sm text-slate-400 font-semibold">
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> <span id="diaryHeaderStudentSbteLabel">PRN No:</span> <strong class="text-slate-200 font-mono" id="diaryHeaderStudentSbteNo">{{ $studentRegNo }}</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">auto_stories</span> Sem: <strong class="text-slate-200" id="diaryHeaderStudentSem">-</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">-</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">meeting_room</span> Batch: <strong class="text-slate-200" id="diaryHeaderStudentBatch">-</strong></span>
-      </div>
-    </div>
-    <!-- Mobile Save Button placed on Quick Info Card near Branch & Batch -->
-    <div class="md:hidden w-full flex justify-center pt-2">
-      <button onclick="saveStudentMentoringData()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center justify-center gap-2 shadow-lg text-sm">
-        <span class="material-symbols-rounded text-base">save</span> Save Changes
       </button>
     </div>
   </div>

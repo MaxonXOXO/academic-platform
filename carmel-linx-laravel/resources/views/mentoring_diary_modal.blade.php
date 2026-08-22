@@ -20,10 +20,10 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="fmdVerifyBtn" onclick="verifyStudentData()" class="px-4 py-2 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white border border-green-500/30 rounded-xl font-bold transition-premium flex items-center gap-2 cursor-pointer text-[10px] text-xs">
+        <button id="fmdVerifyBtn" onclick="verifyStudentData()" class="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white border border-green-500/30 rounded-xl font-bold transition-premium flex items-center gap-1.5 cursor-pointer text-[10px] text-xs">
           <span class="material-symbols-rounded text-sm">verified</span> Verify Data
         </button>
-        <button onclick="downloadMentorPdf()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-premium flex items-center gap-2 cursor-pointer border border-slate-700 text-[10px] text-xs">
+        <button onclick="downloadMentorPdf()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-premium flex items-center gap-1.5 cursor-pointer border border-slate-700 text-[10px] text-xs">
           <span class="material-symbols-rounded text-sm">print</span> Print Diary PDF
         </button>
         <button onclick="closeFullMentoringDiaryModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-2 bg-slate-800/50 rounded-full hover:bg-slate-700">

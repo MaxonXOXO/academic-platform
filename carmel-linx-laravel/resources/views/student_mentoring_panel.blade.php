@@ -1,59 +1,47 @@
 <div id="panelMentoring" class="hidden fade-up space-y-6">
   
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl">
-    <div>
-      <h3 class="font-black text-slate-200 flex items-center gap-2 text-lg">
-        <span class="material-symbols-rounded text-blue-400">menu_book</span> My Mentoring Diary
-      </h3>
-      <p class="text-slate-400 mt-1 text-sm">Keep your profile updated. Your mentor will verify these details.</p>
+  <!-- Student Quick Info Header Card -->
+  <div class="bg-gradient-to-r from-slate-950/60 to-indigo-950/20 border border-slate-800/80 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-xl fade-up">
+    <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left w-full md:w-auto">
+      <div class="flex-shrink-0">
+        <div id="diaryStudentPhotoContainer">
+          <!-- Student View: Direct session photo or fallback -->
+          @if(session('userPhoto'))
+            <img src="{{ session('userPhoto') }}" class="w-16 h-16 rounded-2xl border-2 border-indigo-500/40 object-cover shadow-2xl">
+          @else
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-xl text-white shadow-lg border border-indigo-500/30">
+              {{ strtoupper(substr(session('userName', 'S'), 0, 2)) }}
+            </div>
+          @endif
+        </div>
+      </div>
+      <div class="flex-grow space-y-1">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
+          <h2 class="font-black text-white text-lg tracking-tight" id="diaryHeaderStudentName">
+            {{ session('userName') }}
+          </h2>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 self-center">
+            Active Student
+          </span>
+        </div>
+        <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-semibold">
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">badge</span> <span id="diaryHeaderStudentSbteLabel">{{ session('sbteRegNo') ? 'PRN No:' : 'Reg No:' }}</span> <strong class="text-slate-200 font-mono" id="diaryHeaderStudentSbteNo">{{ session('sbteRegNo') ?: session('userId') }}</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">auto_stories</span> Sem: <strong class="text-slate-200" id="diaryHeaderStudentSem">S{{ session('userSemester', session('semester', '1')) }}</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">{{ session('userBranch', '-') }}</strong></span>
+          <span class="hidden sm:inline text-slate-600">&bull;</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-sm text-indigo-400">meeting_room</span> Batch: <strong class="text-slate-200" id="diaryHeaderStudentBatch">{{ session('classroomId', '-') }}</strong></span>
+        </div>
+      </div>
     </div>
-    <div class="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-      <button onclick="downloadMentoringPdf()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg text-sm">
+    <!-- Quick Action Buttons -->
+    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-center sm:justify-end border-t md:border-t-0 border-slate-800/80 pt-3 md:pt-0">
+      <button onclick="downloadMentoringPdf()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow border border-slate-700 text-[10px] text-xs">
         <span class="material-symbols-rounded text-sm">download</span> Download PDF
       </button>
-      <button onclick="saveStudentMentoringData()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg text-sm">
+      <button onclick="saveStudentMentoringData()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md text-[10px] text-xs">
         <span class="material-symbols-rounded text-sm">save</span> Save Changes
-      </button>
-    </div>
-  </div>
-
-  <!-- Student Quick Info Header Card -->
-  <div class="bg-gradient-to-r from-slate-950/60 to-indigo-950/20 border border-slate-800/80 p-6 rounded-2xl flex flex-col sm:flex-row items-center gap-5 shadow-xl fade-up">
-    <div class="flex-shrink-0">
-      <div id="diaryStudentPhotoContainer">
-        <!-- Student View: Direct session photo or fallback -->
-        @if(session('userPhoto'))
-          <img src="{{ session('userPhoto') }}" class="w-20 h-20 rounded-2xl border-2 border-indigo-500/40 object-cover shadow-2xl">
-        @else
-          <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-black text-2xl text-white shadow-lg border border-indigo-500/30">
-            {{ strtoupper(substr(session('userName', 'S'), 0, 2)) }}
-          </div>
-        @endif
-      </div>
-    </div>
-    <div class="text-center sm:text-left flex-grow space-y-1">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
-        <h2 class="font-black text-white text-xl tracking-tight" id="diaryHeaderStudentName">
-          {{ session('userName') }}
-        </h2>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 self-center">
-          Active Student
-        </span>
-      </div>
-      <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-sm text-slate-400 font-semibold">
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> <span id="diaryHeaderStudentSbteLabel">{{ session('sbteRegNo') ? 'PRN No:' : 'Reg No:' }}</span> <strong class="text-slate-200 font-mono" id="diaryHeaderStudentSbteNo">{{ session('sbteRegNo') ?: session('userId') }}</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">auto_stories</span> Sem: <strong class="text-slate-200" id="diaryHeaderStudentSem">S{{ session('userSemester', session('semester', '1')) }}</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">{{ session('userBranch', '-') }}</strong></span>
-        <span class="hidden sm:inline text-slate-600">&bull;</span>
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">meeting_room</span> Batch: <strong class="text-slate-200" id="diaryHeaderStudentBatch">{{ session('classroomId', '-') }}</strong></span>
-      </div>
-    </div>
-    <!-- Mobile Save Button -->
-    <div class="md:hidden w-full flex justify-center pt-2">
-      <button onclick="saveStudentMentoringData()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center justify-center gap-2 shadow-lg text-sm">
-        <span class="material-symbols-rounded text-base">save</span> Save Changes
       </button>
     </div>
   </div>

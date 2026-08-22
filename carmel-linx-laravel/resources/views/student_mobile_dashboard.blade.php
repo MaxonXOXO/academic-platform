@@ -1028,7 +1028,7 @@
                         <hr class="border-secondary opacity-25 my-3">
 
                         <h6 class="fw-bold text-white mb-1" style="font-size: 1rem; color: #ffffff !important;">{{ $student->name ?? session('userName') }}</h6>
-                        <div class="font-monospace fw-bold small mb-2" style="font-size: 0.82rem; color: #38bdf8 !important;">Reg No: {{ $student->reg_no ?? session('userId') }}</div>
+                        <div class="font-monospace fw-bold small mb-2" style="font-size: 0.82rem; color: #38bdf8 !important;">SBTE / PRN No: {{ $student->reg_no ?? session('userId') }}</div>
                         <span class="badge bg-secondary bg-opacity-40 text-white border border-secondary border-opacity-40 px-2.5 py-1" style="font-size: 0.72rem;">
                             {{ $student->branch ?? session('userBranch') }} &bull; Semester {{ $student->semester ?? '1' }}
                         </span>

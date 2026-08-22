@@ -258,7 +258,7 @@
         </span>
       </div>
       <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-sm text-slate-400 font-semibold">
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> Reg No: <strong class="text-slate-200 font-mono">{{ session('userId') }}</strong></span>
+        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> SBTE / PRN No: <strong class="text-slate-200 font-mono">{{ session('userId') }}</strong></span>
         <span class="hidden sm:inline text-slate-600">&bull;</span>
         <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">{{ session('userBranch', '-') }}</strong></span>
         <span class="hidden sm:inline text-slate-600">&bull;</span>

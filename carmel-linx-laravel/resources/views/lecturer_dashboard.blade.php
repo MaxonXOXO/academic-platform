@@ -1374,7 +1374,7 @@
                 </div>
                 <div class="flex items-center gap-2.5 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
                   <a id="openFullVirtualLabBtn" href="#" target="_blank" class="px-3 py-1.5 bg-cyan-600/20 border border-cyan-500/40 hover:bg-cyan-600/30 text-cyan-400 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0">
-                    <span class="material-symbols-rounded text-sm">open_in_new</span> Full Workspace
+                    <span class="material-symbols-rounded text-sm">open_in_new</span> Labwork Grades
                   </a>
                   <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm focus-within:border-blue-500/50 transition-all shrink-0">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Batch:</span>
@@ -1396,27 +1396,30 @@
                 </div>
               </div>
 
-              <!-- Compact Lab Statistics Micro-Bar -->
-              <div class="flex flex-wrap items-center gap-3 p-2 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-teal-500/20 rounded-lg">
+              <!-- Compact Lab Statistics Summary (Read-only inline stats) -->
+              <div class="flex flex-wrap items-center gap-x-6 gap-y-2 py-2 px-3 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs">
+                <div class="flex items-center gap-1.5">
                   <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
-                  <span class="text-[11px] text-slate-400 font-semibold">Avg Internal:</span>
-                  <span class="text-xs font-mono font-bold text-teal-300" id="statLabAvgInternal">0.00 / 75</span>
+                  <span class="text-slate-400 font-medium">Avg Internal:</span>
+                  <span class="font-mono font-bold text-teal-300" id="statLabAvgInternal">0.00 / 75</span>
                 </div>
-                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-blue-500/20 rounded-lg">
+                <span class="text-slate-800 hidden sm:inline">•</span>
+                <div class="flex items-center gap-1.5">
                   <span class="material-symbols-rounded text-blue-400 text-sm">school</span>
-                  <span class="text-[11px] text-slate-400 font-semibold">Avg Board:</span>
-                  <span class="text-xs font-mono font-bold text-blue-300" id="statLabAvgBoard">0.00 / 50</span>
+                  <span class="text-slate-400 font-medium">Avg Board:</span>
+                  <span class="font-mono font-bold text-blue-300" id="statLabAvgBoard">0.00 / 50</span>
                 </div>
-                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-emerald-500/20 rounded-lg">
+                <span class="text-slate-800 hidden sm:inline">•</span>
+                <div class="flex items-center gap-1.5">
                   <span class="material-symbols-rounded text-emerald-400 text-sm">trending_up</span>
-                  <span class="text-[11px] text-slate-400 font-semibold">Pass Rate:</span>
-                  <span class="text-xs font-mono font-bold text-emerald-300" id="statLabPassPercent">0%</span>
+                  <span class="text-slate-400 font-medium">Pass Rate:</span>
+                  <span class="font-mono font-bold text-emerald-300" id="statLabPassPercent">0%</span>
                 </div>
-                <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-purple-500/20 rounded-lg">
+                <span class="text-slate-800 hidden sm:inline">•</span>
+                <div class="flex items-center gap-1.5">
                   <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
-                  <span class="text-[11px] text-slate-400 font-semibold">Total Exps:</span>
-                  <span class="text-xs font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
+                  <span class="text-slate-400 font-medium">Total Exps:</span>
+                  <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
                 </div>
               </div>
 
@@ -2756,6 +2759,11 @@
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             ${practicalRegenBtn}
+            <select id="coursePlannerBatchFilter" onchange="filterCoursePlannerRowsByBatch(this.value)" class="px-3 py-1.5 bg-slate-900 border border-slate-700/60 text-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500/50 cursor-pointer">
+              <option value="Full">Batch: Full</option>
+              <option value="A">Batch: A</option>
+              <option value="B">Batch: B</option>
+            </select>
             <button onclick="regenerateLessonPlan()" id="btnRegenPlan" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Re-generate all lesson plans from stored syllabus data">
               <span class="material-symbols-rounded text-xs">refresh</span> Regenerate
             </button>
@@ -2781,12 +2789,14 @@
                 <tr class="bg-slate-900/80 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-10 text-center">#</th>
                   <th class="p-3 w-20 text-center">CO</th>
+                  <th class="p-3 w-24 text-center">Batch</th>
                   <th class="p-3">Topic / Content <span class="text-slate-600 normal-case font-normal">(auto-grow)</span></th>
                   <th class="p-3 w-32">Proposed Date</th>
                   <th class="p-3 w-32">Actual Date</th>
                   <th class="p-3 w-16 text-center">Hrs</th>
                   <th class="p-3 w-28">Pedagogy</th>
                   <th class="p-3 w-32">Remarks</th>
+                  <th class="p-3 w-10 text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -2805,8 +2815,9 @@
 
         let coSelectOptions = `<option value="">--</option>` + coList.map(c => `<option value="${c}" ${c === co ? 'selected' : ''}>${c}</option>`).join('');
 
+        let subBatchVal = lp.sub_batch || 'Whole';
         html += `
-          <tr class="border-b ${rowBg} last:border-0 hover:bg-slate-900/20 transition-premium" data-lp-id="${lp.id}">
+          <tr class="border-b ${rowBg} last:border-0 hover:bg-slate-900/20 transition-premium course-planner-row" data-lp-id="${lp.id}" data-sub-batch="${subBatchVal}">
             <td class="p-2 text-center text-xs font-bold text-slate-600">
               <input type="number" value="${dayNo}" data-field="day_no"
                 class="w-10 bg-transparent border border-transparent hover:border-slate-700/60 text-center text-slate-400 text-xs font-bold rounded py-0.5 focus:outline-none focus:bg-slate-900/80 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -2815,6 +2826,13 @@
             <td class="p-2 text-center">
               <select data-field="co_id" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty(${lp.id})">
                 ${coSelectOptions}
+              </select>
+            </td>
+            <td class="p-2 text-center">
+              <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty(${lp.id}); this.closest('tr').setAttribute('data-sub-batch', this.value);">
+                <option value="Whole" ${subBatchVal==='Whole'||subBatchVal==='Full'||!subBatchVal?'selected':''}>Full</option>
+                <option value="Batch A" ${subBatchVal==='Batch A'||subBatchVal==='A'?'selected':''}>A</option>
+                <option value="Batch B" ${subBatchVal==='Batch B'||subBatchVal==='B'?'selected':''}>B</option>
               </select>
             </td>
             <td class="p-2">
@@ -2848,6 +2866,11 @@
                 class="w-full bg-transparent border border-transparent hover:border-slate-700/60 focus:border-blue-500/50 focus:bg-slate-900/60 rounded px-2 py-1 text-slate-500 text-xs focus:outline-none transition-all"
                 placeholder="Add remarks..."
                 onchange="markPlanDirty(${lp.id})">
+            </td>
+            <td class="p-2 text-center">
+              <button onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
+                <span class="material-symbols-rounded text-base">close</span>
+              </button>
             </td>
           </tr>
         `;
@@ -2887,6 +2910,22 @@
       }, 50);
     }
 
+    function filterCoursePlannerRowsByBatch(batchVal) {
+      const rows = document.querySelectorAll('.course-planner-row');
+      rows.forEach(row => {
+        const subBatch = row.getAttribute('data-sub-batch') || 'Whole';
+        if (batchVal === 'Full' || batchVal === 'all' || !batchVal) {
+          row.style.display = '';
+        } else if (batchVal === 'A' && (subBatch === 'Batch A' || subBatch === 'A' || subBatch === 'Batch 1' || subBatch === 'Whole')) {
+          row.style.display = '';
+        } else if (batchVal === 'B' && (subBatch === 'Batch B' || subBatch === 'B' || subBatch === 'Batch 2' || subBatch === 'Whole')) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
     function addLessonPlanRow() {
       const tbody = document.querySelector('#lessonPlanTable tbody');
       if (!tbody) return;
@@ -2913,6 +2952,13 @@
             ${coOptionsHtml}
           </select>
         </td>
+        <td class="p-2 text-center">
+          <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${tempId}'); this.closest('tr').setAttribute('data-sub-batch', this.value);">
+            <option value="Whole">Full</option>
+            <option value="Batch A">A</option>
+            <option value="Batch B">B</option>
+          </select>
+        </td>
         <td class="p-2">
           <textarea data-field="topic" rows="2" class="w-full bg-slate-900/80 border border-slate-700/60 focus:border-blue-500/50 rounded p-2 text-slate-200 text-xs focus:outline-none transition-all resize-none leading-relaxed overflow-hidden" placeholder="Enter topic content..." oninput="autoGrowTextarea(this); markPlanDirty('${tempId}')" onfocus="autoGrowTextarea(this)" onkeyup="autoGrowTextarea(this)"></textarea>
         </td>
@@ -2930,6 +2976,11 @@
         </td>
         <td class="p-2">
           <input type="text" value="" data-field="remarks" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none focus:border-blue-500/50" placeholder="Remarks..." onchange="markPlanDirty('${tempId}')">
+        </td>
+        <td class="p-2 text-center">
+          <button onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
+            <span class="material-symbols-rounded text-base">close</span>
+          </button>
         </td>
       `;
 
@@ -2988,6 +3039,7 @@
         id:              isNew ? null : (parseInt(lpId) || null),
         day_no:          row.querySelector('[data-field="day_no"]')?.value        || null,
         co_id:           row.querySelector('[data-field="co_id"]')?.value         || null,
+        sub_batch:       row.querySelector('[data-field="sub_batch"]')?.value     || 'Whole',
         topic_content:   row.querySelector('[data-field="topic"]')?.value          || '',
         proposed_date:   row.querySelector('[data-field="proposed_date"]')?.value  || null,
         actual_date:     row.querySelector('[data-field="actual_date"]')?.value    || null,
@@ -7857,6 +7909,14 @@
               </select>
             </div>
             <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Target Batch</label>
+              <select id="genPlannerTargetBatch" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
+                <option value="Full">Full (Whole Class)</option>
+                <option value="A">Batch A</option>
+                <option value="B">Batch B</option>
+              </select>
+            </div>
+            <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Allocated Hours per Session</label>
               <input type="number" id="genPlannerHours" value="3" min="1" max="10" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none">
             </div>
@@ -8505,12 +8565,13 @@
     function generatePlannerFromExperiments(event) {
       event.preventDefault();
       const session_type = document.getElementById('genPlannerBatchMode').value;
+      const target_batch = document.getElementById('genPlannerTargetBatch') ? document.getElementById('genPlannerTargetBatch').value : 'Full';
       const allocated_hours = document.getElementById('genPlannerHours').value;
 
       fetch(`/api/classroom/${currentSubjectId}/practical/lesson-plans/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ session_type, allocated_hours })
+        body: JSON.stringify({ session_type, target_batch, allocated_hours })
       })
       .then(res => res.json())
       .then(res => {

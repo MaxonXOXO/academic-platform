@@ -524,6 +524,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practical/{subjectId}/experiments', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentsList']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'generateLessonPlan']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/bulk-update', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'bulkUpdateLessonPlans']);
+    Route::delete('/api/r26/classroom/practical/{subjectId}/lesson-plans/{planId}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'deleteLessonPlanRow']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/experiment', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/open-ended', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/series', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveSeriesExamMarks']);
@@ -2083,6 +2084,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/principal/events/schedule', [App\Http\Controllers\PrincipalScheduledEventController::class, 'schedule']);
     Route::get('/api/principal/events', [App\Http\Controllers\PrincipalScheduledEventController::class, 'index']);
     Route::get('/api/principal/events/feed', [App\Http\Controllers\PrincipalScheduledEventController::class, 'feed']);
+    Route::get('/api/campus-event/today', [App\Http\Controllers\PrincipalScheduledEventController::class, 'getTodayCampusEvent']);
     Route::delete('/api/principal/events/{id}', [App\Http\Controllers\PrincipalScheduledEventController::class, 'destroy']);
 });
 

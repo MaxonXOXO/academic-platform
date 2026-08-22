@@ -395,6 +395,34 @@ class StudentAttendanceController extends Controller
                 ->get();
         }
 
+        // Check for active campus-wide event today for students
+        $todayDate = date('Y-m-d');
+        $userBranch = $student->branch ?? Session::get('userBranch', 'ALL');
+        $campusEventToday = \App\Models\PrincipalScheduledEvent::where('is_published', true)
+            ->where(function ($q) use ($todayDate) {
+                $q->where(function ($q1) use ($todayDate) {
+                    $q1->whereNull('end_date')
+                       ->where('event_date', $todayDate);
+                })->orWhere(function ($q2) use ($todayDate) {
+                    $q2->whereNotNull('end_date')
+                       ->where('event_date', '<=', $todayDate)
+                       ->where('end_date', '>=', $todayDate);
+                });
+            })
+            ->where(function($q) use ($userBranch) {
+                $q->where('target_audience', 'ALL_CAMPUS')
+                  ->orWhere('target_audience', 'STUDENTS_ONLY')
+                  ->orWhere(function($q2) use ($userBranch) {
+                      $q2->where('target_audience', 'DEPT_SPECIFIC')
+                         ->where(function($q3) use ($userBranch) {
+                             $q3->where('target_department', 'ALL')
+                                ->orWhere('target_department', $userBranch);
+                         });
+                  });
+            })
+            ->orderBy('created_at', 'desc')
+            ->first();
+
         return response(view('student_mobile_dashboard', compact(
             'student',
             'classroom',
@@ -407,7 +435,8 @@ class StudentAttendanceController extends Controller
             'periodTimings',
             'leaveRecords',
             'activeTests',
-            'activeDayOrder'
+            'activeDayOrder',
+            'campusEventToday'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',

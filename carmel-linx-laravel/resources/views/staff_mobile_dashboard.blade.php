@@ -627,8 +627,110 @@
                         </div>
                     </div>
 
+                    <!-- Campus Event Broadcast Banner (Timetable Suppression) -->
+                    <div id="staffCampusEventBanner" class="{{ $campusEventToday ? '' : 'd-none' }} mb-4 p-4 rounded-4 shadow-xl position-relative overflow-hidden" style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1.5px solid rgba(225, 29, 72, 0.4) !important; border-left: 5px solid #f43f5e !important;">
+                        
+                        <!-- Top Badges Header -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom border-slate-700 border-opacity-40">
+                            <span class="badge px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-bullhorn text-emerald-400"></i> CAMPUS ANNOUNCEMENT
+                            </span>
+                            <span id="staffCampusSuspensionBadge" class="badge px-3 py-1.5 rounded-pill shadow-sm" style="background: rgba(225, 29, 72, 0.2); border: 1px solid rgba(225, 29, 72, 0.5); color: #fda4af; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.4px;">
+                                <i class="fa-solid fa-ban me-1 text-rose-400"></i> CLASSES SUSPENDED
+                            </span>
+                        </div>
+
+                        <!-- Event Title -->
+                        <h4 id="staffCampusEventTitle" class="fw-black text-white mb-2" style="font-size: 1.18rem; line-height: 1.4; letter-spacing: -0.2px;">
+                            {{ $campusEventToday->title ?? '' }}
+                        </h4>
+
+                        <!-- Metadata Badges Row -->
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 text-slate-300" style="font-size: 0.78rem;">
+                            <span id="staffCampusEventDate" class="px-2.5 py-1 rounded-3 font-semibold" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde047;">
+                                <i class="fa-solid fa-calendar-days me-1 text-amber-400"></i><span class="date-text">{{ $campusEventToday ? ($campusEventToday->date_range_text ?? ($campusEventToday->event_date ? $campusEventToday->event_date->format('d M Y') : '')) : '' }}</span>
+                            </span>
+                            <span id="staffCampusEventCategory" class="px-2.5 py-1 rounded-3 font-medium" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">
+                                <i class="fa-solid fa-tag me-1 text-blue-400"></i>{{ $campusEventToday->event_category ?? 'Academic' }}
+                            </span>
+                            <span id="staffCampusEventVenue" class="{{ ($campusEventToday->venue ?? null) ? '' : 'd-none' }} px-2.5 py-1 rounded-3 font-medium" style="background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.3); color: #67e8f9;">
+                                <i class="fa-solid fa-location-dot me-1 text-cyan-400"></i><span class="venue-text">{{ $campusEventToday->venue ?? '' }}</span>
+                            </span>
+                        </div>
+
+                        <!-- Suspension Notice & Reopening Box -->
+                        <div id="staffCampusEventNoticeBox" class="p-3.5 px-4 rounded-3 mb-3 border border-rose-500 border-opacity-30 position-relative" style="background: linear-gradient(135deg, rgba(225, 29, 72, 0.14) 0%, rgba(159, 18, 57, 0.08) 100%); box-shadow: 0 4px 15px rgba(225, 29, 72, 0.08);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="p-2 rounded-circle flex-shrink-0 ms-1 me-2 d-flex align-items-center justify-content-center" style="background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-triangle-exclamation text-rose-400 fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1" style="font-size: 0.88rem; line-height: 1.55;">
+                                    <strong id="staffCampusNoticeText" class="text-white d-block mb-2 font-bold" style="font-size: 0.9rem;">
+                                        {{ $campusEventToday ? ($campusEventToday->notice_text ?? 'Regular classes suspended due to '.$campusEventToday->title.'.') : '' }}
+                                    </strong>
+                                    
+                                    <!-- Highlighted Reopening Callout -->
+                                    <div id="staffCampusReopenText" class="mt-2.5">
+                                        @if($campusEventToday && $campusEventToday->formatted_reopen_date)
+                                            <div class="p-2.5 px-3 rounded-3 d-flex align-items-center shadow-md w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399;">
+                                                <div class="p-2 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center me-3" style="background: rgba(15, 23, 42, 0.18); width: 38px; height: 38px;">
+                                                    <i class="fa-solid fa-calendar-check text-slate-950 fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="text-slate-950 fw-extrabold uppercase" style="font-size: 0.68rem; letter-spacing: 0.8px; opacity: 0.92; line-height: 1.2;">
+                                                        COLLEGE REOPENS ON
+                                                    </div>
+                                                    <div class="text-slate-950 font-black" style="font-size: 1.02rem; font-weight: 900 !important; white-space: nowrap; line-height: 1.25;">
+                                                        {{ $campusEventToday->formatted_reopen_date }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p id="staffCampusEventDescription" class="text-slate-300 mb-3" style="font-size: 0.82rem; line-height: 1.5; color: #cbd5e1 !important;">
+                            {{ $campusEventToday->description ?? '' }}
+                        </p>
+
+                        <div id="staffCampusEventAttachment" class="mb-3">
+                            @if($campusEventToday && $campusEventToday->attachment_path)
+                                @if($campusEventToday->attachment_type === 'image' || in_array(pathinfo($campusEventToday->attachment_path, PATHINFO_EXTENSION), ['jpg','jpeg','png','webp']))
+                                <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25 bg-black text-center">
+                                    <img src="/storage/{{ $campusEventToday->attachment_path }}" alt="Event Poster" class="img-fluid w-100 rounded-3 cursor-pointer" style="max-height: 260px; object-fit: contain;" onclick="window.open('/storage/{{ $campusEventToday->attachment_path }}', '_blank')">
+                                    <div class="p-1 bg-dark text-slate-300 text-center" style="font-size: 0.68rem;"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Tap poster to enlarge</div>
+                                </div>
+                                @elseif($campusEventToday->attachment_type === 'pdf' || pathinfo($campusEventToday->attachment_path, PATHINFO_EXTENSION) === 'pdf')
+                                <div class="p-2 bg-slate-900 rounded-3 border border-secondary border-opacity-30 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-file-pdf text-danger fs-4"></i>
+                                        <div>
+                                            <strong class="text-white d-block" style="font-size: 0.78rem;">Official Event Document (PDF)</strong>
+                                            <small class="text-secondary" style="font-size: 0.68rem;">Tap to open attachment</small>
+                                        </div>
+                                    </div>
+                                    <a href="/storage/{{ $campusEventToday->attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-download me-1"></i> Open PDF
+                                    </a>
+                                </div>
+                                @endif
+                            @endif
+                        </div>
+
+                        <div class="pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                            <small class="text-secondary" style="font-size: 0.7rem;">
+                                <i class="fa-solid fa-circle-info text-info me-1"></i> Standard timetable hidden due to active campus event.
+                            </small>
+                            <button type="button" onclick="toggleStaffTimetableOverride()" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-slate-300 font-bold" style="font-size: 0.7rem;">
+                                <i class="fa-solid fa-eye me-1"></i> Toggle Timetable
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Dynamic Timetable Slots Container -->
-                    <div id="timetableScheduleContainer">
+                    <div id="timetableScheduleContainer" class="{{ $campusEventToday ? 'd-none' : '' }}">
                         <!-- Populated dynamically via JS -->
                     </div>
                 </div>
@@ -2707,9 +2809,140 @@
             loadExecutiveFlashNotices();
         }
 
+        let staffTimetableOverride = false;
+        let activeCampusEventObj = {!! json_encode($campusEventToday ?? null) !!};
+
+        function toggleStaffTimetableOverride() {
+            staffTimetableOverride = !staffTimetableOverride;
+            const container = document.getElementById('timetableScheduleContainer');
+            if (container) {
+                if (staffTimetableOverride) {
+                    container.classList.remove('d-none');
+                } else if (activeCampusEventObj) {
+                    container.classList.add('d-none');
+                }
+            }
+        }
+
+        function checkTodayCampusEvent() {
+            fetch('/api/campus-event/today?t=' + new Date().getTime(), {
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const banner = document.getElementById('staffCampusEventBanner');
+                const container = document.getElementById('timetableScheduleContainer');
+                
+                if (data.status === 'SUCCESS' && data.has_event && data.event) {
+                    activeCampusEventObj = data.event;
+                    if (banner) {
+                        banner.classList.remove('d-none');
+                        document.getElementById('staffCampusEventTitle').innerText = data.event.title || 'Campus Event';
+                        document.getElementById('staffCampusEventCategory').innerHTML = `<i class="fa-solid fa-tag me-1 text-emerald-400"></i>${data.event.event_category || 'Academic'}`;
+
+                        const dateEl = document.getElementById('staffCampusEventDate');
+                        if (dateEl) {
+                            dateEl.querySelector('.date-text').innerText = data.event.date_range_text || data.event.formatted_start_date || '';
+                        }
+                        
+                        const venueEl = document.getElementById('staffCampusEventVenue');
+                        if (venueEl) {
+                            if (data.event.venue) {
+                                venueEl.classList.remove('d-none');
+                                venueEl.querySelector('.venue-text').innerText = data.event.venue;
+                            } else {
+                                venueEl.classList.add('d-none');
+                            }
+                        }
+
+                        const timeEl = document.getElementById('staffCampusEventTime');
+                        if (timeEl) {
+                            if (data.event.start_time) {
+                                timeEl.classList.remove('d-none');
+                                timeEl.querySelector('.time-text').innerText = `${data.event.start_time} ${data.event.end_time ? '- ' + data.event.end_time : ''}`;
+                            } else {
+                                timeEl.classList.add('d-none');
+                            }
+                        }
+
+                        const noticeTextEl = document.getElementById('staffCampusNoticeText');
+                        if (noticeTextEl) {
+                            noticeTextEl.innerText = data.event.notice_text || `College classes suspended due to ${data.event.title || 'Event'}.`;
+                        }
+
+                        const reopenTextEl = document.getElementById('staffCampusReopenText');
+                        if (reopenTextEl) {
+                            if (data.event.formatted_reopen_date) {
+                                reopenTextEl.innerHTML = `
+                                    <div class="p-2.5 px-3 rounded-3 d-flex align-items-center shadow-md w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399;">
+                                        <div class="p-2 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center me-3" style="background: rgba(15, 23, 42, 0.18); width: 38px; height: 38px;">
+                                            <i class="fa-solid fa-calendar-check text-slate-950 fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-slate-950 fw-extrabold uppercase" style="font-size: 0.68rem; letter-spacing: 0.8px; opacity: 0.92; line-height: 1.2;">
+                                                COLLEGE REOPENS ON
+                                            </div>
+                                            <div class="text-slate-950 font-black" style="font-size: 1.02rem; font-weight: 900 !important; white-space: nowrap; line-height: 1.25;">
+                                                ${data.event.formatted_reopen_date}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                reopenTextEl.innerHTML = '';
+                            }
+                        }
+
+                        document.getElementById('staffCampusEventDescription').innerText = data.event.description || '';
+
+                        const attachEl = document.getElementById('staffCampusEventAttachment');
+                        if (attachEl) {
+                            if (data.event.attachment_path) {
+                                const fileUrl = '/storage/' + data.event.attachment_path;
+                                const isImg = data.event.attachment_type === 'image' || (/\.(jpg|jpeg|png|webp)$/i).test(data.event.attachment_path);
+                                if (isImg) {
+                                    attachEl.innerHTML = `
+                                        <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25 bg-black text-center">
+                                            <img src="${fileUrl}" alt="Event Poster" class="img-fluid w-100 rounded-3 cursor-pointer" style="max-height: 260px; object-fit: contain;" onclick="window.open('${fileUrl}', '_blank')">
+                                            <div class="p-1 bg-dark text-slate-300 text-center" style="font-size: 0.68rem;"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Tap poster to enlarge</div>
+                                        </div>`;
+                                } else {
+                                    attachEl.innerHTML = `
+                                        <div class="p-2 bg-slate-900 rounded-3 border border-secondary border-opacity-30 d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-file-pdf text-danger fs-4"></i>
+                                                <div>
+                                                    <strong class="text-white d-block" style="font-size: 0.78rem;">Official Event Document (PDF)</strong>
+                                                    <small class="text-secondary" style="font-size: 0.68rem;">Tap to open attachment</small>
+                                                </div>
+                                            </div>
+                                            <a href="${fileUrl}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
+                                                <i class="fa-solid fa-download me-1"></i> Open PDF
+                                            </a>
+                                        </div>`;
+                                }
+                            } else {
+                                attachEl.innerHTML = '';
+                            }
+                        }
+                    }
+                    if (container && !staffTimetableOverride) {
+                        container.classList.add('d-none');
+                    }
+                } else {
+                    activeCampusEventObj = null;
+                    if (banner) banner.classList.add('d-none');
+                    if (container) container.classList.remove('d-none');
+                }
+            })
+            .catch(err => console.error('Error fetching campus event:', err));
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadRegisteredBioDevices();
             loadExecutiveFlashNotices();
+            checkTodayCampusEvent();
+            setInterval(checkTodayCampusEvent, 15000);
+            setInterval(loadExecutiveFlashNotices, 15000);
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js')
                     .catch(err => console.log('SW bypassed:', err));
@@ -2719,12 +2952,14 @@
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 loadExecutiveFlashNotices();
+                checkTodayCampusEvent();
             }
         });
 
         // Prevent back-button viewing after logout
         window.addEventListener('pageshow', function (event) {
             loadExecutiveFlashNotices();
+            checkTodayCampusEvent();
             if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
                 window.location.reload(true);
             }

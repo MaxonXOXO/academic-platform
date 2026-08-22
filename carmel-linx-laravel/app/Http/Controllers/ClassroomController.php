@@ -1061,6 +1061,7 @@ Syllabus Text:
                     'batch_subject_id' => $subjectId,
                     'day_no'           => $row['day_no'] ?? null,
                     'co_id'            => $row['co_id'] ?? null,
+                    'sub_batch'        => $row['sub_batch'] ?? 'Whole',
                     'topic_content'    => $row['topic_content'] ?? '',
                     'proposed_date'    => $row['proposed_date'] ?? null,
                     'actual_date'      => $row['actual_date'] ?? null,
@@ -1079,6 +1080,9 @@ Syllabus Text:
 
             $plan->day_no          = $row['day_no']          ?? $plan->day_no;
             $plan->co_id           = $row['co_id']           ?? $plan->co_id;
+            if (isset($row['sub_batch'])) {
+                $plan->sub_batch   = $row['sub_batch'];
+            }
             $plan->topic_content   = $row['topic_content']   ?? $plan->topic_content;
             $plan->proposed_date   = $row['proposed_date']   ?? $plan->proposed_date;
             $plan->actual_date     = $row['actual_date']     ?? $plan->actual_date;
@@ -3884,6 +3888,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $sessionType = $request->input('session_type');
         $hours = $request->input('allocated_hours');
+        $targetBatch = $request->input('target_batch', 'Full');
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
             ->orderByRaw('CAST(experiment_no AS UNSIGNED) ASC')
@@ -3900,7 +3905,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $dayNo = 1;
 
         foreach ($experiments as $exp) {
-            if ($sessionType === 'combined') {
+            if ($targetBatch === 'A') {
                 \App\Models\LessonPlan::create([
                     'batch_subject_id' => $subjectId,
                     'day_no' => $dayNo++,
@@ -3908,6 +3913,29 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
                     'allocated_hours' => $hours,
                     'pedagogy' => 'Demonstration/Practical',
+                    'sub_batch' => 'Batch A',
+                    'status' => 'Pending'
+                ]);
+            } elseif ($targetBatch === 'B') {
+                \App\Models\LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no' => $dayNo++,
+                    'co_id' => $exp->co_tag,
+                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
+                    'allocated_hours' => $hours,
+                    'pedagogy' => 'Demonstration/Practical',
+                    'sub_batch' => 'Batch B',
+                    'status' => 'Pending'
+                ]);
+            } elseif ($sessionType === 'combined') {
+                \App\Models\LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no' => $dayNo++,
+                    'co_id' => $exp->co_tag,
+                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
+                    'allocated_hours' => $hours,
+                    'pedagogy' => 'Demonstration/Practical',
+                    'sub_batch' => 'Whole',
                     'status' => 'Pending'
                 ]);
             } else {
@@ -3919,6 +3947,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title . " (Batch 1)",
                     'allocated_hours' => $hours,
                     'pedagogy' => 'Demonstration/Practical',
+                    'sub_batch' => 'Batch A',
                     'status' => 'Pending'
                 ]);
                 \App\Models\LessonPlan::create([
@@ -3928,6 +3957,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title . " (Batch 2)",
                     'allocated_hours' => $hours,
                     'pedagogy' => 'Demonstration/Practical',
+                    'sub_batch' => 'Batch B',
                     'status' => 'Pending'
                 ]);
             }

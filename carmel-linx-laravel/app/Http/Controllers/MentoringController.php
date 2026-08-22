@@ -2367,6 +2367,34 @@ class MentoringController extends Controller
             $eventsCount += DB::table('principal_scheduled_events')->count();
         }
 
+        // 9. Active Campus Event for Today
+        $todayDate = date('Y-m-d');
+        $staffDept = $staff->department ?? Session::get('userBranch', 'ALL');
+        $campusEventToday = \App\Models\PrincipalScheduledEvent::where('is_published', true)
+            ->where(function ($q) use ($todayDate) {
+                $q->where(function ($q1) use ($todayDate) {
+                    $q1->whereNull('end_date')
+                       ->where('event_date', $todayDate);
+                })->orWhere(function ($q2) use ($todayDate) {
+                    $q2->whereNotNull('end_date')
+                       ->where('event_date', '<=', $todayDate)
+                       ->where('end_date', '>=', $todayDate);
+                });
+            })
+            ->where(function($q) use ($staffDept) {
+                $q->where('target_audience', 'ALL_CAMPUS')
+                  ->orWhere('target_audience', 'STAFF_ONLY')
+                  ->orWhere(function($q2) use ($staffDept) {
+                      $q2->where('target_audience', 'DEPT_SPECIFIC')
+                         ->where(function($q3) use ($staffDept) {
+                             $q3->where('target_department', 'ALL')
+                                ->orWhere('target_department', $staffDept);
+                         });
+                  });
+            })
+            ->orderBy('created_at', 'desc')
+            ->first();
+
         return response(view('staff_mobile_dashboard', compact(
             'staff',
             'assignments',
@@ -2379,7 +2407,8 @@ class MentoringController extends Controller
             'fullTimetablesByDay',
             'defaultDayOrder',
             'todayPunch',
-            'eventsCount'
+            'eventsCount',
+            'campusEventToday'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',

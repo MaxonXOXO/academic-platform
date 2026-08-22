@@ -2471,6 +2471,14 @@
       togglePrincipalEventTargetFields();
     }
 
+    function togglePrincipalEventSuspensionFields() {
+      const type = document.getElementById('peSuspensionType')?.value;
+      const endDateWrapper = document.getElementById('peEndDateWrapper');
+      if (endDateWrapper) {
+        endDateWrapper.style.display = (type === 'date_range') ? 'block' : 'none';
+      }
+    }
+
     function togglePrincipalEventTargetFields() {
       const scope = document.getElementById('peTargetAudience').value;
       const deptWrapper = document.getElementById('peDeptWrapper');
@@ -2482,6 +2490,7 @@
       if (semWrapper) semWrapper.style.display = (scope === 'STUDENTS_ONLY') ? 'block' : 'none';
       if (roleWrapper) roleWrapper.style.display = (scope === 'STAFF_ONLY') ? 'block' : 'none';
       if (specialGroupWrapper) specialGroupWrapper.style.display = (scope === 'SPECIAL_GROUP') ? 'block' : 'none';
+      togglePrincipalEventSuspensionFields();
     }
 
     function submitPrincipalScheduleEvent(e) {
@@ -2539,15 +2548,29 @@
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS' && data.events.length > 0) {
-            body.innerHTML = data.events.map(ev => `
+            body.innerHTML = data.events.map(ev => {
+              const startDate = ev.event_date ? ev.event_date.split('T')[0] : '';
+              const endDate = ev.end_date ? ev.end_date.split('T')[0] : '';
+              const reopenDate = ev.reopen_date ? ev.reopen_date.split('T')[0] : '';
+              const isMulti = endDate && endDate !== startDate;
+
+              let dateDisplay = startDate;
+              if (isMulti) {
+                dateDisplay = `${startDate} <span class="text-amber-400">to</span> ${endDate}`;
+              }
+
+              return `
               <tr class="hover:bg-slate-900/50">
                 <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400">
-                  ${ev.event_date ? ev.event_date.split('T')[0] : ''}<br>
-                  <span class="text-[10px] text-emerald-400 font-bold">${ev.start_time || 'All Day'} ${ev.end_time ? '- ' + ev.end_time : ''}</span>
+                  <span class="font-bold text-slate-200">${dateDisplay}</span><br>
+                  ${reopenDate ? `<div class="mt-1"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 font-black text-[10px] inline-flex items-center gap-1 shadow-sm">🏫 REOPENS: ${reopenDate}</span></div>` : ''}
                 </td>
                 <td class="py-2.5 px-3">
                   <span class="font-bold text-slate-100 block">${ev.title}</span>
-                  <span class="px-1.5 py-0.2 text-[9px] rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${ev.event_category}</span>
+                  <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                    <span class="px-1.5 py-0.2 text-[9px] rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${ev.event_category}</span>
+                    ${ev.suppress_timetable ? '<span class="px-1.5 py-0.2 text-[9px] rounded font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">⏸ Timetable Suppressed</span>' : ''}
+                  </div>
                   ${ev.venue ? `<span class="text-[10px] text-slate-400 block mt-0.5">📍 ${ev.venue}</span>` : ''}
                 </td>
                 <td class="py-2.5 px-3 text-[11px] text-slate-300">
@@ -2565,7 +2588,8 @@
                   <button onclick="revokePrincipalScheduledEvent(${ev.id})" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded font-bold text-[10px] transition cursor-pointer">Cancel</button>
                 </td>
               </tr>
-            `).join('');
+            `;
+            }).join('');
           } else {
             body.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-500">No scheduled events found.</td></tr>';
           }
@@ -2949,18 +2973,37 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">Event Date <span class="text-rose-400">*</span></label>
-            <input type="date" id="peDate" name="event_date" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
+        <!-- Closing & Reopening Dates Section -->
+        <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
+          <span class="block text-slate-200 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-rounded text-rose-400 text-sm">event_busy</span> Campus Closing &amp; Reopening Dates
+          </span>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">Closing Date (From) <span class="text-rose-400">*</span></label>
+              <input type="date" id="peDate" name="event_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">Closing Date (To)</label>
+              <input type="date" id="peEndDate" name="end_date" placeholder="Leave blank if 1-day" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">College Reopens On</label>
+              <input type="date" id="peReopenDate" name="reopen_date" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 focus:outline-none focus:border-emerald-500 font-bold">
+            </div>
           </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">Start Time</label>
-            <input type="time" id="peStartTime" name="start_time" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
-          </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">End Time</label>
-            <input type="time" id="peEndTime" name="end_time" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">Suspension Mode</label>
+              <select id="peSuspensionType" name="suspension_type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-emerald-500 font-medium">
+                <option value="full_day">📅 Full Day Suspension</option>
+                <option value="half_day_fn">🌅 Half Day (Forenoon / FN)</option>
+                <option value="half_day_an">🌆 Half Day (Afternoon / AN)</option>
+                <option value="date_range">📆 Multi-Day Date Range (Onam / Festival / Govt)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -3040,14 +3083,18 @@
             <label class="block text-slate-300 font-bold mb-1">Venue / Location</label>
             <input type="text" id="peVenue" name="venue" placeholder="e.g., Main Auditorium / Seminar Hall" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
           </div>
-          <div class="flex items-center gap-4 pt-4">
+          <div class="flex flex-wrap items-center gap-4 pt-4">
             <label class="flex items-center gap-1.5 text-slate-200 cursor-pointer">
               <input type="checkbox" id="peIsFullDay" name="is_full_day" value="1" class="accent-emerald-500 w-4 h-4 rounded">
               <span class="font-bold text-slate-300">Full Day Event</span>
             </label>
             <label class="flex items-center gap-1.5 text-slate-200 cursor-pointer">
               <input type="checkbox" id="peRequiresRsvp" name="requires_rsvp" value="1" class="accent-amber-500 w-4 h-4 rounded">
-              <span class="font-bold text-amber-400">RSVP / Attendance Required</span>
+              <span class="font-bold text-amber-400">RSVP Required</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-slate-200 cursor-pointer p-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+              <input type="checkbox" id="peSuppressTimetable" name="suppress_timetable" value="1" checked class="accent-emerald-500 w-4 h-4 rounded">
+              <span class="font-bold text-emerald-400">Hide Mobile Timetable</span>
             </label>
           </div>
         </div>

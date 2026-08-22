@@ -57,26 +57,30 @@ class PrincipalScheduledEventController extends Controller
         }
 
         $event = PrincipalScheduledEvent::create([
-            'title'             => trim($request->input('title')),
-            'description'       => trim($request->input('description', '')),
-            'event_category'    => $request->input('event_category', 'Academic'),
-            'venue'             => trim($request->input('venue', 'Main Auditorium')),
-            'event_date'        => $request->input('event_date'),
-            'start_time'        => $request->input('start_time'),
-            'end_time'          => $request->input('end_time'),
-            'is_full_day'       => (bool) $request->input('is_full_day', false),
-            'target_audience'   => $request->input('target_audience', 'ALL_CAMPUS'),
-            'target_department' => $request->input('target_department', 'ALL'),
-            'target_semester'   => $request->input('target_semester', 'ALL'),
-            'target_role'       => $request->input('target_role', 'ALL'),
-            'special_group_name'=> $request->input('special_group_name'),
-            'requires_rsvp'     => (bool) $request->input('requires_rsvp', false),
-            'attachment_path'   => $attachmentPath,
-            'attachment_type'   => $attachmentType,
-            'dispatch_type'     => $request->input('dispatch_type', 'immediate'),
-            'scheduled_at'      => $request->input('scheduled_at'),
-            'is_published'      => true,
-            'created_by'        => Session::get('userName', 'Principal'),
+            'title'              => trim($request->input('title')),
+            'description'        => trim($request->input('description', '')),
+            'event_category'     => $request->input('event_category', 'Academic'),
+            'venue'              => trim($request->input('venue', 'Main Auditorium')),
+            'event_date'         => $request->input('event_date'),
+            'start_time'         => $request->input('start_time'),
+            'end_time'           => $request->input('end_time'),
+            'is_full_day'        => (bool) $request->input('is_full_day', false),
+            'suppress_timetable' => $request->has('suppress_timetable') ? (bool) $request->input('suppress_timetable') : true,
+            'suspension_type'    => $request->input('suspension_type', 'full_day'),
+            'end_date'            => $request->input('end_date') ? $request->input('end_date') : $request->input('event_date'),
+            'reopen_date'         => $request->input('reopen_date') ? $request->input('reopen_date') : null,
+            'target_audience'    => $request->input('target_audience', 'ALL_CAMPUS'),
+            'target_department'  => $request->input('target_department', 'ALL'),
+            'target_semester'    => $request->input('target_semester', 'ALL'),
+            'target_role'        => $request->input('target_role', 'ALL'),
+            'special_group_name' => $request->input('special_group_name'),
+            'requires_rsvp'      => (bool) $request->input('requires_rsvp', false),
+            'attachment_path'    => $attachmentPath,
+            'attachment_type'    => $attachmentType,
+            'dispatch_type'      => $request->input('dispatch_type', 'immediate'),
+            'scheduled_at'       => $request->input('scheduled_at'),
+            'is_published'       => true,
+            'created_by'         => Session::get('userName', 'Principal'),
         ]);
 
         return response()->json([
@@ -204,5 +208,98 @@ class PrincipalScheduledEventController extends Controller
         $event->delete();
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Scheduled event cancelled & deleted successfully.']);
+    }
+
+    /**
+     * Get active campus event for today for staff or student dashboard.
+     */
+    public function getTodayCampusEvent(Request $request)
+    {
+        $userId   = Session::get('userId');
+        $userRole = Session::get('userRole');
+        $todayDate = date('Y-m-d');
+
+        $query = PrincipalScheduledEvent::where('is_published', true)
+            ->where(function ($q) use ($todayDate) {
+                $q->where(function ($q1) use ($todayDate) {
+                    $q1->whereNull('end_date')
+                       ->where('event_date', $todayDate);
+                })->orWhere(function ($q2) use ($todayDate) {
+                    $q2->whereNotNull('end_date')
+                       ->where('event_date', '<=', $todayDate)
+                       ->where('end_date', '>=', $todayDate);
+                });
+            });
+
+        if ($userRole === 'Student') {
+            $student = \App\Models\Student::where('mobile_no', $userId)->orWhere('reg_no', $userId)->first();
+            $dept = $student ? ($student->branch ?? 'ALL') : Session::get('userBranch', 'ALL');
+
+            $query->where(function ($q) use ($dept) {
+                $q->where('target_audience', 'ALL_CAMPUS')
+                  ->orWhere('target_audience', 'STUDENTS_ONLY')
+                  ->orWhere(function ($q2) use ($dept) {
+                      $q2->where('target_audience', 'DEPT_SPECIFIC')
+                         ->where(function ($q3) use ($dept) {
+                             $q3->where('target_department', 'ALL')
+                                ->orWhere('target_department', $dept);
+                         });
+                  });
+            });
+        } else {
+            $staff = \App\Models\StaffProfile::where('mobile_no', $userId)->first();
+            $dept = $staff ? ($staff->department ?? 'ALL') : Session::get('userBranch', 'ALL');
+
+            $query->where(function ($q) use ($dept) {
+                $q->where('target_audience', 'ALL_CAMPUS')
+                  ->orWhere('target_audience', 'STAFF_ONLY')
+                  ->orWhere(function ($q2) use ($dept) {
+                      $q2->where('target_audience', 'DEPT_SPECIFIC')
+                         ->where(function ($q3) use ($dept) {
+                             $q3->where('target_department', 'ALL')
+                                ->orWhere('target_department', $dept);
+                         });
+                  });
+            });
+        }
+
+        $event = $query->orderBy('created_at', 'desc')->first();
+
+        $eventData = null;
+        if ($event) {
+            $formattedStartDate  = $event->event_date ? $event->event_date->format('d M Y') : '';
+            $formattedEndDate    = $event->end_date ? $event->end_date->format('d M Y') : $formattedStartDate;
+            $formattedReopenDate = $event->reopen_date ? $event->reopen_date->format('d M Y') : '';
+
+            $isMultiDay = ($event->end_date && $event->end_date->format('Y-m-d') !== $event->event_date->format('Y-m-d'));
+            
+            $dateRangeText = $isMultiDay ? "{$formattedStartDate} to {$formattedEndDate}" : $formattedStartDate;
+
+            if ($isMultiDay) {
+                $noticeText = "Regular classes suspended from {$formattedStartDate} to {$formattedEndDate}, due to {$event->title}.";
+            } else {
+                if ($event->suspension_type === 'half_day_fn') {
+                    $noticeText = "Regular classes suspended for Forenoon (FN) session on {$formattedStartDate}, due to {$event->title}.";
+                } elseif ($event->suspension_type === 'half_day_an') {
+                    $noticeText = "Regular classes suspended for Afternoon (AN) session on {$formattedStartDate}, due to {$event->title}.";
+                } else {
+                    $noticeText = "Regular classes suspended on {$formattedStartDate}, due to {$event->title}.";
+                }
+            }
+
+            $eventData = $event->toArray();
+            $eventData['formatted_start_date']  = $formattedStartDate;
+            $eventData['formatted_end_date']    = $formattedEndDate;
+            $eventData['formatted_reopen_date'] = $formattedReopenDate;
+            $eventData['date_range_text']       = $dateRangeText;
+            $eventData['notice_text']           = $noticeText;
+            $eventData['is_multi_day']          = $isMultiDay;
+        }
+
+        return response()->json([
+            'status'    => 'SUCCESS',
+            'has_event' => $event ? true : false,
+            'event'     => $eventData,
+        ]);
     }
 }

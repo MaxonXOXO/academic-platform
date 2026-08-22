@@ -460,6 +460,7 @@ class R26VirtualClassroomPracticalController extends Controller
     {
         $pcf  = R26PracticalCourseFile::where('batch_subject_id', $subjectId)->first();
         $mode = $request->input('mode', 'single');
+        $selectedBatch = $request->input('batch', 'Full');
 
         $experiments = $pcf ? $pcf->getExperimentsArray() : [];
         if (empty($experiments)) {
@@ -467,6 +468,15 @@ class R26VirtualClassroomPracticalController extends Controller
         }
 
         LessonPlan::where('batch_subject_id', $subjectId)->delete();
+
+        // Determine target sub-batches based on batch and mode inputs
+        if ($selectedBatch === 'A') {
+            $targetSubBatches = ['Batch A'];
+        } elseif ($selectedBatch === 'B') {
+            $targetSubBatches = ['Batch B'];
+        } else {
+            $targetSubBatches = ($mode === 'split') ? ['Batch A', 'Batch B'] : ['Whole'];
+        }
 
         // 1. Filter out non-experiment rows (like Tests or OEE that were parsed from syllabus)
         $filteredExpts = array_values(array_filter($experiments, function($expt) {
@@ -525,23 +535,8 @@ class R26VirtualClassroomPracticalController extends Controller
                 }
             }
 
-            if ($mode === 'split') {
-                foreach ($chunks as $chunkHours) {
-                    foreach (['Batch A', 'Batch B'] as $batch) {
-                        LessonPlan::create([
-                            'batch_subject_id' => $subjectId,
-                            'day_no'           => $dayNo++,
-                            'co_id'            => $co,
-                            'topic_content'    => "{$exptNo}: {$title}",
-                            'allocated_hours'  => $chunkHours,
-                            'pedagogy'         => 'Practical',
-                            'sub_batch'        => $batch,
-                            'status'           => 'Pending',
-                        ]);
-                    }
-                }
-            } else {
-                foreach ($chunks as $chunkHours) {
+            foreach ($chunks as $chunkHours) {
+                foreach ($targetSubBatches as $bName) {
                     LessonPlan::create([
                         'batch_subject_id' => $subjectId,
                         'day_no'           => $dayNo++,
@@ -549,7 +544,7 @@ class R26VirtualClassroomPracticalController extends Controller
                         'topic_content'    => "{$exptNo}: {$title}",
                         'allocated_hours'  => $chunkHours,
                         'pedagogy'         => 'Practical',
-                        'sub_batch'        => 'Whole',
+                        'sub_batch'        => $bName,
                         'status'           => 'Pending',
                     ]);
                 }
@@ -557,35 +552,7 @@ class R26VirtualClassroomPracticalController extends Controller
         }
 
         // 3. Always add two more days with lab for series exams at the end (1 hour each)
-        if ($mode === 'split') {
-            // Series 1 for Batch A & Batch B
-            foreach (['Batch A', 'Batch B'] as $batch) {
-                LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no'           => $dayNo++,
-                    'co_id'            => 'CO2',
-                    'topic_content'    => 'Series 1 (Practical Exam)',
-                    'allocated_hours'  => 1,
-                    'pedagogy'         => 'Exam',
-                    'sub_batch'        => $batch,
-                    'status'           => 'Pending',
-                ]);
-            }
-            // Series 2 for Batch A & Batch B
-            foreach (['Batch A', 'Batch B'] as $batch) {
-                LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no'           => $dayNo++,
-                    'co_id'            => 'CO4',
-                    'topic_content'    => 'Series 2 (Practical Exam)',
-                    'allocated_hours'  => 1,
-                    'pedagogy'         => 'Exam',
-                    'sub_batch'        => $batch,
-                    'status'           => 'Pending',
-                ]);
-            }
-        } else {
-            // Series 1 & 2 for Whole batch
+        foreach ($targetSubBatches as $bName) {
             LessonPlan::create([
                 'batch_subject_id' => $subjectId,
                 'day_no'           => $dayNo++,
@@ -593,9 +560,11 @@ class R26VirtualClassroomPracticalController extends Controller
                 'topic_content'    => 'Series 1 (Practical Exam)',
                 'allocated_hours'  => 1,
                 'pedagogy'         => 'Exam',
-                'sub_batch'        => 'Whole',
+                'sub_batch'        => $bName,
                 'status'           => 'Pending',
             ]);
+        }
+        foreach ($targetSubBatches as $bName) {
             LessonPlan::create([
                 'batch_subject_id' => $subjectId,
                 'day_no'           => $dayNo++,
@@ -603,7 +572,7 @@ class R26VirtualClassroomPracticalController extends Controller
                 'topic_content'    => 'Series 2 (Practical Exam)',
                 'allocated_hours'  => 1,
                 'pedagogy'         => 'Exam',
-                'sub_batch'        => 'Whole',
+                'sub_batch'        => $bName,
                 'status'           => 'Pending',
             ]);
         }
@@ -625,7 +594,7 @@ class R26VirtualClassroomPracticalController extends Controller
                 $status = 'Completed';
             }
 
-            LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update([
+            $updateData = [
                 'topic_content'   => $data['topic_content'] ?? '',
                 'co_id'           => $data['co_id'] ?? 'CO1',
                 'allocated_hours' => (int)($data['allocated_hours'] ?? 1),
@@ -633,9 +602,24 @@ class R26VirtualClassroomPracticalController extends Controller
                 'proposed_date'   => $data['proposed_date'] ?? null,
                 'actual_date'     => $actualDate,
                 'status'          => $status,
-            ]);
+            ];
+
+            if (isset($data['sub_batch'])) {
+                $updateData['sub_batch'] = $data['sub_batch'];
+            }
+
+            LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update($updateData);
         }
         return response()->json(['success' => true, 'message' => 'Lesson plan saved!']);
+    }
+
+    public function deleteLessonPlanRow(Request $request, $subjectId, $planId)
+    {
+        LessonPlan::where('id', $planId)
+            ->where('batch_subject_id', $subjectId)
+            ->delete();
+
+        return response()->json(['success' => true, 'status' => 'SUCCESS', 'message' => 'Row deleted successfully.']);
     }
 
     /**

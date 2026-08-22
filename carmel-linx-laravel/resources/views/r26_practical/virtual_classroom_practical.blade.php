@@ -808,6 +808,11 @@
                             <option value="single">Single/Whole Class Batch</option>
                             <option value="split">Split Batch (Batch A/B)</option>
                         </select>
+                        <select id="lesson_planner_batch" onchange="filterLessonPlanByBatch(this.value)" class="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 font-bold">
+                            <option value="Full">Full</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
                         <button onclick="generateLessonTimeline()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5">
                             <i class="fa-solid fa-arrows-rotate"></i> Generate Planner
                         </button>
@@ -830,16 +835,19 @@
                                 <th class="p-3 w-20">Hours</th>
                                 <th class="p-3 w-28">Pedagogy</th>
                                 <th class="p-3 w-28">Status</th>
+                                <th class="p-3 w-12 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="lesson-plan-rows-container">
                             @forelse($lessonPlans as $lp)
-                            <tr class="lesson-plan-row hover:bg-slate-900/20 border-b border-slate-855" data-id="{{ $lp->id }}">
+                            <tr class="lesson-plan-row hover:bg-slate-900/20 border-b border-slate-855" data-id="{{ $lp->id }}" data-sub-batch="{{ $lp->sub_batch ?? 'Whole' }}">
                                 <td class="p-3 font-mono">{{ $lp->day_no }}</td>
-                                <td class="p-3">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $lp->sub_batch == 'Batch A' ? 'bg-indigo-500/10 text-indigo-400' : ($lp->sub_batch == 'Batch B' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-slate-800 text-slate-350') }}">
-                                        {{ $lp->sub_batch ?? 'Whole' }}
-                                    </span>
+                                <td class="p-2">
+                                    <select class="lp-sub-batch bg-slate-950 border border-slate-855 rounded px-1.5 py-1 text-sky-400 font-bold focus:outline-none w-full text-xs" onchange="this.closest('tr').setAttribute('data-sub-batch', this.value)">
+                                        <option value="Whole" {{ ($lp->sub_batch ?? 'Whole') == 'Whole' || ($lp->sub_batch ?? '') == 'Full' ? 'selected' : '' }}>Full</option>
+                                        <option value="Batch A" {{ ($lp->sub_batch ?? '') == 'Batch A' || ($lp->sub_batch ?? '') == 'A' ? 'selected' : '' }}>A</option>
+                                        <option value="Batch B" {{ ($lp->sub_batch ?? '') == 'Batch B' || ($lp->sub_batch ?? '') == 'B' ? 'selected' : '' }}>B</option>
+                                    </select>
                                 </td>
                                 <td class="p-2">
                                     <input type="date" value="{{ $lp->proposed_date }}" class="lp-proposed px-2 py-1 bg-slate-950 border border-slate-850 rounded text-slate-200 focus:outline-none w-full font-sans">
@@ -873,6 +881,11 @@
                                         <option value="Completed" {{ $lp->status == 'Completed' ? 'selected' : '' }} class="text-emerald-500">Completed</option>
                                     </select>
                                 </td>
+                                <td class="p-2 text-center">
+                                    <button onclick="deleteR26LessonPlanRow(this, '{{ $lp->id }}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1.5 rounded transition cursor-pointer" title="Delete row">
+                                        <i class="fa-solid fa-xmark text-sm"></i>
+                                    </button>
+                                </td>
                             </tr>
                             @empty
                             <tr>
@@ -883,13 +896,14 @@
                     </table>
                 </div>
 
-                @if($lessonPlans->isNotEmpty())
-                <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-                    <button onclick="saveLessonPlannerBulk()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg transition">
-                        Save Planner Entries
+                <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                    <button onclick="addR26LessonPlanRow()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-700/60 shadow-md">
+                        <i class="fa-solid fa-plus-circle"></i> Add Row
+                    </button>
+                    <button onclick="saveLessonPlannerBulk()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Planner Entries
                     </button>
                 </div>
-                @endif
             </div>
 
             <!-- TAB: Continuous Log (Table 2.2) -->
@@ -1408,18 +1422,16 @@
         function handleVirtualLabBack(e) {
             if (e) e.preventDefault();
             if (window.opener && !window.opener.closed) {
-                window.close();
-                return false;
-            }
-            if (window.history.length <= 1) {
-                window.close();
-                return false;
+                try {
+                    window.close();
+                    return false;
+                } catch(err) {}
             }
             if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                window.history.back();
+                window.location.href = document.referrer;
                 return false;
             }
-            window.close();
+            window.location.href = '{{ $dashboardUrl ?? "/dashboard/lecturer" }}';
             return false;
         }
 
@@ -1916,14 +1928,33 @@
             }
         }
 
+        // Filter Lesson Planner Rows by Batch (Full, A, B)
+        function filterLessonPlanByBatch(batchVal) {
+            const rows = document.querySelectorAll('.lesson-plan-row');
+            rows.forEach(row => {
+                const subBatch = row.getAttribute('data-sub-batch') || 'Whole';
+                if (batchVal === 'Full' || batchVal === 'all' || !batchVal) {
+                    row.style.display = '';
+                } else if (batchVal === 'A' && (subBatch === 'Batch A' || subBatch === 'A' || subBatch === 'Whole')) {
+                    row.style.display = '';
+                } else if (batchVal === 'B' && (subBatch === 'Batch B' || subBatch === 'B' || subBatch === 'Whole')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
         // Generate Lesson Planner Timeline
         async function generateLessonTimeline() {
             const mode = document.getElementById('lesson_planner_mode').value;
+            const batchEl = document.getElementById('lesson_planner_batch');
+            const batch = batchEl ? batchEl.value : 'Full';
             try {
                 const res = await fetch(`/api/r26/classroom/practical/${subjectId}/lesson-plan/generate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify({ mode: mode })
+                    body: JSON.stringify({ mode: mode, batch: batch })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1940,11 +1971,14 @@
             document.querySelectorAll('.lesson-plan-row').forEach(row => {
                 const id = row.getAttribute('data-id');
                 plans[id] = {
-                    topic_content: row.querySelector('.lp-topic').value,
-                    co_id: row.querySelector('.lp-co').value,
-                    allocated_hours: parseInt(row.querySelector('.lp-hours').value || 1),
-                    pedagogy: row.querySelector('.lp-pedagogy').value,
-                    status: row.querySelector('.lp-status').value
+                    sub_batch: row.querySelector('.lp-sub-batch') ? row.querySelector('.lp-sub-batch').value : 'Whole',
+                    proposed_date: row.querySelector('.lp-proposed') ? row.querySelector('.lp-proposed').value : null,
+                    actual_date: row.querySelector('.lp-actual') ? row.querySelector('.lp-actual').value : null,
+                    topic_content: row.querySelector('.lp-topic') ? row.querySelector('.lp-topic').value : '',
+                    co_id: row.querySelector('.lp-co') ? row.querySelector('.lp-co').value : 'CO1',
+                    allocated_hours: parseInt(row.querySelector('.lp-hours')?.value || 1),
+                    pedagogy: row.querySelector('.lp-pedagogy') ? row.querySelector('.lp-pedagogy').value : 'Practical',
+                    status: row.querySelector('.lp-status') ? row.querySelector('.lp-status').value : 'Pending'
                 };
             });
 
@@ -1959,6 +1993,83 @@
             } catch(e) {
                 alert("Save failed.");
             }
+        }
+
+        async function deleteR26LessonPlanRow(btn, lpId) {
+            const tr = btn.closest('tr');
+            if (!tr) return;
+            if (lpId && !String(lpId).startsWith('new_')) {
+                if (!confirm('Are you sure you want to delete this lesson plan row?')) return;
+                try {
+                    await fetch(`/api/r26/classroom/practical/${subjectId}/lesson-plans/${lpId}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrfToken }
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+            tr.remove();
+        }
+
+        function addR26LessonPlanRow() {
+            const tbody = document.getElementById('lesson-plan-rows-container');
+            if (!tbody) return;
+            const count = tbody.querySelectorAll('tr.lesson-plan-row').length + 1;
+            const tempId = 'new_' + Date.now();
+            const tr = document.createElement('tr');
+            tr.className = 'lesson-plan-row hover:bg-slate-900/20 border-b border-slate-855';
+            tr.setAttribute('data-id', tempId);
+            tr.setAttribute('data-sub-batch', 'Whole');
+            tr.innerHTML = `
+                <td class="p-3 font-mono">${count}</td>
+                <td class="p-2">
+                    <select class="lp-sub-batch bg-slate-950 border border-slate-855 rounded px-1.5 py-1 text-sky-400 font-bold focus:outline-none w-full text-xs" onchange="this.closest('tr').setAttribute('data-sub-batch', this.value)">
+                        <option value="Whole">Full</option>
+                        <option value="Batch A">A</option>
+                        <option value="Batch B">B</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="date" value="" class="lp-proposed px-2 py-1 bg-slate-950 border border-slate-855 rounded text-slate-200 focus:outline-none w-full font-sans">
+                </td>
+                <td class="p-2">
+                    <input type="date" value="" class="lp-actual px-2 py-1 bg-slate-950 border border-slate-855 rounded text-slate-200 focus:outline-none w-full font-sans">
+                </td>
+                <td class="p-2">
+                    <input type="text" value="" placeholder="Enter topic content..." class="lp-topic px-2 py-1 bg-slate-950 border border-slate-855 rounded text-slate-200 focus:outline-none w-full">
+                </td>
+                <td class="p-2">
+                    <select class="lp-co bg-slate-950 border border-slate-855 rounded px-1 py-1 focus:outline-none w-full">
+                        <option value="CO1">CO1</option>
+                        <option value="CO2">CO2</option>
+                        <option value="CO3">CO3</option>
+                        <option value="CO4">CO4</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="number" value="1" class="lp-hours px-2 py-1 bg-slate-950 border border-slate-855 rounded text-slate-200 text-center w-14">
+                </td>
+                <td class="p-2">
+                    <select class="lp-pedagogy bg-slate-950 border border-slate-855 rounded px-1 py-1 focus:outline-none w-full">
+                        <option value="Practical">Practical</option>
+                        <option value="Exam">Exam</option>
+                        <option value="Lecture">Lecture</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <select class="lp-status bg-slate-950 border border-slate-855 rounded px-1 py-1 focus:outline-none w-full font-bold">
+                        <option value="Pending" class="text-amber-500">Pending</option>
+                        <option value="Completed" class="text-emerald-500">Completed</option>
+                    </select>
+                </td>
+                <td class="p-2 text-center">
+                    <button onclick="deleteR26LessonPlanRow(this, '${tempId}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1.5 rounded transition cursor-pointer" title="Delete Row">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         }
 
         // Save Practical Marks Entry

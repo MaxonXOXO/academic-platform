@@ -20,6 +20,10 @@ class PrincipalScheduledEvent extends Model
         'start_time',
         'end_time',
         'is_full_day',
+        'suppress_timetable',
+        'suspension_type',
+        'end_date',
+        'reopen_date',
         'target_audience',
         'target_department',
         'target_semester',
@@ -35,10 +39,13 @@ class PrincipalScheduledEvent extends Model
     ];
 
     protected $casts = [
-        'is_full_day'   => 'boolean',
-        'requires_rsvp' => 'boolean',
-        'is_published'  => 'boolean',
-        'event_date'    => 'date',
-        'scheduled_at'  => 'datetime',
+        'is_full_day'        => 'boolean',
+        'suppress_timetable' => 'boolean',
+        'requires_rsvp'      => 'boolean',
+        'is_published'       => 'boolean',
+        'event_date'         => 'date',
+        'end_date'           => 'date',
+        'reopen_date'        => 'date',
+        'scheduled_at'       => 'datetime',
     ];
 }

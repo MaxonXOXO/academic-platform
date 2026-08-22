@@ -120,8 +120,8 @@
         }
     @endphp
 
-    <!-- Top Compact Header -->
-    <header class="glass-panel mx-2 mt-2 px-4 py-2.5 flex items-center justify-between shadow-xl relative z-40">
+    <!-- Top Compact Header (Sticky Top) -->
+    <header class="glass-panel px-4 py-2.5 flex items-center justify-between shadow-xl sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 rounded-none">
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
@@ -148,9 +148,9 @@
                 <i class="fa-solid fa-print text-[11px]"></i> <span class="hidden sm:inline">Print CIA Report</span>
             </a>
 
-            <a href="javascript:void(0)" onclick="window.close(); setTimeout(function() { let ref = document.referrer; if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) { window.location.href = ref; } else { window.location.href = '{{ $dashboardUrl }}'; } }, 150);" class="px-2.5 py-1 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold text-[11px] transition border border-rose-500/30 flex items-center gap-1 cursor-pointer no-underline" title="Dashboard">
-                <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                <span>Dashboard</span>
+            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="Return to Dashboard">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>Return to Dashboard</span>
             </a>
         </div>
     </header>
@@ -195,6 +195,12 @@
 
     <!-- Top Navigation & Batch Filter Bar (Exact Drawing Hall 2026 Style) -->
     <div class="glass-panel mx-2 mt-2 p-2 flex flex-wrap items-center justify-between gap-2 z-30">
+        <!-- Return Button directly inside the Tab Bar container -->
+        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="Return to Dashboard">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span>Return to Dashboard</span>
+        </a>
+
         <!-- Horizontal Tabs (Drawing Hall 2026 Style) -->
         <div class="drawing-hall-tab-bar rounded-xl flex-1">
             <button onclick="switchTab('table22')" id="btn-table22" class="drawing-hall-tab-btn tab-btn active">
@@ -950,6 +956,22 @@
             } catch(e) {
                 alert('Failed to save series exam marks.');
             }
+        }
+
+        function handleVirtualLabBack(e) {
+            if (e) e.preventDefault();
+            if (window.opener && !window.opener.closed) {
+                try {
+                    window.close();
+                    return false;
+                } catch(err) {}
+            }
+            if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                window.location.href = document.referrer;
+                return false;
+            }
+            window.location.href = '{{ $dashboardUrl }}';
+            return false;
         }
     </script>
 </body>

@@ -1058,33 +1058,45 @@
       const col1 = progressList.slice(0, mid);
       const col2 = progressList.slice(mid);
 
-      const renderListHtml = (list) => list.map((item, index) => `
-        <div class="py-2 ${index > 0 ? 'border-t border-slate-800/40' : ''}">
-          <div class="flex justify-between items-start gap-2 flex-wrap mb-1">
-            <span class="font-extrabold text-slate-100 text-sm">${item.subject_code} - ${item.subject_name}</span>
-            <span class="text-slate-400 text-sm font-semibold flex items-center gap-1">
-              <span class="material-symbols-rounded text-sm">person</span>
-              ${item.staff_name}
+      const renderItemHtml = (item, slNo) => `
+        <div class="p-3.5 bg-slate-950/40 border border-slate-800/80 rounded-xl space-y-2.5 hover:border-slate-700/80 transition-all shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                ${slNo}
+              </span>
+              <div>
+                <span class="font-extrabold text-white text-sm tracking-tight block leading-snug">${item.subject_code} - ${item.subject_name}</span>
+                <div class="flex items-center gap-1 text-slate-400 text-xs font-semibold mt-0.5">
+                  <span class="material-symbols-rounded text-xs text-slate-500">person</span>
+                  <span>${item.staff_name || 'Faculty Not Assigned'}</span>
+                </div>
+              </div>
+            </div>
+            <span class="font-black text-xs px-2.5 py-0.5 rounded-full ${item.percentage >= 75 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : item.percentage >= 40 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'} flex-shrink-0">
+              ${item.percentage}%
             </span>
           </div>
 
-          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-gradient-to-r from-teal-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" style="width: ${item.percentage}%"></div>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800/60">
+            <div class="bg-gradient-to-r from-teal-500 to-emerald-400 h-full rounded-full transition-all duration-1000 ease-out" style="width: ${item.percentage}%"></div>
           </div>
 
-          <div class="flex justify-between text-sm font-semibold text-slate-500 mt-1">
-            <span>Sessions: <strong class="text-slate-300">${item.completed_sessions}</strong> / ${item.total_sessions} taught</span>
-            <span class="text-teal-400">${item.percentage}%</span>
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-400 pt-0.5">
+            <span class="text-slate-400">Sessions Taught: <strong class="text-slate-200">${item.completed_sessions}</strong> / ${item.total_sessions}</span>
+            <span class="text-teal-400 font-mono text-[11px]">${item.percentage}% Taught</span>
           </div>
         </div>
-      `).join('');
+      `;
+
+      const renderListHtml = (list, startSl) => list.map((item, index) => renderItemHtml(item, startSl + index)).join('');
 
       container.innerHTML = `
-        <div class="flex flex-col">
-          ${renderListHtml(col1)}
+        <div class="flex flex-col gap-3">
+          ${renderListHtml(col1, 1)}
         </div>
-        <div class="flex flex-col border-t md:border-t-0 md:border-l border-slate-800/60 pt-3 md:pt-0 md:pl-6">
-          ${renderListHtml(col2)}
+        <div class="flex flex-col gap-3 pt-3 md:pt-0">
+          ${renderListHtml(col2, col1.length + 1)}
         </div>
       `;
     }

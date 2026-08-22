@@ -304,11 +304,22 @@ class MentoringController extends Controller
                     ];
                 });
 
-            $student = Student::where('reg_no', strtoupper($regNo))->first();
+            $student = Student::with('classroom')->where('reg_no', strtoupper($regNo))->first();
+            $classroom = $student ? ($student->classroom 
+                ?? ClassManagement::where('classroom_id', $student->classroom_id)->first()
+                ?? R26ClassManagement::where('classroom_id', $student->classroom_id)->first()) : null;
+            $currentSem = $student ? ($student->semester ?: ($classroom ? $classroom->current_semester : 1)) : 1;
 
             return response()->json([
                 'status'  => 'SUCCESS',
-                'student' => $student ? ['name' => $student->name, 'branch' => $student->branch] : null,
+                'student' => $student ? [
+                    'name'         => $student->name,
+                    'reg_no'       => $student->reg_no,
+                    'sbte_reg_no'  => $student->sbte_reg_no,
+                    'semester'     => $currentSem,
+                    'branch'       => $student->branch,
+                    'classroom_id' => $student->classroom_id,
+                ] : null,
                 'entries' => $entries,
             ]);
         } catch (\Exception $e) {
@@ -364,9 +375,14 @@ class MentoringController extends Controller
         try {
             $student = Student::with('classroom')->where('reg_no', strtoupper($regNo))->first();
             if (!$student) return response()->json(['status' => 'ERROR', 'message' => 'Student not found.']);
-            if (!$student->semester && $student->classroom) {
-                $student->semester = $student->classroom->current_semester;
-            }
+
+            $classroom = $student->classroom 
+                ?? ClassManagement::where('classroom_id', $student->classroom_id)->first()
+                ?? R26ClassManagement::where('classroom_id', $student->classroom_id)->first();
+
+            $currentSem = $student->semester ?: ($classroom ? $classroom->current_semester : 1);
+            $student->semester = $currentSem;
+            $student->current_semester = $currentSem;
             
             $extended_profile = \App\Models\StudentMentoringProfile::where('reg_no', $student->reg_no)->first();
 
@@ -469,7 +485,25 @@ class MentoringController extends Controller
             return response()->json([
                 'status' => 'SUCCESS',
                 'data' => [
-                    'student'         => $student,
+                    'student'         => [
+                        'name'                => $student->name,
+                        'reg_no'              => $student->reg_no,
+                        'sbte_reg_no'         => $student->sbte_reg_no,
+                        'semester'            => $currentSem,
+                        'current_semester'    => $currentSem,
+                        'branch'              => $student->branch,
+                        'classroom_id'        => $student->classroom_id,
+                        'photo_url'           => $student->photo_url,
+                        'annual_income'       => $student->annual_income,
+                        'residential_status'  => $student->residential_status,
+                        'guardian_name'       => $student->guardian_name,
+                        'guardian_relationship'=> $student->guardian_relationship,
+                        'guardian_mobile'     => $student->guardian_mobile,
+                        'guardian_address'    => $student->guardian_address,
+                        'scholarships'        => $student->scholarships,
+                        'is_fee_waiver'       => $student->is_fee_waiver,
+                        'profile_verified_at' => $student->profile_verified_at,
+                    ],
                     'extended_profile'=> $extended_profile,
                     'profile'         => $student,
                     'family'          => $family,
@@ -779,9 +813,14 @@ class MentoringController extends Controller
 
             $student = Student::with('classroom')->where('reg_no', strtoupper($regNo))->first();
             if (!$student) return response()->json(['status' => 'ERROR', 'message' => 'Student not found.']);
-            if (!$student->semester && $student->classroom) {
-                $student->semester = $student->classroom->current_semester;
-            }
+
+            $classroom = $student->classroom 
+                ?? ClassManagement::where('classroom_id', $student->classroom_id)->first()
+                ?? R26ClassManagement::where('classroom_id', $student->classroom_id)->first();
+
+            $currentSem = $student->semester ?: ($classroom ? $classroom->current_semester : 1);
+            $student->semester = $currentSem;
+            $student->current_semester = $currentSem;
 
             $extended_profile = \App\Models\StudentMentoringProfile::where('reg_no', $student->reg_no)->first();
             $family = StudentFamilyDetail::where('reg_no', $student->reg_no)->get();
@@ -880,23 +919,28 @@ class MentoringController extends Controller
                 'status' => 'SUCCESS',
                 'data' => [
                     'student' => [
-                        'name'         => $student->name,
-                        'reg_no'       => $student->reg_no,
-                        'branch'       => $student->branch,
-                        'classroom_id' => $student->classroom_id,
-                        'photo_url'    => $student->photo_url,
+                        'name'             => $student->name,
+                        'reg_no'           => $student->reg_no,
+                        'sbte_reg_no'      => $student->sbte_reg_no,
+                        'semester'         => $currentSem,
+                        'current_semester' => $currentSem,
+                        'branch'           => $student->branch,
+                        'classroom_id'     => $student->classroom_id,
+                        'photo_url'        => $student->photo_url,
                     ],
                     'profile' => [
-                        'name' => $student->name,
-                        'reg_no' => $student->reg_no,
-                        'annual_income' => $student->annual_income,
-                        'residential_status' => $student->residential_status,
-                        'scholarships' => $student->scholarships,
-                        'is_fee_waiver' => $student->is_fee_waiver,
-                        'guardian_name' => $student->guardian_name,
-                        'guardian_relationship' => $student->guardian_relationship,
-                        'guardian_mobile' => $student->guardian_mobile,
-                        'guardian_address' => $student->guardian_address,
+                        'name'                => $student->name,
+                        'reg_no'              => $student->reg_no,
+                        'sbte_reg_no'         => $student->sbte_reg_no,
+                        'semester'            => $currentSem,
+                        'annual_income'       => $student->annual_income,
+                        'residential_status'  => $student->residential_status,
+                        'scholarships'        => $student->scholarships,
+                        'is_fee_waiver'       => $student->is_fee_waiver,
+                        'guardian_name'       => $student->guardian_name,
+                        'guardian_relationship'=> $student->guardian_relationship,
+                        'guardian_mobile'     => $student->guardian_mobile,
+                        'guardian_address'    => $student->guardian_address,
                         'profile_verified_at' => $student->profile_verified_at,
                     ],
                     'extended_profile' => $extended_profile,

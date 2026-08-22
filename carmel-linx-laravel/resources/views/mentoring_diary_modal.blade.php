@@ -697,6 +697,14 @@
   function renderMentoringData(data) {
     // Profile Tab
         if (data.student) {
+      if (document.getElementById('fmdStudentName')) {
+        document.getElementById('fmdStudentName').innerText = data.student.name || currentMentoringRegNo;
+      }
+      if (document.getElementById('fmdStudentReg')) {
+        const regText = data.student.sbte_reg_no ? `PRN: ${data.student.sbte_reg_no}` : `Reg: ${data.student.reg_no || currentMentoringRegNo}`;
+        const semText = data.student.semester ? ` | Sem: S${data.student.semester}` : '';
+        document.getElementById('fmdStudentReg').innerText = `${regText}${semText}`;
+      }
       if (data.student.profile_verified_at) {
         document.getElementById('fmdVerifyBtn').innerHTML = '<span class="material-symbols-rounded text-sm">cancel</span> Unverify Data';
         document.getElementById('fmdVerifyBtn').className = "px-4 py-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white border border-red-500/30 rounded-xl text-xs font-bold transition-premium flex items-center gap-2 cursor-pointer";

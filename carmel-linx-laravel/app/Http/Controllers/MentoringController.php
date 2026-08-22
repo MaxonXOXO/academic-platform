@@ -362,8 +362,11 @@ class MentoringController extends Controller
         if (!$mobileNo) return response()->json(['status' => 'ERROR', 'message' => 'Not authenticated.'], 401);
 
         try {
-            $student = Student::where('reg_no', strtoupper($regNo))->first();
+            $student = Student::with('classroom')->where('reg_no', strtoupper($regNo))->first();
             if (!$student) return response()->json(['status' => 'ERROR', 'message' => 'Student not found.']);
+            if (!$student->semester && $student->classroom) {
+                $student->semester = $student->classroom->current_semester;
+            }
             
             $extended_profile = \App\Models\StudentMentoringProfile::where('reg_no', $student->reg_no)->first();
 
@@ -774,8 +777,11 @@ class MentoringController extends Controller
             // But we must fake the session briefly or extract the logic.
             // Since getFullStudentDiary checks for mentor auth, we'll extract the logic.
 
-            $student = Student::where('reg_no', strtoupper($regNo))->first();
+            $student = Student::with('classroom')->where('reg_no', strtoupper($regNo))->first();
             if (!$student) return response()->json(['status' => 'ERROR', 'message' => 'Student not found.']);
+            if (!$student->semester && $student->classroom) {
+                $student->semester = $student->classroom->current_semester;
+            }
 
             $extended_profile = \App\Models\StudentMentoringProfile::where('reg_no', $student->reg_no)->first();
             $family = StudentFamilyDetail::where('reg_no', $student->reg_no)->get();

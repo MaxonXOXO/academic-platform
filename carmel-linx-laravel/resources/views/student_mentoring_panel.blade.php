@@ -41,7 +41,9 @@
         </span>
       </div>
       <div class="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 text-sm text-slate-400 font-semibold">
-        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> SBTE / PRN No: <strong class="text-slate-200 font-mono">{{ session('userId') }}</strong></span>
+        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">badge</span> <span id="diaryHeaderStudentSbteLabel">{{ session('sbteRegNo') ? 'PRN No:' : 'Reg No:' }}</span> <strong class="text-slate-200 font-mono" id="diaryHeaderStudentSbteNo">{{ session('sbteRegNo') ?: session('userId') }}</strong></span>
+        <span class="hidden sm:inline text-slate-600">&bull;</span>
+        <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">auto_stories</span> Sem: <strong class="text-slate-200" id="diaryHeaderStudentSem">S{{ session('userSemester', session('semester', '1')) }}</strong></span>
         <span class="hidden sm:inline text-slate-600">&bull;</span>
         <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-base text-indigo-400">school</span> Branch: <strong class="text-slate-200" id="diaryHeaderStudentBranch">{{ session('userBranch', '-') }}</strong></span>
         <span class="hidden sm:inline text-slate-600">&bull;</span>

@@ -209,6 +209,29 @@ function populateMentoringUI(data) {
     const headerNameCard = document.getElementById('diaryHeaderStudentName');
     if (headerNameCard) headerNameCard.innerText = data.student.name || studentName;
 
+    const sbteCard = document.getElementById('diaryHeaderStudentSbteNo');
+    const sbteLabel = document.getElementById('diaryHeaderStudentSbteLabel');
+    if (sbteCard) {
+      if (data.student && data.student.sbte_reg_no) {
+        sbteCard.innerText = data.student.sbte_reg_no;
+        if (sbteLabel) sbteLabel.innerText = "PRN No:";
+      } else if (data.student && data.student.reg_no) {
+        sbteCard.innerText = data.student.reg_no;
+        if (sbteLabel) sbteLabel.innerText = "Reg No:";
+      } else {
+        sbteCard.innerText = "-";
+      }
+    }
+
+    const semCard = document.getElementById('diaryHeaderStudentSem');
+    if (semCard) {
+      let sVal = null;
+      if (data.student) {
+        sVal = data.student.semester || data.student.current_semester || (data.student.classroom ? data.student.classroom.current_semester : null);
+      }
+      semCard.innerText = sVal ? (String(sVal).startsWith('S') ? sVal : 'S' + sVal) : '-';
+    }
+
     const branchCard = document.getElementById('diaryHeaderStudentBranch');
     if (branchCard) branchCard.innerText = data.student.branch || '-';
 

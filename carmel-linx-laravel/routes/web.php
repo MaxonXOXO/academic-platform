@@ -88,6 +88,9 @@ Route::get('/login', function () {
 });
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/api/auth/auto-login', [AuthController::class, 'autoLoginViaToken']);
+Route::post('/api/notifications/subscribe', [\App\Http\Controllers\PushNotificationController::class, 'subscribe']);
+Route::post('/api/notifications/broadcast', [\App\Http\Controllers\PushNotificationController::class, 'sendBroadcast']);
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/staff', [AuthController::class, 'registerStaff']);
 Route::get('/logout', [AuthController::class, 'logout']);
@@ -750,6 +753,11 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/staff/profile/save-avatar-framing', [DataController::class, 'saveStaffAvatarFraming']);
     Route::post('/api/staff/update-photo', [DataController::class, 'uploadStaffPhoto']);
     Route::post('/api/staff/change-password', [AuthController::class, 'changeStaffPassword']);
+    
+    // Staff Birthday Wish & Card Popup Routes
+    Route::get('/api/staff/birthdays/today', [\App\Http\Controllers\StaffBirthdayController::class, 'getTodayBirthdays']);
+    Route::post('/api/staff/birthdays/wish', [\App\Http\Controllers\StaffBirthdayController::class, 'sendWish']);
+    Route::post('/api/staff/profile/update-dob', [\App\Http\Controllers\StaffBirthdayController::class, 'updateSelfDob']);
     Route::post('/api/student/tasks/submit', [App\Http\Controllers\DataController::class, 'submitManualTask']);
     Route::get('/api/student/online-tests', [App\Http\Controllers\TestEngineController::class, 'getAvailableTests']);
     Route::post('/api/student/online-tests/{testId}/start', [App\Http\Controllers\TestEngineController::class, 'startTest']);

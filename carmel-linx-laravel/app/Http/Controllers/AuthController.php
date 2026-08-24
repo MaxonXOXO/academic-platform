@@ -6,6 +6,7 @@ use App\Models\StaffProfile;
 use App\Models\Student;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -79,12 +80,20 @@ class AuthController extends Controller
                     'semester' => $student->semester,
                 ]);
 
+                // Generate persistent remember token
+                $rememberToken = Str::random(60);
+                $student->update(['remember_token' => $rememberToken]);
+                Cookie::queue(Cookie::make('carmel_remember_token', $rememberToken, 525600 * 5, null, null, false, false));
+                Cookie::queue(Cookie::make('carmel_remember_role', 'student', 525600 * 5, null, null, false, false));
+
                 return response()->json([
                     'status' => 'SUCCESS',
                     'role' => 'Student',
                     'id' => $student->reg_no,
                     'name' => $student->name,
                     'branch' => $student->branch,
+                    'remember_token' => $rememberToken,
+                    'role_type' => 'student',
                     'must_update_profile' => Session::get('must_update_profile', false),
                     'route' => '/dashboard/student'
                 ]);
@@ -150,12 +159,20 @@ class AuthController extends Controller
                     $route = '/dashboard/workshop';
                 }
 
+                // Generate persistent remember token
+                $rememberToken = Str::random(60);
+                $staff->update(['remember_token' => $rememberToken]);
+                Cookie::queue(Cookie::make('carmel_remember_token', $rememberToken, 525600 * 5, null, null, false, false));
+                Cookie::queue(Cookie::make('carmel_remember_role', 'staff', 525600 * 5, null, null, false, false));
+
                 return response()->json([
                     'status' => 'SUCCESS',
                     'role' => $staff->designation,
                     'id' => $staff->mobile_no,
                     'name' => $staff->name,
                     'branch' => $staff->branch,
+                    'remember_token' => $rememberToken,
+                    'role_type' => 'staff',
                     'route' => $route
                 ]);
             }
@@ -455,10 +472,110 @@ class AuthController extends Controller
     }
 
     /**
+     * Auto Login via persistent token (for mobile app experience).
+     */
+    public function autoLoginViaToken(Request $request)
+    {
+        $token = $request->input('token') ?? $request->cookie('carmel_remember_token') ?? $request->header('X-Remember-Token');
+        $roleType = $request->input('roleType') ?? $request->cookie('carmel_remember_role') ?? $request->header('X-Remember-Role');
+
+        if (empty($token)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No persistent token provided.']);
+        }
+
+        try {
+            if ($roleType === 'student') {
+                $student = Student::where('remember_token', $token)->first();
+                if ($student && strtoupper($student->status) === 'APPROVED') {
+                    Session::put([
+                        'userRole' => 'Student',
+                        'userId' => $student->reg_no,
+                        'userName' => $student->name,
+                        'userBranch' => $student->branch,
+                        'userAdmissionType' => $student->admission_type,
+                        'userPhoto' => $student->photo_url ?? '',
+                        'classroomId' => $student->classroom_id,
+                        'sbteRegNo' => $student->sbte_reg_no,
+                        'userEmail' => $student->email,
+                        'semester' => $student->semester,
+                    ]);
+
+                    $newToken = Str::random(60);
+                    $student->update(['remember_token' => $newToken]);
+                    Cookie::queue(Cookie::make('carmel_remember_token', $newToken, 525600 * 5, null, null, false, false));
+                    Cookie::queue(Cookie::make('carmel_remember_role', 'student', 525600 * 5, null, null, false, false));
+
+                    return response()->json([
+                        'status' => 'SUCCESS',
+                        'role' => 'Student',
+                        'id' => $student->reg_no,
+                        'name' => $student->name,
+                        'remember_token' => $newToken,
+                        'role_type' => 'student',
+                        'route' => '/dashboard/student'
+                    ]);
+                }
+            } else {
+                $staff = StaffProfile::where('remember_token', $token)->first();
+                if ($staff && strtoupper($staff->account_status) === 'APPROVED') {
+                    Session::put([
+                        'userRole' => $staff->designation,
+                        'userId' => $staff->mobile_no,
+                        'userName' => $staff->name,
+                        'userBranch' => $staff->branch,
+                        'userPhoto' => $staff->photo_url ?? '',
+                    ]);
+
+                    $route = '/dashboard/lecturer';
+                    if ($staff->designation === 'Super_Admin') $route = '/dashboard/superadmin';
+                    elseif ($staff->designation === 'Chairman') $route = '/dashboard/chairman';
+                    elseif ($staff->designation === 'Admin') $route = '/dashboard/admin';
+                    elseif ($staff->designation === 'Principal') $route = '/dashboard/principal';
+                    elseif ($staff->designation === 'HOD') $route = '/dashboard/hod';
+                    elseif ($staff->designation === 'Tutor') $route = '/dashboard/tutor';
+                    elseif ($staff->designation === 'Gen_Dept_Coordinator_Aided') $route = '/dashboard/general-coordinator-aided';
+                    elseif (in_array($staff->designation, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance'])) $route = '/dashboard/academic-coordinator';
+                    elseif ($staff->designation === 'Lecturer') $route = '/dashboard/lecturer';
+                    elseif ($staff->designation === 'Demonstrator') $route = '/dashboard/demonstrator';
+                    elseif ($staff->designation === 'Trade_Instructor') $route = '/dashboard/tradeinstructor';
+                    elseif ($staff->designation === 'Workshop_Superintendent') $route = '/dashboard/workshop';
+
+                    $newToken = Str::random(60);
+                    $staff->update(['remember_token' => $newToken]);
+                    Cookie::queue(Cookie::make('carmel_remember_token', $newToken, 525600 * 5, null, null, false, false));
+                    Cookie::queue(Cookie::make('carmel_remember_role', 'staff', 525600 * 5, null, null, false, false));
+
+                    return response()->json([
+                        'status' => 'SUCCESS',
+                        'role' => $staff->designation,
+                        'id' => $staff->mobile_no,
+                        'name' => $staff->name,
+                        'remember_token' => $newToken,
+                        'role_type' => 'staff',
+                        'route' => $route
+                    ]);
+                }
+            }
+
+            return response()->json(['status' => 'ERROR', 'message' => 'Invalid or expired session token.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Logout and destroy session.
      */
     public function logout(Request $request)
     {
+        $userId = Session::get('userId');
+        if ($userId) {
+            StaffProfile::where('mobile_no', $userId)->update(['remember_token' => null]);
+            Student::where('reg_no', $userId)->orWhere('adm_no', $userId)->update(['remember_token' => null]);
+        }
+        Cookie::queue(Cookie::forget('carmel_remember_token'));
+        Cookie::queue(Cookie::forget('carmel_remember_role'));
+
         $request->session()->forget(['userRole', 'userName', 'userEmail', 'mobile_no', 'reg_no', 'classroom_id', 'designation', 'user_id', 'userId']);
         $request->session()->flush();
         $request->session()->invalidate();
@@ -499,13 +616,14 @@ class AuthController extends Controller
                 'mobile_no' => $staff->mobile_no,
                 'email' => $staff->email,
                 'designation' => $staff->designation,
+                'dob' => $staff->dob,
                 'photo_url' => $staff->photo_url ?? '/storage/avatars/default.png',
             ]
         ]);
     }
 
     /**
-     * Update Executive Profile (Name, Mobile No/Login ID, Email, Password, Photo).
+     * Update Executive Profile (Name, Mobile No/Login ID, Email, Password, DOB, Photo).
      */
     public function updateExecutiveProfile(Request $request)
     {
@@ -529,6 +647,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'mobile_no' => 'required|string|max:20',
             'email' => 'required|email|max:255',
+            'dob' => 'nullable|date',
             'new_password' => 'nullable|string|min:4',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -549,6 +668,9 @@ class AuthController extends Controller
             $staff->name = trim($request->input('name'));
             $staff->email = trim($request->input('email'));
             $staff->mobile_no = $newMobile;
+            if ($request->has('dob')) {
+                $staff->dob = $request->input('dob') ?: null;
+            }
 
             if ($request->filled('new_password')) {
                 $staff->password = trim($request->input('new_password'));

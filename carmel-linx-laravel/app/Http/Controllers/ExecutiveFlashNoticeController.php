@@ -71,6 +71,20 @@ class ExecutiveFlashNoticeController extends Controller
             'is_published'      => $isPublished,
         ]);
 
+        if ($isPublished) {
+            $pushTitle = "📢 [" . strtoupper($notice->priority) . "] " . $notice->title;
+            $pushBody = substr(strip_tags($notice->content), 0, 120);
+            $targetAud = $notice->target_audience;
+
+            if ($targetAud === 'ALL_CAMPUS') {
+                \App\Services\PushNotificationService::notifyAll($pushTitle, $pushBody, '/', 'carmel-notice');
+            } elseif (str_contains($targetAud, 'STAFF')) {
+                \App\Services\PushNotificationService::notifyRole('staff', $pushTitle, $pushBody, '/dashboard/staff/mobile', 'carmel-notice');
+            } elseif (str_contains($targetAud, 'STUDENT')) {
+                \App\Services\PushNotificationService::notifyRole('student', $pushTitle, $pushBody, '/dashboard/student/mobile', 'carmel-notice');
+            }
+        }
+
         return response()->json([
             'status'  => 'SUCCESS',
             'message' => $dispatchType === 'scheduled' ? 'Flash notice scheduled successfully!' : 'Flash notice broadcasted to targeted audience with immediate effect!',

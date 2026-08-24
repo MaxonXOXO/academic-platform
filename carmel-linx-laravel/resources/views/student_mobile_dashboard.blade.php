@@ -374,7 +374,7 @@
                 <button onclick="toggleTheme()" class="btn btn-sm px-2 py-1 rounded-pill fw-bold theme-toggle-btn" style="font-size: 0.7rem;" title="Toggle Light / Dark Mode">
                     <i id="themeIcon" class="fa-solid fa-sun text-warning"></i>
                 </button>
-                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm btn-outline-danger px-2 py-1 rounded-pill" style="font-size: 0.7rem;" title="Sign Out">
+                <a href="{{ url('/logout') }}" onclick="localStorage.removeItem('carmel_remember_token'); localStorage.removeItem('carmel_remember_role'); return confirm('Are you sure you want to logout?');" class="btn btn-sm btn-outline-danger px-2 py-1 rounded-pill" style="font-size: 0.7rem;" title="Sign Out">
                     <i class="fa-solid fa-power-off"></i> Sign Out
                 </a>
             </div>
@@ -2291,6 +2291,8 @@
             });
         }
     </script>
+    <!-- Push Notification Prompt Banner -->
+    @include('partials.push_notification_prompt')
     @endif
 </body>
 </html>

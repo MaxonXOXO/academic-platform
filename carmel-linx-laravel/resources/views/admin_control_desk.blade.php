@@ -1124,9 +1124,12 @@
             <option value="Workshop_Instructor">Workshop Instructor</option>
             <option value="Workshop_Superintendent">Workshop Superintendent</option>
             <option value="Super_Admin">Super Admin</option>
-            <option value="Chairman">Chairman</option>
             <option value="Admin">Admin</option>
           </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Date of Birth (DOB)</label>
+          <input type="date" id="editStaffDob" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-sm">
         </div>
 
         <div id="editStaffAlert" class="hidden p-3 rounded-xl font-bold border text-sm"></div>
@@ -1770,7 +1773,7 @@
         if (user.type === 'staff') {
           idColumnHtml = `
             <a href="javascript:void(0)" 
-               onclick="openEditStaffModal('${user.id}', '${user.name.replace(/'/g, "\\'")}', '${user.email.replace(/'/g, "\\'")}', '${user.branch}', '${user.role}')" 
+               onclick="openEditStaffModal('${user.id}', '${user.name.replace(/'/g, "\\'")}', '${user.email.replace(/'/g, "\\'")}', '${user.branch}', '${user.role}', '${user.dob || ''}')" 
                class="text-blue-400 hover:text-blue-300 underline font-mono font-bold text-xs transition-premium" 
                title="Modify details for ${user.name}">
               ${user.id}
@@ -1887,12 +1890,15 @@
     }
 
     // Edit Staff Modal JS handlers
-    function openEditStaffModal(mobileNo, name, email, branch, designation) {
+    function openEditStaffModal(mobileNo, name, email, branch, designation, dob) {
       document.getElementById('editStaffMobile').value = mobileNo;
       document.getElementById('editStaffName').value = name;
       document.getElementById('editStaffEmail').value = email;
       document.getElementById('editStaffBranch').value = branch;
       document.getElementById('editStaffDesig').value = designation;
+      if (document.getElementById('editStaffDob')) {
+        document.getElementById('editStaffDob').value = dob || '';
+      }
       document.getElementById('editStaffAlert').classList.add('hidden');
 
       const modal = document.getElementById('editStaffModal');
@@ -1913,6 +1919,7 @@
       const email = document.getElementById('editStaffEmail').value.trim();
       const branch = document.getElementById('editStaffBranch').value;
       const designation = document.getElementById('editStaffDesig').value;
+      const dob = document.getElementById('editStaffDob') ? document.getElementById('editStaffDob').value : null;
 
       const alert = document.getElementById('editStaffAlert');
       const spinner = document.getElementById('editStaffSpinner');
@@ -1923,7 +1930,7 @@
       fetch(`/api/admin/user/update-staff/${mobileNo}`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ name, email, branch, designation })
+        body: JSON.stringify({ name, email, branch, designation, dob })
       })
       .then(res => res.json())
       .then(data => {
@@ -3943,5 +3950,8 @@
       }
     });
   </script>
+
+  <!-- Staff Birthday Wish Popup Modal -->
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

@@ -170,6 +170,7 @@ class DataController extends Controller
             'email' => 'required|email',
             'branch' => 'required|string',
             'designation' => 'required|string',
+            'dob' => 'nullable|date',
         ]);
 
         try {
@@ -177,11 +178,13 @@ class DataController extends Controller
             $oldEmail = $staff->email;
             $oldBranch = $staff->branch;
             $oldDesig = $staff->designation;
+            $oldDob = $staff->dob;
 
             $newName = $request->input('name');
             $newEmail = $request->input('email');
             $newBranch = $request->input('branch');
             $newDesig = $request->input('designation');
+            $newDob = $request->input('dob');
 
             // Enforce single active Principal constraint
             if ($newDesig === 'Principal' && $oldDesig !== 'Principal') {
@@ -199,6 +202,7 @@ class DataController extends Controller
                 'email' => $newEmail,
                 'branch' => $newBranch,
                 'designation' => $newDesig,
+                'dob' => $newDob ?: null,
             ]);
 
             $changes = [];
@@ -206,6 +210,7 @@ class DataController extends Controller
             if ($newEmail !== $oldEmail) $changes[] = "Email changed from '{$oldEmail}' to '{$newEmail}'";
             if ($newBranch !== $oldBranch) $changes[] = "Branch changed from '{$oldBranch}' to '{$newBranch}'";
             if ($newDesig !== $oldDesig) $changes[] = "Designation changed from '{$oldDesig}' to '{$newDesig}'";
+            if ($newDob !== $oldDob) $changes[] = "DOB changed from '{$oldDob}' to '{$newDob}'";
 
             if (!empty($changes)) {
                 AuditLog::create([

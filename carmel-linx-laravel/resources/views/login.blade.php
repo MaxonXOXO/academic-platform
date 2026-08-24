@@ -517,8 +517,42 @@
   <script>
     let activeRole = "staff";
 
-    // Default to Staff tab on load
+    // Default to Staff tab on load & Auto-Login Check
     document.addEventListener('DOMContentLoaded', () => {
+      // Auto-Login Check for Mobile / Persistent Sessions
+      const storedToken = localStorage.getItem('carmel_remember_token');
+      const storedRole = localStorage.getItem('carmel_remember_role') || 'staff';
+      if (storedToken && storedToken.trim().length > 10) {
+        const loginAlert = document.getElementById('loginAlert');
+        if (loginAlert) {
+          loginAlert.className = "p-4 rounded-xl text-sm font-semibold bg-blue-950/40 text-blue-400 border border-blue-900/60 block";
+          loginAlert.innerText = "Welcome back! Restoring active mobile session...";
+        }
+        fetch('/api/auth/auto-login', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ token: storedToken, roleType: storedRole })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS') {
+            if (data.remember_token) {
+              localStorage.setItem('carmel_remember_token', data.remember_token);
+              localStorage.setItem('carmel_remember_role', data.role_type || storedRole);
+            }
+            window.location.href = data.route;
+          } else {
+            localStorage.removeItem('carmel_remember_token');
+            localStorage.removeItem('carmel_remember_role');
+            if (loginAlert) loginAlert.classList.add('hidden');
+          }
+        })
+        .catch(err => {
+          console.log('Auto-login bypassed:', err);
+          if (loginAlert) loginAlert.classList.add('hidden');
+        });
+      }
+
       toggleRoleTab('staff');
       
       const lastMobile = localStorage.getItem('carmel_last_staff_mobile');
@@ -985,6 +1019,10 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "SUCCESS") {
+          if (data.remember_token) {
+            localStorage.setItem('carmel_remember_token', data.remember_token);
+            localStorage.setItem('carmel_remember_role', data.role_type || activeRole);
+          }
           loginAlert.className = "p-4 rounded-xl text-sm font-semibold bg-green-950/40 text-green-400 border border-green-900/60 block";
           loginAlert.innerText = "Access granted! Redirecting...";
           window.location.href = data.route;

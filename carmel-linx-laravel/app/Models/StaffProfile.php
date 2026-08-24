@@ -18,7 +18,9 @@ class StaffProfile extends Model
         'email',
         'branch',
         'designation',
+        'dob',
         'password',
+        'remember_token',
         'photo_url',
         'account_status',
     ];

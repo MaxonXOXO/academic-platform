@@ -343,7 +343,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-1.5">
-                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?')" class="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 shadow-sm" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); transition: all 0.2s ease;" title="Logout" aria-label="Logout">
+                <a href="{{ url('/logout') }}" onclick="localStorage.removeItem('carmel_remember_token'); localStorage.removeItem('carmel_remember_role'); return confirm('Are you sure you want to logout?');" class="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 shadow-sm" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); transition: all 0.2s ease;" title="Logout" aria-label="Logout">
                     <i class="fa-solid fa-power-off" style="font-size: 0.95rem; filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));"></i>
                 </a>
             </div>
@@ -1024,8 +1024,21 @@
                         <div class="py-1 border-bottom border-secondary border-opacity-25 d-flex justify-content-between">
                             <span>Role / Designation:</span> <strong class="text-white">{{ $staff->designation ?? session('userRole') }}</strong>
                         </div>
-                        <div class="py-1 d-flex justify-content-between">
+                        <div class="py-1 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
                             <span>Department:</span> <strong class="text-white">{{ $staff->department ?? session('userBranch', 'Academic') }}</strong>
+                        </div>
+                        <div class="py-2.5 border-top border-secondary border-opacity-25">
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                <span><i class="fa-solid fa-cake-candles text-warning me-1"></i> Date of Birth (DOB):</span>
+                                <strong id="staffDobDisplay" class="text-amber-400 font-mono">{{ !empty($staff->dob) ? date('d M Y', strtotime($staff->dob)) : 'Not Set' }}</strong>
+                            </div>
+                            <div class="input-group input-group-sm mt-1">
+                                <input type="date" id="staffDobInput" value="{{ $staff->dob ?? '' }}" class="form-control form-control-sm bg-slate-900 text-white border-slate-700">
+                                <button onclick="saveSelfStaffDob()" class="btn btn-sm btn-outline-warning fw-bold px-2.5">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Save
+                                </button>
+                            </div>
+                            <div id="staffDobAlert" class="small mt-1 d-none font-bold"></div>
                         </div>
                     </div>
                 </div>
@@ -2956,6 +2969,40 @@
             }
         });
 
+        function saveSelfStaffDob() {
+            const dob = document.getElementById('staffDobInput').value;
+            const alertEl = document.getElementById('staffDobAlert');
+            if (!dob) {
+                alertEl.className = "small mt-1 d-block font-bold text-danger";
+                alertEl.innerText = "Please select a valid date of birth.";
+                return;
+            }
+
+            fetch('/api/staff/profile/update-dob', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ dob: dob })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    alertEl.className = "small mt-1 d-block font-bold text-success";
+                    alertEl.innerText = data.message;
+                    document.getElementById('staffDobDisplay').innerText = new Date(dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                } else {
+                    alertEl.className = "small mt-1 d-block font-bold text-danger";
+                    alertEl.innerText = data.message;
+                }
+            })
+            .catch(() => {
+                alertEl.className = "small mt-1 d-block font-bold text-danger";
+                alertEl.innerText = "Failed to update DOB.";
+            });
+        }
+
         // Prevent back-button viewing after logout
         window.addEventListener('pageshow', function (event) {
             loadExecutiveFlashNotices();
@@ -2965,6 +3012,12 @@
             }
         });
     </script>
+
+    <!-- Staff Birthday Wish Popup Modal -->
+    @include('partials.birthday_wish_modal')
+
+    <!-- Push Notification Prompt Banner -->
+    @include('partials.push_notification_prompt')
 
     <!-- Hidden Input for Photo File Upload -->
     <input type="file" id="staffPhotoFileInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" style="display: none;" onchange="handleStaffPhotoUpload(this)">

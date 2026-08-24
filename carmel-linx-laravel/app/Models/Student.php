@@ -42,6 +42,7 @@ class Student extends Model
         'name',
         'email',
         'password',
+        'remember_token',
         'phone',
         'branch',
         'admission_year',

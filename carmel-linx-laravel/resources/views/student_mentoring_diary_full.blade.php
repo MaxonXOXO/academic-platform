@@ -160,7 +160,7 @@
       <a href="/dashboard/student?tab=activity" id="navActivity" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-base">star</span> Activity Points
       </a>
-      <a href="/dashboard/student?tab=seminar" id="navSeminar" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+      <a href="/dashboard/student?tab=seminar" id="navSeminar" class="hidden w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-base">co_present</span> My Seminar
       </a>
       <a href="/student/mock-test" target="_blank" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-teal-300 hover:bg-blue-950/20 cursor-pointer text-xs no-underline">
@@ -736,6 +736,26 @@
               document.getElementById('headerSemValue').innerText = overall.current_semester;
             }
             currentActiveSem = data.overall.current_semester || 1;
+
+            // Check Seminar sidebar link visibility (S5/S6 students with Seminar subject in current semester)
+            const navSem = document.getElementById('navSeminar');
+            if (navSem) {
+              const semNum = Number(currentActiveSem);
+              let hasSeminar = false;
+              if ([5, 6].includes(semNum)) {
+                const currentSemObj = (data.semesters || []).find(s => s.semester == semNum);
+                if (currentSemObj && currentSemObj.subjects) {
+                  hasSeminar = currentSemObj.subjects.some(s => 
+                    s.subject_type === 'Seminar' || (s.subject_name && s.subject_name.toLowerCase().includes('seminar'))
+                  );
+                }
+              }
+              if (hasSeminar) {
+                navSem.classList.remove('hidden');
+              } else {
+                navSem.classList.add('hidden');
+              }
+            }
 
             if (data.stats) updateStatsHeader(data.stats, null);
             renderActiveTasks(data.active_tasks || []);

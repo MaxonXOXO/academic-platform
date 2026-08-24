@@ -157,7 +157,7 @@
       <button id="navActivity" onclick="switchPanel('activity')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-lg">star</span> Activity Points
       </button>
-      <button id="navSeminar" onclick="switchPanel('seminar')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+      <button id="navSeminar" onclick="switchPanel('seminar')" class="hidden w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
         <span class="material-symbols-rounded text-lg">co_present</span> My Seminar
       </button>
       <a id="navAttendance" href="/student/attendance" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-emerald-300 hover:bg-emerald-950/20 cursor-pointer text-xs no-underline block">
@@ -889,6 +889,11 @@
       if (panelId === 'activity') {
         loadActivityPoints();
       } else if (panelId === 'seminar') {
+        const navSem = document.getElementById('navSeminar');
+        if (navSem && navSem.classList.contains('hidden') && academicReportLoaded) {
+          switchPanel('exams');
+          return;
+        }
         loadSeminarRegistration();
       } else if (panelId === 'mentoring') {
         if (!mentoringLoaded) {
@@ -1030,6 +1035,30 @@
             // Always update sem in header
             document.getElementById('headerSemValue').innerText = 'Sem ' + (overall.current_semester || '?');
             currentActiveSem = overall.current_semester || 1;
+
+            // Check Seminar sidebar link visibility (S5/S6 students with Seminar subject in current semester)
+            const navSem = document.getElementById('navSeminar');
+            if (navSem) {
+              const semNum = Number(currentActiveSem);
+              let hasSeminar = false;
+              if ([5, 6].includes(semNum)) {
+                const currentSemObj = (data.semesters || []).find(s => s.semester == semNum);
+                if (currentSemObj && currentSemObj.subjects) {
+                  hasSeminar = currentSemObj.subjects.some(s => 
+                    s.subject_type === 'Seminar' || (s.subject_name && s.subject_name.toLowerCase().includes('seminar'))
+                  );
+                }
+              }
+              if (hasSeminar) {
+                navSem.classList.remove('hidden');
+              } else {
+                navSem.classList.add('hidden');
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('tab') === 'seminar') {
+                  switchPanel('exams');
+                }
+              }
+            }
 
             if (data.stats) updateStatsHeader(data.stats, null);
             renderActiveTasks(data.active_tasks || [], data.active_surveys || []);

@@ -2277,8 +2277,8 @@ class DataController extends Controller
             $classroom = $classroomId ? DB::table('class_management')->where('classroom_id', $classroomId)->first() : null;
             $currentSem = $student->semester ?: ($classroom ? (int)$classroom->current_semester : 1);
 
-            // Auto-create a default Seminar type subject if none exists for this classroom and semester
-            if (!empty($classroomId)) {
+            // Auto-create a default Seminar type subject if none exists for this classroom and semester (only for S5 & S6)
+            if (!empty($classroomId) && in_array((int)$currentSem, [5, 6])) {
                 $hasSeminarSubject = \App\Models\BatchSubject::where('classroom_id', $classroomId)
                     ->where('semester', $currentSem)
                     ->where('subject_type', 'Seminar')

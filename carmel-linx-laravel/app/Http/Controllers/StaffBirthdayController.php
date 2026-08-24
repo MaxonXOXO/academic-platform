@@ -72,7 +72,7 @@ class StaffBirthdayController extends Controller
             }
 
             // Check if current user has already wished today
-            $currentUserId = Session::get('userId');
+            $currentUserId = Session::get('userId') ?: Session::get('mobile_no');
             $hasWished = false;
             if ($currentUserId) {
                 $hasWished = DB::table('staff_birthday_wishes')
@@ -111,8 +111,8 @@ class StaffBirthdayController extends Controller
      */
     public function sendWish(Request $request)
     {
-        $senderMobile = Session::get('userId');
-        $senderName   = Session::get('userName');
+        $senderMobile = Session::get('userId') ?: Session::get('mobile_no');
+        $senderName   = Session::get('userName') ?: Session::get('name');
 
         if (!$senderMobile || !$senderName) {
             return response()->json(['status' => 'ERROR', 'message' => 'Active staff session required to send wishes.'], 401);

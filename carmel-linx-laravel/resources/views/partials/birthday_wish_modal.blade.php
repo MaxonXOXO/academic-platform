@@ -332,16 +332,33 @@
           activeBirthdayCelebrants = data.celebrants;
           primaryCelebrantMobile = data.celebrants[0].mobile_no;
           
-          // Show Floating Reopen Button on Dashboard
+          const todayStr = new Date().toISOString().split('T')[0];
+          const isDismissed = sessionStorage.getItem('bday_popup_dismissed_' + todayStr) === 'true';
+
+          renderBirthdayModalContent(data);
+
           const reopenBtn = document.getElementById('reopenBirthdayWidgetBtn');
           const countBadge = document.getElementById('reopenBirthdayCountBadge');
+
+          // If the user has ALREADY WISHED/REPLIED today (from mobile or desktop):
+          if (data.has_wished) {
+            if (reopenBtn) reopenBtn.style.display = 'none';
+            return;
+          }
+
+          // If user has NOT wished yet today:
           if (reopenBtn && countBadge) {
             countBadge.innerText = data.celebrants.length;
             reopenBtn.style.display = 'flex';
           }
 
-          renderBirthdayModalContent(data);
-          openBirthdayModal();
+          // Auto-open modal ONLY if user has NOT wished AND has NOT dismissed popup in this session
+          if (!isDismissed) {
+            openBirthdayModal();
+          }
+        } else {
+          const reopenBtn = document.getElementById('reopenBirthdayWidgetBtn');
+          if (reopenBtn) reopenBtn.style.display = 'none';
         }
       })
       .catch(err => console.log('Birthday check status:', err));
@@ -416,6 +433,9 @@
     if (modal) {
       modal.classList.remove('show-modal');
     }
+    // Track session dismissal so returning to dashboard in same session doesn't re-trigger popup
+    const todayStr = new Date().toISOString().split('T')[0];
+    sessionStorage.setItem('bday_popup_dismissed_' + todayStr, 'true');
   }
 
   function sendBirthdayReaction(emoji) {
@@ -450,6 +470,29 @@
       if (data.status === 'SUCCESS') {
         renderWishesFeed(data.wishes || []);
         triggerBirthdayConfetti();
+
+        // Hide floating button since wish has been submitted
+        const reopenBtn = document.getElementById('reopenBirthdayWidgetBtn');
+        if (reopenBtn) reopenBtn.style.display = 'none';
+
+        // Display feedback banner
+        const feed = document.getElementById('birthdayWishesFeed');
+        if (feed) {
+          const successBanner = document.createElement('div');
+          successBanner.id = 'bdayWishSuccessMsg';
+          successBanner.style.cssText = "padding: 8px 12px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; text-align: center;";
+          successBanner.innerHTML = "🎉 Wish Sent! Thank you for celebrating!";
+          
+          const existingBanner = document.getElementById('bdayWishSuccessMsg');
+          if (existingBanner) existingBanner.remove();
+
+          feed.prepend(successBanner);
+        }
+
+        // Close modal automatically after 2.2s delay so user sees confetti & feedback
+        setTimeout(() => {
+          closeBirthdayModal();
+        }, 2200);
       }
     })
     .catch(err => console.error('Wish submit error:', err));

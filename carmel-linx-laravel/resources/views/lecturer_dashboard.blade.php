@@ -1207,9 +1207,9 @@
                           <th class="p-2.5 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
                           <th class="p-2.5 text-center text-amber-400">Open Ended (7.5)</th>
                           <th class="p-2.5 text-center text-emerald-400">Attendance (15)</th>
-                          <th class="p-2.5 text-center text-purple-400">Test 1 (15)</th>
-                          <th class="p-2.5 text-center text-purple-400">Test 2 (15)</th>
-                          <th class="p-2.5 text-center text-purple-300 font-bold">Test Avg (15)</th>
+                          <th class="p-2.5 text-center text-slate-300">Test 1 (15)</th>
+                          <th class="p-2.5 text-center text-slate-300">Test 2 (15)</th>
+                          <th class="p-2.5 text-center text-sky-400 font-bold">Test Avg (15)</th>
                           <th class="p-2.5 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
                           <th class="p-2.5 text-center text-sky-400">Board Exam (50)</th>
                         </tr>
@@ -1535,9 +1535,9 @@
                         <th class="p-2 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
                         <th class="p-2 text-center text-amber-400">Open Ended (7.5)</th>
                         <th class="p-2 text-center text-emerald-400">Attendance (15)</th>
-                        <th class="p-2 text-center text-purple-400">Test 1 (15)</th>
-                        <th class="p-2 text-center text-purple-400">Test 2 (15)</th>
-                        <th class="p-2 text-center text-purple-300 font-bold">Test Avg (15)</th>
+                        <th class="p-2 text-center text-slate-300">Test 1 (15)</th>
+                        <th class="p-2 text-center text-slate-300">Test 2 (15)</th>
+                        <th class="p-2 text-center text-sky-400 font-bold">Test Avg (15)</th>
                         <th class="p-2 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
                       </tr>
                     </thead>
@@ -4134,9 +4134,9 @@
                 <p class="text-[11px] text-slate-400">Choice of 1 out of 2 questions per CO.</p>
               </div>
               <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3">
-                <div class="font-bold text-purple-300 mb-1 flex items-center justify-between">
+                <div class="font-bold text-sky-300 mb-1 flex items-center justify-between">
                   <span>Model Test 2 (CO3 &amp; CO4)</span>
-                  <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20">Max 15 Marks</span>
+                  <span class="text-[10px] bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full border border-sky-500/20">Max 15 Marks</span>
                 </div>
                 <p class="text-[11px] text-slate-400">Choice of 1 out of 2 questions per CO.</p>
               </div>
@@ -4147,8 +4147,8 @@
           <div class="bg-slate-950/50 border border-slate-800/60 rounded-2xl overflow-hidden shadow-xl">
             <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-rounded text-purple-400 text-base">assignment_turned_in</span>
-                <span class="text-xs font-black uppercase text-purple-400 tracking-wider">Series Practical Examination &amp; Board Exam Grade Register</span>
+                <span class="material-symbols-rounded text-sky-400 text-base">assignment_turned_in</span>
+                <span class="text-xs font-bold uppercase text-slate-200 tracking-wider">Series Practical Examination &amp; Board Exam Grade Register</span>
               </div>
               <button type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
                 <span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks
@@ -4157,14 +4157,14 @@
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse min-w-[850px]">
                 <thead>
-                  <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
-                    <th class="p-2.5 w-12 text-center">Roll</th>
-                    <th class="p-2.5">Student Name</th>
-                    <th class="p-2.5 text-center">Reg No</th>
-                    <th class="p-2.5 text-center text-purple-400 bg-purple-500/5">Series Exam 1 (/15)</th>
-                    <th class="p-2.5 text-center text-purple-400 bg-purple-500/5">Series Exam 2 (/15)</th>
-                    <th class="p-2.5 text-center text-blue-400 bg-blue-500/5">Test Avg (/15)</th>
-                    <th class="p-2.5 text-center text-emerald-400 bg-emerald-500/5">Board Exam Grade</th>
+                  <tr class="border-b border-slate-800/80 text-slate-300 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
+                    <th class="p-2.5 w-12 text-center text-slate-400">Roll</th>
+                    <th class="p-2.5 text-slate-300">Student Name</th>
+                    <th class="p-2.5 text-center text-slate-400">Reg No</th>
+                    <th class="p-2.5 text-center text-slate-200 bg-slate-800/40">Series Exam 1 (/15)</th>
+                    <th class="p-2.5 text-center text-slate-200 bg-slate-800/40">Series Exam 2 (/15)</th>
+                    <th class="p-2.5 text-center text-sky-400 bg-sky-500/10">Test Avg (/15)</th>
+                    <th class="p-2.5 text-center text-emerald-400 bg-emerald-500/10">Board Exam Grade</th>
                   </tr>
                 </thead>
                 <tbody id="pracSummativeMarkTbody" class="divide-y divide-slate-800/50">
@@ -4182,14 +4182,14 @@
                 <td class="p-2.5 text-center font-bold text-slate-400">${index + 1}</td>
                 <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
                 <td class="p-2.5 text-center font-mono text-slate-400">${student.reg_no}</td>
-                <td class="p-2.5 text-center bg-purple-500/5">
-                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-purple-300 focus:border-purple-500 outline-none" oninput="updatePracAvg(this)">
+                <td class="p-2.5 text-center bg-slate-900/40">
+                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this)">
                 </td>
-                <td class="p-2.5 text-center bg-purple-500/5">
-                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-purple-300 focus:border-purple-500 outline-none" oninput="updatePracAvg(this)">
+                <td class="p-2.5 text-center bg-slate-900/40">
+                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this)">
                 </td>
-                <td class="p-2.5 text-center bg-blue-500/5">
-                  <span class="prac-avg-display font-mono font-bold text-blue-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
+                <td class="p-2.5 text-center bg-sky-500/5">
+                  <span class="prac-avg-display font-mono font-bold text-sky-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
                 </td>
                 <td class="p-2.5 text-center bg-emerald-500/5">
                   <select class="prac-board-grade w-32 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-emerald-400 focus:border-emerald-500 outline-none cursor-pointer">

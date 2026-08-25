@@ -685,6 +685,7 @@ Route::middleware(['web'])->group(function () {
     Route::delete('/api/classroom/{subjectId}/practical/experiments/{experimentId}', [App\Http\Controllers\ClassroomController::class, 'deletePracticalExperiment']);
     Route::get('/api/classroom/{subjectId}/practical/evaluations', [App\Http\Controllers\ClassroomController::class, 'getPracticalEvaluations']);
     Route::post('/api/classroom/{subjectId}/practical/evaluate', [App\Http\Controllers\ClassroomController::class, 'savePracticalEvaluation']);
+    Route::post('/api/classroom/{subjectId}/practical/evaluate-bulk', [App\Http\Controllers\ClassroomController::class, 'saveBulkPracticalEvaluations']);
     Route::post('/api/classroom/{subjectId}/practical/tests/save', [App\Http\Controllers\ClassroomController::class, 'savePracticalTestConfig']);
     Route::post('/api/classroom/{subjectId}/practical/tests/evaluate', [App\Http\Controllers\ClassroomController::class, 'savePracticalTestMarks']);
     Route::get('/classroom/{subjectId}/practical-report', [App\Http\Controllers\ClassroomController::class, 'printPracticalReport']);

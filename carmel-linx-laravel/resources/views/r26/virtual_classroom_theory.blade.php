@@ -462,17 +462,17 @@
                 Academic Lesson Planner
               </h3>
             </div>
-            <div class="flex items-center gap-1.5">
-              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                <span class="material-symbols-rounded text-xs">print</span>
+            <div class="flex items-center gap-1">
+              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded text-[11px]">print</span>
                 Print Lesson Plan
               </a>
-              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-2 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                <span class="material-symbols-rounded text-xs">bookmark</span>
+              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-2 py-0.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded text-[11px]">bookmark</span>
                 Save as Template
               </button>
-              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-2 py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
-                <span class="material-symbols-rounded text-xs">save</span>
+              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-2 py-0.5 bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-500/30 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-rounded text-[11px]">save</span>
                 Save Changes
               </button>
             </div>

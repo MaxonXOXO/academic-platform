@@ -380,9 +380,9 @@
                     <i class="fa-solid fa-folder-open" style="color:#fbbf24;"></i>
                     <span class="hide-xs">Course File</span>
                 </a>
-                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch" title="Dashboard / Close Tab" style="padding:5px 10px;background:#f59e0b;border:1px solid #fbbf24;color:#0f172a;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;text-decoration:none;box-shadow:0 2px 6px rgba(245,158,11,0.3);">
+                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch" title="Return to Virtual Lab" style="padding:5px 10px;background:#f59e0b;border:1px solid #fbbf24;color:#0f172a;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;text-decoration:none;box-shadow:0 2px 6px rgba(245,158,11,0.3);">
                     <i class="fa-solid fa-arrow-left" style="font-size:11px;color:#0f172a;"></i>
-                    <span>Dashboard</span>
+                    <span>Return to Virtual Lab</span>
                 </a>
             </div>
         </div>
@@ -1421,17 +1421,25 @@
 
         function handleVirtualLabBack(e) {
             if (e) e.preventDefault();
+
             if (window.opener && !window.opener.closed) {
                 try {
-                    window.close();
-                    return false;
+                    if (typeof window.opener.toggleClassroomTab === 'function') {
+                        window.opener.toggleClassroomTab('lab_evaluation');
+                    }
+                    window.opener.focus();
                 } catch(err) {}
             }
-            if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                window.location.href = document.referrer;
-                return false;
-            }
-            window.location.href = '{{ $dashboardUrl ?? "/dashboard/lecturer" }}';
+
+            // Always attempt to close the tab directly since Virtual Lab was already open in main window
+            window.close();
+
+            // Fallback only if window.close() is blocked (e.g., opened URL directly)
+            setTimeout(() => {
+                const returnUrl = '{{ $dashboardUrl ?? "/dashboard/lecturer" }}?subject_id={{ $batchSubject->id }}&classroom_id={{ $classroom->id ?? "" }}&subject_name={{ urlencode($batchSubject->subject_name) }}&revision={{ $batchSubject->syllabus_revision_code ?? "REV2026" }}&type=Practical&tab=lab_evaluation';
+                window.location.href = returnUrl;
+            }, 150);
+
             return false;
         }
 

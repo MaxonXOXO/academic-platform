@@ -1594,7 +1594,9 @@ Syllabus Text:
                 'summative_manual_tests' => $courseFile ? ($courseFile->summative_manual_tests ?? []) : [],
                 'subject_name' => $batchSubject->subject_name ?? '',
                 'subject_code' => $batchSubject->subject_code ?? '',
-                'subject_type' => $batchSubject->subject_type ?? '',
+                'subject_type' => $batchSubject->subject_type ?: (
+                    (\Illuminate\Support\Str::contains(strtolower($batchSubject->subject_name ?? ''), ['lab', 'practical', 'practicum', 'workshop'])) ? 'Practical' : 'Theory'
+                ),
                 'semester' => $batchSubject->semester ?? '',
                 'branch' => $branch,
                 'credits' => $credits,
@@ -3306,15 +3308,27 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
             // Graded experiments list & average calculation
             $sumExpMarks = 0;
+            $sumRough = 0;
+            $sumFair = 0;
+            $sumObsPrep = 0;
+            $sumProcPunct = 0;
             $countExpMarks = 0;
             foreach ($experiments as $exp) {
                 $mark = $experimentMarks->where('practical_experiment_id', $exp->id)->where('reg_no', $regNo)->first();
                 if ($mark) {
                     $sumExpMarks += (float)$mark->total_mark;
+                    $sumRough += (float)$mark->rough_record;
+                    $sumFair += (float)$mark->fair_record;
+                    $sumObsPrep += (float)$mark->prerequisites;
+                    $sumProcPunct += (float)$mark->work_done;
                     $countExpMarks++;
                 }
             }
-            $avgLabWork = $countExpMarks > 0 ? round($sumExpMarks / $countExpMarks, 2) : 0.00;
+            $avgRoughRecord = $countExpMarks > 0 ? round($sumRough / $countExpMarks, 2) : 0.00;
+            $avgFairRecord = $countExpMarks > 0 ? round($sumFair / $countExpMarks, 2) : 0.00;
+            $avgObsPrep = $countExpMarks > 0 ? round($sumObsPrep / $countExpMarks, 2) : 0.00;
+            $avgProcPunct = $countExpMarks > 0 ? round($sumProcPunct / $countExpMarks, 2) : 0.00;
+            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct, 2);
 
             // Practical tests marks per CO
             $t1 = $tests->where('test_name', 'Test 1')->first();
@@ -3332,6 +3346,10 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15]
             $totalInternal = round($avgTests + $avgLabWork + $microProject + $attendanceMarks, 2);
 
+            $student->avg_rough_record = $avgRoughRecord;
+            $student->avg_fair_record = $avgFairRecord;
+            $student->avg_obs_prep = $avgObsPrep;
+            $student->avg_proc_punct = $avgProcPunct;
             $student->avg_lab_work = $avgLabWork;
             $student->tests = [
                 'Test 1' => ['total' => $scoreT1],
@@ -3555,6 +3573,10 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // Graded experiments list & average calculation
             $studentExpMarks = [];
             $sumExpMarks = 0;
+            $sumRough = 0;
+            $sumFair = 0;
+            $sumObsPrep = 0;
+            $sumProcPunct = 0;
             $countExpMarks = 0;
             foreach ($experiments as $exp) {
                 $mark = $experimentMarks->where('practical_experiment_id', $exp->id)->where('reg_no', $regNo)->first();
@@ -3569,10 +3591,18 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
                 if ($mark) {
                     $sumExpMarks += (float)$mark->total_mark;
+                    $sumRough += (float)$mark->rough_record;
+                    $sumFair += (float)$mark->fair_record;
+                    $sumObsPrep += (float)$mark->prerequisites;
+                    $sumProcPunct += (float)$mark->work_done;
                     $countExpMarks++;
                 }
             }
-            $avgLabWork = $countExpMarks > 0 ? round($sumExpMarks / $countExpMarks, 2) : 0.00;
+            $avgRoughRecord = $countExpMarks > 0 ? round($sumRough / $countExpMarks, 2) : 0.00;
+            $avgFairRecord = $countExpMarks > 0 ? round($sumFair / $countExpMarks, 2) : 0.00;
+            $avgObsPrep = $countExpMarks > 0 ? round($sumObsPrep / $countExpMarks, 2) : 0.00;
+            $avgProcPunct = $countExpMarks > 0 ? round($sumProcPunct / $countExpMarks, 2) : 0.00;
+            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct, 2);
 
             // Practical tests marks per CO
             $t1 = $tests->where('test_name', 'Test 1')->first();
@@ -3594,13 +3624,19 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'reg_no' => $regNo,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
+                'sbte_reg_no' => $student->sbte_reg_no ?? $regNo,
                 'attendance_percentage' => round($attendancePercentage, 2),
                 'suggested_attendance_marks' => $suggestedAttendanceMarks,
                 'attendance_marks' => $attendanceMarks,
                 'micro_project' => $microProject,
+                'open_ended' => $microProject,
                 'open_ended_topic' => $openEndedTopic,
                 'board_exam_marks' => $boardExam,
                 'experiments_marks' => $studentExpMarks,
+                'avg_rough_record' => $avgRoughRecord,
+                'avg_fair_record' => $avgFairRecord,
+                'avg_obs_prep' => $avgObsPrep,
+                'avg_proc_punct' => $avgProcPunct,
                 'avg_lab_work' => $avgLabWork,
                 'tests' => [
                     'Test 1' => [
@@ -3643,37 +3679,43 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $request->validate([
             'reg_no' => 'required|string',
-            'micro_project' => 'required|numeric|min:0|max:7.5',
+            'micro_project' => 'nullable|numeric|min:0|max:7.5',
             'open_ended_project_topic' => 'nullable|string|max:255',
-            'attendance_marks' => 'required|numeric|min:0|max:15',
-            'board_exam_marks' => 'nullable|numeric|min:0|max:50',
+            'attendance_marks' => 'nullable|numeric|min:0|max:15',
+            'board_exam_marks' => 'nullable|string|max:50',
             'tests' => 'nullable|array',
             'experiments' => 'nullable|array'
         ]);
 
         $regNo = $request->input('reg_no');
 
-        // Save consolidated evaluation
-        \App\Models\PracticalEvaluation::updateOrCreate(
-            [
-                'batch_subject_id' => $subjectId,
-                'reg_no' => $regNo
-            ],
-            [
-                'assessor_mobile_no' => $userId,
-                'micro_project' => $request->input('micro_project'),
-                'open_ended_topic' => $request->input('open_ended_project_topic'),
-                'attendance_marks' => $request->input('attendance_marks'),
-                'board_exam_marks' => $request->input('board_exam_marks')
-            ]
-        );
+        // Save consolidated evaluation selectively
+        $eval = \App\Models\PracticalEvaluation::firstOrNew([
+            'batch_subject_id' => $subjectId,
+            'reg_no' => $regNo
+        ]);
+
+        $eval->assessor_mobile_no = $userId;
+        if ($request->has('micro_project') && $request->input('micro_project') !== null) {
+            $eval->micro_project = $request->input('micro_project');
+        }
+        if ($request->has('open_ended_project_topic')) {
+            $eval->open_ended_topic = $request->input('open_ended_project_topic');
+        }
+        if ($request->has('attendance_marks') && $request->input('attendance_marks') !== null) {
+            $eval->attendance_marks = $request->input('attendance_marks');
+        }
+        if ($request->has('board_exam_marks')) {
+            $eval->board_exam_marks = $request->input('board_exam_marks');
+        }
+        $eval->save();
 
         // Save experiment-wise marks if provided
         if ($request->has('experiments')) {
             $experimentsData = $request->input('experiments');
             foreach ($experimentsData as $expId => $val) {
-                $prerequisites = isset($val['prerequisite']) && $val['prerequisite'] !== '' ? (float)$val['prerequisite'] : 0;
-                $work_done = isset($val['execution']) && $val['execution'] !== '' ? (float)$val['execution'] : 0;
+                $prerequisites = isset($val['prerequisite']) && $val['prerequisite'] !== '' ? (float)$val['prerequisite'] : (isset($val['obs_prep']) && $val['obs_prep'] !== '' ? (float)$val['obs_prep'] : 0);
+                $work_done = isset($val['execution']) && $val['execution'] !== '' ? (float)$val['execution'] : (isset($val['proc_punct']) && $val['proc_punct'] !== '' ? (float)$val['proc_punct'] : 0);
                 $result = isset($val['output']) && $val['output'] !== '' ? (float)$val['output'] : 0;
                 $rough_record = isset($val['rough_record']) && $val['rough_record'] !== '' ? (float)$val['rough_record'] : 0;
                 $fair_record = isset($val['fair_record']) && $val['fair_record'] !== '' ? (float)$val['fair_record'] : 0;
@@ -3730,6 +3772,70 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $this->syncPracticalMarksToSemesterTable($subjectId, $regNo);
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Practical evaluation saved successfully.']);
+    }
+
+    /**
+     * Save bulk practical series exam marks (Test 1 CO1&2, Test 2 CO3&4) and Board Exam Grades
+     */
+    public function saveBulkPracticalEvaluations(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
+
+        $evaluations = $request->input('evaluations', []);
+
+        foreach ($evaluations as $item) {
+            $regNo = $item['reg_no'] ?? null;
+            if (!$regNo) continue;
+
+            $s1 = isset($item['series1']) && $item['series1'] !== '' ? (float)$item['series1'] : null;
+            $s2 = isset($item['series2']) && $item['series2'] !== '' ? (float)$item['series2'] : null;
+            $boardGrade = isset($item['board_exam_grade']) ? trim($item['board_exam_grade']) : (isset($item['board_exam_marks']) ? trim($item['board_exam_marks']) : null);
+
+            // Consolidated eval record
+            if ($boardGrade !== null) {
+                \App\Models\PracticalEvaluation::updateOrCreate(
+                    ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
+                    ['assessor_mobile_no' => $userId, 'board_exam_marks' => $boardGrade]
+                );
+            }
+
+            // Save Test 1 (CO1 & CO2) - Test 1 applies to CO1 & CO2 for attainment
+            if ($s1 !== null) {
+                $t1 = \App\Models\PracticalTest::firstOrCreate(
+                    ['batch_subject_id' => $subjectId, 'test_name' => 'Test 1'],
+                    ['questions' => []]
+                );
+                \App\Models\PracticalTestMark::updateOrCreate(
+                    ['practical_test_id' => $t1->id, 'reg_no' => $regNo, 'co_tag' => 'CO1'],
+                    ['marks_obtained' => $s1]
+                );
+                \App\Models\PracticalTestMark::updateOrCreate(
+                    ['practical_test_id' => $t1->id, 'reg_no' => $regNo, 'co_tag' => 'CO2'],
+                    ['marks_obtained' => $s1]
+                );
+            }
+
+            // Save Test 2 (CO3 & CO4) - Test 2 applies to CO3 & CO4 for attainment
+            if ($s2 !== null) {
+                $t2 = \App\Models\PracticalTest::firstOrCreate(
+                    ['batch_subject_id' => $subjectId, 'test_name' => 'Test 2'],
+                    ['questions' => []]
+                );
+                \App\Models\PracticalTestMark::updateOrCreate(
+                    ['practical_test_id' => $t2->id, 'reg_no' => $regNo, 'co_tag' => 'CO3'],
+                    ['marks_obtained' => $s2]
+                );
+                \App\Models\PracticalTestMark::updateOrCreate(
+                    ['practical_test_id' => $t2->id, 'reg_no' => $regNo, 'co_tag' => 'CO4'],
+                    ['marks_obtained' => $s2]
+                );
+            }
+
+            $this->syncPracticalMarksToSemesterTable($subjectId, $regNo);
+        }
+
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Practical series exams & board grades saved successfully.']);
     }
 
     /**

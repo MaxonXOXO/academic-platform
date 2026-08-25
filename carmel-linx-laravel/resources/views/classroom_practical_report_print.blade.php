@@ -163,18 +163,22 @@
     <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 5%">Roll</th>
-                <th style="width: 12%">SBTE Reg No</th>
-                <th style="width: 22%">Student Name</th>
-                <th style="width: 10%">Lab Work<br>(37.5)</th>
-                <th style="width: 8%">Test 1<br>(15)</th>
-                <th style="width: 8%">Test 2<br>(15)</th>
-                <th style="width: 8%">Test Avg<br>(15)</th>
-                <th style="width: 8%">Project<br>(7.5)</th>
-                <th style="width: 8%">Attend.<br>(15)</th>
-                <th style="width: 10%; background-color: #e6fffa;">Final CIA<br>(75)</th>
-                <th style="width: 10%; background-color: #e6f0ff;">Board Exam<br>(50)</th>
-                <th style="width: 10%; background-color: #f7e6ff;">Total<br>(125)</th>
+                <th style="width: 3%">Roll</th>
+                <th style="width: 10%">PRN (SBTE)</th>
+                <th style="width: 15%">Name</th>
+                <th style="width: 5.5%">Rough Record<br>(7.5)</th>
+                <th style="width: 5.5%">Fair Record<br>(10)</th>
+                <th style="width: 5.5%">Obs &amp; Prep<br>(10)</th>
+                <th style="width: 5.5%">Proc &amp; Punct.<br>(10)</th>
+                <th style="width: 6.5%">Lab Work<br>(37.5)</th>
+                <th style="width: 5.5%">Open Ended<br>(7.5)</th>
+                <th style="width: 5.5%">Attend.<br>(15)</th>
+                <th style="width: 5%">Test 1<br>(15)</th>
+                <th style="width: 5%">Test 2<br>(15)</th>
+                <th style="width: 5.5%">Test Avg<br>(15)</th>
+                <th style="width: 7.5%; background-color: #e6fffa;">Final CIA<br>(75)</th>
+                <th style="width: 5.5%; background-color: #e6f0ff;">Board Exam<br>(50)</th>
+                <th style="width: 5.5%; background-color: #f7e6ff;">Total<br>(125)</th>
             </tr>
         </thead>
         <tbody>
@@ -182,17 +186,23 @@
                 @php
                     $boardVal = $student->board_exam_marks !== null ? $student->board_exam_marks : null;
                     $totalScore = $boardVal !== null ? ($student->total_internal + $boardVal) : '-';
+                    $t1Val = isset($student->tests['Test 1']['total']) ? number_format($student->tests['Test 1']['total'], 1) : '0.0';
+                    $t2Val = isset($student->tests['Test 2']['total']) ? number_format($student->tests['Test 2']['total'], 1) : '0.0';
                 @endphp
                 <tr>
                     <td>{{ $student->roll_no ?? '-' }}</td>
                     <td class="font-mono">{{ $student->sbte_reg_no ?? $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
-                    <td>{{ number_format($student->avg_lab_work, 2) }}</td>
-                    <td>{{ number_format($student->tests['Test 1']['total'], 1) }}</td>
-                    <td>{{ number_format($student->tests['Test 2']['total'], 1) }}</td>
-                    <td>{{ number_format($student->tests['average'], 2) }}</td>
-                    <td>{{ number_format($student->micro_project, 1) }}</td>
+                    <td>{{ number_format($student->avg_rough_record ?? 0, 2) }}</td>
+                    <td>{{ number_format($student->avg_fair_record ?? 0, 2) }}</td>
+                    <td>{{ number_format($student->avg_obs_prep ?? 0, 2) }}</td>
+                    <td>{{ number_format($student->avg_proc_punct ?? 0, 2) }}</td>
+                    <td style="font-weight: bold;">{{ number_format($student->avg_lab_work, 2) }}</td>
+                    <td>{{ number_format($student->micro_project ?? $student->open_ended ?? 0, 1) }}</td>
                     <td>{{ number_format($student->attendance_marks, 1) }}</td>
+                    <td>{{ $t1Val }}</td>
+                    <td>{{ $t2Val }}</td>
+                    <td>{{ number_format($student->tests['average'] ?? 0, 2) }}</td>
                     <td style="font-weight: bold; background-color: #fafdfc;">{{ number_format($student->total_internal, 2) }}</td>
                     <td style="font-weight: bold; background-color: #fafdff;">{{ $boardVal !== null ? number_format($boardVal, 1) : '-' }}</td>
                     <td style="font-weight: bold; background-color: #fffafd;">{{ $totalScore }}</td>

@@ -148,9 +148,9 @@
                 <i class="fa-solid fa-print text-[11px]"></i> <span class="hidden sm:inline">Print CIA Report</span>
             </a>
 
-            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="Return to Dashboard">
+            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="Return to Virtual Lab">
                 <i class="fa-solid fa-arrow-left text-xs"></i>
-                <span>Return to Dashboard</span>
+                <span>Return to Virtual Lab</span>
             </a>
         </div>
     </header>
@@ -196,21 +196,21 @@
     <!-- Top Navigation & Batch Filter Bar (Exact Drawing Hall 2026 Style) -->
     <div class="glass-panel mx-2 mt-2 p-2 flex flex-wrap items-center justify-between gap-2 z-30">
         <!-- Return Button directly inside the Tab Bar container -->
-        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="Return to Dashboard">
+        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="Return to Virtual Lab">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            <span>Return to Dashboard</span>
+            <span>Return to Virtual Lab</span>
         </a>
 
         <!-- Horizontal Tabs (Drawing Hall 2026 Style) -->
         <div class="drawing-hall-tab-bar rounded-xl flex-1">
             <button onclick="switchTab('table22')" id="btn-table22" class="drawing-hall-tab-btn tab-btn active">
                 <i class="fa-solid fa-pen-ruler text-sky-400"></i>
-                <span>Continuous Eval (CE 30M)</span>
+                <span>Continuous Eval (Lab Work 37.5M)</span>
             </button>
 
             <button onclick="switchTab('table23')" id="btn-table23" class="drawing-hall-tab-btn tab-btn">
                 <i class="fa-solid fa-lightbulb text-amber-400"></i>
-                <span>Open-Ended (10M)</span>
+                <span>Open-Ended (7.5M)</span>
             </button>
 
             <button onclick="switchTab('table31')" id="btn-table31" class="drawing-hall-tab-btn tab-btn">
@@ -220,7 +220,7 @@
 
             <button onclick="switchTab('summary')" id="btn-summary" class="drawing-hall-tab-btn tab-btn">
                 <i class="fa-solid fa-chart-pie text-purple-400"></i>
-                <span>Consolidated CIE & Reports (60M)</span>
+                <span>Consolidated CIA &amp; Reports (75M)</span>
             </button>
         </div>
 
@@ -256,6 +256,9 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="openManageExperimentsModal(event)" class="px-2.5 py-1 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
+                        <i class="fa-solid fa-gear text-teal-400 text-[10px]"></i> Manage Exps
+                    </button>
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Exp:</span>
                         <input type="text" id="exp_no" value="Exp 1" class="px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500 font-mono w-20">
@@ -394,6 +397,9 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="openManageTestsModal(event)" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
+                        <i class="fa-solid fa-sliders text-blue-400 text-[10px]"></i> Configure Tests
+                    </button>
                     <select id="series_no" onchange="switchSeriesExam(this.value)" class="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-purple-500 font-medium">
                         <option value="Series 1">Series Exam 1</option>
                         <option value="Series 2">Series Exam 2</option>
@@ -467,11 +473,11 @@
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="text-center w-24">Batch</th>
-                            <th class="text-center w-28">Lab Work (30M)</th>
-                            <th class="text-center w-28">Series (15M)</th>
-                            <th class="text-center w-28">Open Ended (10M)</th>
-                            <th class="text-center w-24">Attendance (5M)</th>
-                            <th class="text-center w-28">Total CIA (60M)</th>
+                            <th class="text-center w-28">Lab Work (37.5M)</th>
+                            <th class="text-center w-28">Series Tests (15M)</th>
+                            <th class="text-center w-28">Open Ended (7.5M)</th>
+                            <th class="text-center w-24">Attendance (15M)</th>
+                            <th class="text-center w-28">Total CIA (75M)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -541,6 +547,110 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Manage Experiments Modal -->
+    <div id="manageExperimentsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-base font-black text-white">Experiments List</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Setup the experiments syllabus for day-to-day continuous evaluation.</p>
+                </div>
+                <button onclick="closeManageExperimentsModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+                <!-- Add Experiment Form -->
+                <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+                    <input type="hidden" id="expEditId">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Exp No.</label>
+                            <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Experiment Title / Objective</label>
+                            <textarea id="expFormTitle" required placeholder="Enter experiment objective / detailed description..." rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none resize-y"></textarea>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Map CO</label>
+                            <select id="expFormCo" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                                <option value="CO1">CO1</option>
+                                <option value="CO2">CO2</option>
+                                <option value="CO3">CO3</option>
+                                <option value="CO4">CO4</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-2 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-database text-xs"></i> Import from Databank
+                        </button>
+                        <button type="submit" id="btnSaveExp" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ml-auto">
+                            <i class="fa-solid fa-plus text-xs"></i> Add Experiment
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Experiments List Table -->
+                <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/20">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                                <th class="p-3 w-16 text-center">No.</th>
+                                <th class="p-3">Title / Objective</th>
+                                <th class="p-3 w-20 text-center">CO</th>
+                                <th class="p-3 w-28 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manageExpsTableBody" class="divide-y divide-slate-850">
+                            <tr>
+                                <td colspan="4" class="p-6 text-center text-slate-500">No experiments set up yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Tests Modal -->
+    <div id="manageTestsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl md:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-base font-black text-white">Configure Model Tests Questions</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Design the question paper scheme for Test 1 and Test 2.</p>
+                </div>
+                <button onclick="closeManageTestsModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <form onsubmit="savePracticalTestQuestions(event)" class="flex-grow flex flex-col overflow-hidden">
+                <div class="p-6 overflow-y-auto space-y-5 flex-grow">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Model Test</label>
+                        <select id="designTestName" onchange="renderTestQuestionsFields()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
+                            <option value="Test 1">Model Test 1 (CO1 &amp; CO2)</option>
+                            <option value="Test 2">Model Test 2 (CO3 &amp; CO4)</option>
+                        </select>
+                    </div>
+
+                    <div id="testQuestionsFieldsContainer" class="space-y-4">
+                        <!-- Inputs generated dynamically -->
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-slate-950/60 border-t border-slate-800 flex justify-end">
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i> Save Test Config
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -734,28 +844,20 @@
             let rubrics = [];
             if (tabType === 'table22') {
                 rubrics = [
-                    { label: '1. Prep & Punctuality (Max 10)', key: 'c1', max: 10, step: 0.5 },
-                    { label: '2. Setup & Procedure (Max 10)', key: 'c2', max: 10, step: 0.5 },
-                    { label: '3. Observation & Recording (Max 5)', key: 'c3', max: 5, step: 0.5 },
-                    { label: '4. Analysis & Results (Max 10)', key: 'c4', max: 10, step: 0.5 },
-                    { label: '5. Viva Voce & Understanding (Max 10)', key: 'c5', max: 10, step: 0.5 },
-                    { label: '6. Workmanship & Attitude (Max 5)', key: 'c6', max: 5, step: 0.5 }
+                    { label: '1. Rough Record (Max 7.5)', key: 'c1', max: 7.5, step: 0.5 },
+                    { label: '2. Fair Record (Max 10)', key: 'c2', max: 10, step: 0.5 },
+                    { label: '3. Obs & Prep (Max 10)', key: 'c3', max: 10, step: 0.5 },
+                    { label: '4. Proc & Punctuality (Max 10)', key: 'c4', max: 10, step: 0.5 }
                 ];
             } else if (tabType === 'table23') {
                 rubrics = [
-                    { label: '1. Originality & Idea (Max 10)', key: 'c1', max: 10, step: 0.5 },
-                    { label: '2. Plan & Objectives (Max 10)', key: 'c2', max: 10, step: 0.5 },
-                    { label: '3. Execution & Safety (Max 10)', key: 'c3', max: 10, step: 0.5 },
-                    { label: '4. Analysis & Results (Max 10)', key: 'c4', max: 10, step: 0.5 },
-                    { label: '5. Teamwork & Innovation (Max 10)', key: 'c5', max: 10, step: 0.5 }
+                    { label: 'Open-Ended Evaluation (Max 7.5)', key: 'c1', max: 7.5, step: 0.5 }
                 ];
             } else if (tabType === 'table31') {
                 rubrics = [
-                    { label: '1. Procedure & Write-up (Max 10)', key: 'c1', max: 10, step: 0.5 },
-                    { label: '2. Setup & Execution (Max 10)', key: 'c2', max: 10, step: 0.5 },
-                    { label: '3. Observations & Output (Max 8)', key: 'c3', max: 8, step: 0.5 },
-                    { label: '4. Viva Voce (Max 8)', key: 'c4', max: 8, step: 0.5 },
-                    { label: '5. Record Completion (Max 4)', key: 'c5', max: 4, step: 0.5 }
+                    { label: '1. Procedure & Write-up (Max 5)', key: 'c1', max: 5, step: 0.5 },
+                    { label: '2. Setup & Execution (Max 5)', key: 'c2', max: 5, step: 0.5 },
+                    { label: '3. Viva & Result (Max 5)', key: 'c3', max: 5, step: 0.5 }
                 ];
             }
 
@@ -958,19 +1060,278 @@
             }
         }
 
+        let currentSubjectId = "{{ $batchSubject->id }}";
+        let labExperimentsData = [];
+        let labTestsData = [];
+
+        function fetchPracticalEvaluationsData() {
+            if (!currentSubjectId) return;
+            fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    labExperimentsData = res.experiments || [];
+                    labTestsData = res.tests || [];
+                }
+            })
+            .catch(err => console.error("Error fetching practical evaluations:", err));
+        }
+        document.addEventListener('DOMContentLoaded', fetchPracticalEvaluationsData);
+
+        // Manage Experiments Modal Controllers
+        function openManageExperimentsModal(e) {
+            if (e) e.preventDefault();
+            if (!currentSubjectId) currentSubjectId = "{{ $batchSubject->id }}";
+
+            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/databank`)
+            .then(res => res.json())
+            .then(res => {
+                const importBtn = document.getElementById('btnImportDatabank');
+                if (importBtn) {
+                    if (res.status === 'SUCCESS' && res.databank && res.databank.length > 0) {
+                        importBtn.classList.remove('hidden');
+                    } else {
+                        importBtn.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+
+            renderManageExperimentsList();
+
+            const modal = document.getElementById('manageExperimentsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+        window.openManageExperimentsModal = openManageExperimentsModal;
+
+        function closeManageExperimentsModal() {
+            const modal = document.getElementById('manageExperimentsModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderManageExperimentsList() {
+            const tbody = document.getElementById('manageExpsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (labExperimentsData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="p-6 text-center text-slate-500 font-bold">
+                            No experiments set up yet. Create experiments using the form above.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            labExperimentsData.forEach(exp => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-800/40 hover:bg-slate-900/10";
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-bold text-slate-400 font-mono">${exp.experiment_no}</td>
+                    <td class="p-3 text-slate-200 font-medium text-sm whitespace-pre-wrap leading-relaxed">${exp.title}</td>
+                    <td class="p-3 text-center font-bold text-blue-400">${exp.co_tag}</td>
+                    <td class="p-3 text-center whitespace-nowrap space-x-2">
+                        <button type="button" onclick="editExperiment(${exp.id}, '${exp.experiment_no}', '${exp.title.replace(/'/g, "\\'")}', '${exp.co_tag}')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded font-bold cursor-pointer">Edit</button>
+                        <button type="button" onclick="deleteExperiment(${exp.id})" class="px-2.5 py-1 bg-red-950/40 text-red-400 hover:text-red-300 rounded font-bold cursor-pointer border border-red-900/30">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function savePracticalExperiment(event) {
+            event.preventDefault();
+            const expId = document.getElementById('expEditId').value;
+            const no = document.getElementById('expFormNo').value;
+            const title = document.getElementById('expFormTitle').value;
+            const co = document.getElementById('expFormCo').value;
+
+            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ id: expId, experiment_no: no, title: title, co_tag: co })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    document.getElementById('expEditId').value = '';
+                    document.getElementById('expFormNo').value = '';
+                    document.getElementById('expFormTitle').value = '';
+                    document.getElementById('btnSaveExp').innerHTML = '<i class="fa-solid fa-plus text-xs"></i> Add Experiment';
+
+                    alert("Experiment successfully saved!");
+                    fetchPracticalEvaluationsData();
+                    setTimeout(() => renderManageExperimentsList(), 300);
+                } else {
+                    alert(res.message || 'Failed to save experiment.');
+                }
+            })
+            .catch(() => alert('Failed to save experiment.'));
+        }
+
+        function editExperiment(id, no, title, co) {
+            document.getElementById('expEditId').value = id;
+            document.getElementById('expFormNo').value = no;
+            document.getElementById('expFormTitle').value = title;
+            document.getElementById('expFormCo').value = co;
+            document.getElementById('btnSaveExp').innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Update';
+        }
+
+        function deleteExperiment(id) {
+            if (!confirm('Are you sure you want to delete this experiment? All graded marks for this experiment will be permanently deleted!')) return;
+
+            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message || 'Experiment deleted.');
+                fetchPracticalEvaluationsData();
+                setTimeout(() => renderManageExperimentsList(), 300);
+            });
+        }
+
+        function importFromDatabank() {
+            if (!confirm('This will import the standard list of experiments configured for this subject code. Proceed?')) return;
+
+            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message);
+                fetchPracticalEvaluationsData();
+                setTimeout(() => renderManageExperimentsList(), 300);
+            })
+            .catch(() => alert('Import failed.'));
+        }
+
+        // Manage Tests Modal Controllers
+        function openManageTestsModal(e) {
+            if (e) e.preventDefault();
+            if (!currentSubjectId) currentSubjectId = "{{ $batchSubject->id }}";
+
+            const testSelect = document.getElementById('designTestName');
+            if (testSelect) testSelect.value = 'Test 1';
+            renderTestQuestionsFields();
+
+            const modal = document.getElementById('manageTestsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+        window.openManageTestsModal = openManageTestsModal;
+
+        function closeManageTestsModal() {
+            const modal = document.getElementById('manageTestsModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderTestQuestionsFields() {
+            const activeTestDesign = document.getElementById('designTestName').value;
+            const container = document.getElementById('testQuestionsFieldsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const test = labTestsData.find(t => t.test_name === activeTestDesign);
+            const existingQ = test ? test.questions : {};
+
+            const cos = activeTestDesign === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
+
+            cos.forEach(co => {
+                const coQ = existingQ[co] || ['', ''];
+                const card = document.createElement('div');
+                card.className = "bg-slate-950/40 border border-slate-800 p-4 rounded-xl space-y-3";
+                card.innerHTML = `
+                    <h4 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 rounded text-xs">${co}</span> Questions (Choice of 1 out of 2)
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Option A (7.5 Marks)</label>
+                            <textarea name="q_${co}_0" placeholder="Enter question description..." required rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-normal text-sm outline-none focus:border-blue-500 resize-y">${coQ[0] || ''}</textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Option B (7.5 Marks)</label>
+                            <textarea name="q_${co}_1" placeholder="Enter question description..." required rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-normal text-sm outline-none focus:border-blue-500 resize-y">${coQ[1] || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function savePracticalTestQuestions(event) {
+            event.preventDefault();
+            const testName = document.getElementById('designTestName').value;
+            const cos = testName === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
+
+            const questions = {};
+            cos.forEach(co => {
+                const q0 = document.querySelector(`textarea[name="q_${co}_0"]`).value;
+                const q1 = document.querySelector(`textarea[name="q_${co}_1"]`).value;
+                questions[co] = [q0, q1];
+            });
+
+            fetch(`/api/classroom/${currentSubjectId}/practical/tests/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ test_name: testName, questions })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    alert('Test config saved successfully.');
+                    fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
+                    .then(r => r.json())
+                    .then(innerRes => {
+                        if (innerRes.status === 'SUCCESS') {
+                            labTestsData = innerRes.tests || [];
+                            closeManageTestsModal();
+                        }
+                    });
+                } else {
+                    alert(res.message || 'Failed to save test config.');
+                }
+            })
+            .catch(() => alert('Failed to save test configuration.'));
+        }
+
         function handleVirtualLabBack(e) {
             if (e) e.preventDefault();
+
             if (window.opener && !window.opener.closed) {
                 try {
-                    window.close();
-                    return false;
+                    if (typeof window.opener.toggleClassroomTab === 'function') {
+                        window.opener.toggleClassroomTab('lab_evaluation');
+                    }
+                    window.opener.focus();
                 } catch(err) {}
             }
-            if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                window.location.href = document.referrer;
-                return false;
-            }
-            window.location.href = '{{ $dashboardUrl }}';
+
+            // Always attempt to close the tab directly since Virtual Lab was already open in main window
+            window.close();
+
+            // Fallback only if window.close() is blocked (e.g., opened URL directly)
+            setTimeout(() => {
+                const returnUrl = '{{ $dashboardUrl ?? "/dashboard/lecturer" }}?subject_id={{ $batchSubject->id }}&classroom_id={{ $classroom->id ?? "" }}&subject_name={{ urlencode($batchSubject->subject_name) }}&revision={{ $batchSubject->syllabus_revision_code ?? "REV2021" }}&type=Practical&tab=lab_evaluation';
+                window.location.href = returnUrl;
+            }, 150);
+
             return false;
         }
     </script>

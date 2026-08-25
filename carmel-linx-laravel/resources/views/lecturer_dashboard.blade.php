@@ -18,6 +18,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <style>
+    /* Hide up/down spinner buttons in number inputs */
+    .no-spinner::-webkit-inner-spin-button,
+    .no-spinner::-webkit-outer-spin-button,
+    input[type=number].no-spinner::-webkit-inner-spin-button,
+    input[type=number].no-spinner::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .no-spinner, input[type=number].no-spinner {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
     /* Universal typography fix to avoid screen text spreading/bleeding on super bold weights */
     .font-extrabold, .font-black {
       font-weight: 700 !important;
@@ -1044,20 +1057,17 @@
              <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">school</span> Summative Assessment
              </button>
+             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
+               <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
+             </button>
+             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
+               <span class="material-symbols-rounded text-sm text-teal-400">science</span> Formative Assessment
+             </button>
              <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">database</span> Question Bank
              </button>
              <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">rate_review</span> Surveys
-             </button>
-             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
-               <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
-             </button>
-             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
-               <span class="material-symbols-rounded text-sm text-teal-400">science</span> Lab Evaluation
-             </button>
-             <button onclick="toggleClassroomTab('lab_copo')" id="tabLabCoPo" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
-               <span class="material-symbols-rounded text-sm text-cyan-400">analytics</span> CO-PO Mapping
              </button>
              <button onclick="toggleClassroomTab('course_attainment')" id="tabCourseAttainment" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm text-amber-400">emoji_events</span> Course Attainment
@@ -1122,6 +1132,95 @@
                   </div>
                   <h3 class="text-base font-black text-slate-100">Printable Academic Reports & Attainment Documentation</h3>
                   <p class="text-xs text-slate-400 mt-1">Access A4 laser-ready print reports for Surveys, Attainment Matrices, Lesson Plans, CIA Marksheets, and Course Files.</p>
+                </div>
+              </div>
+
+              <!-- Practical Sub-Reports Quick Access (Shown for Practical Subjects) -->
+              <div id="practicalReportsActions" class="hidden flex-col gap-3.5 p-5 bg-gradient-to-r from-slate-950/60 via-slate-900/50 to-teal-950/30 border border-slate-800/80 rounded-2xl shadow-md">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-rounded text-teal-400 text-base">description</span>
+                    <span class="text-xs font-black uppercase tracking-wider text-teal-400">Practical Lab Audit Reports (A4 Landscape Print)</span>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-400">Official CIA & Lab Audit Documentation</span>
+                </div>
+                <div class="flex flex-wrap gap-2.5 pt-1">
+                  <a id="pRepBtnRegister" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm text-teal-400">grid_on</span> Consolidated Register
+                  </a>
+                  <a id="pRepBtnAttendance" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm text-emerald-400">playlist_add_check</span> Attendance Log
+                  </a>
+                  <a id="pRepBtnExperiments" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm text-amber-400">list_alt</span> Experiments List
+                  </a>
+                  <a id="pRepBtnPlanner" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm text-purple-400">calendar_today</span> Lesson Planner
+                  </a>
+                  <a id="pRepBtnProjects" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm text-rose-400">assignment</span> Open-Ended Projects
+                  </a>
+                  <a id="printLabReportBtn" target="_blank" class="px-4 py-2.5 bg-blue-600/80 hover:bg-blue-600 border border-blue-500/50 hover:border-blue-400 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                    <span class="material-symbols-rounded text-sm">print</span> Print Register
+                  </a>
+                </div>
+              </div>
+
+              <!-- Practical Report Calculation Table (Shown for Practical Subjects in Reports Tab) -->
+              <div id="practicalReportsTableContainer" class="hidden flex-col space-y-4">
+                <!-- Splitup Overview Banner -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2 text-xs">
+                  <div class="flex items-center gap-1.5 font-bold text-slate-300">
+                    <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
+                    <span>Continuous Lab Work Splitup (Max 37.5):</span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-400 text-[11px]">
+                    <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">7.5 Marks</strong></span>
+                    <span class="text-slate-700 hidden sm:inline">•</span>
+                    <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">10.0 Marks</strong></span>
+                    <span class="text-slate-700 hidden sm:inline">•</span>
+                    <span>Obs. &amp; Prep: <strong class="text-sky-400 font-bold font-mono">10.0 Marks</strong></span>
+                    <span class="text-slate-700 hidden sm:inline">•</span>
+                    <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">10.0 Marks</strong></span>
+                  </div>
+                </div>
+
+                <!-- 12-Column Final Report Calculation Register -->
+                <div class="bg-slate-950/50 border border-slate-800/60 rounded-2xl overflow-hidden shadow-xl">
+                  <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between">
+                    <div class="font-bold text-xs text-slate-300 flex items-center gap-2 tracking-wide uppercase">
+                      <span class="material-symbols-rounded text-base text-teal-400">table_chart</span> Final Practical Report Calculation Register
+                    </div>
+                    <span id="repTableStudentCount" class="text-[11px] text-slate-400 font-mono">Enrolled: 0 Students</span>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[1200px]">
+                      <thead>
+                        <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
+                          <th class="p-2.5 w-10 text-center">Roll</th>
+                          <th class="p-2.5">Name and PRN (SBTE)</th>
+                          <th class="p-2.5 text-center text-cyan-400">Exps Done</th>
+                          <th class="p-2.5 text-center">Rough (7.5)</th>
+                          <th class="p-2.5 text-center">Fair (10)</th>
+                          <th class="p-2.5 text-center">Obs/Prep (10)</th>
+                          <th class="p-2.5 text-center">Proc/Punct (10)</th>
+                          <th class="p-2.5 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
+                          <th class="p-2.5 text-center text-amber-400">Open Ended (7.5)</th>
+                          <th class="p-2.5 text-center text-emerald-400">Attendance (15)</th>
+                          <th class="p-2.5 text-center text-purple-400">Test 1 (15)</th>
+                          <th class="p-2.5 text-center text-purple-400">Test 2 (15)</th>
+                          <th class="p-2.5 text-center text-purple-300 font-bold">Test Avg (15)</th>
+                          <th class="p-2.5 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
+                          <th class="p-2.5 text-center text-sky-400">Board Exam (50)</th>
+                        </tr>
+                      </thead>
+                      <tbody id="practicalReportsTableBody" class="divide-y divide-slate-800/50">
+                        <tr>
+                          <td colspan="15" class="p-6 text-center text-slate-400 font-bold">Loading report calculations...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
@@ -1373,104 +1472,78 @@
                   <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Grade day-to-day experiments (37.5), model tests (15),<br>micro-projects (7.5), and board exam marks (50).</p>
                 </div>
                 <div class="flex items-center gap-2.5 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
-                  <a id="openFullVirtualLabBtn" href="#" target="_blank" class="px-3 py-1.5 bg-cyan-600/20 border border-cyan-500/40 hover:bg-cyan-600/30 text-cyan-400 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0">
-                    <span class="material-symbols-rounded text-sm">open_in_new</span> Labwork Grades
-                  </a>
+                  <button type="button" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-400/30 text-blue-300 rounded-md text-xs font-normal transition flex items-center gap-1 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
+                    <span class="material-symbols-rounded text-xs">science</span> Lab Work Grade
+                  </button>
+                  <button type="button" onclick="openOeModal(labStudentsData[0]?.reg_no)" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-400/30 text-blue-300 rounded-md text-xs font-normal transition flex items-center gap-1 shadow-sm shrink-0 cursor-pointer" title="Grade open-ended project with student navigation">
+                    <span class="material-symbols-rounded text-xs">assignment</span> Open Ended Grade
+                  </button>
                   <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm focus-within:border-blue-500/50 transition-all shrink-0">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Batch:</span>
                     <select id="labBatchFilterSelect" onchange="filterLabGridByBatch()" class="bg-transparent border-0 text-white font-medium text-xs outline-none cursor-pointer">
-                      <option value="combined" class="bg-slate-950">Combined (Full Class)</option>
-                      <option value="1" class="bg-slate-950">Lab Batch 1 (First 50%)</option>
-                      <option value="2" class="bg-slate-950">Lab Batch 2 (Second 50%)</option>
+                      <option value="combined" class="bg-slate-950">Full</option>
+                      <option value="1" class="bg-slate-950">Batch 1</option>
+                      <option value="2" class="bg-slate-950">Batch 2</option>
                     </select>
                   </div>
-                  <button onclick="openManageExperimentsModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-sm text-teal-400">settings</span> Experiments
+                  <button type="button" onclick="openManageExperimentsModal(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
+                    <span class="material-symbols-rounded text-sm text-teal-400">settings</span> Setup Experiments
                   </button>
-                  <button onclick="openManageTestsModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-sm text-blue-400">assignment_turned_in</span> Tests
+                  <button type="button" onclick="openManageTestsModal(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
+                    <span class="material-symbols-rounded text-sm text-blue-400">assignment_turned_in</span> Configure Tests
                   </button>
-                  <a id="printLabReportBtn" href="#" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition no-underline flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/15 shrink-0">
-                    <span class="material-symbols-rounded text-sm">print</span> Print Register
-                  </a>
                 </div>
               </div>
 
               <!-- Compact Lab Statistics Summary (Read-only inline stats) -->
-              <div class="flex flex-wrap items-center gap-x-6 gap-y-2 py-2 px-3 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs">
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
-                  <span class="text-slate-400 font-medium">Avg Internal:</span>
-                  <span class="font-mono font-bold text-teal-300" id="statLabAvgInternal">0.00 / 75</span>
-                </div>
-                <span class="text-slate-800 hidden sm:inline">•</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-blue-400 text-sm">school</span>
-                  <span class="text-slate-400 font-medium">Avg Board:</span>
-                  <span class="font-mono font-bold text-blue-300" id="statLabAvgBoard">0.00 / 50</span>
-                </div>
-                <span class="text-slate-800 hidden sm:inline">•</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-emerald-400 text-sm">trending_up</span>
-                  <span class="text-slate-400 font-medium">Pass Rate:</span>
-                  <span class="font-mono font-bold text-emerald-300" id="statLabPassPercent">0%</span>
-                </div>
-                <span class="text-slate-800 hidden sm:inline">•</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
-                  <span class="text-slate-400 font-medium">Total Exps:</span>
-                  <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
-                </div>
+              <div class="flex items-center gap-2 py-1.5 px-3 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs w-fit">
+                <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
+                <span class="text-slate-400 font-medium">Total Experiments:</span>
+                <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
               </div>
 
-              <!-- Practical Sub-Reports Quick Access -->
-              <div id="practicalReportsActions" class="hidden flex-wrap gap-3.5 p-5 bg-gradient-to-r from-slate-950/45 to-slate-900/20 border border-slate-800/80 rounded-2xl items-center shadow-md">
-                <span class="text-sm font-black text-slate-350 uppercase tracking-wider mr-2 flex items-center gap-2">
-                  <span class="material-symbols-rounded text-base text-blue-400">description</span>
-                  Practical Reports (A4 Landscape):
-                </span>
-                <div class="flex flex-wrap gap-2.5">
-                  <a id="pRepBtnRegister" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm text-teal-400">grid_on</span> Consolidated Register
-                  </a>
-                  <a id="pRepBtnAttendance" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm text-emerald-400">playlist_add_check</span> Attendance Log
-                  </a>
-                  <a id="pRepBtnExperiments" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm text-amber-400">list_alt</span> Experiments List
-                  </a>
-                  <a id="pRepBtnPlanner" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm text-purple-400">calendar_today</span> Lesson Planner
-                  </a>
-                  <a id="pRepBtnProjects" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm text-rose-400">assignment</span> Open-Ended Projects
-                  </a>
+              <!-- Splitup Overview Banner -->
+              <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2 text-xs">
+                <div class="flex items-center gap-1.5 font-bold text-slate-300">
+                  <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
+                  <span>Continuous Lab Work Splitup (Max 37.5):</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-400 text-[11px]">
+                  <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">7.5 Marks</strong></span>
+                  <span class="text-slate-700 hidden sm:inline">•</span>
+                  <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">10.0 Marks</strong></span>
+                  <span class="text-slate-700 hidden sm:inline">•</span>
+                  <span>Obs. &amp; Prep: <strong class="text-sky-400 font-bold font-mono">10.0 Marks</strong></span>
+                  <span class="text-slate-700 hidden sm:inline">•</span>
+                  <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">10.0 Marks</strong></span>
                 </div>
               </div>
 
               <!-- Lab Evaluation Student Grid -->
               <div class="bg-slate-950/50 border border-slate-800/60 rounded-2xl overflow-hidden shadow-xl">
                 <div class="overflow-x-auto">
-                  <table class="w-full text-left border-collapse min-w-[1100px]">
+                  <table class="w-full text-left border-collapse min-w-[1150px]">
                     <thead>
                       <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
-                        <th class="p-2 w-12 text-center">Roll</th>
-                        <th class="p-2">Student Name</th>
-                        <th class="p-2 text-center">Graded Exps</th>
-                        <th class="p-2 text-center">Exp Avg (37.5)</th>
-                        <th class="p-2 text-center">Test 1 (15)</th>
-                        <th class="p-2 text-center">Test 2 (15)</th>
-                        <th class="p-2 text-center">Test Avg (15)</th>
-                        <th class="p-2 text-center">Project (7.5)</th>
-                        <th class="p-2 text-center">Attendance (15)</th>
-                        <th class="p-2 text-center text-teal-400 bg-teal-500/5">Total CA (75)</th>
-                        <th class="p-2 text-center text-blue-400 bg-blue-500/5">Board Exam (50)</th>
-                        <th class="p-2 text-center w-24">Action</th>
+                        <th class="p-2 w-10 text-center">Roll</th>
+                        <th class="p-2">Name and PRN (SBTE)</th>
+                        <th class="p-2 text-center text-cyan-400">Exps Done</th>
+                        <th class="p-2 text-center">Rough (7.5)</th>
+                        <th class="p-2 text-center">Fair (10)</th>
+                        <th class="p-2 text-center">Obs/Prep (10)</th>
+                        <th class="p-2 text-center">Proc/Punct (10)</th>
+                        <th class="p-2 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
+                        <th class="p-2 text-center text-amber-400">Open Ended (7.5)</th>
+                        <th class="p-2 text-center text-emerald-400">Attendance (15)</th>
+                        <th class="p-2 text-center text-purple-400">Test 1 (15)</th>
+                        <th class="p-2 text-center text-purple-400">Test 2 (15)</th>
+                        <th class="p-2 text-center text-purple-300 font-bold">Test Avg (15)</th>
+                        <th class="p-2 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
                       </tr>
                     </thead>
                     <tbody id="labEvaluationsTableBody" class="divide-y divide-slate-800/50">
                       <tr>
-                        <td colspan="12" class="p-8 text-center text-slate-400 font-bold text-sm">Loading students...</td>
+                        <td colspan="14" class="p-8 text-center text-slate-400 font-bold text-sm">Loading students...</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1742,6 +1815,7 @@
 
   <script>
     // Self-executing theme preference loader to run immediately and prevent flashing dark theme
+    // Self-executing theme preference loader & panel pre-loader to run immediately and prevent flashing
     (function() {
       const savedTheme = localStorage.getItem('theme-preference');
       if (savedTheme === 'light') {
@@ -1751,6 +1825,47 @@
           const text = document.getElementById('themeToggleText');
           if (icon) icon.innerText = 'dark_mode';
           if (text) text.innerText = 'Dark Mode';
+        });
+      }
+
+      // Check if URL specifies subject_id to pre-switch classroom panel and active tab immediately
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('subject_id')) {
+        const initialTab = urlParams.get('tab');
+        if (initialTab) {
+          window.currentActiveVirtualTab = initialTab;
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+          const dash = document.getElementById('panelDashboard');
+          const cls = document.getElementById('panelClassroom');
+          if (dash) dash.classList.add('hidden');
+          if (cls) cls.classList.remove('hidden');
+
+          if (initialTab) {
+            const tabContentMap = {
+              'lab_evaluation': 'labEvaluationContent',
+              'structure': 'courseStructureContent',
+              'planner': 'coursePlannerContent',
+              'assessment': 'formativeAssessmentContent',
+              'summative': 'summativeAssessmentContent',
+              'qbank': 'questionBankContent',
+              'survey': 'surveysContent',
+              'seminar_evaluation': 'seminarEvaluationContent',
+              'lab_copo': 'labCoPoMappingContent',
+              'course_attainment': 'courseAttainmentContent',
+              'reports': 'classReportsContent'
+            };
+            const targetId = tabContentMap[initialTab];
+            if (targetId) {
+              const targetEl = document.getElementById(targetId);
+              const structEl = document.getElementById('courseStructureContent');
+              if (targetEl && structEl && targetId !== 'courseStructureContent') {
+                structEl.classList.add('hidden');
+                targetEl.classList.remove('hidden');
+                if (initialTab !== 'structure') targetEl.classList.add('flex');
+              }
+            }
+          }
         });
       }
     })();
@@ -1781,10 +1896,16 @@
       }
       const urlParams = new URLSearchParams(window.location.search);
       const subjectId = urlParams.get('subject_id');
-      const subjectName = urlParams.get('subject_name');
-      const classroomId = urlParams.get('classroom_id');
+      const subjectName = urlParams.get('subject_name') || '';
+      const classroomId = urlParams.get('classroom_id') || '';
+      const tabParam = urlParams.get('tab');
+      const revParam = urlParams.get('revision') || 'REV2021';
+      const typeParam = urlParams.get('type') || 'Practical';
       if (subjectId) {
-        openClassroom(classroomId, subjectId, subjectName);
+        if (tabParam) {
+          window.currentActiveVirtualTab = tabParam;
+        }
+        openClassroom(classroomId, subjectId, subjectName, '', revParam, typeParam, tabParam);
       } else {
         loadLecturerBatches();
       }
@@ -1985,7 +2106,7 @@
     window.currentVirtualBatchId = '';
     window.currentVirtualSemester = '';
 
-    function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
+    function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory', initialTab = null) {
       const sTypeLower = (type || '').toLowerCase();
       const sNameLower = (subjectName || '').toLowerCase();
       const isR26 = (revision === 'REV2026' || (batchId && batchId.includes('2026')));
@@ -2011,7 +2132,8 @@
         currentSubjectId = subjectId;
         window.currentVirtualRevision = revision;
 
-        const isPractical = sTypeLower.includes('practical') || sTypeLower.includes('lab') || (type || '').includes('Practical') || (type || '').includes('Lab');
+        const isPractical = sTypeLower.includes('practical') || sTypeLower.includes('lab') || (type || '').includes('Practical') || (type || '').includes('Lab') || sNameLower.includes('practical') || sNameLower.includes('lab') || sNameLower.includes('practicum') || sNameLower.includes('workshop');
+        window.isCurrentSubjectPractical = isPractical;
         const isSeminar   = sTypeLower.includes('seminar') || sNameLower.includes('seminar');
         const rStr        = revision ? revision.toString() : 'R-2021';
         let revLabel      = 'R -2021';
@@ -2073,6 +2195,10 @@
         }
 
         switchPanel('classroom');
+        if (initialTab) {
+          window.currentActiveVirtualTab = initialTab;
+          toggleClassroomTab(initialTab);
+        }
         loadCourseDetails(subjectId);
       }
     }
@@ -2305,6 +2431,13 @@
 
       if (tabName === 'reports') {
         fetchClassReports();
+        if (window.isCurrentSubjectPractical) {
+          fetchPracticalEvaluations();
+        }
+      } else if (tabName === 'assessment') {
+        if (window.isCurrentSubjectPractical) {
+          fetchPracticalEvaluations();
+        }
       } else if (tabName === 'qbank') {
         fetchQuestionBank(currentSubjectId);
       } else if (tabName === 'survey') {
@@ -2313,6 +2446,10 @@
         fetchSeminarEvaluations();
       } else if (tabName === 'lab_evaluation') {
         fetchPracticalEvaluations();
+      } else if (tabName === 'summative' || tabName === 'tabSummative') {
+        if (window.isCurrentSubjectPractical) {
+          fetchPracticalEvaluations();
+        }
       } else if (tabName === 'lab_copo') {
         fetchPracticalCoPoMapping();
       } else if (tabName === 'course_attainment') {
@@ -2436,8 +2573,13 @@
           window.currentVirtualStudents = data.data.students || [];
           window.currentVirtualSemester = data.data.semester || '';
           window.currentProposedTotalHours = data.data.proposed_total_hours || 60;
-          window.currentCos = data.data.cos || [];
-          
+          const subjectTypeRaw = (data.data.subject_type || '').toLowerCase();
+          const sNameLower = (data.data.subject_name || '').toLowerCase();
+          const sCodeLower = (data.data.subject_code || '').toLowerCase();
+          const isSeminar = subjectTypeRaw === 'seminar' || sNameLower.includes('seminar');
+          const isPractical = subjectTypeRaw === 'practical' || subjectTypeRaw === 'lab' || subjectTypeRaw.includes('lab') || subjectTypeRaw.includes('practical') || subjectTypeRaw.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical') || sNameLower.includes('practicum') || sNameLower.includes('workshop');
+          window.isCurrentSubjectPractical = isPractical;
+
           renderCourseStructure(data.data.cos, data.data.modules, data.data.textbooks, data.data.copo);
           renderCoursePlanner(data.data.lesson_plans);
           renderFormativeAssessment(data.data.students || []);
@@ -2446,11 +2588,6 @@
           
           // Always render the formative questions section (show prompt if none generated yet)
           renderAIQuestionsList(currentQuestions, subjectId);
-
-          const subjectTypeRaw = (data.data.subject_type || '').toLowerCase();
-          const isSeminar = subjectTypeRaw === 'seminar';
-          const isPractical = subjectTypeRaw === 'practical' || subjectTypeRaw === 'lab' || subjectTypeRaw.includes('lab') || subjectTypeRaw.includes('practical') || subjectTypeRaw.includes('practicum');
-          window.isCurrentSubjectPractical = isPractical;
 
           const tabSeminar = document.getElementById('tabSeminar');
           const tabLab = document.getElementById('tabLab');
@@ -2494,11 +2631,11 @@
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-sm">science</span> Virtual Lab Workspace`;
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.remove('hidden');
-            if (tabLabCoPo) tabLabCoPo.classList.remove('hidden');
+            if (tabLabCoPo) tabLabCoPo.classList.add('hidden');
             if (tabStructure) tabStructure.classList.remove('hidden');
             if (tabPlanner) tabPlanner.classList.remove('hidden');
             if (tabAssessment) tabAssessment.classList.add('hidden');
-            if (tabSummative) tabSummative.classList.add('hidden');
+            if (tabSummative) tabSummative.classList.remove('hidden');
             if (tabReports) tabReports.classList.remove('hidden');
             if (tabQBank) tabQBank.classList.remove('hidden');
             if (tabSurvey) tabSurvey.classList.remove('hidden');
@@ -2506,6 +2643,11 @@
             if (pRepActions) {
               pRepActions.classList.remove('hidden');
               pRepActions.classList.add('flex');
+              const fullWsBtn = document.getElementById('openFullVirtualLabBtn');
+              const isR26Val = rStrVal.includes('2026') || rStrVal.includes('26');
+              if (fullWsBtn) fullWsBtn.href = isR26Val ? `/r26/classroom/practical/${subjectId}` : `/classroom/practical/${subjectId}`;
+              const printBtn = document.getElementById('printLabReportBtn');
+              if (printBtn) printBtn.href = `/classroom/practical/${subjectId}/report/print`;
               const btnReg = document.getElementById('pRepBtnRegister');
               if (btnReg) btnReg.href = `/classroom/${subjectId}/practical-report/print?type=register`;
               const btnAtt = document.getElementById('pRepBtnAttendance');
@@ -2708,14 +2850,14 @@
         let emptyIcon  = window.isCurrentSubjectPractical ? 'science' : 'event_note';
         let emptyColor = window.isCurrentSubjectPractical ? 'text-teal-400' : 'text-sky-400';
         let genBtn = window.isCurrentSubjectPractical
-          ? `<button onclick="openGeneratePlannerModal()" class="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-teal-900/20">
-              <span class="material-symbols-rounded text-sm">auto_awesome</span> Auto-Generate (Lab)
+          ? `<button onclick="openGeneratePlannerModal()" class="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1 shadow-md shadow-teal-900/20">
+              <span class="material-symbols-rounded text-xs">auto_awesome</span> Auto-Generate (Lab)
              </button>`
-          : `<button onclick="regenerateLessonPlan()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-blue-900/20">
-              <span class="material-symbols-rounded text-sm">auto_awesome</span> Generate Lesson Plan
+          : `<button onclick="regenerateLessonPlan()" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1 shadow-md shadow-blue-900/20">
+              <span class="material-symbols-rounded text-xs">auto_awesome</span> Generate Lesson Plan
              </button>`;
-        let loadBtn = `<button onclick="loadLessonPlanTemplate()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-premium cursor-pointer border border-slate-700/50 flex items-center gap-1.5">
-              <span class="material-symbols-rounded text-sm">download</span> Load Template
+        let loadBtn = `<button onclick="loadLessonPlanTemplate()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-premium cursor-pointer border border-slate-700/50 flex items-center gap-1">
+              <span class="material-symbols-rounded text-xs">download</span> Load Template
             </button>`;
         container.innerHTML = `
           <div class="flex flex-col items-center justify-center py-16 text-center h-full">
@@ -2746,9 +2888,10 @@
         : ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
 
       // Header buttons
+      const smallBtnCss = `font-size: 11px !important; font-weight: 700; line-height: 1.2; padding: 4px 10px;`;
       let practicalRegenBtn = window.isCurrentSubjectPractical
-        ? `<button onclick="openGeneratePlannerModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1">
-             <span class="material-symbols-rounded text-xs">science</span> Regenerate (Lab)
+        ? `<button onclick="openGeneratePlannerModal()" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1">
+             <span class="material-symbols-rounded" style="font-size: 13px;">science</span> Regenerate (Lab)
            </button>` : '';
 
       let html = `
@@ -2757,27 +2900,27 @@
             <h4 class="text-sm font-black text-slate-200">Lesson Planner</h4>
             <p class="text-xs text-slate-500 mt-0.5">${lectureDays} lecture days · ${testDays} test days · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours) · Auto-growing content textareas</p>
           </div>
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-1.5 flex-wrap">
             ${practicalRegenBtn}
-            <select id="coursePlannerBatchFilter" onchange="filterCoursePlannerRowsByBatch(this.value)" class="px-3 py-1.5 bg-slate-900 border border-slate-700/60 text-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500/50 cursor-pointer">
+            <select id="coursePlannerBatchFilter" onchange="filterCoursePlannerRowsByBatch(this.value)" style="${smallBtnCss}" class="bg-slate-900 border border-slate-700/60 text-slate-200 rounded-lg focus:outline-none focus:border-blue-500/50 cursor-pointer ${window.isCurrentSubjectPractical ? '' : 'hidden'}">
               <option value="Full">Batch: Full</option>
               <option value="A">Batch: A</option>
               <option value="B">Batch: B</option>
             </select>
-            <button onclick="regenerateLessonPlan()" id="btnRegenPlan" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Re-generate all lesson plans from stored syllabus data">
-              <span class="material-symbols-rounded text-xs">refresh</span> Regenerate
+            <button onclick="regenerateLessonPlan()" id="btnRegenPlan" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Re-generate all lesson plans from stored syllabus data">
+              <span class="material-symbols-rounded" style="font-size: 13px;">refresh</span> Regenerate
             </button>
-            <button onclick="saveLessonPlanChanges()" id="btnSavePlan" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1">
-              <span class="material-symbols-rounded text-xs">save</span> Save Changes
+            <button onclick="saveLessonPlanChanges()" id="btnSavePlan" style="${smallBtnCss}" class="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1">
+              <span class="material-symbols-rounded" style="font-size: 13px;">save</span> Save Changes
             </button>
-            <button onclick="saveLessonPlanAsTemplate()" id="btnSavePlanTemplate" class="px-3 py-1.5 bg-violet-800/80 hover:bg-violet-700/80 text-violet-200 border border-violet-600/30 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Save as reusable template for other batches with the same subject">
-              <span class="material-symbols-rounded text-xs">bookmark_add</span> Save as Template
+            <button onclick="saveLessonPlanAsTemplate()" id="btnSavePlanTemplate" style="${smallBtnCss}" class="bg-violet-800/80 hover:bg-violet-700/80 text-violet-200 border border-violet-600/30 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Save as reusable template for other batches with the same subject">
+              <span class="material-symbols-rounded" style="font-size: 13px;">bookmark_add</span> Save as Template
             </button>
-            <button onclick="loadLessonPlanTemplate()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Load previously saved template">
-              <span class="material-symbols-rounded text-xs">download</span> Load Template
+            <button onclick="loadLessonPlanTemplate()" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Load previously saved template">
+              <span class="material-symbols-rounded" style="font-size: 13px;">download</span> Load Template
             </button>
-            <a href="/classroom/${currentSubjectId}/lesson-plan/print" target="_blank" class="px-3 py-1.5 bg-sky-800 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1" title="Print Lesson Plan (A4)">
-              <span class="material-symbols-rounded text-xs">print</span> Print Plan
+            <a href="/classroom/${currentSubjectId}/lesson-plan/print" target="_blank" style="${smallBtnCss}" class="bg-sky-800 hover:bg-sky-700 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Print Lesson Plan (A4)">
+              <span class="material-symbols-rounded" style="font-size: 13px;">print</span> Print Plan
             </a>
           </div>
         </div>
@@ -2789,7 +2932,7 @@
                 <tr class="bg-slate-900/80 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-10 text-center">#</th>
                   <th class="p-3 w-20 text-center">CO</th>
-                  <th class="p-3 w-24 text-center">Batch</th>
+                  ${window.isCurrentSubjectPractical ? '<th class="p-3 w-24 text-center">Batch</th>' : ''}
                   <th class="p-3">Topic / Content <span class="text-slate-600 normal-case font-normal">(auto-grow)</span></th>
                   <th class="p-3 w-32">Proposed Date</th>
                   <th class="p-3 w-32">Actual Date</th>
@@ -2828,6 +2971,7 @@
                 ${coSelectOptions}
               </select>
             </td>
+            ${window.isCurrentSubjectPractical ? `
             <td class="p-2 text-center">
               <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty(${lp.id}); this.closest('tr').setAttribute('data-sub-batch', this.value);">
                 <option value="Whole" ${subBatchVal==='Whole'||subBatchVal==='Full'||!subBatchVal?'selected':''}>Full</option>
@@ -2835,6 +2979,7 @@
                 <option value="Batch B" ${subBatchVal==='Batch B'||subBatchVal==='B'?'selected':''}>B</option>
               </select>
             </td>
+            ` : ''}
             <td class="p-2">
               <textarea data-field="topic" rows="2"
                 class="w-full bg-slate-900/80 border border-slate-700/60 focus:border-blue-500/50 rounded p-2 text-slate-200 text-xs focus:outline-none transition-all resize-none leading-relaxed overflow-hidden"
@@ -2881,15 +3026,15 @@
             </table>
           </div>
           <div class="p-3 bg-slate-900/90 border-t border-slate-800/60 flex items-center justify-between gap-3 flex-wrap">
-            <button onclick="addLessonPlanRow()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 border border-slate-700/60 shadow-md">
-              <span class="material-symbols-rounded text-base">add_circle</span> Add Row
+            <button onclick="addLessonPlanRow()" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-lg transition-premium cursor-pointer flex items-center gap-1 border border-slate-700/60 shadow-md">
+              <span class="material-symbols-rounded" style="font-size: 13px;">add_circle</span> Add Row
             </button>
             <div class="flex items-center gap-2">
-              <button onclick="saveLessonPlanChanges()" id="btnSavePlanBottom" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-base">save</span> Save
+              <button onclick="saveLessonPlanChanges()" id="btnSavePlanBottom" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 rounded-lg transition-premium cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded" style="font-size: 13px;">save</span> Save
               </button>
-              <button onclick="saveLessonPlanChanges()" id="btnSaveNowBottom" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-lg shadow-emerald-900/20">
-                <span class="material-symbols-rounded text-base">check_circle</span> Save Now
+              <button onclick="saveLessonPlanChanges()" id="btnSaveNowBottom" style="${smallBtnCss}" class="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1 shadow-md shadow-emerald-900/20">
+                <span class="material-symbols-rounded" style="font-size: 13px;">check_circle</span> Save Now
               </button>
             </div>
           </div>
@@ -2952,6 +3097,7 @@
             ${coOptionsHtml}
           </select>
         </td>
+        ${window.isCurrentSubjectPractical ? `
         <td class="p-2 text-center">
           <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${tempId}'); this.closest('tr').setAttribute('data-sub-batch', this.value);">
             <option value="Whole">Full</option>
@@ -2959,6 +3105,7 @@
             <option value="Batch B">B</option>
           </select>
         </td>
+        ` : ''}
         <td class="p-2">
           <textarea data-field="topic" rows="2" class="w-full bg-slate-900/80 border border-slate-700/60 focus:border-blue-500/50 rounded p-2 text-slate-200 text-xs focus:outline-none transition-all resize-none leading-relaxed overflow-hidden" placeholder="Enter topic content..." oninput="autoGrowTextarea(this); markPlanDirty('${tempId}')" onfocus="autoGrowTextarea(this)" onkeyup="autoGrowTextarea(this)"></textarea>
         </td>
@@ -2990,6 +3137,21 @@
       if (textarea) autoGrowTextarea(textarea);
     }
 
+    function resequenceLessonPlanRows() {
+      const rows = document.querySelectorAll('#lessonPlanTable tbody tr');
+      rows.forEach((row, index) => {
+        const dayInput = row.querySelector('input[data-field="day_no"]');
+        if (dayInput) {
+          const newDayNo = index + 1;
+          if (parseInt(dayInput.value) !== newDayNo) {
+            dayInput.value = newDayNo;
+            const lpId = row.getAttribute('data-lp-id');
+            if (lpId) markPlanDirty(lpId);
+          }
+        }
+      });
+    }
+
     function deleteLessonPlanRow(btn) {
       const tr = btn.closest('tr');
       if (!tr) return;
@@ -3002,6 +3164,7 @@
         }).then(r => r.json()).catch(e => console.error(e));
       }
       tr.remove();
+      resequenceLessonPlanRows();
       const bar = document.getElementById('planSaveStatusBar');
       if (bar) { bar.classList.remove('hidden'); bar.classList.add('flex'); }
     }
@@ -3161,6 +3324,131 @@
 
 
     function renderFormativeAssessment(students) {
+      if (window.isCurrentSubjectPractical) {
+        const subjId = currentSubjectId || window.currentSubjectId;
+        const studList = (typeof labStudentsData !== 'undefined' && labStudentsData && labStudentsData.length > 0) ? labStudentsData : (students || []);
+        const totalExps = (typeof labExperimentsData !== 'undefined' && labExperimentsData) ? labExperimentsData.length : 0;
+        
+        let html = `
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4 no-print border-b border-slate-800/60 pb-3">
+            <div>
+              <h4 class="text-sm font-black text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                <span class="material-symbols-rounded text-teal-400 text-lg">science</span>
+                Day-to-Day Practical Continuous Formative Assessment
+              </h4>
+              <p class="text-xs text-slate-400 mt-0.5">Continuous evaluation splitup breakdown: Rough Record (7.5M), Fair Record (10M), Observation &amp; Prep (10M), Procedure &amp; Punctuality (10M).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="/classroom/practical/${subjId}/report/print" target="_blank" class="px-3.5 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Practical Register
+              </a>
+            </div>
+          </div>
+
+          <!-- Splitup Overview Banner -->
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2 text-xs">
+            <div class="flex items-center gap-1.5 font-bold text-slate-300">
+              <span class="material-symbols-rounded text-teal-400 text-sm">analytics</span>
+              <span>Continuous Lab Work Splitup (Max 37.5):</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-400 text-[11px]">
+              <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">7.5 Marks</strong></span>
+              <span class="text-slate-700 hidden sm:inline">•</span>
+              <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">10.0 Marks</strong></span>
+              <span class="text-slate-700 hidden sm:inline">•</span>
+              <span>Obs. &amp; Prep: <strong class="text-sky-400 font-bold font-mono">10.0 Marks</strong></span>
+              <span class="text-slate-700 hidden sm:inline">•</span>
+              <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">10.0 Marks</strong></span>
+            </div>
+          </div>
+
+          <!-- Continuous Evaluation Splitup Table -->
+          <div class="bg-slate-950/50 border border-slate-800/60 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between">
+              <div class="font-bold text-xs text-slate-300 flex items-center gap-2 tracking-wide uppercase">
+                <span class="material-symbols-rounded text-base text-teal-400">table_chart</span> Day-to-Day Continuous Evaluation Breakdown
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono">Enrolled: ${studList.length} Students</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[900px]">
+                <thead>
+                  <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
+                    <th class="p-2.5 w-12 text-center">Roll</th>
+                    <th class="p-2.5">Student Name</th>
+                    <th class="p-2.5 text-center">Graded Exps</th>
+                    <th class="p-2.5 text-center text-amber-400">Rough Rec (7.5)</th>
+                    <th class="p-2.5 text-center text-emerald-400">Fair Rec (15.0)</th>
+                    <th class="p-2.5 text-center text-sky-400">Obs &amp; Prep (7.5)</th>
+                    <th class="p-2.5 text-center text-purple-400">Proc &amp; Punct (7.5)</th>
+                    <th class="p-2.5 text-center text-blue-400 bg-blue-500/5">Lab Work Avg (37.5)</th>
+                    <th class="p-2.5 text-center w-24">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50">
+        `;
+
+        if (studList.length > 0) {
+          studList.forEach((student, index) => {
+            let gradedCount = 0;
+            let sumRough = 0, sumFair = 0, sumObs = 0, sumProc = 0;
+
+            if (student.experiments_marks) {
+              const expEntries = Object.values(student.experiments_marks).filter(m => m !== null);
+              gradedCount = expEntries.length;
+              expEntries.forEach(m => {
+                sumRough += parseFloat(m.rough_record || m.rough || 0);
+                sumFair  += parseFloat(m.fair_record || m.fair || 0);
+                sumObs   += parseFloat(m.obs_prep || m.obs || 0);
+                sumProc  += parseFloat(m.proc_punct || m.proc || 0);
+              });
+            }
+
+            const avgRough = gradedCount > 0 ? (sumRough / gradedCount).toFixed(2) : '0.00';
+            const avgFair  = gradedCount > 0 ? (sumFair / gradedCount).toFixed(2)  : '0.00';
+            const avgObs   = gradedCount > 0 ? (sumObs / gradedCount).toFixed(2)   : '0.00';
+            const avgProc  = gradedCount > 0 ? (sumProc / gradedCount).toFixed(2)  : '0.00';
+
+            const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
+
+            html += `
+              <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-xs">
+                <td class="p-2.5 text-center font-bold text-slate-400 font-mono">${student.roll_no || (index + 1)}</td>
+                <td class="p-2.5 font-bold text-slate-200">
+                  <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="hover:text-teal-300 text-left cursor-pointer">
+                    ${student.name}
+                  </button>
+                  <span class="block text-[10px] font-mono text-slate-400">${student.reg_no}</span>
+                </td>
+                <td class="p-2.5 text-center font-mono text-slate-400">${gradedCount} / ${totalExps}</td>
+                <td class="p-2.5 text-center font-mono text-amber-400 font-semibold">${avgRough}</td>
+                <td class="p-2.5 text-center font-mono text-emerald-400 font-semibold">${avgFair}</td>
+                <td class="p-2.5 text-center font-mono text-sky-400 font-semibold">${avgObs}</td>
+                <td class="p-2.5 text-center font-mono text-purple-400 font-semibold">${avgProc}</td>
+                <td class="p-2.5 text-center font-mono font-bold text-blue-400 bg-blue-500/5 text-sm">${expAverage}</td>
+                <td class="p-2.5 text-center">
+                  <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="px-2.5 py-1 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/30 text-teal-300 text-xs font-bold rounded-xl transition flex items-center gap-1 mx-auto cursor-pointer">
+                    <span class="material-symbols-rounded text-xs">edit</span> Grade
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          html += `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-bold">No student evaluation records found.</td></tr>`;
+        }
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        const faContent = document.getElementById('formativeAssessmentContent');
+        if (faContent) faContent.innerHTML = html;
+        return;
+      }
       let html = `
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -3818,6 +4106,160 @@
     }
 
     function renderSummativeAssessment(cos, students) {
+      if (window.isCurrentSubjectPractical) {
+        let html = `
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4 no-print border-b border-slate-800/60 pb-3">
+            <div>
+              <h4 class="text-sm font-black text-slate-200 uppercase tracking-wide">Practical Summative Assessment</h4>
+              <p class="text-xs text-slate-400 mt-0.5">Series Examination 1 & 2 Marks Entry, Board Exam Grade Register & Attainment Rules.</p>
+            </div>
+          </div>
+
+          <!-- CIA Components & CO Attainment Rules Banner -->
+          <div class="mb-6 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 shadow-inner">
+            <h5 class="text-xs font-black text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-amber-400 text-base">info</span> Practical Assessment Breakdown (75 Marks Total CIA) &amp; CO Attainment Rules
+            </h5>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3">
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Continuous Experiments</div>
+                <div class="text-sm font-black text-sky-400">37.5 Marks</div>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Open-Ended Project</div>
+                <div class="text-sm font-black text-purple-400">7.5 Marks</div>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Series Tests Avg</div>
+                <div class="text-sm font-black text-indigo-400">15 Marks</div>
+                <div class="text-[9px] text-slate-400 mt-0.5">Test 1 → CO1&amp;2 | Test 2 → CO3&amp;4</div>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Attendance</div>
+                <div class="text-sm font-black text-emerald-400">15 Marks</div>
+                <div class="text-[9px] text-amber-400 font-bold mt-0.5">Excluded from CO Attainment</div>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              <strong class="text-slate-300">Attainment Rule:</strong> Series Test 1 score applies to <strong>CO1 &amp; CO2</strong>, and Series Test 2 score applies to <strong>CO3 &amp; CO4</strong>. Attendance marks (15M) are part of student CIA (75M) but <em>excluded</em> from direct CO attainment calculations. Board Exam marks are registered in <strong>Grades</strong>.
+            </p>
+          </div>
+
+          <!-- Configured Model Tests Questions Card -->
+          <div class="mb-6 bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 shadow-inner">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800/60 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-sky-400 text-lg">help_center</span>
+                <div>
+                  <h5 class="text-xs font-black uppercase text-slate-200 tracking-wide">Configured Model Tests Questions Scheme</h5>
+                  <p class="text-[11px] text-slate-400">Question paper schemes for Model Test 1 (CO1/CO2) and Model Test 2 (CO3/CO4).</p>
+                </div>
+              </div>
+              <button type="button" onclick="openManageTestsModal(event)" class="px-3.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:text-blue-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <span class="material-symbols-rounded text-sm text-blue-400">settings</span> Setup Test Questions
+              </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3">
+                <div class="font-bold text-sky-300 mb-1 flex items-center justify-between">
+                  <span>Model Test 1 (CO1 &amp; CO2)</span>
+                  <span class="text-[10px] bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full border border-sky-500/20">Max 15 Marks</span>
+                </div>
+                <p class="text-[11px] text-slate-400">Choice of 1 out of 2 questions per CO.</p>
+              </div>
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3">
+                <div class="font-bold text-purple-300 mb-1 flex items-center justify-between">
+                  <span>Model Test 2 (CO3 &amp; CO4)</span>
+                  <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20">Max 15 Marks</span>
+                </div>
+                <p class="text-[11px] text-slate-400">Choice of 1 out of 2 questions per CO.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Series Exam & Board Exam Register Table -->
+          <div class="bg-slate-950/50 border border-slate-800/60 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-purple-400 text-base">assignment_turned_in</span>
+                <span class="text-xs font-black uppercase text-purple-400 tracking-wider">Series Practical Examination &amp; Board Exam Grade Register</span>
+              </div>
+              <button type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
+                <span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[850px]">
+                <thead>
+                  <tr class="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-900/80">
+                    <th class="p-2.5 w-12 text-center">Roll</th>
+                    <th class="p-2.5">Student Name</th>
+                    <th class="p-2.5 text-center">Reg No</th>
+                    <th class="p-2.5 text-center text-purple-400 bg-purple-500/5">Series Exam 1 (/15)</th>
+                    <th class="p-2.5 text-center text-purple-400 bg-purple-500/5">Series Exam 2 (/15)</th>
+                    <th class="p-2.5 text-center text-blue-400 bg-blue-500/5">Test Avg (/15)</th>
+                    <th class="p-2.5 text-center text-emerald-400 bg-emerald-500/5">Board Exam Grade</th>
+                  </tr>
+                </thead>
+                <tbody id="pracSummativeMarkTbody" class="divide-y divide-slate-800/50">
+        `;
+
+        if (students && students.length > 0) {
+          students.forEach((student, index) => {
+            let s1 = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? student.tests['Test 1'].total : (student.series1_score !== undefined && student.series1_score !== null ? student.series1_score : (student.practical_test1 !== undefined && student.practical_test1 !== null ? student.practical_test1 : ''));
+            let s2 = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? student.tests['Test 2'].total : (student.series2_score !== undefined && student.series2_score !== null ? student.series2_score : (student.practical_test2 !== undefined && student.practical_test2 !== null ? student.practical_test2 : ''));
+            let tAvg = (s1 !== '' || s2 !== '') ? (((Number(s1) || 0) + (Number(s2) || 0)) / ( (s1 !== '' && s2 !== '') ? 2 : 1 )).toFixed(1) : '-';
+            let boardGrade = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? String(student.board_exam_marks).trim() : '';
+
+            html += `
+              <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-xs" data-reg="${student.reg_no}">
+                <td class="p-2.5 text-center font-bold text-slate-400">${index + 1}</td>
+                <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
+                <td class="p-2.5 text-center font-mono text-slate-400">${student.reg_no}</td>
+                <td class="p-2.5 text-center bg-purple-500/5">
+                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-purple-300 focus:border-purple-500 outline-none" oninput="updatePracAvg(this)">
+                </td>
+                <td class="p-2.5 text-center bg-purple-500/5">
+                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-purple-300 focus:border-purple-500 outline-none" oninput="updatePracAvg(this)">
+                </td>
+                <td class="p-2.5 text-center bg-blue-500/5">
+                  <span class="prac-avg-display font-mono font-bold text-blue-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
+                </td>
+                <td class="p-2.5 text-center bg-emerald-500/5">
+                  <select class="prac-board-grade w-32 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-emerald-400 focus:border-emerald-500 outline-none cursor-pointer">
+                    <option value="">Grade -</option>
+                    <option value="S" ${boardGrade === 'S' ? 'selected' : ''}>S (90%+)</option>
+                    <option value="A+" ${boardGrade === 'A+' ? 'selected' : ''}>A+ (80%+)</option>
+                    <option value="A" ${boardGrade === 'A' ? 'selected' : ''}>A (75%+)</option>
+                    <option value="B+" ${boardGrade === 'B+' ? 'selected' : ''}>B+ (70%+)</option>
+                    <option value="B" ${boardGrade === 'B' ? 'selected' : ''}>B (65%+)</option>
+                    <option value="C+" ${boardGrade === 'C+' ? 'selected' : ''}>C+ (60%+)</option>
+                    <option value="C" ${boardGrade === 'C' ? 'selected' : ''}>C (55%+)</option>
+                    <option value="D" ${boardGrade === 'D' ? 'selected' : ''}>D (50%+)</option>
+                    <option value="P" ${boardGrade === 'P' ? 'selected' : ''}>P (Passed)</option>
+                    <option value="F" ${boardGrade === 'F' ? 'selected' : ''}>F (Failed)</option>
+                    <option value="ABS" ${boardGrade === 'ABS' ? 'selected' : ''}>ABS</option>
+                  </select>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          html += `<tr><td colspan="7" class="p-6 text-center text-slate-400">No student evaluation data found.</td></tr>`;
+        }
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        const saContent = document.getElementById('summativeAssessmentContent');
+        if (saContent) saContent.innerHTML = html;
+        return;
+      }
+
       let html = `
         <div class="flex items-center justify-between mb-4 no-print">
           <div>
@@ -4632,6 +5074,83 @@
         else alert(data.message || "Failed to save marks.");
       });
     }
+
+    function updatePracAvg(elem) {
+      const row = elem.closest('tr');
+      if (!row) return;
+      const s1Val = row.querySelector('.prac-s1-input')?.value;
+      const s2Val = row.querySelector('.prac-s2-input')?.value;
+      const avgSpan = row.querySelector('.prac-avg-display');
+      if (!avgSpan) return;
+
+      const s1 = parseFloat(s1Val);
+      const s2 = parseFloat(s2Val);
+
+      if (!isNaN(s1) && !isNaN(s2)) {
+        avgSpan.innerText = ((s1 + s2) / 2).toFixed(1) + ' / 15';
+      } else if (!isNaN(s1)) {
+        avgSpan.innerText = s1.toFixed(1) + ' / 15';
+      } else if (!isNaN(s2)) {
+        avgSpan.innerText = s2.toFixed(1) + ' / 15';
+      } else {
+        avgSpan.innerText = '-';
+      }
+    }
+    window.updatePracAvg = updatePracAvg;
+
+    function savePracticalSummativeMarks() {
+      const rows = document.querySelectorAll('#pracSummativeMarkTbody tr[data-reg]');
+      if (!rows || rows.length === 0) {
+        alert('No student records found to save.');
+        return;
+      }
+
+      const payload = [];
+      rows.forEach(row => {
+        const regNo = row.getAttribute('data-reg');
+        const s1 = row.querySelector('.prac-s1-input')?.value ?? '';
+        const s2 = row.querySelector('.prac-s2-input')?.value ?? '';
+        const boardGrade = row.querySelector('.prac-board-grade')?.value ?? '';
+
+        payload.push({
+          reg_no: regNo,
+          series1: s1,
+          series2: s2,
+          board_exam_grade: boardGrade
+        });
+      });
+
+      const subjId = currentSubjectId || window.currentSubjectId;
+      if (!subjId) {
+        alert('Subject ID is missing.');
+        return;
+      }
+
+      fetch(`/api/classroom/${subjId}/practical/evaluate-bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ evaluations: payload })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          alert('Practical Series Exam marks and Board Exam Grades saved successfully!');
+          if (typeof fetchPracticalEvaluations === 'function') {
+            fetchPracticalEvaluations();
+          }
+        } else {
+          alert('Error saving marks: ' + (data.message || 'Unknown error'));
+        }
+      })
+      .catch(err => {
+        console.error('Error saving practical summative marks:', err);
+        alert('Failed to save practical marks.');
+      });
+    }
+    window.savePracticalSummativeMarks = savePracticalSummativeMarks;
 
     function printAssignmentReport(subjectId) {
       window.open(`/classroom/${subjectId}/assignment-report`, '_blank');
@@ -7517,420 +8036,6 @@
 
     // Legacy: keep old handler names as aliases for compat with any inline onclick
     function handleMobileSemStudentChange() {}
-    function refreshMobileSeminarsList_old() { refreshMobileSeminarsList(); }
-
-    // ==========================================
-    // VIRTUAL LAB WORKSPACE MODALS (REVISION 2021)
-    // ==========================================
-    const dynamicLabModalsHtml = `
-      <!-- Student Lab Modal -->
-      <div id="studentLabModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-          <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
-            <div>
-              <h3 id="labModalStudentName" class="text-base font-black text-white">Student Evaluation</h3>
-              <p id="labModalStudentReg" class="text-xs font-bold text-slate-500 font-mono"></p>
-            </div>
-            <button onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
-              <span class="material-symbols-rounded">close</span>
-            </button>
-          </div>
-          <div class="px-6 py-2 bg-slate-900 border-b border-slate-800/50 flex gap-4 text-xs font-bold">
-            <button onclick="switchLabModalTab('exp')" id="labTabBtn_exp" class="py-2 border-b-2 border-blue-500 text-blue-400 px-1 transition-premium">Experiments (37.5)</button>
-            <button onclick="switchLabModalTab('test')" id="labTabBtn_test" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium">Model Tests (15)</button>
-            <button onclick="switchLabModalTab('project')" id="labTabBtn_project" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium">Micro-Project &amp; Attendance (22.5)</button>
-            <button onclick="switchLabModalTab('board')" id="labTabBtn_board" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium font-black text-blue-400">Board Exam (50)</button>
-          </div>
-          
-          <div class="flex-grow overflow-y-auto p-6 space-y-6">
-            <!-- TAB: EXPERIMENTS -->
-            <div id="labModalTab_exp" class="space-y-5">
-              <div class="bg-slate-950/30 border border-slate-800/40 p-5 rounded-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/50 pb-4">
-                  <div class="space-y-1">
-                    <label class="block text-sm font-black text-slate-200 uppercase tracking-wider">Select Lab Experiment</label>
-                    <p class="text-xs text-slate-450 font-bold">Choose an experiment to grade or view scores.</p>
-                  </div>
-                  <select id="labModalExpSelect" onchange="changeActiveExperiment()" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-blue-500 outline-none w-full sm:w-80 shadow-inner">
-                    <!-- Dynamic experiment options -->
-                  </select>
-                </div>
-
-                <!-- Common sliders for the selected experiment -->
-                <div id="activeExperimentContainer" class="hidden space-y-4">
-                  <div class="flex justify-between items-center bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-850/50">
-                    <span class="text-sm font-black text-slate-200" id="activeExpTitle">Experiment Details</span>
-                    <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-bold uppercase" id="activeExpCo">CO Map</span>
-                  </div>
-                  
-                  <!-- Responsive horizontal grid for Desktop, stacks nicely on Mobile -->
-                  <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    
-                    <!-- Prereq -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850/50 space-y-3 flex flex-col justify-between">
-                      <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-200 whitespace-nowrap">Prerequisites</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="active_exp_prerequisite" 
-                          oninput="syncSlider('active_exp_prerequisite','active_exp_prerequisite_slider',7.5); updateTempExpMark('prerequisite', this.value)"
-                          class="w-14 bg-slate-955 border border-slate-800 rounded-lg py-1 text-center font-normal text-slate-200 text-sm focus:border-blue-500 outline-none">
-                      </div>
-                      <div class="space-y-1">
-                        <input type="range" id="active_exp_prerequisite_slider" min="0" max="7.5" step="0.1" value="0"
-                          oninput="document.getElementById('active_exp_prerequisite').value = this.value; updateTempExpMark('prerequisite', this.value)"
-                          class="w-full h-2 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                        <div class="flex justify-between text-[11px] text-slate-500 font-bold">
-                          <span>0</span>
-                          <span>Max 7.5</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Work Done -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850/50 space-y-3 flex flex-col justify-between">
-                      <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-200 whitespace-nowrap">Work Done</span>
-                        <input type="number" step="0.1" min="0" max="10" id="active_exp_execution" 
-                          oninput="syncSlider('active_exp_execution','active_exp_execution_slider',10); updateTempExpMark('execution', this.value)"
-                          class="w-14 bg-slate-955 border border-slate-800 rounded-lg py-1 text-center font-normal text-slate-200 text-sm focus:border-blue-500 outline-none">
-                      </div>
-                      <div class="space-y-1">
-                        <input type="range" id="active_exp_execution_slider" min="0" max="10" step="0.1" value="0"
-                          oninput="document.getElementById('active_exp_execution').value = this.value; updateTempExpMark('execution', this.value)"
-                          class="w-full h-2 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                        <div class="flex justify-between text-[11px] text-slate-500 font-bold">
-                          <span>0</span>
-                          <span>Max 10</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Result -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850/50 space-y-3 flex flex-col justify-between">
-                      <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-200 whitespace-nowrap">Result</span>
-                        <input type="number" step="0.1" min="0" max="5" id="active_exp_output" 
-                          oninput="syncSlider('active_exp_output','active_exp_output_slider',5); updateTempExpMark('output', this.value)"
-                          class="w-14 bg-slate-955 border border-slate-800 rounded-lg py-1 text-center font-normal text-slate-200 text-sm focus:border-blue-500 outline-none">
-                      </div>
-                      <div class="space-y-1">
-                        <input type="range" id="active_exp_output_slider" min="0" max="5" step="0.1" value="0"
-                          oninput="document.getElementById('active_exp_output').value = this.value; updateTempExpMark('output', this.value)"
-                          class="w-full h-2 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                        <div class="flex justify-between text-[11px] text-slate-500 font-bold">
-                          <span>0</span>
-                          <span>Max 5</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Rough Record -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850/50 space-y-3 flex flex-col justify-between">
-                      <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-200 whitespace-nowrap">Rough Record</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="active_exp_rough_record" 
-                          oninput="syncSlider('active_exp_rough_record','active_exp_rough_record_slider',7.5); updateTempExpMark('rough_record', this.value)"
-                          class="w-14 bg-slate-955 border border-slate-800 rounded-lg py-1 text-center font-normal text-slate-200 text-sm focus:border-blue-500 outline-none">
-                      </div>
-                      <div class="space-y-1">
-                        <input type="range" id="active_exp_rough_record_slider" min="0" max="7.5" step="0.1" value="0"
-                          oninput="document.getElementById('active_exp_rough_record').value = this.value; updateTempExpMark('rough_record', this.value)"
-                          class="w-full h-2 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                        <div class="flex justify-between text-[11px] text-slate-500 font-bold">
-                          <span>0</span>
-                          <span>Max 7.5</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Fair Record -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850/50 space-y-3 flex flex-col justify-between">
-                      <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-200 whitespace-nowrap">Fair Record</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="active_exp_fair_record" 
-                          oninput="syncSlider('active_exp_fair_record','active_exp_fair_record_slider',7.5); updateTempExpMark('fair_record', this.value)"
-                          class="w-14 bg-slate-955 border border-slate-800 rounded-lg py-1 text-center font-normal text-slate-200 text-sm focus:border-blue-500 outline-none">
-                      </div>
-                      <div class="space-y-1">
-                        <input type="range" id="active_exp_fair_record_slider" min="0" max="7.5" step="0.1" value="0"
-                          oninput="document.getElementById('active_exp_fair_record').value = this.value; updateTempExpMark('fair_record', this.value)"
-                          class="w-full h-2 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                        <div class="flex justify-between text-[11px] text-slate-500 font-bold">
-                          <span>0</span>
-                          <span>Max 7.5</span>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                <div id="noActiveExperimentMsg" class="p-4 text-center text-slate-500 font-bold text-sm">
-                  Please select an experiment from the dropdown above to view or modify grades.
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: TESTS -->
-            <div id="labModalTab_test" class="space-y-4 hidden">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Test 1 -->
-                <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
-                  <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
-                    <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 1 (CO1 &amp; CO2)</h4>
-                    <span class="text-xs font-bold text-blue-400" id="labModalT1Sum">0.0 / 15</span>
-                  </div>
-                  <div class="space-y-4">
-                    <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                      <div class="flex justify-between items-center text-xs font-bold">
-                        <span class="text-slate-300">CO1 Score (Max 7.5)</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co1" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                      </div>
-                      <input type="range" id="labScore_t1_co1_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                    </div>
-                    <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                      <div class="flex justify-between items-center text-xs font-bold">
-                        <span class="text-slate-300">CO2 Score (Max 7.5)</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co2" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                      </div>
-                      <input type="range" id="labScore_t1_co2_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                    </div>
-                  </div>
-                </div>
-                <!-- Test 2 -->
-                <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
-                  <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
-                    <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 2 (CO3 &amp; CO4)</h4>
-                    <span class="text-xs font-bold text-blue-400" id="labModalT2Sum">0.0 / 15</span>
-                  </div>
-                  <div class="space-y-4">
-                    <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                      <div class="flex justify-between items-center text-xs font-bold">
-                        <span class="text-slate-300">CO3 Score (Max 7.5)</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co3" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                      </div>
-                      <input type="range" id="labScore_t2_co3_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                    </div>
-                    <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                      <div class="flex justify-between items-center text-xs font-bold">
-                        <span class="text-slate-300">CO4 Score (Max 7.5)</span>
-                        <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co4" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                      </div>
-                      <input type="range" id="labScore_t2_co4_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: PROJECT & ATTENDANCE -->
-            <div id="labModalTab_project" class="space-y-4 hidden">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
-                  <div>
-                    <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest mb-3">Open-Ended Project / Micro-Project</h4>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Project Topic Description</label>
-                    <input type="text" id="labScore_projectTopic" placeholder="Enter assigned micro-project topic..." class="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-base font-normal text-slate-200 focus:border-blue-500 outline-none mb-4">
-                  </div>
-                  <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-bold">
-                      <span class="text-slate-300">Project Mark (Max 7.5)</span>
-                      <input type="number" step="0.1" min="0" max="7.5" id="labScore_projectMark" oninput="syncSlider('labScore_projectMark','labScore_projectMark_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                    </div>
-                    <input type="range" id="labScore_projectMark_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_projectMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                  </div>
-                </div>
-                <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
-                  <div>
-                    <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest mb-3">Attendance Scoring</h4>
-                    <div class="flex justify-between items-center mb-3">
-                      <span class="text-xs text-slate-400 font-bold">Class Attendance Percentage:</span>
-                      <span class="text-xs font-black text-white font-mono" id="labModalStudentAttPct">0%</span>
-                    </div>
-                  </div>
-                  <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-bold">
-                      <span class="text-slate-300">Attendance Mark (Max 15)</span>
-                      <input type="number" step="0.1" min="0" max="15" id="labScore_attendanceMark" oninput="syncSlider('labScore_attendanceMark','labScore_attendanceMark_slider',15); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                    </div>
-                    <input type="range" id="labScore_attendanceMark_slider" min="0" max="15" step="0.1" value="0" oninput="document.getElementById('labScore_attendanceMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: BOARD EXAM -->
-            <div id="labModalTab_board" class="space-y-4 hidden">
-              <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 max-w-md mx-auto">
-                <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest">External Board Examination</h4>
-                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                  <div class="flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-300">Board Exam Mark (Max 50)</span>
-                    <input type="number" step="0.5" min="0" max="50" id="labScore_boardExam" oninput="syncSlider('labScore_boardExam','labScore_boardExam_slider',50); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
-                  </div>
-                  <input type="range" id="labScore_boardExam_slider" min="0" max="50" step="0.5" value="0" oninput="document.getElementById('labScore_boardExam').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom bar -->
-          <div class="px-6 py-4 bg-slate-950/60 border-t border-slate-800 flex justify-between items-center">
-            <div class="text-xs text-slate-400 font-bold flex gap-4">
-              <div>Lab Work Avg: <span class="text-slate-200 font-mono" id="labModalLabelExp">0.0</span></div>
-              <div>Model Test: <span class="text-slate-200 font-mono" id="labModalLabelTest">0.0</span></div>
-              <div>Internal CA: <span class="text-teal-400 font-black font-mono text-sm" id="labModalLabelInternals">0.0 / 75</span></div>
-            </div>
-            <button onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
-              <span class="material-symbols-rounded text-sm">save</span> Save Evaluation
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Manage Experiments Modal -->
-      <div id="manageExperimentsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-          <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
-            <div>
-              <h3 class="text-base font-black text-white">Experiments List</h3>
-              <p class="text-xs text-slate-400 mt-0.5">Setup the experiments syllabus for day-to-day continuous evaluation.</p>
-            </div>
-            <button onclick="closeManageExperimentsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
-              <span class="material-symbols-rounded">close</span>
-            </button>
-          </div>
-
-          <div class="p-6 overflow-y-auto space-y-6 flex-grow">
-            <!-- Add Experiment Form -->
-            <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
-              <input type="hidden" id="expEditId">
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="md:col-span-1">
-                  <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Exp No.</label>
-                  <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-base font-normal text-slate-200 focus:border-blue-500 outline-none">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Experiment Title / Objective</label>
-                  <textarea id="expFormTitle" required placeholder="Enter experiment objective / detailed description..." rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-lg font-normal text-slate-200 focus:border-blue-500 outline-none resize-y"></textarea>
-                </div>
-                <div class="md:col-span-1">
-                  <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Map CO</label>
-                  <select id="expFormCo" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-base font-normal text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
-                    <option value="CO1">CO1</option>
-                    <option value="CO2">CO2</option>
-                    <option value="CO3">CO3</option>
-                    <option value="CO4">CO4</option>
-                  </select>
-                </div>
-              </div>
-              <div class="flex justify-between items-center pt-2">
-                <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-2 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1 cursor-pointer">
-                  <span class="material-symbols-rounded text-sm">database</span> Import from Databank
-                </button>
-                <button type="submit" id="btnSaveExp" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer ml-auto">
-                  <span class="material-symbols-rounded text-sm">add</span> Add Experiment
-                </button>
-              </div>
-            </form>
-
-            <!-- Experiments List Table -->
-            <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/20">
-              <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                    <th class="p-3 w-16 text-center">No.</th>
-                    <th class="p-3">Title / Objective</th>
-                    <th class="p-3 w-20 text-center">CO</th>
-                    <th class="p-3 w-28 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="manageExpsTableBody" class="divide-y divide-slate-850">
-                  <tr>
-                    <td colspan="4" class="p-6 text-center text-slate-500">No experiments set up yet.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Manage Tests Modal -->
-      <div id="manageTestsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl md:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-          <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
-            <div>
-              <h3 class="text-base font-black text-white">Configure Model Tests Questions</h3>
-              <p class="text-xs text-slate-400 mt-0.5">Design the question paper scheme for Test 1 and Test 2.</p>
-            </div>
-            <button onclick="closeManageTestsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
-              <span class="material-symbols-rounded">close</span>
-            </button>
-          </div>
-
-          <form onsubmit="savePracticalTestQuestions(event)" class="flex-grow flex flex-col overflow-hidden">
-            <div class="p-6 overflow-y-auto space-y-5 flex-grow">
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Model Test</label>
-                <select id="designTestName" onchange="renderTestQuestionsFields()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
-                  <option value="Test 1">Model Test 1 (CO1 &amp; CO2)</option>
-                  <option value="Test 2">Model Test 2 (CO3 &amp; CO4)</option>
-                </select>
-              </div>
-
-              <div id="testQuestionsFieldsContainer" class="space-y-4">
-                <!-- Inputs generated dynamically -->
-              </div>
-            </div>
-            <div class="px-6 py-4 bg-slate-950/60 border-t border-slate-800 flex justify-end">
-              <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md">
-                <span class="material-symbols-rounded text-sm">save</span> Save Test Config
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Generate Lesson Planner Modal -->
-      <div id="generatePlannerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-          <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
-            <h3 class="text-base font-black text-white">Generate Practical Lesson Plan</h3>
-            <button onclick="closeGeneratePlannerModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
-              <span class="material-symbols-rounded">close</span>
-            </button>
-          </div>
-          <form onsubmit="generatePlannerFromExperiments(event)" class="p-6 space-y-4">
-            <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Lab Batch Session Mode</label>
-              <select id="genPlannerBatchMode" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
-                <option value="combined">Combined / Full Class (1 entry per experiment)</option>
-                <option value="separate">Split Batches / Batch 1 &amp; 2 (2 entries per experiment)</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Target Batch</label>
-              <select id="genPlannerTargetBatch" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
-                <option value="Full">Full (Whole Class)</option>
-                <option value="A">Batch A</option>
-                <option value="B">Batch B</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Allocated Hours per Session</label>
-              <input type="number" id="genPlannerHours" value="3" min="1" max="10" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none">
-            </div>
-            <div class="pt-2 flex justify-end gap-2">
-              <button type="button" onclick="closeGeneratePlannerModal()" class="px-4 py-2 bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-slate-350 rounded-xl text-xs font-bold transition-premium cursor-pointer">Cancel</button>
-              <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer">Generate</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', dynamicLabModalsHtml);
-
     // ==========================================
     // VIRTUAL LAB WORKSPACE JAVASCRIPT CONTROLLERS
     // ==========================================
@@ -7967,6 +8072,7 @@
           labExperimentsData = res.experiments || [];
           labTestsData = res.tests || [];
           renderLabEvaluationsTable();
+          renderPracticalReportsTable();
           calculateLabStatistics();
         } else {
           if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">${res.message}</td></tr>`;
@@ -7986,7 +8092,7 @@
       if (labStudentsData.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="12" class="p-8 text-center text-slate-500 font-bold text-sm">
+            <td colspan="15" class="p-8 text-center text-slate-500 font-bold text-sm">
               No students enrolled in this classroom.
             </td>
           </tr>
@@ -7994,25 +8100,29 @@
         return;
       }
 
+      const totalExps = labExperimentsData ? labExperimentsData.length : 0;
+
       labStudentsData.forEach(student => {
         const tr = document.createElement('tr');
         tr.className = "border-b border-slate-800/40 text-xs hover:bg-slate-900/20";
         tr.setAttribute('data-reg', student.reg_no);
         
-        // Count graded experiments for this student
         let gradedCount = 0;
         if (student.experiments_marks) {
           gradedCount = Object.values(student.experiments_marks).filter(m => m !== null).length;
         }
 
-        const expAverage = student.avg_lab_work ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
-        const t1Total = student.tests['Test 1'].total ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
-        const t2Total = student.tests['Test 2'].total ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
-        const testsAvg = student.tests.average ? parseFloat(student.tests.average).toFixed(2) : '0.00';
-        const microProjVal = student.micro_project ? parseFloat(student.micro_project).toFixed(1) : '0.0';
-        const attendanceVal = student.attendance_marks ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
-        const internalsTotal = student.total_internal ? parseFloat(student.total_internal).toFixed(2) : '0.00';
-        const boardMarks = student.board_exam_marks !== null ? parseFloat(student.board_exam_marks).toFixed(1) : 'N/A';
+        const avgRough = student.avg_rough_record !== undefined && student.avg_rough_record !== null ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
+        const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
+        const avgObs = student.avg_obs_prep !== undefined && student.avg_obs_prep !== null ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
+        const avgProc = student.avg_proc_punct !== undefined && student.avg_proc_punct !== null ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
+        const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
+        const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
+        const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
+        const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
+        const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
+        const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
+        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? parseFloat(student.total_internal).toFixed(2) : '0.00';
 
         tr.innerHTML = `
           <td class="p-2 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || '-'}</td>
@@ -8020,26 +8130,132 @@
             <button onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-blue-300 font-medium text-xs text-left block">
               ${student.name}
             </button>
-            <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.reg_no}</span>
+            <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
           </td>
-          <td class="p-2 text-center text-slate-400 font-mono text-xs">${gradedCount} / ${labExperimentsData.length}</td>
-          <td class="p-2 text-center font-mono font-semibold text-blue-400 text-xs">${expAverage}</td>
-          <td class="p-2 text-center font-mono text-slate-400 text-xs">${t1Total}</td>
-          <td class="p-2 text-center font-mono text-slate-400 text-xs">${t2Total}</td>
-          <td class="p-2 text-center font-mono font-semibold text-purple-400 text-xs">${testsAvg}</td>
-          <td class="p-2 text-center font-mono text-amber-400 text-xs">${microProjVal}</td>
-          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)</td>
-          <td class="p-2 text-center font-mono font-bold text-teal-400 text-xs">${internalsTotal}</td>
-          <td class="p-2 text-center font-mono font-bold text-blue-400 text-xs">${boardMarks}</td>
           <td class="p-2 text-center">
-            <button onclick="openStudentLabModal('${student.reg_no}')" class="px-2.5 py-1 bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-blue-400 text-[11px] font-medium rounded transition flex items-center justify-center gap-1 mx-auto">
-              <span class="material-symbols-rounded text-xs">edit</span> Grade
-            </button>
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md">${gradedCount} / ${totalExps}</span>
           </td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgObs}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgProc}</td>
+          <td class="p-2 text-center font-mono font-semibold text-blue-400 text-xs cursor-pointer hover:underline" onclick="openLwModal('${student.reg_no}')">${expAverage}</td>
+          <td class="p-2 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
+          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)</td>
+          <td class="p-2 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
+          <td class="p-2 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
+          <td class="p-2 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
+          <td class="p-2 text-center font-mono font-black text-teal-300 bg-teal-500/10 text-base">${internalsTotal}</td>
         `;
         tbody.appendChild(tr);
       });
       filterLabGridByBatch();
+    }
+
+    function renderPracticalReportsTable() {
+      const tbody = document.getElementById('practicalReportsTableBody');
+      const countEl = document.getElementById('repTableStudentCount');
+      if (!tbody) return;
+
+      if (!labStudentsData || labStudentsData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="15" class="p-8 text-center text-slate-500 font-bold text-sm">
+              No students enrolled in this classroom.
+            </td>
+          </tr>
+        `;
+        if (countEl) countEl.innerText = 'Enrolled: 0 Students';
+        return;
+      }
+
+      if (countEl) countEl.innerText = `Enrolled: ${labStudentsData.length} Students`;
+      tbody.innerHTML = '';
+      const totalExps = labExperimentsData ? labExperimentsData.length : 0;
+
+      labStudentsData.forEach((student, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-800/40 text-xs hover:bg-slate-900/20";
+        tr.setAttribute('data-reg', student.reg_no);
+
+        let gradedCount = 0;
+        if (student.experiments_marks) {
+          gradedCount = Object.values(student.experiments_marks).filter(m => m !== null).length;
+        }
+
+        const avgRough = student.avg_rough_record !== undefined && student.avg_rough_record !== null ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
+        const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
+        const avgObs = student.avg_obs_prep !== undefined && student.avg_obs_prep !== null ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
+        const avgProc = student.avg_proc_punct !== undefined && student.avg_proc_punct !== null ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
+        const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
+        const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
+        const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
+        const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
+        const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
+        const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
+        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? parseFloat(student.total_internal).toFixed(2) : '0.00';
+        const boardMarksVal = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
+
+        tr.innerHTML = `
+          <td class="p-2.5 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || (index + 1)}</td>
+          <td class="p-2.5">
+            <button onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-blue-300 font-medium text-xs text-left block">
+              ${student.name}
+            </button>
+            <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
+          </td>
+          <td class="p-2.5 text-center">
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md">${gradedCount} / ${totalExps}</span>
+          </td>
+          <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
+          <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
+          <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgObs}</td>
+          <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgProc}</td>
+          <td class="p-2.5 text-center font-mono font-semibold text-blue-400 text-xs cursor-pointer hover:underline" onclick="openLwModal('${student.reg_no}')">${expAverage}</td>
+          <td class="p-2.5 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
+          <td class="p-2.5 text-center font-mono text-emerald-400 text-xs">${attendanceVal}</td>
+          <td class="p-2.5 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
+          <td class="p-2.5 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
+          <td class="p-2.5 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
+          <td class="p-2.5 text-center font-mono font-black text-teal-300 bg-teal-500/10 text-base">${internalsTotal}</td>
+          <td class="p-2.5 text-center">
+            <input type="number" step="0.5" min="0" max="50" value="${boardMarksVal}" placeholder="0.0" onchange="quickUpdateBoardExam('${student.reg_no}', this.value)" class="no-spinner w-16 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-1.5 py-1 text-center font-mono font-bold text-sky-400 text-xs outline-none">
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function quickUpdateBoardExam(regNo, val) {
+      if (!currentSubjectId) return;
+      const student = labStudentsData.find(s => s.reg_no === regNo);
+      if (!student) return;
+
+      student.board_exam_marks = val;
+
+      fetch(`/api/classroom/${currentSubjectId}/practical/evaluate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          reg_no: regNo,
+          open_ended_project_topic: student.open_ended_project_topic || '',
+          micro_project: student.micro_project !== undefined && student.micro_project !== null ? student.micro_project : (student.open_ended || 0),
+          attendance_marks: student.attendance_marks !== undefined && student.attendance_marks !== null ? student.attendance_marks : 0,
+          board_exam_marks: val,
+          tests: student.tests || {},
+          experiments: student.experiments_marks || {}
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          console.log('Board exam mark updated successfully');
+        }
+      })
+      .catch(err => console.error(err));
     }
 
     function filterLabGridByBatch() {
@@ -8123,30 +8339,362 @@
       });
     }
 
+    /* DEDICATED LABWORK & OPEN-ENDED MODALS */
+    let currentLwStudentIndex = -1;
+    let currentOeStudentIndex = -1;
+    let currentLwTempMarks = {};
+
+    function stepSlider(inputId, delta, min, max) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      let current = parseFloat(input.value);
+      if (isNaN(current)) current = 0;
+      let val = Math.min(max, Math.max(min, current + delta));
+      val = Math.round(val * 2) / 2;
+      input.value = val;
+      input.dispatchEvent(new Event('input'));
+    }
+
+    function openLwModal(regNo) {
+      if (!labStudentsData || labStudentsData.length === 0) {
+        alert("No student data available. Please refresh the page.");
+        return;
+      }
+      const idx = labStudentsData.findIndex(s => s.reg_no == regNo || s.sbte_reg_no == regNo || String(s.reg_no) === String(regNo));
+      if (idx === -1) {
+        alert("Student evaluation record not found.");
+        return;
+      }
+
+      currentLwStudentIndex = idx;
+      const student = labStudentsData[idx];
+
+      const elInfo = document.getElementById('lwModalStudentInfo');
+      const elCount = document.getElementById('lwModalStudentCounter');
+      if (elInfo) elInfo.innerText = `${student.name} (${student.sbte_reg_no || student.reg_no})`;
+      if (elCount) elCount.innerText = `${idx + 1} / ${labStudentsData.length}`;
+
+      currentLwTempMarks = JSON.parse(JSON.stringify(student.experiments_marks || {}));
+
+      // Populate Experiments Select
+      const sel = document.getElementById('lwModalExpSelect');
+      if (sel) {
+        sel.innerHTML = '';
+        if (!labExperimentsData || labExperimentsData.length === 0) {
+          sel.innerHTML = '<option value="">No experiments configured</option>';
+        } else {
+          labExperimentsData.forEach(exp => {
+            const opt = document.createElement('option');
+            opt.value = exp.id;
+            opt.text = `Exp ${exp.experiment_no}: ${exp.title}`;
+            sel.appendChild(opt);
+          });
+        }
+      }
+
+      loadLwExpValues();
+
+      const modal = document.getElementById('labworkGradeModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function loadLwExpValues() {
+      const sel = document.getElementById('lwModalExpSelect');
+      if (!sel || !sel.value) return;
+      const expId = sel.value;
+
+      const m = currentLwTempMarks[expId] || {};
+      const rough = m.rough_record !== undefined && m.rough_record !== null ? m.rough_record : '';
+      const fair = m.fair_record !== undefined && m.fair_record !== null ? m.fair_record : '';
+      const obs = m.obs_prep !== undefined && m.obs_prep !== null ? m.obs_prep : (m.prerequisites !== undefined && m.prerequisites !== null ? m.prerequisites : '');
+      const proc = m.proc_punct !== undefined && m.proc_punct !== null ? m.proc_punct : (m.work_done !== undefined && m.work_done !== null ? m.work_done : '');
+      const expDate = m.date || '';
+
+      const inputRough = document.getElementById('lw_rough');
+      const inputFair = document.getElementById('lw_fair');
+      const inputObs = document.getElementById('lw_obs');
+      const inputProc = document.getElementById('lw_proc');
+      const inputDate = document.getElementById('lwModalExpDate');
+
+      if (inputRough) inputRough.value = rough;
+      if (inputFair) inputFair.value = fair;
+      if (inputObs) inputObs.value = obs;
+      if (inputProc) inputProc.value = proc;
+      if (inputDate) inputDate.value = expDate;
+
+      syncSlider('lw_rough', 'lw_rough_slider', 7.5);
+      syncSlider('lw_fair', 'lw_fair_slider', 10);
+      syncSlider('lw_obs', 'lw_obs_slider', 10);
+      syncSlider('lw_proc', 'lw_proc_slider', 10);
+
+      calcLwExpTotal();
+    }
+
+    function syncLwComponent(key, val, max) {
+      const sel = document.getElementById('lwModalExpSelect');
+      if (!sel || !sel.value) return;
+      const expId = sel.value;
+      if (!currentLwTempMarks[expId]) currentLwTempMarks[expId] = {};
+
+      const numVal = (val !== '' && val !== null && !isNaN(val)) ? parseFloat(val) : '';
+      let boundedVal = numVal;
+      if (typeof boundedVal === 'number') {
+        if (boundedVal > max) boundedVal = max;
+        if (boundedVal < 0) boundedVal = 0;
+      }
+
+      if (key === 'rough') currentLwTempMarks[expId].rough_record = boundedVal;
+      if (key === 'fair') currentLwTempMarks[expId].fair_record = boundedVal;
+      if (key === 'obs') { currentLwTempMarks[expId].obs_prep = boundedVal; currentLwTempMarks[expId].prerequisites = boundedVal; }
+      if (key === 'proc') { currentLwTempMarks[expId].proc_punct = boundedVal; currentLwTempMarks[expId].work_done = boundedVal; }
+
+      const input = document.getElementById(`lw_${key}`);
+      const slider = document.getElementById(`lw_${key}_slider`);
+      const displayVal = boundedVal !== '' ? boundedVal : '';
+
+      if (input && document.activeElement !== input) {
+        input.value = displayVal;
+      }
+      if (slider && document.activeElement !== slider) {
+        slider.value = boundedVal !== '' ? boundedVal : 0;
+      }
+
+      calcLwExpTotal();
+    }
+
+    function updateLwExpField(key, val) {
+      const sel = document.getElementById('lwModalExpSelect');
+      if (!sel || !sel.value) return;
+      const expId = sel.value;
+      if (!currentLwTempMarks[expId]) currentLwTempMarks[expId] = {};
+      currentLwTempMarks[expId][key] = val;
+    }
+
+    function calcLwExpTotal() {
+      const r = parseFloat(document.getElementById('lw_rough')?.value) || 0;
+      const f = parseFloat(document.getElementById('lw_fair')?.value) || 0;
+      const o = parseFloat(document.getElementById('lw_obs')?.value) || 0;
+      const p = parseFloat(document.getElementById('lw_proc')?.value) || 0;
+      const total = r + f + o + p;
+      const el = document.getElementById('lwModalExpTotal');
+      if (el) el.innerText = `${total.toFixed(1)} / 37.5`;
+    }
+
+    function closeLwModal() {
+      const modal = document.getElementById('labworkGradeModal');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+    }
+
+    function navigateLwStudent(step) {
+      const targetIdx = currentLwStudentIndex + step;
+      if (targetIdx >= 0 && targetIdx < labStudentsData.length) {
+        openLwModal(labStudentsData[targetIdx].reg_no);
+      }
+    }
+
+    function saveLwModal(shouldClose, navStep = 0) {
+      if (currentLwStudentIndex === -1) return;
+      const student = labStudentsData[currentLwStudentIndex];
+
+      fetch(`/api/classroom/${currentSubjectId}/practical/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({
+          reg_no: student.reg_no,
+          experiments: currentLwTempMarks
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          fetchPracticalEvaluations();
+          if (navStep !== 0) {
+            navigateLwStudent(navStep);
+          } else if (shouldClose) {
+            closeLwModal();
+          }
+        } else {
+          alert(res.message);
+        }
+      })
+      .catch(() => alert('Failed to save experiment marks.'));
+    }
+
+    /* OPEN-ENDED PROJECT MODAL CONTROLLERS */
+    function openOeModal(regNo) {
+      if (!labStudentsData || labStudentsData.length === 0) {
+        alert("No student data available. Please refresh the page.");
+        return;
+      }
+      const idx = labStudentsData.findIndex(s => s.reg_no == regNo || s.sbte_reg_no == regNo || String(s.reg_no) === String(regNo));
+      if (idx === -1) {
+        alert("Student evaluation record not found.");
+        return;
+      }
+
+      currentOeStudentIndex = idx;
+      const student = labStudentsData[idx];
+
+      const elInfo = document.getElementById('oeModalStudentInfo');
+      const elCount = document.getElementById('oeModalStudentCounter');
+      if (elInfo) elInfo.innerText = `${student.name} (${student.sbte_reg_no || student.reg_no})`;
+      if (elCount) elCount.innerText = `${idx + 1} / ${labStudentsData.length}`;
+
+      const topic = student.open_ended_project_topic || student.open_ended_topic || '';
+      const mark = (student.micro_project !== undefined && student.micro_project !== null) ? student.micro_project : ((student.open_ended !== undefined && student.open_ended !== null) ? student.open_ended : '');
+
+      const inputTopic = document.getElementById('oeModalProjectTopic');
+      const inputMark = document.getElementById('oe_mark');
+
+      if (inputTopic) inputTopic.value = topic;
+      if (inputMark) inputMark.value = mark;
+      syncOeSlider(mark);
+
+      const modal = document.getElementById('openEndedGradeModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function syncOeSlider(val) {
+      const numVal = (val !== '' && val !== null && !isNaN(val)) ? parseFloat(val) : '';
+      let boundedVal = numVal;
+      if (typeof boundedVal === 'number') {
+        if (boundedVal > 7.5) boundedVal = 7.5;
+        if (boundedVal < 0) boundedVal = 0;
+      }
+
+      const input = document.getElementById('oe_mark');
+      const slider = document.getElementById('oe_mark_slider');
+      const displayVal = boundedVal !== '' ? boundedVal : '';
+
+      if (input && document.activeElement !== input) {
+        input.value = displayVal;
+      }
+      if (slider && document.activeElement !== slider) {
+        slider.value = boundedVal !== '' ? boundedVal : 0;
+      }
+    }
+
+    function closeOeModal() {
+      const modal = document.getElementById('openEndedGradeModal');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+    }
+
+    function navigateOeStudent(step) {
+      const targetIdx = currentOeStudentIndex + step;
+      if (targetIdx >= 0 && targetIdx < labStudentsData.length) {
+        openOeModal(labStudentsData[targetIdx].reg_no);
+      }
+    }
+
+    function saveOeModal(shouldClose, navStep = 0) {
+      if (currentOeStudentIndex === -1) return;
+      const student = labStudentsData[currentOeStudentIndex];
+
+      const topic = document.getElementById('oeModalProjectTopic')?.value || '';
+      const mark = document.getElementById('oe_mark')?.value;
+
+      fetch(`/api/classroom/${currentSubjectId}/practical/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({
+          reg_no: student.reg_no,
+          open_ended_project_topic: topic,
+          micro_project: (mark !== '' && mark !== null && !isNaN(mark)) ? parseFloat(mark) : null
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          fetchPracticalEvaluations();
+          if (navStep !== 0) {
+            navigateOeStudent(navStep);
+          } else if (shouldClose) {
+            closeOeModal();
+          }
+        } else {
+          alert(res.message);
+        }
+      })
+      .catch(() => alert('Failed to save open-ended evaluation.'));
+    }
+
+    window.stepSlider = stepSlider;
+    window.openLwModal = openLwModal;
+    window.closeLwModal = closeLwModal;
+    window.loadLwExpValues = loadLwExpValues;
+    window.syncLwComponent = syncLwComponent;
+    window.updateLwExpField = updateLwExpField;
+    window.navigateLwStudent = navigateLwStudent;
+    window.saveLwModal = saveLwModal;
+    window.openOeModal = openOeModal;
+    window.closeOeModal = closeOeModal;
+    window.syncOeSlider = syncOeSlider;
+    window.navigateOeStudent = navigateOeStudent;
+    window.saveOeModal = saveOeModal;
+
     let tempStudentExpMarks = {};
 
     function openStudentLabModal(regNo) {
       gradingStudentReg = regNo;
-      const student = labStudentsData.find(s => s.reg_no === regNo);
-      if (!student) return;
+      if (!labStudentsData || labStudentsData.length === 0) {
+        console.warn("labStudentsData is empty when opening modal.");
+        return;
+      }
 
-      document.getElementById('labModalStudentName').innerText = student.name;
-      document.getElementById('labModalStudentReg').innerText = `Register No: ${student.reg_no}`;
-      document.getElementById('labModalStudentAttPct').innerText = `${student.attendance_percentage}%`;
+      const student = labStudentsData.find(s => s.reg_no == regNo || s.sbte_reg_no == regNo || String(s.reg_no) === String(regNo));
+      if (!student) {
+        console.warn("Student record not found for:", regNo, labStudentsData);
+        alert("Student evaluation record not found. Please refresh the page.");
+        return;
+      }
 
-      // Set input values
-      document.getElementById('labScore_projectTopic').value = student.open_ended_project_topic || '';
-      document.getElementById('labScore_projectMark').value = student.micro_project !== null ? student.micro_project : '';
-      document.getElementById('labScore_attendanceMark').value = student.attendance_marks !== null ? student.attendance_marks : '';
-      document.getElementById('labScore_boardExam').value = student.board_exam_marks !== null ? student.board_exam_marks : '';
+      const elName = document.getElementById('labModalStudentName');
+      const elReg = document.getElementById('labModalStudentReg');
+      const elAtt = document.getElementById('labModalStudentAttPct');
 
-      // Set test marks
-      document.getElementById('labScore_t1_co1').value = student.tests['Test 1'].CO1 !== null ? student.tests['Test 1'].CO1 : '';
-      document.getElementById('labScore_t1_co2').value = student.tests['Test 1'].CO2 !== null ? student.tests['Test 1'].CO2 : '';
-      document.getElementById('labScore_t2_co3').value = student.tests['Test 2'].CO3 !== null ? student.tests['Test 2'].CO3 : '';
-      document.getElementById('labScore_t2_co4').value = student.tests['Test 2'].CO4 !== null ? student.tests['Test 2'].CO4 : '';
+      if (elName) elName.innerText = student.name || 'Student Evaluation';
+      if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
+      if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%`;
 
-      // Sync other sliders
+      // Set input values safely
+      const projectTopic = document.getElementById('labScore_projectTopic');
+      const projectMark = document.getElementById('labScore_projectMark');
+      const attMark = document.getElementById('labScore_attendanceMark');
+      const boardExam = document.getElementById('labScore_boardExam');
+
+      if (projectTopic) projectTopic.value = student.open_ended_project_topic || student.open_ended_topic || '';
+      if (projectMark) projectMark.value = (student.micro_project !== undefined && student.micro_project !== null) ? student.micro_project : ((student.open_ended !== undefined && student.open_ended !== null) ? student.open_ended : '');
+      if (attMark) attMark.value = (student.attendance_marks !== undefined && student.attendance_marks !== null) ? student.attendance_marks : '';
+      if (boardExam) boardExam.value = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
+
+      // Set test marks safely
+      const t1Co1El = document.getElementById('labScore_t1_co1');
+      const t1Co2El = document.getElementById('labScore_t1_co2');
+      const t2Co3El = document.getElementById('labScore_t2_co3');
+      const t2Co4El = document.getElementById('labScore_t2_co4');
+
+      const tests = (student.tests && typeof student.tests === 'object') ? student.tests : {};
+      const t1 = tests['Test 1'] || {};
+      const t2 = tests['Test 2'] || {};
+
+      if (t1Co1El) t1Co1El.value = (t1.CO1 !== undefined && t1.CO1 !== null) ? t1.CO1 : '';
+      if (t1Co2El) t1Co2El.value = (t1.CO2 !== undefined && t1.CO2 !== null) ? t1.CO2 : '';
+      if (t2Co3El) t2Co3El.value = (t2.CO3 !== undefined && t2.CO3 !== null) ? t2.CO3 : '';
+      if (t2Co4El) t2Co4El.value = (t2.CO4 !== undefined && t2.CO4 !== null) ? t2.CO4 : '';
+
+      // Sync other sliders safely
       syncSlider('labScore_projectMark', 'labScore_projectMark_slider', 7.5);
       syncSlider('labScore_attendanceMark', 'labScore_attendanceMark_slider', 15);
       syncSlider('labScore_boardExam', 'labScore_boardExam_slider', 50);
@@ -8158,40 +8706,18 @@
       // Clone experiments marks locally
       tempStudentExpMarks = JSON.parse(JSON.stringify(student.experiments_marks || {}));
 
-      // Populate experiment dropdown select
-      const select = document.getElementById('labModalExpSelect');
-      select.innerHTML = '';
-
-      if (labExperimentsData.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = "";
-        opt.text = "-- No Experiments Configured --";
-        select.appendChild(opt);
-      } else {
-        const optDefault = document.createElement('option');
-        optDefault.value = "";
-        optDefault.text = "-- Choose Experiment to Grade --";
-        select.appendChild(optDefault);
-
-        labExperimentsData.forEach(exp => {
-          const opt = document.createElement('option');
-          opt.value = exp.id;
-          opt.text = `Exp ${exp.experiment_no}: ${exp.title}`;
-          select.appendChild(opt);
-        });
-      }
-
-      // Hide active container by default until select is chosen
-      document.getElementById('activeExperimentContainer').classList.add('hidden');
-      document.getElementById('noActiveExperimentMsg').classList.remove('hidden');
-
+      renderLabModalExpsList();
       switchLabModalTab('exp');
       calcLabModalScores();
       
       const modal = document.getElementById('studentLabModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
     }
+
+    window.openStudentLabModal = openStudentLabModal;
 
     function changeActiveExperiment() {
       const expId = document.getElementById('labModalExpSelect').value;
@@ -8252,20 +8778,24 @@
 
       labExperimentsData.forEach(exp => {
         const val = tempStudentExpMarks[exp.id] || {};
-        const prereq = parseFloat(val.prerequisite);
-        const exec = parseFloat(val.execution);
-        const out = parseFloat(val.output);
+        const prereq = parseFloat(val.prerequisite || val.obs_prep);
+        const exec = parseFloat(val.execution || val.proc_punct);
         const rough = parseFloat(val.rough_record);
         const fair = parseFloat(val.fair_record);
 
-        if (!isNaN(prereq) && !isNaN(exec) && !isNaN(out) && !isNaN(rough) && !isNaN(fair)) {
-          totalGradedSum += (prereq + exec + out + rough + fair);
+        if (!isNaN(prereq) || !isNaN(exec) || !isNaN(rough) || !isNaN(fair)) {
+          totalGradedSum += ((isNaN(prereq)?0:prereq) + (isNaN(exec)?0:exec) + (isNaN(rough)?0:rough) + (isNaN(fair)?0:fair));
           gradedExpsCount++;
         }
       });
 
       const expAvg = gradedExpsCount > 0 ? (totalGradedSum / gradedExpsCount) : 0;
-      document.getElementById('labModalLabelExp').innerText = expAvg.toFixed(2);
+      const labelExp = document.getElementById('labModalLabelExp');
+      if (labelExp) labelExp.innerText = expAvg.toFixed(2);
+      const labelSummaryExp = document.getElementById('labModalLabelExpSummary');
+      if (labelSummaryExp) labelSummaryExp.innerText = `${expAvg.toFixed(2)} / 37.5`;
+
+      renderLabModalExpsSummary();
 
       // Model test
       const t1_co1 = parseFloat(document.getElementById('labScore_t1_co1').value) || 0;
@@ -8287,6 +8817,206 @@
 
       const totalCA = expAvg + testsAvg + projectMark + attMark;
       document.getElementById('labModalLabelInternals').innerText = `${totalCA.toFixed(2)} / 75`;
+    }
+
+    function adjustExpMark(expId, key, delta, max) {
+      const input = document.getElementById(`exp_${expId}_${key}`);
+      if (!input) return;
+      let curr = parseFloat(input.value) || 0;
+      let next = Math.max(0, Math.min(max, curr + delta));
+      input.value = next.toFixed(1);
+      syncExpSlider(expId, key, next.toString(), max);
+    }
+
+    function renderLabModalExpsList() {
+      const container = document.getElementById('labModalExpsListContainer');
+      const jumpSelect = document.getElementById('expJumpSelect');
+      if (!container) return;
+      container.innerHTML = '';
+      if (jumpSelect) jumpSelect.innerHTML = '<option value="">Jump to Exp...</option>';
+
+      if (!labExperimentsData || labExperimentsData.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-500 font-bold text-sm bg-slate-950/30 border border-slate-800/40 rounded-xl">
+            No experiments configured for this subject yet. Use the 'Experiments' settings button to add lab experiments.
+          </div>
+        `;
+        return;
+      }
+
+      labExperimentsData.forEach(exp => {
+        const val = tempStudentExpMarks[exp.id] || {};
+        const prereq = val.prerequisite !== undefined && val.prerequisite !== null ? val.prerequisite : (val.obs_prep !== undefined && val.obs_prep !== null ? val.obs_prep : '');
+        const exec = val.execution !== undefined && val.execution !== null ? val.execution : (val.proc_punct !== undefined && val.proc_punct !== null ? val.proc_punct : '');
+        const rough = val.rough_record !== undefined && val.rough_record !== null ? val.rough_record : '';
+        const fair = val.fair_record !== undefined && val.fair_record !== null ? val.fair_record : '';
+
+        const pNum = parseFloat(prereq);
+        const eNum = parseFloat(exec);
+        const rNum = parseFloat(rough);
+        const fNum = parseFloat(fair);
+
+        const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum);
+        const expTotalVal = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum);
+        const totalBadgeText = isGraded ? `${expTotalVal.toFixed(1)} / 37.5` : 'Not Graded';
+        const totalBadgeClass = isGraded ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500 italic';
+
+        if (jumpSelect) {
+          const opt = document.createElement('option');
+          opt.value = `exp_card_${exp.id}`;
+          opt.text = `Exp ${exp.experiment_no}: ${exp.title.substring(0, 30)}...`;
+          jumpSelect.appendChild(opt);
+        }
+
+        const card = document.createElement('div');
+        card.id = `exp_card_${exp.id}`;
+        card.className = "bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5 transition-all hover:border-slate-700/80";
+        card.innerHTML = `
+          <div class="flex flex-wrap justify-between items-center bg-slate-900/60 px-4 py-2.5 rounded-lg border border-slate-800/80 gap-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono font-black text-xs rounded-md shadow-sm shrink-0">Exp ${exp.experiment_no}</span>
+              <h4 class="text-sm font-bold text-slate-100 leading-snug">${exp.title}</h4>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded text-xs font-bold font-mono">${exp.co_tag || 'CO1'}</span>
+              <span id="exp_total_badge_${exp.id}" class="text-xs font-mono px-2.5 py-0.5 rounded border ${totalBadgeClass}">${totalBadgeText}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- Rough Record (7.5) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-amber-300">Rough Record</span>
+                <input type="number" step="0.5" min="0" max="7.5" value="${rough}"
+                  oninput="syncExpSlider(${exp.id}, 'rough_record', this.value, 7.5)"
+                  id="exp_${exp.id}_rough_record"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-amber-400 text-xs focus:border-amber-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="7.5" step="0.5" value="${rNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_rough_record').value = this.value; syncExpSlider(${exp.id}, 'rough_record', this.value, 7.5)"
+                    id="exp_${exp.id}_rough_record_slider"
+                    class="flex-1 h-1.5 rounded-full accent-amber-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 7.5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fair Record (10) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-emerald-300">Fair Record</span>
+                <input type="number" step="0.5" min="0" max="10" value="${fair}"
+                  oninput="syncExpSlider(${exp.id}, 'fair_record', this.value, 10)"
+                  id="exp_${exp.id}_fair_record"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-emerald-400 text-xs focus:border-emerald-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="10" step="0.5" value="${fNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_fair_record').value = this.value; syncExpSlider(${exp.id}, 'fair_record', this.value, 10)"
+                    id="exp_${exp.id}_fair_record_slider"
+                    class="flex-1 h-1.5 rounded-full accent-emerald-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 10</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Obs & Prep (10) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-sky-300">Obs. &amp; Prep</span>
+                <input type="number" step="0.5" min="0" max="10" value="${prereq}"
+                  oninput="syncExpSlider(${exp.id}, 'prerequisite', this.value, 10)"
+                  id="exp_${exp.id}_prerequisite"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-sky-400 text-xs focus:border-sky-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="10" step="0.5" value="${pNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_prerequisite').value = this.value; syncExpSlider(${exp.id}, 'prerequisite', this.value, 10)"
+                    id="exp_${exp.id}_prerequisite_slider"
+                    class="flex-1 h-1.5 rounded-full accent-sky-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 10</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Proc & Punctuality (10) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-purple-300">Proc. &amp; Punct</span>
+                <input type="number" step="0.5" min="0" max="10" value="${exec}"
+                  oninput="syncExpSlider(${exp.id}, 'execution', this.value, 10)"
+                  id="exp_${exp.id}_execution"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-purple-400 text-xs focus:border-purple-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="10" step="0.5" value="${eNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_execution').value = this.value; syncExpSlider(${exp.id}, 'execution', this.value, 10)"
+                    id="exp_${exp.id}_execution_slider"
+                    class="flex-1 h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 10</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function syncExpSlider(expId, key, val, max) {
+      const slider = document.getElementById(`exp_${expId}_${key}_slider`);
+      if (slider) slider.value = val || 0;
+      if (!tempStudentExpMarks[expId]) tempStudentExpMarks[expId] = {};
+      tempStudentExpMarks[expId][key] = val;
+
+      // Update card total badge
+      const valObj = tempStudentExpMarks[expId];
+      const pNum = parseFloat(valObj.prerequisite || valObj.obs_prep);
+      const eNum = parseFloat(valObj.execution || valObj.proc_punct);
+      const rNum = parseFloat(valObj.rough_record);
+      const fNum = parseFloat(valObj.fair_record);
+
+      const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum);
+      const badge = document.getElementById(`exp_total_badge_${expId}`);
+      if (badge) {
+        if (isGraded) {
+          const tot = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum);
+          badge.className = "text-xs font-mono px-2.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold";
+          badge.innerText = `${tot.toFixed(1)} / 37.5`;
+        } else {
+          badge.className = "text-xs font-mono px-2.5 py-0.5 rounded border bg-slate-900 border-slate-800 text-slate-500 italic";
+          badge.innerText = 'Not Graded';
+        }
+      }
+      calcLabModalScores();
+    }
+
+    function jumpToExpCard(cardId) {
+      if (!cardId) return;
+      const card = document.getElementById(cardId);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function saveStudentLabEvaluation() {
@@ -8337,34 +9067,57 @@
     }
 
     // Manage Experiments Modal Controllers
-    function openManageExperimentsModal() {
+    function openManageExperimentsModal(e) {
+      if (e) e.preventDefault();
+      if (!currentSubjectId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        currentSubjectId = urlParams.get('subject_id') || window.activeSubjectId || window.currentSubjectId || (document.getElementById('selectedSubjectId') ? document.getElementById('selectedSubjectId').value : null);
+      }
+      if (!currentSubjectId) {
+        alert('Subject context not found. Please select a course batch first.');
+        return;
+      }
+
       // Check if databank has previous data
       fetch(`/api/classroom/${currentSubjectId}/practical/experiments/databank`)
       .then(res => res.json())
       .then(res => {
         const importBtn = document.getElementById('btnImportDatabank');
-        if (res.status === 'SUCCESS' && res.has_data) {
-          importBtn.classList.remove('hidden');
-        } else {
-          importBtn.classList.add('hidden');
+        if (importBtn) {
+          if (res.status === 'SUCCESS' && res.has_data) {
+            importBtn.classList.remove('hidden');
+          } else {
+            importBtn.classList.add('hidden');
+          }
         }
-      });
+      })
+      .catch(err => console.error(err));
 
       renderManageExperimentsList();
 
       const modal = document.getElementById('manageExperimentsModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.zIndex = '99999';
+      }
     }
+    window.openManageExperimentsModal = openManageExperimentsModal;
 
     function closeManageExperimentsModal() {
       const modal = document.getElementById('manageExperimentsModal');
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        modal.style.setProperty('display', 'none', 'important');
+      }
     }
+    window.closeManageExperimentsModal = closeManageExperimentsModal;
 
     function renderManageExperimentsList() {
       const tbody = document.getElementById('manageExpsTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       if (labExperimentsData.length === 0) {
@@ -8386,8 +9139,8 @@
           <td class="p-3 text-slate-200 font-medium text-sm whitespace-pre-wrap leading-relaxed">${exp.title}</td>
           <td class="p-3 text-center font-bold text-blue-400">${exp.co_tag}</td>
           <td class="p-3 text-center whitespace-nowrap space-x-2">
-            <button onclick="editExperiment(${exp.id}, '${exp.experiment_no}', '${exp.title.replace(/'/g, "\\'")}', '${exp.co_tag}')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded font-bold cursor-pointer">Edit</button>
-            <button onclick="deleteExperiment(${exp.id})" class="px-2.5 py-1 bg-red-950/40 text-red-400 hover:text-red-300 rounded font-bold cursor-pointer border border-red-900/30">Delete</button>
+            <button type="button" onclick="editExperiment(${exp.id})" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded font-bold cursor-pointer">Edit</button>
+            <button type="button" onclick="deleteExperiment(${exp.id})" class="px-2.5 py-1 bg-red-950/40 text-red-400 hover:text-red-300 rounded font-bold cursor-pointer border border-red-900/30">Delete</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -8425,11 +9178,13 @@
       .catch(() => alert('Failed to save experiment.'));
     }
 
-    function editExperiment(id, no, title, co) {
-      document.getElementById('expEditId').value = id;
-      document.getElementById('expFormNo').value = no;
-      document.getElementById('expFormTitle').value = title;
-      document.getElementById('expFormCo').value = co;
+    function editExperiment(id) {
+      const exp = (labExperimentsData || []).find(e => e.id === id);
+      if (!exp) return;
+      document.getElementById('expEditId').value = exp.id;
+      document.getElementById('expFormNo').value = exp.experiment_no || '';
+      document.getElementById('expFormTitle').value = exp.title || '';
+      document.getElementById('expFormCo').value = exp.co_tag || 'CO1';
       document.getElementById('btnSaveExp').innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Update';
     }
 
@@ -8465,47 +9220,170 @@
     }
 
     // Manage Tests modal
-    function openManageTestsModal() {
-      document.getElementById('designTestName').value = 'Test 1';
-      renderTestQuestionsFields();
+    function openManageTestsModal(e) {
+      if (e) {
+        try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+      }
 
-      const modal = document.getElementById('manageTestsModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      console.log('openManageTestsModal triggered');
+
+      // 1. Ensure modal HTML exists in DOM
+      let modal = document.getElementById('manageTestsModal');
+      if (!modal) {
+        if (typeof dynamicLabModalsHtml !== 'undefined' && dynamicLabModalsHtml) {
+          document.body.insertAdjacentHTML('beforeend', dynamicLabModalsHtml);
+          modal = document.getElementById('manageTestsModal');
+        }
+      }
+
+      // 2. Display modal immediately with enforced CSS
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.zIndex = '99999';
+      } else {
+        alert('Error: Test configuration modal container could not be initialized.');
+        return;
+      }
+
+      // 3. Populate test dropdown & fields safely
+      try {
+        const testSelect = document.getElementById('designTestName');
+        if (testSelect) testSelect.value = 'Test 1';
+        renderTestQuestionsFields();
+      } catch (err) {
+        console.error('Error rendering test fields:', err);
+      }
+
+      // 4. Resolve currentSubjectId safely in background
+      let subjId = currentSubjectId || window.currentSubjectId || window.activeSubjectId;
+      if (!subjId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        subjId = urlParams.get('subject_id') || (document.getElementById('selectedSubjectId') ? document.getElementById('selectedSubjectId').value : null);
+      }
+      if (subjId) {
+        currentSubjectId = subjId;
+        window.currentSubjectId = subjId;
+
+        if (!labTestsData || labTestsData.length === 0) {
+          fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
+          .then(r => r.json())
+          .then(res => {
+            if (res && res.status === 'SUCCESS') {
+              labTestsData = res.tests || [];
+              renderTestQuestionsFields();
+            }
+          })
+        }
+      }
     }
+    window.openManageTestsModal = openManageTestsModal;
 
     function closeManageTestsModal() {
       const modal = document.getElementById('manageTestsModal');
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        modal.style.setProperty('display', 'none', 'important');
+      }
+    }
+    window.closeManageTestsModal = closeManageTestsModal;
+
+    function formatCognitiveLevel(bt) {
+      if (!bt) return 'Apply (A)';
+      const s = String(bt).trim();
+      if (s === 'K1' || s === 'R' || s.toLowerCase().includes('remember')) return 'Remember (R)';
+      if (s === 'K2' || s === 'U' || s.toLowerCase().includes('understand')) return 'Understand (U)';
+      return 'Apply (A)';
     }
 
     function renderTestQuestionsFields() {
-      const activeTestDesign = document.getElementById('designTestName').value;
+      const testSelect = document.getElementById('designTestName');
+      const activeTestDesign = testSelect ? testSelect.value : 'Test 1';
       const container = document.getElementById('testQuestionsFieldsContainer');
+      if (!container) return;
       container.innerHTML = '';
 
-      const test = labTestsData.find(t => t.test_name === activeTestDesign);
+      const test = (labTestsData || []).find(t => t.test_name === activeTestDesign);
       const existingQ = test ? test.questions : {};
 
-      const cos = activeTestDesign === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
+      const defaultCos = activeTestDesign === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
 
-      cos.forEach(co => {
-        const coQ = existingQ[co] || ['', ''];
+      defaultCos.forEach((defaultCo, coIndex) => {
+        const coData = existingQ[defaultCo] || existingQ[`CO${coIndex+1}`] || [];
+        
+        let qA = typeof coData[0] === 'object' ? coData[0] : { text: coData[0] || '', co: defaultCo, bt_level: 'Apply (A)', rubrics: '' };
+        let qB = typeof coData[1] === 'object' ? coData[1] : { text: coData[1] || '', co: defaultCo, bt_level: 'Apply (A)', rubrics: '' };
+
         const card = document.createElement('div');
-        card.className = "bg-slate-950/40 border border-slate-800 p-4 rounded-xl space-y-3";
+        card.className = "bg-slate-950/60 border border-slate-800 p-5 rounded-2xl space-y-4 shadow-inner";
         card.innerHTML = `
-          <h4 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-            <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 rounded text-xs">${co}</span> Questions (Choice of 1 out of 2)
-          </h4>
-          <div class="space-y-3">
-            <div>
-              <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Option A (7.5 Marks)</label>
-              <textarea name="q_${co}_0" placeholder="Enter question description..." required rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-normal text-lg outline-none focus:border-blue-500 resize-y">${coQ[0] || ''}</textarea>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-black uppercase">Module / ${defaultCo}</span>
+              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Choice of 1 out of 2 Questions (7.5 Marks)</h4>
             </div>
-            <div>
-              <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Option B (7.5 Marks)</label>
-              <textarea name="q_${co}_1" placeholder="Enter question description..." required rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-normal text-lg outline-none focus:border-blue-500 resize-y">${coQ[1] || ''}</textarea>
+            <span class="text-[11px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md">Max 7.5 Marks</span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- OPTION A -->
+            <div class="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                <span class="text-xs font-black text-sky-400 uppercase tracking-wide">Question Option A (7.5 Marks)</span>
+                <div class="flex items-center gap-2">
+                  <select name="co_${defaultCo}_0" class="bg-slate-950 border border-slate-800 text-sky-300 font-bold text-[11px] rounded px-2 py-1 outline-none cursor-pointer">
+                    <option value="CO1" ${qA.co === 'CO1' ? 'selected' : ''}>CO1</option>
+                    <option value="CO2" ${qA.co === 'CO2' ? 'selected' : ''}>CO2</option>
+                    <option value="CO3" ${qA.co === 'CO3' ? 'selected' : ''}>CO3</option>
+                    <option value="CO4" ${qA.co === 'CO4' ? 'selected' : ''}>CO4</option>
+                    <option value="CO5" ${qA.co === 'CO5' ? 'selected' : ''}>CO5</option>
+                  </select>
+                  <select name="bt_${defaultCo}_0" class="bg-slate-950 border border-slate-800 text-purple-300 font-bold text-[11px] rounded px-2 py-1 outline-none cursor-pointer">
+                    <option value="Remember (R)" ${formatCognitiveLevel(qA.bt_level) === 'Remember (R)' ? 'selected' : ''}>Remember (R)</option>
+                    <option value="Understand (U)" ${formatCognitiveLevel(qA.bt_level) === 'Understand (U)' ? 'selected' : ''}>Understand (U)</option>
+                    <option value="Apply (A)" ${formatCognitiveLevel(qA.bt_level) === 'Apply (A)' ? 'selected' : ''}>Apply (A)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Question Description</label>
+                <textarea name="q_${defaultCo}_0" placeholder="Type-in detailed practical question statement..." rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-100 text-xs font-medium outline-none focus:border-blue-500 transition-premium resize-y">${qA.text || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Scheme of Evaluation &amp; Rubrics</label>
+                <textarea name="rub_${defaultCo}_0" placeholder="e.g., Circuit/Algorithm: 2.5M, Execution: 3.5M, Result & Viva: 1.5M..." rows="2" class="w-full bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 text-slate-300 text-xs font-mono outline-none focus:border-purple-500 transition-premium resize-y">${qA.rubrics || ''}</textarea>
+              </div>
+            </div>
+
+            <!-- OPTION B -->
+            <div class="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                <span class="text-xs font-black text-amber-400 uppercase tracking-wide">Question Option B (OR) (7.5 Marks)</span>
+                <div class="flex items-center gap-2">
+                  <select name="co_${defaultCo}_1" class="bg-slate-950 border border-slate-800 text-amber-300 font-bold text-[11px] rounded px-2 py-1 outline-none cursor-pointer">
+                    <option value="CO1" ${qB.co === 'CO1' ? 'selected' : ''}>CO1</option>
+                    <option value="CO2" ${qB.co === 'CO2' ? 'selected' : ''}>CO2</option>
+                    <option value="CO3" ${qB.co === 'CO3' ? 'selected' : ''}>CO3</option>
+                    <option value="CO4" ${qB.co === 'CO4' ? 'selected' : ''}>CO4</option>
+                    <option value="CO5" ${qB.co === 'CO5' ? 'selected' : ''}>CO5</option>
+                  </select>
+                  <select name="bt_${defaultCo}_1" class="bg-slate-950 border border-slate-800 text-purple-300 font-bold text-[11px] rounded px-2 py-1 outline-none cursor-pointer">
+                    <option value="Remember (R)" ${formatCognitiveLevel(qB.bt_level) === 'Remember (R)' ? 'selected' : ''}>Remember (R)</option>
+                    <option value="Understand (U)" ${formatCognitiveLevel(qB.bt_level) === 'Understand (U)' ? 'selected' : ''}>Understand (U)</option>
+                    <option value="Apply (A)" ${formatCognitiveLevel(qB.bt_level) === 'Apply (A)' ? 'selected' : ''}>Apply (A)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Question Description</label>
+                <textarea name="q_${defaultCo}_1" placeholder="Type-in alternative practical question statement..." rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-100 text-xs font-medium outline-none focus:border-blue-500 transition-premium resize-y">${qB.text || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Scheme of Evaluation &amp; Rubrics</label>
+                <textarea name="rub_${defaultCo}_1" placeholder="e.g., Program / Design: 2.5M, Execution: 3.5M, Viva: 1.5M..." rows="2" class="w-full bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 text-slate-300 text-xs font-mono outline-none focus:border-purple-500 transition-premium resize-y">${qB.rubrics || ''}</textarea>
+              </div>
             </div>
           </div>
         `;
@@ -8515,43 +9393,236 @@
 
     function savePracticalTestQuestions(event) {
       event.preventDefault();
+      let subjId = currentSubjectId || window.currentSubjectId || window.activeSubjectId;
+      if (!subjId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        subjId = urlParams.get('subject_id') || (document.getElementById('selectedSubjectId') ? document.getElementById('selectedSubjectId').value : null);
+      }
+      if (subjId) {
+        currentSubjectId = subjId;
+        window.currentSubjectId = subjId;
+      } else {
+        alert('Subject context not found. Please select a course batch first.');
+        return;
+      }
+
       const testName = document.getElementById('designTestName').value;
       const cos = testName === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
 
       const questions = {};
       cos.forEach(co => {
-        const q0 = document.querySelector(`textarea[name="q_${co}_0"]`).value;
-        const q1 = document.querySelector(`textarea[name="q_${co}_1"]`).value;
-        questions[co] = [q0, q1];
+        const q0Text = document.querySelector(`textarea[name="q_${co}_0"]`).value;
+        const q0Co = document.querySelector(`select[name="co_${co}_0"]`).value;
+        const q0Bt = document.querySelector(`select[name="bt_${co}_0"]`).value;
+        const q0Rub = document.querySelector(`textarea[name="rub_${co}_0"]`).value;
+
+        const q1Text = document.querySelector(`textarea[name="q_${co}_1"]`).value;
+        const q1Co = document.querySelector(`select[name="co_${co}_1"]`).value;
+        const q1Bt = document.querySelector(`select[name="bt_${co}_1"]`).value;
+        const q1Rub = document.querySelector(`textarea[name="rub_${co}_1"]`).value;
+
+        questions[co] = [
+          { text: q0Text, co: q0Co, bt_level: q0Bt, rubrics: q0Rub },
+          { text: q1Text, co: q1Co, bt_level: q1Bt, rubrics: q1Rub }
+        ];
       });
 
       fetch(`/api/classroom/${currentSubjectId}/practical/tests/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ test_name: testName, questions })
+        body: JSON.stringify({ test_name: testName, questions: questions })
       })
       .then(res => res.json())
       .then(res => {
         if (res.status === 'SUCCESS') {
-          alert('Test config saved successfully.');
-          fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
-          .then(r => r.json())
-          .then(innerRes => {
-            if (innerRes.status === 'SUCCESS') {
-              labTestsData = innerRes.tests || [];
-              closeManageTestsModal();
-            }
-          });
+          alert('Practical test scheme and questions saved successfully!');
+          labTestsData = res.tests || [];
+          closeManageTestsModal();
         } else {
-          alert(res.message);
+          alert(res.message || 'Failed to save test questions.');
         }
       })
-      .catch(() => alert('Failed to save test configuration.'));
+      .catch(() => alert('Network error while saving test scheme.'));
     }
 
-    // Auto-Generate planner
-    function openGeneratePlannerModal() {
-      const modal = document.getElementById('generatePlannerModal');
+    function printPracticalTestPaper() {
+      const activeTestDesign = document.getElementById('designTestName').value;
+      const test = (labTestsData || []).find(t => t.test_name === activeTestDesign);
+      const questions = test ? test.questions : {};
+
+      const testTitle = activeTestDesign === 'Test 1' ? 'SERIES PRACTICAL EXAMINATION 1 (REVISION 2021)' : 'SERIES PRACTICAL EXAMINATION 2 (REVISION 2021)';
+      const cos = activeTestDesign === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
+
+      let printWin = window.open('', '_blank');
+      let paperHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${testTitle} - Question Paper</title>
+          <style>
+            @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
+            body { font-family: 'Times New Roman', Times, serif; color: #000; margin: 0; padding: 0; font-size: 11pt; line-height: 1.4; }
+            .header-table { width: 100%; border-collapse: collapse; text-align: center; margin-bottom: 12px; }
+            .header-table td { font-size: 10.5pt; padding: 2px; }
+            .college-name { font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+            .exam-title { font-size: 12pt; font-weight: bold; margin: 8px 0 6px; text-align: center; text-transform: uppercase; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; }
+            .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 10.5pt; font-weight: bold; }
+            .meta-table td { padding: 3px 0; }
+            .question-box { margin-bottom: 18px; page-break-inside: avoid; }
+            .co-header { font-weight: bold; font-size: 11pt; margin-bottom: 8px; border-bottom: 1px dashed #444; padding-bottom: 3px; display: flex; justify-content: space-between; }
+            .q-item { margin-bottom: 10px; font-size: 11pt; display: flex; align-items: flex-start; }
+            .q-num { width: 65px; font-weight: bold; flex-shrink: 0; }
+            .q-text { flex-grow: 1; text-align: justify; padding-right: 15px; white-space: pre-wrap; }
+            .q-meta { font-weight: bold; text-align: right; width: 130px; flex-shrink: 0; font-size: 10pt; }
+            .or-divider { text-align: center; font-weight: bold; margin: 6px 0; font-size: 10.5pt; text-transform: uppercase; letter-spacing: 1px; }
+            @media print { .no-print { display: none !important; } body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="margin-bottom:15px; text-align:right;">
+            <button onclick="window.print()" style="padding:8px 16px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Print Question Paper</button>
+          </div>
+          <table class="header-table">
+            <tr><td class="college-name">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</td></tr>
+            <tr><td style="font-weight:bold; font-size:10.5pt;">DEPARTMENT OF TECHNICAL EDUCATION / SBTE REVISION 2021</td></tr>
+          </table>
+          <div class="exam-title">${testTitle}</div>
+          <table class="meta-table">
+            <tr>
+              <td>Course: Practical Virtual Lab Workspace</td>
+              <td style="text-align:right;">Max. Marks: 15 Marks</td>
+            </tr>
+            <tr>
+              <td>Duration: 1 Hour</td>
+              <td style="text-align:right;">Curriculum: R-2021</td>
+            </tr>
+          </table>
+          <p style="font-size:10pt; font-style:italic; margin-bottom:12px; text-align:center; border-bottom:1px solid #ccc; padding-bottom:6px;">
+            Instruction: Answer <b>ONE</b> full question from each Course Outcome section. Each Question carries 7.5 Marks.
+          </p>
+      `;
+
+      cos.forEach((coKey, idx) => {
+        const coData = questions[coKey] || [];
+        const qA = typeof coData[0] === 'object' ? coData[0] : { text: coData[0] || '', co: coKey, bt_level: 'Apply (A)', rubrics: '' };
+        const qB = typeof coData[1] === 'object' ? coData[1] : { text: coData[1] || '', co: coKey, bt_level: 'Apply (A)', rubrics: '' };
+
+        const qNumA = `Q${idx + 1}(A)`;
+        const qNumB = `Q${idx + 1}(B)`;
+
+        paperHtml += `
+          <div class="question-box">
+            <div class="co-header">
+              <span>MODULE / ${qA.co || coKey} SECTION</span>
+              <span style="font-size:10pt; font-weight:normal;">[ Max Marks: 7.5 ]</span>
+            </div>
+            <div class="q-item">
+              <div class="q-num">${qNumA}</div>
+              <div class="q-text">${qA.text || 'Question statement not configured.'}</div>
+              <div class="q-meta">[ 7.5M | ${formatCognitiveLevel(qA.bt_level)} ]</div>
+            </div>
+            <div class="or-divider">— OR —</div>
+            <div class="q-item">
+              <div class="q-num">${qNumB}</div>
+              <div class="q-text">${qB.text || 'Question statement not configured.'}</div>
+              <div class="q-meta">[ 7.5M | ${formatCognitiveLevel(qB.bt_level)} ]</div>
+            </div>
+          </div>
+        `;
+      });
+
+      paperHtml += `
+        </body>
+        </html>
+      `;
+
+      printWin.document.write(paperHtml);
+      printWin.document.close();
+    }
+
+    function printPracticalTestScheme() {
+      const activeTestDesign = document.getElementById('designTestName').value;
+      const test = (labTestsData || []).find(t => t.test_name === activeTestDesign);
+      const questions = test ? test.questions : {};
+
+      const testTitle = activeTestDesign === 'Test 1' ? 'SCHEME OF EVALUATION: SERIES EXAM 1 (R-2021)' : 'SCHEME OF EVALUATION: SERIES EXAM 2 (R-2021)';
+      const cos = activeTestDesign === 'Test 1' ? ['CO1', 'CO2'] : ['CO3', 'CO4'];
+
+      let printWin = window.open('', '_blank');
+      let schemeHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${testTitle}</title>
+          <style>
+            @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
+            body { font-family: 'Times New Roman', Times, serif; color: #000; margin: 0; padding: 0; font-size: 10pt; line-height: 1.4; }
+            .college-header { text-align: center; font-weight: bold; font-size: 13pt; text-transform: uppercase; margin-bottom: 2px; }
+            .sub-header { text-align: center; font-weight: bold; font-size: 10.5pt; color: #1e293b; margin-bottom: 8px; }
+            .title-banner { background: #f1f5f9; border: 1px solid #94a3b8; padding: 6px; text-align: center; font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-bottom: 12px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10pt; }
+            th, td { border: 1px solid #1e293b; padding: 6px 8px; vertical-align: top; }
+            th { background: #e2e8f0; font-weight: bold; text-transform: uppercase; font-size: 9.5pt; text-align: center; }
+            .rubric-text { white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; color: #0f172a; }
+            @media print { .no-print { display: none !important; } body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="margin-bottom:15px; text-align:right;">
+            <button onclick="window.print()" style="padding:8px 16px; background:#7c3aed; color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Print Scheme & Rubrics</button>
+          </div>
+          <div class="college-header">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</div>
+          <div class="sub-header">INTERNAL PRACTICAL EXAMINATION AUDIT / SCHEME OF EVALUATION</div>
+          <div class="title-banner">${testTitle} (MAX MARKS: 15 MARKS)</div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 65px;">Q. No.</th>
+                <th style="width: 45px;">CO</th>
+                <th style="width: 100px;">Level</th>
+                <th>Question Description</th>
+                <th style="width: 60px;">Marks</th>
+                <th>Scheme of Evaluation & Detailed Rubrics</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      cos.forEach((coKey, idx) => {
+        const coData = questions[coKey] || [];
+        const qA = typeof coData[0] === 'object' ? coData[0] : { text: coData[0] || '', co: coKey, bt_level: 'Apply (A)', rubrics: '' };
+        const qB = typeof coData[1] === 'object' ? coData[1] : { text: coData[1] || '', co: coKey, bt_level: 'Apply (A)', rubrics: '' };
+
+        schemeHtml += `
+          <tr>
+            <td style="font-weight:bold; text-align:center;">Q${idx + 1} (A)</td>
+            <td style="text-align:center; font-weight:bold;">${qA.co || coKey}</td>
+            <td style="text-align:center; font-weight:bold; color:#1d4ed8;">${formatCognitiveLevel(qA.bt_level)}</td>
+            <td>${qA.text || 'Question statement not set.'}</td>
+            <td style="text-align:center; font-weight:bold;">7.5 M</td>
+            <td class="rubric-text">${qA.rubrics || 'Circuit / Algorithm: 2.5M\nSetup & Execution: 3.5M\nOutput & Viva: 1.5M'}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; text-align:center; color:#6d28d9;">Q${idx + 1} (B) [OR]</td>
+            <td style="text-align:center; font-weight:bold;">${qB.co || coKey}</td>
+            <td style="text-align:center; font-weight:bold; color:#1d4ed8;">${formatCognitiveLevel(qB.bt_level)}</td>
+            <td>${qB.text || 'Question statement not set.'}</td>
+            <td style="text-align:center; font-weight:bold;">7.5 M</td>
+            <td class="rubric-text">${qB.rubrics || 'Program / Design: 2.5M\nExecution & Results: 3.5M\nViva Voce: 1.5M'}</td>
+          </tr>
+        `;
+      });
+
+      schemeHtml += `
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      printWin.document.write(schemeHtml);
+      printWin.document.close();
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
@@ -9126,6 +10197,527 @@
           <span class="material-symbols-rounded text-sm">save</span> Save ESE Evaluation & Calculate Attainment
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Dedicated Labwork Grade Modal (37.5 Marks) -->
+  <div id="labworkGradeModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-0">
+      <!-- Header -->
+      <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="p-1.5 bg-slate-800/80 border border-slate-700/60 rounded-lg text-slate-300 shrink-0">
+            <span class="material-symbols-rounded text-lg">science</span>
+          </div>
+          <div>
+            <h3 id="lwModalStudentInfo" class="text-base sm:text-lg font-black text-white tracking-wide uppercase">Student Name (PRN)</h3>
+            <p class="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center gap-1">
+              Labwork Continuous Evaluation (Max 37.5 Marks)
+            </p>
+          </div>
+        </div>
+        
+        <!-- Prev / Next Navigation -->
+        <div class="flex items-center gap-1.5">
+          <button onclick="navigateLwStudent(-1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold rounded-md transition flex items-center gap-0.5 cursor-pointer">
+            <span class="material-symbols-rounded text-xs">chevron_left</span> Prev
+          </button>
+          <span id="lwModalStudentCounter" class="text-[11px] font-mono text-slate-400">1 / 40</span>
+          <button onclick="navigateLwStudent(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold rounded-md transition flex items-center gap-0.5 cursor-pointer">
+            Next <span class="material-symbols-rounded text-xs">chevron_right</span>
+          </button>
+          <button onclick="closeLwModal()" class="text-slate-400 hover:text-white p-1 ml-1 cursor-pointer">
+            <span class="material-symbols-rounded text-base">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 space-y-3 max-h-[75vh] overflow-y-auto">
+        <!-- Select Exp No and Title & Date -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+          <div class="md:col-span-2">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Experiment No &amp; Title</label>
+            <select id="lwModalExpSelect" onchange="loadLwExpValues()" class="w-full bg-slate-900 border border-slate-700 focus:border-slate-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-medium outline-none">
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date of Experiment</label>
+            <input type="date" id="lwModalExpDate" onchange="updateLwExpField('date', this.value)" class="w-full bg-slate-900 border border-slate-700 focus:border-slate-500 rounded-lg px-2 py-1.5 text-xs text-slate-100 font-mono outline-none">
+          </div>
+        </div>
+
+        <!-- Sliders for 4 Components -->
+        <div class="space-y-2.5">
+          <!-- Rough Record (7.5) -->
+          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-300">Rough Record</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="lw_rough" step="0.5" min="0" max="7.5" oninput="syncLwComponent('rough', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+              </div>
+            </div>
+            <input type="range" id="lw_rough_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('rough', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+          </div>
+
+          <!-- Fair Record (10) -->
+          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-300">Fair Record</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="lw_fair" step="0.5" min="0" max="10" oninput="syncLwComponent('fair', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 10</span>
+              </div>
+            </div>
+            <input type="range" id="lw_fair_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('fair', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+          </div>
+
+          <!-- Obs & Prep (10) -->
+          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-300">Observation &amp; Preparation</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="lw_obs" step="0.5" min="0" max="10" oninput="syncLwComponent('obs', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 10</span>
+              </div>
+            </div>
+            <input type="range" id="lw_obs_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('obs', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+          </div>
+
+          <!-- Proc & Punct (10) -->
+          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-300">Procedure &amp; Punctuality</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="lw_proc" step="0.5" min="0" max="10" oninput="syncLwComponent('proc', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 10</span>
+              </div>
+            </div>
+            <input type="range" id="lw_proc_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('proc', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Live Exp Total -->
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Experiment Total Score</span>
+          <span id="lwModalExpTotal" class="text-base font-mono font-black text-slate-200">0.0 / 37.5</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-slate-950 px-4 py-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-2">
+        <button onclick="closeLwModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer">Cancel</button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="saveLwModal(false, -1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-0.5 cursor-pointer">
+            <span class="material-symbols-rounded text-xs">arrow_back</span> Save &amp; Prev
+          </button>
+          <button onclick="saveLwModal(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition cursor-pointer border border-slate-600">Save Mark</button>
+          <button onclick="saveLwModal(false, 1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-0.5 cursor-pointer">
+            Save &amp; Next <span class="material-symbols-rounded text-xs">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- Dedicated Open-Ended Project Grade Modal (7.5 Marks) -->
+  <div id="openEndedGradeModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-0">
+      <!-- Header -->
+      <div class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 shrink-0">
+            <span class="material-symbols-rounded text-xl">assignment</span>
+          </div>
+          <div>
+            <h3 id="oeModalStudentInfo" class="text-lg sm:text-xl font-black text-white tracking-wide uppercase">Student Name (PRN)</h3>
+            <p class="text-xs font-bold text-slate-400 mt-0.5 flex items-center gap-1">
+              Open-Ended Project Evaluation (Max 7.5 Marks)
+            </p>
+          </div>
+        </div>
+        
+        <!-- Prev / Next Navigation -->
+        <div class="flex items-center gap-2">
+          <button onclick="navigateOeStudent(-1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
+            <span class="material-symbols-rounded text-xs">chevron_left</span> Prev
+          </button>
+          <span id="oeModalStudentCounter" class="text-xs font-mono text-slate-400">1 / 40</span>
+          <button onclick="navigateOeStudent(1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
+            Next <span class="material-symbols-rounded text-xs">chevron_right</span>
+          </button>
+          <button onclick="closeOeModal()" class="text-slate-400 hover:text-white p-1 ml-2 cursor-pointer">
+            <span class="material-symbols-rounded text-lg">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-5">
+        <!-- Project Topic/Title -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project Topic / Title</label>
+          <input type="text" id="oeModalProjectTopic" placeholder="e.g., Automatic Water Level Controller Circuit Design" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 font-medium outline-none">
+        </div>
+
+        <!-- Mark (out of 7.5) -->
+        <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="flex justify-between items-center text-xs font-bold">
+            <span class="text-slate-300">Open-Ended Evaluation Mark</span>
+            <div class="flex items-center gap-1">
+              <input type="number" id="oe_mark" step="0.5" min="0" max="7.5" oninput="syncOeSlider(this.value)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+              <span class="text-slate-500 text-[11px]">/ 7.5</span>
+            </div>
+          </div>
+          <input type="range" id="oe_mark_slider" min="0" max="7.5" step="0.5" oninput="syncOeSlider(this.value)" class="w-full accent-slate-400 cursor-pointer">
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-slate-950 px-6 py-4 border-t border-slate-800 flex flex-wrap justify-between items-center gap-3">
+        <button onclick="closeOeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer">Cancel</button>
+        <div class="flex items-center gap-2">
+          <button onclick="saveOeModal(false, -1)" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+            <span class="material-symbols-rounded text-xs">arrow_back</span> Save &amp; Prev
+          </button>
+          <button onclick="saveOeModal(true)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition cursor-pointer border border-slate-600">Save Mark</button>
+          <button onclick="saveOeModal(false, 1)" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+            Save &amp; Next <span class="material-symbols-rounded text-xs">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Virtual Lab Modals (Revision 2021) -->
+  <!-- Student Lab Modal -->
+  <div id="studentLabModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h3 id="labModalStudentName" class="text-lg sm:text-xl font-black text-white uppercase tracking-wide">Student Evaluation</h3>
+          <p id="labModalStudentReg" class="text-sm font-bold text-cyan-400 font-mono mt-0.5"></p>
+        </div>
+        <button onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <div class="px-6 py-2 bg-slate-900 border-b border-slate-800/50 flex gap-4 text-xs font-bold">
+        <button onclick="switchLabModalTab('exp')" id="labTabBtn_exp" class="py-2 border-b-2 border-blue-500 text-blue-400 px-1 transition-premium">Experiments (37.5)</button>
+        <button onclick="switchLabModalTab('test')" id="labTabBtn_test" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium">Model Tests (15)</button>
+        <button onclick="switchLabModalTab('project')" id="labTabBtn_project" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium">Micro-Project &amp; Attendance (22.5)</button>
+        <button onclick="switchLabModalTab('board')" id="labTabBtn_board" class="py-2 border-b-2 border-transparent text-slate-400 px-1 transition-premium font-black text-blue-400">Board Exam (50)</button>
+      </div>
+      
+      <div class="flex-grow overflow-y-auto p-6 space-y-6">
+        <!-- TAB: EXPERIMENTS (CONTINUOUS EVALUATION CARDS LIST) -->
+        <div id="labModalTab_exp" class="space-y-5">
+          <!-- Summary Header Banner -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-950/60 border border-slate-800 p-4 rounded-xl shadow-md">
+            <div>
+              <h4 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-teal-400 text-base">science</span>
+                Continuous Evaluation (Day-to-Day Lab Work)
+              </h4>
+              <p class="text-xs text-slate-400 mt-0.5">Grade each experiment individually out of 37.5. Final mark is the average across all graded experiments.</p>
+            </div>
+            <div class="flex items-center gap-4 shrink-0">
+              <div class="text-right">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Lab Work Average:</span>
+                <span id="labModalLabelExpSummary" class="text-base font-mono font-black text-emerald-400">0.00 / 37.5</span>
+              </div>
+              <div id="expQuickJumpContainer">
+                <select id="expJumpSelect" onchange="jumpToExpCard(this.value)" class="bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 rounded-lg px-2.5 py-1.5 focus:border-blue-500 outline-none cursor-pointer">
+                  <option value="">Jump to Exp...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Experiment Cards Container (List of all experiments with Exp No & Title) -->
+          <div id="labModalExpsListContainer" class="space-y-4">
+            <!-- Experiment Cards rendered here -->
+          </div>
+        </div>
+
+        <!-- TAB: TESTS -->
+        <div id="labModalTab_test" class="space-y-4 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test 1 -->
+            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+              <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+                <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 1 (CO1 &amp; CO2)</h4>
+                <span class="text-xs font-bold text-blue-400" id="labModalT1Sum">0.0 / 15</span>
+              </div>
+              <div class="space-y-4">
+                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                  <div class="flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-300">CO1 Score (Max 7.5)</span>
+                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co1" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
+                  </div>
+                  <input type="range" id="labScore_t1_co1_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                </div>
+                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                  <div class="flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-300">CO2 Score (Max 7.5)</span>
+                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co2" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                  </div>
+                  <input type="range" id="labScore_t1_co2_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                </div>
+              </div>
+            </div>
+            <!-- Test 2 -->
+            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+              <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+                <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 2 (CO3 &amp; CO4)</h4>
+                <span class="text-xs font-bold text-slate-300" id="labModalT2Sum">0.0 / 15</span>
+              </div>
+              <div class="space-y-4">
+                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                  <div class="flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-300">CO3 Score (Max 7.5)</span>
+                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co3" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                  </div>
+                  <input type="range" id="labScore_t2_co3_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                </div>
+                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                  <div class="flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-300">CO4 Score (Max 7.5)</span>
+                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co4" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                  </div>
+                  <input type="range" id="labScore_t2_co4_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: PROJECT & ATTENDANCE -->
+        <div id="labModalTab_project" class="space-y-4 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
+              <div>
+                <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest mb-3">Open-Ended Project / Micro-Project</h4>
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Project Topic Description</label>
+                <input type="text" id="labScore_projectTopic" placeholder="Enter assigned micro-project topic..." class="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-base font-normal text-slate-200 focus:border-slate-500 outline-none mb-4">
+              </div>
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">Project Mark (Max 7.5)</span>
+                  <input type="number" step="0.1" min="0" max="7.5" id="labScore_projectMark" oninput="syncSlider('labScore_projectMark','labScore_projectMark_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                </div>
+                <input type="range" id="labScore_projectMark_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_projectMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+              </div>
+            </div>
+            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
+              <div>
+                <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest mb-3">Attendance Scoring</h4>
+                <div class="flex justify-between items-center mb-3">
+                  <span class="text-xs text-slate-400 font-bold">Class Attendance Percentage:</span>
+                  <span class="text-xs font-black text-white font-mono" id="labModalStudentAttPct">0%</span>
+                </div>
+              </div>
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">Attendance Mark (Max 15)</span>
+                  <input type="number" step="0.1" min="0" max="15" id="labScore_attendanceMark" oninput="syncSlider('labScore_attendanceMark','labScore_attendanceMark_slider',15); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                </div>
+                <input type="range" id="labScore_attendanceMark_slider" min="0" max="15" step="0.1" value="0" oninput="document.getElementById('labScore_attendanceMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: BOARD EXAM -->
+        <div id="labModalTab_board" class="space-y-4 hidden">
+          <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 max-w-md mx-auto">
+            <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest">External Board Examination</h4>
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-slate-300">Board Exam Mark (Max 50)</span>
+                <input type="number" step="0.5" min="0" max="50" id="labScore_boardExam" oninput="syncSlider('labScore_boardExam','labScore_boardExam_slider',50); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none" placeholder="0.0">
+              </div>
+              <input type="range" id="labScore_boardExam_slider" min="0" max="50" step="0.5" value="0" oninput="document.getElementById('labScore_boardExam').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="px-6 py-4 bg-slate-950/60 border-t border-slate-800 flex justify-between items-center">
+        <div class="text-xs text-slate-400 font-bold flex gap-4">
+          <div>Lab Work Avg: <span class="text-slate-200 font-mono" id="labModalLabelExp">0.0</span></div>
+          <div>Model Test: <span class="text-slate-200 font-mono" id="labModalLabelTest">0.0</span></div>
+          <div>Internal CA: <span class="text-teal-400 font-black font-mono text-sm" id="labModalLabelInternals">0.0 / 75</span></div>
+        </div>
+        <button onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
+          <span class="material-symbols-rounded text-sm">save</span> Save Evaluation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Experiments Modal -->
+  <div id="manageExperimentsModal" onclick="if(event.target === this) closeManageExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-black text-white">Experiments List</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Setup the experiments syllabus for day-to-day continuous evaluation.</p>
+        </div>
+        <button onclick="closeManageExperimentsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+        <!-- Add Experiment Form -->
+        <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+          <input type="hidden" id="expEditId">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-2">
+              <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Exp No.</label>
+              <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none">
+            </div>
+            <div class="md:col-span-8">
+              <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Experiment Title / Objective</label>
+              <textarea id="expFormTitle" required placeholder="Enter experiment objective / detailed description..." rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none resize-y"></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Map CO</label>
+              <select id="expFormCo" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                <option value="CO1">CO1</option>
+                <option value="CO2">CO2</option>
+                <option value="CO3">CO3</option>
+                <option value="CO4">CO4</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-between items-center pt-2">
+            <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-2 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">database</span> Import from Databank
+            </button>
+            <button type="submit" id="btnSaveExp" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer ml-auto">
+              <span class="material-symbols-rounded text-sm">add</span> Add Experiment
+            </button>
+          </div>
+        </form>
+
+        <!-- Experiments List Table -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/20">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                <th class="p-3 w-16 text-center">No.</th>
+                <th class="p-3">Title / Objective</th>
+                <th class="p-3 w-20 text-center">CO</th>
+                <th class="p-3 w-28 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manageExpsTableBody" class="divide-y divide-slate-850">
+              <tr>
+                <td colspan="4" class="p-6 text-center text-slate-500">No experiments set up yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Tests Modal -->
+  <div id="manageTestsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-[95vw] lg:max-w-7xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 bg-slate-950/80 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <span class="material-symbols-rounded text-blue-400">quiz</span> Configure Practical Series Exam Questions &amp; Scheme
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Edit questions, CO selection, cognitive levels (BT), and rubrics for 15-Mark Practical Series Examinations.</p>
+        </div>
+        <button onclick="closeManageTestsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <form onsubmit="savePracticalTestQuestions(event)" class="flex-grow flex flex-col overflow-hidden">
+        <div class="p-6 overflow-y-auto space-y-6 flex-grow scrollbar-thin">
+          
+          <!-- Series Exam Selector & Print Controls -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <div class="w-full sm:w-auto flex-grow max-w-md">
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Select Practical Model Test</label>
+              <select id="designTestName" onchange="renderTestQuestionsFields()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
+                <option value="Test 1">Series Exam 1 (CO1 &amp; CO2 — 15 Marks Total)</option>
+                <option value="Test 2">Series Exam 2 (CO3 &amp; CO4 — 15 Marks Total)</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0">
+              <button type="button" onclick="printPracticalTestPaper()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow">
+                <span class="material-symbols-rounded text-sm text-sky-400">print</span> Print Question Paper
+              </button>
+              <button type="button" onclick="printPracticalTestScheme()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-purple-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow">
+                <span class="material-symbols-rounded text-sm text-purple-400">fact_check</span> Print Scheme &amp; Rubrics
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Form Fields (2 COs x 2 Questions = 4 Questions per test) -->
+          <div id="testQuestionsFieldsContainer" class="space-y-6">
+            <!-- Inputs generated dynamically -->
+          </div>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-950/80 border-t border-slate-800 flex justify-between items-center">
+          <span class="text-xs text-slate-400 font-medium">Total Exam Duration: <strong class="text-white">1 Hour</strong> | Total Marks: <strong class="text-white">15 Marks (2 COs × 7.5 Marks)</strong></span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeManageTestsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow-md">
+              <span class="material-symbols-rounded text-sm">save</span> Save Test Scheme
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Generate Lesson Planner Modal -->
+  <div id="generatePlannerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-base font-black text-white">Generate Practical Lesson Plan</h3>
+        <button onclick="closeGeneratePlannerModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <form onsubmit="generatePlannerFromExperiments(event)" class="p-6 space-y-4">
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Lab Batch Session Mode</label>
+          <select id="genPlannerBatchMode" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
+            <option value="combined">Combined / Full Class (1 entry per experiment)</option>
+            <option value="separate">Split Batches / Batch 1 &amp; 2 (2 entries per experiment)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Target Batch</label>
+          <select id="genPlannerTargetBatch" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
+            <option value="Full">Full (Whole Class)</option>
+            <option value="A">Batch A</option>
+            <option value="B">Batch B</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Allocated Hours per Session</label>
+          <input type="number" id="genPlannerHours" value="3" min="1" max="10" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeGeneratePlannerModal()" class="px-4 py-2 bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-slate-350 rounded-xl text-xs font-bold transition-premium cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer">Generate</button>
+        </div>
+      </form>
     </div>
   </div>
 

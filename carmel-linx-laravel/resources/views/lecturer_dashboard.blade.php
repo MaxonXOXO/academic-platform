@@ -4108,42 +4108,8 @@
     function renderSummativeAssessment(cos, students) {
       if (window.isCurrentSubjectPractical) {
         let html = `
-          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4 no-print border-b border-slate-800/60 pb-3">
-            <div>
-              <h4 class="text-sm font-black text-slate-200 uppercase tracking-wide">Practical Summative Assessment</h4>
-              <p class="text-xs text-slate-400 mt-0.5">Series Examination 1 & 2 Marks Entry, Board Exam Grade Register & Attainment Rules.</p>
-            </div>
-          </div>
 
-          <!-- CIA Components & CO Attainment Rules Banner -->
-          <div class="mb-6 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 shadow-inner">
-            <h5 class="text-xs font-black text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span class="material-symbols-rounded text-amber-400 text-base">info</span> Practical Assessment Breakdown (75 Marks Total CIA) &amp; CO Attainment Rules
-            </h5>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3">
-              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Continuous Experiments</div>
-                <div class="text-sm font-black text-sky-400">37.5 Marks</div>
-              </div>
-              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Open-Ended Project</div>
-                <div class="text-sm font-black text-purple-400">7.5 Marks</div>
-              </div>
-              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Series Tests Avg</div>
-                <div class="text-sm font-black text-indigo-400">15 Marks</div>
-                <div class="text-[9px] text-slate-400 mt-0.5">Test 1 → CO1&amp;2 | Test 2 → CO3&amp;4</div>
-              </div>
-              <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Attendance</div>
-                <div class="text-sm font-black text-emerald-400">15 Marks</div>
-                <div class="text-[9px] text-amber-400 font-bold mt-0.5">Excluded from CO Attainment</div>
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              <strong class="text-slate-300">Attainment Rule:</strong> Series Test 1 score applies to <strong>CO1 &amp; CO2</strong>, and Series Test 2 score applies to <strong>CO3 &amp; CO4</strong>. Attendance marks (15M) are part of student CIA (75M) but <em>excluded</em> from direct CO attainment calculations. Board Exam marks are registered in <strong>Grades</strong>.
-            </p>
-          </div>
+
 
           <!-- Configured Model Tests Questions Card -->
           <div class="mb-6 bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 shadow-inner">

@@ -212,34 +212,62 @@ class AttendanceController extends Controller
     /**
      * Get tutor class students list to assign roll numbers.
      */
-    public function getTutorStudents()
+    public function getTutorStudents(Request $request = null)
     {
         $staffMobile = Session::get('userId');
         $role = Session::get('userRole');
 
-        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Workshop Superintendent'])) {
+        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Demonstrator', 'Workshop Superintendent'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
-        // Find classroom managed by this tutor (staff mobile matches classroom advisor/tutor)
-        $classroom = DB::table('class_management')
-            ->where('tutor_mobile_no', $staffMobile)
+        $staff = \App\Models\StaffProfile::where('mobile_no', $staffMobile)
+            ->orWhere('email', $staffMobile)
+            ->orWhere('id', $staffMobile)
             ->first();
-
-        if (!$classroom) {
-            $classroom = DB::table('r26_class_management')
-                ->where('tutor_mobile_no', $staffMobile)
-                ->first();
+        if ($staff && $staff->mobile_no) {
+            $staffMobile = $staff->mobile_no;
         }
 
-        if (!$classroom) {
+        $cleanMobile = preg_replace('/[^0-9]/', '', $staffMobile);
+
+        $classes1 = DB::table('class_management')->where(function($q) use ($staffMobile, $cleanMobile) {
+            $q->where('tutor_mobile_no', $staffMobile)
+              ->orWhere('mentor_mobile_no', $staffMobile);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)
+                  ->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
+        $classes2 = DB::table('r26_class_management')->where(function($q) use ($staffMobile, $cleanMobile) {
+            $q->where('tutor_mobile_no', $staffMobile)
+              ->orWhere('mentor_mobile_no', $staffMobile);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)
+                  ->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
+        $allClasses = $classes1->concat($classes2);
+
+        if ($allClasses->isEmpty()) {
             return response()->json([
                 'status' => 'ERROR',
-                'message' => 'No classroom assigned as advisor/tutor to your profile.'
+                'message' => 'No classroom assigned as advisor/tutor/mentor to your profile.'
             ]);
         }
 
-        $students = Student::where('classroom_id', $classroom->classroom_id)
+        $requestedClassId = request('classroom_id') ?? request('classroom');
+        $classroom = null;
+        if ($requestedClassId) {
+            $classroom = $allClasses->firstWhere('classroom_id', $requestedClassId);
+        }
+        if (!$classroom) {
+            $classroom = $allClasses->first();
+        }
+
+        $students = Student::getClassroomStudentsQuery($classroom->classroom_id)
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
             ->orderBy('name', 'asc')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no']);

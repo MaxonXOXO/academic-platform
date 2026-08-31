@@ -852,8 +852,22 @@
 
       @php
         $mobileNo = session('userId');
-        $isTutor = \App\Models\ClassManagement::where('tutor_mobile_no', $mobileNo)->exists();
-        $isMentor = \App\Models\ClassManagement::where('mentor_mobile_no', $mobileNo)->exists();
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobileNo);
+        $isTutor = \App\Models\ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->exists() || \DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->exists();
+
+        $isMentor = \App\Models\ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->exists() || \DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->exists();
       @endphp
 
       @if(session('userRole') === 'HOD')
@@ -9593,10 +9607,20 @@
       modal.classList.add('flex');
     }
 
+    function openGeneratePlannerModal() {
+      const modal = document.getElementById('generatePlannerModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
     function closeGeneratePlannerModal() {
       const modal = document.getElementById('generatePlannerModal');
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
     }
 
     function generatePlannerFromExperiments(event) {

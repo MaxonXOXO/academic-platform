@@ -250,8 +250,22 @@
 
       @php
         $mobileNo = session('userId');
-        $isTutor = \App\Models\ClassManagement::where('tutor_mobile_no', $mobileNo)->exists();
-        $isMentor = \App\Models\ClassManagement::where('mentor_mobile_no', $mobileNo)->exists();
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobileNo);
+        $isTutor = \App\Models\ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->exists() || \DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->exists();
+
+        $isMentor = \App\Models\ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->exists() || \DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->exists();
       @endphp
 
       @if($isTutor)

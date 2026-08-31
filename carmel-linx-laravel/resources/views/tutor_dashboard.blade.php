@@ -237,17 +237,17 @@
       <button id="navRoster" onclick="switchPanel('roster')" class="w-full text-left px-4 py-2.5 rounded-r-xl rounded-l-none font-bold flex items-center gap-3 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">group</span> Supervised Class Roster
       </button>
-      <button id="navRollNumbers" onclick="switchPanel('rollNumbers')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+      <button id="navRollNumbers" onclick="switchPanel('rollNumbers')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">format_list_numbered</span> Student Roll Numbers
       </button>
 
       <button id="navMentoring" onclick="switchPanel('mentoring')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">diversity_3</span> Mentoring Batches
       </button>
-      <button id="navLeaveApproval" onclick="switchPanel('leaveApproval')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+      <button id="navLeaveApproval" onclick="switchPanel('leaveApproval')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">approval</span> Leave Approval & Reports
       </button>
-      <button id="navActivity" onclick="switchPanel('activity')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs">
+      <button id="navActivity" onclick="switchPanel('activity')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">verified</span> Activity Points
       </button>
 
@@ -292,7 +292,7 @@
   </aside>
 
   <!-- Main Workspace -->
-  <main class="flex-grow flex flex-col overflow-hidden relative min-h-screen">
+  <main class="flex-grow min-w-0 flex flex-col overflow-hidden relative min-h-screen">
     
     <!-- Top Header -->
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-30 sticky top-0">
@@ -307,7 +307,7 @@
     </header>
 
     <!-- Panel Container -->
-    <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6">
+    <div class="flex-grow overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-full">
       
       <!-- Alert Banner -->
       <div id="globalAlert" class="hidden p-4 rounded-xl font-bold transition-premium border text-[10px] text-xs"></div>
@@ -318,7 +318,7 @@
         <!-- Directory Header -->
         <div onclick="toggleRoster()" class="flex justify-between items-center bg-slate-950/30 hover:bg-slate-900/60 border border-slate-800/40 p-4 rounded-2xl cursor-pointer transition-premium">
           <div class="flex items-center gap-3">
-            <span id="rosterIcon" class="material-symbols-rounded text-blue-400 transition-transform duration-300" style="transform: rotate(180deg);">expand_less</span>
+            <span id="rosterIcon" class="material-symbols-rounded text-blue-400 transition-transform duration-300 rotate-180">expand_more</span>
             <div>
               <h3 id="supervisedClassroomTitle" class="font-black text-slate-200 text-lg">Supervised Classroom Directory</h3>
               <p class="text-slate-400 mt-0.5 text-sm">Manage and review lifecycle states of students in your assigned classroom.</p>
@@ -326,18 +326,25 @@
           </div>
         </div>
 
-        <div id="rosterContent" class="space-y-6 transition-all duration-300 origin-top" style="max-height: 0px; opacity: 0; overflow: hidden;">
+        <div id="rosterContent" class="space-y-6">
           <!-- Filters Console -->
-          <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-slate-950/40 border border-slate-800/60 p-4 sm:p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end max-w-full">
             <!-- Search input -->
-            <div>
+            <div class="lg:col-span-4">
               <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Search Student</label>
-              <input type="text" id="filterSearch" oninput="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm" placeholder="Name, Register No, Mobile...">
+              <input type="text" id="filterSearch" oninput="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-xs" placeholder="Name, Register No, Mobile...">
+            </div>
+            <!-- Classroom filter -->
+            <div id="classroomFilterContainer" class="lg:col-span-4">
+              <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Assigned Classroom</label>
+              <select id="filterClassroom" onchange="onSupervisedClassroomChange()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white focus:border-blue-500 outline-none text-xs cursor-pointer font-bold">
+                <option value="">Loading classroom...</option>
+              </select>
             </div>
             <!-- Semester filter -->
-            <div>
+            <div class="lg:col-span-2">
               <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Filter Semester</label>
-              <select id="filterSemester" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 outline-none text-sm">
+              <select id="filterSemester" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white focus:border-blue-500 outline-none text-xs cursor-pointer">
                 <option value="">All Semesters</option>
                 <option value="S1">Semester 1 (S1)</option>
                 <option value="S2">Semester 2 (S2)</option>
@@ -348,20 +355,20 @@
               </select>
             </div>
             <!-- Status select -->
-            <div>
+            <div class="lg:col-span-2">
               <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Account Status</label>
-              <select id="filterStatus" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 outline-none text-sm">
+              <select id="filterStatus" onchange="loadUsers()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white focus:border-blue-500 outline-none text-xs cursor-pointer">
                 <option value="">All Statuses</option>
                 <option value="Approved">Approved</option>
                 <option value="Pending">Pending</option>
                 <option value="Suspended">Suspended</option>
               </select>
             </div>
-            <!-- Print Report Selector & Button -->
-            <div>
-              <label class="block text-slate-400 font-bold uppercase tracking-wider mb-1.5 text-xs">Class Roster & Import</label>
-              <div class="flex gap-2">
-                <select id="printSemesterSelect" class="w-16 bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-white focus:border-blue-500 outline-none text-sm">
+            <!-- Print Report Selector & Action Buttons -->
+            <div class="lg:col-span-12 pt-2 border-t border-slate-800/40 flex flex-wrap items-center justify-between gap-2">
+              <label class="block text-slate-400 font-bold uppercase tracking-wider text-xs">Class Roster Actions & Import</label>
+              <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                <select id="printSemesterSelect" class="w-14 shrink-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-white focus:border-blue-500 outline-none text-xs font-semibold cursor-pointer">
                   <option value="S1">S1</option>
                   <option value="S2">S2</option>
                   <option value="S3" selected>S3</option>
@@ -369,34 +376,34 @@
                   <option value="S5">S5</option>
                   <option value="S6">S6</option>
                 </select>
-                <button onclick="printClassRegister()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md">
-                  <span class="material-symbols-rounded text-sm">print</span> Print
+                <button onclick="printClassRegister()" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-sm">
+                  <span class="material-symbols-rounded text-[15px]">print</span> Print
                 </button>
-                <button onclick="printStudentCredentials()" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md" title="Print Student First Login Credentials List">
-                  <span class="material-symbols-rounded text-sm">key</span> Login Credentials
+                <button onclick="printStudentCredentials()" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-sm" title="Print Student First Login Credentials List">
+                  <span class="material-symbols-rounded text-[15px]">key</span> Credentials
                 </button>
-                <button onclick="openBulkImportModal()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-md">
-                  <span class="material-symbols-rounded text-sm">upload_file</span> Import
+                <button onclick="openBulkImportModal()" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold text-xs flex items-center gap-1 transition-premium cursor-pointer shadow-sm">
+                  <span class="material-symbols-rounded text-[15px]">upload_file</span> Import
                 </button>
               </div>
             </div>
           </div>
 
         <!-- Users Table Grid -->
-        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-hidden">
+        <div class="bg-slate-950/30 border border-slate-800/40 rounded-2xl overflow-hidden max-w-full">
           <div class="overflow-x-auto overflow-y-auto max-h-[500px] scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-            <table class="w-full text-left border-collapse relative text-sm">
+            <table class="w-full text-left border-collapse relative text-xs">
               <thead class="sticky top-0 z-10 shadow-md">
-                <tr class="bg-slate-900 border-b border-slate-800/60 text-slate-400 font-bold text-xs uppercase whitespace-nowrap">
-                  <th class="p-3">name</th>
-                  <th class="p-3">Reg No</th>
-                  <th class="p-3">SBTE REG No./ click to edit</th>
-                  <th class="p-3">branch</th>
-                  <th class="p-3">sem</th>
-                  <th class="p-3">role</th>
-                  <th class="p-3">status</th>
-                  <th class="p-3">enrolled status</th>
-                  <th class="p-3 text-right">actions</th>
+                <tr class="bg-slate-900 border-b border-slate-800/60 text-slate-400 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <th class="p-2.5">Name</th>
+                  <th class="p-2.5">Reg No</th>
+                  <th class="p-2.5">SBTE Reg No. / Edit</th>
+                  <th class="p-2.5">Branch</th>
+                  <th class="p-2.5">Sem</th>
+                  <th class="p-2.5">Role</th>
+                  <th class="p-2.5">Status</th>
+                  <th class="p-2.5">Enrolled Status</th>
+                  <th class="p-2.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody id="usersTableBody">
@@ -857,19 +864,20 @@
       }
 
       loadSupervisedClassroomHeader();
-
-      if (activePanel === 'roster') loadUsers();
-      if (activePanel === 'audit') loadAuditTrail();
-      if (activePanel === 'profile') loadSelfSecurityLogs();
-      if (activePanel === 'mentoring') {
-        switchPanel('mentoring'); // Ensures UI is updated
-      }
+      switchPanel(activePanel);
     });
 
-    function loadSupervisedClassroomHeader() {
-      fetch('/api/tutor/classroom/{{ session('userId') }}')
+    function loadSupervisedClassroomHeader(selectedId = null) {
+      let url = '/api/tutor/classroom/me';
+      if (selectedId) {
+        url += `?classroom_id=${encodeURIComponent(selectedId)}`;
+      }
+      fetch(url)
         .then(res => res.json())
         .then(data => {
+          const select = document.getElementById('filterClassroom');
+          const container = document.getElementById('classroomFilterContainer');
+
           if (data.status === 'SUCCESS') {
             window.supervisedClassroomId = data.classroomId;
             window.supervisedBatchYear = data.batchYear;
@@ -887,8 +895,54 @@
             if (printSemSelect && data.currentSemester) {
               printSemSelect.value = 'S' + data.currentSemester;
             }
+
+            if (select) {
+              if (data.classrooms && data.classrooms.length > 0) {
+                const hasRealOptions = Array.from(select.options).some(opt => opt.value && opt.value !== "");
+                if (!hasRealOptions || selectedId === null || select.options.length <= 1) {
+                  select.innerHTML = '';
+                  data.classrooms.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.classroom_id;
+                    opt.innerText = `${c.classroom_id} (Admission ${c.batch_year})`;
+                    if (c.classroom_id === data.classroomId) opt.selected = true;
+                    select.appendChild(opt);
+                  });
+                }
+                select.value = data.classroomId;
+              } else {
+                select.innerHTML = `<option value="${data.classroomId || ''}">${data.classroomId || 'No classroom available'}</option>`;
+              }
+            }
+
+            if (container) {
+              container.classList.remove('hidden');
+            }
+
+            if (typeof activePanel !== 'undefined' && activePanel === 'roster') {
+              loadUsers();
+            }
+          } else {
+            if (select) {
+              select.innerHTML = `<option value="">${data.message || 'No supervised classrooms'}</option>`;
+            }
+          }
+        })
+        .catch(err => {
+          console.error("Error loading header:", err);
+          const select = document.getElementById('filterClassroom');
+          if (select) {
+            select.innerHTML = `<option value="">Error loading classroom</option>`;
           }
         });
+    }
+
+    function onSupervisedClassroomChange() {
+      const select = document.getElementById('filterClassroom');
+      if (select && select.value) {
+        loadSupervisedClassroomHeader(select.value);
+        loadUsers();
+      }
     }
 
     function getHeaders() {
@@ -908,9 +962,9 @@
         
         if (id === panelId) {
           if (el) el.classList.remove('hidden');
-          if (nav) nav.className = "w-full text-left px-4 py-2.5 rounded-r-xl rounded-l-none font-bold text-sm flex items-center gap-3 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500";
+          if (nav) nav.className = "w-full text-left px-4 py-2.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-3 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 mobile-link";
         } else {
-          if (nav) nav.className = "w-full text-left px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer";
+          if (nav) nav.className = "w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer mobile-link";
           if (el) el.classList.add('hidden');
         }
       });
@@ -924,7 +978,10 @@
         'activity': 'Activity Points Verification',
         'leaveApproval': 'Leave Approval & Mentorship Reports'
       };
-      document.getElementById('panelTitle').innerText = titles[panelId];
+      const titleEl = document.getElementById('panelTitle');
+      if (titleEl && titles[panelId]) {
+        titleEl.innerText = titles[panelId];
+      }
 
       if (panelId === 'roster') loadUsers();
       if (panelId === 'rollNumbers') loadTutorStudents();
@@ -937,6 +994,7 @@
 
     function showGlobalMessage(msg, isError = false) {
       const alert = document.getElementById('globalAlert');
+      if (!alert) return;
       alert.classList.remove('hidden');
       if (isError) {
         alert.className = "p-4 rounded-xl text-xs font-bold bg-red-950/40 text-red-400 border-red-900 block shadow-sm";
@@ -950,29 +1008,49 @@
     function toggleRoster() {
       const content = document.getElementById('rosterContent');
       const icon = document.getElementById('rosterIcon');
-      content.classList.toggle('hidden');
-      icon.classList.toggle('rotate-180');
+      if (content) content.classList.toggle('hidden');
+      if (icon) icon.classList.toggle('rotate-180');
     }
 
     function loadUsers() {
       const indicator = document.getElementById('loadingIndicator');
-      indicator.classList.remove('hidden');
+      if (indicator) indicator.classList.remove('hidden');
 
-      const search = document.getElementById('filterSearch').value;
-      const status = document.getElementById('filterStatus').value;
-      const semester = document.getElementById('filterSemester')?.value || '';
+      const searchInput = document.getElementById('filterSearch');
+      const statusInput = document.getElementById('filterStatus');
+      const semesterInput = document.getElementById('filterSemester');
+      const classroomInput = document.getElementById('filterClassroom');
 
-      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=student&status=${status}&semester=${semester}`;
+      const search = searchInput ? searchInput.value : '';
+      const status = statusInput ? statusInput.value : '';
+      const semester = semesterInput ? semesterInput.value : '';
+      const classroomId = (classroomInput && classroomInput.value) ? classroomInput.value : (window.supervisedClassroomId || '');
+
+      const url = `/api/admin/users?search=${encodeURIComponent(search)}&role=student&status=${status}&semester=${semester}&classroom_id=${encodeURIComponent(classroomId)}`;
 
       fetch(url)
         .then(res => res.json())
         .then(data => {
-          indicator.classList.add('hidden');
+          if (indicator) indicator.classList.add('hidden');
           if (data.status === 'SUCCESS') {
             renderUsersGrid(data.users);
+          } else {
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="9" class="p-8 text-center text-red-400 font-medium font-sans">
+                    ${data.message || 'Failed to load classroom roster.'}
+                  </td>
+                </tr>
+              `;
+            }
           }
         })
-        .catch(() => indicator.classList.add('hidden'));
+        .catch(err => {
+          if (indicator) indicator.classList.add('hidden');
+          console.error("Error loading roster:", err);
+        });
     }
 
     function renderUsersGrid(users) {
@@ -992,63 +1070,63 @@
 
       users.forEach(user => {
         const tr = document.createElement('tr');
-        tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium whitespace-nowrap";
+        tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium whitespace-nowrap text-xs";
 
-        let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>`;
+        let statusBadge = `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>`;
         if (user.status === 'Approved') {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">Approved</span>`;
+          statusBadge = `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-green-500/10 text-green-400 border border-green-500/20">Approved</span>`;
         } else if (user.status === 'Suspended') {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">Suspended</span>`;
+          statusBadge = `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">Suspended</span>`;
         }
 
         let toggleButton = '';
         if (user.status === 'Pending') {
           toggleButton = `
-            <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs font-bold text-white transition-premium cursor-pointer">
+            <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded-md text-[11px] font-semibold text-white transition-premium cursor-pointer shadow-sm">
               Approve
             </button>
           `;
         } else if (user.status === 'Approved') {
           toggleButton = `
-            <button onclick="changeStatus('${user.id}', '${user.type}', 'Suspended')" class="px-2 py-1 bg-red-950 hover:bg-red-900 border border-red-800 rounded text-xs font-bold text-red-300 transition-premium cursor-pointer">
+            <button onclick="changeStatus('${user.id}', '${user.type}', 'Suspended')" class="px-2 py-1 bg-red-950 hover:bg-red-900 border border-red-800 rounded-md text-[11px] font-semibold text-red-300 transition-premium cursor-pointer shadow-sm">
               Suspend
             </button>
           `;
         } else if (user.status === 'Suspended') {
           toggleButton = `
-            <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs font-bold text-white transition-premium cursor-pointer">
+            <button onclick="changeStatus('${user.id}', '${user.type}', 'Approved')" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded-md text-[11px] font-semibold text-white transition-premium cursor-pointer shadow-sm">
               Activate
             </button>
           `;
         }
 
         tr.innerHTML = `
-          <td class="p-2.5 flex items-center gap-3">
-            <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
-            <div>
-              <span class="font-bold text-slate-100 block text-sm">${user.name}</span>
-              <span class="text-sm text-slate-500 block">${user.email}</span>
+          <td class="p-2 flex items-center gap-2.5">
+            <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-7 h-7 rounded-full object-cover border border-slate-800 shadow-sm shrink-0">
+            <div class="min-w-0">
+              <span class="font-semibold text-slate-100 block text-xs truncate">${user.name}</span>
+              <span class="text-[11px] text-slate-400 block truncate">${user.email}</span>
             </div>
           </td>
-          <td class="p-2.5 font-mono font-bold text-slate-300 text-sm">${user.id}</td>
-          <td class="p-2.5">
-            <button onclick="editSbteRegNo('${user.id}', '${user.sbte_reg_no || ''}')" class="text-blue-400 hover:text-blue-300 underline font-mono cursor-pointer font-bold text-sm" title="Click to Edit SBTE No">
+          <td class="p-2 font-mono font-semibold text-slate-300 text-xs">${user.id}</td>
+          <td class="p-2">
+            <button onclick="editSbteRegNo('${user.id}', '${user.sbte_reg_no || ''}')" class="text-blue-400 hover:text-blue-300 underline font-mono cursor-pointer font-semibold text-xs" title="Click to Edit SBTE No">
               ${user.sbte_reg_no || '[Add SBTE No]'}
             </button>
           </td>
-          <td class="p-2.5"><span class="font-bold font-mono text-sm bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
-          <td class="p-2.5">
+          <td class="p-2"><span class="font-semibold font-mono text-[11px] bg-slate-800/80 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">${user.branch}</span></td>
+          <td class="p-2">
             ${user.type === 'student' ? `
-              <button onclick="editStudentSemester('${user.id}', '${user.semester || 'S1'}')" class="text-indigo-400 hover:text-indigo-300 underline font-bold text-sm cursor-pointer" title="Click to Edit Semester">
+              <button onclick="editStudentSemester('${user.id}', '${user.semester || 'S1'}')" class="text-indigo-400 hover:text-indigo-300 underline font-semibold text-xs cursor-pointer" title="Click to Edit Semester">
                 ${user.semester || 'S1'}
               </button>
-            ` : '<span class="text-slate-500 font-bold text-sm">N/A</span>'}
+            ` : '<span class="text-slate-500 font-semibold text-xs">N/A</span>'}
           </td>
-          <td class="p-2.5 text-sm">${user.role}</td>
-          <td class="p-2.5 text-sm">${statusBadge}</td>
-          <td class="p-2.5">
+          <td class="p-2 text-xs text-slate-300">${user.role}</td>
+          <td class="p-2 text-xs">${statusBadge}</td>
+          <td class="p-2">
             ${user.type === 'student' ? `
-              <select onchange="updateAcademicStatusDirectly('${user.id}', this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-sm outline-none focus:border-blue-500 font-bold cursor-pointer ${
+              <select onchange="updateAcademicStatusDirectly('${user.id}', this.value)" class="bg-slate-900 border border-slate-700 rounded-md px-1.5 py-0.5 text-[11px] outline-none focus:border-blue-500 font-semibold cursor-pointer ${
                 user.academic_status === 'Active' ? 'text-green-400 border-green-500/20' :
                 user.academic_status === 'Discontinued' ? 'text-amber-400 border-amber-500/20' :
                 'text-red-400 border-red-500/20'
@@ -1057,17 +1135,17 @@
                 <option value="Discontinued" ${user.academic_status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
                 <option value="TC Issued" ${user.academic_status === 'TC Issued' ? 'selected' : ''}>TC Issued</option>
               </select>
-            ` : '<span class="text-slate-500 font-bold text-sm">N/A</span>'}
+            ` : '<span class="text-slate-500 font-semibold text-xs">N/A</span>'}
           </td>
-          <td class="p-2.5 text-right space-x-1 text-sm">
+          <td class="p-2 text-right space-x-1 text-xs">
             ${toggleButton}
-            <button onclick="triggerPasswordReset('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-sm font-bold transition-premium cursor-pointer">
+            <button onclick="triggerPasswordReset('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[11px] font-semibold transition-premium cursor-pointer shadow-sm">
               Reset Pwd
             </button>
-            <button onclick="viewUserAudit('${user.id}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-blue-900 border border-slate-800 text-slate-300 rounded text-sm font-bold transition-premium cursor-pointer" title="View Audit Trail">
+            <button onclick="viewUserAudit('${user.id}', '${user.name}')" class="px-2 py-1 bg-slate-800 hover:bg-blue-900 border border-slate-700 text-slate-300 rounded-md text-[11px] font-semibold transition-premium cursor-pointer shadow-sm" title="View Audit Trail">
               Audit
             </button>
-            <button onclick="confirmDeleteUser('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-red-950/40 hover:bg-red-900 border border-red-900/60 text-red-400 rounded text-sm font-bold transition-premium cursor-pointer" title="Delete Student">
+            <button onclick="confirmDeleteUser('${user.id}', '${user.type}', '${user.name}')" class="px-2 py-1 bg-red-950/40 hover:bg-red-900 border border-red-900/60 text-red-400 rounded-md text-[11px] font-semibold transition-premium cursor-pointer shadow-sm" title="Delete Student">
               Delete
             </button>
           </td>
@@ -1395,23 +1473,6 @@
     // ACTIVITY POINTS LOGIC
     // ==========================================
     
-    let rosterExpanded = false;
-    function toggleRoster() {
-      const content = document.getElementById('rosterContent');
-      const icon = document.getElementById('rosterIcon');
-      if (rosterExpanded) {
-        content.style.maxHeight = '0px';
-        content.style.opacity = '0';
-        content.style.overflow = 'hidden';
-        icon.style.transform = 'rotate(180deg)';
-      } else {
-        content.style.maxHeight = '1000px';
-        content.style.opacity = '1';
-        icon.style.transform = 'rotate(0deg)';
-        setTimeout(() => content.style.overflow = 'visible', 300);
-      }
-      rosterExpanded = !rosterExpanded;
-    }
 
     let activityExpanded = false;
     function toggleActivity() {
@@ -2052,18 +2113,17 @@
     }
 
     function printStudentCredentials() {
-      const mentorSelect = document.getElementById('mentorClassroomSelect');
-      if (mentorSelect && mentorSelect.value) {
-        window.open(`/hod/batches/${mentorSelect.value}/credentials/print`, '_blank');
+      const activeClass = window.supervisedClassroomId || (document.getElementById('filterClassroom') ? document.getElementById('filterClassroom').value : '');
+      if (activeClass) {
+        window.open(`/hod/batches/${activeClass}/credentials/print`, '_blank');
         return;
       }
-      
-      const tutorMobile = "{{ session('userId') }}";
-      fetch(`/api/tutor/classroom/${tutorMobile}`)
+      fetch(`/api/tutor/classroom/me`)
         .then(res => res.json())
         .then(data => {
-          if (data.status === 'SUCCESS' && data.classroom && data.classroom.classroom_id) {
-            window.open(`/hod/batches/${data.classroom.classroom_id}/credentials/print`, '_blank');
+          const cId = data.classroomId || (data.classroom ? data.classroom.classroom_id : null);
+          if (data.status === 'SUCCESS' && cId) {
+            window.open(`/hod/batches/${cId}/credentials/print`, '_blank');
           } else {
             alert('Classroom batch record not found to generate print roster.');
           }
@@ -2080,12 +2140,12 @@
       const targetSem = semSelect.value; // e.g. "S3"
       const targetSemNum = parseInt(targetSem.replace('S', ''));
 
-      const tutorMobile = "{{ session('userId') }}";
+      const activeClass = window.supervisedClassroomId || (document.getElementById('filterClassroom') ? document.getElementById('filterClassroom').value : '');
       
       const indicator = document.getElementById('loadingIndicator');
       if (indicator) indicator.classList.remove('hidden');
 
-      fetch(`/api/tutor/classroom/${tutorMobile}`)
+      fetch(`/api/tutor/classroom/me${activeClass ? '?classroom_id=' + encodeURIComponent(activeClass) : ''}`)
         .then(res => res.json())
         .then(data => {
           if (indicator) indicator.classList.add('hidden');
@@ -2396,6 +2456,8 @@
           console.error(err);
           alert('Error preparing print preview.');
         });
+    }   // end printClassRegister
+
     // Bulk Import JS handlers
     function openBulkImportModal() {
       const modal = document.getElementById('bulkImportModal');

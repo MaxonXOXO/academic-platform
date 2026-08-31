@@ -31,16 +31,33 @@ class MentoringController extends Controller
     {
         $mobileNo = Session::get('userId');
         if (!$mobileNo) return [];
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobileNo);
 
         // As Tutor (Mentor-1) for classrooms (R21 and R26)
-        $asTutor21 = ClassManagement::where('tutor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
-        $asTutor26 = DB::table('r26_class_management')->where('tutor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
-        $asTutor   = array_merge($asTutor21, $asTutor26);
+        $asTutor21 = ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->pluck('classroom_id')->toArray();
+
+        $asTutor26 = DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('tutor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('tutor_mobile_no', $cleanMobile);
+        })->pluck('classroom_id')->toArray();
+
+        $asTutor = array_merge($asTutor21, $asTutor26);
 
         // As Mentor-2 for classrooms (R21 and R26)
-        $asMentor21 = ClassManagement::where('mentor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
-        $asMentor26 = DB::table('r26_class_management')->where('mentor_mobile_no', $mobileNo)->pluck('classroom_id')->toArray();
-        $asMentor2  = array_merge($asMentor21, $asMentor26);
+        $asMentor21 = ClassManagement::where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->pluck('classroom_id')->toArray();
+
+        $asMentor26 = DB::table('r26_class_management')->where(function($q) use ($mobileNo, $cleanMobile) {
+            $q->where('mentor_mobile_no', $mobileNo);
+            if ($cleanMobile) $q->orWhere('mentor_mobile_no', $cleanMobile);
+        })->pluck('classroom_id')->toArray();
+
+        $asMentor2 = array_merge($asMentor21, $asMentor26);
 
         return array_unique(array_merge($asTutor, $asMentor2));
     }
@@ -59,7 +76,8 @@ class MentoringController extends Controller
 
             $result = [];
             foreach ($classrooms as $classroomId) {
-                $classroom = ClassManagement::where('classroom_id', $classroomId)->first();
+                $classroom = ClassManagement::where('classroom_id', $classroomId)->first()
+                    ?? DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
                 if (!$classroom) continue;
 
                 // Determine role in this classroom
@@ -67,24 +85,43 @@ class MentoringController extends Controller
                 $isMentor2  = ($classroom->mentor_mobile_no === $mobileNo);
                 $batchLabel = $isTutor ? 'A' : 'B';
 
-                // Students assigned to this mentor in mentoring_batches
-                $assigned = MentoringBatch::where('classroom_id', $classroomId)
-                    ->where('mentor_no', $mobileNo)
-                    ->with('student')
-                    ->get()
-                    ->map(fn($b) => [
-                        'reg_no'   => $b->reg_no,
-                        'name'     => $b->student->name ?? 'Unknown',
-                        'branch'   => $b->student->branch ?? '',
-                        'status'   => $b->student->status ?? '',
-                        'batch'    => $b->batch_label,
-                        'photo'    => $b->student->photo_url ?? null,
-                    ]);
+                // Fetch all students belonging to this classroom using helper query
+                $allStudents = Student::getClassroomStudentsQuery($classroomId)->get();
+                $totalCount  = $allStudents->count();
 
-                // Unassigned students in this classroom (no batch yet)
-                $allStudents = Student::where('classroom_id', $classroomId)->pluck('reg_no')->toArray();
-                $assignedIds = MentoringBatch::where('classroom_id', $classroomId)->pluck('reg_no')->toArray();
-                $unassignedIds = array_diff($allStudents, $assignedIds);
+                // Get explicit batch assignments if any exist
+                $mbRecords = MentoringBatch::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
+
+                if ($mbRecords->isEmpty()) {
+                    // No batch split performed yet -> default all classroom students to this allotted mentor
+                    $assigned = $allStudents->map(fn($s) => [
+                        'reg_no'   => $s->reg_no,
+                        'name'     => $s->name,
+                        'branch'   => $s->branch ?? '',
+                        'status'   => $s->status ?? '',
+                        'batch'    => $batchLabel,
+                        'photo'    => $s->photo_url ?? null,
+                    ]);
+                    $unassignedCount = 0;
+                } else {
+                    $assigned = $allStudents->filter(function($s) use ($mbRecords, $mobileNo) {
+                        $mb = $mbRecords->get($s->reg_no);
+                        return $mb && $mb->mentor_no === $mobileNo;
+                    })->map(function($s) use ($mbRecords) {
+                        $mb = $mbRecords->get($s->reg_no);
+                        return [
+                            'reg_no'   => $s->reg_no,
+                            'name'     => $s->name,
+                            'branch'   => $s->branch ?? '',
+                            'status'   => $s->status ?? '',
+                            'batch'    => $mb->batch_label ?? '',
+                            'photo'    => $s->photo_url ?? null,
+                        ];
+                    })->values();
+
+                    $assignedRegNos = $mbRecords->pluck('reg_no')->toArray();
+                    $unassignedCount = $allStudents->reject(fn($s) => in_array($s->reg_no, $assignedRegNos))->count();
+                }
 
                 // Get partner mentor name
                 $partnerName = null;
@@ -97,18 +134,18 @@ class MentoringController extends Controller
                 }
 
                 $result[] = [
-                    'classroom_id'   => $classroomId,
-                    'branch'         => $classroom->branch,
-                    'batch_year'     => $classroom->batch_year,
-                    'current_semester' => $classroom->current_semester,
-                    'my_role'        => $isTutor ? 'Mentor-1 (Tutor)' : 'Mentor-2',
-                    'my_batch'       => $batchLabel,
-                    'partner_name'   => $partnerName,
-                    'mentor1_mobile' => $classroom->tutor_mobile_no,
-                    'mentor2_mobile' => $classroom->mentor_mobile_no,
-                    'my_students'    => $assigned,
-                    'unassigned_count' => count($unassignedIds),
-                    'total_students'   => count($allStudents),
+                    'classroom_id'     => $classroomId,
+                    'branch'           => $classroom->branch,
+                    'batch_year'       => $classroom->batch_year,
+                    'current_semester' => $classroom->current_semester ?? 1,
+                    'my_role'          => $isTutor ? 'Mentor-1 (Tutor)' : 'Mentor-2',
+                    'my_batch'         => $batchLabel,
+                    'partner_name'     => $partnerName,
+                    'mentor1_mobile'   => $classroom->tutor_mobile_no,
+                    'mentor2_mobile'   => $classroom->mentor_mobile_no,
+                    'my_students'      => $assigned,
+                    'unassigned_count' => $unassignedCount,
+                    'total_students'   => $totalCount,
                 ];
             }
 
@@ -128,7 +165,8 @@ class MentoringController extends Controller
         if (!$mobileNo) return response()->json(['status' => 'ERROR', 'message' => 'Not authenticated.'], 401);
 
         try {
-            $classroom = ClassManagement::where('classroom_id', $classroomId)->first();
+            $classroom = ClassManagement::where('classroom_id', $classroomId)->first()
+                ?? DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
             if (!$classroom) return response()->json(['status' => 'ERROR', 'message' => 'Classroom not found.']);
 
             // Authorise: must be tutor or mentor2 of this class
@@ -136,7 +174,7 @@ class MentoringController extends Controller
                     || in_array(Session::get('userRole'), ['Super_Admin', 'Principal', 'Admin', 'HOD']);
             if (!$allowed) return response()->json(['status' => 'ERROR', 'message' => 'Not authorised for this classroom.']);
 
-            $students = Student::where('classroom_id', $classroomId)->get();
+            $students = Student::getClassroomStudentsQuery($classroomId)->get();
             $batches  = MentoringBatch::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
 
             $data = $students->map(function ($s) use ($batches) {
@@ -599,7 +637,7 @@ class MentoringController extends Controller
         if (!$mobileNo) return response()->json(['status' => 'ERROR', 'message' => 'Not authenticated.'], 401);
 
         try {
-            $students = Student::where('classroom_id', $classroomId)->get();
+            $students = Student::getClassroomStudentsQuery($classroomId)->get();
             $boardGrades = StudentBoardGrade::whereIn('reg_no', $students->pluck('reg_no'))->get();
             
             $noBacklogs = [];
@@ -651,13 +689,14 @@ class MentoringController extends Controller
         if (!$mobileNo) return response()->json(['status' => 'ERROR', 'message' => 'Not authenticated.'], 401);
 
         try {
-            $classroom = ClassManagement::where('classroom_id', $classroomId)->first();
+            $classroom = ClassManagement::where('classroom_id', $classroomId)->first()
+                ?? DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
             if (!$classroom) return response()->json(['status' => 'ERROR', 'message' => 'Classroom not found.']);
 
             $mentor1 = StaffProfile::where('mobile_no', $classroom->tutor_mobile_no)->first();
             $mentor2 = StaffProfile::where('mobile_no', $classroom->mentor_mobile_no)->first();
 
-            $students = Student::where('classroom_id', $classroomId)->get();
+            $students = Student::getClassroomStudentsQuery($classroomId)->get();
             $batches  = MentoringBatch::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
 
             $batchA = []; $batchB = []; $unassigned = [];
@@ -1906,13 +1945,27 @@ class MentoringController extends Controller
         }
 
         // 2. Classrooms where staff is Tutor (Mentor-1) or Mentor-2
-        $cls21 = ClassManagement::where('tutor_mobile_no', $userId)
-            ->orWhere('mentor_mobile_no', $userId)
-            ->get();
-        $cls26 = DB::table('r26_class_management')->where('tutor_mobile_no', $userId)
-            ->orWhere('mentor_mobile_no', $userId)
-            ->get();
+        $cleanMobile = preg_replace('/[^0-9]/', '', $userId);
+        $cls21 = ClassManagement::where(function($q) use ($userId, $cleanMobile) {
+            $q->where('tutor_mobile_no', $userId)
+              ->orWhere('mentor_mobile_no', $userId);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)
+                  ->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
+        $cls26 = DB::table('r26_class_management')->where(function($q) use ($userId, $cleanMobile) {
+            $q->where('tutor_mobile_no', $userId)
+              ->orWhere('mentor_mobile_no', $userId);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)
+                  ->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
         $classrooms = $cls21->concat($cls26);
+        $isMentor = $classrooms->isNotEmpty();
 
         // 3. Pending Leaves for Staff's Classrooms
         $classroomIds = $classrooms->pluck('classroom_id')->toArray();
@@ -2449,6 +2502,7 @@ class MentoringController extends Controller
             'staff',
             'assignments',
             'classrooms',
+            'isMentor',
             'pendingLeaves',
             'activeTests',
             'todaySchedule',

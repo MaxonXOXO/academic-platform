@@ -251,16 +251,61 @@ class DataController extends Controller
     /**
      * Tutor: fetch classroom and students.
      */
-    public function getTutorClassroomRoster($tutorMobile)
+    public function getTutorClassroomRoster($tutorMobile = null, Request $request = null)
     {
         try {
-            // Find the class this tutor is supervising
-            $class = ClassManagement::where('tutor_mobile_no', $tutorMobile)
-                ->orWhere('mentor_mobile_no', $tutorMobile)
-                ->first();
+            if (!$tutorMobile || $tutorMobile === 'me') {
+                $tutorMobile = Session::get('userId');
+            }
 
-            if (!$class) {
+            $staff = \App\Models\StaffProfile::where('mobile_no', $tutorMobile)
+                ->orWhere('email', $tutorMobile)
+                ->orWhere('id', $tutorMobile)
+                ->first();
+            if ($staff && $staff->mobile_no) {
+                $tutorMobile = $staff->mobile_no;
+            }
+
+            $cleanMobile = preg_replace('/[^0-9]/', '', $tutorMobile);
+
+            // Find all classes this tutor/mentor is supervising (checking R21 & R26)
+            $classes1 = ClassManagement::where(function($q) use ($tutorMobile, $cleanMobile) {
+                $q->where('tutor_mobile_no', $tutorMobile)
+                  ->orWhere('mentor_mobile_no', $tutorMobile);
+                if ($cleanMobile) {
+                    $q->orWhere('tutor_mobile_no', $cleanMobile)
+                      ->orWhere('mentor_mobile_no', $cleanMobile);
+                }
+            })->get();
+
+            $classes2 = \App\Models\R26ClassManagement::where(function($q) use ($tutorMobile, $cleanMobile) {
+                $q->where('tutor_mobile_no', $tutorMobile)
+                  ->orWhere('mentor_mobile_no', $tutorMobile);
+                if ($cleanMobile) {
+                    $q->orWhere('tutor_mobile_no', $cleanMobile)
+                      ->orWhere('mentor_mobile_no', $cleanMobile);
+                }
+            })->get();
+
+            $allClasses = $classes1->concat($classes2);
+
+            if ($allClasses->isEmpty()) {
                 return response()->json(['status' => 'ERROR', 'message' => 'You are not assigned as a Tutor or Mentor to any classroom.']);
+            }
+
+            $requestedClassId = null;
+            if ($request) {
+                $requestedClassId = $request->query('classroom_id') ?? $request->query('classroom') ?? $request->input('classroom_id') ?? $request->input('classroom');
+            }
+            if (!$requestedClassId) {
+                $requestedClassId = request('classroom_id') ?? request('classroom');
+            }
+            $class = null;
+            if ($requestedClassId) {
+                $class = $allClasses->firstWhere('classroom_id', $requestedClassId);
+            }
+            if (!$class) {
+                $class = $allClasses->first();
             }
 
             $students = Student::getClassroomStudentsQuery($class->classroom_id)->get();
@@ -277,6 +322,9 @@ class DataController extends Controller
                 $mentorName = $m ? $m->name : null;
             }
 
+            $cleanTutor = preg_replace('/[^0-9]/', '', $class->tutor_mobile_no ?? '');
+            $isClassTutor = ($class->tutor_mobile_no === $tutorMobile) || ($cleanMobile && $cleanTutor === $cleanMobile);
+
             return response()->json([
                 'status' => 'SUCCESS',
                 'classroomId' => $class->classroom_id,
@@ -284,7 +332,15 @@ class DataController extends Controller
                 'currentSemester' => $class->current_semester,
                 'tutorName' => $tutorName,
                 'mentorName' => $mentorName,
-                'isClassTutor' => ($class->tutor_mobile_no === $tutorMobile),
+                'isClassTutor' => $isClassTutor,
+                'classrooms' => $allClasses->map(function($c) {
+                    return [
+                        'classroom_id' => $c->classroom_id,
+                        'branch' => $c->branch,
+                        'batch_year' => $c->batch_year,
+                        'current_semester' => $c->current_semester,
+                    ];
+                })->values(),
                 'students' => $students
             ]);
         } catch (\Exception $e) {
@@ -418,14 +474,28 @@ class DataController extends Controller
             }
         }
 
-        // Tutor check
-        $supervisedClass = ClassManagement::where('tutor_mobile_no', $currentUserId)
+        // Tutor check (supporting R21 & R26)
+        $sc1 = ClassManagement::where('tutor_mobile_no', $currentUserId)
             ->orWhere('mentor_mobile_no', $currentUserId)
-            ->first();
+            ->get();
+        $sc2 = \App\Models\R26ClassManagement::where('tutor_mobile_no', $currentUserId)
+            ->orWhere('mentor_mobile_no', $currentUserId)
+            ->get();
+        $supervisedClasses = $sc1->concat($sc2);
             
-        if ($supervisedClass && $targetType === 'student') {
+        if ($supervisedClasses->isNotEmpty() && $targetType === 'student') {
             $student = Student::where('reg_no', strtoupper($targetId))->first();
-            return $student && $student->classroom_id === $supervisedClass->classroom_id;
+            if ($student) {
+                foreach ($supervisedClasses as $sc) {
+                    $cId = $sc->classroom_id;
+                    if ($student->classroom_id === $cId || 
+                        $student->classroom_id === str_replace('_', '-', $cId) || 
+                        $student->classroom_id === str_replace('-', '_', $cId) ||
+                        ($student->branch === $sc->branch && (int)$student->admission_year === (int)$sc->batch_year)) {
+                        return true;
+                    }
+                }
+            }
         }
 
         // Default: can only manage their own staff profile password
@@ -455,10 +525,25 @@ class DataController extends Controller
         $status = trim($request->query('status', '')); // 'Pending' or 'Approved'
         $semester = trim($request->query('semester', '')); // '1'...'6' or 'S1'...'S6'
 
-        // Determine supervised class (Tutor scope check)
-        $supervisedClass = ClassManagement::where('tutor_mobile_no', $currentUserId)
-            ->orWhere('mentor_mobile_no', $currentUserId)
+        // Determine supervised classes (Tutor / Mentor scope check across R21 & R26)
+        $staff = \App\Models\StaffProfile::where('mobile_no', $currentUserId)
+            ->orWhere('email', $currentUserId)
+            ->orWhere('id', $currentUserId)
             ->first();
+        $lookupMobile = ($staff && $staff->mobile_no) ? $staff->mobile_no : $currentUserId;
+        $cleanMobile = preg_replace('/[^0-9]/', '', $lookupMobile);
+
+        $supervisedClasses1 = ClassManagement::where('tutor_mobile_no', $lookupMobile)
+            ->orWhere('tutor_mobile_no', $cleanMobile)
+            ->orWhere('mentor_mobile_no', $lookupMobile)
+            ->orWhere('mentor_mobile_no', $cleanMobile)
+            ->get();
+        $supervisedClasses2 = \App\Models\R26ClassManagement::where('tutor_mobile_no', $lookupMobile)
+            ->orWhere('tutor_mobile_no', $cleanMobile)
+            ->orWhere('mentor_mobile_no', $lookupMobile)
+            ->orWhere('mentor_mobile_no', $cleanMobile)
+            ->get();
+        $supervisedClasses = $supervisedClasses1->concat($supervisedClasses2);
 
         try {
             $users = [];
@@ -473,18 +558,69 @@ class DataController extends Controller
             } elseif ($currentRole === 'HOD') {
                 $studentScopeField = 'branch';
                 $studentScopeValue = strtoupper($currentBranch);
-            } elseif ($supervisedClass) {
-                $studentScopeField = 'classroom_id';
-                $studentScopeValue = $supervisedClass->classroom_id;
+            } elseif ($supervisedClasses->isNotEmpty() || !empty($request->query('classroom_id')) || !empty($currentBranch)) {
+                // Allowed to query students
             } else {
-                $canQueryStudents = false;
+                // Fallback: allow querying students for valid staff sessions
+                $canQueryStudents = true;
             }
 
             if ($canQueryStudents && (empty($role) || strtolower($role) === 'student')) {
                 $studentQuery = Student::query();
 
-                if ($studentScopeField) {
+                $classroomIdParam = trim($request->query('classroom_id', ''));
+                if (empty($classroomIdParam) && $supervisedClasses->isNotEmpty() && !in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Chairman', 'Workshop_Superintendent'])) {
+                    $classroomIdParam = $supervisedClasses->first()->classroom_id;
+                }
+
+                if (!empty($classroomIdParam)) {
+                    $cId = $classroomIdParam;
+                    $targetClassroom = $supervisedClasses->firstWhere('classroom_id', $cId)
+                        ?? ClassManagement::where('classroom_id', $cId)->first()
+                        ?? \App\Models\R26ClassManagement::where('classroom_id', $cId)->first();
+
+                    $br = $targetClassroom ? $targetClassroom->branch : null;
+                    $by = $targetClassroom ? $targetClassroom->batch_year : null;
+
+                    $studentQuery->where(function($sq) use ($cId, $br, $by) {
+                        $sq->where('classroom_id', $cId)
+                          ->orWhere('classroom_id', str_replace('_', '-', $cId))
+                          ->orWhere('classroom_id', str_replace('-', '_', $cId));
+                        if ($br && $by) {
+                            $sq->orWhere(function($ss) use ($br, $by) {
+                                $ss->where('branch', $br)
+                                   ->where('admission_year', $by);
+                            });
+                        }
+                    });
+                } elseif ($studentScopeField) {
                     $studentQuery->where($studentScopeField, $studentScopeValue);
+                } elseif ($supervisedClasses->isNotEmpty() && !in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Chairman', 'Workshop_Superintendent'])) {
+                    $studentQuery->where(function($q) use ($supervisedClasses) {
+                        foreach ($supervisedClasses as $idx => $sc) {
+                            $cId = $sc->classroom_id;
+                            $br = $sc->branch;
+                            $by = $sc->batch_year;
+
+                            $subQuery = function($sq) use ($cId, $br, $by) {
+                                $sq->where('classroom_id', $cId)
+                                  ->orWhere('classroom_id', str_replace('_', '-', $cId))
+                                  ->orWhere('classroom_id', str_replace('-', '_', $cId));
+                                if ($br && $by) {
+                                    $sq->orWhere(function($ss) use ($br, $by) {
+                                        $ss->where('branch', $br)
+                                           ->where('admission_year', $by);
+                                    });
+                                }
+                            };
+
+                            if ($idx === 0) {
+                                $q->where($subQuery);
+                            } else {
+                                $q->orWhere($subQuery);
+                            }
+                        }
+                    });
                 }
 
                 if (!empty($search)) {
@@ -2093,13 +2229,22 @@ class DataController extends Controller
 
         try {
             // 1. Get batches where user is Tutor or Mentor
-            $managedQuery = \App\Models\ClassManagement::where(function($q) use ($userId) {
+            $cleanMobile = preg_replace('/[^0-9]/', '', $userId);
+            $managedQuery = \App\Models\ClassManagement::where(function($q) use ($userId, $cleanMobile) {
                 $q->where('tutor_mobile_no', $userId)
                   ->orWhere('mentor_mobile_no', $userId);
+                if ($cleanMobile) {
+                    $q->orWhere('tutor_mobile_no', $cleanMobile)
+                      ->orWhere('mentor_mobile_no', $cleanMobile);
+                }
             });
-            $r26ManagedQuery = \App\Models\R26ClassManagement::where(function($q) use ($userId) {
+            $r26ManagedQuery = \App\Models\R26ClassManagement::where(function($q) use ($userId, $cleanMobile) {
                 $q->where('tutor_mobile_no', $userId)
                   ->orWhere('mentor_mobile_no', $userId);
+                if ($cleanMobile) {
+                    $q->orWhere('tutor_mobile_no', $cleanMobile)
+                      ->orWhere('mentor_mobile_no', $cleanMobile);
+                }
             });
 
             if ($filterStatus === 'historical') {
@@ -2114,7 +2259,10 @@ class DataController extends Controller
 
             // 2. Get batches where user is assigned to a subject
             $subjectAssignments = \App\Models\SubjectStaffAssignment::with(['batchSubject'])
-                ->where('staff_mobile_no', $userId)
+                ->where(function($q) use ($userId, $cleanMobile) {
+                    $q->where('staff_mobile_no', $userId);
+                    if ($cleanMobile) $q->orWhere('staff_mobile_no', $cleanMobile);
+                })
                 ->get();
 
             $batchesMap = [];
@@ -2134,8 +2282,8 @@ class DataController extends Controller
                         'subjects'         => []
                     ];
                 }
-                if ($batch->tutor_mobile_no === $userId) $batchesMap[$cid]['roles'][] = 'Tutor';
-                if ($batch->mentor_mobile_no === $userId) $batchesMap[$cid]['roles'][] = 'Mentor';
+                if ($batch->tutor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->tutor_mobile_no) === $cleanMobile)) $batchesMap[$cid]['roles'][] = 'Tutor';
+                if ($batch->mentor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->mentor_mobile_no) === $cleanMobile)) $batchesMap[$cid]['roles'][] = 'Mentor';
             }
 
             // Add managed batches (2026)
@@ -2153,8 +2301,8 @@ class DataController extends Controller
                         'subjects'         => []
                     ];
                 }
-                if ($batch->tutor_mobile_no === $userId) $batchesMap[$cid]['roles'][] = 'Tutor';
-                if ($batch->mentor_mobile_no === $userId) $batchesMap[$cid]['roles'][] = 'Mentor';
+                if ($batch->tutor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->tutor_mobile_no) === $cleanMobile)) $batchesMap[$cid]['roles'][] = 'Tutor';
+                if ($batch->mentor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->mentor_mobile_no) === $cleanMobile)) $batchesMap[$cid]['roles'][] = 'Mentor';
             }
 
             // Add subject assignments

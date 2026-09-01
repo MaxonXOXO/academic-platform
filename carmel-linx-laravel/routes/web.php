@@ -705,6 +705,9 @@ Route::middleware(['web'])->group(function () {
     Route::post('/classroom/practical/{subjectId}/lab-batch', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'assignLabBatch']);
     Route::get('/classroom/practical/{subjectId}/report/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printReport']);
 
+    // Staff Mobile Virtual Lab — R2021 Practical Evaluation (Mobile-only, does not touch R2026)
+    Route::get('/staff/mobile/virtual-lab/{subjectId}', [App\Http\Controllers\StaffMobileVirtualLabController::class, 'show']);
+
     // Mentoring Endpoints
     Route::get('/api/mentoring/my-batches', [MentoringController::class, 'getMyBatches']);
     Route::get('/api/mentoring/students/{classroomId}', [MentoringController::class, 'getClassroomStudents']);

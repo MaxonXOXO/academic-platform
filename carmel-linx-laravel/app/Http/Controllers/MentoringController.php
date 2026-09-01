@@ -2213,6 +2213,8 @@ class MentoringController extends Controller
                                                     'total_lesson_plans' => $tot,
                                                     'completed_lesson_plans' => $comp,
                                                     'progress_percent' => $tot > 0 ? round(($comp / $tot) * 100) : 0,
+                                                    'subject_type' => $bsMatch->subject_type ?? '',
+                                                    'syllabus_revision_code' => $bsMatch->syllabus_revision_code ?? '',
                                                 ];
                                             }
                                         }
@@ -2229,6 +2231,8 @@ class MentoringController extends Controller
                                             'progress_percent' => $assignedSub->progress_percent ?? 0,
                                             'completed_lesson_plans' => $assignedSub->completed_lesson_plans ?? 0,
                                             'total_lesson_plans' => $assignedSub->total_lesson_plans ?? 0,
+                                            'subject_type' => $assignedSub->subject_type ?? '',
+                                            'syllabus_revision_code' => $assignedSub->syllabus_revision_code ?? '',
                                         ];
                                     }
                                 }

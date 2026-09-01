@@ -1404,6 +1404,14 @@
         const desktopAttendanceUrl = @json($desktopUrl);
         let workArrangementsArray = [];
 
+        function openMobileVirtualLab(subjectId) {
+            if (!subjectId) {
+                alert('Virtual Lab error: Subject ID is missing.');
+                return;
+            }
+            window.location.href = '/staff/mobile/virtual-lab/' + subjectId;
+        }
+
         function switchStaffTab(e, tabId) {
             if (e && e.preventDefault) e.preventDefault();
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
@@ -1732,7 +1740,6 @@
                         return;
                     }
                 }
-                
                 mergedSlots.push({
                     periods: [pNum],
                     classroom_id: st.classroom_id,
@@ -1741,7 +1748,9 @@
                     batch_subject_id: st.batch_subject_id,
                     progress_percent: st.progress_percent || 0,
                     completed_lesson_plans: st.completed_lesson_plans || 0,
-                    total_lesson_plans: st.total_lesson_plans || 0
+                    total_lesson_plans: st.total_lesson_plans || 0,
+                    subject_type: st.subject_type || '',
+                    syllabus_revision_code: st.syllabus_revision_code || ''
                 });
             });
 
@@ -1750,18 +1759,45 @@
                 const periodText = st.periods.length > 1 ? `Periods ${st.periods.join(', ')}` : `Period ${st.periods[0]}`;
                 const periodArg = st.periods.join(',');
                 const hasProgress = st.total_lesson_plans > 0;
+
+                // Lookup matched assignment for fallback metadata & ID
+                let matchedAssig = null;
+                if (typeof assignmentsData !== 'undefined' && Array.isArray(assignmentsData)) {
+                    matchedAssig = assignmentsData.find(a => 
+                        (st.batch_subject_id && a.id == st.batch_subject_id) ||
+                        (a.subject_code === st.subject_code && (!a.classroom_id || a.classroom_id === st.classroom_id))
+                    );
+                }
+
+                const batchSubId = st.batch_subject_id || (matchedAssig ? matchedAssig.id : '');
+
+                // Detect R2021 practical/lab subjects — show Virtual Lab button only for these
+                let subTypeLower = (st.subject_type || (matchedAssig ? matchedAssig.subject_type : '') || '').toLowerCase();
+                let revCode = (st.syllabus_revision_code || (matchedAssig ? matchedAssig.syllabus_revision_code : '') || '').toUpperCase();
+
+                const isR21Practical = batchSubId &&
+                    (subTypeLower.includes('lab') || subTypeLower.includes('practical') || subTypeLower.includes('practicum') || subTypeLower.includes('drawing') || subTypeLower.includes('workshop')) &&
+                    !subTypeLower.includes('theory') &&
+                    (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) &&
+                    !revCode.includes('2026') && !revCode.includes('R26');
                 
                 html += `
                     <div class="p-3 rounded-3 bg-slate-900 border border-slate-800 mb-2.5 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
-                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                            <div>
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="flex-fill me-2 overflow-hidden">
                                 <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">${periodText}</span>
                                 <strong class="text-white font-mono ms-1 fw-black" style="font-size: 0.95rem; color: #ffffff !important; letter-spacing: 0.5px;">${st.subject_code}</strong>
                                 <small class="text-slate-400 d-block mt-1" style="font-size: 0.76rem; color: #94a3b8 !important;">${st.subject_name || ''}${st.subject_name ? ' | ' : ''}<strong class="text-cyan">${st.classroom_id}</strong></small>
                             </div>
-                            <button onclick="openClassAttendanceModal('${st.batch_subject_id || ''}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')" class="btn btn-sm btn-cyan px-3 py-1.5 rounded-pill fw-black shadow-sm flex-shrink-0 ms-2" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.76rem;">
-                                <i class="fa-solid fa-clipboard-user me-1"></i> Attendance
-                            </button>
+                            <div class="d-flex flex-column align-items-end flex-shrink-0" style="gap: 8px; width: 120px;">
+                                <button onclick="openClassAttendanceModal('${batchSubId}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')" class="btn btn-sm btn-cyan w-100 py-1.5 rounded-pill fw-black shadow-sm text-center" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.76rem;">
+                                    <i class="fa-solid fa-clipboard-user me-1"></i> Attendance
+                                </button>
+                                ${isR21Practical ? `
+                                <button onclick="openMobileVirtualLab('${batchSubId}')" class="btn btn-sm w-100 py-1.5 rounded-pill fw-black shadow-sm text-center" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: #ffffff !important; border: none; font-size: 0.76rem;" title="Virtual Lab Evaluation">
+                                    <i class="fa-solid fa-flask me-1"></i> Virtual Lab
+                                </button>` : ''}
+                            </div>
                         </div>
                         ${hasProgress ? `
                         <div class="mt-2.5 pt-2 border-top border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">

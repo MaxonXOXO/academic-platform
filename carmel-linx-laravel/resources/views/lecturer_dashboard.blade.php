@@ -1189,13 +1189,15 @@
                     <span>Continuous Lab Work Splitup (Max 37.5):</span>
                   </div>
                   <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-400 text-[11px]">
-                    <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">7.5 Marks</strong></span>
+                    <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">5 Marks</strong></span>
                     <span class="text-slate-700 hidden sm:inline">•</span>
-                    <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">10.0 Marks</strong></span>
+                    <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">7.5 Marks</strong></span>
                     <span class="text-slate-700 hidden sm:inline">•</span>
-                    <span>Obs. &amp; Prep: <strong class="text-sky-400 font-bold font-mono">10.0 Marks</strong></span>
+                    <span>Obs. &amp; Recording: <strong class="text-sky-400 font-bold font-mono">7.5 Marks</strong></span>
                     <span class="text-slate-700 hidden sm:inline">•</span>
-                    <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">10.0 Marks</strong></span>
+                    <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">7.5 Marks</strong></span>
+                    <span class="text-slate-700 hidden sm:inline">•</span>
+                    <span>Viva Voce: <strong class="text-rose-400 font-bold font-mono">10 Marks</strong></span>
                   </div>
                 </div>
 
@@ -1214,10 +1216,11 @@
                           <th class="p-2.5 w-10 text-center">Roll</th>
                           <th class="p-2.5">Name and PRN (SBTE)</th>
                           <th class="p-2.5 text-center text-cyan-400">Exps Done</th>
-                          <th class="p-2.5 text-center">Rough (7.5)</th>
-                          <th class="p-2.5 text-center">Fair (10)</th>
-                          <th class="p-2.5 text-center">Obs/Prep (10)</th>
-                          <th class="p-2.5 text-center">Proc/Punct (10)</th>
+                          <th class="p-2.5 text-center">Rough (5)</th>
+                          <th class="p-2.5 text-center">Fair (7.5)</th>
+                          <th class="p-2.5 text-center">Obs/Rec (7.5)</th>
+                          <th class="p-2.5 text-center">Proc/Punct (7.5)</th>
+                          <th class="p-2.5 text-center text-rose-400">Viva (10)</th>
                           <th class="p-2.5 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
                           <th class="p-2.5 text-center text-amber-400">Open Ended (7.5)</th>
                           <th class="p-2.5 text-center text-emerald-400">Attendance (15)</th>
@@ -1523,13 +1526,15 @@
                   <span>Continuous Lab Work Splitup (Max 37.5):</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-400 text-[11px]">
-                  <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">7.5 Marks</strong></span>
+                  <span>Rough Record: <strong class="text-amber-400 font-bold font-mono">5 Marks</strong></span>
                   <span class="text-slate-700 hidden sm:inline">•</span>
-                  <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">10.0 Marks</strong></span>
+                  <span>Fair Record: <strong class="text-emerald-400 font-bold font-mono">7.5 Marks</strong></span>
                   <span class="text-slate-700 hidden sm:inline">•</span>
-                  <span>Obs. &amp; Prep: <strong class="text-sky-400 font-bold font-mono">10.0 Marks</strong></span>
+                  <span>Obs. &amp; Recording: <strong class="text-sky-400 font-bold font-mono">7.5 Marks</strong></span>
                   <span class="text-slate-700 hidden sm:inline">•</span>
-                  <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">10.0 Marks</strong></span>
+                  <span>Proc. &amp; Punctuality: <strong class="text-purple-400 font-bold font-mono">7.5 Marks</strong></span>
+                  <span class="text-slate-700 hidden sm:inline">•</span>
+                  <span>Viva Voce: <strong class="text-rose-400 font-bold font-mono">10 Marks</strong></span>
                 </div>
               </div>
 
@@ -1542,10 +1547,11 @@
                         <th class="p-2 w-10 text-center">Roll</th>
                         <th class="p-2">Name and PRN (SBTE)</th>
                         <th class="p-2 text-center text-cyan-400">Exps Done</th>
-                        <th class="p-2 text-center">Rough (7.5)</th>
-                        <th class="p-2 text-center">Fair (10)</th>
-                        <th class="p-2 text-center">Obs/Prep (10)</th>
-                        <th class="p-2 text-center">Proc/Punct (10)</th>
+                        <th class="p-2 text-center">Rough (5)</th>
+                        <th class="p-2 text-center">Fair (7.5)</th>
+                        <th class="p-2 text-center">Obs/Rec (7.5)</th>
+                        <th class="p-2 text-center">Proc/Punct (7.5)</th>
+                        <th class="p-2 text-center text-rose-400">Viva (10)</th>
                         <th class="p-2 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
                         <th class="p-2 text-center text-amber-400">Open Ended (7.5)</th>
                         <th class="p-2 text-center text-emerald-400">Attendance (15)</th>
@@ -3422,6 +3428,7 @@
             const avgFair  = gradedCount > 0 ? (sumFair / gradedCount).toFixed(2)  : '0.00';
             const avgObs   = gradedCount > 0 ? (sumObs / gradedCount).toFixed(2)   : '0.00';
             const avgProc  = gradedCount > 0 ? (sumProc / gradedCount).toFixed(2)  : '0.00';
+            const avgViva  = student.avg_viva_voce !== undefined && student.avg_viva_voce !== null ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
 
             const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
 
@@ -3439,6 +3446,7 @@
                 <td class="p-2.5 text-center font-mono text-emerald-400 font-semibold">${avgFair}</td>
                 <td class="p-2.5 text-center font-mono text-sky-400 font-semibold">${avgObs}</td>
                 <td class="p-2.5 text-center font-mono text-purple-400 font-semibold">${avgProc}</td>
+                <td class="p-2.5 text-center font-mono text-rose-400 font-semibold">${avgViva}</td>
                 <td class="p-2.5 text-center font-mono font-bold text-blue-400 bg-blue-500/5 text-sm">${expAverage}</td>
                 <td class="p-2.5 text-center">
                   <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="px-2.5 py-1 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/30 text-teal-300 text-xs font-bold rounded-xl transition flex items-center gap-1 mx-auto cursor-pointer">
@@ -7498,7 +7506,15 @@
     function syncSlider(inputId, sliderId, max) {
       const input = document.getElementById(inputId);
       if (!input) return;
-      let val = parseFloat(input.value);
+      let rawVal = input.value;
+      if (rawVal === '' || rawVal === null || rawVal === undefined) {
+        if (sliderId) {
+          const slider = document.getElementById(sliderId);
+          if (slider) slider.value = 0;
+        }
+        return;
+      }
+      let val = parseFloat(rawVal);
       if (isNaN(val)) val = 0;
       if (val > max) val = max;
       if (val < 0) val = 0;
@@ -8096,12 +8112,14 @@
         const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
         const avgObs = student.avg_obs_prep !== undefined && student.avg_obs_prep !== null ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
         const avgProc = student.avg_proc_punct !== undefined && student.avg_proc_punct !== null ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
+        const avgViva = student.avg_viva_voce !== undefined && student.avg_viva_voce !== null ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
         const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
         const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
         const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
         const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
         const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
         const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
+        const attHoursText = (student.total_classes !== undefined && student.total_classes > 0) ? ` <span class="text-[10px] text-slate-400 font-sans font-normal">(${student.present_classes}/${student.total_classes} hrs)</span>` : '';
         const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? parseFloat(student.total_internal).toFixed(2) : '0.00';
 
         tr.innerHTML = `
@@ -8119,9 +8137,10 @@
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgObs}</td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgProc}</td>
+          <td class="p-2 text-center font-mono text-rose-400 text-xs">${avgViva}</td>
           <td class="p-2 text-center font-mono font-semibold text-blue-400 text-xs cursor-pointer hover:underline" onclick="openLwModal('${student.reg_no}')">${expAverage}</td>
           <td class="p-2 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
-          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)</td>
+          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)${attHoursText}</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
           <td class="p-2 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
@@ -8167,6 +8186,7 @@
         const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
         const avgObs = student.avg_obs_prep !== undefined && student.avg_obs_prep !== null ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
         const avgProc = student.avg_proc_punct !== undefined && student.avg_proc_punct !== null ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
+        const avgViva = student.avg_viva_voce !== undefined && student.avg_viva_voce !== null ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
         const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
         const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
         const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
@@ -8191,6 +8211,7 @@
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgObs}</td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgProc}</td>
+          <td class="p-2.5 text-center font-mono text-rose-400 text-xs">${avgViva}</td>
           <td class="p-2.5 text-center font-mono font-semibold text-blue-400 text-xs cursor-pointer hover:underline" onclick="openLwModal('${student.reg_no}')">${expAverage}</td>
           <td class="p-2.5 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
           <td class="p-2.5 text-center font-mono text-emerald-400 text-xs">${attendanceVal}</td>
@@ -8387,28 +8408,35 @@
       const expId = sel.value;
 
       const m = currentLwTempMarks[expId] || {};
-      const rough = m.rough_record !== undefined && m.rough_record !== null ? m.rough_record : '';
-      const fair = m.fair_record !== undefined && m.fair_record !== null ? m.fair_record : '';
-      const obs = m.obs_prep !== undefined && m.obs_prep !== null ? m.obs_prep : (m.prerequisites !== undefined && m.prerequisites !== null ? m.prerequisites : '');
-      const proc = m.proc_punct !== undefined && m.proc_punct !== null ? m.proc_punct : (m.work_done !== undefined && m.work_done !== null ? m.work_done : '');
+      const rough = m.rough_record !== undefined && m.rough_record !== null && m.rough_record !== '' ? Math.min(5, parseFloat(m.rough_record)) : '';
+      const fair = m.fair_record !== undefined && m.fair_record !== null && m.fair_record !== '' ? Math.min(7.5, parseFloat(m.fair_record)) : '';
+      const obsRaw = m.obs_prep !== undefined && m.obs_prep !== null && m.obs_prep !== '' ? m.obs_prep : (m.prerequisites !== undefined && m.prerequisites !== null && m.prerequisites !== '' ? m.prerequisites : '');
+      const obs = obsRaw !== '' ? Math.min(7.5, parseFloat(obsRaw)) : '';
+      const procRaw = m.proc_punct !== undefined && m.proc_punct !== null && m.proc_punct !== '' ? m.proc_punct : (m.work_done !== undefined && m.work_done !== null && m.work_done !== '' ? m.work_done : '');
+      const proc = procRaw !== '' ? Math.min(7.5, parseFloat(procRaw)) : '';
+      const vivaRaw = m.viva_voce !== undefined && m.viva_voce !== null && m.viva_voce !== '' ? m.viva_voce : (m.result !== undefined && m.result !== null && m.result !== '' ? m.result : '');
+      const viva = vivaRaw !== '' ? Math.min(10, parseFloat(vivaRaw)) : '';
       const expDate = m.date || '';
 
       const inputRough = document.getElementById('lw_rough');
       const inputFair = document.getElementById('lw_fair');
       const inputObs = document.getElementById('lw_obs');
       const inputProc = document.getElementById('lw_proc');
+      const inputViva = document.getElementById('lw_viva');
       const inputDate = document.getElementById('lwModalExpDate');
 
-      if (inputRough) inputRough.value = rough;
-      if (inputFair) inputFair.value = fair;
-      if (inputObs) inputObs.value = obs;
-      if (inputProc) inputProc.value = proc;
+      if (inputRough) inputRough.value = (typeof rough === 'number' && !isNaN(rough)) ? rough : '';
+      if (inputFair) inputFair.value = (typeof fair === 'number' && !isNaN(fair)) ? fair : '';
+      if (inputObs) inputObs.value = (typeof obs === 'number' && !isNaN(obs)) ? obs : '';
+      if (inputProc) inputProc.value = (typeof proc === 'number' && !isNaN(proc)) ? proc : '';
+      if (inputViva) inputViva.value = (typeof viva === 'number' && !isNaN(viva)) ? viva : '';
       if (inputDate) inputDate.value = expDate;
 
-      syncSlider('lw_rough', 'lw_rough_slider', 7.5);
-      syncSlider('lw_fair', 'lw_fair_slider', 10);
-      syncSlider('lw_obs', 'lw_obs_slider', 10);
-      syncSlider('lw_proc', 'lw_proc_slider', 10);
+      syncSlider('lw_rough', 'lw_rough_slider', 5);
+      syncSlider('lw_fair', 'lw_fair_slider', 7.5);
+      syncSlider('lw_obs', 'lw_obs_slider', 7.5);
+      syncSlider('lw_proc', 'lw_proc_slider', 7.5);
+      syncSlider('lw_viva', 'lw_viva_slider', 10);
 
       calcLwExpTotal();
     }
@@ -8430,6 +8458,7 @@
       if (key === 'fair') currentLwTempMarks[expId].fair_record = boundedVal;
       if (key === 'obs') { currentLwTempMarks[expId].obs_prep = boundedVal; currentLwTempMarks[expId].prerequisites = boundedVal; }
       if (key === 'proc') { currentLwTempMarks[expId].proc_punct = boundedVal; currentLwTempMarks[expId].work_done = boundedVal; }
+      if (key === 'viva') currentLwTempMarks[expId].viva_voce = boundedVal;
 
       const input = document.getElementById(`lw_${key}`);
       const slider = document.getElementById(`lw_${key}_slider`);
@@ -8458,7 +8487,8 @@
       const f = parseFloat(document.getElementById('lw_fair')?.value) || 0;
       const o = parseFloat(document.getElementById('lw_obs')?.value) || 0;
       const p = parseFloat(document.getElementById('lw_proc')?.value) || 0;
-      const total = r + f + o + p;
+      const v = parseFloat(document.getElementById('lw_viva')?.value) || 0;
+      const total = r + f + o + p + v;
       const el = document.getElementById('lwModalExpTotal');
       if (el) el.innerText = `${total.toFixed(1)} / 37.5`;
     }
@@ -8646,7 +8676,7 @@
 
       if (elName) elName.innerText = student.name || 'Student Evaluation';
       if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
-      if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%`;
+      if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%` + ((student.total_classes !== undefined && student.total_classes > 0) ? ` (${student.present_classes || 0}/${student.total_classes} hrs)` : '');
 
       // Set input values safely
       const projectTopic = document.getElementById('labScore_projectTopic');
@@ -8729,9 +8759,8 @@
       };
 
       setVal('prerequisite', 7.5);
-      setVal('execution', 10);
-      setVal('output', 5);
-      setVal('rough_record', 7.5);
+      setVal('execution', 7.5);
+      setVal('rough_record', 5);
       setVal('fair_record', 7.5);
     }
 
@@ -8762,9 +8791,10 @@
         const exec = parseFloat(val.execution || val.proc_punct);
         const rough = parseFloat(val.rough_record);
         const fair = parseFloat(val.fair_record);
+        const viva = parseFloat(val.viva_voce);
 
-        if (!isNaN(prereq) || !isNaN(exec) || !isNaN(rough) || !isNaN(fair)) {
-          totalGradedSum += ((isNaN(prereq)?0:prereq) + (isNaN(exec)?0:exec) + (isNaN(rough)?0:rough) + (isNaN(fair)?0:fair));
+        if (!isNaN(prereq) || !isNaN(exec) || !isNaN(rough) || !isNaN(fair) || !isNaN(viva)) {
+          totalGradedSum += ((isNaN(prereq)?0:prereq) + (isNaN(exec)?0:exec) + (isNaN(rough)?0:rough) + (isNaN(fair)?0:fair) + (isNaN(viva)?0:viva));
           gradedExpsCount++;
         }
       });
@@ -8835,9 +8865,11 @@
         const eNum = parseFloat(exec);
         const rNum = parseFloat(rough);
         const fNum = parseFloat(fair);
+        const viva = val.viva_voce !== undefined && val.viva_voce !== null ? val.viva_voce : '';
+        const vNum = parseFloat(viva);
 
-        const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum);
-        const expTotalVal = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum);
+        const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum) || !isNaN(vNum);
+        const expTotalVal = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum) + (isNaN(vNum)?0:vNum);
         const totalBadgeText = isGraded ? `${expTotalVal.toFixed(1)} / 37.5` : 'Not Graded';
         const totalBadgeClass = isGraded ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500 italic';
 
@@ -8863,24 +8895,48 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <!-- Rough Record (7.5) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- Rough Record (5) -->
             <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-amber-300">Rough Record</span>
-                <input type="number" step="0.5" min="0" max="7.5" value="${rough}"
-                  oninput="syncExpSlider(${exp.id}, 'rough_record', this.value, 7.5)"
+                <input type="number" step="0.5" min="0" max="5" value="${rough}"
+                  oninput="syncExpSlider(${exp.id}, 'rough_record', this.value, 5)"
                   id="exp_${exp.id}_rough_record"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-amber-400 text-xs focus:border-amber-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="7.5" step="0.5" value="${rNum || 0}"
-                    oninput="document.getElementById('exp_${exp.id}_rough_record').value = this.value; syncExpSlider(${exp.id}, 'rough_record', this.value, 7.5)"
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', -0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="5" step="0.5" value="${rNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_rough_record').value = this.value; syncExpSlider(${exp.id}, 'rough_record', this.value, 5)"
                     id="exp_${exp.id}_rough_record_slider"
                     class="flex-1 h-1.5 rounded-full accent-amber-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', 0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fair Record (7.5) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-emerald-300">Fair Record</span>
+                <input type="number" step="0.5" min="0" max="7.5" value="${fair}"
+                  oninput="syncExpSlider(${exp.id}, 'fair_record', this.value, 7.5)"
+                  id="exp_${exp.id}_fair_record"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-emerald-400 text-xs focus:border-emerald-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="7.5" step="0.5" value="${fNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_fair_record').value = this.value; syncExpSlider(${exp.id}, 'fair_record', this.value, 7.5)"
+                    id="exp_${exp.id}_fair_record_slider"
+                    class="flex-1 h-1.5 rounded-full accent-emerald-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 7.5</span>
@@ -8888,71 +8944,71 @@
               </div>
             </div>
 
-            <!-- Fair Record (10) -->
+            <!-- Obs & Recording (7.5) -->
             <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
               <div class="flex justify-between items-center text-xs font-bold">
-                <span class="text-emerald-300">Fair Record</span>
-                <input type="number" step="0.5" min="0" max="10" value="${fair}"
-                  oninput="syncExpSlider(${exp.id}, 'fair_record', this.value, 10)"
-                  id="exp_${exp.id}_fair_record"
-                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-emerald-400 text-xs focus:border-emerald-500 outline-none" placeholder="0.0">
-              </div>
-              <div class="space-y-1">
-                <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="10" step="0.5" value="${fNum || 0}"
-                    oninput="document.getElementById('exp_${exp.id}_fair_record').value = this.value; syncExpSlider(${exp.id}, 'fair_record', this.value, 10)"
-                    id="exp_${exp.id}_fair_record_slider"
-                    class="flex-1 h-1.5 rounded-full accent-emerald-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
-                  <span>0</span><span>Max 10</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Obs & Prep (10) -->
-            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
-              <div class="flex justify-between items-center text-xs font-bold">
-                <span class="text-sky-300">Obs. &amp; Prep</span>
-                <input type="number" step="0.5" min="0" max="10" value="${prereq}"
-                  oninput="syncExpSlider(${exp.id}, 'prerequisite', this.value, 10)"
+                <span class="text-sky-300">Obs. &amp; Recording</span>
+                <input type="number" step="0.5" min="0" max="7.5" value="${prereq}"
+                  oninput="syncExpSlider(${exp.id}, 'prerequisite', this.value, 7.5)"
                   id="exp_${exp.id}_prerequisite"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-sky-400 text-xs focus:border-sky-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="10" step="0.5" value="${pNum || 0}"
-                    oninput="document.getElementById('exp_${exp.id}_prerequisite').value = this.value; syncExpSlider(${exp.id}, 'prerequisite', this.value, 10)"
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="7.5" step="0.5" value="${pNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_prerequisite').value = this.value; syncExpSlider(${exp.id}, 'prerequisite', this.value, 7.5)"
                     id="exp_${exp.id}_prerequisite_slider"
                     class="flex-1 h-1.5 rounded-full accent-sky-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
-                  <span>0</span><span>Max 10</span>
+                  <span>0</span><span>Max 7.5</span>
                 </div>
               </div>
             </div>
 
-            <!-- Proc & Punctuality (10) -->
+            <!-- Proc & Punctuality (7.5) -->
             <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-purple-300">Proc. &amp; Punct</span>
-                <input type="number" step="0.5" min="0" max="10" value="${exec}"
-                  oninput="syncExpSlider(${exp.id}, 'execution', this.value, 10)"
+                <input type="number" step="0.5" min="0" max="7.5" value="${exec}"
+                  oninput="syncExpSlider(${exp.id}, 'execution', this.value, 7.5)"
                   id="exp_${exp.id}_execution"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-purple-400 text-xs focus:border-purple-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="10" step="0.5" value="${eNum || 0}"
-                    oninput="document.getElementById('exp_${exp.id}_execution').value = this.value; syncExpSlider(${exp.id}, 'execution', this.value, 10)"
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="7.5" step="0.5" value="${eNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_execution').value = this.value; syncExpSlider(${exp.id}, 'execution', this.value, 7.5)"
                     id="exp_${exp.id}_execution_slider"
                     class="flex-1 h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>0</span><span>Max 7.5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Viva Voce (10) -->
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+              <div class="flex justify-between items-center text-xs font-bold">
+                <span class="text-rose-300">Viva Voce</span>
+                <input type="number" step="0.5" min="0" max="10" value="${viva}"
+                  oninput="syncExpSlider(${exp.id}, 'viva_voce', this.value, 10)"
+                  id="exp_${exp.id}_viva_voce"
+                  class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-rose-400 text-xs focus:border-rose-500 outline-none" placeholder="0.0">
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'viva_voce', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" min="0" max="10" step="0.5" value="${vNum || 0}"
+                    oninput="document.getElementById('exp_${exp.id}_viva_voce').value = this.value; syncExpSlider(${exp.id}, 'viva_voce', this.value, 10)"
+                    id="exp_${exp.id}_viva_voce_slider"
+                    class="flex-1 h-1.5 rounded-full accent-rose-500 bg-slate-800 cursor-pointer">
+                  <button type="button" onclick="adjustExpMark(${exp.id}, 'viva_voce', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 10</span>
@@ -8978,11 +9034,12 @@
       const rNum = parseFloat(valObj.rough_record);
       const fNum = parseFloat(valObj.fair_record);
 
-      const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum);
+      const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum) || !isNaN(parseFloat(valObj.viva_voce));
       const badge = document.getElementById(`exp_total_badge_${expId}`);
       if (badge) {
         if (isGraded) {
-          const tot = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum);
+          const vNum = parseFloat(valObj.viva_voce) || 0;
+          const tot = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum) + vNum;
           badge.className = "text-xs font-mono px-2.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold";
           badge.innerText = `${tot.toFixed(1)} / 37.5`;
         } else {
@@ -10237,54 +10294,66 @@
           </div>
         </div>
 
-        <!-- Sliders for 4 Components -->
+        <!-- Sliders for 5 Components -->
         <div class="space-y-2.5">
-          <!-- Rough Record (7.5) -->
+          <!-- Rough Record (5) -->
           <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300">Rough Record</span>
               <div class="flex items-center gap-1">
-                <input type="number" id="lw_rough" step="0.5" min="0" max="7.5" oninput="syncLwComponent('rough', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+                <input type="number" id="lw_rough" step="0.5" min="0" max="5" oninput="syncLwComponent('rough', this.value, 5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 5</span>
               </div>
             </div>
-            <input type="range" id="lw_rough_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('rough', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_rough_slider" min="0" max="5" step="0.5" oninput="syncLwComponent('rough', this.value, 5)" class="w-full accent-slate-400 cursor-pointer">
           </div>
 
-          <!-- Fair Record (10) -->
+          <!-- Fair Record (7.5) -->
           <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300">Fair Record</span>
               <div class="flex items-center gap-1">
-                <input type="number" id="lw_fair" step="0.5" min="0" max="10" oninput="syncLwComponent('fair', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 10</span>
+                <input type="number" id="lw_fair" step="0.5" min="0" max="7.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_fair_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('fair', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_fair_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
           </div>
 
-          <!-- Obs & Prep (10) -->
+          <!-- Observation & Recording (7.5) -->
           <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Observation &amp; Preparation</span>
+              <span class="text-slate-300">Observation &amp; Recording</span>
               <div class="flex items-center gap-1">
-                <input type="number" id="lw_obs" step="0.5" min="0" max="10" oninput="syncLwComponent('obs', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 10</span>
+                <input type="number" id="lw_obs" step="0.5" min="0" max="7.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_obs_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('obs', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_obs_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
           </div>
 
-          <!-- Proc & Punct (10) -->
+          <!-- Procedure & Punctuality (7.5) -->
           <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300">Procedure &amp; Punctuality</span>
               <div class="flex items-center gap-1">
-                <input type="number" id="lw_proc" step="0.5" min="0" max="10" oninput="syncLwComponent('proc', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <input type="number" id="lw_proc" step="0.5" min="0" max="7.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+              </div>
+            </div>
+            <input type="range" id="lw_proc_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+          </div>
+
+          <!-- Viva Voce (10) -->
+          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-300">Viva Voce</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="lw_viva" step="0.5" min="0" max="10" oninput="syncLwComponent('viva', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
                 <span class="text-slate-500 text-[11px]">/ 10</span>
               </div>
             </div>
-            <input type="range" id="lw_proc_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('proc', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_viva_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('viva', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
           </div>
         </div>
 

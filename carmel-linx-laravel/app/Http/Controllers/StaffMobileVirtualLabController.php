@@ -78,25 +78,30 @@ class StaffMobileVirtualLabController extends Controller
         $testIds = $tests->pluck('id')->toArray();
         $testMarks = PracticalTestMark::whereIn('practical_test_id', $testIds)->get();
 
+        // Fetch class logs attendance for dynamic percentage & hours
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->get(['present_students', 'absent_students']);
+        $totalAttClasses = $classLogs->count();
+        $studentAttCounts = [];
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true);
+            if (is_array($pList)) {
+                foreach ($pList as $rNo) {
+                    $studentAttCounts[$rNo] = ($studentAttCounts[$rNo] ?? 0) + 1;
+                }
+            }
+        }
+
         // Build per-student data payload
         $studentsData = $students->map(function ($student) use (
-            $batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks
+            $batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttClasses, $studentAttCounts
         ) {
             $regNo = $student->reg_no;
 
             // Attendance
-            $totalAtt = DB::table('student_attendance')
-                ->where('reg_no', $regNo)
-                ->where('subject_code', $batchSubject->subject_code)
-                ->count();
-            $presentAtt = $totalAtt > 0
-                ? DB::table('student_attendance')
-                    ->where('reg_no', $regNo)
-                    ->where('subject_code', $batchSubject->subject_code)
-                    ->whereIn('status', ['Present', 'Late'])
-                    ->count()
-                : 0;
-            $attPct = $totalAtt > 0 ? round(($presentAtt / $totalAtt) * 100, 1) : 100.0;
+            $presentAtt = $studentAttCounts[$regNo] ?? 0;
+            $attPct = $totalAttClasses > 0 ? round(($presentAtt / $totalAttClasses) * 100, 1) : 100.0;
             $suggestedAttMark = round(($attPct / 100) * 15, 2);
 
             // Consolidated eval (open-ended / attendance override / board exam)
@@ -152,7 +157,7 @@ class StaffMobileVirtualLabController extends Controller
                 'roll_no'              => $student->roll_no,
                 'sbte_reg_no'          => $student->sbte_reg_no ?? $regNo,
                 'att_pct'              => $attPct,
-                'att_total'            => $totalAtt,
+                'att_total'            => $totalAttClasses,
                 'att_present'          => $presentAtt,
                 'suggested_att_mark'   => $suggestedAttMark,
                 'attendance_marks'     => $attendanceMarks,

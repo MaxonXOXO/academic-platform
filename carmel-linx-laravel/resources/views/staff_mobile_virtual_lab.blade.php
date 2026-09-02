@@ -193,7 +193,7 @@
                                 </div>
                                 <div class="text-end">
                                     <span class="d-block font-mono text-cyan fw-bold text-exp-total-{{ $student['reg_no'] }}" style="font-size: 0.95rem; color: #38bdf8 !important;">
-                                        {{ number_format($expScore, 1) }} / 50
+                                        {{ number_format($expScore, 1) }} / 37.5
                                     </span>
                                     <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 mt-1 text-white fw-semibold" style="font-size: 0.74rem;" onclick="openGradingModal('{{ $student['reg_no'] }}')">
                                         <i class="fa-solid fa-sliders me-1 text-info"></i>Grade
@@ -351,7 +351,7 @@
                             <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">1. Rough Record</span>
                             <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_rough">0</span>
                         </div>
-                        <input type="range" min="0" max="7.5" step="0.5" id="range_rough" value="0" oninput="updateSliderVal('rough', this.value)">
+                        <input type="range" min="0" max="5" step="0.5" id="range_rough" value="0" oninput="updateSliderVal('rough', this.value)">
                     </div>
 
                     <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
@@ -359,7 +359,7 @@
                             <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">2. Fair Record</span>
                             <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_fair">0</span>
                         </div>
-                        <input type="range" min="0" max="10" step="0.5" id="range_fair" value="0" oninput="updateSliderVal('fair', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_fair" value="0" oninput="updateSliderVal('fair', this.value)">
                     </div>
 
                     <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
@@ -367,7 +367,7 @@
                             <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">3. Observation & Prep</span>
                             <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_obs">0</span>
                         </div>
-                        <input type="range" min="0" max="10" step="0.5" id="range_obs" value="0" oninput="updateSliderVal('obs', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_obs" value="0" oninput="updateSliderVal('obs', this.value)">
                     </div>
 
                     <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
@@ -375,7 +375,7 @@
                             <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">4. Procedure & Punctuality</span>
                             <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_proc">0</span>
                         </div>
-                        <input type="range" min="0" max="10" step="0.5" id="range_proc" value="0" oninput="updateSliderVal('proc', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_proc" value="0" oninput="updateSliderVal('proc', this.value)">
                     </div>
 
                     <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
@@ -383,11 +383,11 @@
                             <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">5. Viva / Output</span>
                             <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_viva">0</span>
                         </div>
-                        <input type="range" min="0" max="12.5" step="0.5" id="range_viva" value="0" oninput="updateSliderVal('viva', this.value)">
+                        <input type="range" min="0" max="10" step="0.5" id="range_viva" value="0" oninput="updateSliderVal('viva', this.value)">
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center p-2.5 rounded-3 mt-3" style="background-color: rgba(6, 182, 212, 0.15) !important; border: 1px solid rgba(6, 182, 212, 0.3) !important;">
-                        <strong class="text-white" style="font-size: 0.9rem;">Total Mark (/50):</strong>
+                        <strong class="text-white" style="font-size: 0.9rem;">Total Mark (/37.5):</strong>
                         <span class="text-cyan font-mono fw-black fs-4" style="color: #38bdf8 !important;" id="modalTotalMark">0.0</span>
                     </div>
                 </div>
@@ -435,7 +435,7 @@
                 const mark = st.exp_marks[expId];
                 const total = mark ? mark.total : 0;
                 const el = document.querySelector(`.text-exp-total-${st.reg_no}`);
-                if (el) el.innerText = `${total.toFixed(1)} / 50`;
+                if (el) el.innerText = `${total.toFixed(1)} / 37.5`;
             });
         }
 
@@ -525,7 +525,7 @@
                         rough_record: rough, fair_record: fair, prerequisites: obs, work_done: proc, result: viva, total: total
                     };
                     const el = document.querySelector(`.text-exp-total-${regNo}`);
-                    if (el) el.innerText = `${total.toFixed(1)} / 50`;
+                    if (el) el.innerText = `${total.toFixed(1)} / 37.5`;
 
                     // Navigate next if possible
                     if (currentStudentIdx < studentsData.length - 1) {

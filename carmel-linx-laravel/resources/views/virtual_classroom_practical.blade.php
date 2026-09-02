@@ -282,7 +282,7 @@
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="text-center w-28">Lab Batch Split</th>
-                            <th class="text-center w-24">Score (/50)</th>
+                            <th class="text-center w-24">Score (/37.5)</th>
                             <th class="text-center w-28">Action</th>
                         </tr>
                     </thead>
@@ -309,7 +309,7 @@
                             </td>
                             <td class="text-center">
                                 <span id="score-text-exp-{{ $student->reg_no }}" class="font-mono text-xs font-semibold text-blue-400">
-                                    {{ $expLog ? floatval($expLog->total_score_50) : '0' }} / 50
+                                    {{ $expLog ? floatval($expLog->total_score_50) : '0' }} / 37.5
                                 </span>
                             </td>
                             <td class="text-center">
@@ -552,7 +552,7 @@
 
     <!-- Manage Experiments Modal -->
     <div id="manageExperimentsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
             <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
                 <div>
                     <h3 class="text-base font-black text-white">Experiments List</h3>
@@ -565,33 +565,40 @@
 
             <div class="p-6 overflow-y-auto space-y-6 flex-grow">
                 <!-- Add Experiment Form -->
-                <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+                <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl">
                     <input type="hidden" id="expEditId">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="md:col-span-1">
+                    <!-- All 4 fields in one row on desktop -->
+                    <div class="flex flex-col md:flex-row items-end gap-3">
+                        <div class="w-full md:w-28 shrink-0">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Exp No.</label>
-                            <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none">
+                            <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none">
                         </div>
-                        <div class="md:col-span-2">
+                        <div class="w-full flex-1">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Experiment Title / Objective</label>
-                            <textarea id="expFormTitle" required placeholder="Enter experiment objective / detailed description..." rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none resize-y"></textarea>
+                            <input type="text" id="expFormTitle" required placeholder="Enter experiment title or objective..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none">
                         </div>
-                        <div class="md:col-span-1">
+                        <div class="w-full md:w-28 shrink-0">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Map CO</label>
-                            <select id="expFormCo" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-normal text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                            <select id="expFormCo" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
                                 <option value="CO1">CO1</option>
                                 <option value="CO2">CO2</option>
                                 <option value="CO3">CO3</option>
                                 <option value="CO4">CO4</option>
                             </select>
                         </div>
+                        <div class="w-full md:w-40 shrink-0">
+                            <button type="submit" id="btnSaveExp" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-plus text-xs" id="btnSaveExpIcon"></i>
+                                <span id="btnSaveExpLabel">Add Experiment</span>
+                                <span id="btnSaveExpSpinner" class="hidden w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center pt-2">
-                        <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-2 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                    <!-- Inline feedback banner -->
+                    <div id="expSaveFeedback" class="hidden mt-3 px-3 py-2 rounded-lg text-xs font-bold border"></div>
+                    <div class="mt-2">
+                        <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-1.5 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
                             <i class="fa-solid fa-database text-xs"></i> Import from Databank
-                        </button>
-                        <button type="submit" id="btnSaveExp" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ml-auto">
-                            <i class="fa-solid fa-plus text-xs"></i> Add Experiment
                         </button>
                     </div>
                 </form>
@@ -687,12 +694,12 @@
             // Load Exp 1 standard
             const expLog = experimentLogs['Exp 1'] ? experimentLogs['Exp 1'].find(x => x.reg_no === reg) : null;
             scoresState.table22[reg] = expLog ? {
-                c1: parseFloat(expLog.prep_punctuality),
-                c2: parseFloat(expLog.setup_procedure),
-                c3: parseFloat(expLog.observation_recording),
-                c4: parseFloat(expLog.analysis_interpretation),
-                c5: parseFloat(expLog.viva_voce),
-                c6: parseFloat(expLog.teamwork_discipline)
+                c1: Math.min(5, parseFloat(expLog.prep_punctuality || 0)),
+                c2: Math.min(7.5, parseFloat(expLog.setup_procedure || 0)),
+                c3: Math.min(7.5, parseFloat(expLog.observation_recording || 0)),
+                c4: Math.min(7.5, parseFloat(expLog.analysis_interpretation || 0)),
+                c5: Math.min(10, parseFloat(expLog.viva_voce || 0)),
+                c6: 0
             } : { c1:0, c2:0, c3:0, c4:0, c5:0, c6:0 };
 
             // Load Open-ended
@@ -844,10 +851,11 @@
             let rubrics = [];
             if (tabType === 'table22') {
                 rubrics = [
-                    { label: '1. Rough Record (Max 7.5)', key: 'c1', max: 7.5, step: 0.5 },
-                    { label: '2. Fair Record (Max 10)', key: 'c2', max: 10, step: 0.5 },
-                    { label: '3. Obs & Prep (Max 10)', key: 'c3', max: 10, step: 0.5 },
-                    { label: '4. Proc & Punctuality (Max 10)', key: 'c4', max: 10, step: 0.5 }
+                    { label: '1. Rough Record (Max 5)',            key: 'c1', max: 5,    step: 0.5 },
+                    { label: '2. Fair Record (Max 7.5)',           key: 'c2', max: 7.5,  step: 0.5 },
+                    { label: '3. Observation & Recording (Max 7.5)', key: 'c3', max: 7.5,  step: 0.5 },
+                    { label: '4. Procedure & Punctuality (Max 7.5)', key: 'c4', max: 7.5,  step: 0.5 },
+                    { label: '5. Viva Voce (Max 10)',              key: 'c5', max: 10,   step: 0.5 },
                 ];
             } else if (tabType === 'table23') {
                 rubrics = [
@@ -922,9 +930,9 @@
                 if (textEl) textEl.innerText = `${total.toFixed(2)} / 50`;
             } else if (tabType === 'table22') {
                 const scores = scoresState[tabType][regNo] || {};
-                total = (scores.c1||0) + (scores.c2||0) + (scores.c3||0) + (scores.c4||0) + (scores.c5||0) + (scores.c6||0);
+                total = (scores.c1||0) + (scores.c2||0) + (scores.c3||0) + (scores.c4||0) + (scores.c5||0);
                 const textEl = document.getElementById(`score-text-exp-${regNo}`);
-                if (textEl) textEl.innerText = `${total.toFixed(2)} / 50`;
+                if (textEl) textEl.innerText = `${total.toFixed(2)} / 37.5`;
             }
 
             document.getElementById('modalTotalScore').innerText = total.toFixed(2);
@@ -961,14 +969,14 @@
             document.getElementById('gradingModal').classList.remove('flex');
         }
 
-        // Live client-side recalculation of consolidated 60M CIA sheet
+        // Live client-side recalculation of consolidated CIA sheet
         function recalculateCIA(regNo) {
-            // 1. Lab Work (30 M)
+            // 1. Lab Work (37.5M) — 5 components: Rough(5)+Fair(7.5)+Obs(7.5)+Proc(7.5)+Viva(10) = 37.5 raw = 37.5 CIA marks
             const expScores = scoresState.table22[regNo] || {};
-            const expTotal = (expScores.c1||0) + (expScores.c2||0) + (expScores.c3||0) + (expScores.c4||0) + (expScores.c5||0) + (expScores.c6||0);
-            const scaledLabWork30 = (expTotal / 50) * 30;
+            const expTotal = (expScores.c1||0) + (expScores.c2||0) + (expScores.c3||0) + (expScores.c4||0) + (expScores.c5||0);
+            const scaledLabWork375 = expTotal; // raw max 37.5 = CIA 37.5M directly, no scaling needed
             const labEl = document.getElementById(`cia-lab-work-${regNo}`);
-            if (labEl) labEl.innerText = scaledLabWork30.toFixed(2);
+            if (labEl) labEl.innerText = scaledLabWork375.toFixed(2);
 
             // 2. Open Ended (10 M)
             const openScores = scoresState.table23[regNo] || {};
@@ -990,8 +998,8 @@
             // 4. Attendance
             const att = attendanceMarks[regNo] ? attendanceMarks[regNo].mark : 5;
 
-            // CIA Total out of 60
-            const totalCIA = scaledLabWork30 + scaledOpen10 + scaledSeries15 + att;
+            // CIA Total out of 75 (37.5 Lab + 7.5 Open-Ended + 15 Series + 15 Attendance)
+            const totalCIA = scaledLabWork375 + scaledOpen10 + scaledSeries15 + att;
             const totalEl = document.getElementById(`cia-total-${regNo}`);
             if (totalEl) totalEl.innerText = totalCIA.toFixed(2);
         }
@@ -1064,17 +1072,18 @@
         let labExperimentsData = [];
         let labTestsData = [];
 
-        function fetchPracticalEvaluationsData() {
+        async function fetchPracticalEvaluationsData() {
             if (!currentSubjectId) return;
-            fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`)
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === 'SUCCESS') {
-                    labExperimentsData = res.experiments || [];
-                    labTestsData = res.tests || [];
+            try {
+                const res = await fetch(`/api/classroom/${currentSubjectId}/practical/evaluations`);
+                const data = await res.json();
+                if (data.status === 'SUCCESS') {
+                    labExperimentsData = data.experiments || [];
+                    labTestsData = data.tests || [];
                 }
-            })
-            .catch(err => console.error("Error fetching practical evaluations:", err));
+            } catch(err) {
+                console.error("Error fetching practical evaluations:", err);
+            }
         }
         document.addEventListener('DOMContentLoaded', fetchPracticalEvaluationsData);
 
@@ -1147,34 +1156,71 @@
             });
         }
 
-        function savePracticalExperiment(event) {
+        async function savePracticalExperiment(event) {
             event.preventDefault();
             const expId = document.getElementById('expEditId').value;
-            const no = document.getElementById('expFormNo').value;
-            const title = document.getElementById('expFormTitle').value;
+            const no = document.getElementById('expFormNo').value.trim();
+            const title = document.getElementById('expFormTitle').value.trim();
             const co = document.getElementById('expFormCo').value;
 
-            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/save`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify({ id: expId, experiment_no: no, title: title, co_tag: co })
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === 'SUCCESS') {
+            // Lock button to prevent double-clicks
+            const btn = document.getElementById('btnSaveExp');
+            const icon = document.getElementById('btnSaveExpIcon');
+            const label = document.getElementById('btnSaveExpLabel');
+            const spinner = document.getElementById('btnSaveExpSpinner');
+            const feedback = document.getElementById('expSaveFeedback');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (label) label.textContent = 'Saving...';
+            feedback.classList.add('hidden');
+
+            try {
+                const res = await fetch(`/api/classroom/${currentSubjectId}/practical/experiments/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({ id: expId, experiment_no: no, title: title, co_tag: co })
+                });
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    // Reset form
                     document.getElementById('expEditId').value = '';
                     document.getElementById('expFormNo').value = '';
                     document.getElementById('expFormTitle').value = '';
-                    document.getElementById('btnSaveExp').innerHTML = '<i class="fa-solid fa-plus text-xs"></i> Add Experiment';
+                    if (icon) icon.classList.remove('hidden');
+                    if (icon) icon.className = 'fa-solid fa-plus text-xs';
+                    if (label) label.textContent = 'Add';
 
-                    alert("Experiment successfully saved!");
-                    fetchPracticalEvaluationsData();
-                    setTimeout(() => renderManageExperimentsList(), 300);
+                    // Show inline success — no alert popup
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+                    feedback.textContent = '✓ Experiment saved successfully!';
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 3000);
+
+                    // Fetch fresh data then immediately render — no race condition
+                    await fetchPracticalEvaluationsData();
+                    renderManageExperimentsList();
                 } else {
-                    alert(res.message || 'Failed to save experiment.');
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                    feedback.textContent = '✗ ' + (data.message || 'Failed to save experiment.');
+                    feedback.classList.remove('hidden');
                 }
-            })
-            .catch(() => alert('Failed to save experiment.'));
+            } catch(err) {
+                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                feedback.textContent = '✗ Network error. Please try again.';
+                feedback.classList.remove('hidden');
+            } finally {
+                // Always re-enable button
+                btn.disabled = false;
+                btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                if (spinner) spinner.classList.add('hidden');
+                if (icon) icon.classList.remove('hidden');
+                const isEdit = document.getElementById('expEditId').value;
+                if (label) label.textContent = isEdit ? 'Update' : 'Add';
+            }
         }
 
         function editExperiment(id, no, title, co) {
@@ -1182,38 +1228,57 @@
             document.getElementById('expFormNo').value = no;
             document.getElementById('expFormTitle').value = title;
             document.getElementById('expFormCo').value = co;
-            document.getElementById('btnSaveExp').innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Update';
+            const icon = document.getElementById('btnSaveExpIcon');
+            const label = document.getElementById('btnSaveExpLabel');
+            if (icon) { icon.className = 'fa-solid fa-floppy-disk text-xs'; icon.classList.remove('hidden'); }
+            if (label) label.textContent = 'Update';
+            // Scroll form into view for convenience
+            document.getElementById('expFormNo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            document.getElementById('expFormNo').focus();
         }
 
-        function deleteExperiment(id) {
+        async function deleteExperiment(id) {
             if (!confirm('Are you sure you want to delete this experiment? All graded marks for this experiment will be permanently deleted!')) return;
 
-            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/${id}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': csrfToken }
-            })
-            .then(res => res.json())
-            .then(res => {
-                alert(res.message || 'Experiment deleted.');
-                fetchPracticalEvaluationsData();
-                setTimeout(() => renderManageExperimentsList(), 300);
-            });
+            const feedback = document.getElementById('expSaveFeedback');
+            try {
+                const res = await fetch(`/api/classroom/${currentSubjectId}/practical/experiments/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+                const data = await res.json();
+                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                feedback.textContent = data.message || 'Experiment deleted.';
+                feedback.classList.remove('hidden');
+                setTimeout(() => feedback.classList.add('hidden'), 3000);
+                await fetchPracticalEvaluationsData();
+                renderManageExperimentsList();
+            } catch(err) {
+                console.error('Delete error:', err);
+            }
         }
 
-        function importFromDatabank() {
+        async function importFromDatabank() {
             if (!confirm('This will import the standard list of experiments configured for this subject code. Proceed?')) return;
 
-            fetch(`/api/classroom/${currentSubjectId}/practical/experiments/import`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
-            })
-            .then(res => res.json())
-            .then(res => {
-                alert(res.message);
-                fetchPracticalEvaluationsData();
-                setTimeout(() => renderManageExperimentsList(), 300);
-            })
-            .catch(() => alert('Import failed.'));
+            const feedback = document.getElementById('expSaveFeedback');
+            try {
+                const res = await fetch(`/api/classroom/${currentSubjectId}/practical/experiments/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+                });
+                const data = await res.json();
+                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+                feedback.textContent = data.message || 'Experiments imported.';
+                feedback.classList.remove('hidden');
+                setTimeout(() => feedback.classList.add('hidden'), 3000);
+                await fetchPracticalEvaluationsData();
+                renderManageExperimentsList();
+            } catch(err) {
+                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                feedback.textContent = 'Import failed. Please try again.';
+                feedback.classList.remove('hidden');
+            }
         }
 
         // Manage Tests Modal Controllers

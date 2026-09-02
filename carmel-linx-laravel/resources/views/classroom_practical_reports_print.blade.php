@@ -196,16 +196,16 @@
                         <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                         @foreach($activeCols as $log)
                             @php
-                                $statusRecord = $studentAttendance->where('reg_no', $student->reg_no)
-                                    ->where('date', $log->date)
-                                    ->where('period', $log->period)
-                                    ->first();
+                                $pList = json_decode($log->present_students ?? '[]', true);
+                                $aList = json_decode($log->absent_students ?? '[]', true);
                                 $statusText = '-';
-                                if($statusRecord) {
-                                    $statusText = in_array($statusRecord->status, ['Present', 'Late']) ? 'P' : 'A';
+                                if (is_array($pList) && in_array($student->reg_no, $pList)) {
+                                    $statusText = 'P';
+                                } elseif (is_array($aList) && in_array($student->reg_no, $aList)) {
+                                    $statusText = 'A';
                                 }
                             @endphp
-                            <td style="font-weight: bold; color: {{ $statusText === 'A' ? 'red' : 'green' }};">
+                            <td style="font-weight: bold; color: {{ $statusText === 'A' ? 'red' : ($statusText === 'P' ? 'green' : '#777') }};">
                                 {{ $statusText }}
                             </td>
                         @endforeach

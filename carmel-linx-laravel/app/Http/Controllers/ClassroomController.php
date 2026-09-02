@@ -3280,21 +3280,28 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $testIds = $tests->pluck('id')->toArray();
         $testMarks = \App\Models\PracticalTestMark::whereIn('practical_test_id', $testIds)->get();
 
-        $students = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks) {
+        // Fetch class logs attendance for dynamic percentage & hours
+        $classLogs = \DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->get(['present_students', 'absent_students']);
+        $totalAttendanceClasses = $classLogs->count();
+        $studentAttendanceCounts = [];
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true);
+            if (is_array($pList)) {
+                foreach ($pList as $rNo) {
+                    $studentAttendanceCounts[$rNo] = ($studentAttendanceCounts[$rNo] ?? 0) + 1;
+                }
+            }
+        }
+
+        $students = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentAttendanceCounts) {
             $regNo = $student->reg_no;
 
             // Compute dynamic attendance percentage & suggested mark
-            $totalAttendance = \DB::table('student_attendance')
-                ->where('reg_no', $regNo)
-                ->where('subject_code', $batchSubject->subject_code)
-                ->count();
-            if ($totalAttendance > 0) {
-                $present = \DB::table('student_attendance')
-                    ->where('reg_no', $regNo)
-                    ->where('subject_code', $batchSubject->subject_code)
-                    ->whereIn('status', ['Present', 'Late'])
-                    ->count();
-                $attendancePercentage = ($present / $totalAttendance) * 100;
+            $presentClasses = $studentAttendanceCounts[$regNo] ?? 0;
+            if ($totalAttendanceClasses > 0) {
+                $attendancePercentage = ($presentClasses / $totalAttendanceClasses) * 100;
             } else {
                 $attendancePercentage = 100.00;
             }
@@ -3312,6 +3319,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $sumFair = 0;
             $sumObsPrep = 0;
             $sumProcPunct = 0;
+            $sumViva = 0;
             $countExpMarks = 0;
             foreach ($experiments as $exp) {
                 $mark = $experimentMarks->where('practical_experiment_id', $exp->id)->where('reg_no', $regNo)->first();
@@ -3321,6 +3329,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     $sumFair += (float)$mark->fair_record;
                     $sumObsPrep += (float)$mark->prerequisites;
                     $sumProcPunct += (float)$mark->work_done;
+                    $sumViva += (float)$mark->result;
                     $countExpMarks++;
                 }
             }
@@ -3328,7 +3337,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgFairRecord = $countExpMarks > 0 ? round($sumFair / $countExpMarks, 2) : 0.00;
             $avgObsPrep = $countExpMarks > 0 ? round($sumObsPrep / $countExpMarks, 2) : 0.00;
             $avgProcPunct = $countExpMarks > 0 ? round($sumProcPunct / $countExpMarks, 2) : 0.00;
-            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct, 2);
+            $avgVivaVoce = $countExpMarks > 0 ? round($sumViva / $countExpMarks, 2) : 0.00;
+            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
 
             // Practical tests marks per CO
             $t1 = $tests->where('test_name', 'Test 1')->first();
@@ -3350,6 +3360,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $student->avg_fair_record = $avgFairRecord;
             $student->avg_obs_prep = $avgObsPrep;
             $student->avg_proc_punct = $avgProcPunct;
+            $student->avg_viva_voce = $avgVivaVoce;
             $student->avg_lab_work = $avgLabWork;
             $student->tests = [
                 'Test 1' => ['total' => $scoreT1],
@@ -3358,6 +3369,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ];
             $student->micro_project = $microProject;
             $student->attendance_marks = $attendanceMarks;
+            $student->attendance_percentage = round($attendancePercentage, 2);
+            $student->total_classes = $totalAttendanceClasses;
+            $student->present_classes = $presentClasses;
             $student->total_internal = $totalInternal;
             $student->board_exam_marks = $boardExam;
 
@@ -3543,21 +3557,28 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $testIds = $tests->pluck('id')->toArray();
         $testMarks = \App\Models\PracticalTestMark::whereIn('practical_test_id', $testIds)->get();
 
-        $data = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks) {
+        // Fetch class logs attendance for dynamic percentage & hours
+        $classLogs = \DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->get(['present_students', 'absent_students']);
+        $totalAttendanceClasses = $classLogs->count();
+        $studentAttendanceCounts = [];
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true);
+            if (is_array($pList)) {
+                foreach ($pList as $rNo) {
+                    $studentAttendanceCounts[$rNo] = ($studentAttendanceCounts[$rNo] ?? 0) + 1;
+                }
+            }
+        }
+
+        $data = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentAttendanceCounts) {
             $regNo = $student->reg_no;
 
             // Compute dynamic attendance percentage & suggested mark
-            $totalAttendance = \DB::table('student_attendance')
-                ->where('reg_no', $regNo)
-                ->where('subject_code', $batchSubject->subject_code)
-                ->count();
-            if ($totalAttendance > 0) {
-                $present = \DB::table('student_attendance')
-                    ->where('reg_no', $regNo)
-                    ->where('subject_code', $batchSubject->subject_code)
-                    ->whereIn('status', ['Present', 'Late'])
-                    ->count();
-                $attendancePercentage = ($present / $totalAttendance) * 100;
+            $presentClasses = $studentAttendanceCounts[$regNo] ?? 0;
+            if ($totalAttendanceClasses > 0) {
+                $attendancePercentage = ($presentClasses / $totalAttendanceClasses) * 100;
             } else {
                 $attendancePercentage = 100.00;
             }
@@ -3577,6 +3598,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $sumFair = 0;
             $sumObsPrep = 0;
             $sumProcPunct = 0;
+            $sumViva = 0;
             $countExpMarks = 0;
             foreach ($experiments as $exp) {
                 $mark = $experimentMarks->where('practical_experiment_id', $exp->id)->where('reg_no', $regNo)->first();
@@ -3584,6 +3606,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'prerequisites' => (float)$mark->prerequisites,
                     'work_done' => (float)$mark->work_done,
                     'result' => (float)$mark->result,
+                    'viva_voce' => (float)$mark->result,
                     'rough_record' => (float)$mark->rough_record,
                     'fair_record' => (float)$mark->fair_record,
                     'total' => (float)$mark->total_mark,
@@ -3595,6 +3618,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     $sumFair += (float)$mark->fair_record;
                     $sumObsPrep += (float)$mark->prerequisites;
                     $sumProcPunct += (float)$mark->work_done;
+                    $sumViva += (float)$mark->result;
                     $countExpMarks++;
                 }
             }
@@ -3602,7 +3626,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgFairRecord = $countExpMarks > 0 ? round($sumFair / $countExpMarks, 2) : 0.00;
             $avgObsPrep = $countExpMarks > 0 ? round($sumObsPrep / $countExpMarks, 2) : 0.00;
             $avgProcPunct = $countExpMarks > 0 ? round($sumProcPunct / $countExpMarks, 2) : 0.00;
-            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct, 2);
+            $avgVivaVoce = $countExpMarks > 0 ? round($sumViva / $countExpMarks, 2) : 0.00;
+            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
 
             // Practical tests marks per CO
             $t1 = $tests->where('test_name', 'Test 1')->first();
@@ -3628,6 +3653,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'attendance_percentage' => round($attendancePercentage, 2),
                 'suggested_attendance_marks' => $suggestedAttendanceMarks,
                 'attendance_marks' => $attendanceMarks,
+                'total_classes' => $totalAttendanceClasses,
+                'present_classes' => $presentClasses,
                 'micro_project' => $microProject,
                 'open_ended' => $microProject,
                 'open_ended_topic' => $openEndedTopic,
@@ -3637,6 +3664,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'avg_fair_record' => $avgFairRecord,
                 'avg_obs_prep' => $avgObsPrep,
                 'avg_proc_punct' => $avgProcPunct,
+                'avg_viva_voce' => $avgVivaVoce,
                 'avg_lab_work' => $avgLabWork,
                 'tests' => [
                     'Test 1' => [
@@ -3896,21 +3924,19 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $totalInternal = round($avgTests + $avgLabWork + $microProject + $attendanceMarks, 2);
 
-        // Retrieve attendance percentage to keep synced
-        $totalAttendance = \DB::table('student_attendance')
-            ->where('reg_no', $regNo)
-            ->where('subject_code', $batchSubject->subject_code)
-            ->count();
-        if ($totalAttendance > 0) {
-            $present = \DB::table('student_attendance')
-                ->where('reg_no', $regNo)
-                ->where('subject_code', $batchSubject->subject_code)
-                ->whereIn('status', ['Present', 'Late'])
-                ->count();
-            $attendancePercentage = ($present / $totalAttendance) * 100;
-        } else {
-            $attendancePercentage = 100.00;
+        // Retrieve attendance percentage to keep synced from class_logs_attendance
+        $classLogs = \DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->get(['present_students', 'absent_students']);
+        $totalAttendanceClasses = $classLogs->count();
+        $presentClasses = 0;
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true);
+            if (is_array($pList) && in_array($regNo, $pList)) {
+                $presentClasses++;
+            }
         }
+        $attendancePercentage = $totalAttendanceClasses > 0 ? (($presentClasses / $totalAttendanceClasses) * 100) : 100.00;
 
         // Update or Create semester marks record
         \App\Models\StudentSemesterMarks::updateOrCreate(

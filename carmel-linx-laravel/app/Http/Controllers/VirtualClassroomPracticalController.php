@@ -58,20 +58,24 @@ class VirtualClassroomPracticalController extends Controller
             ->get()
             ->groupBy('series_no');
 
-        // Calculate attendance percentages & Table 2.1 marks
+        // Calculate attendance percentages & Table 2.1 marks from class_logs_attendance
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->get(['present_students', 'absent_students']);
+        $totalClasses = $classLogs->count();
+        $studentAttCounts = [];
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true);
+            if (is_array($pList)) {
+                foreach ($pList as $rNo) {
+                    $studentAttCounts[$rNo] = ($studentAttCounts[$rNo] ?? 0) + 1;
+                }
+            }
+        }
+
         $attendanceMarks = [];
         foreach ($students as $student) {
-            $totalClasses = DB::table('student_attendance')
-                ->where('subject_code', $batchSubject->subject_code)
-                ->where('reg_no', $student->reg_no)
-                ->count();
-
-            $presentClasses = DB::table('student_attendance')
-                ->where('subject_code', $batchSubject->subject_code)
-                ->where('reg_no', $student->reg_no)
-                ->whereIn('status', ['Present', 'Late'])
-                ->count();
-
+            $presentClasses = $studentAttCounts[$student->reg_no] ?? 0;
             $pct = $totalClasses > 0 ? round(($presentClasses / $totalClasses) * 100, 2) : 100.00;
             
             // Table 2.1 Rules
@@ -85,7 +89,9 @@ class VirtualClassroomPracticalController extends Controller
 
             $attendanceMarks[$student->reg_no] = [
                 'percentage' => $pct,
-                'mark' => $mark
+                'mark' => $mark,
+                'total_classes' => $totalClasses,
+                'present_classes' => $presentClasses
             ];
         }
 
@@ -94,7 +100,7 @@ class VirtualClassroomPracticalController extends Controller
         foreach ($students as $student) {
             $regNo = $student->reg_no;
 
-            // 1. Lab Work (Table 2.2 Continuous Evaluation) - average out of 50, scaled to 30
+            // 1. Lab Work (37.5 Marks continuous evaluation - 5 components: Rough 5, Fair 7.5, Obs 7.5, Proc 7.5, Viva 10)
             $studentExpScores = [];
             foreach ($experimentLogs as $expNo => $logs) {
                 $log = $logs->where('reg_no', $regNo)->first();
@@ -102,13 +108,13 @@ class VirtualClassroomPracticalController extends Controller
                     $studentExpScores[] = floatval($log->total_score_50);
                 }
             }
-            $avgExp50 = count($studentExpScores) > 0 ? (array_sum($studentExpScores) / count($studentExpScores)) : 0;
-            $scaledLabWork30 = round(($avgExp50 / 50) * 30, 2);
+            $avgExp375 = count($studentExpScores) > 0 ? (array_sum($studentExpScores) / count($studentExpScores)) : 0;
+            $scaledLabWork375 = round($avgExp375, 2);
 
-            // 2. Open-Ended Project (Table 2.3) - score out of 50, scaled to 10
+            // 2. Open-Ended Project (Table 2.3) - score out of 50, scaled to 7.5
             $openLog = $openEndedLogs->get($regNo);
             $openScore50 = $openLog ? floatval($openLog->total_score_50) : 0;
-            $scaledOpenEnded10 = round(($openScore50 / 50) * 10, 2);
+            $scaledOpenEnded75 = round(($openScore50 / 50) * 7.5, 2);
 
             // 3. Series Exams (Table 3.1) - average of series 1 and series 2 out of 40, scaled to 15
             $seriesScores = [];
@@ -123,20 +129,20 @@ class VirtualClassroomPracticalController extends Controller
             $avgSeries40 = count($seriesScores) > 0 ? (array_sum($seriesScores) / count($seriesScores)) : 0;
             $scaledSeries15 = round(($avgSeries40 / 40) * 15, 2);
 
-            // 4. Attendance Marks (Table 2.1) - out of 5
-            $attMark5 = $attendanceMarks[$regNo]['mark'] ?? 5;
+            // 4. Attendance Marks (Table 2.1) - out of 15
+            $attMark = $attendanceMarks[$regNo]['mark'] ?? 15;
 
-            // Grand Total CIA (out of 60)
-            $totalCIA = $scaledLabWork30 + $scaledOpenEnded10 + $scaledSeries15 + $attMark5;
+            // Grand Total CIA (out of 75)
+            $totalCIA = $scaledLabWork375 + $scaledOpenEnded75 + $scaledSeries15 + $attMark;
 
             $consolidatedScores[$regNo] = [
-                'raw_exp_avg' => round($avgExp50, 2),
-                'scaled_lab_work_30' => $scaledLabWork30,
+                'raw_exp_avg' => round($avgExp375, 2),
+                'scaled_lab_work_30' => $scaledLabWork375,
                 'raw_open_ended' => round($openScore50, 2),
-                'scaled_open_ended_10' => $scaledOpenEnded10,
+                'scaled_open_ended_10' => $scaledOpenEnded75,
                 'raw_series_avg' => round($avgSeries40, 2),
                 'scaled_series_15' => $scaledSeries15,
-                'attendance_mark_5' => $attMark5,
+                'attendance_mark_5' => $attMark,
                 'total_cia_60' => round($totalCIA, 2)
             ];
         }

@@ -312,7 +312,7 @@
                             <td class="text-center text-cyan-400 font-mono text-xs">{{ $student->roll_no ?? ($index + 1) }}</td>
                             <td>
                                 <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded">
-                                    {{ $student->reg_no }}
+                                    {{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}
                                 </span>
                             </td>
                             <td>
@@ -384,7 +384,7 @@
                             <td class="text-center text-amber-400 font-mono text-xs">{{ $student->roll_no ?? ($index + 1) }}</td>
                             <td>
                                 <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded">
-                                    {{ $student->reg_no }}
+                                    {{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}
                                 </span>
                             </td>
                             <td>
@@ -461,7 +461,7 @@
                             <td class="text-center text-purple-400 font-mono text-xs">{{ $student->roll_no ?? ($index + 1) }}</td>
                             <td>
                                 <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded">
-                                    {{ $student->reg_no }}
+                                    {{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}
                                 </span>
                             </td>
                             <td>
@@ -544,7 +544,7 @@
                         <tr class="student-row" data-reg-no="{{ $student->reg_no }}" data-batch="{{ $batchDesignation }}">
                             <td>
                                 <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded">
-                                    {{ $student->reg_no }}
+                                    {{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}
                                 </span>
                             </td>
                             <td>
@@ -1306,7 +1306,7 @@
             currentStudentIndex = studentList.findIndex(s => s.reg_no === regNo);
 
             document.getElementById('modalStudentName').innerText = student.name;
-            document.getElementById('modalStudentReg').innerText = student.reg_no;
+            document.getElementById('modalStudentReg').innerText = (student.sbte_reg_no && student.sbte_reg_no.trim() !== '') ? student.sbte_reg_no : student.reg_no;
 
             // Generate HTML range sliders based on active tab rubrics
             const container = document.getElementById('modalSlidersContainer');
@@ -2197,7 +2197,7 @@
 
             const graded = gradedCounts[regNo] ?? 0;
             document.getElementById('detailModalStudentName').innerText = student.name;
-            document.getElementById('detailModalStudentReg').innerText  = student.reg_no;
+            document.getElementById('detailModalStudentReg').innerText  = (student.sbte_reg_no && student.sbte_reg_no.trim() !== '') ? student.sbte_reg_no : student.reg_no;
             document.getElementById('detailModalGradedBadge').innerText = `${graded} / ${totalExpCount} Exps Graded`;
             document.getElementById('detailModalGradedBadge').className =
                 `ml-2 px-2 py-0.5 text-[10px] font-bold rounded border ${

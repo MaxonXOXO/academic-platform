@@ -195,7 +195,7 @@
                                         class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline" style="font-size: 0.88rem; cursor: pointer;">
                                         {{ $student['name'] }}
                                     </button>
-                                    <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ $student['reg_no'] }}</small>
+                                    <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                                 </div>
                                 <div class="text-end">
                                     <span class="badge {{ $gradedBadgeClass }} font-mono mb-1" style="font-size: 0.7rem;">{{ $graded }} / {{ $totalExp }} Graded</span>
@@ -233,7 +233,7 @@
                             <div>
                                 <span class="badge badge-amber font-mono me-1">Roll #{{ $student['roll_no'] ?? '-' }}</span>
                                 <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')" class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline text-start" style="font-size: 0.88rem; cursor: pointer;">{{ $student['name'] }}</button>
-                                <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ $student['reg_no'] }}</small>
+                                <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                             </div>
                             <div class="text-end" style="width: 95px;">
                                 <label class="text-slate-200 d-block fw-semibold mb-0.5" style="font-size: 0.68rem; color: #e2e8f0 !important;">Score (/7.5)</label>
@@ -265,7 +265,7 @@
                             <div>
                                 <span class="badge badge-purple font-mono me-1">Roll #{{ $student['roll_no'] ?? '-' }}</span>
                                 <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')" class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline text-start" style="font-size: 0.88rem; cursor: pointer;">{{ $student['name'] }}</button>
-                                <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ $student['reg_no'] }}</small>
+                                <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                             </div>
                         </div>
                         <div class="row g-2">
@@ -302,7 +302,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')" class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline text-start d-block" style="font-size: 0.88rem; cursor: pointer;">{{ $student['name'] }}</button>
-                                <small class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ $student['reg_no'] }}</small>
+                                <small class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                                 <div class="mt-1 d-flex gap-2 flex-wrap align-items-center">
                                     <span class="badge bg-slate-800 text-cyan font-mono" style="font-size: 0.7rem; color: #38bdf8 !important;">
                                         {{ $student['att_pct'] }}% ({{ $student['att_present'] }}/{{ $student['att_total'] }})
@@ -370,7 +370,7 @@
                                     class="text-white border-0 bg-transparent p-0 text-decoration-underline text-start fw-semibold" style="font-size: 0.72rem; cursor: pointer;">
                                     {{ $student['name'] }}
                                 </button>
-                                <small class="d-block text-muted font-mono">{{ $student['reg_no'] }}</small>
+                                <small class="d-block text-muted font-mono">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                             </td>
                             <td class="py-1 px-2 text-center font-mono fw-bold {{ $gClass }}">{{ $g }}/{{ $t }}</td>
                             <td class="py-1 px-2 text-center font-mono text-info">{{ number_format($student['avg_lab_work'], 1) }}</td>
@@ -629,7 +629,7 @@
 
             const student = studentsData[currentStudentIdx];
             document.getElementById('modalStudentName').innerText = student.name;
-            document.getElementById('modalStudentReg').innerText = student.reg_no;
+            document.getElementById('modalStudentReg').innerText = (student.sbte_reg_no && student.sbte_reg_no.trim() !== '') ? student.sbte_reg_no : student.reg_no;
             document.getElementById('modalRegNo').value = student.reg_no;
 
             const expMark = (student.exp_marks && activeExpId) ? student.exp_marks[activeExpId] : null;
@@ -893,7 +893,7 @@
 
             const idx = studentsData.findIndex(s => s.reg_no === regNo);
             document.getElementById('mdetailName').innerText = student.name;
-            document.getElementById('mdetailReg').innerText = student.reg_no;
+            document.getElementById('mdetailReg').innerText = (student.sbte_reg_no && student.sbte_reg_no.trim() !== '') ? student.sbte_reg_no : student.reg_no;
             const g = student.graded_count ?? 0;
             const t = student.total_exp_count ?? experimentsData.length;
             const badge = document.getElementById('mdetailGraded');

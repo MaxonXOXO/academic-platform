@@ -254,7 +254,7 @@
                 @endphp
                 <tr>
                     <td>{{ $student->roll_no ?? '-' }}</td>
-                    <td class="font-mono">{{ $student->sbte_reg_no ?? $student->reg_no }}</td>
+                    <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                     <td>{{ number_format($student->avg_rough_record ?? 0, 2) }}</td>
                     <td>{{ number_format($student->avg_fair_record ?? 0, 2) }}</td>

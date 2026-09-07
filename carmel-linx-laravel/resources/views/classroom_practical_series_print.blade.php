@@ -216,7 +216,7 @@
                 <tr>
                     <td>{{ $idx + 1 }}</td>
                     <td class="font-mono font-bold">{{ $student->roll_no ?? '-' }}</td>
-                    <td class="font-mono">{{ $student->sbte_reg_no ?? $student->reg_no }}</td>
+                    <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                     <td class="font-mono font-bold">{{ number_format($t1, 1) }}</td>
                     <td class="font-mono font-bold">{{ number_format($t2, 1) }}</td>

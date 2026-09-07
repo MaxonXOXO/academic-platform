@@ -192,7 +192,7 @@
                 @foreach($students as $student)
                     <tr>
                         <td>{{ $student->roll_no ?? '-' }}</td>
-                        <td style="font-family:monospace;">{{ $student->sbte_reg_no ?? $student->reg_no }}</td>
+                        <td style="font-family:monospace;">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                         <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                         @foreach($activeCols as $log)
                             @php
@@ -291,7 +291,7 @@
                     @endphp
                     <tr>
                         <td>{{ $student->roll_no ?? '-' }}</td>
-                        <td style="font-family:monospace;">{{ $student->sbte_reg_no ?? $student->reg_no }}</td>
+                        <td style="font-family:monospace;">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                         <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                         <td class="align-left" style="color:#111; font-weight:500;">{{ $topic ? $topic : 'No topic assigned' }}</td>
                         <td style="font-weight:bold; font-size:11px;">{{ number_format($mark, 1) }}</td>

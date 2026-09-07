@@ -3452,7 +3452,7 @@
                   <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="hover:text-teal-300 text-left cursor-pointer">
                     ${student.name}
                   </button>
-                  <span class="block text-[10px] font-mono text-slate-400">${student.reg_no}</span>
+                  <span class="block text-[10px] font-mono text-slate-400">${student.sbte_reg_no || student.reg_no}</span>
                 </td>
                 <td class="p-2.5 text-center font-mono text-slate-400">${gradedCount} / ${totalExps}</td>
                 <td class="p-2.5 text-center font-mono text-amber-400 font-semibold">${avgRough}</td>
@@ -4216,7 +4216,7 @@
               <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-xs" data-reg="${student.reg_no}">
                 <td class="p-2.5 text-center font-bold text-slate-400">${index + 1}</td>
                 <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
-                <td class="p-2.5 text-center font-mono text-slate-400">${student.reg_no}</td>
+                <td class="p-2.5 text-center font-mono text-slate-400">${student.sbte_reg_no || student.reg_no}</td>
                 <td class="p-2.5 text-center bg-slate-900/40">
                   <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this)">
                 </td>

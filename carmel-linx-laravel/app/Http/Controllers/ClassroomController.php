@@ -3643,7 +3643,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->where('status', 'Approved')
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
             ->orderBy('name', 'asc')
-            ->get(['reg_no', 'name', 'roll_no']);
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
             ->orderByRaw('CAST(experiment_no AS UNSIGNED) ASC, experiment_no ASC')

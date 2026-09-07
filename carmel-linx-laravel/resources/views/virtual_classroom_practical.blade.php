@@ -144,8 +144,20 @@
                 <i class="fa-solid fa-expand text-[11px]"></i> <span class="hidden sm:inline">Fullscreen</span>
             </button>
 
-            <a href="/classroom/practical/{{ $batchSubject->id }}/report/print" target="_blank" class="px-3 py-1.5 bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/20 text-sky-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
-                <i class="fa-solid fa-print text-[11px]"></i> <span class="hidden sm:inline">Print CIA Report</span>
+            <a href="/classroom/practical/{{ $batchSubject->id }}/experiments/print" target="_blank" class="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm" title="Print Completed Practical Experiments & Sessions Log">
+                <i class="fa-solid fa-clipboard-check text-[11px]"></i> <span class="hidden sm:inline">Exps Log</span>
+            </a>
+
+            <a href="/classroom/practical/{{ $batchSubject->id }}/series-report/print" target="_blank" class="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 text-purple-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5" title="Print Practical Series Examination Marksheet (15M)">
+                <i class="fa-solid fa-pen-to-square text-[11px]"></i> <span class="hidden sm:inline">Series (15M)</span>
+            </a>
+
+            <a href="/classroom/practical/{{ $batchSubject->id }}/report/print" target="_blank" class="px-3 py-1.5 bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/20 text-sky-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5" title="Print Continuous Internal Assessment (CIA 75M) Evaluation Register">
+                <i class="fa-solid fa-print text-[11px]"></i> <span class="hidden sm:inline">CIA (75M)</span>
+            </a>
+
+            <a href="/classroom/practical/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-400 text-xs rounded-lg font-medium transition flex items-center gap-1.5" title="Print End-Semester Exam & Consolidated Final Results (125M)">
+                <i class="fa-solid fa-graduation-cap text-[11px]"></i> <span class="hidden sm:inline">Final ESE (125M)</span>
             </a>
 
             <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="Return to Virtual Lab">
@@ -245,17 +257,21 @@
     <!-- Main Workspace Workspace -->
     <main class="flex-grow p-2 transition-premium relative z-30">
 
-        <!-- TAB 1: Continuous Lab Work Evaluation (Table 2.2) -->
+        <!-- TAB 1: Continuous Lab Work Evaluation (37.5 Marks) -->
         <div id="tab-table22" class="tab-content glass-panel p-4">
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                 <div>
                     <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-vials text-blue-400 text-xs"></i> Lab Work Evaluation (Table 2.2)
+                        <i class="fa-solid fa-vials text-blue-400 text-xs"></i> Continuous Lab Work Evaluation (37.5 Marks)
                     </h2>
-                    <p class="text-[11px] text-slate-400">Day-to-day continuous evaluation out of 50 (scales to 30 CIA marks).</p>
+                    <p class="text-[11px] text-slate-400">Day-to-day continuous evaluation across 5 rubrics (Max 37.5 Marks).</p>
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        <span>Completed: <strong id="headerCompletedExpsCount">{{ $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }}</span>
+                    </button>
                     <button type="button" onclick="openManageExperimentsModal(event)" class="px-2.5 py-1 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
                         <i class="fa-solid fa-gear text-teal-400 text-[10px]"></i> Manage Exps
                     </button>
@@ -299,7 +315,13 @@
                                     {{ $student->reg_no }}
                                 </span>
                             </td>
-                            <td class="text-white text-xs font-medium">{{ $student->name }}</td>
+                            <td>
+                                <button type="button" onclick="openStudentDetailModal('{{ $student->reg_no }}')"
+                                    class="text-white text-xs font-semibold hover:text-sky-400 transition-colors hover:underline underline-offset-2 text-left cursor-pointer bg-transparent border-0 p-0 flex items-center gap-1.5 group">
+                                    <span>{{ $student->name }}</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[9px] text-slate-500 group-hover:text-sky-400 opacity-60 transition"></i>
+                                </button>
+                            </td>
                             <td class="text-center">
                                 <select onchange="updateLabBatch('{{ $student->reg_no }}', this.value)" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-blue-500">
                                     <option value="" {{ $batchDesignation == 'Unassigned' ? 'selected' : '' }}>Unassigned</option>
@@ -324,14 +346,14 @@
             </div>
         </div>
 
-        <!-- TAB 2: Open-Ended Experiment / Project (Table 2.3) -->
+        <!-- TAB 2: Open-Ended Experiment / Micro-Project (7.5 Marks) -->
         <div id="tab-table23" class="tab-content glass-panel p-4 hidden">
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                 <div>
                     <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-lightbulb text-amber-400 text-xs"></i> Open-Ended Project (Table 2.3)
+                        <i class="fa-solid fa-lightbulb text-amber-400 text-xs"></i> Open-Ended Project (7.5 Marks)
                     </h2>
-                    <p class="text-[11px] text-slate-400">Originality & execution score out of 50 (scales to 10 CIA marks).</p>
+                    <p class="text-[11px] text-slate-400">Problem solving &amp; micro-project evaluation (Max 7.5 Marks).</p>
                 </div>
 
                 <button onclick="submitOpenEndedMarks()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs rounded-lg shadow transition flex items-center gap-1">
@@ -348,7 +370,7 @@
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="w-56">Project Title</th>
-                            <th class="text-center w-24">Score (/50)</th>
+                            <th class="text-center w-24">Score (/7.5)</th>
                             <th class="text-center w-28">Action</th>
                         </tr>
                     </thead>
@@ -365,13 +387,19 @@
                                     {{ $student->reg_no }}
                                 </span>
                             </td>
-                            <td class="text-white text-xs font-medium">{{ $student->name }}</td>
+                            <td>
+                                <button type="button" onclick="openStudentDetailModal('{{ $student->reg_no }}')"
+                                    class="text-white text-xs font-semibold hover:text-sky-400 transition-colors hover:underline underline-offset-2 text-left cursor-pointer bg-transparent border-0 p-0 flex items-center gap-1.5 group">
+                                    <span>{{ $student->name }}</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[9px] text-slate-500 group-hover:text-sky-400 opacity-60 transition"></i>
+                                </button>
+                            </td>
                             <td>
                                 <input type="text" id="open-title-{{ $student->reg_no }}" value="{{ $openLog ? $openLog->project_title : '' }}" placeholder="Project Title..." class="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[11px] text-white focus:outline-none focus:border-amber-500 w-full">
                             </td>
                             <td class="text-center">
                                 <span id="score-text-open-{{ $student->reg_no }}" class="font-mono text-xs font-semibold text-amber-400">
-                                    {{ $openLog ? floatval($openLog->total_score_50) : '0' }} / 50
+                                    {{ $openLog ? floatval($openLog->total_score_50) : '0' }} / 7.5
                                 </span>
                             </td>
                             <td class="text-center">
@@ -386,14 +414,14 @@
             </div>
         </div>
 
-        <!-- TAB 3: Practical Series Examination (Table 3.1) -->
+        <!-- TAB 3: Practical Series Examination (15 Marks) -->
         <div id="tab-table31" class="tab-content glass-panel p-4 hidden">
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                 <div>
                     <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-check text-purple-400 text-xs"></i> Series Practical Test (Table 3.1)
+                        <i class="fa-solid fa-clipboard-check text-purple-400 text-xs"></i> Practical Series Tests (15 Marks)
                     </h2>
-                    <p class="text-[11px] text-slate-400">Practical exam score out of 40 (average scales to 15 CIA marks).</p>
+                    <p class="text-[11px] text-slate-400">Practical series tests (Test 1 [15M] &amp; Test 2 [15M] -> Average 15 Marks).</p>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -436,12 +464,18 @@
                                     {{ $student->reg_no }}
                                 </span>
                             </td>
-                            <td class="text-white text-xs font-medium">{{ $student->name }}</td>
+                            <td>
+                                <button type="button" onclick="openStudentDetailModal('{{ $student->reg_no }}')"
+                                    class="text-white text-xs font-semibold hover:text-sky-400 transition-colors hover:underline underline-offset-2 text-left cursor-pointer bg-transparent border-0 p-0 flex items-center gap-1.5 group">
+                                    <span>{{ $student->name }}</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[9px] text-slate-500 group-hover:text-sky-400 opacity-60 transition"></i>
+                                </button>
+                            </td>
                             <td class="text-center">
                                 <span id="score-text-series-{{ $student->reg_no }}" class="font-mono text-xs font-semibold text-purple-400"
                                       data-s1="{{ $series1Log ? floatval($series1Log->total_score_40) : '0' }}"
                                       data-s2="{{ $series2Log ? floatval($series2Log->total_score_40) : '0' }}">
-                                    {{ $series1Log ? floatval($series1Log->total_score_40) : '0' }} / 40
+                                    {{ $series1Log ? floatval($series1Log->total_score_40) : '0' }} / 15
                                 </span>
                             </td>
                             <td class="text-center">
@@ -456,13 +490,30 @@
             </div>
         </div>
 
-        <!-- TAB 4: Consolidated CIA Summary (60 Marks) -->
+        <!-- TAB 4: Consolidated CIA Summary (75 Marks) -->
         <div id="tab-summary" class="tab-content glass-panel p-4 hidden">
-            <div class="pb-3 border-b border-slate-800/80">
-                <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-award text-sky-400 text-xs"></i> Lab CIA Consolidated Summary Sheet
-                </h2>
-                <p class="text-[11px] text-slate-400">Real-time consolidated continuous internal assessment breakdown (out of 60 marks).</p>
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-award text-sky-400 text-xs"></i> Lab CIA Consolidated Summary Sheet
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Real-time consolidated assessment — click any student name to view per-experiment grades and attendance log.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        <span>Completed Experiments: <strong id="summaryCompletedExpsCount">{{ $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }}</span>
+                    </button>
+                    <a href="/classroom/practical/{{ $batchSubject->id }}/series-report/print" target="_blank" class="px-2.5 py-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-pen-to-square text-xs"></i> <span>Series (15M)</span>
+                    </a>
+                    <a href="/classroom/practical/{{ $batchSubject->id }}/report/print" target="_blank" class="px-2.5 py-1 bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-print text-xs"></i> <span>CIA Register (75M)</span>
+                    </a>
+                    <a href="/classroom/practical/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-graduation-cap text-xs"></i> <span>Final Results (125M)</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Student High-Density Table -->
@@ -473,8 +524,9 @@
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="text-center w-24">Batch</th>
+                            <th class="text-center w-28">Exps Graded</th>
                             <th class="text-center w-28">Lab Work (37.5M)</th>
-                            <th class="text-center w-28">Series Tests (15M)</th>
+                            <th class="text-center w-28">Tests (15M)</th>
                             <th class="text-center w-28">Open Ended (7.5M)</th>
                             <th class="text-center w-24">Attendance (15M)</th>
                             <th class="text-center w-28">Total CIA (75M)</th>
@@ -485,6 +537,9 @@
                         @php
                             $score = $consolidatedScores[$student->reg_no] ?? [];
                             $batchDesignation = $labBatches->get($student->reg_no)->lab_batch ?? 'Unassigned';
+                            $graded = $gradedCount[$student->reg_no] ?? 0;
+                            $totalExp = (isset($conductedCount) && $conductedCount > 0) ? $conductedCount : ($totalExperiments ?? 0);
+                            $gradedColor = $graded === 0 ? 'text-red-400' : ($graded < $totalExp ? 'text-amber-400' : 'text-emerald-400');
                         @endphp
                         <tr class="student-row" data-reg-no="{{ $student->reg_no }}" data-batch="{{ $batchDesignation }}">
                             <td>
@@ -492,17 +547,26 @@
                                     {{ $student->reg_no }}
                                 </span>
                             </td>
-                            <td class="text-white text-xs font-medium">{{ $student->name }}</td>
+                            <td>
+                                <button type="button" onclick="openStudentDetailModal('{{ $student->reg_no }}')"
+                                    class="text-white text-xs font-semibold hover:text-sky-400 transition-colors hover:underline underline-offset-2 text-left cursor-pointer bg-transparent border-0 p-0 flex items-center gap-1.5 group">
+                                    <span>{{ $student->name }}</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[9px] text-slate-500 group-hover:text-sky-400 opacity-60 transition"></i>
+                                </button>
+                            </td>
                             <td class="text-center">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $batchDesignation == 'Batch A' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : ($batchDesignation == 'Batch B' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'bg-slate-900 text-slate-400') }}">
                                     {{ $batchDesignation }}
                                 </span>
                             </td>
+                            <td class="text-center">
+                                <span class="font-mono text-xs font-bold {{ $gradedColor }}" id="graded-count-{{ $student->reg_no }}" title="{{ $graded }} Attended / {{ $totalExp }} Conducted ({{ $totalExperiments }} in syllabus)">{{ $graded }} / {{ $totalExp }}</span>
+                            </td>
                             <td class="text-center font-mono text-blue-400 text-xs" id="cia-lab-work-{{ $student->reg_no }}">{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-purple-400 text-xs" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-amber-400 text-xs" id="cia-open-{{ $student->reg_no }}">{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
-                            <td class="text-center font-mono text-sky-400 text-xs">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 5 }}</td>
-                            <td class="text-center font-mono font-bold text-xs text-cyan-300" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_60'] ?? '0.00' }}</td>
+                            <td class="text-center font-mono text-sky-400 text-xs" id="cia-att-{{ $student->reg_no }}">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 0 }}</td>
+                            <td class="text-center font-mono font-bold text-xs text-cyan-300" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_75'] ?? $score['total_cia_60'] ?? '0.00' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -511,6 +575,185 @@
         </div>
 
     </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- STUDENT DETAIL MODAL — Experiment breakdown + CIA + Attendance Log -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="studentDetailModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[60] hidden items-start justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700/60 rounded-2xl w-full max-w-5xl shadow-2xl my-4">
+
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 bg-slate-950/70 border-b border-slate-800 flex items-center justify-between rounded-t-2xl">
+                <div>
+                    <h3 id="detailModalStudentName" class="text-sm font-black text-white">Student Name</h3>
+                    <span id="detailModalStudentReg" class="text-xs font-mono text-cyan-400 font-semibold">Reg No</span>
+                    <span id="detailModalGradedBadge" class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/15 text-amber-400 border border-amber-500/30"></span>
+                </div>
+                <button onclick="closeStudentDetailModal()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center text-xs cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-4">
+
+                <!-- Experiment Marks Table -->
+                <div>
+                    <h4 class="text-[11px] uppercase font-bold text-slate-400 mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-vials text-blue-400"></i> Lab Work — Experiment Marks
+                    </h4>
+                    <div class="overflow-x-auto rounded-xl border border-slate-800">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-950/80 text-slate-400 uppercase text-[10px] font-bold">
+                                    <th class="p-2 w-12 text-center">Exp</th>
+                                    <th class="p-2">Title</th>
+                                    <th class="p-2 text-center w-16">Rough<br><span class="text-[9px] normal-case">/5</span></th>
+                                    <th class="p-2 text-center w-16">Fair<br><span class="text-[9px] normal-case">/7.5</span></th>
+                                    <th class="p-2 text-center w-16">Obs<br><span class="text-[9px] normal-case">/7.5</span></th>
+                                    <th class="p-2 text-center w-16">Proc<br><span class="text-[9px] normal-case">/7.5</span></th>
+                                    <th class="p-2 text-center w-16">Viva<br><span class="text-[9px] normal-case">/10</span></th>
+                                    <th class="p-2 text-center w-20">Total<br><span class="text-[9px] normal-case">/37.5</span></th>
+                                    <th class="p-2 text-center w-20">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailExpTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CIA Summary & Evaluation (Editable) -->
+                <div class="border border-slate-800 rounded-xl p-3.5 bg-slate-950/60 shadow-inner">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-award text-amber-400"></i> Continuous Internal Assessment (CIA Summary)
+                            </h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="detailCiaSaveMsg" class="text-[11px] font-semibold text-emerald-400 transition-opacity opacity-0"></span>
+                            <button type="button" onclick="saveStudentCiaSummaryDesktop()" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-floppy-disk text-[11px]"></i> Save CIA Summary
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <!-- 1. Open-Ended -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-amber-400 font-bold text-xs">1. Open-Ended</span>
+                                <span class="text-[10px] text-slate-400 font-mono">Max 7.5M</span>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-0.5">Score (/7.5)</label>
+                                <input type="number" step="0.5" min="0" max="7.5" id="detailInputOpenEnded" oninput="recalcDesktopModalCIA()" class="w-full px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 font-mono font-bold text-xs focus:outline-none focus:border-amber-500 text-center">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-0.5">Project Topic</label>
+                                <input type="text" id="detailInputOpenTopic" placeholder="Project Topic/Title..." class="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-[11px] focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+
+                        <!-- 2. Summative Tests -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-purple-400 font-bold text-xs">2. Lab Tests</span>
+                                <span class="text-[10px] text-purple-300 font-mono font-bold" id="detailCalcTestScaled">0.00 / 15M</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-0.5">Test 1 (/40)</label>
+                                    <input type="number" step="0.5" min="0" max="40" id="detailInputTest1" oninput="recalcDesktopModalCIA()" class="w-full px-1.5 py-1 bg-slate-950 border border-slate-700 rounded-lg text-purple-300 font-mono font-bold text-xs focus:outline-none focus:border-purple-500 text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-0.5">Test 2 (/40)</label>
+                                    <input type="number" step="0.5" min="0" max="40" id="detailInputTest2" oninput="recalcDesktopModalCIA()" class="w-full px-1.5 py-1 bg-slate-950 border border-slate-700 rounded-lg text-purple-300 font-mono font-bold text-xs focus:outline-none focus:border-purple-500 text-center">
+                                </div>
+                            </div>
+                            <div class="text-[11px] text-slate-400 font-mono text-center pt-0.5">
+                                Avg: <span id="detailCalcTestAvg" class="text-purple-300 font-bold">0.00</span> / 40
+                            </div>
+                        </div>
+
+                        <!-- 3. Attendance -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sky-400 font-bold text-xs">3. Attendance</span>
+                                <span class="text-[10px] text-sky-300 font-mono" id="detailAttSuggested">Sugg: 0</span>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-0.5">Mark (/15)</label>
+                                <input type="number" step="0.5" min="0" max="15" id="detailInputAttMark" oninput="recalcDesktopModalCIA()" class="w-full px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg text-sky-400 font-mono font-bold text-xs focus:outline-none focus:border-sky-500 text-center">
+                            </div>
+                            <div class="text-[11px] text-slate-400 font-mono text-center pt-1" id="detailAttStats">
+                                0% (0/0 sessions)
+                            </div>
+                        </div>
+
+                        <!-- 4. Total CIA -->
+                        <div class="bg-gradient-to-br from-sky-950/40 to-slate-900 border border-sky-500/40 rounded-xl p-3 flex flex-col justify-between">
+                            <div>
+                                <span class="text-cyan-400 font-bold text-xs block">4. Total CIA (/75)</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">
+                                    Lab (<span id="detailLabWorkAvg" class="font-mono text-blue-400 font-bold">0.00</span>) + OE + Tests + Att
+                                </span>
+                            </div>
+                            <div class="py-2 text-center">
+                                <span class="font-mono font-black text-cyan-300 text-2xl tracking-tight" id="detailTotalCIA">0.00</span>
+                                <span class="text-slate-500 text-xs font-mono"> / 75</span>
+                            </div>
+                            <div class="text-[10px] text-center text-slate-400 font-medium">
+                                Real-time dynamic total
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Log (collapsible) -->
+                <div class="border border-slate-800 rounded-xl overflow-hidden">
+                    <button onclick="toggleAttLog()" class="w-full px-4 py-2.5 flex items-center justify-between bg-slate-950/50 hover:bg-slate-950/80 transition text-left cursor-pointer">
+                        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-emerald-400 text-xs"></i>
+                            Attendance Log
+                            <span id="attLogSummary" class="text-slate-500 font-normal"></span>
+                        </span>
+                        <i id="attLogChevron" class="fa-solid fa-chevron-down text-slate-500 text-xs transition-transform"></i>
+                    </button>
+                    <div id="attLogBody" class="hidden overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/80 text-slate-400 text-[10px] font-bold uppercase">
+                                    <th class="p-2 w-28">Date</th>
+                                    <th class="p-2 w-16 text-center">Period</th>
+                                    <th class="p-2">Topic / Experiment</th>
+                                    <th class="p-2 w-20 text-center">Sub-batch</th>
+                                    <th class="p-2 w-24 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attLogTableBody" class="divide-y divide-slate-800/60">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-500">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 bg-slate-950/40 border-t border-slate-800 flex items-center justify-between rounded-b-2xl">
+                <button onclick="navigateDetailModal(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition flex items-center gap-1">
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i> Prev Student
+                </button>
+                <span class="text-[10px] text-slate-500 font-mono" id="detailModalPosition"></span>
+                <button onclick="navigateDetailModal(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition flex items-center gap-1">
+                    Next Student <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- COMPACT OVERLAY GRADING MODAL -->
     <div id="gradingModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex-col justify-end sm:justify-center p-3">
@@ -547,6 +790,221 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- COMPLETED EXPERIMENTS DETAILS MODAL -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-flask-vial text-teal-400 text-lg"></i>
+                        <h3 class="text-base font-black text-white">Completed Practical Experiments &amp; Sessions</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5" id="completedExpsModalSubtitle">{{ $batchSubject->subject_name }} &bull; Normalized Timetable Continuous Sessions</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a id="btnPrintCompletedExps" href="/classroom/practical/{{ $batchSubject->id }}/experiments/print" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow shadow-blue-500/20">
+                        <i class="fa-solid fa-print text-xs"></i>
+                        <span>Print Report</span>
+                    </a>
+                    <button onclick="closeCompletedExperimentsModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Overview Cards -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl">
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Total In Syllabus</span>
+                        <span class="text-xl font-mono font-black text-white mt-1 block" id="kpiTotalSyllabusExps">{{ $totalExperiments ?? 0 }}</span>
+                    </div>
+                    <div class="p-3 bg-teal-950/30 border border-teal-800/40 rounded-xl">
+                        <span class="text-[10px] font-bold uppercase text-teal-300 block">Experiments Completed</span>
+                        <span class="text-xl font-mono font-black text-teal-400 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
+                    </div>
+                    <div class="p-3 bg-blue-950/30 border border-blue-800/40 rounded-xl">
+                        <span class="text-[10px] font-bold uppercase text-blue-300 block">Actual Lab Hours</span>
+                        <span class="text-xl font-mono font-black text-blue-400 mt-1 block" id="kpiActualLabHours">{{ $actualLabHours ?? (($conductedCount ?? 0) * 3) }} hrs</span>
+                    </div>
+                    <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl">
+                        <span class="text-[10px] font-bold uppercase text-purple-300 block">Syllabus Covered</span>
+                        <span class="text-xl font-mono font-black text-purple-300 mt-1 block" id="kpiCoveragePercent">{{ ($totalExperiments ?? 0) > 0 ? round((($conductedCount ?? 0) / ($totalExperiments ?? 0)) * 100) : 0 }}%</span>
+                    </div>
+                </div>
+
+                <!-- Completed Experiments Table -->
+                <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-inner">
+                    <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-check text-sm text-teal-400"></i> Completed Experiments Log Details
+                        </span>
+                        <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60">
+                                    <th class="p-2.5 w-12 text-center">#</th>
+                                    <th class="p-2.5 w-24">Exp No</th>
+                                    <th class="p-2.5">Title / Topics Covered</th>
+                                    <th class="p-2.5 text-center w-28">Date</th>
+                                    <th class="p-2.5 text-center w-36">Hours (Periods)</th>
+                                    <th class="p-2.5 text-center w-28">Batch</th>
+                                    <th class="p-2.5 text-center w-28">Attendance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
+                                @forelse($conductedDetails ?? [] as $idx => $item)
+                                @php
+                                    $rawDate = $item['date'] ?? '';
+                                    $d = $rawDate ?: '—';
+                                    if (!empty($rawDate) && str_contains($rawDate, '-')) {
+                                        $parts = explode('-', $rawDate);
+                                        if (count($parts) === 3 && strlen($parts[0]) === 4) {
+                                            $d = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+                                        }
+                                    }
+                                    $sb = $item['sub_batch'] ?? 'Whole';
+                                    $bColor = ($sb === '1' || $sb === 1) ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : (($sb === '2' || $sb === 2) ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+                                    $expId = $item['experiment_id'] ?? 'null';
+                                    $expNo = addslashes($item['experiment_no'] ?? '');
+                                    $expTitle = addslashes($item['title'] ?? '');
+                                @endphp
+                                <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs">
+                                    <td class="p-2.5 text-center font-mono text-slate-500">{{ $idx + 1 }}</td>
+                                    <td class="p-2.5 font-mono font-bold text-teal-300">{{ $item['experiment_no'] ?? ('Exp ' . ($idx + 1)) }}</td>
+                                    <td class="p-2.5 text-slate-200">
+                                        <span class="font-bold">{{ $item['title'] ?? '' }}</span>
+                                        @if(!empty($item['co_tag']))
+                                            <span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">{{ $item['co_tag'] }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="p-2 text-center">
+                                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+                                            <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
+                                            <input type="date" value="{{ $rawDate }}" 
+                                                onchange="promptEditExpDate({{ $expId }}, '{{ $rawDate }}', this.value, '{{ $sb }}', '{{ $expNo }}', '{{ $expTitle }}')"
+                                                class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
+                                            <button type="button" 
+                                                onclick="openEditExpDateModal({{ $expId }}, '{{ $rawDate }}', '{{ $sb }}', '{{ $expNo }}', '{{ $expTitle }}')"
+                                                class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
+                                                <span class="material-symbols-rounded text-xs">tune</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="p-2.5 text-center font-mono text-sky-400">
+                                        <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">{{ $item['hours_text'] ?? '3 hrs (Lab)' }}</span>
+                                    </td>
+                                    <td class="p-2.5 text-center">
+                                        <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold {{ $bColor }}">{{ $item['batch'] ?? 'Whole Class' }}</span>
+                                    </td>
+                                    <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
+                                        {{ isset($item['present_count']) ? ($item['present_count'] . '/' . ($item['total_count'] ?? count($students))) : 'Conducted' }}
+                                        @if(!empty($item['attendance_pct']))
+                                            <span class="block text-[10px] text-slate-500 font-normal">({{ $item['attendance_pct'] }}%)</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Experiment Date Modal -->
+    <div id="editExpDateModal" onclick="if(event.target === this) closeEditExpDateModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[70] hidden justify-center items-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-rounded text-teal-400 text-xl">edit_calendar</span>
+                    <h3 class="text-sm font-bold text-white">Edit Experiment Date</h3>
+                </div>
+                <button onclick="closeEditExpDateModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                    <span class="material-symbols-rounded text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 space-y-4">
+                <!-- Exp Info -->
+                <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl space-y-2.5">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1 bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Exp No:</span>
+                            <input type="text" id="editModalExpNoInput" class="w-12 bg-transparent text-xs font-mono font-bold text-teal-300 outline-none text-center" title="Edit Experiment Number (e.g. 1, 2, 2A)">
+                        </div>
+                        <span id="editModalExpTitle" class="text-xs font-semibold text-slate-200 line-clamp-1 flex-1">Experiment Title</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800/60">
+                        <span>Currently Recorded Date:</span>
+                        <span id="editModalCurrentDate" class="font-mono text-amber-300 font-bold">—</span>
+                    </div>
+                </div>
+
+                <!-- New Date Input -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm text-teal-400">calendar_month</span> New Conducted Date
+                    </label>
+                    <input type="date" id="editModalNewDateInput" class="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-white font-mono text-sm [color-scheme:dark] focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+                </div>
+
+                <!-- Update Scope -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-300">Application Scope</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-950/80 cursor-pointer transition">
+                            <input type="radio" name="editExpDateScope" value="universal" checked class="mt-0.5 text-teal-500 focus:ring-teal-500">
+                            <div>
+                                <span class="text-xs font-bold text-white block">Universal (All Batches &amp; Master Syllabus)</span>
+                                <span class="text-[10px] text-slate-400 block">Fix this experiment's date across all batches, syllabus master, and evaluations.</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-950/80 cursor-pointer transition">
+                            <input type="radio" name="editExpDateScope" value="batch" class="mt-0.5 text-teal-500 focus:ring-teal-500">
+                            <div>
+                                <span class="text-xs font-bold text-white block" id="editModalBatchLabel">This Batch Only</span>
+                                <span class="text-[10px] text-slate-400 block">Update evaluation logs and student attendance specifically for this lab batch.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Attendance Sync Checkbox -->
+                <div class="pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="editModalSyncAttendance" checked class="rounded border-slate-700 text-teal-500 focus:ring-teal-500">
+                        <span class="text-xs text-slate-300">Synchronize student lab attendance records to this new date</span>
+                    </label>
+                    <p class="text-[10px] text-slate-500 ml-5 mt-0.5">Moves class log continuous sessions (3 hrs) &amp; student attendance from old date to new date.</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3.5 bg-slate-950/70 border-t border-slate-800 flex justify-end items-center gap-2.5">
+                <button type="button" onclick="closeEditExpDateModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" id="btnConfirmEditExpDate" onclick="submitEditExpDate()" class="px-4 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm shadow-teal-500/20">
+                    <span class="material-symbols-rounded text-sm">check</span>
+                    <span>Save &amp; Update</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -674,6 +1132,12 @@
         const seriesExamLogs = @json($seriesExamLogs);
         const attendanceMarks = @json($attendanceMarks);
         const consolidatedScores = @json($consolidatedScores);
+
+        // Per-student experiment detail data (for Student Detail Modal)
+        const studentExpDetail = @json($studentExpDetail);
+        const gradedCounts     = @json($gradedCount);
+        const experimentsList  = @json($experiments);    // full experiment list
+        const totalExpCount    = {{ $totalExperiments ?? 0 }};
 
         // Active state variables
         let activeTab = 'table22';
@@ -829,7 +1293,7 @@
                 const total = scoreObj.c1 + scoreObj.c2 + scoreObj.c3 + scoreObj.c4 + scoreObj.c5;
                 const scoreText = document.getElementById(`score-text-series-${reg}`);
                 if (scoreText) {
-                    scoreText.innerText = `${total.toFixed(2)} / 40`;
+                    scoreText.innerText = `${total.toFixed(2)} / 15`;
                 }
             });
         }
@@ -922,12 +1386,12 @@
                 const scores = scoresState[tabType][regNo][activeSeries] || {};
                 total = (scores.c1||0) + (scores.c2||0) + (scores.c3||0) + (scores.c4||0) + (scores.c5||0);
                 const textEl = document.getElementById(`score-text-series-${regNo}`);
-                if (textEl) textEl.innerText = `${total.toFixed(2)} / 40`;
+                if (textEl) textEl.innerText = `${total.toFixed(2)} / 15`;
             } else if (tabType === 'table23') {
                 const scores = scoresState[tabType][regNo] || {};
                 total = (scores.c1||0) + (scores.c2||0) + (scores.c3||0) + (scores.c4||0) + (scores.c5||0);
                 const textEl = document.getElementById(`score-text-open-${regNo}`);
-                if (textEl) textEl.innerText = `${total.toFixed(2)} / 50`;
+                if (textEl) textEl.innerText = `${total.toFixed(2)} / 7.5`;
             } else if (tabType === 'table22') {
                 const scores = scoresState[tabType][regNo] || {};
                 total = (scores.c1||0) + (scores.c2||0) + (scores.c3||0) + (scores.c4||0) + (scores.c5||0);
@@ -996,7 +1460,7 @@
             if (seriesEl) seriesEl.innerText = scaledSeries15.toFixed(2);
 
             // 4. Attendance
-            const att = attendanceMarks[regNo] ? attendanceMarks[regNo].mark : 5;
+            const att = (attendanceMarks[regNo] && attendanceMarks[regNo].mark !== undefined) ? parseFloat(attendanceMarks[regNo].mark) : 0;
 
             // CIA Total out of 75 (37.5 Lab + 7.5 Open-Ended + 15 Series + 15 Attendance)
             const totalCIA = scaledLabWork375 + scaledOpen10 + scaledSeries15 + att;
@@ -1069,8 +1533,38 @@
         }
 
         let currentSubjectId = "{{ $batchSubject->id }}";
-        let labExperimentsData = [];
-        let labTestsData = [];
+        let labExperimentsData = @json($experiments ?? []);
+        let labTestsData = @json($tests ?? []);
+        window.conductedExpsDetails = @json($conductedDetails ?? []);
+        window.actualLabHoursConducted = {{ $actualLabHours ?? (($conductedCount ?? 0) * 3) }};
+        window.conductedExpsCount = {{ $conductedCount ?? 0 }};
+        window.totalSyllabusExps = {{ $totalExperiments ?? 0 }};
+
+        function updateSyllabusCounters(totalCount) {
+            window.totalSyllabusExps = totalCount;
+            const kpiTotal = document.getElementById('kpiTotalSyllabusExps');
+            if (kpiTotal) kpiTotal.innerText = totalCount;
+            const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
+            const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+            const kpiPct = document.getElementById('kpiCoveragePercent');
+            if (kpiPct) kpiPct.innerText = `${pct}%`;
+            const hdrCount = document.getElementById('headerCompletedExpsCount');
+            if (hdrCount) {
+                const parent = hdrCount.closest('button');
+                if (parent) {
+                    const span = parent.querySelector('span');
+                    if (span) span.innerHTML = `Completed: <strong id="headerCompletedExpsCount">${doneCount}</strong>/${totalCount}`;
+                }
+            }
+            const sumCount = document.getElementById('summaryCompletedExpsCount');
+            if (sumCount) {
+                const parent = sumCount.closest('button');
+                if (parent) {
+                    const span = parent.querySelector('span');
+                    if (span) span.innerHTML = `Completed Experiments: <strong id="summaryCompletedExpsCount">${doneCount}</strong>/${totalCount}`;
+                }
+            }
+        }
 
         async function fetchPracticalEvaluationsData() {
             if (!currentSubjectId) return;
@@ -1080,12 +1574,240 @@
                 if (data.status === 'SUCCESS') {
                     labExperimentsData = data.experiments || [];
                     labTestsData = data.tests || [];
+                    if (data.conducted_experiments_details) {
+                        window.conductedExpsDetails = data.conducted_experiments_details;
+                    }
+                    if (data.actual_hours_conducted !== undefined) {
+                        window.actualLabHoursConducted = data.actual_hours_conducted;
+                    }
+                    if (data.conducted_experiments_count !== undefined) {
+                        window.conductedExpsCount = data.conducted_experiments_count;
+                        const hdrCount = document.getElementById('headerCompletedExpsCount');
+                        if (hdrCount) hdrCount.innerText = data.conducted_experiments_count;
+                        const sumCount = document.getElementById('summaryCompletedExpsCount');
+                        if (sumCount) sumCount.innerText = data.conducted_experiments_count;
+                    }
                 }
             } catch(err) {
                 console.error("Error fetching practical evaluations:", err);
             }
         }
         document.addEventListener('DOMContentLoaded', fetchPracticalEvaluationsData);
+
+        function openCompletedExperimentsModal() {
+            const modal = document.getElementById('completedExperimentsModal');
+            if (!modal) return;
+
+            const list = window.conductedExpsDetails || [];
+            const totalSyllabus = window.totalSyllabusExps || {{ $totalExperiments ?? 0 }};
+            const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : list.length;
+            const hoursCount = (window.actualLabHoursConducted !== undefined && window.actualLabHoursConducted > 0)
+                ? window.actualLabHoursConducted
+                : (doneCount * 3);
+            const pct = totalSyllabus > 0 ? Math.round((doneCount / totalSyllabus) * 100) : 0;
+
+            const kpiTotal = document.getElementById('kpiTotalSyllabusExps');
+            if (kpiTotal) kpiTotal.innerText = totalSyllabus;
+            const kpiDone = document.getElementById('kpiCompletedExpsCount');
+            if (kpiDone) kpiDone.innerText = doneCount;
+            const kpiHours = document.getElementById('kpiActualLabHours');
+            if (kpiHours) kpiHours.innerText = `${hoursCount} hrs`;
+            const kpiPct = document.getElementById('kpiCoveragePercent');
+            if (kpiPct) kpiPct.innerText = `${pct}%`;
+
+            const counter = document.getElementById('completedExpsTableCounter');
+            if (counter) counter.innerText = `Showing ${list.length} completed session records`;
+
+            renderCompletedExperimentsTable(list);
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        window.openCompletedExperimentsModal = openCompletedExperimentsModal;
+
+        function closeCompletedExperimentsModal() {
+            const modal = document.getElementById('completedExperimentsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        window.closeCompletedExperimentsModal = closeCompletedExperimentsModal;
+
+        function renderCompletedExperimentsTable(list) {
+            const tbody = document.getElementById('completedExperimentsTableBody');
+            if (!tbody) return;
+            if (!list || list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            list.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs";
+                let rawDate = '';
+                let dateStr = item.date || '—';
+                if (item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    rawDate = item.date;
+                    const dParts = item.date.split('-');
+                    dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+                } else if (item.date && item.date.includes('-')) {
+                    const dParts = item.date.split('-');
+                    if (dParts.length === 3 && dParts[0].length === 4) dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+                }
+                const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-mono text-slate-500">${idx + 1}</td>
+                    <td class="p-2.5 font-mono font-bold text-teal-300">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+                    <td class="p-2.5 text-slate-200">
+                        <span class="font-bold">${item.title || ''}</span>
+                        ${item.co_tag ? `<span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">${item.co_tag}</span>` : ''}
+                    </td>
+                    <td class="p-2 text-center">
+                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+                            <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
+                            <input type="date" value="${rawDate}" 
+                                onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
+                                class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
+                            <button type="button" 
+                                onclick="openEditExpDateModal(${item.experiment_id || 'null'}, '${rawDate}', '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
+                                class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
+                                <span class="material-symbols-rounded text-xs">tune</span>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-2.5 text-center font-mono text-sky-400">
+                        <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">${item.hours_text || '3 hrs (Lab)'}</span>
+                    </td>
+                    <td class="p-2.5 text-center">
+                        <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold ${batchColor}">${item.batch || 'Whole Class'}</span>
+                    </td>
+                    <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
+                        ${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}
+                        ${item.attendance_pct ? `<span class="block text-[10px] text-slate-500 font-normal">(${item.attendance_pct}%)</span>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        let editingExpContext = null;
+
+        function openEditExpDateModal(expId, currentDate, subBatch, expNo, title, newDateToPreselect) {
+            if (!expId) return;
+            editingExpContext = { expId, currentDate, subBatch, expNo, title };
+            
+            const elExpNo = document.getElementById('editModalExpNo');
+            const elExpNoInput = document.getElementById('editModalExpNoInput');
+            const elTitle = document.getElementById('editModalExpTitle');
+            const elCurDate = document.getElementById('editModalCurrentDate');
+            const elInput = document.getElementById('editModalNewDateInput');
+            const elBatchLabel = document.getElementById('editModalBatchLabel');
+
+            const rawExpNoClean = (expNo || '').replace(/^Exp\s*/i, '');
+            if (elExpNo) elExpNo.innerText = expNo || `Exp`;
+            if (elExpNoInput) elExpNoInput.value = rawExpNoClean || '';
+            if (elTitle) elTitle.innerText = title || '';
+            
+            let displayCurDate = currentDate || 'None';
+            if (currentDate && currentDate.includes('-')) {
+                const parts = currentDate.split('-');
+                if (parts.length === 3 && parts[0].length === 4) displayCurDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            if (elCurDate) elCurDate.innerText = displayCurDate;
+            if (elInput) elInput.value = newDateToPreselect || currentDate || '';
+            
+            const batchLabel = (subBatch === '1' || subBatch === 1) ? 'Batch 1 Only' : ((subBatch === '2' || subBatch === 2) ? 'Batch 2 Only' : 'Whole Class Only');
+            if (elBatchLabel) elBatchLabel.innerText = batchLabel;
+            
+            const modal = document.getElementById('editExpDateModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+        window.openEditExpDateModal = openEditExpDateModal;
+
+        function closeEditExpDateModal() {
+            const modal = document.getElementById('editExpDateModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            editingExpContext = null;
+        }
+        window.closeEditExpDateModal = closeEditExpDateModal;
+
+        function promptEditExpDate(expId, oldDate, newDate, subBatch, expNo, title) {
+            if (!expId || !newDate || oldDate === newDate) return;
+            openEditExpDateModal(expId, oldDate, subBatch, expNo, title, newDate);
+        }
+        window.promptEditExpDate = promptEditExpDate;
+
+        function submitEditExpDate() {
+            if (!editingExpContext) return;
+            const newDate = document.getElementById('editModalNewDateInput').value;
+            if (!newDate) {
+                alert('Please select a valid date.');
+                return;
+            }
+            
+            const newExpNo = document.getElementById('editModalExpNoInput') ? document.getElementById('editModalExpNoInput').value.trim() : null;
+            const scopeEl = document.querySelector('input[name="editExpDateScope"]:checked');
+            const scope = scopeEl ? scopeEl.value : 'universal';
+            const syncAtt = document.getElementById('editModalSyncAttendance') ? document.getElementById('editModalSyncAttendance').checked : true;
+
+            const btn = document.getElementById('btnConfirmEditExpDate');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Updating...';
+            }
+
+            const subjId = currentSubjectId || "{{ $batchSubject->id ?? '' }}";
+
+            fetch(`/api/classroom/${subjId}/practical/experiment-date`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    experiment_id: editingExpContext.expId,
+                    old_date: editingExpContext.currentDate,
+                    new_date: newDate,
+                    new_experiment_no: newExpNo,
+                    scope: scope,
+                    sub_batch: editingExpContext.subBatch,
+                    update_attendance: syncAtt
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-rounded text-sm">check</span> Save & Update';
+                }
+                if (res.status === 'SUCCESS') {
+                    closeEditExpDateModal();
+                    if (typeof fetchPracticalEvaluationsData === 'function') {
+                        fetchPracticalEvaluationsData().then(() => {
+                            openCompletedExperimentsModal();
+                        });
+                    }
+                } else {
+                    alert(res.message || 'Failed to update experiment date.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-rounded text-sm">check</span> Save & Update';
+                }
+                alert('An error occurred while updating experiment date.');
+            });
+        }
+        window.submitEditExpDate = submitEditExpDate;
 
         // Manage Experiments Modal Controllers
         function openManageExperimentsModal(e) {
@@ -1163,7 +1885,6 @@
             const title = document.getElementById('expFormTitle').value.trim();
             const co = document.getElementById('expFormCo').value;
 
-            // Lock button to prevent double-clicks
             const btn = document.getElementById('btnSaveExp');
             const icon = document.getElementById('btnSaveExpIcon');
             const label = document.getElementById('btnSaveExpLabel');
@@ -1192,34 +1913,55 @@
                     document.getElementById('expFormTitle').value = '';
                     if (icon) icon.classList.remove('hidden');
                     if (icon) icon.className = 'fa-solid fa-plus text-xs';
-                    if (label) label.textContent = 'Add';
+                    if (label) label.textContent = 'Add Experiment';
 
-                    // Show inline success — no alert popup
-                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
-                    feedback.textContent = '✓ Experiment saved successfully!';
-                    feedback.classList.remove('hidden');
-                    setTimeout(() => feedback.classList.add('hidden'), 3000);
+                    // 1. Immediately update experiments array from server response
+                    if (data.experiments && Array.isArray(data.experiments)) {
+                        labExperimentsData = data.experiments;
+                    } else if (data.data) {
+                        const idx = labExperimentsData.findIndex(e => e.id == data.data.id || e.experiment_no == data.data.experiment_no);
+                        if (idx >= 0) {
+                            labExperimentsData[idx] = data.data;
+                        } else {
+                            labExperimentsData.push(data.data);
+                        }
+                    }
 
-                    // Fetch fresh data then immediately render — no race condition
-                    await fetchPracticalEvaluationsData();
+                    // 2. Render UI list IMMEDIATELY (< 10ms)
                     renderManageExperimentsList();
+                    updateSyllabusCounters(labExperimentsData.length);
+
+                    // 3. Show success banner
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+                    feedback.textContent = '✓ ' + (data.message || 'Experiment saved successfully!');
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 2500);
+
+                    // 4. Re-enable button immediately
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    if (spinner) spinner.classList.add('hidden');
+                    if (icon) icon.classList.remove('hidden');
+
+                    // 5. Background sync for marks and evaluation without blocking modal
+                    fetchPracticalEvaluationsData();
                 } else {
                     feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
                     feedback.textContent = '✗ ' + (data.message || 'Failed to save experiment.');
                     feedback.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    if (spinner) spinner.classList.add('hidden');
+                    if (icon) icon.classList.remove('hidden');
                 }
             } catch(err) {
                 feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
                 feedback.textContent = '✗ Network error. Please try again.';
                 feedback.classList.remove('hidden');
-            } finally {
-                // Always re-enable button
                 btn.disabled = false;
                 btn.classList.remove('opacity-60', 'cursor-not-allowed');
                 if (spinner) spinner.classList.add('hidden');
                 if (icon) icon.classList.remove('hidden');
-                const isEdit = document.getElementById('expEditId').value;
-                if (label) label.textContent = isEdit ? 'Update' : 'Add';
             }
         }
 
@@ -1232,13 +1974,18 @@
             const label = document.getElementById('btnSaveExpLabel');
             if (icon) { icon.className = 'fa-solid fa-floppy-disk text-xs'; icon.classList.remove('hidden'); }
             if (label) label.textContent = 'Update';
-            // Scroll form into view for convenience
             document.getElementById('expFormNo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             document.getElementById('expFormNo').focus();
         }
 
         async function deleteExperiment(id) {
             if (!confirm('Are you sure you want to delete this experiment? All graded marks for this experiment will be permanently deleted!')) return;
+
+            // OPTIMISTIC INSTANT REMOVAL: Remove from table immediately for zero-lag response!
+            const prevList = [...labExperimentsData];
+            labExperimentsData = labExperimentsData.filter(exp => exp.id !== id);
+            renderManageExperimentsList();
+            updateSyllabusCounters(labExperimentsData.length);
 
             const feedback = document.getElementById('expSaveFeedback');
             try {
@@ -1247,14 +1994,32 @@
                     headers: { 'X-CSRF-TOKEN': csrfToken }
                 });
                 const data = await res.json();
-                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
-                feedback.textContent = data.message || 'Experiment deleted.';
-                feedback.classList.remove('hidden');
-                setTimeout(() => feedback.classList.add('hidden'), 3000);
-                await fetchPracticalEvaluationsData();
-                renderManageExperimentsList();
+                if (data.status === 'SUCCESS') {
+                    if (data.experiments && Array.isArray(data.experiments)) {
+                        labExperimentsData = data.experiments;
+                        renderManageExperimentsList();
+                        updateSyllabusCounters(labExperimentsData.length);
+                    }
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                    feedback.textContent = data.message || 'Experiment deleted successfully.';
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 2500);
+
+                    // Background sync evaluations
+                    fetchPracticalEvaluationsData();
+                } else {
+                    // Revert if server rejected
+                    labExperimentsData = prevList;
+                    renderManageExperimentsList();
+                    updateSyllabusCounters(labExperimentsData.length);
+                    alert(data.message || 'Failed to delete experiment.');
+                }
             } catch(err) {
                 console.error('Delete error:', err);
+                labExperimentsData = prevList;
+                renderManageExperimentsList();
+                updateSyllabusCounters(labExperimentsData.length);
+                alert('Network error deleting experiment.');
             }
         }
 
@@ -1268,12 +2033,24 @@
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
                 });
                 const data = await res.json();
-                feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
-                feedback.textContent = data.message || 'Experiments imported.';
-                feedback.classList.remove('hidden');
-                setTimeout(() => feedback.classList.add('hidden'), 3000);
-                await fetchPracticalEvaluationsData();
-                renderManageExperimentsList();
+                if (data.status === 'SUCCESS') {
+                    if (data.experiments && Array.isArray(data.experiments)) {
+                        labExperimentsData = data.experiments;
+                        renderManageExperimentsList();
+                        updateSyllabusCounters(labExperimentsData.length);
+                    }
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+                    feedback.textContent = data.message || 'Experiments imported successfully.';
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 2500);
+
+                    // Background sync evaluations
+                    fetchPracticalEvaluationsData();
+                } else {
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
+                    feedback.textContent = data.message || 'Import failed.';
+                    feedback.classList.remove('hidden');
+                }
             } catch(err) {
                 feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
                 feedback.textContent = 'Import failed. Please try again.';
@@ -1398,6 +2175,341 @@
             }, 150);
 
             return false;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // STUDENT DETAIL MODAL — JS
+        // ══════════════════════════════════════════════════════════════════════
+
+        let detailCurrentRegNo = null;
+        let detailStudentList  = studentList.map(s => s.reg_no); // ordered reg_no list
+        let attLogLoaded       = false;
+        let attLogCache        = null;
+        let attLogOpen         = false;
+
+        function openStudentDetailModal(regNo) {
+            detailCurrentRegNo = regNo;
+            attLogLoaded = false;
+            attLogOpen = false;
+
+            const student = studentList.find(s => s.reg_no === regNo);
+            if (!student) return;
+
+            const graded = gradedCounts[regNo] ?? 0;
+            document.getElementById('detailModalStudentName').innerText = student.name;
+            document.getElementById('detailModalStudentReg').innerText  = student.reg_no;
+            document.getElementById('detailModalGradedBadge').innerText = `${graded} / ${totalExpCount} Exps Graded`;
+            document.getElementById('detailModalGradedBadge').className =
+                `ml-2 px-2 py-0.5 text-[10px] font-bold rounded border ${
+                    graded === 0 ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                    : graded < totalExpCount ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'}`;
+
+            const idx = detailStudentList.indexOf(regNo);
+            document.getElementById('detailModalPosition').innerText =
+                idx >= 0 ? `${idx + 1} / ${detailStudentList.length}` : '';
+
+            renderDetailExpTable(regNo);
+            renderDetailCIASummary(regNo);
+
+            // Reset att log
+            document.getElementById('attLogBody').classList.add('hidden');
+            document.getElementById('attLogChevron').style.transform = '';
+            document.getElementById('attLogSummary').innerText = '';
+
+            const modal = document.getElementById('studentDetailModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.scrollTop = 0;
+        }
+
+        function closeStudentDetailModal() {
+            const modal = document.getElementById('studentDetailModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            detailCurrentRegNo = null;
+        }
+
+        function navigateDetailModal(dir) {
+            if (!detailCurrentRegNo) return;
+            const idx = detailStudentList.indexOf(detailCurrentRegNo);
+            let next = idx + dir;
+            if (next < 0) next = detailStudentList.length - 1;
+            if (next >= detailStudentList.length) next = 0;
+            openStudentDetailModal(detailStudentList[next]);
+        }
+
+        function renderDetailExpTable(regNo) {
+            const tbody = document.getElementById('detailExpTableBody');
+            tbody.innerHTML = '';
+            const expData = studentExpDetail[regNo] ?? {};
+
+            experimentsList.forEach(exp => {
+                const m = expData[exp.id];
+                const isGraded = m && m.graded;
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/20';
+
+                if (isGraded) {
+                    tr.innerHTML = `
+                        <td class="p-2 text-center font-bold text-slate-400 font-mono text-[11px]">${exp.experiment_no}</td>
+                        <td class="p-2 text-slate-200 font-medium text-[11px]">${exp.title ?? '—'}</td>
+                        <td class="p-2 text-center font-mono text-blue-300 text-[11px]">${(m.rough ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center font-mono text-blue-300 text-[11px]">${(m.fair ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center font-mono text-blue-300 text-[11px]">${(m.obs ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center font-mono text-blue-300 text-[11px]">${(m.proc ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center font-mono text-blue-300 text-[11px]">${(m.viva ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center font-mono font-bold text-sky-300 text-[11px]">${(m.total ?? 0).toFixed(1)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="editExpFromModal('${regNo}', '${exp.experiment_no}', '${(exp.title ?? '').replace(/'/g, "\\'")}', ${exp.id})"
+                                class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded text-[10px] font-bold cursor-pointer transition">
+                                Edit
+                            </button>
+                        </td>`;
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-2 text-center font-bold text-slate-500 font-mono text-[11px]">${exp.experiment_no}</td>
+                        <td class="p-2 text-slate-400 font-medium text-[11px]">${exp.title ?? '—'}</td>
+                        <td colspan="6" class="p-2 text-center">
+                            <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] font-bold">— Pending —</span>
+                        </td>
+                        <td class="p-2 text-center">
+                            <button onclick="editExpFromModal('${regNo}', '${exp.experiment_no}', '${(exp.title ?? '').replace(/'/g, "\\'")}', ${exp.id})"
+                                class="px-2 py-0.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 rounded text-[10px] font-bold cursor-pointer transition">
+                                Grade
+                            </button>
+                        </td>`;
+                }
+                tbody.appendChild(tr);
+            });
+
+            if (experimentsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">No experiments configured yet.</td></tr>`;
+            }
+        }
+
+        function renderDetailCIASummary(regNo) {
+            const cia  = consolidatedScores[regNo] ?? {};
+            const att  = attendanceMarks[regNo]    ?? {};
+            const eval_ = openEndedLogs[regNo]     ?? {};
+
+            // 1. Open-ended
+            const oeVal = parseFloat(cia.open_ended_mark ?? cia.scaled_open_ended_10 ?? 0);
+            document.getElementById('detailInputOpenEnded').value = oeVal > 0 ? oeVal : '';
+            const titleInput = document.getElementById(`open-title-${regNo}`);
+            document.getElementById('detailInputOpenTopic').value = titleInput ? titleInput.value : (eval_.project_title || '');
+
+            // 2. Tests
+            const t1 = parseFloat(cia.test1_score ?? 0);
+            const t2 = parseFloat(cia.test2_score ?? 0);
+            document.getElementById('detailInputTest1').value = t1 > 0 ? t1 : '';
+            document.getElementById('detailInputTest2').value = t2 > 0 ? t2 : '';
+
+            // 3. Attendance
+            document.getElementById('detailInputAttMark').value = att.mark !== undefined ? att.mark : 0;
+            document.getElementById('detailAttSuggested').innerText = `Sugg: ${att.suggested_mark ?? att.mark ?? 0}`;
+            document.getElementById('detailAttStats').innerText = `${att.percentage ?? 0}% (${att.present_classes ?? 0}/${att.total_classes ?? 0} sessions)`;
+
+            // 4. Lab Work avg
+            const labAvg = parseFloat(cia.avg_lab_work_375 ?? cia.scaled_lab_work_30 ?? 0);
+            document.getElementById('detailLabWorkAvg').innerText = labAvg.toFixed(2);
+
+            const msgEl = document.getElementById('detailCiaSaveMsg');
+            if (msgEl) {
+                msgEl.innerText = '';
+                msgEl.className = 'text-[11px] font-semibold text-emerald-400 transition-opacity opacity-0';
+            }
+
+            recalcDesktopModalCIA();
+        }
+
+        function recalcDesktopModalCIA() {
+            const oe = parseFloat(document.getElementById('detailInputOpenEnded').value) || 0;
+            const t1 = parseFloat(document.getElementById('detailInputTest1').value) || 0;
+            const t2 = parseFloat(document.getElementById('detailInputTest2').value) || 0;
+            const att = parseFloat(document.getElementById('detailInputAttMark').value) || 0;
+            const lab = parseFloat(document.getElementById('detailLabWorkAvg').innerText) || 0;
+
+            const avgT = (t1 + t2) / 2;
+            const scaledT = (avgT / 40) * 15;
+
+            document.getElementById('detailCalcTestAvg').innerText = avgT.toFixed(2);
+            document.getElementById('detailCalcTestScaled').innerText = `${scaledT.toFixed(2)} / 15M`;
+
+            const total = lab + oe + scaledT + att;
+            document.getElementById('detailTotalCIA').innerText = total.toFixed(2);
+        }
+
+        async function saveStudentCiaSummaryDesktop() {
+            if (!detailCurrentRegNo) return;
+            const regNo = detailCurrentRegNo;
+
+            const oe = parseFloat(document.getElementById('detailInputOpenEnded').value) || 0;
+            const topic = document.getElementById('detailInputOpenTopic').value;
+            const t1 = document.getElementById('detailInputTest1').value !== '' ? parseFloat(document.getElementById('detailInputTest1').value) : null;
+            const t2 = document.getElementById('detailInputTest2').value !== '' ? parseFloat(document.getElementById('detailInputTest2').value) : null;
+            const att = document.getElementById('detailInputAttMark').value !== '' ? parseFloat(document.getElementById('detailInputAttMark').value) : null;
+
+            const msgEl = document.getElementById('detailCiaSaveMsg');
+            if (msgEl) {
+                msgEl.innerText = 'Saving...';
+                msgEl.className = 'text-[11px] font-semibold text-sky-400 opacity-100';
+            }
+
+            try {
+                const res = await fetch(`/api/classroom/${batchSubjectId}/practical/cia-summary`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        reg_no: regNo,
+                        open_ended_mark: oe,
+                        open_ended_topic: topic,
+                        test1: t1,
+                        test2: t2,
+                        attendance_mark: att
+                    })
+                });
+                const resp = await res.json();
+                if (resp.success) {
+                    const d = resp.data;
+
+                    // Update memory state
+                    if (!consolidatedScores[regNo]) consolidatedScores[regNo] = {};
+                    consolidatedScores[regNo].open_ended_mark = d.open_ended_mark;
+                    consolidatedScores[regNo].scaled_open_ended_10 = d.open_ended_mark;
+                    consolidatedScores[regNo].test1_score = d.test1_score;
+                    consolidatedScores[regNo].test2_score = d.test2_score;
+                    consolidatedScores[regNo].avg_test_40 = d.avg_test_40;
+                    consolidatedScores[regNo].scaled_series_15 = d.scaled_series_15;
+                    consolidatedScores[regNo].att_mark_15 = d.att_mark_15;
+                    consolidatedScores[regNo].total_cia_75 = d.total_cia_75;
+                    consolidatedScores[regNo].total_cia_60 = d.total_cia_75;
+
+                    if (!attendanceMarks[regNo]) attendanceMarks[regNo] = {};
+                    attendanceMarks[regNo].mark = d.att_mark_15;
+
+                    // Update Tab 4 (Consolidated CIA Summary table)
+                    const elOpen = document.getElementById(`cia-open-${regNo}`);
+                    if (elOpen) elOpen.innerText = d.open_ended_mark.toFixed(2);
+
+                    const elSeries = document.getElementById(`cia-series-${regNo}`);
+                    if (elSeries) elSeries.innerText = d.scaled_series_15.toFixed(2);
+
+                    const elAtt = document.getElementById(`cia-att-${regNo}`);
+                    if (elAtt) elAtt.innerText = d.att_mark_15;
+
+                    const elTotal = document.getElementById(`cia-total-${regNo}`);
+                    if (elTotal) elTotal.innerText = d.total_cia_75.toFixed(2);
+
+                    // Update Tab 2 project title & score if exists
+                    const titleInp = document.getElementById(`open-title-${regNo}`);
+                    if (titleInp) titleInp.value = d.open_ended_topic;
+                    const scoreTextOpen = document.getElementById(`score-text-open-${regNo}`);
+                    if (scoreTextOpen) scoreTextOpen.innerText = `${(d.open_ended_mark * (50 / 7.5)).toFixed(1)} / 50`;
+
+                    if (msgEl) {
+                        msgEl.innerText = 'Saved ✓';
+                        msgEl.className = 'text-[11px] font-semibold text-emerald-400 opacity-100';
+                        setTimeout(() => {
+                            if (msgEl) msgEl.className = 'text-[11px] font-semibold text-emerald-400 opacity-0';
+                        }, 3000);
+                    }
+                } else {
+                    alert(resp.message || 'Error saving CIA summary.');
+                    if (msgEl) msgEl.innerText = '';
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Failed to save CIA summary.');
+                if (msgEl) msgEl.innerText = '';
+            }
+        }
+
+        function editExpFromModal(regNo, expNo, expTitle, expId) {
+            // Pre-load experiment selector with the chosen experiment, then open grade modal
+            const expNoInput = document.getElementById('exp_no');
+            const expTitleInput = document.getElementById('exp_title');
+            if (expNoInput) expNoInput.value = expNo;
+            if (expTitleInput) expTitleInput.value = expTitle;
+
+            // Switch to lab work tab so the grading modal context is correct
+            switchTab('table22');
+            activeTab = 'table22';
+
+            // Close detail modal, then open grading modal
+            closeStudentDetailModal();
+            setTimeout(() => openGradingModal(regNo, 'table22'), 150);
+        }
+
+        function toggleAttLog() {
+            attLogOpen = !attLogOpen;
+            const body    = document.getElementById('attLogBody');
+            const chevron = document.getElementById('attLogChevron');
+
+            if (attLogOpen) {
+                body.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+                if (!attLogLoaded) loadAttendanceLog(detailCurrentRegNo);
+            } else {
+                body.classList.add('hidden');
+                chevron.style.transform = '';
+            }
+        }
+
+        async function loadAttendanceLog(regNo) {
+            const tbody  = document.getElementById('attLogTableBody');
+            const summary = document.getElementById('attLogSummary');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Loading...</td></tr>`;
+
+            try {
+                if (!attLogCache) {
+                    const res  = await fetch(`/api/classroom/${batchSubjectId}/practical/attendance-log`);
+                    const data = await res.json();
+                    attLogCache = data.status === 'SUCCESS' ? data.logs : [];
+                }
+
+                const logs = attLogCache;
+                let present = 0, absent = 0;
+                tbody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No attendance logs found.</td></tr>`;
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const isPresent = log.present.includes(regNo);
+                    const isAbsent  = log.absent.includes(regNo);
+                    if (isPresent) present++;
+                    if (!isPresent) absent++;
+
+                    const tr = document.createElement('tr');
+                    tr.className = `border-b border-slate-800/40 ${isPresent ? '' : 'bg-red-950/10'}`;
+                    tr.innerHTML = `
+                        <td class="p-2 font-mono text-slate-300 text-[11px]">${log.date}</td>
+                        <td class="p-2 text-center font-mono text-slate-400 text-[11px]">${log.period}</td>
+                        <td class="p-2 text-slate-300 text-[11px]">${log.topic}</td>
+                        <td class="p-2 text-center text-slate-500 text-[10px]">${log.sub_batch ?? 'Whole'}</td>
+                        <td class="p-2 text-center">
+                            ${isPresent
+                                ? '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">✓ Present</span>'
+                                : '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold">✗ Absent</span>'}
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+
+                const total = logs.length;
+                const pct   = total > 0 ? Math.round((present / total) * 100) : 0;
+                summary.innerText = `(${present} / ${total} sessions — ${pct}%)`;
+                attLogLoaded = true;
+
+            } catch(err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Failed to load attendance log.</td></tr>`;
+                console.error(err);
+            }
         }
     </script>
 </body>

@@ -1583,6 +1583,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        $isPractical = (str_contains(strtolower($batchSubject->subject_type ?? ''), 'lab') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'practical') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'drawing'));
+        if ($isPractical) {
+            return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printSeriesReport($subjectId);
+        }
+
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
 
@@ -1638,6 +1643,11 @@ class R26ClassroomController extends Controller
 
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) abort(404);
+
+        $isPractical = (str_contains(strtolower($batchSubject->subject_type ?? ''), 'lab') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'practical') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'drawing'));
+        if ($isPractical) {
+            return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printReport($subjectId);
+        }
 
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
@@ -1807,6 +1817,11 @@ class R26ClassroomController extends Controller
 
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) abort(404);
+
+        $isPractical = (str_contains(strtolower($batchSubject->subject_type ?? ''), 'lab') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'practical') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'drawing'));
+        if ($isPractical) {
+            return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printFinalResults($subjectId);
+        }
 
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();

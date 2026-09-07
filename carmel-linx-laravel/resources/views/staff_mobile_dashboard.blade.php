@@ -1212,8 +1212,8 @@
 
     <!-- CLASS ATTENDANCE & LOG MODAL -->
     <div class="modal fade" id="classAttendanceModal" tabindex="-1" aria-hidden="true" style="display: none; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(12px);">
-        <div class="modal-dialog modal-dialog-centered modal-lg my-0 my-sm-3" style="max-height: 100vh; height: 100%;">
-            <div class="modal-content bg-slate-950 border border-slate-800 text-white shadow-2xl rounded-0 rounded-sm-4" style="background-color: #090d16 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; max-height: 100vh; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-centered modal-lg my-0 my-sm-3" style="max-height: 100dvh; height: 100%;">
+            <div class="modal-content bg-slate-950 border border-slate-800 text-white shadow-2xl rounded-0 rounded-sm-4" style="background-color: #090d16 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; max-height: 100dvh; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
                 
                 <!-- Unified Fixed Header on Top -->
                 <div class="modal-header py-2.5 px-3 d-flex flex-column gap-2 flex-shrink-0" style="background-color: #0f172a !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; position: sticky; top: 0; z-index: 1060; box-shadow: 0 4px 14px rgba(0,0,0,0.6);">
@@ -1254,6 +1254,35 @@
 
                     <!-- TAB 1: TAKE ATTENDANCE & LOG FORM -->
                     <div id="paneTakeAtt">
+
+                        <!-- Active Edit Banner (Shown when editing a past log) -->
+                        <div id="attEditingBanner" class="p-2.5 mb-2.5 rounded-3 border d-none" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.2) 100%); border-color: rgba(245, 158, 11, 0.4) !important;">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                                        <i class="fa-solid fa-pen-to-square text-amber" style="color: #fbbf24;"></i>
+                                        <strong class="text-white" style="font-size: 0.84rem;">Editing <span id="editBannerSlNo">Log #1</span></strong>
+                                        <span class="badge font-mono fw-black px-2 py-0.5" id="editBannerBatch" style="background-color: #f59e0b !important; color: #0f172a !important; font-size: 0.7rem;">Batch 1</span>
+                                    </div>
+                                    <div class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">
+                                        <span>Date: <strong class="text-white" id="editBannerDate">---</strong></span> &bull; 
+                                        <span>Periods: <strong class="text-white" id="editBannerPeriods">---</strong></span>
+                                    </div>
+                                    <div class="text-slate-300 mt-1 small" style="font-size: 0.74rem;">
+                                        <span id="editBannerTopic" class="text-cyan fw-bold"></span>
+                                        <span class="ms-1" id="editBannerTotals"></span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column gap-1 flex-shrink-0">
+                                    <button type="button" onclick="cancelEditingLog()" class="btn btn-sm btn-outline-light py-0.5 px-2 font-bold" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-xmark me-1"></i> Cancel Edit
+                                    </button>
+                                    <button type="button" onclick="deleteCurrentEditingLog()" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.72rem; border-color: rgba(244, 63, 94, 0.5) !important; color: #fb7185 !important;" title="Delete this log entry">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Delete Log
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- Redesigned Class Log Options Card -->
                         <div class="p-3 mb-3 rounded-3 bg-slate-900 border border-slate-800 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
@@ -1307,7 +1336,7 @@
                             <div class="row g-2 mt-1">
                                 <div class="col-12 col-sm-6">
                                     <label class="form-label text-slate-300 mb-1 fw-bold d-flex align-items-center gap-1" style="font-size:0.76rem; color: #cbd5e1 !important;">
-                                        <i class="fa-solid fa-book-bookmark text-cyan"></i> Syllabus / Lesson Plan Topic
+                                        <i class="fa-solid fa-book-bookmark text-cyan" id="attTopicLabelIcon"></i> <span id="attTopicLabelText">Syllabus / Lesson Plan Topic</span>
                                     </label>
                                     <select id="attLessonPlanSelect" onchange="onAttLessonPlanChange()" class="form-select form-select-sm bg-slate-950 text-white border-slate-800 rounded-3 shadow-none text-truncate" style="background-color: #020617 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; font-size: 0.72rem !important; padding-top: 4px; padding-bottom: 4px;">
                                         <option value="">-- Manual Entry --</option>
@@ -1336,11 +1365,19 @@
                                 </div>
                             </div>
 
-                            <!-- Row 2: Action Toolbar (Mark All Absent on Left, List/Grid on Right) -->
-                            <div class="d-flex align-items-center justify-content-between gap-2 border-top pt-2 border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.08) !important;">
-                                <button type="button" onclick="toggleAllAttStudents()" id="btnAttCheckAll" class="btn btn-sm btn-outline-warning py-1 px-2.5 font-extrabold" style="font-size:0.78rem;">
-                                    <i class="fa-solid fa-user-xmark me-1"></i> Mark All Absent
-                                </button>
+                            <!-- Row 2: Action Toolbar -->
+                            <div class="d-flex align-items-center justify-content-between gap-1.5 border-top pt-2 border-slate-800 flex-wrap" style="border-top-color: rgba(255, 255, 255, 0.08) !important;">
+                                <div class="d-flex gap-1.5 flex-wrap align-items-center">
+                                    <button type="button" onclick="loadPreviousSessionAttendance()" id="btnPreviousAtt" class="btn btn-sm btn-outline-cyan py-1 px-2.5 font-bold" style="font-size:0.75rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;" title="Load previous attendance roster for this session">
+                                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Use Previous Attendance
+                                    </button>
+                                    <button type="button" onclick="selectAllTimetablePeriods()" id="btnTimetablePeriods" class="btn btn-sm btn-outline-secondary py-1 px-2 font-bold" style="font-size:0.75rem;" title="Select all periods scheduled for this subject on timetable">
+                                        <i class="fa-solid fa-calendar-check me-1"></i> Timetable
+                                    </button>
+                                    <button type="button" onclick="toggleAllAttStudents()" id="btnAttCheckAll" class="btn btn-sm btn-outline-warning py-1 px-2 font-extrabold" style="font-size:0.75rem;">
+                                        <i class="fa-solid fa-user-xmark me-1"></i> All Absent
+                                    </button>
+                                </div>
 
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" onclick="switchAttViewMode('list')" id="btnAttModeList" class="btn btn-cyan btn-sm py-1 px-2.5 font-extrabold" style="font-size:0.8rem;"><i class="fa-solid fa-list me-1"></i> List</button>
@@ -1382,9 +1419,18 @@
                     </div>
 
                     <!-- TAB 2: PAST CLASS LOGS -->
-                    <div id="panePastLogs" class="d-none">
-                        <div id="attPastLogsContainer" class="overflow-auto" style="max-height: 360px;">
-                            <div class="text-center py-4 text-slate-400" style="color: #94a3b8 !important;">
+                    <div id="panePastLogs" class="d-none w-100">
+                        <!-- History Header Bar -->
+                        <div class="d-flex align-items-center justify-content-between mb-2.5 px-1">
+                            <div class="small fw-bold text-slate-400 font-mono" style="font-size: 0.82rem;">
+                                <i class="fa-solid fa-timeline text-cyan me-1.5"></i> Attendance History & Logs
+                            </div>
+                            <button type="button" onclick="loadClassAttendanceReports()" class="btn btn-sm btn-outline-cyan py-0.5 px-2.5 font-bold rounded-pill shadow-sm" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.4) !important; color: #38bdf8 !important;">
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="attPastLogsContainer" class="w-100 pb-5">
+                            <div class="text-center py-5 text-slate-400" style="color: #94a3b8 !important;">
                                 <i class="fa-solid fa-spinner fa-spin fs-4 mb-2 text-cyan"></i>
                                 <div>Loading past attendance logs...</div>
                             </div>
@@ -1906,10 +1952,156 @@
 
         /* --- Class Log & Attendance Modal Logic --- */
         let currentAttBatchSubjectId = null;
+        let currentAttSubjectCode = '';
+        let currentAttClassroomId = '';
+        let currentAttSubjectName = '';
         let currentAttStudents = [];
         let currentAttSubjectType = '';
         let currentAttViewMode = 'list';
         let isAttAllChecked = true;
+        window.attEditingLog = null;
+        window.attEditingLogIds = null;
+
+        function getTimetablePeriodsForSubject(batchSubId, subCode, classId) {
+            const activeDay = (typeof currentSelectedDay !== 'undefined' && currentSelectedDay) ? currentSelectedDay : currentDefaultDayOrder;
+            if (!activeDay || typeof allTimetablesByDay === 'undefined' || !allTimetablesByDay || !allTimetablesByDay[activeDay]) {
+                return [];
+            }
+            const daySlots = allTimetablesByDay[activeDay] || [];
+            const matchedSlots = daySlots.filter(s => 
+                (batchSubId && s.batch_subject_id == batchSubId) ||
+                (subCode && s.subject_code === subCode && (!classId || s.classroom_id === classId))
+            );
+            const pNums = matchedSlots.map(s => parseInt(s.period)).filter(p => !isNaN(p) && p > 0);
+            return [...new Set(pNums)].sort((a, b) => a - b);
+        }
+
+        function selectAllTimetablePeriods() {
+            const periods = getTimetablePeriodsForSubject(currentAttBatchSubjectId, currentAttSubjectCode, currentAttClassroomId);
+            if (periods.length > 0) {
+                document.querySelectorAll('input[name="attPeriods"]').forEach(cb => {
+                    cb.checked = periods.includes(parseInt(cb.value));
+                });
+            } else {
+                const isLab = currentAttSubjectType && (
+                    currentAttSubjectType.toLowerCase().includes('lab') ||
+                    currentAttSubjectType.toLowerCase().includes('practical') ||
+                    currentAttSubjectType.toLowerCase().includes('practicum')
+                );
+                document.querySelectorAll('input[name="attPeriods"]').forEach(cb => {
+                    const val = parseInt(cb.value);
+                    cb.checked = isLab ? [1, 2, 3].includes(val) : (val === 1);
+                });
+            }
+        }
+
+        function cancelEditingLog() {
+            window.attEditingLog = null;
+            window.attEditingLogIds = null;
+            const banner = document.getElementById('attEditingBanner');
+            if (banner) banner.classList.add('d-none');
+
+            // Reset date to today
+            const dateInput = document.getElementById('attLogDate');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+            // Re-select timetable periods
+            selectAllTimetablePeriods();
+
+            // Reset topic input and dropdown
+            const topicsElem = document.getElementById('attTopicsCovered');
+            if (topicsElem) topicsElem.value = '';
+            const lpSelect = document.getElementById('attLessonPlanSelect');
+            if (lpSelect) lpSelect.value = '';
+
+            // Reset button text
+            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
+            allSaveBtns.forEach(b => {
+                b.disabled = false;
+                b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+            });
+
+            // Mark all students present by default
+            currentAttStudents.forEach(s => s.present = true);
+            filterAttStudentsByBatch();
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr || dateStr === '-' || dateStr === '—') return '—';
+            if (typeof dateStr !== 'string') return String(dateStr);
+            const m = dateStr.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) {
+                return `${m[3]}-${m[2]}-${m[1]}`;
+            }
+            const parts = dateStr.split('-');
+            if (parts.length === 3 && parts[0].length === 4) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function confirmDeleteClassLog(idx) {
+            const log = window.attPastLogsCache[idx];
+            if (!log) return;
+
+            const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : `Log #${idx + 1}`;
+            const periodText = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `Period ${log.period}`);
+            const logIds = log.log_ids || [log.id];
+
+            const msg = `Are you sure you want to delete this log entry?\n\n• ${slNoDisplay} on ${formatDisplayDate(log.date)} (${periodText})\n• Topic: "${log.topics_covered || 'No topic'}"\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
+
+            if (!confirm(msg)) return;
+
+            executeDeleteClassLog(logIds);
+        }
+
+        function deleteCurrentEditingLog() {
+            if (!window.attEditingLog || !window.attEditingLogIds || window.attEditingLogIds.length === 0) {
+                alert("No active log is currently being edited.");
+                return;
+            }
+
+            const log = window.attEditingLog;
+            const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : 'this log';
+            const msg = `Are you sure you want to delete ${slNoDisplay} on ${formatDisplayDate(log.date)}?\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
+
+            if (!confirm(msg)) return;
+
+            executeDeleteClassLog(window.attEditingLogIds);
+        }
+
+        function executeDeleteClassLog(logIds) {
+            if (!currentAttBatchSubjectId || !logIds || logIds.length === 0) return;
+
+            const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
+
+            fetch('/api/staff/attendance/delete-log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    batch_subject_id: currentAttBatchSubjectId,
+                    log_ids: logIds
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    alert(data.message || 'Log entry deleted successfully.');
+                    cancelEditingLog();
+                    loadClassAttendanceReports();
+                } else {
+                    alert(data.message || 'Failed to delete log entry.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Network error while deleting log entry.');
+            });
+        }
 
         function openClassAttendanceModal(batchSubjectId, period, subjectCode, classroomId, subjectName) {
             if (!batchSubjectId) {
@@ -1927,25 +2119,36 @@
             }
 
             currentAttBatchSubjectId = batchSubjectId;
+            currentAttSubjectCode = subjectCode || '';
+            currentAttClassroomId = classroomId || '';
+            currentAttSubjectName = subjectName || '';
+            window.attEditingLog = null;
+            window.attEditingLogIds = null;
+
             const modal = document.getElementById('classAttendanceModal');
             const alertBox = document.getElementById('attModalAlert');
             if (alertBox) alertBox.classList.add('d-none');
+            const editBanner = document.getElementById('attEditingBanner');
+            if (editBanner) editBanner.classList.add('d-none');
 
             document.getElementById('attSubjectConfirmCode').textContent = subjectCode || 'Class';
             document.getElementById('attSubjectConfirmName').textContent = subjectName ? ` - ${subjectName}` : '';
             document.getElementById('attBatchConfirmCode').textContent = classroomId || 'Active Batch';
 
-            document.querySelectorAll('input[name="attPeriods"]').forEach(cb => cb.checked = false);
-            if (period) {
-                const periodArr = String(period).split(',').map(p => p.trim());
-                periodArr.forEach(pVal => {
-                    const targetCb = document.getElementById(`attP${pVal}`);
-                    if (targetCb) targetCb.checked = true;
-                });
+            // Always select ALL periods as per the timetable on attendance entry
+            let periodsToSelect = [];
+            const schedPeriods = getTimetablePeriodsForSubject(batchSubjectId, subjectCode, classroomId);
+            if (schedPeriods.length > 0) {
+                periodsToSelect = schedPeriods;
+            } else if (period) {
+                periodsToSelect = String(period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p) && p > 0);
             } else {
-                const p1 = document.getElementById('attP1');
-                if (p1) p1.checked = true;
+                periodsToSelect = [1];
             }
+
+            document.querySelectorAll('input[name="attPeriods"]').forEach(cb => {
+                cb.checked = periodsToSelect.includes(parseInt(cb.value));
+            });
 
             // Immediate UI reset to prevent data bleeding between subjects
             const resetNextPointer = document.getElementById('attNextLogPointer');
@@ -1979,7 +2182,14 @@
                             nextPointer.style.color = '#0f172a';
                         }
 
-                        const isLab = (currentAttSubjectType && (
+                        // Autofill current date by default in attendance date picker
+                        const dateInput = document.getElementById('attLogDate');
+                        if (dateInput) {
+                            dateInput.value = new Date().toISOString().split('T')[0];
+                        }
+
+                        const hasExperiments = (data.experiments && data.experiments.length > 0);
+                        const isLab = hasExperiments || (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
                             currentAttSubjectType.toLowerCase().includes('practical') ||
                             currentAttSubjectType.toLowerCase().includes('practicum')
@@ -1995,22 +2205,80 @@
                             document.getElementById('sbWhole').checked = true;
                         }
 
+                        const lblText = document.getElementById('attTopicLabelText');
+                        const lblIcon = document.getElementById('attTopicLabelIcon');
                         const lpSelect = document.getElementById('attLessonPlanSelect');
                         lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
-                        (data.lesson_plans || []).forEach((lp, idx) => {
-                            const opt = document.createElement('option');
-                            opt.value = lp.id;
-                            let rawTopic = lp.topic_content || '';
-                            opt.dataset.topic = rawTopic;
-                            let displayTopic = rawTopic.length > 48 ? rawTopic.substring(0, 45) + '...' : rawTopic;
-                            opt.textContent = `#${idx + 1}. [${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
-                            opt.title = rawTopic;
-                            lpSelect.appendChild(opt);
-                        });
+
+                        if (isLab && hasExperiments) {
+                            if (lblText) lblText.textContent = 'Experiment Number';
+                            if (lblIcon) lblIcon.className = 'fa-solid fa-flask text-cyan';
+
+                            (data.experiments || []).forEach((exp, idx) => {
+                                const opt = document.createElement('option');
+                                opt.value = 'exp_' + exp.id;
+                                opt.dataset.isExp = '1';
+                                opt.dataset.expId = exp.id;
+                                opt.dataset.expNo = exp.experiment_no;
+                                opt.dataset.conductedDate = exp.conducted_date || '';
+                                const fullTopic = `Exp ${exp.experiment_no}: ${exp.title}`;
+                                opt.dataset.topic = fullTopic;
+                                let displayTitle = exp.title && exp.title.length > 38 ? exp.title.substring(0, 35) + '...' : (exp.title || '');
+                                opt.textContent = `Exp ${exp.experiment_no}: ${displayTitle} [${exp.co_tag || 'CO'}]`;
+                                opt.title = fullTopic;
+                                lpSelect.appendChild(opt);
+                            });
+                        } else {
+                            if (lblText) lblText.textContent = 'Syllabus / Lesson Plan Topic';
+                            if (lblIcon) lblIcon.className = 'fa-solid fa-book-bookmark text-cyan';
+
+                            (data.lesson_plans || []).forEach((lp, idx) => {
+                                const opt = document.createElement('option');
+                                opt.value = lp.id;
+                                let rawTopic = lp.topic_content || '';
+                                opt.dataset.topic = rawTopic;
+                                let displayTopic = rawTopic.length > 48 ? rawTopic.substring(0, 45) + '...' : rawTopic;
+                                opt.textContent = `#${idx + 1}. [${lp.co_id || 'CO'}] ${displayTopic} (${lp.status || 'Pending'})`;
+                                opt.title = rawTopic;
+                                lpSelect.appendChild(opt);
+                            });
+                        }
 
                         document.getElementById('attTopicsCovered').value = '';
 
                         filterAttStudentsByBatch();
+
+                        // Auto-check if session attendance is already recorded for today's periods
+                        const currentPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(cb => parseInt(cb.value));
+                        const dateToday = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+                        const selSb = document.querySelector('input[name="attSubBatch"]:checked');
+                        const sbVal = selSb ? selSb.value : 'Whole';
+
+                        if (currentPeriods.length > 0 && batchSubjectId && dateToday) {
+                            fetch(`/api/staff/attendance/session-check?batch_subject_id=${batchSubjectId}&date=${dateToday}&periods=${currentPeriods.join(',')}&sub_batch=${sbVal}`)
+                                .then(r => r.json())
+                                .then(attData => {
+                                    if (attData.status === 'SUCCESS' && attData.exists) {
+                                        window.mobileSessionAttendanceLoaded = true;
+                                        if (alertBox) {
+                                            alertBox.className = 'alert alert-info py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2';
+                                            alertBox.innerHTML = `<i class="fa-solid fa-circle-info"></i> Session attendance already recorded and loaded. Additional experiments will be logged without multiplying hours.`;
+                                            alertBox.classList.remove('d-none');
+                                        }
+                                        const presentSet = new Set(attData.present_students || []);
+                                        const absentSet = new Set(attData.absent_students || []);
+                                        currentAttStudents.forEach(s => {
+                                            if (absentSet.has(s.reg_no)) s.present = false;
+                                            else if (presentSet.has(s.reg_no)) s.present = true;
+                                        });
+                                        renderAttList();
+                                        renderAttGrid();
+                                    } else {
+                                        window.mobileSessionAttendanceLoaded = false;
+                                    }
+                                })
+                                .catch(err => console.error("Mobile session att check err:", err));
+                        }
 
                         if (modal) {
                             modal.style.display = 'block';
@@ -2039,17 +2307,20 @@
             const btnLogs = document.getElementById('tabBtnPastLogs');
             const paneTake = document.getElementById('paneTakeAtt');
             const paneLogs = document.getElementById('panePastLogs');
+            const modalBody = document.querySelector('#classAttendanceModal .modal-body');
+
+            if (modalBody) modalBody.scrollTop = 0;
 
             if (tab === 'take') {
-                btnTake.className = 'nav-link active py-1 px-2.5 rounded-pill text-white fw-bold';
-                btnLogs.className = 'nav-link py-1 px-2.5 rounded-pill text-secondary fw-bold';
-                paneTake.classList.remove('d-none');
-                paneLogs.classList.add('d-none');
+                if (btnTake) btnTake.className = 'nav-link active py-1.5 w-100 rounded-pill text-white fw-bold text-center';
+                if (btnLogs) btnLogs.className = 'nav-link py-1.5 w-100 rounded-pill text-secondary fw-bold text-center';
+                if (paneTake) paneTake.classList.remove('d-none');
+                if (paneLogs) paneLogs.classList.add('d-none');
             } else {
-                btnLogs.className = 'nav-link active py-1 px-2.5 rounded-pill text-white fw-bold';
-                btnTake.className = 'nav-link py-1 px-2.5 rounded-pill text-secondary fw-bold';
-                paneLogs.classList.remove('d-none');
-                paneTake.classList.add('d-none');
+                if (btnLogs) btnLogs.className = 'nav-link active py-1.5 w-100 rounded-pill text-white fw-bold text-center';
+                if (btnTake) btnTake.className = 'nav-link py-1.5 w-100 rounded-pill text-secondary fw-bold text-center';
+                if (paneLogs) paneLogs.classList.remove('d-none');
+                if (paneTake) paneTake.classList.add('d-none');
                 loadClassAttendanceReports();
             }
         }
@@ -2060,6 +2331,16 @@
             if (selectedOption && select.value) {
                 const topic = selectedOption.dataset.topic || selectedOption.title || '';
                 document.getElementById('attTopicsCovered').value = topic;
+
+                // Autofill date: if experiment has conducted_date, use that; otherwise current date
+                const dateInput = document.getElementById('attLogDate');
+                if (dateInput) {
+                    if (selectedOption.dataset.conductedDate) {
+                        dateInput.value = selectedOption.dataset.conductedDate;
+                    } else if (!dateInput.value) {
+                        dateInput.value = new Date().toISOString().split('T')[0];
+                    }
+                }
             } else {
                 document.getElementById('attTopicsCovered').value = '';
             }
@@ -2202,7 +2483,10 @@
             const date = dateElem ? dateElem.value : '';
             const checkedPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(el => parseInt(el.value));
             const lpSelect = document.getElementById('attLessonPlanSelect');
-            const lpId = lpSelect ? lpSelect.value : '';
+            const selOpt = lpSelect ? lpSelect.options[lpSelect.selectedIndex] : null;
+            const isExp = selOpt && selOpt.dataset.isExp === '1';
+            const expId = isExp ? parseInt(selOpt.dataset.expId) : null;
+            const lpId = (!isExp && selOpt && selOpt.value) ? selOpt.value : null;
             const topicsElem = document.getElementById('attTopicsCovered');
             const topics = topicsElem ? topicsElem.value.trim() : '';
 
@@ -2278,6 +2562,8 @@
             const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
             const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
 
+            const editingLogIds = window.attEditingLogIds || null;
+
             fetch('/api/staff/attendance/save', {
                 method: 'POST',
                 headers: {
@@ -2289,10 +2575,13 @@
                     date: date,
                     periods: checkedPeriods,
                     lesson_plan_id: (lpId && !isNaN(parseInt(lpId))) ? parseInt(lpId) : null,
+                    practical_experiment_id: expId,
                     topics_covered: topics,
                     present_students: present,
                     absent_students: absent,
-                    sub_batch: subBatchVal
+                    sub_batch: subBatchVal,
+                    log_ids: editingLogIds,
+                    is_additional_log: !!window.mobileSessionAttendanceLoaded && !editingLogIds
                 })
             })
             .then(res => {
@@ -2312,6 +2601,12 @@
                 });
                 if (data.status === 'SUCCESS') {
                     displayAttFeedback(data.message || 'Attendance saved successfully!', false);
+                    if (window.attEditingLogIds) {
+                        window.attEditingLogIds = null;
+                        window.attEditingLog = null;
+                        const banner = document.getElementById('attEditingBanner');
+                        if (banner) banner.classList.add('d-none');
+                    }
                     setTimeout(() => {
                         closeClassAttendanceModal();
                     }, 1200);
@@ -2329,6 +2624,85 @@
             });
         }
 
+        // Multi-experiment fast attendance re-use
+        function loadPreviousSessionAttendance() {
+            const dateInput = document.getElementById('attLogDate');
+            const dateToday = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+            const checkedPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(cb => parseInt(cb.value));
+            const selSb = document.querySelector('input[name="attSubBatch"]:checked');
+            const sbVal = selSb ? selSb.value : 'Whole';
+
+            if (!currentAttBatchSubjectId || !dateToday) {
+                alert("Please select subject and date first.");
+                return;
+            }
+
+            const alertBox = document.getElementById('attModalAlert');
+            if (alertBox) {
+                alertBox.className = 'alert alert-info py-2 px-3 small rounded-3 mb-2.5 d-flex align-items-center gap-2';
+                alertBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking for previous session attendance...';
+                alertBox.classList.remove('d-none');
+            }
+
+            fetch(`/api/staff/attendance/session-check?batch_subject_id=${currentAttBatchSubjectId}&date=${dateToday}&periods=${checkedPeriods.join(',')}&sub_batch=${sbVal}`)
+                .then(r => r.json())
+                .then(attData => {
+                    if (attData.status === 'SUCCESS' && attData.exists) {
+                        window.mobileSessionAttendanceLoaded = true;
+                        const presentSet = new Set(attData.present_students || []);
+                        const absentSet = new Set(attData.absent_students || []);
+                        currentAttStudents.forEach(s => {
+                            if (absentSet.has(s.reg_no)) s.present = false;
+                            else if (presentSet.has(s.reg_no)) s.present = true;
+                        });
+                        renderAttList();
+                        renderAttGrid();
+
+                        if (alertBox) {
+                            alertBox.className = 'alert alert-success py-2 px-3 small rounded-3 mb-2.5 d-flex align-items-center gap-2';
+                            alertBox.innerHTML = `<i class="fa-solid fa-circle-check text-success"></i> Previous session attendance loaded (${(attData.present_students || []).length} Present, ${(attData.absent_students || []).length} Absent). Select new Experiment Number and click Save.`;
+                            alertBox.classList.remove('d-none');
+                        }
+                    } else if (window.attPastLogsCache && window.attPastLogsCache.length > 0) {
+                        // Fallback: check recent cache on this date
+                        const matchLog = window.attPastLogsCache.find(l => l.date === dateToday && (!l.sub_batch || l.sub_batch === sbVal));
+                        if (matchLog) {
+                            let pArr = [];
+                            try {
+                                pArr = typeof matchLog.present_students === 'string' ? JSON.parse(matchLog.present_students || '[]') : (matchLog.present_students || []);
+                            } catch(e) { pArr = []; }
+                            const pSet = new Set(pArr);
+                            currentAttStudents.forEach(s => {
+                                s.present = pSet.has(s.reg_no);
+                            });
+                            renderAttList();
+                            renderAttGrid();
+                            if (alertBox) {
+                                alertBox.className = 'alert alert-success py-2 px-3 small rounded-3 mb-2.5 d-flex align-items-center gap-2';
+                                alertBox.innerHTML = `<i class="fa-solid fa-circle-check text-success"></i> Previous attendance loaded from Log #${matchLog.sl_no} (${pArr.length} Present). Select new Experiment Number and click Save.`;
+                                alertBox.classList.remove('d-none');
+                            }
+                        } else {
+                            if (alertBox) {
+                                alertBox.className = 'alert alert-warning py-2 px-3 small rounded-3 mb-2.5 d-flex align-items-center gap-2';
+                                alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> No previous attendance recorded for this session yet.';
+                                alertBox.classList.remove('d-none');
+                            }
+                        }
+                    } else {
+                        if (alertBox) {
+                            alertBox.className = 'alert alert-warning py-2 px-3 small rounded-3 mb-2.5 d-flex align-items-center gap-2';
+                            alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> No previous attendance recorded for this session yet.';
+                            alertBox.classList.remove('d-none');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Previous attendance err:", err);
+                    if (alertBox) alertBox.classList.add('d-none');
+                });
+        }
+
         window.attPastLogsCache = [];
 
         function loadClassAttendanceReports() {
@@ -2340,28 +2714,89 @@
                 .then(data => {
                     if (data.status === 'SUCCESS' && data.logs && data.logs.length > 0) {
                         window.attPastLogsCache = data.logs;
-                        let html = '';
+
+                        // Group logs by date so date is never repeated across cards on the same date
+                        const dateGroups = {};
                         data.logs.forEach((log, idx) => {
-                            const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : `Log #${data.logs.length - idx}`;
-                            html += `<div class="p-2.5 rounded-3 border border-slate-800 bg-slate-900 mb-2 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                    <div class="d-flex align-items-center gap-1.5">
-                                        <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.76rem;">${slNoDisplay}</span>
-                                        <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.74rem;">Period ${log.period} &bull; ${log.date}</span>
+                            const d = log.date || 'Undated';
+                            if (!dateGroups[d]) dateGroups[d] = [];
+                            dateGroups[d].push({ ...log, _originalIdx: idx });
+                        });
+
+                        let html = '';
+                        // Render date groups (already sorted descending by date from backend)
+                        for (const [dateStr, logsForDate] of Object.entries(dateGroups)) {
+                            let dateDisplay = dateStr;
+                            let dayName = '';
+                            try {
+                                const dObj = new Date(dateStr + 'T00:00:00');
+                                if (!isNaN(dObj.getTime())) {
+                                    dateDisplay = String(dObj.getDate()).padStart(2, '0') + '-' + String(dObj.getMonth() + 1).padStart(2, '0') + '-' + dObj.getFullYear();
+                                    dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                                }
+                            } catch(e) {}
+
+                            html += `
+                            <div class="mb-3 p-2.5 rounded-3 border" style="background-color: #0b132b !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                                <!-- Common Date Header (DO NOT REPEAT DATE INSIDE CARDS) -->
+                                <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom" style="border-bottom-color: rgba(255, 255, 255, 0.08) !important;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-calendar-day text-cyan" style="font-size: 0.85rem;"></i>
+                                        <span class="text-white fw-black font-mono" style="font-size: 0.86rem; letter-spacing: 0.5px;">${dateDisplay}</span>
+                                        ${dayName ? `<span class="badge bg-slate-800 text-slate-400 font-mono" style="font-size: 0.7rem;">${dayName}</span>` : ''}
                                     </div>
-                                    <button type="button" onclick="editPastClassLog(${idx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.76rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Log
-                                    </button>
+                                    <span class="badge bg-slate-800 text-cyan font-mono fw-bold" style="font-size: 0.72rem;">${logsForDate.length} ${logsForDate.length === 1 ? 'Session' : 'Sessions'}</span>
                                 </div>
-                                <div class="text-white small fw-bold mb-1" style="font-size:0.82rem;">${log.topics_covered || 'No topic description'}</div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">Sub-batch: ${log.sub_batch || 'Whole'} &bull; Recorded: ${log.recorded_by || ''}</small>
-                                    <small class="font-mono fw-bold" style="font-size:0.74rem;">
-                                        <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
-                                    </small>
+
+                                <!-- Cards for this date -->
+                                <div class="d-flex flex-column gap-2">`;
+
+                            logsForDate.forEach(log => {
+                                const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : `Log #${log._originalIdx + 1}`;
+                                const periodText = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `Period ${log.period}`);
+                                const batchText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
+                                const staffName = log.staff_name || log.recorded_by || 'Staff';
+
+                                // Check if this log is a duplicate (multiple sessions recorded on the same date for the same batch)
+                                const isDuplicate = logsForDate.length > 1 && logsForDate.some(other => 
+                                    other._originalIdx !== log._originalIdx && 
+                                    (other.sub_batch === log.sub_batch || other.sub_batch === 'Whole' || log.sub_batch === 'Whole')
+                                );
+
+                                html += `
+                                <div class="p-2.5 rounded-2 bg-slate-900 shadow-sm border" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.06) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                            <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">${slNoDisplay}</span>
+                                            <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.72rem;">${periodText}</span>
+                                            <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.72rem;">${batchText}</span>
+                                            ${isDuplicate ? `<span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.68rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                            <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                            </button>
+                                            <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
+                                                <i class="fa-solid fa-trash-can me-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-white small fw-bold mb-1" style="font-size:0.83rem;">${log.topics_covered || 'No topic description'}</div>
+                                    <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
+                                        <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">
+                                            <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}
+                                        </small>
+                                        <small class="font-mono fw-bold" style="font-size:0.74rem;">
+                                            <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
+                                        </small>
+                                    </div>
+                                </div>`;
+                            });
+
+                            html += `
                                 </div>
                             </div>`;
-                        });
+                        }
                         container.innerHTML = html;
                     } else {
                         container.innerHTML = '<div class="text-center py-4 text-slate-400 small">No past class logs recorded for this subject yet.</div>';
@@ -2377,17 +2812,24 @@
             const log = window.attPastLogsCache[idx];
             if (!log) return;
 
-            // 1. Set Date
+            window.attEditingLog = log;
+            window.attEditingLogIds = log.log_ids || [log.id];
+
+            // 1. Set Common Date
             if (log.date) {
                 document.getElementById('attLogDate').value = log.date;
             }
 
-            // 2. Set Period
+            // 2. Set Periods (check all periods for this session, e.g. 1, 2, 3)
+            const pArr = (log.periods && log.periods.length > 0) 
+                ? log.periods 
+                : String(log.period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
             document.querySelectorAll('input[name="attPeriods"]').forEach(chk => {
-                chk.checked = (parseInt(chk.value) === parseInt(log.period));
+                chk.checked = pArr.includes(parseInt(chk.value));
             });
 
-            // 3. Set Sub-batch if applicable
+            // 3. Set Sub-batch (Batch No)
             if (log.sub_batch === '1') {
                 const el = document.getElementById('sb1');
                 if (el) el.checked = true;
@@ -2399,12 +2841,37 @@
                 if (el) el.checked = true;
             }
 
-            // 4. Set Topics Covered
+            // 4. Set Topics Covered / Manual Entry Data
             document.getElementById('attTopicsCovered').value = log.topics_covered || '';
 
-            // 5. Select Lesson Plan if matched
-            if (log.lesson_plan_id) {
-                document.getElementById('attLessonPlanSelect').value = log.lesson_plan_id;
+            // 5. Select Experiment / Lesson Plan in dropdown
+            const lpSelect = document.getElementById('attLessonPlanSelect');
+            if (lpSelect) {
+                let matchedVal = '';
+                const cleanTopic = (log.topics_covered || '').trim().toLowerCase();
+
+                for (let i = 0; i < lpSelect.options.length; i++) {
+                    const opt = lpSelect.options[i];
+                    if (log.practical_experiment_id && opt.dataset.expId == log.practical_experiment_id) {
+                        matchedVal = opt.value;
+                        break;
+                    }
+                    if (opt.dataset.isExp === '1' && opt.dataset.expNo) {
+                        if (cleanTopic.startsWith(`exp ${opt.dataset.expNo}:`) || cleanTopic.startsWith(`exp ${opt.dataset.expNo} `) || cleanTopic === `exp ${opt.dataset.expNo}`) {
+                            matchedVal = opt.value;
+                            break;
+                        }
+                    }
+                    if (log.lesson_plan_id && opt.value == log.lesson_plan_id) {
+                        matchedVal = opt.value;
+                        break;
+                    }
+                    if (opt.dataset.topic && opt.dataset.topic.trim().toLowerCase() === cleanTopic) {
+                        matchedVal = opt.value;
+                        break;
+                    }
+                }
+                lpSelect.value = matchedVal;
             }
 
             // 6. Update student attendance states from saved JSON
@@ -2414,20 +2881,43 @@
             } catch (e) {
                 presentArr = [];
             }
-
+            const presentSet = new Set(presentArr);
             currentAttStudents.forEach(s => {
-                s.present = presentArr.includes(s.reg_no);
+                s.present = presentSet.has(s.reg_no);
             });
 
-            // Update Log Serial Pointer Badge to indicate editing
-            const nextPointer = document.getElementById('attNextLogPointer');
-            if (nextPointer && log.sl_no) {
-                nextPointer.textContent = `Editing: #${log.sl_no}`;
-                nextPointer.style.backgroundColor = '#f59e0b';
-                nextPointer.style.color = '#0f172a';
+            // 7. Update and show Active Edit Banner in #paneTakeAtt
+            const banner = document.getElementById('attEditingBanner');
+            if (banner) {
+                const slNoElem = document.getElementById('editBannerSlNo');
+                if (slNoElem) slNoElem.textContent = log.sl_no ? `Log #${log.sl_no}` : `Log #${idx + 1}`;
+
+                const dateElem = document.getElementById('editBannerDate');
+                if (dateElem) dateElem.textContent = formatDisplayDate(log.date);
+
+                const batchElem = document.getElementById('editBannerBatch');
+                const batchText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
+                if (batchElem) batchElem.textContent = batchText;
+
+                const periodsElem = document.getElementById('editBannerPeriods');
+                if (periodsElem) periodsElem.textContent = log.period_display || ('Periods ' + log.period);
+
+                const topicElem = document.getElementById('editBannerTopic');
+                if (topicElem) topicElem.textContent = log.topics_covered ? `Topic: ${log.topics_covered}` : '';
+
+                const totalsElem = document.getElementById('editBannerTotals');
+                if (totalsElem) totalsElem.textContent = `(${log.present_count} Present, ${log.absent_count} Absent)`;
+
+                banner.classList.remove('d-none');
             }
 
-            // 7. Switch to Take Attendance tab and refresh roster
+            // Update save button text to reflect update action
+            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
+            allSaveBtns.forEach(b => {
+                b.innerHTML = '<i class="fa-solid fa-pen-to-square me-1.5"></i> Update Class Log & Attendance';
+            });
+
+            // 8. Switch to Take Attendance tab and refresh roster
             switchAttModalTab('take');
             filterAttStudentsByBatch();
         }

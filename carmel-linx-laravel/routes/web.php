@@ -87,6 +87,35 @@ Route::get('/login', function () {
     return redirect('/');
 });
 
+Route::get('/virtual-lab/user-manual', function () {
+    $filePath = public_path('docs/virtual_lab_staff_user_manual.html');
+    if (file_exists($filePath)) {
+        return response()->file($filePath, [
+            'Content-Type' => 'text/html; charset=UTF-8'
+        ]);
+    }
+    return abort(404, 'User manual file not found.');
+});
+
+Route::get('/virtual-lab/manual', function () {
+    return redirect('/virtual-lab/user-manual');
+});
+
+Route::get('/virtual-lab/user-manual/pdf', function () {
+    $pdfPath = public_path('docs/Virtual_Lab_Staff_User_Manual.pdf');
+    if (file_exists($pdfPath)) {
+        return response()->file($pdfPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Virtual_Lab_Staff_User_Manual.pdf"'
+        ]);
+    }
+    return abort(404, 'PDF file not found.');
+});
+
+Route::get('/virtual-lab/pdf', function () {
+    return redirect('/virtual-lab/user-manual/pdf');
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/api/auth/auto-login', [AuthController::class, 'autoLoginViaToken']);
 Route::post('/api/notifications/subscribe', [\App\Http\Controllers\PushNotificationController::class, 'subscribe']);
@@ -686,6 +715,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/classroom/{subjectId}/practical/evaluations', [App\Http\Controllers\ClassroomController::class, 'getPracticalEvaluations']);
     Route::post('/api/classroom/{subjectId}/practical/evaluate', [App\Http\Controllers\ClassroomController::class, 'savePracticalEvaluation']);
     Route::post('/api/classroom/{subjectId}/practical/evaluate-bulk', [App\Http\Controllers\ClassroomController::class, 'saveBulkPracticalEvaluations']);
+    Route::post('/api/classroom/{subjectId}/practical/experiment-date', [App\Http\Controllers\ClassroomController::class, 'updatePracticalExperimentDate']);
     Route::post('/api/classroom/{subjectId}/practical/tests/save', [App\Http\Controllers\ClassroomController::class, 'savePracticalTestConfig']);
     Route::post('/api/classroom/{subjectId}/practical/tests/evaluate', [App\Http\Controllers\ClassroomController::class, 'savePracticalTestMarks']);
     Route::get('/classroom/{subjectId}/practical-report', [App\Http\Controllers\ClassroomController::class, 'printPracticalReport']);
@@ -697,13 +727,18 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/classroom/{subjectId}/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'saveTheoryCoPoMapping']);
     Route::get('/classroom/{subjectId}/practical-report/print', [App\Http\Controllers\ClassroomController::class, 'printPracticalReportByType']);
 
-    // Practical / Lab Evaluation (Revision 2026)
+    // Practical / Lab Evaluation (Revision 2021)
     Route::get('/classroom/practical/{subjectId}', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'show']);
     Route::post('/classroom/practical/{subjectId}/experiment', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveExperimentMarks']);
     Route::post('/classroom/practical/{subjectId}/open-ended', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
     Route::post('/classroom/practical/{subjectId}/series-exam', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveSeriesExamMarks']);
     Route::post('/classroom/practical/{subjectId}/lab-batch', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'assignLabBatch']);
     Route::get('/classroom/practical/{subjectId}/report/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printReport']);
+    Route::get('/classroom/practical/{subjectId}/series-report/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printSeriesReport']);
+    Route::get('/classroom/practical/{subjectId}/final-results/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printFinalResults']);
+    Route::get('/classroom/practical/{subjectId}/experiments/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printExperimentsLog']);
+    Route::get('/api/classroom/{subjectId}/practical/attendance-log', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'getAttendanceLog']);
+    Route::post('/api/classroom/{subjectId}/practical/cia-summary', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveStudentCiaSummary']);
 
     // Staff Mobile Virtual Lab — R2021 Practical Evaluation (Mobile-only, does not touch R2026)
     Route::get('/staff/mobile/virtual-lab/{subjectId}', [App\Http\Controllers\StaffMobileVirtualLabController::class, 'show']);
@@ -1592,7 +1627,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/staff/attendance-log', [App\Http\Controllers\AttendanceController::class, 'viewPage']);
     Route::get('/api/staff/attendance/subjects', [App\Http\Controllers\AttendanceController::class, 'getActiveSubjects']);
     Route::get('/api/staff/attendance/subjects/{id}/details', [App\Http\Controllers\AttendanceController::class, 'getSubjectDetails']);
+    Route::get('/api/staff/attendance/session-check', [App\Http\Controllers\AttendanceController::class, 'checkSessionAttendance']);
     Route::post('/api/staff/attendance/save', [App\Http\Controllers\AttendanceController::class, 'saveAttendance']);
+    Route::post('/api/staff/attendance/delete-log', [App\Http\Controllers\AttendanceController::class, 'deleteAttendanceLog']);
     Route::get('/api/tutor/attendance/students', [App\Http\Controllers\AttendanceController::class, 'getTutorStudents']);
     Route::post('/api/tutor/attendance/roll-numbers', [App\Http\Controllers\AttendanceController::class, 'updateRollNumbers']);
     Route::get('/api/staff/attendance/subjects/{id}/reports', [App\Http\Controllers\AttendanceController::class, 'getReports']);

@@ -1177,6 +1177,9 @@
                   <a id="printLabReportBtn" target="_blank" class="px-4 py-2.5 bg-blue-600/80 hover:bg-blue-600 border border-blue-500/50 hover:border-blue-400 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
                     <span class="material-symbols-rounded text-sm">print</span> Print Register
                   </a>
+                  <a id="printLabExperimentsBtn" target="_blank" class="px-4 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 border border-emerald-500/50 hover:border-emerald-400 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm" title="Print Completed Practical Experiments & Sessions Log">
+                    <span class="material-symbols-rounded text-sm">checklist</span> Print Experiments Log
+                  </a>
                 </div>
               </div>
 
@@ -1513,10 +1516,18 @@
               </div>
 
               <!-- Compact Lab Statistics Summary (Read-only inline stats) -->
-              <div class="flex items-center gap-2 py-1.5 px-3 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs w-fit">
-                <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
-                <span class="text-slate-400 font-medium">Total Experiments:</span>
-                <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
+              <div class="flex items-center gap-2.5 py-1.5 px-3 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs w-fit flex-wrap">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-purple-400 text-sm">biotech</span>
+                  <span class="text-slate-400 font-medium">Total Experiments:</span>
+                  <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
+                </div>
+                <div class="h-3.5 w-px bg-slate-800 hidden sm:block"></div>
+                <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-0.5 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-teal-500/40 text-teal-300 hover:text-teal-200 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" title="Click to view completed experiments with date, hours and batch details">
+                  <span class="material-symbols-rounded text-xs text-teal-400">task_alt</span>
+                  <span>Completed: <strong id="statLabCompletedExps" class="font-mono text-white">0</strong></span>
+                  <span class="material-symbols-rounded text-xs text-teal-400 opacity-70">open_in_new</span>
+                </button>
               </div>
 
               <!-- Splitup Overview Banner -->
@@ -2668,6 +2679,8 @@
               if (fullWsBtn) fullWsBtn.href = isR26Val ? `/r26/classroom/practical/${subjectId}` : `/classroom/practical/${subjectId}`;
               const printBtn = document.getElementById('printLabReportBtn');
               if (printBtn) printBtn.href = `/classroom/practical/${subjectId}/report/print`;
+              const printExpBtn = document.getElementById('printLabExperimentsBtn');
+              if (printExpBtn) printExpBtn.href = `/classroom/practical/${subjectId}/experiments/print`;
               const btnReg = document.getElementById('pRepBtnRegister');
               if (btnReg) btnReg.href = `/classroom/${subjectId}/practical-report/print?type=register`;
               const btnAtt = document.getElementById('pRepBtnAttendance');
@@ -6361,6 +6374,7 @@
         alert("Please select a subject first.");
         return;
       }
+      const isLab = window.isCurrentSubjectPractical || (currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing')));
       let url = '';
       switch(reportType) {
         case 'course_exit':
@@ -6370,7 +6384,7 @@
           url = `/r26/classroom/${currentSubjectId}/nba/attainment-report`;
           break;
         case 'lesson_plan':
-          url = `/r26/classroom/lesson-plan/print/${currentSubjectId}`;
+          url = isLab ? `/classroom/${currentSubjectId}/practical-report/print?type=planner` : `/r26/classroom/lesson-plan/print/${currentSubjectId}`;
           break;
         case 'course_file':
           url = '/course-files';
@@ -6379,13 +6393,13 @@
           url = `/r26/classroom/self-learning/print/${currentSubjectId}`;
           break;
         case 'cie_marksheet':
-          url = `/r26/classroom/${currentSubjectId}/internals/print-cie`;
-          break;
-        case 'final_results':
-          url = `/r26/classroom/${currentSubjectId}/final-results/print`;
+          url = isLab ? `/classroom/practical/${currentSubjectId}/report/print` : `/r26/classroom/${currentSubjectId}/internals/print-cie`;
           break;
         case 'series_marks':
-          url = `/r26/classroom/${currentSubjectId}/series-exams/print-marks`;
+          url = isLab ? `/classroom/practical/${currentSubjectId}/series-report/print` : `/r26/classroom/${currentSubjectId}/series-exams/print-marks`;
+          break;
+        case 'final_results':
+          url = isLab ? `/classroom/practical/${currentSubjectId}/final-results/print` : `/r26/classroom/${currentSubjectId}/final-results/print`;
           break;
       }
       if (url) {
@@ -6429,6 +6443,20 @@
       }
     }
 
+    function formatDisplayDate(dateStr) {
+      if (!dateStr || dateStr === '-' || dateStr === '—') return '—';
+      if (typeof dateStr !== 'string') return String(dateStr);
+      const m = dateStr.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        return `${m[3]}-${m[2]}-${m[1]}`;
+      }
+      const parts = dateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dateStr;
+    }
+
     function renderAttendanceLogReport(container) {
       const logs = classReportsData.logs || [];
       if (logs.length === 0) {
@@ -6446,19 +6474,42 @@
                 <th class="p-4">Topics Covered</th>
                 <th class="p-4 text-center">Present</th>
                 <th class="p-4 text-center">Absent</th>
+                <th class="p-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
       `;
 
       logs.forEach(log => {
+        const periodDisplay = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `P${log.period}`);
+        const subBatchBadge = log.sub_batch && log.sub_batch !== 'Whole' 
+            ? `<span class="ml-2 px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Batch ${log.sub_batch}</span>` 
+            : '';
+        const staffText = log.staff_name ? `<div class="text-xs text-slate-500 mt-0.5 font-mono">Recorded by: ${log.staff_name}</div>` : '';
+        const logIdsStr = log.log_ids ? log.log_ids.join(',') : (log.id || '');
+        const formattedLogDate = formatDisplayDate(log.date);
+
         html += `
           <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium">
-            <td class="p-4 font-mono font-bold text-slate-300">${log.date}</td>
-            <td class="p-4 text-center font-bold text-slate-400">P${log.period}</td>
-            <td class="p-4 text-slate-200">${log.topics_covered || '-'}</td>
+            <td class="p-4 font-mono font-bold text-slate-300">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-mono font-black bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">#${log.sl_no || '-'}</span>
+                <span>${formattedLogDate}</span>
+                ${subBatchBadge}
+              </div>
+            </td>
+            <td class="p-4 text-center font-bold text-slate-400 whitespace-nowrap">${periodDisplay}</td>
+            <td class="p-4 text-slate-200">
+              <div class="font-medium">${log.topics_covered || '-'}</div>
+              ${staffText}
+            </td>
             <td class="p-4 text-center font-bold text-emerald-400">${log.present_count}</td>
             <td class="p-4 text-center font-bold text-rose-400">${log.absent_count}</td>
+            <td class="p-4 text-center whitespace-nowrap">
+              <button type="button" onclick="deleteClassLogDesktop('${logIdsStr}', '${log.sl_no || ''}', '${log.date}', '${periodDisplay}')" class="px-2.5 py-1 rounded text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-premium" title="Delete accidental or duplicate log entry">
+                <i class="fa-solid fa-trash-can mr-1"></i> Delete
+              </button>
+            </td>
           </tr>
         `;
       });
@@ -6469,6 +6520,49 @@
         </div>
       `;
       container.innerHTML = html;
+    }
+
+    function deleteClassLogDesktop(logIdsStr, slNo, date, periods) {
+      if (!currentSubjectId || !logIdsStr) {
+        alert("Subject or log ID missing.");
+        return;
+      }
+      const logIds = logIdsStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      if (logIds.length === 0) {
+        alert("Invalid log IDs.");
+        return;
+      }
+
+      const slText = slNo ? `Log #${slNo}` : 'this log entry';
+      const promptMsg = `Are you sure you want to permanently delete ${slText} on ${formatDisplayDate(date)} (${periods})?\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
+      if (!confirm(promptMsg)) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      fetch('/api/staff/attendance/delete-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': token
+        },
+        body: JSON.stringify({
+          batch_subject_id: currentSubjectId,
+          log_ids: logIds
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          alert(data.message || 'Log entry removed successfully.');
+          fetchClassReports();
+        } else {
+          alert(data.message || 'Failed to delete log entry.');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error connecting to server.');
+      });
     }
 
     function renderSubjectLogReport(container) {
@@ -7524,6 +7618,7 @@
         if (slider) slider.value = val;
       }
     }
+    window.syncSlider = syncSlider;
 
     let activeSeminarData = [];
 
@@ -8057,6 +8152,8 @@
       // Set print & full workspace button hrefs
       const printBtn = document.getElementById('printLabReportBtn');
       if (printBtn) printBtn.href = `/classroom/practical/${currentSubjectId}/report/print`;
+      const printExpBtn = document.getElementById('printLabExperimentsBtn');
+      if (printExpBtn) printExpBtn.href = `/classroom/practical/${currentSubjectId}/experiments/print`;
       const fullWsBtn = document.getElementById('openFullVirtualLabBtn');
       if (fullWsBtn) fullWsBtn.href = `/classroom/practical/${currentSubjectId}`;
 
@@ -8067,6 +8164,9 @@
           labStudentsData = res.students || [];
           labExperimentsData = res.experiments || [];
           labTestsData = res.tests || [];
+          window.conductedExpsCount = (res.conducted_experiments_count !== undefined) ? res.conducted_experiments_count : (labExperimentsData ? labExperimentsData.length : 0);
+          window.conductedExpsDetails = res.conducted_experiments_details || [];
+          window.actualLabHoursConducted = res.actual_hours_conducted || 0;
           renderLabEvaluationsTable();
           renderPracticalReportsTable();
           calculateLabStatistics();
@@ -8096,7 +8196,8 @@
         return;
       }
 
-      const totalExps = labExperimentsData ? labExperimentsData.length : 0;
+      const conductedExps = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : (labExperimentsData ? labExperimentsData.length : 0);
+      const totalSyllabusExps = labExperimentsData ? labExperimentsData.length : 0;
 
       labStudentsData.forEach(student => {
         const tr = document.createElement('tr');
@@ -8105,8 +8206,9 @@
         
         let gradedCount = 0;
         if (student.experiments_marks) {
-          gradedCount = Object.values(student.experiments_marks).filter(m => m !== null).length;
+          gradedCount = Object.values(student.experiments_marks).filter(m => m !== null && (m.total > 0 || m.rough_record > 0 || m.fair_record > 0 || m.prerequisites > 0 || m.work_done > 0 || m.result > 0)).length;
         }
+        const attendedExps = student.attended_experiments_count !== undefined ? student.attended_experiments_count : gradedCount;
 
         const avgRough = student.avg_rough_record !== undefined && student.avg_rough_record !== null ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
         const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
@@ -8125,13 +8227,14 @@
         tr.innerHTML = `
           <td class="p-2 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || '-'}</td>
           <td class="p-2">
-            <button onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-blue-300 font-medium text-xs text-left block">
-              ${student.name}
+            <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-sky-400 hover:underline font-bold text-xs text-left cursor-pointer flex items-center gap-1.5 group transition-colors">
+              <span>${student.name}</span>
+              <span class="material-symbols-rounded text-xs text-slate-500 group-hover:text-sky-400 opacity-75">open_in_new</span>
             </button>
             <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
           </td>
           <td class="p-2 text-center">
-            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md">${gradedCount} / ${totalExps}</span>
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Attended / ${conductedExps} Conducted (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
           </td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
@@ -8170,7 +8273,8 @@
 
       if (countEl) countEl.innerText = `Enrolled: ${labStudentsData.length} Students`;
       tbody.innerHTML = '';
-      const totalExps = labExperimentsData ? labExperimentsData.length : 0;
+      const conductedExps = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : (labExperimentsData ? labExperimentsData.length : 0);
+      const totalSyllabusExps = labExperimentsData ? labExperimentsData.length : 0;
 
       labStudentsData.forEach((student, index) => {
         const tr = document.createElement('tr');
@@ -8179,8 +8283,9 @@
 
         let gradedCount = 0;
         if (student.experiments_marks) {
-          gradedCount = Object.values(student.experiments_marks).filter(m => m !== null).length;
+          gradedCount = Object.values(student.experiments_marks).filter(m => m !== null && (m.total > 0 || m.rough_record > 0 || m.fair_record > 0 || m.prerequisites > 0 || m.work_done > 0 || m.result > 0)).length;
         }
+        const attendedExps = student.attended_experiments_count !== undefined ? student.attended_experiments_count : gradedCount;
 
         const avgRough = student.avg_rough_record !== undefined && student.avg_rough_record !== null ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
         const avgFair = student.avg_fair_record !== undefined && student.avg_fair_record !== null ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
@@ -8199,13 +8304,14 @@
         tr.innerHTML = `
           <td class="p-2.5 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || (index + 1)}</td>
           <td class="p-2.5">
-            <button onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-blue-300 font-medium text-xs text-left block">
-              ${student.name}
+            <button type="button" onclick="openStudentLabModal('${student.reg_no}')" class="text-white hover:text-sky-400 hover:underline font-bold text-xs text-left cursor-pointer flex items-center gap-1.5 group transition-colors">
+              <span>${student.name}</span>
+              <span class="material-symbols-rounded text-xs text-slate-500 group-hover:text-sky-400 opacity-75">open_in_new</span>
             </button>
             <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
           </td>
           <td class="p-2.5 text-center">
-            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md">${gradedCount} / ${totalExps}</span>
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Attended / ${conductedExps} Conducted (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
           </td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
@@ -8320,7 +8426,247 @@
       if (statPassPct) statPassPct.innerText = boardCount > 0 ? `${passPercent.toFixed(1)}%` : 'N/A';
       const statTotalExps = document.getElementById('statLabTotalExps');
       if (statTotalExps) statTotalExps.innerText = labExperimentsData.length;
+      const statDoneExps = document.getElementById('statLabCompletedExps');
+      if (statDoneExps) statDoneExps.innerText = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
     }
+
+    function openCompletedExperimentsModal() {
+      const modal = document.getElementById('completedExperimentsModal');
+      if (!modal) return;
+
+      const subTitle = document.getElementById('completedExpsModalSubtitle');
+      if (subTitle) {
+        subTitle.textContent = `${currentVirtualBatchId || 'Classroom'} • Normalized Timetable Continuous Sessions`;
+      }
+
+      const totalSyllabus = labExperimentsData ? labExperimentsData.length : 0;
+      const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
+      const hoursCount = (window.actualLabHoursConducted !== undefined && window.actualLabHoursConducted > 0)
+        ? window.actualLabHoursConducted
+        : (doneCount * 3);
+      const pct = totalSyllabus > 0 ? Math.round((doneCount / totalSyllabus) * 100) : 0;
+
+      const kpiTotal = document.getElementById('kpiTotalSyllabusExps');
+      if (kpiTotal) kpiTotal.innerText = totalSyllabus;
+      const kpiDone = document.getElementById('kpiCompletedExpsCount');
+      if (kpiDone) kpiDone.innerText = doneCount;
+      const kpiHours = document.getElementById('kpiActualLabHours');
+      if (kpiHours) kpiHours.innerText = `${hoursCount} hrs`;
+      const kpiPct = document.getElementById('kpiCoveragePercent');
+      if (kpiPct) kpiPct.innerText = `${pct}%`;
+
+      const tbody = document.getElementById('completedExperimentsTableBody');
+      const counter = document.getElementById('completedExpsTableCounter');
+      const list = window.conductedExpsDetails || [];
+
+      if (counter) counter.innerText = `Showing ${list.length} completed session records`;
+
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td></tr>`;
+        } else {
+          list.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs";
+            
+            let rawDate = '';
+            let dateStr = item.date || '—';
+            if (item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+              rawDate = item.date;
+              const dParts = item.date.split('-');
+              dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+            } else if (item.date && item.date.includes('-')) {
+              const dParts = item.date.split('-');
+              if (dParts.length === 3 && dParts[0].length === 4) {
+                dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+              }
+            }
+
+            const batchColor = item.sub_batch === '1' ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : (item.sub_batch === '2' ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+
+            tr.innerHTML = `
+              <td class="p-2.5 text-center font-mono text-slate-500">${idx + 1}</td>
+              <td class="p-2.5 font-mono font-bold text-teal-300">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+              <td class="p-2.5 text-slate-200">
+                <span class="font-bold">${item.title}</span>
+                ${item.co_tag ? `<span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">${item.co_tag}</span>` : ''}
+              </td>
+              <td class="p-2 text-center">
+                <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+                  <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
+                  <input type="date" value="${rawDate}" 
+                    onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
+                    class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
+                  <button type="button" 
+                    onclick="openEditExpDateModal(${item.experiment_id || 'null'}, '${rawDate}', '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
+                    class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
+                    <span class="material-symbols-rounded text-xs">tune</span>
+                  </button>
+                </div>
+              </td>
+              <td class="p-2.5 text-center font-mono text-sky-400">
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">${item.hours_text || '3 hrs (P1-P3)'}</span>
+              </td>
+              <td class="p-2.5 text-center">
+                <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold ${batchColor}">${item.batch || 'Whole Class'}</span>
+              </td>
+              <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
+                ${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}
+                ${item.attendance_pct ? `<span class="block text-[10px] text-slate-500 font-normal">(${item.attendance_pct}%)</span>` : ''}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    window.openCompletedExperimentsModal = openCompletedExperimentsModal;
+
+    let editingExpContext = null;
+
+    function openEditExpDateModal(expId, currentDate, subBatch, expNo, title, newDateToPreselect) {
+      if (!expId) return;
+      editingExpContext = { expId, currentDate, subBatch, expNo, title };
+      
+      const elExpNo = document.getElementById('editModalExpNo');
+      const elExpNoInput = document.getElementById('editModalExpNoInput');
+      const elTitle = document.getElementById('editModalExpTitle');
+      const elCurDate = document.getElementById('editModalCurrentDate');
+      const elInput = document.getElementById('editModalNewDateInput');
+      const elBatchLabel = document.getElementById('editModalBatchLabel');
+
+      const rawExpNoClean = (expNo || '').replace(/^Exp\s*/i, '');
+      if (elExpNo) elExpNo.innerText = expNo || `Exp`;
+      if (elExpNoInput) elExpNoInput.value = rawExpNoClean || '';
+      if (elTitle) elTitle.innerText = title || '';
+      
+      let displayCurDate = currentDate || 'None';
+      if (currentDate && currentDate.includes('-')) {
+        const parts = currentDate.split('-');
+        if (parts.length === 3 && parts[0].length === 4) displayCurDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      if (elCurDate) elCurDate.innerText = displayCurDate;
+      if (elInput) elInput.value = newDateToPreselect || currentDate || '';
+      
+      const batchLabel = (subBatch === '1') ? 'Batch 1 Only' : ((subBatch === '2') ? 'Batch 2 Only' : 'Whole Class Only');
+      if (elBatchLabel) elBatchLabel.innerText = batchLabel;
+      
+      const modal = document.getElementById('editExpDateModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+    window.openEditExpDateModal = openEditExpDateModal;
+
+    function closeEditExpDateModal() {
+      const modal = document.getElementById('editExpDateModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      editingExpContext = null;
+    }
+    window.closeEditExpDateModal = closeEditExpDateModal;
+
+    function promptEditExpDate(expId, oldDate, newDate, subBatch, expNo, title) {
+      if (!expId || !newDate || oldDate === newDate) return;
+      openEditExpDateModal(expId, oldDate, subBatch, expNo, title, newDate);
+    }
+    window.promptEditExpDate = promptEditExpDate;
+
+    function submitEditExpDate() {
+      if (!editingExpContext) return;
+      const newDate = document.getElementById('editModalNewDateInput').value;
+      if (!newDate) {
+        alert('Please select a valid date.');
+        return;
+      }
+      
+      const newExpNo = document.getElementById('editModalExpNoInput') ? document.getElementById('editModalExpNoInput').value.trim() : null;
+      const scopeEl = document.querySelector('input[name="editExpDateScope"]:checked');
+      const scope = scopeEl ? scopeEl.value : 'universal';
+      const syncAtt = document.getElementById('editModalSyncAttendance') ? document.getElementById('editModalSyncAttendance').checked : true;
+
+      const btn = document.getElementById('btnConfirmEditExpDate');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Updating...';
+      }
+
+      const subjId = currentSubjectId || (typeof currentVirtualBatchId !== 'undefined' ? currentVirtualBatchId : null);
+
+      fetch(`/api/classroom/${subjId}/practical/experiment-date`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          experiment_id: editingExpContext.expId,
+          old_date: editingExpContext.currentDate,
+          new_date: newDate,
+          new_experiment_no: newExpNo,
+          scope: scope,
+          sub_batch: editingExpContext.subBatch,
+          update_attendance: syncAtt
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-rounded text-sm">check</span> Save & Update';
+        }
+        if (res.status === 'SUCCESS') {
+          closeEditExpDateModal();
+          // Re-fetch evaluations and update popup list immediately
+          if (typeof fetchPracticalEvaluations === 'function') {
+            fetchPracticalEvaluations().then(() => {
+              openCompletedExperimentsModal();
+            });
+          } else if (typeof fetchPracticalEvaluationsData === 'function') {
+            fetchPracticalEvaluationsData().then(() => {
+              openCompletedExperimentsModal();
+            });
+          }
+        } else {
+          alert(res.message || 'Failed to update experiment date.');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-rounded text-sm">check</span> Save & Update';
+        }
+        alert('An error occurred while updating experiment date.');
+      });
+    }
+    window.submitEditExpDate = submitEditExpDate;
+
+    function closeCompletedExperimentsModal() {
+      const modal = document.getElementById('completedExperimentsModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+    window.closeCompletedExperimentsModal = closeCompletedExperimentsModal;
+
+    function printCompletedExperimentsLog() {
+      const subjId = currentSubjectId || (typeof currentVirtualBatchId !== 'undefined' ? currentVirtualBatchId : null);
+      if (subjId) {
+        window.open(`/classroom/practical/${subjId}/experiments/print`, '_blank');
+      } else {
+        alert('Please select a practical subject first.');
+      }
+    }
+    window.printCompletedExperimentsLog = printCompletedExperimentsLog;
 
     // Modal tabs toggle
     function switchLabModalTab(tabId) {
@@ -8329,16 +8675,21 @@
         const el = document.getElementById('labModalTab_' + t);
         const btn = document.getElementById('labTabBtn_' + t);
         if (t === tabId) {
-          el.classList.remove('hidden');
-          btn.classList.add('border-blue-500', 'text-blue-400');
-          btn.classList.remove('border-transparent', 'text-slate-400');
+          if (el) el.classList.remove('hidden');
+          if (btn) {
+            btn.classList.add('border-blue-500', 'text-blue-400');
+            btn.classList.remove('border-transparent', 'text-slate-400');
+          }
         } else {
-          el.classList.add('hidden');
-          btn.classList.remove('border-blue-500', 'text-blue-400');
-          btn.classList.add('border-transparent', 'text-slate-400');
+          if (el) el.classList.add('hidden');
+          if (btn) {
+            btn.classList.remove('border-blue-500', 'text-blue-400');
+            btn.classList.add('border-transparent', 'text-slate-400');
+          }
         }
       });
     }
+    window.switchLabModalTab = switchLabModalTab;
 
     /* DEDICATED LABWORK & OPEN-ENDED MODALS */
     let currentLwStudentIndex = -1;
@@ -8657,73 +9008,92 @@
     let tempStudentExpMarks = {};
 
     function openStudentLabModal(regNo) {
-      gradingStudentReg = regNo;
-      if (!labStudentsData || labStudentsData.length === 0) {
-        console.warn("labStudentsData is empty when opening modal.");
-        return;
-      }
+      try {
+        gradingStudentReg = regNo;
+        if (!labStudentsData || labStudentsData.length === 0) {
+          console.warn("labStudentsData is empty when opening modal.");
+          return;
+        }
 
-      const student = labStudentsData.find(s => s.reg_no == regNo || s.sbte_reg_no == regNo || String(s.reg_no) === String(regNo));
-      if (!student) {
-        console.warn("Student record not found for:", regNo, labStudentsData);
-        alert("Student evaluation record not found. Please refresh the page.");
-        return;
-      }
+        const cleanReg = String(regNo).trim();
+        const student = labStudentsData.find(s => 
+          String(s.reg_no).trim() === cleanReg || 
+          String(s.sbte_reg_no).trim() === cleanReg ||
+          s.reg_no == regNo || 
+          s.sbte_reg_no == regNo
+        );
+        if (!student) {
+          console.warn("Student record not found for:", regNo, labStudentsData);
+          alert("Student evaluation record not found. Please refresh the page.");
+          return;
+        }
 
-      const elName = document.getElementById('labModalStudentName');
-      const elReg = document.getElementById('labModalStudentReg');
-      const elAtt = document.getElementById('labModalStudentAttPct');
+        const elName = document.getElementById('labModalStudentName');
+        const elReg = document.getElementById('labModalStudentReg');
+        const elAtt = document.getElementById('labModalStudentAttPct');
 
-      if (elName) elName.innerText = student.name || 'Student Evaluation';
-      if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
-      if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%` + ((student.total_classes !== undefined && student.total_classes > 0) ? ` (${student.present_classes || 0}/${student.total_classes} hrs)` : '');
+        if (elName) elName.innerText = student.name || 'Student Evaluation';
+        if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
+        if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%` + ((student.total_classes !== undefined && student.total_classes > 0) ? ` (${student.present_classes || 0}/${student.total_classes} hrs)` : '');
 
-      // Set input values safely
-      const projectTopic = document.getElementById('labScore_projectTopic');
-      const projectMark = document.getElementById('labScore_projectMark');
-      const attMark = document.getElementById('labScore_attendanceMark');
-      const boardExam = document.getElementById('labScore_boardExam');
+        // Set input values safely
+        const projectTopic = document.getElementById('labScore_projectTopic');
+        const projectMark = document.getElementById('labScore_projectMark');
+        const attMark = document.getElementById('labScore_attendanceMark');
+        const boardExam = document.getElementById('labScore_boardExam');
 
-      if (projectTopic) projectTopic.value = student.open_ended_project_topic || student.open_ended_topic || '';
-      if (projectMark) projectMark.value = (student.micro_project !== undefined && student.micro_project !== null) ? student.micro_project : ((student.open_ended !== undefined && student.open_ended !== null) ? student.open_ended : '');
-      if (attMark) attMark.value = (student.attendance_marks !== undefined && student.attendance_marks !== null) ? student.attendance_marks : '';
-      if (boardExam) boardExam.value = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
+        if (projectTopic) projectTopic.value = student.open_ended_project_topic || student.open_ended_topic || '';
+        if (projectMark) projectMark.value = (student.micro_project !== undefined && student.micro_project !== null) ? student.micro_project : ((student.open_ended !== undefined && student.open_ended !== null) ? student.open_ended : '');
+        if (attMark) attMark.value = (student.attendance_marks !== undefined && student.attendance_marks !== null) ? student.attendance_marks : '';
+        if (boardExam) boardExam.value = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
 
-      // Set test marks safely
-      const t1Co1El = document.getElementById('labScore_t1_co1');
-      const t1Co2El = document.getElementById('labScore_t1_co2');
-      const t2Co3El = document.getElementById('labScore_t2_co3');
-      const t2Co4El = document.getElementById('labScore_t2_co4');
+        // Set test marks safely
+        const t1Co1El = document.getElementById('labScore_t1_co1');
+        const t1Co2El = document.getElementById('labScore_t1_co2');
+        const t2Co3El = document.getElementById('labScore_t2_co3');
+        const t2Co4El = document.getElementById('labScore_t2_co4');
 
-      const tests = (student.tests && typeof student.tests === 'object') ? student.tests : {};
-      const t1 = tests['Test 1'] || {};
-      const t2 = tests['Test 2'] || {};
+        const tests = (student.tests && typeof student.tests === 'object') ? student.tests : {};
+        const t1 = tests['Test 1'] || {};
+        const t2 = tests['Test 2'] || {};
 
-      if (t1Co1El) t1Co1El.value = (t1.CO1 !== undefined && t1.CO1 !== null) ? t1.CO1 : '';
-      if (t1Co2El) t1Co2El.value = (t1.CO2 !== undefined && t1.CO2 !== null) ? t1.CO2 : '';
-      if (t2Co3El) t2Co3El.value = (t2.CO3 !== undefined && t2.CO3 !== null) ? t2.CO3 : '';
-      if (t2Co4El) t2Co4El.value = (t2.CO4 !== undefined && t2.CO4 !== null) ? t2.CO4 : '';
+        if (t1Co1El) t1Co1El.value = (t1.CO1 !== undefined && t1.CO1 !== null) ? t1.CO1 : '';
+        if (t1Co2El) t1Co2El.value = (t1.CO2 !== undefined && t1.CO2 !== null) ? t1.CO2 : '';
+        if (t2Co3El) t2Co3El.value = (t2.CO3 !== undefined && t2.CO3 !== null) ? t2.CO3 : '';
+        if (t2Co4El) t2Co4El.value = (t2.CO4 !== undefined && t2.CO4 !== null) ? t2.CO4 : '';
 
-      // Sync other sliders safely
-      syncSlider('labScore_projectMark', 'labScore_projectMark_slider', 7.5);
-      syncSlider('labScore_attendanceMark', 'labScore_attendanceMark_slider', 15);
-      syncSlider('labScore_boardExam', 'labScore_boardExam_slider', 50);
-      syncSlider('labScore_t1_co1', 'labScore_t1_co1_slider', 7.5);
-      syncSlider('labScore_t1_co2', 'labScore_t1_co2_slider', 7.5);
-      syncSlider('labScore_t2_co3', 'labScore_t2_co3_slider', 7.5);
-      syncSlider('labScore_t2_co4', 'labScore_t2_co4_slider', 7.5);
+        // Sync other sliders safely
+        syncSlider('labScore_projectMark', 'labScore_projectMark_slider', 7.5);
+        syncSlider('labScore_attendanceMark', 'labScore_attendanceMark_slider', 15);
+        syncSlider('labScore_boardExam', 'labScore_boardExam_slider', 50);
+        syncSlider('labScore_t1_co1', 'labScore_t1_co1_slider', 7.5);
+        syncSlider('labScore_t1_co2', 'labScore_t1_co2_slider', 7.5);
+        syncSlider('labScore_t2_co3', 'labScore_t2_co3_slider', 7.5);
+        syncSlider('labScore_t2_co4', 'labScore_t2_co4_slider', 7.5);
 
-      // Clone experiments marks locally
-      tempStudentExpMarks = JSON.parse(JSON.stringify(student.experiments_marks || {}));
+        // Clone experiments marks locally
+        tempStudentExpMarks = JSON.parse(JSON.stringify(student.experiments_marks || {}));
 
-      renderLabModalExpsList();
-      switchLabModalTab('exp');
-      calcLabModalScores();
-      
-      const modal = document.getElementById('studentLabModal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        renderLabModalExpsList();
+        switchLabModalTab('exp');
+        calcLabModalScores();
+        
+        const modal = document.getElementById('studentLabModal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          modal.style.removeProperty('display');
+          modal.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error("Error opening student lab modal:", err);
+        const modal = document.getElementById('studentLabModal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          modal.style.removeProperty('display');
+          modal.style.display = 'flex';
+        }
       }
     }
 
@@ -8777,9 +9147,23 @@
 
     function closeStudentLabModal() {
       const modal = document.getElementById('studentLabModal');
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        modal.style.removeProperty('display');
+        modal.style.display = 'none';
+      }
     }
+    window.closeStudentLabModal = closeStudentLabModal;
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('studentLabModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeStudentLabModal();
+        }
+      }
+    });
 
     function calcLabModalScores() {
       let totalGradedSum = 0;
@@ -8805,7 +9189,9 @@
       const labelSummaryExp = document.getElementById('labModalLabelExpSummary');
       if (labelSummaryExp) labelSummaryExp.innerText = `${expAvg.toFixed(2)} / 37.5`;
 
-      renderLabModalExpsSummary();
+      if (typeof renderLabModalExpsSummary === 'function') {
+        renderLabModalExpsSummary();
+      }
 
       // Model test
       const t1_co1 = parseFloat(document.getElementById('labScore_t1_co1').value) || 0;
@@ -8873,6 +9259,22 @@
         const totalBadgeText = isGraded ? `${expTotalVal.toFixed(1)} / 37.5` : 'Not Graded';
         const totalBadgeClass = isGraded ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500 italic';
 
+        const expDate = val.date || val.evaluation_date || exp.conducted_date || '';
+        const isAttended = (val.is_attended !== undefined && val.is_attended !== null)
+          ? Boolean(val.is_attended)
+          : (isGraded && expDate ? true : false);
+
+        let attBadgeClass = 'bg-slate-900 border-slate-800 text-slate-400';
+        let attBadgeContent = '<span class="material-symbols-rounded text-xs text-slate-500">pending</span> <span>Pending</span>';
+
+        if (isAttended && expDate) {
+          attBadgeClass = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+          attBadgeContent = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span>Present</span>';
+        } else if (expDate) {
+          attBadgeClass = 'bg-amber-500/10 border-amber-500/30 text-amber-400';
+          attBadgeContent = '<span class="material-symbols-rounded text-xs text-amber-400">schedule</span> <span>Attended</span>';
+        }
+
         if (jumpSelect) {
           const opt = document.createElement('option');
           opt.value = `exp_card_${exp.id}`;
@@ -8885,13 +9287,27 @@
         card.className = "bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5 transition-all hover:border-slate-700/80";
         card.innerHTML = `
           <div class="flex flex-wrap justify-between items-center bg-slate-900/60 px-4 py-2.5 rounded-lg border border-slate-800/80 gap-3">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
               <span class="px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono font-black text-xs rounded-md shadow-sm shrink-0">Exp ${exp.experiment_no}</span>
-              <h4 class="text-sm font-bold text-slate-100 leading-snug">${exp.title}</h4>
+              <h4 class="text-sm font-bold text-slate-100 leading-snug truncate" title="${exp.title}">${exp.title}</h4>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <span class="px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded text-xs font-bold font-mono">${exp.co_tag || 'CO1'}</span>
-              <span id="exp_total_badge_${exp.id}" class="text-xs font-mono px-2.5 py-0.5 rounded border ${totalBadgeClass}">${totalBadgeText}</span>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <!-- Experiment Date Picker -->
+              <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/60 focus-within:border-cyan-400 transition-colors shadow-inner" title="Conducted / Evaluation Date">
+                <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
+                <label for="exp_${exp.id}_date" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Date:</label>
+                <input type="date" id="exp_${exp.id}_date" value="${expDate}"
+                  onchange="updateExpDate(${exp.id}, this.value)"
+                  class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark]">
+              </div>
+
+              <!-- Attendance Status Badge -->
+              <span id="exp_att_badge_${exp.id}" class="px-2.5 py-1 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm transition-all ${attBadgeClass}">
+                ${attBadgeContent}
+              </span>
+
+              <span class="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold font-mono">${exp.co_tag || 'CO1'}</span>
+              <span id="exp_total_badge_${exp.id}" class="text-xs font-mono px-2.5 py-1 rounded-lg border ${totalBadgeClass}">${totalBadgeText}</span>
             </div>
           </div>
 
@@ -9021,11 +9437,53 @@
       });
     }
 
+    function updateExpDate(expId, dateVal) {
+      if (!tempStudentExpMarks[expId]) tempStudentExpMarks[expId] = {};
+      tempStudentExpMarks[expId].date = dateVal;
+      tempStudentExpMarks[expId].evaluation_date = dateVal;
+
+      const valObj = tempStudentExpMarks[expId];
+      const p = parseFloat(valObj.prerequisite || valObj.obs_prep);
+      const e = parseFloat(valObj.execution || valObj.proc_punct);
+      const r = parseFloat(valObj.rough_record);
+      const f = parseFloat(valObj.fair_record);
+      const v = parseFloat(valObj.viva_voce || valObj.result);
+      const hasMarks = (!isNaN(p) && p > 0) || (!isNaN(e) && e > 0) || (!isNaN(r) && r > 0) || (!isNaN(f) && f > 0) || (!isNaN(v) && v > 0);
+
+      const attBadge = document.getElementById(`exp_att_badge_${expId}`);
+      if (attBadge) {
+        if (dateVal && (hasMarks || valObj.is_attended)) {
+          attBadge.className = "px-2.5 py-1 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm bg-emerald-500/10 border-emerald-500/30 text-emerald-400";
+          attBadge.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span>Present</span>';
+        } else if (dateVal) {
+          attBadge.className = "px-2.5 py-1 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm bg-amber-500/10 border-amber-500/30 text-amber-400";
+          attBadge.innerHTML = '<span class="material-symbols-rounded text-xs text-amber-400">schedule</span> <span>Attended</span>';
+        } else {
+          attBadge.className = "px-2.5 py-1 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm bg-slate-900 border-slate-800 text-slate-400";
+          attBadge.innerHTML = '<span class="material-symbols-rounded text-xs text-slate-500">pending</span> <span>Pending</span>';
+        }
+      }
+    }
+    window.updateExpDate = updateExpDate;
+
     function syncExpSlider(expId, key, val, max) {
       const slider = document.getElementById(`exp_${expId}_${key}_slider`);
       if (slider) slider.value = val || 0;
       if (!tempStudentExpMarks[expId]) tempStudentExpMarks[expId] = {};
       tempStudentExpMarks[expId][key] = val;
+
+      // Auto-populate date if empty when mark is entered
+      const dateInput = document.getElementById(`exp_${expId}_date`);
+      if (dateInput && !dateInput.value) {
+        const expObj = (labExperimentsData || []).find(e => e.id == expId);
+        const defaultDate = (expObj && expObj.conducted_date) ? expObj.conducted_date : new Date().toISOString().split('T')[0];
+        dateInput.value = defaultDate;
+        tempStudentExpMarks[expId].is_attended = true;
+        updateExpDate(expId, defaultDate);
+      } else if (dateInput && dateInput.value) {
+        tempStudentExpMarks[expId].is_attended = true;
+        updateExpDate(expId, dateInput.value);
+      }
 
       // Update card total badge
       const valObj = tempStudentExpMarks[expId];
@@ -9077,6 +9535,24 @@
         }
       };
 
+      // Filter tempStudentExpMarks to only save experiments that have scores or dates
+      const activeExpMarks = {};
+      for (const [expId, m] of Object.entries(tempStudentExpMarks || {})) {
+        if (!m) continue;
+        const p = parseFloat(m.prerequisite || m.obs_prep) || 0;
+        const e = parseFloat(m.execution || m.proc_punct) || 0;
+        const r = parseFloat(m.rough_record) || 0;
+        const f = parseFloat(m.fair_record) || 0;
+        const v = parseFloat(m.viva_voce || m.result) || 0;
+        const dateInput = document.getElementById(`exp_${expId}_date`);
+        const dVal = dateInput ? dateInput.value : (m.date || m.evaluation_date || '');
+        if (p > 0 || e > 0 || r > 0 || f > 0 || v > 0 || (dVal && m.is_attended)) {
+          m.date = dVal;
+          m.evaluation_date = dVal;
+          activeExpMarks[expId] = m;
+        }
+      }
+
       fetch(`/api/classroom/${currentSubjectId}/practical/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
@@ -9087,7 +9563,7 @@
           attendance_marks: attMark,
           board_exam_marks: boardExamMark,
           tests,
-          experiments: tempStudentExpMarks
+          experiments: activeExpMarks
         })
       })
       .then(res => res.json())
@@ -9102,6 +9578,12 @@
       })
       .catch(() => alert('Failed to save student evaluation.'));
     }
+
+    window.syncExpSlider = syncExpSlider;
+    window.jumpToExpCard = jumpToExpCard;
+    window.adjustExpMark = adjustExpMark;
+    window.calcLabModalScores = calcLabModalScores;
+    window.saveStudentLabEvaluation = saveStudentLabEvaluation;
 
     // Manage Experiments Modal Controllers
     function openManageExperimentsModal(e) {
@@ -9187,9 +9669,13 @@
     function savePracticalExperiment(event) {
       event.preventDefault();
       const expId = document.getElementById('expEditId').value;
-      const no = document.getElementById('expFormNo').value;
-      const title = document.getElementById('expFormTitle').value;
+      const no = document.getElementById('expFormNo').value.trim();
+      const title = document.getElementById('expFormTitle').value.trim();
       const co = document.getElementById('expFormCo').value;
+
+      const btn = document.getElementById('btnSaveExp');
+      const feedback = document.getElementById('expSaveFeedbackDashboard');
+      if (btn) btn.disabled = true;
 
       fetch(`/api/classroom/${currentSubjectId}/practical/experiments/save`, {
         method: 'POST',
@@ -9198,21 +9684,55 @@
       })
       .then(res => res.json())
       .then(res => {
+        if (btn) btn.disabled = false;
         if (res.status === 'SUCCESS') {
           // Reset form
           document.getElementById('expEditId').value = '';
           document.getElementById('expFormNo').value = '';
           document.getElementById('expFormTitle').value = '';
-          document.getElementById('btnSaveExp').innerHTML = '<span class="material-symbols-rounded text-sm">add</span> Add Experiment';
+          if (btn) btn.innerHTML = '<span class="material-symbols-rounded text-sm">add</span> Add Experiment';
 
-          alert("Experiment successfully saved!");
+          // 1. Instantly update local array from server response
+          if (res.experiments && Array.isArray(res.experiments)) {
+            labExperimentsData = res.experiments;
+          } else if (res.data) {
+            const idx = labExperimentsData.findIndex(e => e.id == res.data.id || e.experiment_no == res.data.experiment_no);
+            if (idx >= 0) labExperimentsData[idx] = res.data;
+            else labExperimentsData.push(res.data);
+          }
+
+          // 2. Render list immediately (< 10ms)
+          renderManageExperimentsList();
+          const statTotal = document.getElementById('statLabTotalExps');
+          if (statTotal) statTotal.innerText = labExperimentsData.length;
+
+          // 3. Show non-blocking inline feedback
+          if (feedback) {
+            feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 block';
+            feedback.textContent = '✓ ' + (res.message || 'Experiment saved successfully!');
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+          }
+
+          // 4. Run background evaluation recalculation without blocking UI
           fetchPracticalEvaluations();
-          setTimeout(() => renderManageExperimentsList(), 300);
         } else {
-          alert(res.message);
+          if (feedback) {
+            feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400 block';
+            feedback.textContent = '✗ ' + (res.message || 'Failed to save experiment.');
+          } else {
+            alert(res.message);
+          }
         }
       })
-      .catch(() => alert('Failed to save experiment.'));
+      .catch(() => {
+        if (btn) btn.disabled = false;
+        if (feedback) {
+          feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400 block';
+          feedback.textContent = '✗ Network error. Please try again.';
+        } else {
+          alert('Failed to save experiment.');
+        }
+      });
     }
 
     function editExperiment(id) {
@@ -9223,10 +9743,21 @@
       document.getElementById('expFormTitle').value = exp.title || '';
       document.getElementById('expFormCo').value = exp.co_tag || 'CO1';
       document.getElementById('btnSaveExp').innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Update';
+      document.getElementById('expFormNo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.getElementById('expFormNo').focus();
     }
 
     function deleteExperiment(id) {
       if (!confirm('Are you sure you want to delete this experiment? All graded marks for this experiment will be permanently deleted!')) return;
+
+      // OPTIMISTIC INSTANT REMOVAL: Remove from table immediately
+      const prevList = [...labExperimentsData];
+      labExperimentsData = labExperimentsData.filter(e => e.id !== id);
+      renderManageExperimentsList();
+      const statTotal = document.getElementById('statLabTotalExps');
+      if (statTotal) statTotal.innerText = labExperimentsData.length;
+
+      const feedback = document.getElementById('expSaveFeedbackDashboard');
 
       fetch(`/api/classroom/${currentSubjectId}/practical/experiments/${id}`, {
         method: 'DELETE',
@@ -9234,14 +9765,37 @@
       })
       .then(res => res.json())
       .then(res => {
-        alert(res.message);
-        fetchPracticalEvaluations();
-        setTimeout(() => renderManageExperimentsList(), 300);
+        if (res.status === 'SUCCESS') {
+          if (res.experiments && Array.isArray(res.experiments)) {
+            labExperimentsData = res.experiments;
+            renderManageExperimentsList();
+            if (statTotal) statTotal.innerText = labExperimentsData.length;
+          }
+          if (feedback) {
+            feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400 block';
+            feedback.textContent = res.message || 'Experiment deleted successfully.';
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+          }
+          fetchPracticalEvaluations();
+        } else {
+          labExperimentsData = prevList;
+          renderManageExperimentsList();
+          if (statTotal) statTotal.innerText = labExperimentsData.length;
+          alert(res.message || 'Failed to delete experiment.');
+        }
+      })
+      .catch(() => {
+        labExperimentsData = prevList;
+        renderManageExperimentsList();
+        if (statTotal) statTotal.innerText = labExperimentsData.length;
+        alert('Network error deleting experiment.');
       });
     }
 
     function importFromDatabank() {
       if (!confirm('This will import the standard list of experiments configured for this subject code. Existing student grades for existing matching experiment numbers will not be modified. Proceed?')) return;
+
+      const feedback = document.getElementById('expSaveFeedbackDashboard');
 
       fetch(`/api/classroom/${currentSubjectId}/practical/experiments/import`, {
         method: 'POST',
@@ -9249,11 +9803,24 @@
       })
       .then(res => res.json())
       .then(res => {
-        alert(res.message);
-        fetchPracticalEvaluations();
-        setTimeout(() => renderManageExperimentsList(), 300);
+        if (res.status === 'SUCCESS') {
+          if (res.experiments && Array.isArray(res.experiments)) {
+            labExperimentsData = res.experiments;
+            renderManageExperimentsList();
+            const statTotal = document.getElementById('statLabTotalExps');
+            if (statTotal) statTotal.innerText = labExperimentsData.length;
+          }
+          if (feedback) {
+            feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 block';
+            feedback.textContent = res.message || 'Experiments imported successfully.';
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+          }
+          fetchPracticalEvaluations();
+        } else {
+          alert(res.message || 'Import failed.');
+        }
       })
-      .catch(() => alert('Import failed.'));
+      .catch(() => alert('Import failed. Please try again.'));
     }
 
     // Manage Tests modal
@@ -10249,7 +10816,7 @@
 
   <!-- Dedicated Labwork Grade Modal (37.5 Marks) -->
   <div id="labworkGradeModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-0">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg lg:max-w-6xl xl:max-w-7xl overflow-hidden shadow-2xl space-y-0 transition-all">
       <!-- Header -->
       <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
         <div class="flex items-center gap-2.5">
@@ -10282,8 +10849,8 @@
       <!-- Body -->
       <div class="p-4 space-y-3 max-h-[75vh] overflow-y-auto">
         <!-- Select Exp No and Title & Date -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-          <div class="md:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+          <div class="md:col-span-3">
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Experiment No &amp; Title</label>
             <select id="lwModalExpSelect" onchange="loadLwExpValues()" class="w-full bg-slate-900 border border-slate-700 focus:border-slate-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-medium outline-none">
             </select>
@@ -10294,73 +10861,83 @@
           </div>
         </div>
 
-        <!-- Sliders for 5 Components -->
-        <div class="space-y-2.5">
+        <!-- Sliders for 5 Components (Single Row on Desktop) -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-2.5">
           <!-- Rough Record (5) -->
-          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between gap-2 shadow-sm">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Rough Record</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="lw_rough" step="0.5" min="0" max="5" oninput="syncLwComponent('rough', this.value, 5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 5</span>
+              <span class="text-slate-300 text-[11px] font-bold truncate">Rough Record</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <input type="number" id="lw_rough" step="0.5" min="0" max="5" oninput="syncLwComponent('rough', this.value, 5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <span class="text-slate-500 text-[10px] font-mono">/ 5</span>
               </div>
             </div>
-            <input type="range" id="lw_rough_slider" min="0" max="5" step="0.5" oninput="syncLwComponent('rough', this.value, 5)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_rough_slider" min="0" max="5" step="0.5" oninput="syncLwComponent('rough', this.value, 5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Fair Record (7.5) -->
-          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between gap-2 shadow-sm">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Fair Record</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="lw_fair" step="0.5" min="0" max="7.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+              <span class="text-slate-300 text-[11px] font-bold truncate">Fair Record</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <input type="number" id="lw_fair" step="0.5" min="0" max="7.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_fair_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_fair_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Observation & Recording (7.5) -->
-          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between gap-2 shadow-sm">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Observation &amp; Recording</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="lw_obs" step="0.5" min="0" max="7.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+              <span class="text-slate-300 text-[11px] font-bold truncate">Obs &amp; Record</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <input type="number" id="lw_obs" step="0.5" min="0" max="7.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_obs_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_obs_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Procedure & Punctuality (7.5) -->
-          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between gap-2 shadow-sm">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Procedure &amp; Punctuality</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="lw_proc" step="0.5" min="0" max="7.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 7.5</span>
+              <span class="text-slate-300 text-[11px] font-bold truncate">Proc &amp; Punct</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <input type="number" id="lw_proc" step="0.5" min="0" max="7.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_proc_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_proc_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Viva Voce (10) -->
-          <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between gap-2 shadow-sm">
             <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-300">Viva Voce</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="lw_viva" step="0.5" min="0" max="10" oninput="syncLwComponent('viva', this.value, 10)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
-                <span class="text-slate-500 text-[11px]">/ 10</span>
+              <span class="text-slate-300 text-[11px] font-bold truncate">Viva Voce</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <input type="number" id="lw_viva" step="0.5" min="0" max="10" oninput="syncLwComponent('viva', this.value, 10)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <span class="text-slate-500 text-[10px] font-mono">/ 10</span>
               </div>
             </div>
-            <input type="range" id="lw_viva_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('viva', this.value, 10)" class="w-full accent-slate-400 cursor-pointer">
+            <input type="range" id="lw_viva_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('viva', this.value, 10)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
         </div>
 
-        <!-- Live Exp Total -->
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Experiment Total Score</span>
-          <span id="lwModalExpTotal" class="text-base font-mono font-black text-slate-200">0.0 / 37.5</span>
+        <!-- Live Exp Total (Enlarged) -->
+        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-3.5 rounded-xl border border-slate-800/80 shadow-md flex flex-wrap justify-between items-center gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400">
+              <span class="material-symbols-rounded text-xl">calculate</span>
+            </div>
+            <div>
+              <span class="text-xs font-black text-slate-200 uppercase tracking-wider block">Experiment Total Score</span>
+              <span class="text-[11px] text-slate-400">Continuous Lab Work Rubric Total (Max 37.5 Marks)</span>
+            </div>
+          </div>
+          <div class="flex items-center bg-slate-950 px-4 py-1.5 rounded-xl border border-cyan-500/40 shadow-inner">
+            <span id="lwModalExpTotal" class="text-2xl sm:text-3xl font-mono font-black text-cyan-400 tracking-tight">0.0 / 37.5</span>
+          </div>
         </div>
       </div>
 
@@ -10377,8 +10954,6 @@
           </button>
         </div>
       </div>
-    </div>
-  </div>
     </div>
   </div>
 
@@ -10453,15 +11028,15 @@
 
   <!-- Virtual Lab Modals (Revision 2021) -->
   <!-- Student Lab Modal -->
-  <div id="studentLabModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+  <div id="studentLabModal" onclick="if(event.target === this) closeStudentLabModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
         <div>
           <h3 id="labModalStudentName" class="text-lg sm:text-xl font-black text-white uppercase tracking-wide">Student Evaluation</h3>
           <p id="labModalStudentReg" class="text-sm font-bold text-cyan-400 font-mono mt-0.5"></p>
         </div>
-        <button onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer">
-          <span class="material-symbols-rounded">close</span>
+        <button type="button" onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 flex items-center justify-center">
+          <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
       <div class="px-6 py-2 bg-slate-900 border-b border-slate-800/50 flex gap-4 text-xs font-bold">
@@ -10488,67 +11063,68 @@
                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Lab Work Average:</span>
                 <span id="labModalLabelExpSummary" class="text-base font-mono font-black text-emerald-400">0.00 / 37.5</span>
               </div>
-              <div id="expQuickJumpContainer">
-                <select id="expJumpSelect" onchange="jumpToExpCard(this.value)" class="bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 rounded-lg px-2.5 py-1.5 focus:border-blue-500 outline-none cursor-pointer">
+              <div class="w-48">
+                <select id="expJumpSelect" onchange="jumpToExpCard(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 font-bold focus:border-blue-500 outline-none">
                   <option value="">Jump to Exp...</option>
                 </select>
               </div>
             </div>
           </div>
 
-          <!-- Dynamic Experiment Cards Container (List of all experiments with Exp No & Title) -->
+          <!-- Experiments Dynamic List Container -->
           <div id="labModalExpsListContainer" class="space-y-4">
-            <!-- Experiment Cards rendered here -->
+            <!-- Dynamically populated cards -->
           </div>
         </div>
 
-        <!-- TAB: TESTS -->
+        <!-- TAB: MODEL TESTS -->
         <div id="labModalTab_test" class="space-y-4 hidden">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Test 1 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Test 1 Card -->
             <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
-              <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
-                <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 1 (CO1 &amp; CO2)</h4>
-                <span class="text-xs font-bold text-blue-400" id="labModalT1Sum">0.0 / 15</span>
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest">Model Test 1</h4>
+                <span class="text-xs font-mono font-black text-slate-400" id="labModalT1Sum">0.0 / 15</span>
               </div>
-              <div class="space-y-4">
-                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                  <div class="flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-300">CO1 Score (Max 7.5)</span>
-                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co1" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-blue-500 outline-none">
-                  </div>
-                  <input type="range" id="labScore_t1_co1_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+              <!-- CO1 -->
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">CO1 (Max 7.5)</span>
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co1" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
                 </div>
-                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                  <div class="flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-300">CO2 Score (Max 7.5)</span>
-                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t1_co2" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
-                  </div>
-                  <input type="range" id="labScore_t1_co2_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t1_co1_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
+              </div>
+              <!-- CO2 -->
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">CO2 (Max 7.5)</span>
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co2" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
                 </div>
+                <input type="range" id="labScore_t1_co2_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
               </div>
             </div>
-            <!-- Test 2 -->
+
+            <!-- Test 2 Card -->
             <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
-              <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
-                <h4 class="text-xs font-black text-slate-350 uppercase tracking-widest">Model Test 2 (CO3 &amp; CO4)</h4>
-                <span class="text-xs font-bold text-slate-300" id="labModalT2Sum">0.0 / 15</span>
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h4 class="text-xs font-black text-purple-400 uppercase tracking-widest">Model Test 2</h4>
+                <span class="text-xs font-mono font-black text-slate-400" id="labModalT2Sum">0.0 / 15</span>
               </div>
-              <div class="space-y-4">
-                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                  <div class="flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-300">CO3 Score (Max 7.5)</span>
-                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co3" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
-                  </div>
-                  <input type="range" id="labScore_t2_co3_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+              <!-- CO3 -->
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">CO3 (Max 7.5)</span>
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co3" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
                 </div>
-                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
-                  <div class="flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-300">CO4 Score (Max 7.5)</span>
-                    <input type="number" step="0.1" min="0" max="7.5" id="labScore_t2_co4" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
-                  </div>
-                  <input type="range" id="labScore_t2_co4_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t2_co3_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
+              </div>
+              <!-- CO4 -->
+              <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-300">CO4 (Max 7.5)</span>
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co4" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
                 </div>
+                <input type="range" id="labScore_t2_co4_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
               </div>
             </div>
           </div>
@@ -10556,12 +11132,13 @@
 
         <!-- TAB: PROJECT & ATTENDANCE -->
         <div id="labModalTab_project" class="space-y-4 hidden">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Project Card -->
+            <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4">
+              <h4 class="text-xs font-black text-amber-400 border-b border-slate-800 pb-2 uppercase tracking-widest">Micro-Project / Open-Ended (CO5)</h4>
               <div>
-                <h4 class="text-xs font-black text-slate-350 border-b border-slate-800 pb-2 uppercase tracking-widest mb-3">Open-Ended Project / Micro-Project</h4>
-                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Project Topic Description</label>
-                <input type="text" id="labScore_projectTopic" placeholder="Enter assigned micro-project topic..." class="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-base font-normal text-slate-200 focus:border-slate-500 outline-none mb-4">
+                <label class="text-xs text-slate-400 block mb-1 font-bold">Project Topic</label>
+                <input type="text" id="labScore_projectTopic" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 outline-none" placeholder="Enter assigned project title...">
               </div>
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
@@ -10612,9 +11189,14 @@
           <div>Model Test: <span class="text-slate-200 font-mono" id="labModalLabelTest">0.0</span></div>
           <div>Internal CA: <span class="text-teal-400 font-black font-mono text-sm" id="labModalLabelInternals">0.0 / 75</span></div>
         </div>
-        <button onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
-          <span class="material-symbols-rounded text-sm">save</span> Save Evaluation
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeStudentLabModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-premium cursor-pointer">
+            Close
+          </button>
+          <button type="button" onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
+            <span class="material-symbols-rounded text-sm">save</span> Save Evaluation
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -10663,6 +11245,7 @@
               <span class="material-symbols-rounded text-sm">add</span> Add Experiment
             </button>
           </div>
+          <div id="expSaveFeedbackDashboard" class="hidden px-3 py-2 rounded-lg text-xs font-bold border"></div>
         </form>
 
         <!-- Experiments List Table -->
@@ -10683,6 +11266,166 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Experiments Details Modal -->
+  <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded text-teal-400 text-xl">biotech</span>
+            <h3 class="text-base font-black text-white">Completed Practical Experiments &amp; Sessions</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5" id="completedExpsModalSubtitle">Classroom &bull; Normalized Timetable Continuous Sessions</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="printCompletedExperimentsLog()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow shadow-blue-500/20">
+            <span class="material-symbols-rounded text-sm">print</span>
+            <span>Print Report</span>
+          </button>
+          <button onclick="closeCompletedExperimentsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Overview Cards -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Total In Syllabus</span>
+            <span class="text-xl font-mono font-black text-white mt-1 block" id="kpiTotalSyllabusExps">0</span>
+          </div>
+          <div class="p-3 bg-teal-950/30 border border-teal-800/40 rounded-xl">
+            <span class="text-[10px] font-bold uppercase text-teal-300 block">Experiments Completed</span>
+            <span class="text-xl font-mono font-black text-teal-400 mt-1 block" id="kpiCompletedExpsCount">0</span>
+          </div>
+          <div class="p-3 bg-blue-950/30 border border-blue-800/40 rounded-xl">
+            <span class="text-[10px] font-bold uppercase text-blue-300 block">Actual Lab Hours</span>
+            <span class="text-xl font-mono font-black text-blue-400 mt-1 block" id="kpiActualLabHours">0 hrs</span>
+          </div>
+          <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl">
+            <span class="text-[10px] font-bold uppercase text-purple-300 block">Syllabus Covered</span>
+            <span class="text-xl font-mono font-black text-purple-300 mt-1 block" id="kpiCoveragePercent">0%</span>
+          </div>
+        </div>
+
+        <!-- Completed Experiments Table -->
+        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-inner">
+          <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex justify-between items-center">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-sm text-teal-400">task_alt</span> Completed Experiments Log Details
+            </span>
+            <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing 0 completed session records</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[750px]">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60">
+                  <th class="p-2.5 w-12 text-center">#</th>
+                  <th class="p-2.5 w-24">Exp No</th>
+                  <th class="p-2.5">Title / Topics Covered</th>
+                  <th class="p-2.5 text-center w-28">Date</th>
+                  <th class="p-2.5 text-center w-36">Hours (Periods)</th>
+                  <th class="p-2.5 text-center w-28">Batch</th>
+                  <th class="p-2.5 text-center w-28">Attendance</th>
+                </tr>
+              </thead>
+              <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
+                <tr>
+                  <td colspan="7" class="p-6 text-center text-slate-500">No completed experiments recorded yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Experiment Date Modal -->
+  <div id="editExpDateModal" onclick="if(event.target === this) closeEditExpDateModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[70] hidden justify-center items-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-rounded text-teal-400 text-xl">edit_calendar</span>
+          <h3 class="text-sm font-bold text-white">Edit Experiment Date</h3>
+        </div>
+        <button onclick="closeEditExpDateModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1">
+          <span class="material-symbols-rounded text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4">
+        <!-- Exp Info -->
+        <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl space-y-2.5">
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1 bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
+              <span class="text-[11px] font-bold text-slate-400 uppercase">Exp No:</span>
+              <input type="text" id="editModalExpNoInput" class="w-12 bg-transparent text-xs font-mono font-bold text-teal-300 outline-none text-center" title="Edit Experiment Number (e.g. 1, 2, 2A)">
+            </div>
+            <span id="editModalExpTitle" class="text-xs font-semibold text-slate-200 line-clamp-1 flex-1">Experiment Title</span>
+          </div>
+          <div class="text-[11px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800/60">
+            <span>Currently Recorded Date:</span>
+            <span id="editModalCurrentDate" class="font-mono text-amber-300 font-bold">—</span>
+          </div>
+        </div>
+
+        <!-- New Date Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+            <span class="material-symbols-rounded text-sm text-teal-400">calendar_month</span> New Conducted Date
+          </label>
+          <input type="date" id="editModalNewDateInput" class="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-white font-mono text-sm [color-scheme:dark] focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+        </div>
+
+        <!-- Update Scope -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold text-slate-300">Application Scope</label>
+          <div class="grid grid-cols-1 gap-2">
+            <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-950/80 cursor-pointer transition">
+              <input type="radio" name="editExpDateScope" value="universal" checked class="mt-0.5 text-teal-500 focus:ring-teal-500">
+              <div>
+                <span class="text-xs font-bold text-white block">Universal (All Batches &amp; Master Syllabus)</span>
+                <span class="text-[10px] text-slate-400 block">Fix this experiment's date across all batches, syllabus master, and evaluations.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-950/80 cursor-pointer transition">
+              <input type="radio" name="editExpDateScope" value="batch" class="mt-0.5 text-teal-500 focus:ring-teal-500">
+              <div>
+                <span class="text-xs font-bold text-white block" id="editModalBatchLabel">This Batch Only</span>
+                <span class="text-[10px] text-slate-400 block">Update evaluation logs and student attendance specifically for this lab batch.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Attendance Sync Checkbox -->
+        <div class="pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="editModalSyncAttendance" checked class="rounded border-slate-700 text-teal-500 focus:ring-teal-500">
+            <span class="text-xs text-slate-300">Synchronize student lab attendance records to this new date</span>
+          </label>
+          <p class="text-[10px] text-slate-500 ml-5 mt-0.5">Moves class log continuous sessions (3 hrs) &amp; student attendance from old date to new date.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-slate-950/70 border-t border-slate-800 flex justify-end items-center gap-2.5">
+        <button type="button" onclick="closeEditExpDateModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" id="btnConfirmEditExpDate" onclick="submitEditExpDate()" class="px-4 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm shadow-teal-500/20">
+          <span class="material-symbols-rounded text-sm">check</span>
+          <span>Save &amp; Update</span>
+        </button>
       </div>
     </div>
   </div>

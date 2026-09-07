@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carmel Linx - Virtual Lab Staff Comprehensive Operations Manual (Revision 2021)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+            --bg-light: #f8fafc;
+            --border-color: #cbd5e1;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm 10mm 12mm 10mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-dark);
+            background-color: #fff;
+            line-height: 1.45;
+            font-size: 10.5px;
+            padding: 16px;
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px double #0f172a;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .header h1 {
+            font-size: 16.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0369a1;
+        }
+
+        .header h2 {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 2px;
+            color: #1e293b;
+        }
+
+        .header p {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn-print {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn-print:hover {
+            background-color: #0369a1;
+        }
+
+        h3 {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1.5px solid #0284c7;
+            padding-bottom: 3px;
+            margin: 14px 0 6px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        h4 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 8px 0 3px 0;
+        }
+
+        p, li {
+            font-size: 10px;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+
+        ul, ol {
+            padding-left: 18px;
+            margin-bottom: 8px;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0 10px 0;
+            font-size: 9.5px;
+        }
+
+        .table-custom th, .table-custom td {
+            border: 1px solid #94a3b8;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            font-size: 8.5px;
+        }
+
+        .table-custom td.center { text-align: center; }
+        .table-custom td.mono { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-amber { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-purple { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+
+        .callout {
+            border-left: 3px solid #0284c7;
+            background-color: #f0f9ff;
+            padding: 6px 10px;
+            border-radius: 0 5px 5px 0;
+            margin: 8px 0;
+            font-size: 9.5px;
+        }
+
+        .callout.warning {
+            border-left-color: #d97706;
+            background-color: #fffbeb;
+        }
+
+        .workflow-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            background-color: #fafafa;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .dos-box { border: 1px solid #86efac; background: #f0fdf4; padding: 6px 10px; border-radius: 5px; }
+        .donts-box { border: 1px solid #fca5a5; background: #fef2f2; padding: 6px 10px; border-radius: 5px; }
+        .dos-box h4 { color: #166534; margin-top: 0; }
+        .donts-box h4 { color: #991b1b; margin-top: 0; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; margin: 0; font-size: 9px; }
+            .table-custom th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .workflow-box, .callout, .dos-box, .donts-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            h3 { page-break-after: avoid; }
+            table, .workflow-box { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print action-bar">
+        <a href="/docs/Virtual_Lab_Staff_User_Manual.pdf" download="Virtual_Lab_Staff_User_Manual.pdf" class="btn-print" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background-color: #0f766e;">
+            📥 Download PDF File
+        </a>
+        <button class="btn-print" onclick="window.print()">
+            🖨️ Print User Manual / Save as PDF
+        </button>
+    </div>
+
+    <div class="header">
+        <h1>Carmel Polytechnic College</h1>
+        <h2>Virtual Lab Operations — Complete Staff Manual &amp; Step-by-Step Guide</h2>
+        <p>Curriculum Compliance: SBTE Revision 2021 (75 Marks CIA) • All Dates Standardized in DD-MM-YYYY</p>
+    </div>
+
+    <h3>1. Revision 2021 Marks Structure &amp; Assessment Split-up (75M Total CIA)</h3>
+
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th style="width: 28%">Assessment Component</th>
+                <th style="width: 18%">Component Max</th>
+                <th style="width: 16%">CIA Weight</th>
+                <th>Evaluation Rules &amp; Rubrics</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Continuous Lab Work</strong></td>
+                <td class="center mono"><strong>37.5 Marks</strong></td>
+                <td class="center mono"><strong>37.5 Marks</strong></td>
+                <td>Average of all conducted experiments evaluated across 5 rubrics (Max 37.5M)</td>
+            </tr>
+            <tr>
+                <td><strong>Open-Ended Experiment</strong></td>
+                <td class="center mono"><strong>7.5 Marks</strong></td>
+                <td class="center mono"><strong>7.5 Marks</strong></td>
+                <td>Micro-project / individual problem-solving challenge evaluated out of 7.5 Marks</td>
+            </tr>
+            <tr>
+                <td><strong>Practical Series Tests</strong></td>
+                <td class="center mono">Test 1: <strong>15M</strong><br>Test 2: <strong>15M</strong></td>
+                <td class="center mono"><strong>15.0 Marks</strong></td>
+                <td>Average of Practical Test 1 &amp; Test 2: <code>(Test 1 + Test 2) / 2</code> (Max 15M)</td>
+            </tr>
+            <tr>
+                <td><strong>Lab Attendance</strong></td>
+                <td class="center mono">100% Scale</td>
+                <td class="center mono"><strong>15.0 Marks</strong></td>
+                <td><strong>Proportional:</strong> <code>(Attendance % / 100) &times; 15</code> (e.g. 100% &rarr; 15M, 90% &rarr; 13.5M, 80% &rarr; 12M, 75% &rarr; 11.3M)</td>
+            </tr>
+            <tr style="background-color: #f8fafc; font-weight: bold;">
+                <td colspan="2"><strong>TOTAL CONTINUOUS INTERNAL ASSESSMENT (CIA)</strong></td>
+                <td class="center mono" style="color: #0369a1; font-size: 11px;"><strong>75 MARKS</strong></td>
+                <td><strong>37.5 (Lab Work) + 7.5 (Open-Ended) + 15 (Tests) + 15 (Attendance) = 75M</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <strong>📋 5 Rubrics for Continuous Lab Work (37.5 Marks Total per Experiment):</strong>
+        <br>1. <strong>Rough Record / Algorithm:</strong> 0 &ndash; 5.0 Marks &nbsp;|&nbsp; 2. <strong>Fair Record / Documentation:</strong> 0 &ndash; 7.5 Marks
+        <br>3. <strong>Observation / Preparation:</strong> 0 &ndash; 7.5 Marks &nbsp;|&nbsp; 4. <strong>Execution / Procedure &amp; Punctuality:</strong> 0 &ndash; 7.5 Marks &nbsp;|&nbsp; 5. <strong>Viva Voce / Viva Understanding:</strong> 0 &ndash; 10.0 Marks
+        <br><em>Total per experiment = 5 + 7.5 + 7.5 + 7.5 + 10 = 37.5 Marks</em>
+    </div>
+
+    <h3>2. Role Demarcation: Tutor vs Assigned Lab Staff</h3>
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th style="width: 25%">Role</th>
+                <th>Responsibilities in Virtual Lab</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Tutor / Class In-Charge</strong></td>
+                <td>Initial student roster verification, mentor assignment, and setting up the <strong>Lab Batch Division</strong> (Batch 1 / Batch 2 or Whole Class).</td>
+            </tr>
+            <tr>
+                <td><strong>Assigned Lab Staff<br>(Faculty In-Charge &amp; Instructors)</strong></td>
+                <td>Syllabus upload, CO-PO mapping, lesson planning, daily session logging (<code>DD-MM-YYYY</code>), period selection (<code>P1–P3</code>/<code>P4–P6</code>), experiment linking, 5-rubric grading (37.5M), log editing/deleting, date fixes, open-ended evaluations (7.5M), series test question preparation &amp; scoring (15M), threshold configuration, OBE attainment calculation, and official A4 report printing.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3. Step-by-Step Operations for Assigned Lab Staff (From Scratch)</h3>
+
+    <div class="workflow-box">
+        <h4>Step 1: Login &amp; Navigation</h4>
+        <ul>
+            <li><strong>Desktop:</strong> Log in with faculty credentials &rarr; <em>Lecturer Dashboard</em> &rarr; Click your assigned Practical Course card (e.g. <em>3049 - Fundamentals of C Programming Lab</em>).</li>
+            <li><strong>Mobile:</strong> Log in &rarr; Tap <em>Virtual Lab</em> in bottom menu &rarr; Select your Subject.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 2: Upload Syllabus &amp; Course Structure Setup</h4>
+        <ul>
+            <li>Open the <strong>Syllabus / Course Structure</strong> tab.</li>
+            <li>Upload the official SBTE Revision 2021 syllabus PDF/Word document or import from template.</li>
+            <li>Verify course metadata: Subject Name, Subject Code, Semester, Department, Lecture/Lab Hours, and Credits.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 3: CO - PO - PSO Setup &amp; Mapping Matrix</h4>
+        <ul>
+            <li>Open <strong>CO-PO Mapping</strong> tab.</li>
+            <li>Set up Course Outcomes (CO1, CO2, CO3, etc.) with Bloom's Taxonomy cognitive levels and practical competencies.</li>
+            <li>Define correlation levels with Program Outcomes (PO1 to PO7) and Program Specific Outcomes (PSOs):
+                <br><code>3 = Substantial (High)</code>, <code>2 = Moderate (Medium)</code>, <code>1 = Slight (Low)</code>, <code>- = No Correlation</code>.
+            </li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 4: Lesson Plan Setup &amp; Schedule</h4>
+        <ul>
+            <li>Open the <strong>Lesson Plan / Planner</strong> tab.</li>
+            <li>Configure day-wise practical session entries: Day No, Proposed Date (<code>DD-MM-YYYY</code>), Topic/Experiment description, mapped CO Tag, Pedagogy, and Actual Conducted Date.</li>
+            <li>Auto-saves as you enter or import from the department template.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 5: Formative Tab (Continuous Lab Work &amp; Experiment List)</h4>
+        <ul>
+            <li><strong>Experiment List Setup:</strong> Verify all syllabus experiments (Exp 1 to Exp 20) with titles and mapped CO tags.</li>
+            <li><strong>Grading Students with 5 Rubric Sliders:</strong>
+                <br>&bull; <em>On Desktop:</em> Open <em>Continuous Evaluation</em> &rarr; Select Exp No &rarr; Click student row &rarr; Adjust the 5 compact horizontal sliders (Rough 5M, Fair 7.5M, Obs 7.5M, Proc 7.5M, Viva 10M) arranged neatly on a single row &rarr; Live total (Max 37.5M) updates &rarr; Click <strong>Save / Next</strong>.
+                <br>&bull; <em>On Mobile:</em> Tap student card &rarr; Adjust touch sliders &rarr; Instant auto-save.
+            </li>
+            <li><strong>Open-Ended Experiment (7.5M):</strong> Enter assigned micro-project topic &amp; evaluated score out of <strong>7.5 Marks</strong>.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 6: Summative Tab (Practical Series Tests &amp; Question Bank)</h4>
+        <ul>
+            <li><strong>Question Bank Preparation:</strong> Add practical questions tagged with COs and max marks into the Course Question Bank.</li>
+            <li><strong>Test Question Setup:</strong> Pick questions from the Question Bank or generate structured question papers for Practical Test 1 &amp; Practical Test 2.</li>
+            <li><strong>Test Mark Entry (15M Total):</strong> Enter exam dates (<code>DD-MM-YYYY</code>) &rarr; Enter <strong>Test 1 (Max 15M)</strong> and <strong>Test 2 (Max 15M)</strong>. System automatically computes the average: <code>(Test 1 + Test 2) / 2</code> (Max 15M).</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 7: Daily Attendance &amp; Class Logging (Period Presets, Dates &amp; Batches)</h4>
+        <ul>
+            <li>Open <strong>Attendance &amp; Class Log</strong>. Select session date (<code>DD-MM-YYYY</code>).</li>
+            <li>Select continuous period preset: <strong>P1–P3 Morning (3h)</strong> or <strong>P4–P6 Afternoon (3h)</strong>.</li>
+            <li>Select the batch: <strong>Batch 1</strong>, <strong>Batch 2</strong>, or <strong>Whole Class</strong>.</li>
+            <li>Select syllabus experiment from dropdown to auto-link hours and CO tags.</li>
+            <li>Click <strong>Mark All Present</strong> (uncheck absentees or tap grid buttons) &rarr; Click <strong>Save Class Log &amp; Attendance</strong>.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 8: Log Management &amp; Debugging (Edit / Delete / Date Adjustments)</h4>
+        <ul>
+            <li><strong>Delete Accidental Duplicate Logs:</strong> Open <em>Past Logs</em> &rarr; Look for amber <span class="badge badge-amber">Duplicate</span> badge &rarr; Click <strong>Delete</strong>. The duplicate is deleted safely while preserving original logs and attendance.</li>
+            <li><strong>Edit Experiment Conducted Date:</strong> Open <em>Completed Experiments</em> modal &rarr; Click date picker or <strong>Tune</strong> icon &rarr; Set corrected <code>DD-MM-YYYY</code> date &rarr; Select scope (<em>Universal</em> or <em>Batch-specific</em>) &rarr; Click <strong>Save &amp; Update</strong>.</li>
+        </ul>
+    </div>
+
+    <div class="workflow-box">
+        <h4>Step 9: Proportional Attendance Calculation &amp; Live 75M Master Sheet</h4>
+        <ul>
+            <li>System calculates attendance marks proportionately: <code>(Present Classes / Total Classes) &times; 15</code>.</li>
+            <li>Open <strong>Consolidated CIA (75M)</strong> to review the master evaluation sheet:
+                <br><code>37.5M (Lab Work) + 7.5M (Open-Ended) + 15M (Series Tests) + 15M (Attendance) = 75.0M TOTAL CIA</code>.
+            </li>
+            <li>Faculty can review and fine-tune attendance marks (0&ndash;15) in this sheet if institutional duty leaves or approved condonation apply.</li>
+        </ul>
+    </div>
+
+    <h3>4. OBE Attainment Workflow: Surveys, End-Sem Grades &amp; Thresholds</h3>
+
+    <div class="workflow-box">
+        <h4>1. End-Semester Course Exit Survey (Indirect Attainment - 20%):</h4>
+        <p>Students log in to their student portal and complete the Course Exit Survey rating their competence for each Course Outcome (CO) on a 3-point scale:</p>
+        <ul>
+            <li><strong>3 (High / Substantial)</strong> &nbsp;|&nbsp; <strong>2 (Moderate)</strong> &nbsp;|&nbsp; <strong>1 (Slight / Low)</strong></li>
+        </ul>
+        <p>System computes average indirect attainment rating on a 3.0 scale: <code>Indirect Level = (Average Score / 3) &times; 3.0</code>.</p>
+
+        <h4>2. Threshold Configuration by Faculty (Before Calculation):</h4>
+        <ul>
+            <li><strong>Internal CIA Mark Threshold:</strong> e.g. Score &ge; <strong>60%</strong> or <strong>70%</strong> of marks in CO-mapped components.</li>
+            <li><strong>End-Semester Examination (ESE) Grade Threshold:</strong> e.g. Achieving Grade <strong>A</strong> or <strong>B</strong> (or &ge; 50% / 60% mark equivalent).</li>
+            <li><strong>Student Cohort Target %:</strong> Percentage of students achieving threshold to earn Level 3, 2, or 1.</li>
+        </ul>
+
+        <h4>3. End-Semester Exam (ESE) Attainment (Uniform Across All COs):</h4>
+        <p>Because SBTE publishes semester exam results as overall course <strong>Grades (S, A, B, C, D, F)</strong> rather than individual CO question marks, the <strong>End-Semester Exam attainment is uniform across all Course Outcomes (COs)</strong> in that course.</p>
+        <p><strong>Example ESE Attainment (Target: Grade A):</strong></p>
+        <ul>
+            <li><span class="badge badge-green">Level 3 (High)</span>: <strong>&ge; 70%</strong> of total students achieve Grade A or above.</li>
+            <li><span class="badge badge-blue">Level 2 (Medium)</span>: <strong>60% &ndash; 69%</strong> of students achieve Grade A or above.</li>
+            <li><span class="badge badge-amber">Level 1 (Low)</span>: <strong>50% &ndash; 59%</strong> of students achieve Grade A or above.</li>
+            <li><span class="badge badge-purple">Level 0 (Unattained)</span>: <strong>&lt; 50%</strong> of students achieve Grade A or above.</li>
+        </ul>
+
+        <h4>4. Internal CIA Direct Attainment (Per CO):</h4>
+        <p>Computed for each specific CO from its mapped Continuous Lab Work (37.5M), Open-Ended (7.5M), and Series Tests (15M):</p>
+        <ul>
+            <li>If &ge; 70% (or configured target, e.g. 65%) of students score &ge; 60% marks in CO1 tasks &rarr; <strong>CO1 Internal Level = 3</strong>.</li>
+        </ul>
+
+        <h4>5. Final Overall CO Attainment Formula (100% Total):</h4>
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width: 30%">Attainment Component</th>
+                    <th style="width: 18%">Weightage</th>
+                    <th>Calculation &amp; Data Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Direct Attainment</strong></td>
+                    <td class="center mono"><strong>80%</strong></td>
+                    <td><code>(50% &times; Internal CIA Level) + (50% &times; End-Sem Grade Level)</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Indirect Attainment</strong></td>
+                    <td class="center mono"><strong>20%</strong></td>
+                    <td>Student End-Semester Course Exit Survey average rating (Scale 1 to 3).</td>
+                </tr>
+                <tr style="background-color: #f8fafc; font-weight: bold;">
+                    <td><strong>FINAL OVERALL CO ATTAINMENT</strong></td>
+                    <td class="center mono" style="color: #0369a1;"><strong>100%</strong></td>
+                    <td><code>(0.80 &times; Direct Attainment) + (0.20 &times; Indirect Attainment)</code> &rarr; Mapped to NBA CO-PO-PSO Matrix</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>5. Mobile Virtual Lab Workflow (Floor Usage)</h3>
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th style="width: 30%">Mobile Feature</th>
+                <th>Operation &amp; Usage in Lab Floor</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Attendance Taking</strong></td>
+                <td>Quick 1-tap roll call with batch filter and continuous period presets (P1–P3).</td>
+            </tr>
+            <tr>
+                <td><strong>Touch Rubric Sliders</strong></td>
+                <td>Tap student card &rarr; Adjust the 5 sliders for Rough, Fair, Obs, Proc, Viva &rarr; Real-time instant auto-save.</td>
+            </tr>
+            <tr>
+                <td><strong>Log Management</strong></td>
+                <td>View past logs grouped by date (<code>DD-MM-YYYY</code>) with amber duplicate alert badges &amp; 1-tap deletion.</td>
+            </tr>
+            <tr>
+                <td><strong>Student Detail Card</strong></td>
+                <td>Tap student name to view complete CIA summary breakdown and per-experiment grade cards.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>6. Official Reports &amp; Documentation (Printable A4)</h3>
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th style="width: 35%">Report Name</th>
+                <th style="width: 22%">Layout</th>
+                <th>Purpose &amp; Content</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Practical Experiments Conducted Log</strong></td>
+                <td>A4 Portrait</td>
+                <td>Coverage %, actual hours, batch details, conducted dates (<code>DD-MM-YYYY</code>), attendance %.</td>
+            </tr>
+            <tr>
+                <td><strong>Consolidated Evaluation Register</strong></td>
+                <td>A4 Portrait</td>
+                <td>Full 75M CIA breakdown (37.5M + 7.5M + 15M + 15M) with signatures.</td>
+            </tr>
+            <tr>
+                <td><strong>Consolidated Attendance Matrix</strong></td>
+                <td>A4 Landscape</td>
+                <td>Date-wise and period-wise presence/absence matrix.</td>
+            </tr>
+            <tr>
+                <td><strong>CO-PO-PSO Attainment Report</strong></td>
+                <td>A4 Portrait</td>
+                <td>Direct (80%) + Indirect Exit Survey (20%) attainment matrices with threshold audits.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="grid-2">
+        <div class="dos-box">
+            <h4>✅ DOs (Best Practices)</h4>
+            <ul>
+                <li>Log continuous 3-hour sessions using multi-period selector (e.g. <code>P1–P3</code>).</li>
+                <li>Link syllabus experiment from dropdown to maintain CO tags.</li>
+                <li>Grade rubric sliders while observing student in lab.</li>
+                <li>Configure attainment thresholds prior to final NBA report export.</li>
+            </ul>
+        </div>
+        <div class="donts-box">
+            <h4>❌ DON'Ts</h4>
+            <ul>
+                <li>Do not create separate 1-hour logs for a continuous 3-hour lab.</li>
+                <li>Do not delete student rosters manually (handled by Tutor).</li>
+                <li>Do not leave experiments unlinked to Course Outcomes.</li>
+                <li>Do not print registers without verifying DD-MM-YYYY dates.</li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>

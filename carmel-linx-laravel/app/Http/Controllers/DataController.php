@@ -1699,7 +1699,7 @@ class DataController extends Controller
             
             $subjects = $query->get()->map(function ($subj) use ($classroomId) {
                 $totalHoursAllotted = \App\Models\LessonPlan::where('batch_subject_id', $subj->id)->sum('allocated_hours') ?: 0;
-                $hoursCompleted = \DB::table('class_logs_attendance')->where('batch_subject_id', $subj->id)->count();
+                $hoursCompleted = \DB::table('class_logs_attendance')->where('batch_subject_id', $subj->id)->select('date', 'period')->distinct()->get()->count();
                 
                 $assignmentCount = \App\Models\AcademicMark::where(function($q) use ($subj) {
                         $q->where('batch_subject_id', $subj->id)
@@ -2111,6 +2111,9 @@ class DataController extends Controller
 
                     $classesConducted = \DB::table('class_logs_attendance')
                         ->where('batch_subject_id', $subj->id)
+                        ->select('date', 'period')
+                        ->distinct()
+                        ->get()
                         ->count();
 
                     $courseFile = \DB::table('cf_course_files')
@@ -2350,9 +2353,27 @@ class DataController extends Controller
                         $batchesMap[$cid]['roles'][] = 'Subject Staff';
                     }
                     $subjId = $sa->batchSubject->id;
+                    $isPractical = stripos($sa->batchSubject->subject_type ?? '', 'practical') !== false || stripos($sa->batchSubject->subject_type ?? '', 'lab') !== false;
                     $totalTopics = \App\Models\LessonPlan::where('batch_subject_id', $subjId)->count();
                     $coveredTopics = \App\Models\LessonPlan::where('batch_subject_id', $subjId)->where('status', 'Completed')->count();
-                    $engagedHours = \DB::table('class_logs_attendance')->where('batch_subject_id', $subjId)->count();
+
+                    if ($isPractical && $totalTopics === 0) {
+                        $pExps = \App\Models\PracticalExperiment::where('batch_subject_id', $subjId)->get();
+                        $totalTopics = $pExps->count();
+                        $coveredTopics = $pExps->whereNotNull('conducted_date')->count();
+                    } elseif ($isPractical && $totalTopics > 0) {
+                        $pExpDone = \App\Models\PracticalExperiment::where('batch_subject_id', $subjId)->whereNotNull('conducted_date')->count();
+                        if ($pExpDone > $coveredTopics) $coveredTopics = $pExpDone;
+                    }
+
+                    // Count actual distinct hours (date + period) to avoid multiplying for multi-experiment sessions
+                    $engagedHours = \DB::table('class_logs_attendance')
+                        ->where('batch_subject_id', $subjId)
+                        ->select('date', 'period')
+                        ->distinct()
+                        ->get()
+                        ->count();
+
                     $totalHours = \App\Models\LessonPlan::where('batch_subject_id', $subjId)->sum('allocated_hours') ?: 0;
 
                     $batchesMap[$cid]['subjects'][] = [

@@ -15,7 +15,8 @@ class PracticalExperimentMark extends Model
         'result',
         'rough_record',
         'fair_record',
-        'total_mark'
+        'total_mark',
+        'evaluation_date'
     ];
 
     public function experiment()

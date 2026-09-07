@@ -126,20 +126,43 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-bold text-slate-400 mb-1.5">Date</label>
-          <input type="date" id="logDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500" value="{{ date('Y-m-d') }}">
+          <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500" value="{{ date('Y-m-d') }}">
         </div>
         <div>
           <label class="block text-sm font-bold text-slate-400 mb-1.5">Period / Hour (Select multiple if Lab or Combined Class)</label>
+          <!-- Lab Timetable Continuous Hours Quick Presets -->
+          <div id="labPeriodPresets" class="hidden flex flex-wrap items-center gap-1.5 mb-2">
+            <button type="button" onclick="selectPeriodPreset([1,2,3])" class="px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-md text-[11px] font-bold cursor-pointer transition">
+              P1–P3 (Morning 3h)
+            </button>
+            <button type="button" onclick="selectPeriodPreset([4,5,6])" class="px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-md text-[11px] font-bold cursor-pointer transition">
+              P4–P6 (Afternoon 3h)
+            </button>
+            <button type="button" onclick="selectPeriodPreset([1,2])" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-md text-[11px] font-bold cursor-pointer transition">
+              P1–P2 (2h)
+            </button>
+          </div>
           <div class="flex flex-wrap gap-2">
             @for ($p = 1; $p <= 7; $p++)
               <label class="cursor-pointer">
-                <input type="checkbox" name="logPeriods" value="{{ $p }}" class="sr-only peer">
+                <input type="checkbox" name="logPeriods" value="{{ $p }}" onchange="checkExistingAttendance()" class="sr-only peer">
                 <div class="px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
                   P{{ $p }}
                 </div>
               </label>
             @endfor
           </div>
+        </div>
+      </div>
+
+      <!-- Auto Session Attendance Linked Notice -->
+      <div id="existingSessionNotice" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-start gap-2.5">
+        <span class="material-symbols-rounded text-base text-amber-400 shrink-0">sync_saved_locally</span>
+        <div class="space-y-0.5">
+          <strong class="font-bold block text-amber-200">Session Attendance Detected &amp; Linked</strong>
+          <p class="text-[11px] text-amber-300/90 leading-relaxed" id="existingSessionNoticeText">
+            Attendance for this session was already recorded. It has been loaded automatically so you do not need to re-mark. Saving an additional experiment on this date will record the log without multiplying attendance hours.
+          </p>
         </div>
       </div>
 
@@ -284,6 +307,12 @@
             // Check if Lab or Practical
             const isLab = (data.subject_type && (data.subject_type.toLowerCase().includes('lab') || data.subject_type.toLowerCase().includes('practical') || data.subject_type.toLowerCase().includes('practicum')));
             const subBatchCard = document.getElementById('subBatchCard');
+            const labPresets = document.getElementById('labPeriodPresets');
+            if (labPresets) {
+              if (isLab) labPresets.classList.remove('hidden');
+              else labPresets.classList.add('hidden');
+            }
+
             if (isLab) {
               subBatchCard.classList.remove('hidden');
               const half = Math.ceil(currentStudents.length / 2);
@@ -306,19 +335,42 @@
             // Reset present state (all present by default)
             currentStudents.forEach(s => s.present = true);
 
-            // Populate Lesson Plans dropdown
+            // Populate Lesson Plans / Experiments dropdown
             const lpSelect = document.getElementById('lessonPlanSelect');
             lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
-            data.lesson_plans.forEach((lp, idx) => {
-              const opt = document.createElement('option');
-              opt.value = lp.id;
-              opt.dataset.topic = lp.topic_content || '';
-              opt.innerText = `#${idx + 1}. [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
-              lpSelect.appendChild(opt);
-            });
+
+            if (data.experiments && data.experiments.length > 0) {
+              const expGroup = document.createElement('optgroup');
+              expGroup.label = 'Practical Syllabus Experiments';
+              data.experiments.forEach(exp => {
+                const opt = document.createElement('option');
+                opt.value = `exp_${exp.id}`;
+                opt.dataset.topic = `Exp ${exp.experiment_no}: ${exp.title}`;
+                opt.dataset.expId = exp.id;
+                opt.innerText = `Exp ${exp.experiment_no}: ${exp.title} [${exp.co_tag || 'CO'}]`;
+                expGroup.appendChild(opt);
+              });
+              lpSelect.appendChild(expGroup);
+            }
+
+            if (data.lesson_plans && data.lesson_plans.length > 0) {
+              const lpGroup = document.createElement('optgroup');
+              lpGroup.label = 'Lesson Plans';
+              data.lesson_plans.forEach((lp, idx) => {
+                const opt = document.createElement('option');
+                opt.value = lp.id;
+                opt.dataset.topic = lp.topic_content || '';
+                opt.innerText = `#${idx + 1}. [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
+                lpGroup.appendChild(opt);
+              });
+              lpSelect.appendChild(lpGroup);
+            }
 
             // Reset topics textarea
             document.getElementById('topicsCovered').value = '';
+
+            // Check if attendance already recorded for this slot
+            checkExistingAttendance();
 
             // Render views
             renderList();
@@ -383,6 +435,87 @@
       document.getElementById('studentCountLabel').innerText = `Total Students: ${filtered.length}`;
       renderList();
       renderGrid();
+      checkExistingAttendance();
+    }
+
+    function selectPeriodPreset(periods) {
+      document.querySelectorAll('input[name="logPeriods"]').forEach(cb => {
+        cb.checked = periods.includes(parseInt(cb.value));
+      });
+      checkExistingAttendance();
+    }
+
+    let isSessionAttendanceLoaded = false;
+
+    function checkExistingAttendance() {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      const dateSelect = document.getElementById('logDate');
+      const date = dateSelect ? dateSelect.value : '';
+      const checkedPeriods = Array.from(document.querySelectorAll('input[name="logPeriods"]:checked')).map(el => parseInt(el.value));
+      const subBatchCard = document.getElementById('subBatchCard');
+      const selectedSubBatchRadio = document.querySelector('input[name="subBatchSelect"]:checked');
+      const subBatchVal = (subBatchCard && !subBatchCard.classList.contains('hidden') && selectedSubBatchRadio)
+        ? selectedSubBatchRadio.value 
+        : 'Whole';
+
+      const notice = document.getElementById('existingSessionNotice');
+      const noticeText = document.getElementById('existingSessionNoticeText');
+
+      if (!subjectId || !date || checkedPeriods.length === 0) {
+        if (notice) notice.classList.add('hidden');
+        isSessionAttendanceLoaded = false;
+        return;
+      }
+
+      const params = new URLSearchParams({
+        batch_subject_id: subjectId,
+        date: date,
+        periods: checkedPeriods.join(','),
+        sub_batch: subBatchVal
+      });
+
+      fetch(`/api/staff/attendance/session-check?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS' && data.exists) {
+            isSessionAttendanceLoaded = true;
+            if (notice && noticeText) {
+              const pCount = (data.present_students || []).length;
+              const aCount = (data.absent_students || []).length;
+              const periodNames = checkedPeriods.map(p => 'P' + p).join(', ');
+              let topicsSnippet = '';
+              let displayNoticeDate = date || '—';
+              if (date && date.includes('-')) {
+                const dp = date.split('-');
+                if (dp.length === 3 && dp[0].length === 4) displayNoticeDate = `${dp[2]}-${dp[1]}-${dp[0]}`;
+              }
+              noticeText.innerHTML = `Attendance for <strong>${periodNames}</strong> on <strong>${displayNoticeDate}</strong> (${pCount} Present, ${aCount} Absent) was already logged and has been automatically loaded.${topicsSnippet} Saving an additional experiment now will record the new log without multiplying attendance hours.`;
+              notice.classList.remove('hidden');
+            }
+
+            if (currentStudents && currentStudents.length > 0 && (data.present_students.length > 0 || data.absent_students.length > 0)) {
+              const presentSet = new Set(data.present_students || []);
+              const absentSet = new Set(data.absent_students || []);
+
+              currentStudents.forEach(s => {
+                if (absentSet.has(s.reg_no)) {
+                  s.present = false;
+                } else if (presentSet.has(s.reg_no)) {
+                  s.present = true;
+                }
+              });
+              renderList();
+              renderGrid();
+            }
+          } else {
+            isSessionAttendanceLoaded = false;
+            if (notice) notice.classList.add('hidden');
+          }
+        })
+        .catch(err => {
+          console.error("Session attendance check error:", err);
+        });
     }
 
     function renderList() {
@@ -509,6 +642,14 @@
       const csrfMeta = document.querySelector('meta[name="csrf-token"]');
       const csrfToken = csrfMeta ? csrfMeta.content : '';
 
+      let practicalExpId = null;
+      let lessonPlanIdVal = null;
+      if (lpId && lpId.toString().startsWith('exp_')) {
+        practicalExpId = parseInt(lpId.replace('exp_', ''));
+      } else if (lpId && !isNaN(parseInt(lpId))) {
+        lessonPlanIdVal = parseInt(lpId);
+      }
+
       fetch('/api/staff/attendance/save', {
         method: 'POST',
         headers: {
@@ -519,11 +660,13 @@
           batch_subject_id: subjectId,
           date: date,
           periods: checkedPeriods,
-          lesson_plan_id: (lpId && !isNaN(parseInt(lpId))) ? parseInt(lpId) : null,
+          lesson_plan_id: lessonPlanIdVal,
+          practical_experiment_id: practicalExpId,
           topics_covered: topics,
           present_students: present,
           absent_students: absent,
-          sub_batch: subBatchVal
+          sub_batch: subBatchVal,
+          is_additional_log: isSessionAttendanceLoaded
         })
       })
       .then(res => {

@@ -2075,15 +2075,26 @@
               Active Subjects & Progress (S-${batch.current_semester || 1})
             </p>
             <div class="space-y-2">
-              ${batch.subjects.map(subj => `
+              ${batch.subjects.map(subj => {
+                let isPractical = subj.is_practical;
+                let barColor = isPractical 
+                  ? (subj.progress >= 80 ? 'bg-gradient-to-r from-purple-500 to-cyan-400' : subj.progress >= 50 ? 'bg-gradient-to-r from-purple-600 to-blue-400' : 'bg-gradient-to-r from-purple-700 to-indigo-500')
+                  : progressColorClass;
+                let expInfo = isPractical && subj.total_experiments > 0
+                  ? `<span class="text-[10px] text-purple-300 font-mono font-medium">${subj.conducted_experiments || 0}/${subj.total_experiments} exps</span>`
+                  : '';
+                return `
                 <div class="bg-slate-900/40 border border-slate-850 rounded-lg p-2.5 space-y-1.5 hover:border-slate-800 transition-premium">
                   <div class="flex justify-between items-center gap-2">
                     <span class="text-slate-200 font-bold text-sm truncate" title="${subj.subject_name}">${subj.subject_name}</span>
-                    <span class="text-xs font-bold ${textAccentClass} font-mono">${subj.progress}%</span>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                      ${expInfo}
+                      <span class="text-xs font-bold ${isPractical ? 'text-purple-400' : textAccentClass} font-mono">${subj.progress}%</span>
+                    </div>
                   </div>
                   
                   <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                    <div class="${progressColorClass} h-1.5 rounded-full" style="width: ${subj.progress}%"></div>
+                    <div class="${barColor} h-1.5 rounded-full" style="width: ${subj.progress}%"></div>
                   </div>
 
                   <div class="flex items-center justify-between text-[11px] text-slate-400">
@@ -2091,7 +2102,7 @@
                     <span class="truncate max-w-[150px]" title="${subj.staff_list}">Staff: ${subj.staff_list}</span>
                   </div>
                 </div>
-              `).join('')}
+              `;}).join('')}
             </div>
           </div>
         `;
@@ -4431,8 +4442,21 @@
       const popup = document.getElementById('subjectProgressPopup');
       document.getElementById('popupSubjName').innerText = subj.subject_name;
       document.getElementById('popupSubjCode').innerText = subj.subject_code;
-      document.getElementById('popupAllottedHours').innerText = (subj.total_hours_allotted || 0) + ' hrs';
-      document.getElementById('popupCompletedHours').innerText = (subj.hours_completed || 0) + ' hrs';
+
+      const isPractical = subj.is_practical || (subj.subject_type || '').toLowerCase().includes('lab') || (subj.subject_type || '').toLowerCase().includes('practical') || (subj.subject_type || '').toLowerCase().includes('practicum') || (subj.subject_type || '').toLowerCase().includes('drawing') || (subj.subject_type || '').toLowerCase().includes('workshop');
+      
+      const allottedLabel = document.getElementById('popupAllottedLabel');
+      const completedLabel = document.getElementById('popupCompletedLabel');
+      if (allottedLabel) allottedLabel.innerText = isPractical ? 'Proposed Experiments:' : 'Allotted Hours:';
+      if (completedLabel) completedLabel.innerText = isPractical ? 'Conducted Experiments:' : 'Completed Hours:';
+
+      if (isPractical) {
+        document.getElementById('popupAllottedHours').innerText = (subj.total_experiments ?? subj.total_topics ?? 0) + ' exps';
+        document.getElementById('popupCompletedHours').innerText = (subj.conducted_experiments ?? subj.covered_topics ?? 0) + ' exps';
+      } else {
+        document.getElementById('popupAllottedHours').innerText = (subj.total_hours_allotted || 0) + ' hrs';
+        document.getElementById('popupCompletedHours').innerText = (subj.hours_completed || 0) + ' hrs';
+      }
       
       // Format Status Colors
       const formatStatus = (elId, status) => {
@@ -4778,11 +4802,11 @@
     </div>
     <div class="space-y-2 text-sm">
       <div class="flex justify-between items-center">
-        <span class="text-slate-400 text-sm">Allotted Hours:</span>
+        <span id="popupAllottedLabel" class="text-slate-400 text-sm">Allotted Hours:</span>
         <span id="popupAllottedHours" class="font-bold text-slate-200">0 hrs</span>
       </div>
       <div class="flex justify-between items-center">
-        <span class="text-slate-400 text-sm">Completed Hours:</span>
+        <span id="popupCompletedLabel" class="text-slate-400 text-sm">Completed Hours:</span>
         <span id="popupCompletedHours" class="font-bold text-slate-200">0 hrs</span>
       </div>
       <div class="flex justify-between items-center">

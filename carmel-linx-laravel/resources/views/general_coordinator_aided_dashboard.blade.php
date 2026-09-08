@@ -491,10 +491,16 @@
         let subjectsHtml = '';
         if (b.subjects && b.subjects.length > 0) {
           b.subjects.forEach((s, idx) => {
+            let isPractical = s.is_practical || (s.type || '').toLowerCase().includes('lab') || (s.type || '').toLowerCase().includes('practical') || (s.type || '').toLowerCase().includes('practicum') || (s.type || '').toLowerCase().includes('drawing') || (s.type || '').toLowerCase().includes('workshop');
             let topicsPct = s.total_topics > 0 ? Math.round((s.covered_topics / s.total_topics) * 100) : 0;
             let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
-            let barPct    = topicsPct || hoursPct;
-            let barColor  = barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400';
+            let barPct    = isPractical ? topicsPct : (topicsPct || hoursPct);
+            let barColor  = isPractical
+              ? (barPct >= 80 ? 'from-purple-500 to-cyan-400' : barPct >= 50 ? 'from-purple-600 to-blue-400' : 'from-purple-700 to-indigo-500')
+              : (barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400');
+            let progressLabel = isPractical
+              ? `${s.covered_topics}/${s.total_topics} exps conducted`
+              : `${s.engaged_hours}/${s.total_hours} hrs`;
             let revCode   = s.syllabus_revision_code || (b.scheme === 'R2026' ? 'REV2026' : (b.classroom_id && b.classroom_id.includes('2026') ? 'REV2026' : 'REV2021'));
             let cleanName = (s.name || '').replace(/'/g, "\\'");
 
@@ -512,7 +518,7 @@
                     <div class="flex-1 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
                       <div class="bg-gradient-to-r ${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${barPct}%"></div>
                     </div>
-                    <span class="text-[11px] font-bold text-slate-400 whitespace-nowrap flex-shrink-0">${s.engaged_hours}/${s.total_hours} hrs</span>
+                    <span class="text-[11px] font-bold ${isPractical ? 'text-purple-300' : 'text-slate-400'} whitespace-nowrap flex-shrink-0">${progressLabel}</span>
                   </div>
                 </div>
               </div>

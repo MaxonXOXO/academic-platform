@@ -17,6 +17,122 @@ use Illuminate\Support\Facades\DB;
 class DataController extends Controller
 {
     /**
+     * Compute progress for a subject (Theory via lesson plans, Virtual Lab / Practical via proposed vs conducted experiments from log entries).
+     */
+    public static function getSubjectProgressData($batchSubjectId, $subjectType = null)
+    {
+        $isPractical = false;
+        if ($subjectType) {
+            $stLower = strtolower($subjectType);
+            $isPractical = str_contains($stLower, 'lab') || str_contains($stLower, 'practical') || str_contains($stLower, 'practicum') || str_contains($stLower, 'drawing') || str_contains($stLower, 'workshop');
+        }
+        
+        if (!$isPractical && $batchSubjectId) {
+            $bs = DB::table('batch_subjects')->where('id', $batchSubjectId)->first(['subject_type']);
+            if ($bs && !empty($bs->subject_type)) {
+                $stLower = strtolower($bs->subject_type);
+                $isPractical = str_contains($stLower, 'lab') || str_contains($stLower, 'practical') || str_contains($stLower, 'practicum') || str_contains($stLower, 'drawing') || str_contains($stLower, 'workshop');
+            }
+        }
+
+        if (!$isPractical) {
+            $total = DB::table('lesson_plans')->where('batch_subject_id', $batchSubjectId)->count();
+            $completed = DB::table('lesson_plans')->where('batch_subject_id', $batchSubjectId)->where('status', 'Completed')->count();
+            $pct = $total > 0 ? round(($completed / $total) * 100) : 0;
+            return [
+                'is_practical' => false,
+                'total' => $total,
+                'completed' => $completed,
+                'percent' => $pct
+            ];
+        }
+
+        // Virtual Lab / Practical:
+        // 1. Proposed Experiments: count from practical_experiments
+        $pExps = DB::table('practical_experiments')->where('batch_subject_id', $batchSubjectId)->get();
+        $totalProposed = $pExps->count();
+        if ($totalProposed === 0) {
+            $lpCount = DB::table('lesson_plans')->where('batch_subject_id', $batchSubjectId)->count();
+            if ($lpCount > 0) {
+                $totalProposed = $lpCount;
+            }
+        }
+
+        // 2. Conducted Experiments based on Log Entries:
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubjectId)
+            ->get(['id', 'date', 'period', 'sub_batch', 'topics_covered']);
+
+        $groupedLogs = $classLogs->groupBy(function($l) {
+            return $l->date . '###' . ($l->sub_batch ?? 'Whole') . '###' . trim($l->topics_covered ?? '');
+        });
+
+        $conductedCount = 0;
+        if ($pExps->isNotEmpty()) {
+            $conductedExpIds = [];
+            foreach ($pExps as $exp) {
+                $expNo = trim($exp->experiment_no);
+                $expTitle = strtolower(trim($exp->title ?? ''));
+                $matched = false;
+
+                // Priority 1: explicitly set conducted_date
+                if (!empty($exp->conducted_date)) {
+                    $matched = true;
+                }
+
+                // Priority 2: topics in class_logs_attendance
+                if (!$matched && $classLogs->isNotEmpty()) {
+                    foreach ($classLogs as $l) {
+                        $t = strtolower($l->topics_covered ?? '');
+                        if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                            $matched = true;
+                            break;
+                        }
+                        if (!empty($expTitle) && (str_contains($t, $expTitle) || str_contains($expTitle, $t))) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Priority 3: marks recorded
+                if (!$matched) {
+                    $hasMarks = DB::table('practical_experiment_marks')
+                        ->where('practical_experiment_id', $exp->id)
+                        ->where('total_mark', '>', 0)
+                        ->exists();
+                    if ($hasMarks) {
+                        $matched = true;
+                    }
+                }
+
+                if ($matched) {
+                    $conductedExpIds[] = $exp->id;
+                }
+            }
+            $conductedCount = count($conductedExpIds);
+        } else {
+            // If no practical_experiments rows defined yet, count unique non-empty logged sessions
+            $conductedCount = $groupedLogs->filter(function($logs) {
+                $topic = trim($logs->first()->topics_covered ?? '');
+                return !empty($topic);
+            })->count();
+            if ($totalProposed === 0 && $conductedCount > 0) {
+                $totalProposed = $conductedCount;
+            }
+        }
+
+        $pct = $totalProposed > 0 ? min(100, round(($conductedCount / $totalProposed) * 100)) : 0;
+
+        return [
+            'is_practical' => true,
+            'total' => $totalProposed,
+            'completed' => $conductedCount,
+            'percent' => $pct
+        ];
+    }
+
+    /**
      * Approve a pending student or staff member.
      */
     public function approveAccount(Request $request)
@@ -1202,15 +1318,17 @@ class DataController extends Controller
                                 ->pluck('staff_profiles.name')
                                 ->toArray();
 
-                            $total = \App\Models\LessonPlan::where('batch_subject_id', $subj->id)->count();
-                            $covered = \App\Models\LessonPlan::where('batch_subject_id', $subj->id)->where('status', 'Completed')->count();
-                            $progress = $total > 0 ? round(($covered / $total) * 100) : 0;
+                            $prog = self::getSubjectProgressData($subj->id, $subj->subject_type);
 
                             return [
                                 'subject_code' => $subj->subject_code,
                                 'subject_name' => $subj->subject_name,
+                                'subject_type' => $subj->subject_type,
                                 'staff_list'   => !empty($staffNames) ? implode(', ', $staffNames) : 'Unassigned',
-                                'progress'     => $progress,
+                                'progress'     => $prog['percent'],
+                                'total_experiments' => $prog['total'],
+                                'conducted_experiments' => $prog['completed'],
+                                'is_practical' => $prog['is_practical'],
                             ];
                         })
                         ->toArray();
@@ -1738,6 +1856,8 @@ class DataController extends Controller
                     ->count();
                 $mcqStatus = $mcqTestCount > 0 ? "{$mcqTestCount} Tests Created" : 'Not Initiated';
 
+                $prog = self::getSubjectProgressData($subj->id, $subj->subject_type);
+
                 return [
                     'id' => $subj->id,
                     'semester' => $subj->semester,
@@ -1748,6 +1868,10 @@ class DataController extends Controller
                     'course_file_status' => $subj->courseFile ? 'Submitted' : 'Pending',
                     'total_hours_allotted' => $totalHoursAllotted,
                     'hours_completed' => $hoursCompleted,
+                    'is_practical' => $prog['is_practical'],
+                    'total_experiments' => $prog['total'],
+                    'conducted_experiments' => $prog['completed'],
+                    'progress_percent' => $prog['percent'],
                     'assignment_initiated' => $assignmentInitiated,
                     'written_test_initiated' => $writtenTestInitiated,
                     'mid_sem_survey_status' => $midSemSurveyStatus,
@@ -2353,18 +2477,9 @@ class DataController extends Controller
                         $batchesMap[$cid]['roles'][] = 'Subject Staff';
                     }
                     $subjId = $sa->batchSubject->id;
-                    $isPractical = stripos($sa->batchSubject->subject_type ?? '', 'practical') !== false || stripos($sa->batchSubject->subject_type ?? '', 'lab') !== false;
-                    $totalTopics = \App\Models\LessonPlan::where('batch_subject_id', $subjId)->count();
-                    $coveredTopics = \App\Models\LessonPlan::where('batch_subject_id', $subjId)->where('status', 'Completed')->count();
-
-                    if ($isPractical && $totalTopics === 0) {
-                        $pExps = \App\Models\PracticalExperiment::where('batch_subject_id', $subjId)->get();
-                        $totalTopics = $pExps->count();
-                        $coveredTopics = $pExps->whereNotNull('conducted_date')->count();
-                    } elseif ($isPractical && $totalTopics > 0) {
-                        $pExpDone = \App\Models\PracticalExperiment::where('batch_subject_id', $subjId)->whereNotNull('conducted_date')->count();
-                        if ($pExpDone > $coveredTopics) $coveredTopics = $pExpDone;
-                    }
+                    $prog = self::getSubjectProgressData($subjId, $sa->batchSubject->subject_type);
+                    $totalTopics = $prog['total'];
+                    $coveredTopics = $prog['completed'];
 
                     // Count actual distinct hours (date + period) to avoid multiplying for multi-experiment sessions
                     $engagedHours = \DB::table('class_logs_attendance')
@@ -2383,6 +2498,7 @@ class DataController extends Controller
                         'semester' => $sa->batchSubject->semester,
                         'type' => $sa->batchSubject->subject_type,
                         'syllabus_revision_code' => $sa->batchSubject->syllabus_revision_code,
+                        'is_practical' => $prog['is_practical'],
                         'total_topics' => $totalTopics,
                         'covered_topics' => $coveredTopics,
                         'engaged_hours' => $engagedHours,

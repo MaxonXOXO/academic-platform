@@ -1937,11 +1937,11 @@ class MentoringController extends Controller
             ->get();
 
         foreach ($assignments as $subj) {
-            $tot = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->count();
-            $comp = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->where('status', 'Completed')->count();
-            $subj->total_lesson_plans = $tot;
-            $subj->completed_lesson_plans = $comp;
-            $subj->progress_percent = $tot > 0 ? round(($comp / $tot) * 100) : 0;
+            $prog = \App\Http\Controllers\DataController::getSubjectProgressData($subj->id, $subj->subject_type);
+            $subj->total_lesson_plans = $prog['total'];
+            $subj->completed_lesson_plans = $prog['completed'];
+            $subj->progress_percent = $prog['percent'];
+            $subj->is_practical = $prog['is_practical'];
         }
 
         // 2. Classrooms where staff is Tutor (Mentor-1) or Mentor-2
@@ -2203,16 +2203,16 @@ class MentoringController extends Controller
                                             }
 
                                             if ($bsMatch) {
-                                                $tot = DB::table('lesson_plans')->where('batch_subject_id', $bsMatch->id)->count();
-                                                $comp = DB::table('lesson_plans')->where('batch_subject_id', $bsMatch->id)->where('status', 'Completed')->count();
+                                                $prog = \App\Http\Controllers\DataController::getSubjectProgressData($bsMatch->id, $bsMatch->subject_type);
                                                 $assignedSub = (object) [
                                                     'id' => $bsMatch->id,
                                                     'subject_code' => $bsMatch->subject_code,
                                                     'subject_name' => $bsMatch->subject_name,
                                                     'classroom_id' => $cId,
-                                                    'total_lesson_plans' => $tot,
-                                                    'completed_lesson_plans' => $comp,
-                                                    'progress_percent' => $tot > 0 ? round(($comp / $tot) * 100) : 0,
+                                                    'total_lesson_plans' => $prog['total'],
+                                                    'completed_lesson_plans' => $prog['completed'],
+                                                    'progress_percent' => $prog['percent'],
+                                                    'is_practical' => $prog['is_practical'],
                                                     'subject_type' => $bsMatch->subject_type ?? '',
                                                     'syllabus_revision_code' => $bsMatch->syllabus_revision_code ?? '',
                                                 ];
@@ -2231,6 +2231,7 @@ class MentoringController extends Controller
                                             'progress_percent' => $assignedSub->progress_percent ?? 0,
                                             'completed_lesson_plans' => $assignedSub->completed_lesson_plans ?? 0,
                                             'total_lesson_plans' => $assignedSub->total_lesson_plans ?? 0,
+                                            'is_practical' => $assignedSub->is_practical ?? false,
                                             'subject_type' => $assignedSub->subject_type ?? '',
                                             'syllabus_revision_code' => $assignedSub->syllabus_revision_code ?? '',
                                         ];
@@ -2275,12 +2276,12 @@ class MentoringController extends Controller
                 ->whereIn('id', $missingSubjectIds)
                 ->get();
             foreach ($extraSubjects as $subj) {
-                $tot = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->count();
-                $comp = DB::table('lesson_plans')->where('batch_subject_id', $subj->id)->where('status', 'Completed')->count();
+                $prog = \App\Http\Controllers\DataController::getSubjectProgressData($subj->id, $subj->subject_type);
                 $subj->batch_subject_id = $subj->id;
-                $subj->total_lesson_plans = $tot;
-                $subj->completed_lesson_plans = $comp;
-                $subj->progress_percent = $tot > 0 ? round(($comp / $tot) * 100) : 0;
+                $subj->total_lesson_plans = $prog['total'];
+                $subj->completed_lesson_plans = $prog['completed'];
+                $subj->progress_percent = $prog['percent'];
+                $subj->is_practical = $prog['is_practical'];
             }
             $assignments = $assignments->concat($extraSubjects);
         }

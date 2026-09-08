@@ -1795,6 +1795,7 @@
                     progress_percent: st.progress_percent || 0,
                     completed_lesson_plans: st.completed_lesson_plans || 0,
                     total_lesson_plans: st.total_lesson_plans || 0,
+                    is_practical: st.is_practical || false,
                     subject_type: st.subject_type || '',
                     syllabus_revision_code: st.syllabus_revision_code || ''
                 });
@@ -1821,8 +1822,11 @@
                 let subTypeLower = (st.subject_type || (matchedAssig ? matchedAssig.subject_type : '') || '').toLowerCase();
                 let revCode = (st.syllabus_revision_code || (matchedAssig ? matchedAssig.syllabus_revision_code : '') || '').toUpperCase();
 
+                const isPracticalSlot = st.is_practical || (matchedAssig && matchedAssig.is_practical) ||
+                    subTypeLower.includes('lab') || subTypeLower.includes('practical') || subTypeLower.includes('practicum') || subTypeLower.includes('drawing') || subTypeLower.includes('workshop');
+
                 const isR21Practical = batchSubId &&
-                    (subTypeLower.includes('lab') || subTypeLower.includes('practical') || subTypeLower.includes('practicum') || subTypeLower.includes('drawing') || subTypeLower.includes('workshop')) &&
+                    isPracticalSlot &&
                     !subTypeLower.includes('theory') &&
                     (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) &&
                     !revCode.includes('2026') && !revCode.includes('R26');
@@ -1848,11 +1852,15 @@
                         ${hasProgress ? `
                         <div class="mt-2.5 pt-2 border-top border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">
                             <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.72rem;">
-                                <span class="text-slate-400" style="color: #94a3b8 !important;">Syllabus / Topic Coverage</span>
-                                <span class="text-cyan font-mono fw-bold" style="color: #06b6d4 !important;">${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} topics)</span>
+                                <span class="text-slate-400" style="color: #94a3b8 !important;">${isPracticalSlot ? 'Virtual Lab • Experiments Progress' : 'Syllabus / Topic Coverage'}</span>
+                                <span class="${isPracticalSlot ? 'text-purple-400' : 'text-cyan'} font-mono fw-bold" style="color: ${isPracticalSlot ? '#c084fc' : '#06b6d4'} !important;">
+                                    ${isPracticalSlot
+                                        ? `${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} conducted)`
+                                        : `${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} topics)`}
+                                </span>
                             </div>
                             <div class="progress rounded-pill" style="height: 5px; background-color: rgba(255, 255, 255, 0.1);">
-                                <div class="progress-bar rounded-pill" role="progressbar" style="width: ${st.progress_percent}%; background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%) !important;"></div>
+                                <div class="progress-bar rounded-pill" role="progressbar" style="width: ${st.progress_percent}%; background: ${isPracticalSlot ? 'linear-gradient(90deg, #9333ea 0%, #06b6d4 100%)' : 'linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%)'} !important;"></div>
                             </div>
                         </div>` : ''}
                     </div>`;

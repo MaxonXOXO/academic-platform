@@ -1009,9 +1009,10 @@
     </div>
 
     <!-- Manage Experiments Modal -->
-    <div id="manageExperimentsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
+    <div id="manageExperimentsModal" onclick="if(event.target === this) closeManageExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center">
+            <!-- Modal Header (Fixed/Stable) -->
+            <div class="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex justify-between items-center shrink-0">
                 <div>
                     <h3 class="text-base font-black text-white">Experiments List</h3>
                     <p class="text-xs text-slate-400 mt-0.5">Setup the experiments syllabus for day-to-day continuous evaluation.</p>
@@ -1021,19 +1022,19 @@
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-6 flex-grow">
-                <!-- Add Experiment Form -->
-                <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl">
+            <!-- Add Experiment Form (Fixed/Stable at top, Single-row on desktop) -->
+            <div class="p-5 bg-slate-900/40 border-b border-slate-800/80 shrink-0">
+                <form onsubmit="savePracticalExperiment(event)" class="bg-slate-950/40 border border-slate-800/60 p-3.5 rounded-xl">
                     <input type="hidden" id="expEditId">
-                    <!-- All 4 fields in one row on desktop -->
+                    <!-- All fields in one row on desktop -->
                     <div class="flex flex-col md:flex-row items-end gap-3">
-                        <div class="w-full md:w-28 shrink-0">
+                        <div class="w-full md:w-20 shrink-0">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Exp No.</label>
-                            <input type="text" id="expFormNo" required placeholder="e.g. 1, 2A" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none">
+                            <input type="text" id="expFormNo" required maxlength="2" pattern="[0-9]{1,2}" inputmode="numeric" placeholder="01" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-sm font-bold text-slate-200 focus:border-blue-500 outline-none text-center font-mono">
                         </div>
-                        <div class="w-full flex-1">
+                        <div class="w-full flex-1 min-w-0">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Experiment Title / Objective</label>
-                            <input type="text" id="expFormTitle" required placeholder="Enter experiment title or objective..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none">
+                            <input type="text" id="expFormTitle" required placeholder="Enter experiment title or detailed objective..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none">
                         </div>
                         <div class="w-full md:w-28 shrink-0">
                             <label class="text-xs font-bold text-slate-400 uppercase block mb-1.5">Map CO</label>
@@ -1044,28 +1045,31 @@
                                 <option value="CO4">CO4</option>
                             </select>
                         </div>
-                        <div class="w-full md:w-40 shrink-0">
-                            <button type="submit" id="btnSaveExp" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <div class="w-full md:w-auto shrink-0 flex items-center gap-2">
+                            <button type="submit" id="btnSaveExp" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow shadow-blue-600/20">
                                 <i class="fa-solid fa-plus text-xs" id="btnSaveExpIcon"></i>
                                 <span id="btnSaveExpLabel">Add Experiment</span>
                                 <span id="btnSaveExpSpinner" class="hidden w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                             </button>
+                            <button type="button" id="btnCancelExpEdit" onclick="cancelExperimentEdit()" class="hidden px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap">
+                                Cancel
+                            </button>
+                            <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-2 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                                <i class="fa-solid fa-database text-xs"></i> Import
+                            </button>
                         </div>
                     </div>
                     <!-- Inline feedback banner -->
-                    <div id="expSaveFeedback" class="hidden mt-3 px-3 py-2 rounded-lg text-xs font-bold border"></div>
-                    <div class="mt-2">
-                        <button type="button" id="btnImportDatabank" onclick="importFromDatabank()" class="hidden px-3.5 py-1.5 bg-amber-600/10 hover:bg-amber-600 border border-amber-500/20 hover:border-amber-500 text-amber-400 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-database text-xs"></i> Import from Databank
-                        </button>
-                    </div>
+                    <div id="expSaveFeedback" class="hidden mt-2.5 px-3 py-1.5 rounded-lg text-xs font-bold border"></div>
                 </form>
+            </div>
 
-                <!-- Experiments List Table -->
-                <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/20">
+            <!-- Experiments List Table (Dedicated Scroll Container) -->
+            <div id="manageExpsTableScrollContainer" class="p-6 flex-1 overflow-y-auto min-h-0">
+                <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/20 shadow-inner">
                     <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                        <thead class="sticky top-0 bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase z-10 shadow-sm">
+                            <tr>
                                 <th class="p-3 w-16 text-center">No.</th>
                                 <th class="p-3">Title / Objective</th>
                                 <th class="p-3 w-20 text-center">CO</th>
@@ -1891,6 +1895,27 @@
             const spinner = document.getElementById('btnSaveExpSpinner');
             const feedback = document.getElementById('expSaveFeedback');
 
+            // Duplicate check to keep number repetition safe
+            const isDuplicate = (labExperimentsData || []).some(e => {
+                if (expId) {
+                    return String(e.id) !== String(expId) && String(e.experiment_no).trim() === String(no).trim();
+                } else {
+                    return String(e.experiment_no).trim() === String(no).trim();
+                }
+            });
+
+            if (isDuplicate) {
+                if (feedback) {
+                    feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-amber-500/10 border-amber-500/30 text-amber-400';
+                    feedback.textContent = `⚠ Exp No. ${no} already exists! Duplicate numbers are not allowed.`;
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 3500);
+                } else {
+                    alert(`Exp No. ${no} already exists! Duplicate numbers are not allowed.`);
+                }
+                return;
+            }
+
             btn.disabled = true;
             btn.classList.add('opacity-60', 'cursor-not-allowed');
             if (icon) icon.classList.add('hidden');
@@ -1908,12 +1933,7 @@
 
                 if (data.status === 'SUCCESS') {
                     // Reset form
-                    document.getElementById('expEditId').value = '';
-                    document.getElementById('expFormNo').value = '';
-                    document.getElementById('expFormTitle').value = '';
-                    if (icon) icon.classList.remove('hidden');
-                    if (icon) icon.className = 'fa-solid fa-plus text-xs';
-                    if (label) label.textContent = 'Add Experiment';
+                    cancelExperimentEdit();
 
                     // 1. Immediately update experiments array from server response
                     if (data.experiments && Array.isArray(data.experiments)) {
@@ -1931,19 +1951,30 @@
                     renderManageExperimentsList();
                     updateSyllabusCounters(labExperimentsData.length);
 
-                    // 3. Show success banner
+                    // 3. Scroll table to bottom to confirm entry and see the last number
+                    const scrollContainer = document.getElementById('manageExpsTableScrollContainer');
+                    if (scrollContainer) {
+                        setTimeout(() => {
+                            scrollContainer.scrollTo({
+                                top: scrollContainer.scrollHeight,
+                                behavior: 'smooth'
+                            });
+                        }, 60);
+                    }
+
+                    // 4. Show success banner
                     feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
                     feedback.textContent = '✓ ' + (data.message || 'Experiment saved successfully!');
                     feedback.classList.remove('hidden');
                     setTimeout(() => feedback.classList.add('hidden'), 2500);
 
-                    // 4. Re-enable button immediately
+                    // 5. Re-enable button immediately
                     btn.disabled = false;
                     btn.classList.remove('opacity-60', 'cursor-not-allowed');
                     if (spinner) spinner.classList.add('hidden');
                     if (icon) icon.classList.remove('hidden');
 
-                    // 5. Background sync for marks and evaluation without blocking modal
+                    // 6. Background sync for marks and evaluation without blocking modal
                     fetchPracticalEvaluationsData();
                 } else {
                     feedback.className = 'px-3 py-2 rounded-lg text-xs font-bold border bg-red-500/10 border-red-500/30 text-red-400';
@@ -1974,9 +2005,24 @@
             const label = document.getElementById('btnSaveExpLabel');
             if (icon) { icon.className = 'fa-solid fa-floppy-disk text-xs'; icon.classList.remove('hidden'); }
             if (label) label.textContent = 'Update';
-            document.getElementById('expFormNo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const cancelBtn = document.getElementById('btnCancelExpEdit');
+            if (cancelBtn) cancelBtn.classList.remove('hidden');
             document.getElementById('expFormNo').focus();
         }
+
+        function cancelExperimentEdit() {
+            document.getElementById('expEditId').value = '';
+            document.getElementById('expFormNo').value = '';
+            document.getElementById('expFormTitle').value = '';
+            document.getElementById('expFormCo').value = 'CO1';
+            const icon = document.getElementById('btnSaveExpIcon');
+            const label = document.getElementById('btnSaveExpLabel');
+            if (icon) { icon.className = 'fa-solid fa-plus text-xs'; icon.classList.remove('hidden'); }
+            if (label) label.textContent = 'Add Experiment';
+            const cancelBtn = document.getElementById('btnCancelExpEdit');
+            if (cancelBtn) cancelBtn.classList.add('hidden');
+        }
+        window.cancelExperimentEdit = cancelExperimentEdit;
 
         async function deleteExperiment(id) {
             if (!confirm('Are you sure you want to delete this experiment? All graded marks for this experiment will be permanently deleted!')) return;

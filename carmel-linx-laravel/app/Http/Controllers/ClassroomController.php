@@ -3520,6 +3520,25 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             'conducted_date' => 'nullable|date'
         ]);
 
+        // Check for duplicate experiment number to keep number repetition safe
+        if ($request->filled('id')) {
+            $duplicate = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
+                ->where('experiment_no', $request->input('experiment_no'))
+                ->where('id', '!=', $request->input('id'))
+                ->exists();
+        } else {
+            $duplicate = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
+                ->where('experiment_no', $request->input('experiment_no'))
+                ->exists();
+        }
+
+        if ($duplicate) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Experiment No. ' . $request->input('experiment_no') . ' already exists for this subject. Duplicate numbers are not allowed.'
+            ], 422);
+        }
+
         $exp = null;
         if ($request->filled('id')) {
             $exp = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)->find($request->input('id'));
@@ -3589,17 +3608,13 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         }
 
         if (!$exp) {
-            $exp = \App\Models\PracticalExperiment::updateOrCreate(
-                [
-                    'batch_subject_id' => $subjectId,
-                    'experiment_no' => $request->input('experiment_no')
-                ],
-                [
-                    'title' => $request->input('title'),
-                    'co_tag' => $request->input('co_tag'),
-                    'conducted_date' => $request->input('conducted_date')
-                ]
-            );
+            $exp = \App\Models\PracticalExperiment::create([
+                'batch_subject_id' => $subjectId,
+                'experiment_no' => $request->input('experiment_no'),
+                'title' => $request->input('title'),
+                'co_tag' => $request->input('co_tag'),
+                'conducted_date' => $request->input('conducted_date')
+            ]);
         }
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)

@@ -1441,6 +1441,8 @@
         </div>
     </div>
 
+
+
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
 
@@ -2166,7 +2168,10 @@
                 resetNextPointer.style.color = '#0f172a';
             }
             const resetLpSelect = document.getElementById('attLessonPlanSelect');
-            if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+            if (resetLpSelect) {
+                resetLpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+                resetLpSelect.value = '';
+            }
             const resetTopics = document.getElementById('attTopicsCovered');
             if (resetTopics) resetTopics.value = '';
 
@@ -2200,8 +2205,21 @@
                         const isLab = hasExperiments || (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
                             currentAttSubjectType.toLowerCase().includes('practical') ||
-                            currentAttSubjectType.toLowerCase().includes('practicum')
+                            currentAttSubjectType.toLowerCase().includes('practicum') ||
+                            currentAttSubjectType.toLowerCase().includes('drawing') ||
+                            currentAttSubjectType.toLowerCase().includes('workshop')
                         ));
+
+                        let revCode = (data.syllabus_revision_code || currentAttRevCode || '').toUpperCase();
+                        if (!revCode && typeof assignmentsData !== 'undefined' && Array.isArray(assignmentsData)) {
+                            const matched = assignmentsData.find(a => a.id == batchSubjectId || (a.subject_code === currentAttSubjectCode && a.classroom_id === currentAttClassroomId));
+                            if (matched && matched.syllabus_revision_code) {
+                                revCode = matched.syllabus_revision_code.toUpperCase();
+                            }
+                        }
+                        const isR2021 = (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) && !revCode.includes('2026') && !revCode.includes('R26');
+                        window.isCurrentAttR21Lab = isR2021 && isLab;
+
                         const subBatchBox = document.getElementById('attSubBatchBox');
                         if (isLab) {
                             subBatchBox.classList.remove('d-none');
@@ -2231,14 +2249,29 @@
                                 opt.dataset.conductedDate = exp.conducted_date || '';
                                 const fullTopic = `Exp ${exp.experiment_no}: ${exp.title}`;
                                 opt.dataset.topic = fullTopic;
-                                let displayTitle = exp.title && exp.title.length > 38 ? exp.title.substring(0, 35) + '...' : (exp.title || '');
+                                let maxLen = window.isCurrentAttR21Lab ? 26 : 38;
+                                let displayTitle = exp.title && exp.title.length > maxLen ? exp.title.substring(0, maxLen - 3) + '...' : (exp.title || '');
                                 opt.textContent = `Exp ${exp.experiment_no}: ${displayTitle} [${exp.co_tag || 'CO'}]`;
+                                if (window.isCurrentAttR21Lab) {
+                                    opt.style.fontSize = '0.67rem';
+                                }
                                 opt.title = fullTopic;
                                 lpSelect.appendChild(opt);
                             });
+
+                            if (lpSelect) {
+                                lpSelect.classList.remove('d-none');
+                                lpSelect.style.fontSize = '0.72rem';
+                                lpSelect.style.padding = '4px 8px';
+                            }
                         } else {
                             if (lblText) lblText.textContent = 'Syllabus / Lesson Plan Topic';
                             if (lblIcon) lblIcon.className = 'fa-solid fa-book-bookmark text-cyan';
+                            if (lpSelect) {
+                                lpSelect.classList.remove('d-none');
+                                lpSelect.style.fontSize = '0.72rem';
+                                lpSelect.style.padding = '4px 8px';
+                            }
 
                             (data.lesson_plans || []).forEach((lp, idx) => {
                                 const opt = document.createElement('option');
@@ -2252,7 +2285,15 @@
                             });
                         }
 
-                        document.getElementById('attTopicsCovered').value = '';
+                        const topCoveredInput = document.getElementById('attTopicsCovered');
+                        if (topCoveredInput) {
+                            topCoveredInput.value = '';
+                            if (window.isCurrentAttR21Lab) {
+                                topCoveredInput.style.fontSize = '0.72rem';
+                            } else {
+                                topCoveredInput.style.fontSize = '0.78rem';
+                            }
+                        }
 
                         filterAttStudentsByBatch();
 
@@ -2336,9 +2377,14 @@
         function onAttLessonPlanChange() {
             const select = document.getElementById('attLessonPlanSelect');
             const selectedOption = select.options[select.selectedIndex];
+            const manualInput = document.getElementById('attTopicsCovered');
+            
             if (selectedOption && select.value) {
-                const topic = selectedOption.dataset.topic || selectedOption.title || '';
-                document.getElementById('attTopicsCovered').value = topic;
+                // If drop-down selected, do not fill same in manual entry field
+                if (manualInput) {
+                    manualInput.value = '';
+                    manualInput.placeholder = 'Selected from dropdown: ' + (selectedOption.dataset.topic || selectedOption.text || '');
+                }
 
                 // Autofill date: if experiment has conducted_date, use that; otherwise current date
                 const dateInput = document.getElementById('attLogDate');
@@ -2350,7 +2396,11 @@
                     }
                 }
             } else {
-                document.getElementById('attTopicsCovered').value = '';
+                if (manualInput) {
+                    manualInput.value = '';
+                    manualInput.placeholder = 'Describe topics covered in class today...';
+                    manualInput.focus();
+                }
             }
         }
 
@@ -2418,20 +2468,36 @@
                     return;
                 }
                 let html = '';
+                const isR21Lab = !!window.isCurrentAttR21Lab;
                 filtered.forEach((s, idx) => {
                     const roll = s.roll_no || (idx + 1);
-                    html += `<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); cursor: pointer;" onclick="toggleAttStudentRowClick('${s.reg_no}', event)">
-                        <td class="text-center py-2.5" style="width: 55px;">
-                            <span class="badge bg-slate-800 text-cyan border border-slate-700 font-mono px-2 py-1" style="font-size: 0.82rem; background-color: #1e293b !important; color: #06b6d4 !important;">${roll}</span>
-                        </td>
-                        <td class="py-2.5">
-                            <div class="fw-bold text-white fs-6 mb-0">${s.name}</div>
-                            <div class="text-slate-400 font-mono" style="font-size: 0.72rem; color: #94a3b8 !important;">${s.reg_no}</div>
-                        </td>
-                        <td class="text-center py-2.5" style="width: 85px;">
-                            <input type="checkbox" id="chkAtt_${s.reg_no}" onchange="toggleAttStudentPresent('${s.reg_no}', this.checked)" ${s.present ? 'checked' : ''} class="form-check-input" style="width: 24px; height: 24px; cursor: pointer; accent-color: #06b6d4;">
-                        </td>
-                    </tr>`;
+                    if (isR21Lab) {
+                        html += `<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); cursor: pointer;" onclick="toggleAttStudentRowClick('${s.reg_no}', event)">
+                            <td class="text-center py-1.5" style="width: 50px;">
+                                <span class="badge bg-slate-800 text-cyan border border-slate-700 font-mono px-1.5 py-0.5" style="font-size: 0.70rem; background-color: #1e293b !important; color: #06b6d4 !important;">${roll}</span>
+                            </td>
+                            <td class="py-1.5">
+                                <div class="fw-bold text-white mb-0" style="font-size: 0.80rem; line-height: 1.25;">${s.name}</div>
+                                <div class="text-slate-400 font-mono" style="font-size: 0.65rem; color: #94a3b8 !important;">${s.reg_no}</div>
+                            </td>
+                            <td class="text-center py-1.5" style="width: 75px;">
+                                <input type="checkbox" id="chkAtt_${s.reg_no}" onchange="toggleAttStudentPresent('${s.reg_no}', this.checked)" ${s.present ? 'checked' : ''} class="form-check-input" style="width: 20px; height: 20px; cursor: pointer; accent-color: #06b6d4;">
+                            </td>
+                        </tr>`;
+                    } else {
+                        html += `<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); cursor: pointer;" onclick="toggleAttStudentRowClick('${s.reg_no}', event)">
+                            <td class="text-center py-2.5" style="width: 55px;">
+                                <span class="badge bg-slate-800 text-cyan border border-slate-700 font-mono px-2 py-1" style="font-size: 0.82rem; background-color: #1e293b !important; color: #06b6d4 !important;">${roll}</span>
+                            </td>
+                            <td class="py-2.5">
+                                <div class="fw-bold text-white fs-6 mb-0">${s.name}</div>
+                                <div class="text-slate-400 font-mono" style="font-size: 0.72rem; color: #94a3b8 !important;">${s.reg_no}</div>
+                            </td>
+                            <td class="text-center py-2.5" style="width: 85px;">
+                                <input type="checkbox" id="chkAtt_${s.reg_no}" onchange="toggleAttStudentPresent('${s.reg_no}', this.checked)" ${s.present ? 'checked' : ''} class="form-check-input" style="width: 24px; height: 24px; cursor: pointer; accent-color: #06b6d4;">
+                            </td>
+                        </tr>`;
+                    }
                 });
                 tbody.innerHTML = html;
             } else {
@@ -2441,16 +2507,25 @@
                     return;
                 }
                 let html = '';
+                const isR21Lab = !!window.isCurrentAttR21Lab;
                 filtered.forEach((s, idx) => {
                     const roll = s.roll_no || (idx + 1);
                     const btnStyle = s.present
                         ? 'background: rgba(16, 185, 129, 0.25); color: #34d399; border: 2px solid rgba(52, 211, 153, 0.6);'
                         : 'background: rgba(244, 63, 94, 0.25); color: #fb7185; border: 2px solid rgba(251, 113, 133, 0.6);';
-                    html += `<div class="col-3 col-sm-2 text-center p-1">
-                        <button type="button" onclick="toggleAttStudentGrid('${s.reg_no}')" class="btn w-100 font-black rounded-3 shadow-sm py-2 font-mono" style="${btnStyle} font-size: 1.18rem; font-weight: 900; min-height: 52px;">
-                            ${roll}
-                        </button>
-                    </div>`;
+                    if (isR21Lab) {
+                        html += `<div class="col-3 col-sm-2 text-center p-1">
+                            <button type="button" onclick="toggleAttStudentGrid('${s.reg_no}')" class="btn w-100 font-black rounded-3 shadow-sm py-1.5 font-mono" style="${btnStyle} font-size: 0.95rem; font-weight: 900; min-height: 42px;">
+                                ${roll}
+                            </button>
+                        </div>`;
+                    } else {
+                        html += `<div class="col-3 col-sm-2 text-center p-1">
+                            <button type="button" onclick="toggleAttStudentGrid('${s.reg_no}')" class="btn w-100 font-black rounded-3 shadow-sm py-2 font-mono" style="${btnStyle} font-size: 1.18rem; font-weight: 900; min-height: 52px;">
+                                ${roll}
+                            </button>
+                        </div>`;
+                    }
                 });
                 gridRow.innerHTML = html;
             }
@@ -2491,12 +2566,19 @@
             const date = dateElem ? dateElem.value : '';
             const checkedPeriods = Array.from(document.querySelectorAll('input[name="attPeriods"]:checked')).map(el => parseInt(el.value));
             const lpSelect = document.getElementById('attLessonPlanSelect');
-            const selOpt = lpSelect ? lpSelect.options[lpSelect.selectedIndex] : null;
+            const selOpt = (lpSelect && lpSelect.selectedIndex >= 0) ? lpSelect.options[lpSelect.selectedIndex] : null;
             const isExp = selOpt && selOpt.dataset.isExp === '1';
             const expId = isExp ? parseInt(selOpt.dataset.expId) : null;
             const lpId = (!isExp && selOpt && selOpt.value) ? selOpt.value : null;
             const topicsElem = document.getElementById('attTopicsCovered');
-            const topics = topicsElem ? topicsElem.value.trim() : '';
+            const manualTopics = topicsElem ? topicsElem.value.trim() : '';
+
+            let topics = '';
+            if (selOpt && selOpt.value) {
+                topics = manualTopics || selOpt.dataset.topic || selOpt.title || selOpt.textContent.trim();
+            } else {
+                topics = manualTopics;
+            }
 
             // Reset field error highlights
             if (topicsElem) {
@@ -2540,7 +2622,7 @@
                 return;
             }
             if (!topics) {
-                displayAttFeedback('Please enter or select the topics covered in class today.', true, topicsElem);
+                displayAttFeedback('Please enter or select the topics covered in class today.', true, (selOpt && !selOpt.value) ? topicsElem : lpSelect);
                 return;
             }
 
@@ -2759,6 +2841,7 @@
                                 <!-- Cards for this date -->
                                 <div class="d-flex flex-column gap-2">`;
 
+                            const isR21Lab = !!window.isCurrentAttR21Lab;
                             logsForDate.forEach(log => {
                                 const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : `Log #${log._originalIdx + 1}`;
                                 const periodText = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `Period ${log.period}`);
@@ -2771,34 +2854,65 @@
                                     (other.sub_batch === log.sub_batch || other.sub_batch === 'Whole' || log.sub_batch === 'Whole')
                                 );
 
-                                html += `
-                                <div class="p-2.5 rounded-2 bg-slate-900 shadow-sm border" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.06) !important;">
-                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                            <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">${slNoDisplay}</span>
-                                            <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.72rem;">${periodText}</span>
-                                            <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.72rem;">${batchText}</span>
-                                            ${isDuplicate ? `<span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.68rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                if (isR21Lab) {
+                                    html += `
+                                    <div class="p-2 rounded-2 bg-slate-900 shadow-sm border" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.06) !important;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                <span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.68rem;">${slNoDisplay}</span>
+                                                <span class="badge font-mono fw-bold px-1.5 py-0.5" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.66rem;">${periodText}</span>
+                                                <span class="badge font-mono fw-bold px-1.5 py-0.5" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.66rem;">${batchText}</span>
+                                                ${isDuplicate ? `<span class="badge font-mono fw-black px-1 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.64rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
+                                                    <i class="fa-solid fa-pen-to-square me-0.5"></i> Edit
+                                                </button>
+                                                <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
+                                                    <i class="fa-solid fa-trash-can me-0.5"></i> Delete
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                            <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
-                                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
-                                            </button>
-                                            <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
-                                                <i class="fa-solid fa-trash-can me-1"></i> Delete
-                                            </button>
+                                        <div class="text-white small fw-bold mb-1" style="font-size:0.75rem; line-height: 1.25;">${log.topics_covered || 'No topic description'}</div>
+                                        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
+                                            <small class="text-slate-400 font-mono" style="font-size:0.67rem; color: #94a3b8 !important;">
+                                                <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}
+                                            </small>
+                                            <small class="font-mono fw-bold" style="font-size:0.68rem;">
+                                                <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
+                                            </small>
                                         </div>
-                                    </div>
-                                    <div class="text-white small fw-bold mb-1" style="font-size:0.83rem;">${log.topics_covered || 'No topic description'}</div>
-                                    <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
-                                        <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">
-                                            <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}
-                                        </small>
-                                        <small class="font-mono fw-bold" style="font-size:0.74rem;">
-                                            <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
-                                        </small>
-                                    </div>
-                                </div>`;
+                                    </div>`;
+                                } else {
+                                    html += `
+                                    <div class="p-2.5 rounded-2 bg-slate-900 shadow-sm border" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.06) !important;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">${slNoDisplay}</span>
+                                                <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.72rem;">${periodText}</span>
+                                                <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.72rem;">${batchText}</span>
+                                                ${isDuplicate ? `<span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.68rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
+                                                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                                </button>
+                                                <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
+                                                    <i class="fa-solid fa-trash-can me-1"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="text-white small fw-bold mb-1" style="font-size:0.83rem;">${log.topics_covered || 'No topic description'}</div>
+                                        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
+                                            <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">
+                                                <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}
+                                            </small>
+                                            <small class="font-mono fw-bold" style="font-size:0.74rem;">
+                                                <span class="text-emerald" style="color: #34d399;">${log.present_count} Present</span> / <span class="text-rose" style="color: #fb7185;">${log.absent_count} Absent</span>
+                                            </small>
+                                        </div>
+                                    </div>`;
+                                }
                             });
 
                             html += `
@@ -2849,13 +2963,12 @@
                 if (el) el.checked = true;
             }
 
-            // 4. Set Topics Covered / Manual Entry Data
-            document.getElementById('attTopicsCovered').value = log.topics_covered || '';
-
-            // 5. Select Experiment / Lesson Plan in dropdown
+            // 4. Select Experiment / Lesson Plan in dropdown
             const lpSelect = document.getElementById('attLessonPlanSelect');
+            const manualInput = document.getElementById('attTopicsCovered');
+            let matchedVal = '';
+
             if (lpSelect) {
-                let matchedVal = '';
                 const cleanTopic = (log.topics_covered || '').trim().toLowerCase();
 
                 for (let i = 0; i < lpSelect.options.length; i++) {
@@ -2880,6 +2993,18 @@
                     }
                 }
                 lpSelect.value = matchedVal;
+            }
+
+            // 5. Set Manual Entry input (keep empty if dropdown matched)
+            if (manualInput) {
+                if (matchedVal && lpSelect && lpSelect.selectedIndex >= 0) {
+                    const selOpt = lpSelect.options[lpSelect.selectedIndex];
+                    manualInput.value = '';
+                    manualInput.placeholder = 'Selected from dropdown: ' + (selOpt.dataset.topic || selOpt.text || '');
+                } else {
+                    manualInput.value = log.topics_covered || '';
+                    manualInput.placeholder = 'Describe topics covered in class today...';
+                }
             }
 
             // 6. Update student attendance states from saved JSON

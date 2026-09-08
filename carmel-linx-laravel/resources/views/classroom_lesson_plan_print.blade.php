@@ -241,16 +241,25 @@
 
         <div class="report-title">Lesson Planner &amp; Execution Report</div>
 
+        @php
+            $hasSubBatches = $plans->contains(function($p) {
+                return !empty($p->sub_batch) && $p->sub_batch !== 'Whole';
+            }) || ($subject->subject_type ?? '') === 'practical' || (str_contains(strtolower($subject->subject_code ?? ''), 'p'));
+        @endphp
+
         <table class="content-table">
             <thead>
                 <tr>
-                    <th class="text-center" style="width: 7%;">Day #</th>
+                    <th class="text-center" style="width: 6%;">Day #</th>
+                    @if($hasSubBatches)
+                        <th class="text-center" style="width: 10%;">Batch</th>
+                    @endif
                     <th class="text-center" style="width: 8%;">CO</th>
-                    <th style="width: 45%;">Topic / Content Covered</th>
+                    <th style="width: {{ $hasSubBatches ? '38%' : '45%' }};">Topic / Content Covered</th>
                     <th class="text-center" style="width: 13%;">Proposed Date</th>
                     <th class="text-center" style="width: 13%;">Actual Date</th>
-                    <th class="text-center" style="width: 7%;">Hours</th>
-                    <th class="text-center" style="width: 7%;">Status</th>
+                    <th class="text-center" style="width: 6%;">Hours</th>
+                    <th class="text-center" style="width: 6%;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -263,6 +272,9 @@
                     @endphp
                     <tr>
                         <td class="text-center font-bold">{{ $plan->day_no }}</td>
+                        @if($hasSubBatches)
+                            <td class="text-center font-bold" style="color:#0284c7;">{{ $plan->sub_batch ?: 'Full Batch' }}</td>
+                        @endif
                         <td class="text-center">
                             @if($plan->co_id)
                                 <span class="co-tag">{{ $plan->co_id }}</span>

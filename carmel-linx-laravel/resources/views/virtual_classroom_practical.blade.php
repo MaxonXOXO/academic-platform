@@ -797,7 +797,7 @@
     <!-- COMPLETED EXPERIMENTS DETAILS MODAL -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-7xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
             <!-- Modal Header -->
             <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
                 <div>
@@ -848,16 +848,16 @@
                         <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60">
+                                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60 whitespace-nowrap">
                                     <th class="p-2.5 w-12 text-center">#</th>
                                     <th class="p-2.5 w-24">Exp No</th>
                                     <th class="p-2.5">Title / Topics Covered</th>
-                                    <th class="p-2.5 text-center w-28">Date</th>
-                                    <th class="p-2.5 text-center w-36">Hours (Periods)</th>
-                                    <th class="p-2.5 text-center w-28">Batch</th>
-                                    <th class="p-2.5 text-center w-28">Attendance</th>
+                                    <th class="p-2.5 text-center w-36">Date</th>
+                                    <th class="p-2.5 text-center w-40">Hours (Periods)</th>
+                                    <th class="p-2.5 text-center w-32">Batch</th>
+                                    <th class="p-2.5 text-center w-36">Attendance</th>
                                 </tr>
                             </thead>
                             <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
@@ -872,22 +872,24 @@
                                         }
                                     }
                                     $sb = $item['sub_batch'] ?? 'Whole';
-                                    $bColor = ($sb === '1' || $sb === 1) ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : (($sb === '2' || $sb === 2) ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+                                    $bColor = ($sb === '1' || $sb === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : (($sb === '2' || $sb === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
                                     $expId = $item['experiment_id'] ?? 'null';
                                     $expNo = addslashes($item['experiment_no'] ?? '');
                                     $expTitle = addslashes($item['title'] ?? '');
                                 @endphp
                                 <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs">
-                                    <td class="p-2.5 text-center font-mono text-slate-500">{{ $idx + 1 }}</td>
-                                    <td class="p-2.5 font-mono font-bold text-teal-300">{{ $item['experiment_no'] ?? ('Exp ' . ($idx + 1)) }}</td>
-                                    <td class="p-2.5 text-slate-200">
-                                        <span class="font-bold">{{ $item['title'] ?? '' }}</span>
-                                        @if(!empty($item['co_tag']))
-                                            <span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">{{ $item['co_tag'] }}</span>
-                                        @endif
+                                    <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">{{ $idx + 1 }}</td>
+                                    <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">{{ $item['experiment_no'] ?? ('Exp ' . ($idx + 1)) }}</td>
+                                    <td class="p-2.5 text-slate-200 whitespace-nowrap">
+                                        <div class="inline-flex items-center gap-2 max-w-full">
+                                            <span class="font-bold text-slate-100">{{ $item['title'] ?? '' }}</span>
+                                            @if(!empty($item['co_tag']))
+                                                <span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">{{ $item['co_tag'] }}</span>
+                                            @endif
+                                        </div>
                                     </td>
-                                    <td class="p-2 text-center">
-                                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+                                    <td class="p-2 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
                                             <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
                                             <input type="date" value="{{ $rawDate }}" 
                                                 onchange="promptEditExpDate({{ $expId }}, '{{ $rawDate }}', this.value, '{{ $sb }}', '{{ $expNo }}', '{{ $expTitle }}')"
@@ -899,17 +901,19 @@
                                             </button>
                                         </div>
                                     </td>
-                                    <td class="p-2.5 text-center font-mono text-sky-400">
-                                        <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">{{ $item['hours_text'] ?? '3 hrs (Lab)' }}</span>
+                                    <td class="p-2.5 text-center whitespace-nowrap">
+                                        <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">{{ $item['hours_text'] ?? '3 hrs (Lab)' }}</span>
                                     </td>
-                                    <td class="p-2.5 text-center">
-                                        <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold {{ $bColor }}">{{ $item['batch'] ?? 'Whole Class' }}</span>
+                                    <td class="p-2.5 text-center whitespace-nowrap">
+                                        <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block {{ $bColor }}">{{ $item['batch'] ?? 'Whole Class' }}</span>
                                     </td>
-                                    <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
-                                        {{ isset($item['present_count']) ? ($item['present_count'] . '/' . ($item['total_count'] ?? count($students))) : 'Conducted' }}
-                                        @if(!empty($item['attendance_pct']))
-                                            <span class="block text-[10px] text-slate-500 font-normal">({{ $item['attendance_pct'] }}%)</span>
-                                        @endif
+                                    <td class="p-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                            <span class="font-mono font-bold text-emerald-400">{{ isset($item['present_count']) ? ($item['present_count'] . '/' . ($item['total_count'] ?? count($students))) : 'Conducted' }}</span>
+                                            @if(!empty($item['attendance_pct']))
+                                                <span class="text-[11px] text-slate-400 font-normal">({{ $item['attendance_pct'] }}%)</span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
@@ -1659,16 +1663,18 @@
                     const dParts = item.date.split('-');
                     if (dParts.length === 3 && dParts[0].length === 4) dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
                 }
-                const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+                const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
                 tr.innerHTML = `
-                    <td class="p-2.5 text-center font-mono text-slate-500">${idx + 1}</td>
-                    <td class="p-2.5 font-mono font-bold text-teal-300">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
-                    <td class="p-2.5 text-slate-200">
-                        <span class="font-bold">${item.title || ''}</span>
-                        ${item.co_tag ? `<span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">${item.co_tag}</span>` : ''}
+                    <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
+                    <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+                    <td class="p-2.5 text-slate-200 whitespace-nowrap">
+                        <div class="inline-flex items-center gap-2 max-w-full">
+                            <span class="font-bold text-slate-100">${item.title || ''}</span>
+                            ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">${item.co_tag}</span>` : ''}
+                        </div>
                     </td>
-                    <td class="p-2 text-center">
-                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+                    <td class="p-2 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
                             <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
                             <input type="date" value="${rawDate}" 
                                 onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
@@ -1680,15 +1686,17 @@
                             </button>
                         </div>
                     </td>
-                    <td class="p-2.5 text-center font-mono text-sky-400">
-                        <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">${item.hours_text || '3 hrs (Lab)'}</span>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">${item.hours_text || '3 hrs (Lab)'}</span>
                     </td>
-                    <td class="p-2.5 text-center">
-                        <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold ${batchColor}">${item.batch || 'Whole Class'}</span>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchColor}">${item.batch || 'Whole Class'}</span>
                     </td>
-                    <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
-                        ${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}
-                        ${item.attendance_pct ? `<span class="block text-[10px] text-slate-500 font-normal">(${item.attendance_pct}%)</span>` : ''}
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <span class="font-mono font-bold text-emerald-400">${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}</span>
+                            ${item.attendance_pct ? `<span class="text-[11px] text-slate-400 font-normal">(${item.attendance_pct}%)</span>` : ''}
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);

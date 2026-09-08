@@ -1051,7 +1051,7 @@
           <span class="text-slate-600 font-bold">•</span>
           <span id="vcRevisionBadge" class="font-mono bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800/80">Revision: R-2021</span>
           <span class="text-slate-600 font-bold">•</span>
-          <span id="vcHoursCreditsBadge" class="font-mono bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800/80">Proposed Hours: 60 hrs (+2 tests) | Credits: 2.0</span>
+          <span id="vcHoursCreditsBadge" class="font-mono bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800/80">Proposed Hours: 45 hrs | Credits: 2.0</span>
           <span class="text-slate-600 font-bold">•</span>
           <span id="vcMarksBadge" class="font-mono bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800/80">CIA: 60M | ESE: 40M</span>
         </div>
@@ -2580,9 +2580,11 @@
 
           const hcBadge = document.getElementById('vcHoursCreditsBadge');
           if (hcBadge) {
-            const pHours = data.data.proposed_total_hours || 60;
+            const pHours = data.data.proposed_total_hours || (window.isCurrentSubjectPractical ? 45 : 60);
             const creds = data.data.credits || 2.0;
-            hcBadge.innerText = `Proposed Hours: ${pHours} hrs (+2 tests) | Credits: ${creds}`;
+            hcBadge.innerText = window.isCurrentSubjectPractical
+              ? `Proposed Hours: ${pHours} hrs | Credits: ${creds}`
+              : `Proposed Hours: ${pHours} hrs (+2 tests) | Credits: ${creds}`;
           }
 
           const marksBadge = document.getElementById('vcMarksBadge');
@@ -2891,14 +2893,14 @@
         let emptyColor = window.isCurrentSubjectPractical ? 'text-teal-400' : 'text-sky-400';
         let genBtn = window.isCurrentSubjectPractical
           ? `<button onclick="openGeneratePlannerModal()" class="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1 shadow-md shadow-teal-900/20">
-              <span class="material-symbols-rounded text-xs">auto_awesome</span> Auto-Generate (Lab)
+              <span class="material-symbols-rounded text-xs">science</span> Load Experiment List into Lesson Plan
              </button>`
           : `<button onclick="regenerateLessonPlan()" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1 shadow-md shadow-blue-900/20">
               <span class="material-symbols-rounded text-xs">auto_awesome</span> Generate Lesson Plan
              </button>`;
-        let loadBtn = `<button onclick="loadLessonPlanTemplate()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-premium cursor-pointer border border-slate-700/50 flex items-center gap-1">
+        let loadBtn = window.isCurrentSubjectPractical ? '' : `<button onclick="loadLessonPlanTemplate()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-premium cursor-pointer border border-slate-700/50 flex items-center gap-1">
               <span class="material-symbols-rounded text-xs">download</span> Load Template
-            </button>`;
+             </button>`;
         container.innerHTML = `
           <div class="flex flex-col items-center justify-center py-16 text-center h-full">
             <div class="bg-slate-900/50 p-4 rounded-full mb-4 border border-slate-800/60">
@@ -2919,9 +2921,18 @@
 
       // ── Populated state ──────────────────────────────────────────────────────
       let totalHours = lessonPlans.reduce((sum, lp) => sum + (lp.allocated_hours || 0), 0);
-      let testDays   = lessonPlans.filter(lp => (lp.pedagogy || '').toLowerCase() === 'test').length;
+      let testDays   = lessonPlans.filter(lp => {
+        let p = (lp.pedagogy || '').toLowerCase();
+        return p === 'test' || p === 'exam';
+      }).length;
       let lectureDays = lessonPlans.length - testDays;
-      let proposedVal = window.currentProposedTotalHours || 60;
+      let proposedVal = window.currentProposedTotalHours || (window.isCurrentSubjectPractical ? 45 : 60);
+
+      // Check if current loaded plan has Split Batch rows (Batch 1 or Batch 2)
+      let isSplitPlan = lessonPlans.some(lp => {
+        let sb = (lp.sub_batch || '').toLowerCase();
+        return sb.includes('batch 1') || sb.includes('batch 2') || sb === '1' || sb === '2' || sb.includes('batch a') || sb.includes('batch b');
+      });
 
       let coList = (window.currentCos && window.currentCos.length > 0)
         ? window.currentCos.map(c => c.id || c.co_id)
@@ -2938,30 +2949,50 @@
         <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800/60">
           <div>
             <h4 class="text-sm font-black text-slate-200">Lesson Planner</h4>
-            <p class="text-xs text-slate-500 mt-0.5">${lectureDays} lecture days · ${testDays} test days · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours) · Auto-growing content textareas</p>
+            <p class="text-xs text-slate-500 mt-0.5">
+              ${window.isCurrentSubjectPractical
+                ? `${lessonPlans.length} lab sessions · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours)`
+                : `${lectureDays} lecture days · ${testDays} test days · ${totalHours} total hours (Syllabus Proposed: ${proposedVal} hours) · Auto-growing content textareas`}
+            </p>
           </div>
           <div class="flex items-center gap-1.5 flex-wrap">
-            ${practicalRegenBtn}
-            <select id="coursePlannerBatchFilter" onchange="filterCoursePlannerRowsByBatch(this.value)" style="${smallBtnCss}" class="bg-slate-900 border border-slate-700/60 text-slate-200 rounded-lg focus:outline-none focus:border-blue-500/50 cursor-pointer ${window.isCurrentSubjectPractical ? '' : 'hidden'}">
-              <option value="Full">Batch: Full</option>
-              <option value="A">Batch: A</option>
-              <option value="B">Batch: B</option>
-            </select>
-            <button onclick="regenerateLessonPlan()" id="btnRegenPlan" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Re-generate all lesson plans from stored syllabus data">
-              <span class="material-symbols-rounded" style="font-size: 13px;">refresh</span> Regenerate
-            </button>
-            <button onclick="saveLessonPlanChanges()" id="btnSavePlan" style="${smallBtnCss}" class="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1">
-              <span class="material-symbols-rounded" style="font-size: 13px;">save</span> Save Changes
-            </button>
-            <button onclick="saveLessonPlanAsTemplate()" id="btnSavePlanTemplate" style="${smallBtnCss}" class="bg-violet-800/80 hover:bg-violet-700/80 text-violet-200 border border-violet-600/30 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Save as reusable template for other batches with the same subject">
-              <span class="material-symbols-rounded" style="font-size: 13px;">bookmark_add</span> Save as Template
-            </button>
-            <button onclick="loadLessonPlanTemplate()" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Load previously saved template">
-              <span class="material-symbols-rounded" style="font-size: 13px;">download</span> Load Template
-            </button>
-            <a href="/classroom/${currentSubjectId}/lesson-plan/print" target="_blank" style="${smallBtnCss}" class="bg-sky-800 hover:bg-sky-700 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Print Lesson Plan (A4)">
-              <span class="material-symbols-rounded" style="font-size: 13px;">print</span> Print Plan
-            </a>
+            ${window.isCurrentSubjectPractical ? `
+              <button onclick="triggerLoadExperimentsPlanner()" style="${smallBtnCss}" class="bg-teal-700 hover:bg-teal-600 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1 shadow-md" title="Load experiment list as lesson plan topics">
+                <span class="material-symbols-rounded" style="font-size: 13px;">science</span> Load Experiment List
+              </button>
+              <select id="coursePlannerBatchFilter" onchange="onPracticalBatchDropdownChange(this.value)" style="${smallBtnCss}" class="bg-slate-900 border border-slate-700/60 text-slate-200 rounded-lg focus:outline-none focus:border-blue-500/50 cursor-pointer">
+                <option value="Full" ${!isSplitPlan ? 'selected' : ''}>Full Batch</option>
+                <option value="Split" ${isSplitPlan ? 'selected' : ''}>Split Batch</option>
+              </select>
+              <button onclick="saveLessonPlanChanges()" id="btnSavePlan" style="${smallBtnCss}" class="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded" style="font-size: 13px;">save</span> Save Changes
+              </button>
+              <button onclick="syncLessonPlanDatesFromLogs()" id="btnSyncLogDates" style="${smallBtnCss}" class="bg-cyan-800 hover:bg-cyan-700 text-cyan-100 border border-cyan-600/40 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Auto-sync actual dates from completed class logs into lesson plan">
+                <span class="material-symbols-rounded" style="font-size: 13px;">sync_alt</span> Sync Dates from Log Data
+              </button>
+              <a href="/classroom/${currentSubjectId}/lesson-plan/print" target="_blank" style="${smallBtnCss}" class="bg-sky-800 hover:bg-sky-700 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Print Lesson Plan (A4)">
+                <span class="material-symbols-rounded" style="font-size: 13px;">print</span> Print Plan
+              </a>
+            ` : `
+              <button onclick="regenerateLessonPlan()" id="btnRegenPlan" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Re-generate all lesson plans from stored syllabus data">
+                <span class="material-symbols-rounded" style="font-size: 13px;">refresh</span> Regenerate
+              </button>
+              <button onclick="saveLessonPlanChanges()" id="btnSavePlan" style="${smallBtnCss}" class="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded" style="font-size: 13px;">save</span> Save Changes
+              </button>
+              <button onclick="syncLessonPlanDatesFromLogs()" id="btnSyncLogDates" style="${smallBtnCss}" class="bg-cyan-800 hover:bg-cyan-700 text-cyan-100 border border-cyan-600/40 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Auto-sync actual dates from completed class logs into lesson plan">
+                <span class="material-symbols-rounded" style="font-size: 13px;">sync_alt</span> Sync Dates from Log Data
+              </button>
+              <button onclick="saveLessonPlanAsTemplate()" id="btnSavePlanTemplate" style="${smallBtnCss}" class="bg-violet-800/80 hover:bg-violet-700/80 text-violet-200 border border-violet-600/30 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Save as reusable template for other batches with the same subject">
+                <span class="material-symbols-rounded" style="font-size: 13px;">bookmark_add</span> Save as Template
+              </button>
+              <button onclick="loadLessonPlanTemplate()" style="${smallBtnCss}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Load previously saved template">
+                <span class="material-symbols-rounded" style="font-size: 13px;">download</span> Load Template
+              </button>
+              <a href="/classroom/${currentSubjectId}/lesson-plan/print" target="_blank" style="${smallBtnCss}" class="bg-sky-800 hover:bg-sky-700 text-white rounded-lg transition-premium cursor-pointer flex items-center gap-1" title="Print Lesson Plan (A4)">
+                <span class="material-symbols-rounded" style="font-size: 13px;">print</span> Print Plan
+              </a>
+            `}
           </div>
         </div>
 
@@ -3014,9 +3045,9 @@
             ${window.isCurrentSubjectPractical ? `
             <td class="p-2 text-center">
               <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty(${lp.id}); this.closest('tr').setAttribute('data-sub-batch', this.value);">
-                <option value="Whole" ${subBatchVal==='Whole'||subBatchVal==='Full'||!subBatchVal?'selected':''}>Full</option>
-                <option value="Batch A" ${subBatchVal==='Batch A'||subBatchVal==='A'?'selected':''}>A</option>
-                <option value="Batch B" ${subBatchVal==='Batch B'||subBatchVal==='B'?'selected':''}>B</option>
+                <option value="Full Batch" ${subBatchVal==='Full Batch'||subBatchVal==='Whole'||subBatchVal==='Full'||!subBatchVal?'selected':''}>Full Batch</option>
+                <option value="Batch 1" ${subBatchVal==='Batch 1'||subBatchVal==='Batch A'||subBatchVal==='1'||subBatchVal==='A'?'selected':''}>Batch 1</option>
+                <option value="Batch 2" ${subBatchVal==='Batch 2'||subBatchVal==='Batch B'||subBatchVal==='2'||subBatchVal==='B'?'selected':''}>Batch 2</option>
               </select>
             </td>
             ` : ''}
@@ -3039,8 +3070,8 @@
                 onchange="markPlanDirty(${lp.id}); autoSavePlanRow(${lp.id}, this.closest('tr'))">
             </td>
             <td class="p-2 text-center">
-              <input type="text" value="${lp.allocated_hours || 1}" data-field="allocated_hours"
-                class="w-10 bg-transparent border border-transparent hover:border-slate-700/60 text-center text-slate-400 text-xs font-mono rounded py-0.5 focus:outline-none focus:bg-slate-900/80"
+              <input type="number" min="1" max="10" value="${lp.allocated_hours || 3}" data-field="allocated_hours"
+                class="w-12 bg-slate-900/80 border border-slate-700/60 hover:border-blue-500/50 text-center text-sky-300 text-xs font-bold font-mono rounded py-1 focus:outline-none focus:border-blue-500"
                 onchange="markPlanDirty(${lp.id})">
             </td>
             <td class="p-2">
@@ -3099,14 +3130,14 @@
       const rows = document.querySelectorAll('.course-planner-row');
       rows.forEach(row => {
         const subBatch = row.getAttribute('data-sub-batch') || 'Whole';
-        if (batchVal === 'Full' || batchVal === 'all' || !batchVal) {
+        if (batchVal === 'Full' || batchVal === 'Split' || batchVal === 'all' || !batchVal) {
           row.style.display = '';
-        } else if (batchVal === 'A' && (subBatch === 'Batch A' || subBatch === 'A' || subBatch === 'Batch 1' || subBatch === 'Whole')) {
-          row.style.display = '';
-        } else if (batchVal === 'B' && (subBatch === 'Batch B' || subBatch === 'B' || subBatch === 'Batch 2' || subBatch === 'Whole')) {
-          row.style.display = '';
+        } else if (batchVal === '1' || batchVal === 'A' || batchVal === 'Batch 1') {
+          row.style.display = (subBatch === 'Batch 1' || subBatch === 'Batch A' || subBatch === '1' || subBatch === 'Whole' || subBatch === 'Full Batch') ? '' : 'none';
+        } else if (batchVal === '2' || batchVal === 'B' || batchVal === 'Batch 2') {
+          row.style.display = (subBatch === 'Batch 2' || subBatch === 'Batch B' || subBatch === '2' || subBatch === 'Whole' || subBatch === 'Full Batch') ? '' : 'none';
         } else {
-          row.style.display = 'none';
+          row.style.display = '';
         }
       });
     }
@@ -3353,6 +3384,23 @@
         } else {
           alert(d.message || 'No template found for this subject.');
         }
+      }).catch(e => alert('Error: ' + e.message));
+    }
+
+    function syncLessonPlanDatesFromLogs() {
+      if (!confirm('Sync actual dates into the lesson plan from completed class log data?')) return;
+      const endpoint = window.isCurrentSubjectPractical 
+        ? `/api/r26/classroom/practical/${currentSubjectId}/lesson-plans/sync-dates`
+        : `/api/classroom/${currentSubjectId}/practical/lesson-plans/sync-dates`;
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({})
+      }).then(r => r.json()).then(d => {
+        alert((d.status === 'SUCCESS' || d.success) ? (d.message || 'Synced successfully!') : (d.message || 'Sync failed.'));
+        if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
+        else location.reload();
       }).catch(e => alert('Error: ' + e.message));
     }
 
@@ -8490,17 +8538,19 @@
               }
             }
 
-            const batchColor = item.sub_batch === '1' ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : (item.sub_batch === '2' ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-300 border-slate-700');
+            const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
 
             tr.innerHTML = `
-              <td class="p-2.5 text-center font-mono text-slate-500">${idx + 1}</td>
-              <td class="p-2.5 font-mono font-bold text-teal-300">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
-              <td class="p-2.5 text-slate-200">
-                <span class="font-bold">${item.title}</span>
-                ${item.co_tag ? `<span class="ml-1.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-400">${item.co_tag}</span>` : ''}
+              <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
+              <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+              <td class="p-2.5 text-slate-200 whitespace-nowrap">
+                <div class="inline-flex items-center gap-2 max-w-full">
+                  <span class="font-bold text-slate-100">${item.title}</span>
+                  ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">${item.co_tag}</span>` : ''}
+                </div>
               </td>
-              <td class="p-2 text-center">
-                <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition shadow-inner">
+              <td class="p-2 text-center whitespace-nowrap">
+                <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
                   <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
                   <input type="date" value="${rawDate}" 
                     onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
@@ -8512,15 +8562,17 @@
                   </button>
                 </div>
               </td>
-              <td class="p-2.5 text-center font-mono text-sky-400">
-                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md font-bold">${item.hours_text || '3 hrs (P1-P3)'}</span>
+              <td class="p-2.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">${item.hours_text || '3 hrs (P1-P3)'}</span>
               </td>
-              <td class="p-2.5 text-center">
-                <span class="px-2 py-0.5 border rounded-md text-[11px] font-bold ${batchColor}">${item.batch || 'Whole Class'}</span>
+              <td class="p-2.5 text-center whitespace-nowrap">
+                <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchColor}">${item.batch || 'Whole Class'}</span>
               </td>
-              <td class="p-2.5 text-center font-mono font-bold text-emerald-400">
-                ${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}
-                ${item.attendance_pct ? `<span class="block text-[10px] text-slate-500 font-normal">(${item.attendance_pct}%)</span>` : ''}
+              <td class="p-2.5 text-center whitespace-nowrap">
+                <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  <span class="font-mono font-bold text-emerald-400">${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}</span>
+                  ${item.attendance_pct ? `<span class="text-[11px] text-slate-400 font-normal">(${item.attendance_pct}%)</span>` : ''}
+                </div>
               </td>
             `;
             tbody.appendChild(tr);
@@ -10301,26 +10353,51 @@
       }
     }
 
-    function generatePlannerFromExperiments(event) {
-      event.preventDefault();
-      const session_type = document.getElementById('genPlannerBatchMode').value;
-      const target_batch = document.getElementById('genPlannerTargetBatch') ? document.getElementById('genPlannerTargetBatch').value : 'Full';
-      const allocated_hours = document.getElementById('genPlannerHours').value;
-
+    function loadPracticalExperimentsToPlanner(target_batch, allocated_hours = 3) {
       fetch(`/api/classroom/${currentSubjectId}/practical/lesson-plans/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ session_type, target_batch, allocated_hours })
+        body: JSON.stringify({ target_batch, allocated_hours })
       })
       .then(res => res.json())
       .then(res => {
         alert(res.message);
-        if (res.status === 'SUCCESS') {
+        if (res.status === 'SUCCESS' || res.success) {
           closeGeneratePlannerModal();
           loadCourseDetails(currentSubjectId);
         }
       })
       .catch(() => alert('Failed to generate lesson planner.'));
+    }
+
+    function triggerLoadExperimentsPlanner() {
+      const batchSelect = document.getElementById('coursePlannerBatchFilter');
+      const batchVal = batchSelect ? batchSelect.value : 'Full';
+      const batchDesc = batchVal === 'Split' ? 'Split Batch (Batch 1 & Batch 2 - 30 sessions of 3 hrs)' : 'Full Batch (15 sessions of 3 hrs)';
+
+      if (confirm(`Load experiment list as lesson plan topics for ${batchDesc}?\nTotal hours will be 45 hours (including 2 Series Exams).`)) {
+        loadPracticalExperimentsToPlanner(batchVal, 3);
+      }
+    }
+
+    function onPracticalBatchDropdownChange(newBatchVal) {
+      const batchDesc = newBatchVal === 'Split' ? 'Split Batch (Batch 1 & Batch 2 - 30 sessions of 3 hrs)' : 'Full Batch (15 sessions of 3 hrs)';
+      if (confirm(`Switch batch mode and reload lesson plan for ${batchDesc}?`)) {
+        loadPracticalExperimentsToPlanner(newBatchVal, 3);
+      } else {
+        const batchSelect = document.getElementById('coursePlannerBatchFilter');
+        if (batchSelect) {
+          batchSelect.value = newBatchVal === 'Split' ? 'Full' : 'Split';
+        }
+      }
+    }
+
+    function generatePlannerFromExperiments(event) {
+      if (event) event.preventDefault();
+      const target_batch = document.getElementById('genPlannerBatchMode') ? document.getElementById('genPlannerBatchMode').value : 'Full';
+      const allocated_hours = document.getElementById('genPlannerHours') ? document.getElementById('genPlannerHours').value : 3;
+
+      loadPracticalExperimentsToPlanner(target_batch, allocated_hours);
     }
 
     // CO-PO Matrix
@@ -11333,7 +11410,7 @@
 
   <!-- Completed Experiments Details Modal -->
   <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-7xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Modal Header -->
       <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
         <div>
@@ -11384,16 +11461,16 @@
             <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing 0 completed session records</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[750px]">
+            <table class="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60">
+                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60 whitespace-nowrap">
                   <th class="p-2.5 w-12 text-center">#</th>
                   <th class="p-2.5 w-24">Exp No</th>
                   <th class="p-2.5">Title / Topics Covered</th>
-                  <th class="p-2.5 text-center w-28">Date</th>
-                  <th class="p-2.5 text-center w-36">Hours (Periods)</th>
-                  <th class="p-2.5 text-center w-28">Batch</th>
-                  <th class="p-2.5 text-center w-28">Attendance</th>
+                  <th class="p-2.5 text-center w-36">Date</th>
+                  <th class="p-2.5 text-center w-40">Hours (Periods)</th>
+                  <th class="p-2.5 text-center w-32">Batch</th>
+                  <th class="p-2.5 text-center w-36">Attendance</th>
                 </tr>
               </thead>
               <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
@@ -11558,18 +11635,10 @@
       </div>
       <form onsubmit="generatePlannerFromExperiments(event)" class="p-6 space-y-4">
         <div>
-          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Lab Batch Session Mode</label>
+          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Batch Mode</label>
           <select id="genPlannerBatchMode" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
-            <option value="combined">Combined / Full Class (1 entry per experiment)</option>
-            <option value="separate">Split Batches / Batch 1 &amp; 2 (2 entries per experiment)</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Target Batch</label>
-          <select id="genPlannerTargetBatch" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-blue-500 outline-none cursor-pointer">
-            <option value="Full">Full (Whole Class)</option>
-            <option value="A">Batch A</option>
-            <option value="B">Batch B</option>
+            <option value="Full">Full Batch (15 sessions of 3 hrs = 45 hrs)</option>
+            <option value="Split">Split Batch (Batch 1 &amp; 2 - 30 sessions of 3 hrs)</option>
           </select>
         </div>
         <div>

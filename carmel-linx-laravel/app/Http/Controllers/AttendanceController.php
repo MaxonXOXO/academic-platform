@@ -121,6 +121,7 @@ class AttendanceController extends Controller
             'experiments' => $practicalExperiments,
             'classroom_id' => $batchSubject->classroom_id,
             'subject_type' => $batchSubject->subject_type,
+            'syllabus_revision_code' => $batchSubject->syllabus_revision_code,
             'last_log_sl_no' => $lastLogCount,
             'next_log_sl_no' => $nextLogSlNo
         ]);
@@ -312,11 +313,23 @@ class AttendanceController extends Controller
                     ->where('sub_batch', $subBatch)
                     ->get();
 
-                // Check if any existing log has the exact same topic or lesson plan
+                // Check if any existing log has the matching topic, lesson plan, or experiment
                 $matchingLog = $existingLogs->first(function ($l) use ($request, $submittedTopics) {
                     if ($request->lesson_plan_id && $l->lesson_plan_id == $request->lesson_plan_id) return true;
-                    return trim($l->topics_covered ?? '') === $submittedTopics;
+                    if (strcasecmp(trim($l->topics_covered ?? ''), $submittedTopics) === 0) return true;
+                    if ($request->practical_experiment_id) {
+                        $pExp = \App\Models\PracticalExperiment::find($request->practical_experiment_id);
+                        if ($pExp && !empty($pExp->experiment_no) && preg_match('/\b(?:Exp|Experiment|Ex)\.?\s*#?\s*0*' . preg_quote($pExp->experiment_no, '/') . '\b/i', $l->topics_covered ?? '')) {
+                            return true;
+                        }
+                    }
+                    return false;
                 });
+
+                // If not matched by exact topic/ID, but there is already a single log for this period slot and it's not an additional log, update that slot log
+                if (!$matchingLog && !$isAdditionalLog && $existingLogs->count() === 1) {
+                    $matchingLog = $existingLogs->first();
+                }
 
                 if ($matchingLog && !$isAdditionalLog) {
                     // Update the matching log

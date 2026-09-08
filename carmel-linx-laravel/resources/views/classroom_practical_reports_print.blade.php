@@ -244,18 +244,20 @@
         <table class="report-table">
             <thead>
                 <tr>
-                    <th style="width: 8%">Day No</th>
-                    <th style="width: 15%">Proposed Date</th>
-                    <th style="width: 45%">Topic / Content Covered</th>
+                    <th style="width: 7%">Day No</th>
+                    <th style="width: 10%">Batch</th>
+                    <th style="width: 13%">Proposed Date</th>
+                    <th style="width: 40%">Topic / Content Covered</th>
                     <th style="width: 8%">CO Map</th>
                     <th style="width: 12%">Actual Date</th>
-                    <th style="width: 12%">Pedagogy</th>
+                    <th style="width: 10%">Pedagogy</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($lessonPlans as $lp)
                     <tr>
                         <td style="font-weight:bold;">{{ $lp->day_no }}</td>
+                        <td style="font-weight:bold; color:#0056b3;">{{ $lp->sub_batch ?? 'Full Batch' }}</td>
                         <td style="font-family:monospace;">{{ $lp->proposed_date ? date('d-m-Y', strtotime($lp->proposed_date)) : '-' }}</td>
                         <td class="align-left" style="font-weight:bold; color:#111;">{{ $lp->topic_content }}</td>
                         <td style="font-weight:bold; color:#0056b3;">{{ $lp->co_id ?? '-' }}</td>
@@ -264,7 +266,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="padding:20px; font-weight:bold; color:#888;">No lesson planner entries generated yet.</td>
+                        <td colspan="7" style="padding:20px; font-weight:bold; color:#888;">No lesson planner entries generated yet.</td>
                     </tr>
                 @endforelse
             </tbody>

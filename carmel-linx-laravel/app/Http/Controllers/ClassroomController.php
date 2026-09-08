@@ -4731,13 +4731,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
      */
     public function generateLessonPlansFromExperiments(Request $request, $subjectId)
     {
-        $request->validate([
-            'session_type' => 'required|in:combined,separate',
-            'allocated_hours' => 'required|integer|min:1|max:6'
-        ]);
-
-        $sessionType = $request->input('session_type');
-        $hours = $request->input('allocated_hours');
+        $sessionType = $request->input('session_type', 'combined');
+        $hours = (int)$request->input('allocated_hours', 3);
+        if ($hours <= 0) $hours = 3;
         $targetBatch = $request->input('target_batch', 'Full');
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
@@ -4752,70 +4748,235 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         // Delete existing planner logs for this batch subject
         \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->delete();
 
+        $targetSubBatches = [];
+        if ($targetBatch === 'Split' || $targetBatch === 'Both' || $sessionType === 'separate' || $sessionType === 'split') {
+            $targetSubBatches = ['Batch 1', 'Batch 2'];
+        } elseif ($targetBatch === '1' || $targetBatch === 'Batch 1' || $targetBatch === 'A') {
+            $targetSubBatches = ['Batch 1'];
+        } elseif ($targetBatch === '2' || $targetBatch === 'Batch 2' || $targetBatch === 'B') {
+            $targetSubBatches = ['Batch 2'];
+        } else {
+            $targetSubBatches = ['Full Batch'];
+        }
+
+        $bs = \DB::table('batch_subjects')->where('id', $subjectId)->first();
+        $totalProposed = 45;
+        if ($bs && !empty($bs->proposed_hours) && (int)$bs->proposed_hours > 0) {
+            $totalProposed = (int)$bs->proposed_hours;
+        }
+
+        $examHoursTotal = 6;  // 3h for Series 1 (CO1/CO2) + 3h for Series 2 (CO3/CO4)
+        $availableExpHours = max(3, $totalProposed - $examHoursTotal);
+        $slotCount = max(1, (int)floor($availableExpHours / 3));
+
+        $numExpts = $experiments->count();
+        $slots = [];
+
+        if ($numExpts >= $slotCount) {
+            $q = intdiv($numExpts, $slotCount);
+            $r = $numExpts % $slotCount;
+            $expList = $experiments->all();
+            $offset = 0;
+            for ($i = 0; $i < $slotCount; $i++) {
+                $take = $q + ($i < $r ? 1 : 0);
+                $slots[] = array_slice($expList, $offset, $take);
+                $offset += $take;
+            }
+        } else {
+            foreach ($experiments as $exp) {
+                $slots[] = [$exp];
+            }
+            $extraCount = $slotCount - $numExpts;
+            for ($i = 0; $i < $extraCount; $i++) {
+                if ($i === 0 && $extraCount == 1) {
+                    $title = "Model Practical Examination / Practical Revision & Doubt Clearance";
+                    $co = "CO1-CO4";
+                } elseif ($i === 0) {
+                    $title = "Practical Revision & Experiment Repetition (Session 1)";
+                    $co = "CO1, CO2";
+                } elseif ($i === 1 && $extraCount == 2) {
+                    $title = "Model Practical Examination / Skill Evaluation";
+                    $co = "CO3, CO4";
+                } elseif ($i === 1) {
+                    $title = "Practical Revision & Experiment Repetition (Session 2)";
+                    $co = "CO3, CO4";
+                } else {
+                    $title = "Model Practical Examination & Skill Evaluation";
+                    $co = "CO1-CO4";
+                }
+                $slots[] = [(object)['is_revision' => true, 'title' => $title, 'co' => $co]];
+            }
+        }
+
         $dayNo = 1;
 
-        foreach ($experiments as $exp) {
-            if ($targetBatch === 'A') {
+        foreach ($slots as $group) {
+            $titles = [];
+            $cos = [];
+            foreach ($group as $exp) {
+                if (!empty($exp->is_revision)) {
+                    $titles[] = $exp->title;
+                    $cos[] = $exp->co;
+                } else {
+                    $exNo = $exp->experiment_no ? ("Expt " . $exp->experiment_no) : "";
+                    $t = $exp->title ?? '';
+                    $titles[] = $exNo ? "{$exNo}: {$t}" : $t;
+                    if (!empty($exp->co_tag) && !in_array($exp->co_tag, $cos)) {
+                        $cos[] = $exp->co_tag;
+                    }
+                }
+            }
+            $combinedTitle = implode(' & ', $titles);
+            $combinedCo = implode(', ', $cos) ?: 'CO1';
+            if (strlen($combinedCo) > 10) {
+                $combinedCo = (str_contains($combinedCo, 'CO1') && str_contains($combinedCo, 'CO4')) ? 'CO1-CO4' : substr($combinedCo, 0, 10);
+            }
+
+            foreach ($targetSubBatches as $bName) {
                 \App\Models\LessonPlan::create([
                     'batch_subject_id' => $subjectId,
                     'day_no' => $dayNo++,
-                    'co_id' => $exp->co_tag,
-                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
-                    'allocated_hours' => $hours,
-                    'pedagogy' => 'Demonstration/Practical',
-                    'sub_batch' => 'Batch A',
-                    'status' => 'Pending'
-                ]);
-            } elseif ($targetBatch === 'B') {
-                \App\Models\LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no' => $dayNo++,
-                    'co_id' => $exp->co_tag,
-                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
-                    'allocated_hours' => $hours,
-                    'pedagogy' => 'Demonstration/Practical',
-                    'sub_batch' => 'Batch B',
-                    'status' => 'Pending'
-                ]);
-            } elseif ($sessionType === 'combined') {
-                \App\Models\LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no' => $dayNo++,
-                    'co_id' => $exp->co_tag,
-                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title,
-                    'allocated_hours' => $hours,
-                    'pedagogy' => 'Demonstration/Practical',
-                    'sub_batch' => 'Whole',
-                    'status' => 'Pending'
-                ]);
-            } else {
-                // Generate two entries for Batch 1 and Batch 2
-                \App\Models\LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no' => $dayNo++,
-                    'co_id' => $exp->co_tag,
-                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title . " (Batch 1)",
-                    'allocated_hours' => $hours,
-                    'pedagogy' => 'Demonstration/Practical',
-                    'sub_batch' => 'Batch A',
-                    'status' => 'Pending'
-                ]);
-                \App\Models\LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no' => $dayNo++,
-                    'co_id' => $exp->co_tag,
-                    'topic_content' => "Practical Experiment " . $exp->experiment_no . ": " . $exp->title . " (Batch 2)",
-                    'allocated_hours' => $hours,
-                    'pedagogy' => 'Demonstration/Practical',
-                    'sub_batch' => 'Batch B',
+                    'co_id' => $combinedCo,
+                    'topic_content' => $combinedTitle,
+                    'allocated_hours' => 3,
+                    'pedagogy' => 'Practical',
+                    'sub_batch' => $bName,
                     'status' => 'Pending'
                 ]);
             }
         }
 
+        // Series Exam 1 (3 hours - CO1 & CO2)
+        foreach ($targetSubBatches as $bName) {
+            \App\Models\LessonPlan::create([
+                'batch_subject_id' => $subjectId,
+                'day_no' => $dayNo++,
+                'co_id' => 'CO1, CO2',
+                'topic_content' => 'Series Exam 1 (Practical Exam - CO1 & CO2)',
+                'allocated_hours' => 3,
+                'pedagogy' => 'Exam',
+                'sub_batch' => $bName,
+                'status' => 'Pending'
+            ]);
+        }
+
+        // Series Exam 2 (3 hours - CO3 & CO4)
+        foreach ($targetSubBatches as $bName) {
+            \App\Models\LessonPlan::create([
+                'batch_subject_id' => $subjectId,
+                'day_no' => $dayNo++,
+                'co_id' => 'CO3, CO4',
+                'topic_content' => 'Series Exam 2 (Practical Exam - CO3 & CO4)',
+                'allocated_hours' => 3,
+                'pedagogy' => 'Exam',
+                'sub_batch' => $bName,
+                'status' => 'Pending'
+            ]);
+        }
+
+        $totalRows = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->count();
+
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => 'Lesson plan successfully generated from experiments.'
+            'message' => "Lesson plan successfully generated from experiments ({$totalRows} sessions created including 2 Series Exams)."
+        ]);
+    }
+
+    /**
+     * Auto-sync actual dates in lesson plan from conducted class/experiment log data
+     */
+    public function syncLessonPlanDatesFromLogs(Request $request, $subjectId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+
+        $plans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)
+            ->orderBy('day_no', 'asc')
+            ->get();
+
+        if ($plans->isEmpty()) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No lesson plans found for this subject.']);
+        }
+
+        // Fetch logs from class_logs_attendance
+        $classLogs = \DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->whereNotNull('date')
+            ->orderBy('date', 'asc')
+            ->get(['id', 'date', 'topics_covered', 'sub_batch', 'lesson_plan_id']);
+
+        // Also fetch from practical_experiments
+        $experiments = \DB::table('practical_experiments')
+            ->where('batch_subject_id', $subjectId)
+            ->whereNotNull('conducted_date')
+            ->orderBy('conducted_date', 'asc')
+            ->get();
+
+        $updatedCount = 0;
+
+        // Group class logs by batch
+        $logsByBatch = [
+            'Batch 1' => [],
+            'Batch 2' => [],
+            'All' => []
+        ];
+
+        foreach ($classLogs as $cl) {
+            $d = $cl->date;
+            if (!$d) continue;
+            $sb = strtolower(trim($cl->sub_batch ?? ''));
+            if ($sb === 'batch 1' || $sb === '1' || $sb === 'a' || $sb === 'batch a') {
+                $logsByBatch['Batch 1'][] = $cl;
+            } elseif ($sb === 'batch 2' || $sb === '2' || $sb === 'b' || $sb === 'batch b') {
+                $logsByBatch['Batch 2'][] = $cl;
+            } else {
+                $logsByBatch['All'][] = $cl;
+            }
+        }
+
+        $batchIndices = ['Batch 1' => 0, 'Batch 2' => 0, 'All' => 0];
+
+        foreach ($plans as $plan) {
+            $dateToAssign = null;
+            $bKey = ($plan->sub_batch === 'Batch 2') ? 'Batch 2' : (($plan->sub_batch === 'Batch 1') ? 'Batch 1' : 'All');
+
+            // 1. Direct lesson_plan_id match
+            $matchedLog = $classLogs->firstWhere('lesson_plan_id', $plan->id);
+            if ($matchedLog && $matchedLog->date) {
+                $dateToAssign = $matchedLog->date;
+            }
+
+            // 2. Try match from practical_experiments conducted_date
+            if (!$dateToAssign && !empty($plan->topic_content)) {
+                foreach ($experiments as $exp) {
+                    $needle = "Expt " . $exp->experiment_no;
+                    if (str_contains($plan->topic_content, $needle) && !empty($exp->conducted_date)) {
+                        $dateToAssign = $exp->conducted_date;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Match from logs for this batch
+            if (!$dateToAssign) {
+                $candidateLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
+                if ($batchIndices[$bKey] < count($candidateLogs)) {
+                    $dateToAssign = $candidateLogs[$batchIndices[$bKey]]->date;
+                    $batchIndices[$bKey]++;
+                }
+            }
+
+            if ($dateToAssign) {
+                $plan->actual_date = $dateToAssign;
+                $plan->status = 'Completed';
+                $plan->save();
+                $updatedCount++;
+            }
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => "Successfully synced {$updatedCount} actual dates from log data into the lesson plan."
         ]);
     }
 

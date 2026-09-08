@@ -722,6 +722,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/classroom/{subjectId}/practical/experiments/databank', [App\Http\Controllers\ClassroomController::class, 'getPracticalExperimentsDatabank']);
     Route::post('/api/classroom/{subjectId}/practical/experiments/import', [App\Http\Controllers\ClassroomController::class, 'importPracticalExperiments']);
     Route::post('/api/classroom/{subjectId}/practical/lesson-plans/generate', [App\Http\Controllers\ClassroomController::class, 'generateLessonPlansFromExperiments']);
+    Route::post('/api/classroom/{subjectId}/practical/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
     Route::get('/api/classroom/{subjectId}/practical/copo-mapping', [App\Http\Controllers\ClassroomController::class, 'getPracticalCoPoMapping']);
     Route::post('/api/classroom/{subjectId}/practical/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'savePracticalCoPoMapping']);
     Route::post('/api/classroom/{subjectId}/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'saveTheoryCoPoMapping']);

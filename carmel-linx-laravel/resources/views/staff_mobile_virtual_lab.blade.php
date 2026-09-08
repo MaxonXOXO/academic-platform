@@ -79,8 +79,8 @@
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
         }
 
         /* Custom range slider styling */
@@ -130,6 +130,13 @@
         .tab-panel.active {
             display: block;
         }
+
+        select option {
+            font-size: 0.70rem !important;
+            padding: 4px 6px !important;
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
@@ -164,9 +171,9 @@
                     <small class="text-slate-300" style="font-size: 0.74rem; color: #cbd5e1 !important;">Continuous Day-to-Day Practical Marks</small>
                 </div>
                 @if(count($experiments) > 0)
-                <select id="selectedExpId" class="form-select form-select-sm bg-dark text-white border-secondary font-mono" style="width: auto; font-size: 0.78rem;" onchange="changeActiveExp(this.value)">
+                <select id="selectedExpId" class="form-select form-select-sm bg-dark text-white border-secondary font-mono" style="width: auto; font-size: 0.70rem; padding-top: 3px; padding-bottom: 3px;" onchange="changeActiveExp(this.value)">
                     @foreach($experiments as $exp)
-                        <option value="{{ $exp->id }}">Exp {{ $exp->experiment_no }}: {{ Str::limit($exp->title, 18) }}</option>
+                        <option value="{{ $exp->id }}" style="font-size: 0.70rem;">Exp {{ $exp->experiment_no }}: {{ Str::limit($exp->title, 18) }}</option>
                     @endforeach
                 </select>
                 @endif
@@ -190,19 +197,19 @@
                         <div class="student-card student-row-exp" data-reg="{{ $student['reg_no'] }}">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <div>
-                                    <span class="badge badge-cyan font-mono me-1">Roll #{{ $student['roll_no'] ?? '-' }}</span>
+                                    <span class="badge badge-cyan font-mono me-1" style="font-size: 0.68rem;">Roll #{{ $student['roll_no'] ?? '-' }}</span>
                                     <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')"
-                                        class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline" style="font-size: 0.88rem; cursor: pointer;">
+                                        class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline" style="font-size: 0.80rem; cursor: pointer;">
                                         {{ $student['name'] }}
                                     </button>
-                                    <small class="d-block text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
+                                    <small class="d-block text-slate-300 font-mono" style="font-size: 0.68rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge {{ $gradedBadgeClass }} font-mono mb-1" style="font-size: 0.7rem;">{{ $graded }} / {{ $totalExp }} Graded</span>
-                                    <span class="d-block font-mono text-cyan fw-bold text-exp-total-{{ $student['reg_no'] }}" style="font-size: 0.95rem; color: #38bdf8 !important;">
+                                    <span class="badge {{ $gradedBadgeClass }} font-mono mb-1" style="font-size: 0.65rem;">{{ $graded }} / {{ $totalExp }} Graded</span>
+                                    <span class="d-block font-mono text-cyan fw-bold text-exp-total-{{ $student['reg_no'] }}" style="font-size: 0.85rem; color: #38bdf8 !important;">
                                         {{ $expScore !== null ? number_format($expScore, 1) : '—' }} / 37.5
                                     </span>
-                                    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 mt-1 text-white fw-semibold" style="font-size: 0.74rem;" onclick="openGradingModal('{{ $student['reg_no'] }}')">
+                                    <button class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-0.5 mt-1 text-white fw-semibold" style="font-size: 0.70rem;" onclick="openGradingModal('{{ $student['reg_no'] }}')">
                                         <i class="fa-solid fa-sliders me-1 text-info"></i>Grade
                                     </button>
                                 </div>
@@ -301,34 +308,34 @@
                     <div class="student-card mb-2">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')" class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline text-start d-block" style="font-size: 0.88rem; cursor: pointer;">{{ $student['name'] }}</button>
-                                <small class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
-                                <div class="mt-1 d-flex gap-2 flex-wrap align-items-center">
-                                    <span class="badge bg-slate-800 text-cyan font-mono" style="font-size: 0.7rem; color: #38bdf8 !important;">
+                                <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')" class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline text-start d-block" style="font-size: 0.80rem; cursor: pointer;">{{ $student['name'] }}</button>
+                                <small class="text-slate-300 font-mono" style="font-size: 0.68rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
+                                <div class="mt-1 d-flex gap-1.5 flex-wrap align-items-center">
+                                    <span class="badge bg-slate-800 text-cyan font-mono" style="font-size: 0.65rem; color: #38bdf8 !important;">
                                         {{ $student['att_pct'] }}% ({{ $student['att_present'] }}/{{ $student['att_total'] }})
                                     </span>
-                                    <span class="badge {{ $attPct >= 90 ? 'bg-success' : ($attPct >= 75 ? 'bg-warning text-dark' : 'bg-danger') }} font-mono" style="font-size: 0.7rem;">
+                                    <span class="badge {{ $attPct >= 90 ? 'bg-success' : ($attPct >= 75 ? 'bg-warning text-dark' : 'bg-danger') }} font-mono" style="font-size: 0.65rem;">
                                         Suggested: {{ $student['att_slab_mark'] }} / 15
                                     </span>
                                 </div>
                             </div>
-                            <div class="text-end" style="width: 100px;">
-                                <label class="text-slate-200 d-block fw-semibold mb-0.5" style="font-size: 0.68rem; color: #e2e8f0 !important;">Override (/15)</label>
-                                <input type="number" step="0.5" min="0" max="15" class="form-control form-control-sm bg-dark text-success font-mono fw-bold text-center border-secondary input-att-marks" data-reg="{{ $student['reg_no'] }}" value="{{ $student['attendance_marks'] }}">
+                            <div class="text-end" style="width: 95px;">
+                                <label class="text-slate-200 d-block fw-semibold mb-0.5" style="font-size: 0.65rem; color: #e2e8f0 !important;">Override (/15)</label>
+                                <input type="number" step="0.5" min="0" max="15" class="form-control form-control-sm bg-dark text-success font-mono fw-bold text-center border-secondary input-att-marks" style="font-size: 0.78rem;" data-reg="{{ $student['reg_no'] }}" value="{{ $student['attendance_marks'] }}">
                             </div>
                         </div>
                         <!-- Attendance Log Toggle -->
-                        <button class="btn btn-sm btn-outline-secondary rounded-2 mt-2 w-100" style="font-size: 0.72rem;"
+                        <button class="btn btn-sm btn-outline-secondary rounded-2 mt-2 w-100" style="font-size: 0.68rem; padding: 2px 6px;"
                             onclick="toggleMobileAttLog('{{ $student['reg_no'] }}', this)">
                             <i class="fa-solid fa-calendar-days me-1"></i>Show Attendance Log
                         </button>
                         <div id="attlog-{{ $student['reg_no'] }}" class="d-none mt-2 rounded-3 overflow-hidden" style="border: 1px solid rgba(255,255,255,0.1);">
-                            <table class="table table-sm table-dark mb-0" style="font-size: 0.72rem;">
+                            <table class="table table-sm table-dark mb-0" style="font-size: 0.67rem;">
                                 <thead><tr class="text-info">
-                                    <th class="py-1 px-2">Date</th>
-                                    <th class="py-1 px-2 text-center">Period</th>
-                                    <th class="py-1 px-2">Topic</th>
-                                    <th class="py-1 px-2 text-center">Status</th>
+                                    <th class="py-1 px-1.5">Date</th>
+                                    <th class="py-1 px-1.5 text-center">Period</th>
+                                    <th class="py-1 px-1.5">Topic</th>
+                                    <th class="py-1 px-1.5 text-center">Status</th>
                                 </tr></thead>
                                 <tbody id="attlog-body-{{ $student['reg_no'] }}">
                                     <tr><td colspan="4" class="text-center text-muted py-2">Loading...</td></tr>
@@ -1127,13 +1134,13 @@
                     }
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="py-1 px-2 font-mono">${displayDate}</td>
-                        <td class="py-1 px-2 text-center font-mono">${log.period}</td>
-                        <td class="py-1 px-2">${log.topic}</td>
-                        <td class="py-1 px-2 text-center">
+                        <td class="py-1 px-1.5 font-mono" style="font-size:0.67rem;">${displayDate}</td>
+                        <td class="py-1 px-1.5 text-center font-mono" style="font-size:0.67rem;">${log.period}</td>
+                        <td class="py-1 px-1.5" style="font-size:0.67rem; line-height:1.25;">${log.topic}</td>
+                        <td class="py-1 px-1.5 text-center">
                             ${isPresent 
-                                ? '<span class="badge bg-success" style="font-size:0.65rem;">✓ Present</span>' 
-                                : '<span class="badge bg-danger" style="font-size:0.65rem;">✗ Absent</span>'}
+                                ? '<span class="badge bg-success" style="font-size:0.60rem;">✓ Present</span>' 
+                                : '<span class="badge bg-danger" style="font-size:0.60rem;">✗ Absent</span>'}
                         </td>
                     `;
                     tbody.appendChild(tr);

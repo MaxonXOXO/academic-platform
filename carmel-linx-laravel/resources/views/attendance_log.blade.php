@@ -384,10 +384,18 @@
     function onLessonPlanChange() {
       const select = document.getElementById('lessonPlanSelect');
       const selectedOption = select.options[select.selectedIndex];
+      const topicsElem = document.getElementById('topicsCovered');
       if (selectedOption && select.value) {
-        document.getElementById('topicsCovered').value = selectedOption.dataset.topic || selectedOption.innerText;
+        if (topicsElem) {
+          topicsElem.value = '';
+          topicsElem.placeholder = 'Selected from dropdown: ' + (selectedOption.dataset.topic || selectedOption.innerText || '');
+        }
       } else {
-        document.getElementById('topicsCovered').value = '';
+        if (topicsElem) {
+          topicsElem.value = '';
+          topicsElem.placeholder = 'Describe the topics covered in class today...';
+          topicsElem.focus();
+        }
       }
     }
 
@@ -599,9 +607,17 @@
       
       const checkedPeriods = Array.from(document.querySelectorAll('input[name="logPeriods"]:checked')).map(el => parseInt(el.value));
       const lpSelect = document.getElementById('lessonPlanSelect');
+      const selOpt = (lpSelect && lpSelect.selectedIndex >= 0) ? lpSelect.options[lpSelect.selectedIndex] : null;
       const lpId = lpSelect ? lpSelect.value : '';
       const topicsElem = document.getElementById('topicsCovered');
-      const topics = topicsElem ? topicsElem.value.trim() : '';
+      const manualTopics = topicsElem ? topicsElem.value.trim() : '';
+
+      let topics = '';
+      if (selOpt && selOpt.value) {
+        topics = manualTopics || selOpt.dataset.topic || selOpt.innerText.trim();
+      } else {
+        topics = manualTopics;
+      }
 
       if (topicsElem) topicsElem.classList.remove('border-red-500');
 
@@ -614,11 +630,11 @@
         return;
       }
       if (!topics) {
-        if (topicsElem) {
+        if (topicsElem && (!selOpt || !selOpt.value)) {
           topicsElem.classList.add('border-red-500');
           topicsElem.focus();
         }
-        showMessage("Please describe the topics covered in class today.", true);
+        showMessage("Please select a topic or enter manual topics covered in class today.", true);
         return;
       }
 

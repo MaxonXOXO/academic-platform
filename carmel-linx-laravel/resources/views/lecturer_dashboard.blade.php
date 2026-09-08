@@ -3396,9 +3396,19 @@
         btn.innerHTML = `<span class="material-symbols-rounded animate-spin" style="font-size: 13px;">sync</span> Syncing...`;
       }
 
+      const subjId = currentSubjectId || window.currentSubjectId;
+      if (!subjId) {
+        alert('Subject ID not found.');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+        return;
+      }
+
       const endpoint = window.isCurrentSubjectPractical 
-        ? `/api/classroom/${currentSubjectId}/practical/lesson-plans/sync-dates`
-        : `/api/classroom/${currentSubjectId}/lesson-plans/sync-dates`;
+        ? `/api/classroom/${subjId}/practical/lesson-plans/sync-dates`
+        : `/api/classroom/${subjId}/lesson-plans/sync-dates`;
 
       fetch(endpoint, {
         method: 'POST',
@@ -3418,8 +3428,15 @@
       })
       .then(d => {
         alert((d.status === 'SUCCESS' || d.success) ? (d.message || 'Synced successfully!') : (d.message || 'Sync failed.'));
-        if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
-        else location.reload();
+        if (typeof loadCourseDetails === 'function') {
+          loadCourseDetails(subjId).then(() => {
+            if (typeof toggleClassroomTab === 'function') {
+              toggleClassroomTab('planner');
+            }
+          }).catch(err => {
+            console.error('Error refreshing planner after sync:', err);
+          });
+        }
       })
       .catch(e => alert('Error: ' + e.message))
       .finally(() => {

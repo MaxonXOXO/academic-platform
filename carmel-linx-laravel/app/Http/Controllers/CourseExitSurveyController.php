@@ -304,7 +304,15 @@ class CourseExitSurveyController extends Controller
                 ->first();
         }
 
-        if (!$survey) return "No Course Exit survey report exists for this classroom subject.";
+        if (!$survey) {
+            $survey = (object)[
+                'id' => 0,
+                'batch_subject_id' => $subjectId,
+                'faculty_name' => Session::get('userName') ?? 'Faculty Member',
+                'status' => 'Pending',
+                'created_at' => now()
+            ];
+        }
 
         // Classroom & Institutional Metadata
         $classroom = DB::table('class_management')->where('classroom_id', $batchSubject->classroom_id)->first();

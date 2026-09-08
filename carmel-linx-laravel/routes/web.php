@@ -519,7 +519,6 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/lesson-plan/print/{subjectId}', [R26ClassroomController::class, 'printLessonPlan']);
     Route::get('/r26/classroom/self-learning/print/{subjectId}', [R26ClassroomController::class, 'printSelfLearningReport']);
     Route::post('/api/r26/classroom/{subjectId}/lesson-plans/bulk-update', [R26ClassroomController::class, 'bulkUpdateLessonPlans']);
-    Route::post('/api/r26/classroom/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
     Route::post('/api/r26/classroom/{subjectId}/cia-marks/bulk-update', [R26ClassroomController::class, 'bulkUpdateCiaMarks']);
     Route::post('/api/r26/classroom/{subjectId}/self-learning/bulk-update', [R26ClassroomController::class, 'bulkUpdateSelfLearningMarks']);
     Route::post('/api/r26/classroom/{subjectId}/assignment/{coTag}', [R26ClassroomController::class, 'saveAssignment']);
@@ -557,7 +556,6 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practical/{subjectId}/experiments', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentsList']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'generateLessonPlan']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/bulk-update', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'bulkUpdateLessonPlans']);
-    Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
     Route::delete('/api/r26/classroom/practical/{subjectId}/lesson-plans/{planId}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'deleteLessonPlanRow']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/experiment', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/open-ended', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
@@ -674,7 +672,6 @@ Route::middleware(['web'])->group(function () {
     Route::delete('/api/classroom/{subjectId}/lesson-plans/{planId}', [App\Http\Controllers\ClassroomController::class, 'deleteLessonPlanRow']);
     Route::post('/api/classroom/{subjectId}/lesson-plans/save-as-template', [App\Http\Controllers\ClassroomController::class, 'saveAsTemplate']);
     Route::get('/api/classroom/{subjectId}/lesson-plans/load-template', [App\Http\Controllers\ClassroomController::class, 'loadTemplate']);
-    Route::post('/api/classroom/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
     Route::get('/api/classroom/{subjectId}/generate-questions', [App\Http\Controllers\ClassroomController::class, 'generateAssignmentQuestions']);
     Route::post('/api/classroom/{subjectId}/save-assignment-questions', [App\Http\Controllers\ClassroomController::class, 'saveAssignmentQuestions']);
     Route::post('/api/classroom/{subjectId}/save-assignment-deadline', [App\Http\Controllers\ClassroomController::class, 'saveAssignmentDeadline']);
@@ -690,6 +687,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/classroom/{subjectId}/assignment-print/{coTag}', [App\Http\Controllers\ClassroomController::class, 'printAssignmentQuestionPaperAndRubrics']);
     Route::get('/classroom/{subjectId}/summative-report', [App\Http\Controllers\ClassroomController::class, 'printSummativeReport']);
     Route::get('/classroom/{subjectId}/lesson-plan/print', [App\Http\Controllers\ClassroomController::class, 'printLessonPlan']);
+    Route::get('/classroom/{subjectId}/attainment-report', [App\Http\Controllers\ClassroomController::class, 'printAttainmentReport']);
+    Route::get('/classroom/{subjectId}/final-results/print', [App\Http\Controllers\ClassroomController::class, 'printTheoryFinalResults']);
+    Route::get('/classroom/{subjectId}/course-file/print', [App\Http\Controllers\ClassroomController::class, 'printCourseFileA4']);
 
     // Universal System Settings
     Route::get('/api/admin/settings', [App\Http\Controllers\SystemSettingController::class, 'getSettings']);

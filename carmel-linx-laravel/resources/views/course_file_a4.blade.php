@@ -39,14 +39,64 @@
             margin: 20px 0;
             color: #6b7280;
         }
+
+        .print-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.15);
+            z-index: 50;
+            display: flex;
+            gap: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-print {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-close {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media print {
+            .print-controls { display: none !important; }
+            @page { margin: 2cm; }
+        }
     </style>
 </head>
 <body>
 
+    <div class="print-controls">
+        <button class="btn-print" onclick="window.print()">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+            Print Course File
+        </button>
+        <button class="btn-close" onclick="window.close()">Close</button>
+    </div>
+
     <!-- Cover Page -->
     <div class="text-center" style="margin-top: 100px;">
         <h1 class="uppercase font-bold mb-4 text-xl">Carmel Polytechnic College</h1>
-        <h2 class="uppercase font-bold mb-8 text-lg">Department of {{ $courseFile->batchSubject->batch->branch ?? 'General' }}</h2>
+        <h2 class="uppercase font-bold mb-8 text-lg">Department of {{ $courseFile->batchSubject->classroom->branch ?? $courseFile->batchSubject->batch->branch ?? 'General' }}</h2>
         
         <div style="border: 2px solid #000; padding: 40px; margin: 40px;">
             <h1 class="font-bold uppercase mb-4 text-xl">Course File</h1>
@@ -55,23 +105,23 @@
             <table style="width: 80%; margin: 0 auto; border: none;">
                 <tr>
                     <td style="border: none; font-weight: bold; width: 40%;">Course Code:</td>
-                    <td style="border: none;">{{ $courseFile->batchSubject->subject->subject_code ?? 'N/A' }}</td>
+                    <td style="border: none;">{{ $courseFile->batchSubject->formatted_subject_code ?? $courseFile->batchSubject->subject_code ?? $courseFile->batchSubject->subject->subject_code ?? 'N/A' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold;">Course Name:</td>
-                    <td style="border: none;">{{ $courseFile->batchSubject->subject->subject_name ?? 'N/A' }}</td>
+                    <td style="border: none;">{{ $courseFile->batchSubject->subject_name ?? $courseFile->batchSubject->subject->subject_name ?? 'N/A' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold;">Semester:</td>
-                    <td style="border: none;">{{ $courseFile->batchSubject->semester ?? 'N/A' }}</td>
+                    <td style="border: none;">Semester {{ $courseFile->batchSubject->semester ?? 'N/A' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold;">Batch Year:</td>
-                    <td style="border: none;">{{ $courseFile->batchSubject->batch->batch_year ?? 'N/A' }}</td>
+                    <td style="border: none;">{{ $courseFile->batchSubject->classroom->batch_year ?? $courseFile->batchSubject->batch->batch_year ?? 'N/A' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold;">Faculty Name:</td>
-                    <td style="border: none;">_______________________</td>
+                    <td style="border: none;">{{ Session::get('userName') ?? 'Assigned Faculty' }}</td>
                 </tr>
             </table>
         </div>

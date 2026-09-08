@@ -211,6 +211,38 @@
       #sidebarAvatarContainer {
         display: none !important;
       }
+
+      /* Grid spacing and layout tweaks to ensure batch cards are easily accessible and stand alone */
+      #demonstratorBatchGrid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+      }
+
+      /* Light colored border for batch cards on mobile */
+      #demonstratorBatchGrid > div {
+        border-color: rgba(148, 163, 184, 0.45) !important; /* light slate-400 border */
+      }
+
+      /* Enlarge demonstrator batch cards text sizes in mobile view */
+      #demonstratorBatchGrid h4 {
+        font-size: 19px !important; /* "Admission 2026" main title */
+      }
+      #demonstratorBatchGrid h5 {
+        font-size: 14px !important; /* "Assigned Subjects" title */
+      }
+      #demonstratorBatchGrid .text-base,
+      #demonstratorBatchGrid .text-sm {
+        font-size: 17px !important; /* Assigned subject name */
+      }
+      #demonstratorBatchGrid .text-xs {
+        font-size: 13px !important; /* Semester details, student count */
+      }
+      #demonstratorBatchGrid span.font-mono {
+        font-size: 14px !important; /* Batch code badge */
+      }
+      #demonstratorBatchGrid span.text-[11px] {
+        font-size: 12px !important; /* Roles, exps conducted text */
+      }
     }
   </style>
 </head>
@@ -344,53 +376,106 @@
           $grouped = $assignments->groupBy('classroom_id');
         @endphp
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="demonstratorBatchGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           @forelse($grouped as $classroomId => $subjects)
             @php
               $first = $subjects->first();
+              $batchYear = (int)($first->batch_year ?? 0);
+              $yearBorderColor = 'border-t-violet-500';
+              $yearShadowInline = 'rgba(168, 85, 247, 0.3)';
+              if ($batchYear % 3 === 0) {
+                  $yearBorderColor = 'border-t-sky-500';
+                  $yearShadowInline = 'rgba(56, 189, 248, 0.3)';
+              } elseif ($batchYear % 3 === 1) {
+                  $yearBorderColor = 'border-t-emerald-500';
+                  $yearShadowInline = 'rgba(52, 211, 153, 0.3)';
+              }
             @endphp
-            <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-hidden flex flex-col transition-premium hover:shadow-xl hover:shadow-black/50 hover:border-slate-700/60">
+            <div class="bg-slate-950/40 border border-slate-800/80 {{ $yearBorderColor }} border-t-[3px] rounded-2xl overflow-hidden flex flex-col transition-premium hover:shadow-xl hover:shadow-black/50 hover:border-slate-700/60" style="box-shadow: 0 -4px 14px -2px {{ $yearShadowInline }}, 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
               <!-- Card Header -->
-              <div class="p-4 border-b border-slate-800/60 bg-slate-900/40 flex justify-between items-start">
-                <div>
-                  <h4 class="font-black text-slate-200 text-xl tracking-tight">{{ $classroomId }}</h4>
-                  <div class="text-sm text-slate-400 font-mono mt-0.5">{{ $first->branch }} • Year {{ $first->batch_year }}</div>
+              <div class="p-4 border-b border-slate-800/60 bg-slate-900/40">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                      <h4 class="font-black text-slate-100 text-lg tracking-tight">Admission {{ $first->batch_year }}</h4>
+                      @if(!empty($first->branch))
+                        <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">{{ $first->branch }}</span>
+                      @endif
+                      <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">{{ ($first->syllabus_revision_code ?? '') === 'REV2026' || str_contains($classroomId, '2026') ? 'R2026' : 'R2021' }}</span>
+                      @if(($first->semester ?? 1) > 6)
+                        <span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>
+                      @else
+                        <span class="px-2.5 py-0.5 bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 rounded-lg font-black text-xs select-none">SEM-{{ $first->semester ?? 1 }}</span>
+                      @endif
+                    </div>
+                    <span class="inline-block px-2.5 py-0.5 bg-slate-800 border border-slate-600/60 rounded-lg font-mono text-sm font-bold text-slate-300 tracking-wide">{{ $classroomId }}</span>
+                  </div>
+                  <div class="flex flex-col items-end gap-1">
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs font-bold">Lab Staff</span>
+                  </div>
                 </div>
-                <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs font-bold">Lab Staff</span>
               </div>
               
               <!-- Card Body (Subjects List) -->
-              <div class="p-4 space-y-3 flex-grow">
-                @foreach($subjects as $s)
-                  @php
-                    $isR26 = ($s->syllabus_revision_code ?? 'REV2021') === 'REV2026';
-                    $sNameLower = strtolower($s->subject_name ?? '');
-                    $sTypeLower = strtolower($s->subject_type ?? '');
-                    
-                    if ($isR26) {
-                      if (str_contains($sNameLower, 'health') || str_contains($sNameLower, 'physical') || str_contains($sTypeLower, 'health') || str_contains($sTypeLower, 'physical')) {
-                        $targetUrl = "/r26/classroom/health-physical/{$s->subject_id}";
-                      } elseif (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics') || str_contains($sNameLower, 'cad')) {
-                        $targetUrl = "/r26/classroom/drawing/{$s->subject_id}";
-                      } elseif (str_contains($sTypeLower, 'practicum')) {
-                        $targetUrl = "/r26/classroom/practicum/{$s->subject_id}";
-                      } elseif (str_contains($sTypeLower, 'theory')) {
-                        $targetUrl = "/r26/classroom/theory/{$s->subject_id}";
+              <div class="p-4 flex-grow space-y-3 bg-slate-950/20">
+                <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-xs">book</span> Assigned Subjects
+                </h5>
+                <div class="space-y-3 divide-y divide-slate-800/80">
+                  @foreach($subjects as $idx => $s)
+                    @php
+                      $isR26 = ($s->syllabus_revision_code ?? 'REV2021') === 'REV2026';
+                      $sNameLower = strtolower($s->subject_name ?? '');
+                      $sTypeLower = strtolower($s->subject_type ?? '');
+                      
+                      if ($isR26) {
+                        if (str_contains($sNameLower, 'health') || str_contains($sNameLower, 'physical') || str_contains($sTypeLower, 'health') || str_contains($sTypeLower, 'physical')) {
+                          $targetUrl = "/r26/classroom/health-physical/{$s->subject_id}";
+                        } elseif (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics') || str_contains($sNameLower, 'cad')) {
+                          $targetUrl = "/r26/classroom/drawing/{$s->subject_id}";
+                        } elseif (str_contains($sTypeLower, 'practicum')) {
+                          $targetUrl = "/r26/classroom/practicum/{$s->subject_id}";
+                        } elseif (str_contains($sTypeLower, 'theory')) {
+                          $targetUrl = "/r26/classroom/theory/{$s->subject_id}";
+                        } else {
+                          $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
+                        }
                       } else {
-                        $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
+                        $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id);
                       }
-                    } else {
-                      $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id);
-                    }
-                  @endphp
-                  <a href="{{ $targetUrl }}" class="w-full text-left px-3.5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/60 hover:border-blue-500/50 rounded-xl transition-premium cursor-pointer group flex justify-between items-center no-underline">
-                    <div>
-                      <div class="font-bold text-slate-200 group-hover:text-blue-400 transition-colors text-sm">{{ $s->subject_name }}</div>
-                      <div class="text-xs text-slate-400 font-mono mt-0.5">{{ $s->subject_code }} • Sem {{ $s->semester }}</div>
+
+                      $prog = \App\Http\Controllers\DataController::getSubjectProgressData($s->subject_id, $s->subject_type);
+                      $isPractical = $prog['is_practical'] ?? true;
+                      $totalTopics = (int)($prog['total'] ?? 0);
+                      $coveredTopics = (int)($prog['completed'] ?? 0);
+                      $barPct = (int)($prog['percent'] ?? ($totalTopics > 0 ? round(($coveredTopics / $totalTopics) * 100) : 0));
+                      $barColor = $isPractical
+                        ? ($barPct >= 80 ? 'from-purple-500 to-cyan-400' : ($barPct >= 50 ? 'from-purple-600 to-blue-400' : 'from-purple-700 to-indigo-500'))
+                        : ($barPct >= 80 ? 'from-emerald-500 to-teal-400' : ($barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400'));
+                      $progressLabel = $isPractical
+                        ? "{$coveredTopics}/{$totalTopics} exps conducted"
+                        : "{$coveredTopics}/{$totalTopics} topics";
+                    @endphp
+                    <div class="{{ $idx > 0 ? 'pt-3' : '' }} w-full">
+                      <a href="{{ $targetUrl }}" class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-blue-500/50 hover:bg-slate-900 flex flex-col gap-2 no-underline block">
+                        <div class="flex justify-between items-center">
+                          <div class="flex-1 min-w-0 pr-2">
+                            <div class="text-base font-extrabold text-slate-200 group-hover:text-blue-400 transition-premium truncate">{{ $s->subject_name }}</div>
+                            <div class="text-xs text-slate-400 font-mono mt-0.5">Sem {{ $s->semester }} · {{ $s->subject_type ?? 'Practical' }} · {{ $s->subject_code }}</div>
+                          </div>
+                          <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-base transition-premium flex-shrink-0">open_in_new</span>
+                        </div>
+                        <!-- Compact progress bar -->
+                        <div class="flex items-center gap-2 mt-1">
+                          <div class="flex-1 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
+                            <div class="bg-gradient-to-r {{ $barColor }} h-1.5 rounded-full transition-all duration-500" style="width: {{ $barPct }}%"></div>
+                          </div>
+                          <span class="text-[11px] font-bold {{ $isPractical ? 'text-purple-300' : 'text-slate-400' }} whitespace-nowrap flex-shrink-0">{{ $progressLabel }}</span>
+                        </div>
+                      </a>
                     </div>
-                    <span class="material-symbols-rounded text-slate-500 group-hover:text-blue-400 transition-colors text-base">arrow_forward</span>
-                  </a>
-                @endforeach
+                  @endforeach
+                </div>
               </div>
             </div>
           @empty
@@ -417,7 +502,7 @@
     let activePanel = 'dashboard';
 
     document.addEventListener("DOMContentLoaded", () => {
-      if (activePanel === 'security') loadSelfSecurityLogs();
+      if (activePanel === 'security') loadSecurityLogs();
     });
 
     function switchPanel(panelId) {
@@ -442,6 +527,15 @@
       };
       document.getElementById('panelTitle').innerText = titles[panelId];
 
+      if (panelId === 'security') loadSecurityLogs();
+    }
+
+    function loadSecurityLogs() {
+      const tbody = document.getElementById('securityLogsTable');
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500">Querying security logs...</td></tr>`;
+
+      fetch(`/api/audit-logs?targetId={{ session('userId') }}`)
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS') {

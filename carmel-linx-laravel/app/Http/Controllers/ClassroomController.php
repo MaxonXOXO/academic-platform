@@ -2483,10 +2483,15 @@ Return ONLY valid JSON matching this exact structure:
         $coDesc = 'General Topic';
         if ($courseFile && $courseFile->parsed_cos) {
             $parsedCos = $courseFile->parsed_cos;
-            foreach ($parsedCos as $c) {
-                if (isset($c['id']) && trim($c['id']) === trim($coTag)) {
-                    $coDesc = $c['description'] ?? 'General Topic';
-                    break;
+            if (is_string($parsedCos)) {
+                $parsedCos = json_decode($parsedCos, true) ?: [];
+            }
+            if (is_array($parsedCos)) {
+                foreach ($parsedCos as $c) {
+                    if (is_array($c) && isset($c['id']) && trim($c['id']) === trim($coTag)) {
+                        $coDesc = $c['description'] ?? 'General Topic';
+                        break;
+                    }
                 }
             }
         }
@@ -2571,6 +2576,332 @@ Return ONLY valid JSON matching this exact structure:
             'totalStudents' => $students->count(),
             'currentYear' => date('Y')
         ]);
+    }
+
+    /**
+     * Print Consolidated Final CIE & Result Register for Rev 2021 Theory Classroom.
+     */
+    public function printTheoryFinalResults($subjectId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
+        if (!$batchSubject) abort(404, 'Subject not found.');
+
+        $classroom = \App\Models\ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: (object)[
+                'classroom_id' => $batchSubject->classroom_id,
+                'classroom_name' => $batchSubject->classroom_id,
+                'department' => 'Engineering',
+                'branch' => 'Engineering',
+                'current_semester' => $batchSubject->semester ?? 1,
+                'batch_year' => '2021 - 2024'
+            ];
+
+        $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->where('semester', $batchSubject->semester)
+            ->orderBy('roll_no', 'asc')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
+
+        // Fetch Academic Marks (Assignment + Summative)
+        $marks = \App\Models\AcademicMark::where('batch_subject_id', $subjectId)->get();
+
+        // Fetch Attendance Logs to compute attendance %
+        $logs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->get();
+        $totalLogs = $logs->count();
+
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs) {
+            $studMarks = $marks->where('reg_no', $student->reg_no);
+
+            // Assignment Marks (Formative)
+            $coAssign = [];
+            $assignSum = 0;
+            $assignCount = 0;
+            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
+                $m = $studMarks->where('category', 'Assignment')->where('co_tag', $co)->first();
+                if ($m && is_numeric($m->marks_obtained)) {
+                    $val = round((float)$m->marks_obtained, 1);
+                    $coAssign[$co] = $val;
+                    $assignSum += $val;
+                    $assignCount++;
+                } else {
+                    $coAssign[$co] = '-';
+                }
+            }
+            $assignAvg = $assignCount > 0 ? round($assignSum / 4, 1) : 0;
+
+            // Summative Written Test Marks
+            $coSummative = [];
+            $summSum = 0;
+            $summCount = 0;
+            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
+                $m = $studMarks->where('category', 'Summative')->where('co_tag', $co)->first();
+                if ($m && is_numeric($m->marks_obtained)) {
+                    $val = round((float)$m->marks_obtained, 1);
+                    $coSummative[$co] = $val;
+                    $summSum += $val;
+                    $summCount++;
+                } else {
+                    $coSummative[$co] = '-';
+                }
+            }
+            $summAvg = $summCount > 0 ? round($summSum / 4, 1) : 0;
+
+            // Attendance %
+            $presentCount = 0;
+            if ($totalLogs > 0) {
+                foreach ($logs as $l) {
+                    $presentList = json_decode($l->present_students ?? '[]', true) ?: [];
+                    if (in_array($student->reg_no, $presentList)) {
+                        $presentCount++;
+                    }
+                }
+                $attPercent = round(($presentCount / $totalLogs) * 100, 1);
+            } else {
+                $attPercent = 100.0;
+            }
+
+            // Attendance Marks out of 10
+            $attMarks = 0;
+            if ($attPercent >= 90) $attMarks = 10;
+            elseif ($attPercent >= 85) $attMarks = 9;
+            elseif ($attPercent >= 80) $attMarks = 8;
+            elseif ($attPercent >= 75) $attMarks = 7;
+            else $attMarks = 0;
+
+            // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10)
+            $totalCie = round($assignAvg + $summAvg + $attMarks, 1);
+            $status = ($attPercent >= 75 && $totalCie >= 20) ? 'ELIGIBLE' : ($attPercent < 75 ? 'ATTENDANCE SHORTAGE' : 'NEEDS IMPROVEMENT');
+
+            return (object)[
+                'reg_no' => $student->reg_no,
+                'roll_no' => $student->roll_no,
+                'name' => $student->name,
+                'sbte_reg_no' => $student->sbte_reg_no,
+                'co_assign' => $coAssign,
+                'assign_avg' => $assignAvg,
+                'co_summative' => $coSummative,
+                'summ_avg' => $summAvg,
+                'att_percent' => $attPercent,
+                'att_marks' => $attMarks,
+                'total_cie' => $totalCie,
+                'status' => $status
+            ];
+        });
+
+        $branchMap = [
+            'EL' => 'Electronics Engineering',
+            'CE' => 'Civil Engineering',
+            'ME' => 'Mechanical Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
+            'CH' => 'Chemical Engineering',
+            'CS' => 'Computer Engineering',
+        ];
+        $branchKey = strtoupper(explode('_', $batchSubject->classroom_id)[0] ?? '');
+        $fullDepartment = $branchMap[$branchKey] ?? ($classroom->department ?? 'Engineering');
+
+        $cleanedBatch = preg_replace('/^[A-Z]+_/', '', $batchSubject->classroom_id);
+        $cleanedBatch = str_replace('_', ' - ', $cleanedBatch);
+
+        $lecturerName = \Illuminate\Support\Facades\Session::get('userName') ?? 'Faculty Member';
+
+        return view('classroom_theory_final_results_print', [
+            'subject' => $batchSubject,
+            'classroom' => $classroom,
+            'fullDepartment' => $fullDepartment,
+            'cleanedBatch' => $cleanedBatch,
+            'students' => $studentRows,
+            'totalStudents' => $students->count(),
+            'lecturerName' => $lecturerName,
+            'currentDate' => date('d-m-Y')
+        ]);
+    }
+
+    /**
+     * Print NBA CO-PO Attainment Report for Rev 2021 Theory Classroom.
+     */
+    public function printAttainmentReport($subjectId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
+        if (!$batchSubject) abort(404, 'Subject not found.');
+
+        $classroom = \App\Models\ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: (object)[
+                'classroom_id' => $batchSubject->classroom_id,
+                'classroom_name' => $batchSubject->classroom_id,
+                'department' => 'Engineering',
+                'branch' => 'Engineering',
+                'current_semester' => $batchSubject->semester ?? 1
+            ];
+
+        $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->where('semester', $batchSubject->semester)
+            ->orderBy('roll_no', 'asc')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
+
+        // Fetch Course File & Attainment Settings
+        $courseFile = \App\Models\CourseFile::firstOrCreate(
+            ['batch_subject_id' => $subjectId],
+            [
+                'parsed_cos' => json_encode([
+                    ['id' => 'CO1', 'description' => 'Understand core principles.', 'duration' => 15],
+                    ['id' => 'CO2', 'description' => 'Apply theoretical methodologies.', 'duration' => 15],
+                    ['id' => 'CO3', 'description' => 'Analyze system components.', 'duration' => 15],
+                    ['id' => 'CO4', 'description' => 'Evaluate designs and applications.', 'duration' => 15]
+                ])
+            ]
+        );
+
+        $copoData = is_string($courseFile->parsed_copo_data) ? json_decode($courseFile->parsed_copo_data, true) : ($courseFile->parsed_copo_data ?: []);
+        $settings = is_string($courseFile->attainment_settings) ? json_decode($courseFile->attainment_settings, true) : ($courseFile->attainment_settings ?: []);
+        $mappings = $copoData['mappings'] ?? [];
+
+        // Direct assessment marks from academic_marks (Assignment + Summative)
+        $academicMarks = \Illuminate\Support\Facades\DB::table('academic_marks')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
+        // Course Exit Survey for Indirect Attainment
+        $exitSurvey = \Illuminate\Support\Facades\DB::table('course_exit_surveys')
+            ->where('batch_subject_id', $subjectId)
+            ->first();
+        $exitResponses = collect();
+        if ($exitSurvey) {
+            $exitResponses = \Illuminate\Support\Facades\DB::table('student_course_exit_responses')
+                ->where('exit_survey_id', $exitSurvey->id)
+                ->get();
+        }
+
+        $cieThreshold = 50.0;
+        $targetStudentPercent = 70.0;
+
+        $directStats = [];
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $totalAssessed = 0;
+            $totalMet = 0;
+
+            foreach ($students as $stud) {
+                $studMarks = $academicMarks->get($stud->reg_no, collect());
+                $coMarks = $studMarks->where('co_tag', $coTag);
+
+                $assignMark = $coMarks->where('category', 'Assignment')->first();
+                $summMark   = $coMarks->where('category', 'Summative')->first();
+
+                $valAssign = $assignMark ? (float)$assignMark->marks_obtained : 0.0;
+                $valSumm   = $summMark ? (float)$summMark->marks_obtained : 0.0;
+                $totalScore = $valAssign + $valSumm;
+
+                $percentage = ($totalScore / 40.0) * 100;
+                if ($percentage >= $cieThreshold) {
+                    $totalMet++;
+                }
+                $totalAssessed++;
+            }
+
+            $metPercentage = $totalAssessed > 0 ? ($totalMet / $totalAssessed) * 100 : 0.0;
+            $level = 0;
+            if ($metPercentage >= $targetStudentPercent) $level = 3;
+            elseif ($metPercentage >= ($targetStudentPercent - 10)) $level = 2;
+            elseif ($metPercentage >= ($targetStudentPercent - 20)) $level = 1;
+
+            $directStats[$coTag] = [
+                'met_percent' => round($metPercentage, 1),
+                'level' => $level
+            ];
+        }
+
+        $indirectStats = [];
+        $exitResponsesCount = count($exitResponses);
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $level = 0.0;
+            if ($exitResponsesCount > 0) {
+                if ($coTag === 'CO1') {
+                    $avg = ($exitResponses->avg('co1_q1') + $exitResponses->avg('co1_q2')) / 2;
+                } elseif ($coTag === 'CO2') {
+                    $avg = ($exitResponses->avg('co2_q3') + $exitResponses->avg('co2_q4')) / 2;
+                } elseif ($coTag === 'CO3') {
+                    $avg = ($exitResponses->avg('co3_q5') + $exitResponses->avg('co3_q6')) / 2;
+                } else {
+                    $avg = ($exitResponses->avg('co4_q7') + $exitResponses->avg('co4_q8') + $exitResponses->avg('co4_q9')) / 3;
+                }
+                $level = round($avg, 2);
+            }
+            $indirectStats[$coTag] = [
+                'level' => $level
+            ];
+        }
+
+        $coAttainments = [];
+        $combinedStats = [];
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $directLevel = $directStats[$coTag]['level'];
+            $indirectLevel = $indirectStats[$coTag]['level'];
+            $overallLevel = round((0.8 * $directLevel) + (0.2 * $indirectLevel), 2);
+            $combinedStats[$coTag] = $overallLevel;
+
+            $nbaRating = 'Level 0 (Nil)';
+            if ($overallLevel >= 2.5) $nbaRating = 'Level 3 (High)';
+            elseif ($overallLevel >= 1.75) $nbaRating = 'Level 2 (Medium)';
+            elseif ($overallLevel >= 1.0) $nbaRating = 'Level 1 (Low)';
+
+            $coAttainments[$coTag] = [
+                'direct_level' => $directLevel,
+                'indirect_level' => $indirectLevel,
+                'overall_level' => $overallLevel,
+                'rating' => $nbaRating
+            ];
+        }
+
+        $poList = ['PO1', 'PO2', 'PO3', 'PO4', 'PO5', 'PO6', 'PO7', 'PO8', 'PO9', 'PO10', 'PO11'];
+        $poAttainments = [];
+        foreach ($poList as $po) {
+            $mappedScores = [];
+            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+                $correlation = (int)($mappings[$coTag][$po] ?? 0);
+                if ($correlation > 0) {
+                    $mappedScores[] = $coAttainments[$coTag]['overall_level'] * ($correlation / 3);
+                }
+            }
+            $poAttainments[$po] = count($mappedScores) > 0 ? round(array_sum($mappedScores) / count($mappedScores), 2) : 0.0;
+        }
+
+        return view('r26.attainment_report_print', compact('batchSubject', 'classroom', 'coAttainments', 'combinedStats', 'poAttainments', 'targetStudentPercent', 'directStats', 'indirectStats'));
+    }
+
+    /**
+     * Print Rev 2021 Course File A4 document.
+     */
+    public function printCourseFileA4($subjectId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
+        if (!$batchSubject) abort(404, 'Subject not found.');
+
+        $academicYear = '2026-2027';
+        $cf = \App\Models\CfCourseFile::firstOrCreate(
+            ['batch_subject_id' => $subjectId, 'academic_year' => $academicYear],
+            ['status' => 'Draft']
+        );
+        $cf->load(['sectionA', 'sectionB', 'sectionC', 'sectionD', 'batchSubject.classroom', 'documents']);
+
+        return view('course_file_a4', ['courseFile' => $cf]);
     }
 
     public function getQuestionBank($subjectId)
@@ -4888,14 +5219,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $totalRows = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->count();
 
-        // Auto-sync dates from existing class logs into the newly created lesson plan rows
-        $this->syncLessonPlanDatesFromLogs($request, $subjectId);
-
-        $syncedCount = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->whereNotNull('actual_date')->count();
-
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => "Lesson plan successfully loaded from experiments ({$totalRows} sessions created including 2 Series Exams, {$syncedCount} log dates synced)."
+            'message' => "Lesson plan successfully generated from experiments ({$totalRows} sessions created including 2 Series Exams)."
         ]);
     }
 
@@ -4904,7 +5230,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
      */
     public function syncLessonPlanDatesFromLogs(Request $request, $subjectId)
     {
-        $userId = \Illuminate\Support\Facades\Session::get('userId') ?? \Illuminate\Support\Facades\Session::get('user_id') ?? auth()->id();
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
         if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
 
         $plans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)
@@ -4963,21 +5289,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 $dateToAssign = $matchedLog->date;
             }
 
-            // 2. Try match from practical_experiments conducted_date OR topics_covered in class logs
+            // 2. Try match from practical_experiments conducted_date
             if (!$dateToAssign && !empty($plan->topic_content)) {
-                $expNo = null;
-                if (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*(\d+)\b/i', $plan->topic_content, $m)) {
-                    $expNo = $m[1];
-                }
-
-                // Check experiments table
                 foreach ($experiments as $exp) {
+                    $needle = "Expt " . $exp->experiment_no;
                     $matched = false;
-                    if ($expNo !== null && (string)$exp->experiment_no === (string)$expNo) {
+                    if (str_contains($plan->topic_content, $needle)) {
                         $matched = true;
-                    } elseif (str_contains($plan->topic_content, "Expt " . $exp->experiment_no) ||
-                              preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content) ||
-                              (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false)) {
+                    } elseif (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content)) {
+                        $matched = true;
+                    } elseif (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false) {
                         $matched = true;
                     }
 
@@ -4986,20 +5307,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                         break;
                     }
                 }
-
-                // Check classLogs topics_covered for matching experiment number
-                if (!$dateToAssign && $expNo !== null) {
-                    $batchLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
-                    foreach ($batchLogs as $cl) {
-                        if (!empty($cl->topics_covered) && preg_match('/\b(?:Exp|Expt|Experiment|Ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $cl->topics_covered)) {
-                            $dateToAssign = $cl->date;
-                            break;
-                        }
-                    }
-                }
             }
 
-            // 3. Fallback: match from logs sequentially for this batch
+            // 3. Match from logs for this batch
             if (!$dateToAssign) {
                 $candidateLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
                 if ($batchIndices[$bKey] < count($candidateLogs)) {
@@ -5018,7 +5328,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => "Successfully synced {$updatedCount} actual date(s) from log data into the lesson plan."
+            'message' => "Successfully synced {$updatedCount} actual dates from log data into the lesson plan."
         ]);
     }
 

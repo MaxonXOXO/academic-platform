@@ -1261,6 +1261,10 @@
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">print</span> Course Exit Survey Report (A4)</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
+                    <button onclick="openPrintReport('mid_sem_survey')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">rate_review</span> Mid-Semester Survey Report (A4)</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
+                    </button>
                     <button onclick="openPrintReport('nba_attainment')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">analytics</span> NBA Course Attainment Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
@@ -1275,7 +1279,7 @@
                       <span class="material-symbols-rounded text-slate-300 text-base">auto_stories</span>
                       <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">Curriculum & Course Files</h4>
                     </div>
-                    <p class="text-xs text-slate-400 leading-relaxed">Lesson plan execution tracking, self-learning academic reports, and master course file dossier.</p>
+                    <p class="text-xs text-slate-400 leading-relaxed">Lesson plan execution tracking, question papers & rubrics, and master course file dossier.</p>
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <button onclick="openPrintReport('lesson_plan')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
@@ -1286,8 +1290,8 @@
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">folder_open</span> Comprehensive Course File (2021)</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('self_learning')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">school</span> Self-Learning Report</span>
+                    <button onclick="openPrintReport('assignment_qp')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Assignment QP & Rubrics Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                   </div>
@@ -1308,7 +1312,7 @@
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('series_marks')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">edit_note</span> Series Exam Marksheet Report</span>
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">edit_note</span> Summative Exam Marksheet Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('final_results')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
@@ -3389,62 +3393,19 @@
 
     function syncLessonPlanDatesFromLogs() {
       if (!confirm('Sync actual dates into the lesson plan from completed class log data?')) return;
-      const btn = document.getElementById('btnSyncLogDates');
-      const originalText = btn ? btn.innerHTML : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<span class="material-symbols-rounded animate-spin" style="font-size: 13px;">sync</span> Syncing...`;
-      }
-
-      const subjId = currentSubjectId || window.currentSubjectId;
-      if (!subjId) {
-        alert('Subject ID not found.');
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
-        return;
-      }
-
       const endpoint = window.isCurrentSubjectPractical 
-        ? `/api/classroom/${subjId}/practical/lesson-plans/sync-dates`
-        : `/api/classroom/${subjId}/lesson-plans/sync-dates`;
+        ? `/api/r26/classroom/practical/${currentSubjectId}/lesson-plans/sync-dates`
+        : `/api/classroom/${currentSubjectId}/practical/lesson-plans/sync-dates`;
 
       fetch(endpoint, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({})
-      })
-      .then(async r => {
-        const d = await r.json().catch(() => null);
-        if (!r.ok || !d) {
-          throw new Error((d && d.message) ? d.message : `Server error (${r.status})`);
-        }
-        return d;
-      })
-      .then(d => {
+      }).then(r => r.json()).then(d => {
         alert((d.status === 'SUCCESS' || d.success) ? (d.message || 'Synced successfully!') : (d.message || 'Sync failed.'));
-        if (typeof loadCourseDetails === 'function') {
-          loadCourseDetails(subjId).then(() => {
-            if (typeof toggleClassroomTab === 'function') {
-              toggleClassroomTab('planner');
-            }
-          }).catch(err => {
-            console.error('Error refreshing planner after sync:', err);
-          });
-        }
-      })
-      .catch(e => alert('Error: ' + e.message))
-      .finally(() => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
-      });
+        if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
+        else location.reload();
+      }).catch(e => alert('Error: ' + e.message));
     }
 
     // Wire up updateProposedDate (was a stub) — now handled by autoSavePlanRow via onchange
@@ -6468,42 +6429,96 @@
     }
 
     function openPrintReport(reportType) {
-      if (!currentSubjectId) {
+      const subjId = currentSubjectId || window.currentSubjectId;
+      if (!subjId) {
         alert("Please select a subject first.");
         return;
       }
-      const isLab = window.isCurrentSubjectPractical || (currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing')));
+      const isLab = Boolean(
+        window.isCurrentSubjectPractical || 
+        (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
+        (typeof window.currentSubjectType !== 'undefined' && window.currentSubjectType && (window.currentSubjectType.toLowerCase().includes('lab') || window.currentSubjectType.toLowerCase().includes('practical') || window.currentSubjectType.toLowerCase().includes('drawing')))
+      );
       let url = '';
-      switch(reportType) {
-        case 'course_exit':
-          url = `/classroom/${currentSubjectId}/course-exit/report`;
-          break;
-        case 'nba_attainment':
-          url = `/r26/classroom/${currentSubjectId}/nba/attainment-report`;
-          break;
-        case 'lesson_plan':
-          url = isLab ? `/classroom/${currentSubjectId}/practical-report/print?type=planner` : `/r26/classroom/lesson-plan/print/${currentSubjectId}`;
-          break;
-        case 'course_file':
-          url = '/course-files';
-          break;
-        case 'self_learning':
-          url = `/r26/classroom/self-learning/print/${currentSubjectId}`;
-          break;
-        case 'cie_marksheet':
-          url = isLab ? `/classroom/practical/${currentSubjectId}/report/print` : `/r26/classroom/${currentSubjectId}/internals/print-cie`;
-          break;
-        case 'series_marks':
-          url = isLab ? `/classroom/practical/${currentSubjectId}/series-report/print` : `/r26/classroom/${currentSubjectId}/series-exams/print-marks`;
-          break;
-        case 'final_results':
-          url = isLab ? `/classroom/practical/${currentSubjectId}/final-results/print` : `/r26/classroom/${currentSubjectId}/final-results/print`;
-          break;
+
+      if (!isLab) {
+        // Revision 2021 Virtual Theory Classroom - Dedicated Rev 2021 Routes
+        switch(reportType) {
+          case 'course_exit':
+            url = `/classroom/${subjId}/course-exit/report`;
+            break;
+          case 'mid_sem_survey':
+          case 'survey':
+            url = `/classroom/${subjId}/survey/report`;
+            break;
+          case 'nba_attainment':
+            url = `/classroom/${subjId}/attainment-report`;
+            break;
+          case 'lesson_plan':
+            url = `/classroom/${subjId}/lesson-plan/print`;
+            break;
+          case 'course_file':
+            url = `/classroom/${subjId}/course-file/print`;
+            break;
+          case 'assignment_qp':
+          case 'self_learning':
+            url = `/classroom/${subjId}/assignment-print/CO1`;
+            break;
+          case 'cie_marksheet':
+            url = `/classroom/${subjId}/assignment-report`;
+            break;
+          case 'series_marks':
+          case 'summative_report':
+            url = `/classroom/${subjId}/summative-report`;
+            break;
+          case 'final_results':
+            url = `/classroom/${subjId}/final-results/print`;
+            break;
+        }
+      } else {
+        // Practical / Labs
+        switch(reportType) {
+          case 'course_exit':
+            url = `/classroom/${subjId}/course-exit/report`;
+            break;
+          case 'mid_sem_survey':
+          case 'survey':
+            url = `/classroom/${subjId}/survey/report`;
+            break;
+          case 'nba_attainment':
+            url = `/r26/classroom/${subjId}/nba/attainment-report`;
+            break;
+          case 'lesson_plan':
+            url = `/classroom/${subjId}/practical-report/print?type=planner`;
+            break;
+          case 'course_file':
+            url = '/course-files';
+            break;
+          case 'assignment_qp':
+          case 'self_learning':
+            url = `/r26/classroom/self-learning/print/${subjId}`;
+            break;
+          case 'cie_marksheet':
+            url = `/classroom/practical/${subjId}/report/print`;
+            break;
+          case 'series_marks':
+            url = `/classroom/practical/${subjId}/series-report/print`;
+            break;
+          case 'final_results':
+            url = `/classroom/practical/${subjId}/final-results/print`;
+            break;
+        }
       }
+
       if (url) {
-        window.open(url, '_blank');
+        const win = window.open(url, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+          // If popup is blocked by browser, navigate in current window
+          window.location.href = url;
+        }
       }
     }
+    window.openPrintReport = openPrintReport;
 
     function loadClassReport(type) {
       activeReportType = type;
@@ -6752,11 +6767,6 @@
         html += `</tr>`;
       });
 
-      html += `
-            </tbody>
-          </table>
-        </div>
-      `;
       html += `
             </tbody>
           </table>
@@ -10397,12 +10407,7 @@
     }
 
     function loadPracticalExperimentsToPlanner(target_batch, allocated_hours = 3) {
-      const subjId = currentSubjectId || window.currentSubjectId;
-      if (!subjId) {
-        alert('Subject ID not found.');
-        return;
-      }
-      fetch(`/api/classroom/${subjId}/practical/lesson-plans/generate`, {
+      fetch(`/api/classroom/${currentSubjectId}/practical/lesson-plans/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ target_batch, allocated_hours })
@@ -10412,16 +10417,10 @@
         alert(res.message);
         if (res.status === 'SUCCESS' || res.success) {
           closeGeneratePlannerModal();
-          if (typeof loadCourseDetails === 'function') {
-            loadCourseDetails(subjId).then(() => {
-              if (typeof toggleClassroomTab === 'function') {
-                toggleClassroomTab('planner');
-              }
-            }).catch(err => console.error('Error reloading planner:', err));
-          }
+          loadCourseDetails(currentSubjectId);
         }
       })
-      .catch((err) => alert('Failed to generate lesson planner: ' + (err.message || 'Error')));
+      .catch(() => alert('Failed to generate lesson planner.'));
     }
 
     function triggerLoadExperimentsPlanner() {

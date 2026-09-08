@@ -945,6 +945,7 @@
 
             <!-- Modal Body -->
             <div class="p-5 space-y-4">
+                <div id="editModalFeedback" class="hidden py-2 px-3 rounded-xl text-xs font-bold border"></div>
                 <!-- Exp Info -->
                 <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl space-y-2.5">
                     <div class="flex items-center gap-2">
@@ -1732,6 +1733,12 @@
             const batchLabel = (subBatch === '1' || subBatch === 1) ? 'Batch 1 Only' : ((subBatch === '2' || subBatch === 2) ? 'Batch 2 Only' : 'Whole Class Only');
             if (elBatchLabel) elBatchLabel.innerText = batchLabel;
             
+            const fb = document.getElementById('editModalFeedback');
+            if (fb) {
+                fb.classList.add('hidden');
+                fb.textContent = '';
+            }
+
             const modal = document.getElementById('editExpDateModal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -1758,9 +1765,16 @@
 
         function submitEditExpDate() {
             if (!editingExpContext) return;
+            const fb = document.getElementById('editModalFeedback');
+            if (fb) fb.classList.add('hidden');
+
             const newDate = document.getElementById('editModalNewDateInput').value;
             if (!newDate) {
-                alert('Please select a valid date.');
+                if (fb) {
+                    fb.className = 'py-2 px-3 rounded-xl text-xs font-bold border bg-rose-500/10 border-rose-500/30 text-rose-400 block';
+                    fb.textContent = 'Please select a valid date.';
+                    fb.classList.remove('hidden');
+                }
                 return;
             }
             
@@ -1807,7 +1821,11 @@
                         });
                     }
                 } else {
-                    alert(res.message || 'Failed to update experiment date.');
+                    if (fb) {
+                        fb.className = 'py-2 px-3 rounded-xl text-xs font-bold border bg-rose-500/10 border-rose-500/30 text-rose-400 block';
+                        fb.textContent = res.message || 'Failed to update experiment date.';
+                        fb.classList.remove('hidden');
+                    }
                 }
             })
             .catch(err => {
@@ -1816,7 +1834,11 @@
                     btn.disabled = false;
                     btn.innerHTML = '<span class="material-symbols-rounded text-sm">check</span> Save & Update';
                 }
-                alert('An error occurred while updating experiment date.');
+                if (fb) {
+                    fb.className = 'py-2 px-3 rounded-xl text-xs font-bold border bg-rose-500/10 border-rose-500/30 text-rose-400 block';
+                    fb.textContent = 'An error occurred while updating experiment date.';
+                    fb.classList.remove('hidden');
+                }
             });
         }
         window.submitEditExpDate = submitEditExpDate;

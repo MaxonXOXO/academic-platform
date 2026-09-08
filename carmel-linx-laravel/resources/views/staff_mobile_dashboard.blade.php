@@ -1259,7 +1259,7 @@
                         <div id="attEditingBanner" class="p-2.5 mb-2.5 rounded-3 border d-none" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.2) 100%); border-color: rgba(245, 158, 11, 0.4) !important;">
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
-                                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
                                         <i class="fa-solid fa-pen-to-square text-amber" style="color: #fbbf24;"></i>
                                         <strong class="text-white" style="font-size: 0.84rem;">Editing <span id="editBannerSlNo">Log #1</span></strong>
                                         <span class="badge font-mono fw-black px-2 py-0.5" id="editBannerBatch" style="background-color: #f59e0b !important; color: #0f172a !important; font-size: 0.7rem;">Batch 1</span>
@@ -1274,11 +1274,39 @@
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column gap-1 flex-shrink-0">
+                                    <button type="button" onclick="convertEditToAdditionalExp()" class="btn btn-sm btn-success py-0.5 px-2 font-bold" style="font-size: 0.72rem; background-color: #10b981; border: none;" title="Conduct another experiment with this attendance">
+                                        <i class="fa-solid fa-plus me-1"></i> + Add Exp
+                                    </button>
                                     <button type="button" onclick="cancelEditingLog()" class="btn btn-sm btn-outline-light py-0.5 px-2 font-bold" style="font-size: 0.72rem;">
                                         <i class="fa-solid fa-xmark me-1"></i> Cancel Edit
                                     </button>
-                                    <button type="button" onclick="deleteCurrentEditingLog()" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.72rem; border-color: rgba(244, 63, 94, 0.5) !important; color: #fb7185 !important;" title="Delete this log entry">
+                                    <button type="button" onclick="requestDeleteEditingLog()" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.72rem; border-color: rgba(244, 63, 94, 0.5) !important; color: #fb7185 !important;" title="Delete this log entry">
                                         <i class="fa-solid fa-trash-can me-1"></i> Delete Log
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Additional Experiment Banner (Shown when logging 2nd, 3rd experiment for a session) -->
+                        <div id="attAdditionalExpBanner" class="p-2.5 mb-2.5 rounded-3 border d-none" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.2) 100%); border-color: rgba(16, 185, 129, 0.45) !important;">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
+                                        <i class="fa-solid fa-flask text-emerald" style="color: #34d399;"></i>
+                                        <strong class="text-white" style="font-size: 0.84rem;">+ Adding Additional Experiment</strong>
+                                        <span class="badge font-mono fw-black px-2 py-0.5" id="addExpBannerBatch" style="background-color: #10b981 !important; color: #0f172a !important; font-size: 0.7rem;">Batch 1</span>
+                                    </div>
+                                    <div class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">
+                                        <span>Date: <strong class="text-white" id="addExpBannerDate">---</strong></span> &bull; 
+                                        <span>Periods: <strong class="text-white" id="addExpBannerPeriods">---</strong></span>
+                                    </div>
+                                    <div class="text-emerald small mt-1" style="color: #6ee7b7; font-size: 0.73rem;">
+                                        <i class="fa-solid fa-circle-info me-1"></i> Same attendance preserved. Select the next experiment below and tap <strong>Save Additional Experiment</strong>.
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column gap-1 flex-shrink-0">
+                                    <button type="button" onclick="cancelAdditionalExpMode()" class="btn btn-sm btn-outline-light py-0.5 px-2 font-bold" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-xmark me-1"></i> Cancel
                                     </button>
                                 </div>
                             </div>
@@ -2011,6 +2039,9 @@
             const banner = document.getElementById('attEditingBanner');
             if (banner) banner.classList.add('d-none');
 
+            cancelAdditionalExpMode();
+            dismissInlineDeletePrompt();
+
             // Reset date to today
             const dateInput = document.getElementById('attLogDate');
             if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
@@ -2029,6 +2060,7 @@
             allSaveBtns.forEach(b => {
                 b.disabled = false;
                 b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+                b.style.background = 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)';
             });
 
             // Mark all students present by default
@@ -2050,7 +2082,7 @@
             return dateStr;
         }
 
-        function confirmDeleteClassLog(idx) {
+        function requestDeleteClassLog(idx) {
             const log = window.attPastLogsCache[idx];
             if (!log) return;
 
@@ -2058,30 +2090,65 @@
             const periodText = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `Period ${log.period}`);
             const logIds = log.log_ids || [log.id];
 
-            const msg = `Are you sure you want to delete this log entry?\n\n• ${slNoDisplay} on ${formatDisplayDate(log.date)} (${periodText})\n• Topic: "${log.topics_covered || 'No topic'}"\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
-
-            if (!confirm(msg)) return;
-
-            executeDeleteClassLog(logIds);
+            showInlineDeletePrompt(
+                logIds,
+                `Delete ${slNoDisplay} on ${formatDisplayDate(log.date)} (${periodText})?`,
+                log.topics_covered ? `Topic: "${log.topics_covered}"` : 'Topic: None'
+            );
         }
 
-        function deleteCurrentEditingLog() {
+        function requestDeleteEditingLog() {
             if (!window.attEditingLog || !window.attEditingLogIds || window.attEditingLogIds.length === 0) {
-                alert("No active log is currently being edited.");
+                displayAttFeedback("No active log is currently being edited.", true);
                 return;
             }
 
             const log = window.attEditingLog;
             const slNoDisplay = log.sl_no ? `Log #${log.sl_no}` : 'this log';
-            const msg = `Are you sure you want to delete ${slNoDisplay} on ${formatDisplayDate(log.date)}?\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
 
-            if (!confirm(msg)) return;
+            showInlineDeletePrompt(
+                window.attEditingLogIds,
+                `Delete ${slNoDisplay} on ${formatDisplayDate(log.date)}?`,
+                log.topics_covered ? `Topic: "${log.topics_covered}"` : 'Topic: None'
+            );
+        }
 
-            executeDeleteClassLog(window.attEditingLogIds);
+        function showInlineDeletePrompt(logIds, mainText, subText) {
+            const alertBoxes = document.querySelectorAll('#attModalAlert, #attSaveInlineAlert');
+            alertBoxes.forEach(box => {
+                box.className = 'alert alert-danger py-2.5 px-3 small font-bold mb-2.5 shadow-sm border border-danger-subtle';
+                box.innerHTML = `
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-rose fs-5 flex-shrink-0 mt-0.5" style="color: #fb7185;"></i>
+                            <div>
+                                <strong class="text-white">${mainText}</strong>
+                                <div class="text-slate-300 small mt-0.5">${subText}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end gap-2 pt-1 border-top" style="border-top-color: rgba(244, 63, 94, 0.25) !important;">
+                            <button type="button" class="btn btn-sm btn-outline-light py-1 px-2.5 font-bold" onclick="dismissInlineDeletePrompt()">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger py-1 px-3 font-bold shadow-sm" onclick="executeDeleteClassLog(${JSON.stringify(logIds)})">
+                                <i class="fa-solid fa-trash-can me-1"></i> Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                box.classList.remove('d-none');
+                box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        }
+
+        function dismissInlineDeletePrompt() {
+            document.querySelectorAll('#attModalAlert, #attSaveInlineAlert').forEach(box => box.classList.add('d-none'));
         }
 
         function executeDeleteClassLog(logIds) {
             if (!currentAttBatchSubjectId || !logIds || logIds.length === 0) return;
+
+            dismissInlineDeletePrompt();
 
             const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
             const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
@@ -2100,16 +2167,158 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'SUCCESS') {
-                    alert(data.message || 'Log entry deleted successfully.');
+                    displayAttFeedback(data.message || 'Log entry deleted successfully.', false);
                     cancelEditingLog();
                     loadClassAttendanceReports();
                 } else {
-                    alert(data.message || 'Failed to delete log entry.');
+                    displayAttFeedback(data.message || 'Failed to delete log entry.', true);
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Network error while deleting log entry.');
+                displayAttFeedback('Network error while deleting log entry.', true);
+            });
+        }
+
+        function convertEditToAdditionalExp() {
+            if (!window.attEditingLog) return;
+            const log = window.attEditingLog;
+            addAnotherExperimentToSessionByLog(log);
+        }
+
+        function addAnotherExperimentToSession(idx) {
+            const log = window.attPastLogsCache[idx];
+            if (!log) return;
+            addAnotherExperimentToSessionByLog(log);
+        }
+
+        function addAnotherExperimentToSessionByLog(log) {
+            // Cancel any active edit IDs so we INSERT rather than overwrite
+            window.attEditingLog = null;
+            window.attEditingLogIds = null;
+            window.isAddingAdditionalExperiment = true;
+            window.mobileSessionAttendanceLoaded = true;
+
+            dismissInlineDeletePrompt();
+
+            // Hide edit banner
+            const editBanner = document.getElementById('attEditingBanner');
+            if (editBanner) editBanner.classList.add('d-none');
+
+            // 1. Pre-fill Date
+            if (log.date) {
+                const dateEl = document.getElementById('attLogDate');
+                if (dateEl) dateEl.value = log.date;
+            }
+
+            // 2. Pre-fill Periods
+            const pArr = (log.periods && log.periods.length > 0) 
+                ? log.periods 
+                : String(log.period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
+            document.querySelectorAll('input[name="attPeriods"]').forEach(chk => {
+                chk.checked = pArr.includes(parseInt(chk.value));
+            });
+
+            // 3. Pre-fill Sub-batch
+            if (log.sub_batch === '1') {
+                const el = document.getElementById('sb1');
+                if (el) el.checked = true;
+            } else if (log.sub_batch === '2') {
+                const el = document.getElementById('sb2');
+                if (el) el.checked = true;
+            } else {
+                const el = document.getElementById('sbWhole');
+                if (el) el.checked = true;
+            }
+
+            // 4. Pre-fill student attendance roster
+            let presentArr = [];
+            try {
+                presentArr = typeof log.present_students === 'string' ? JSON.parse(log.present_students || '[]') : (log.present_students || []);
+            } catch (e) {
+                presentArr = [];
+            }
+            const presentSet = new Set(presentArr);
+            currentAttStudents.forEach(s => {
+                s.present = presentSet.has(s.reg_no);
+            });
+
+            // 5. Clear Experiment & Topics input so user selects the next experiment
+            const lpSelect = document.getElementById('attLessonPlanSelect');
+            if (lpSelect) lpSelect.value = '';
+            const manualInput = document.getElementById('attTopicsCovered');
+            if (manualInput) {
+                manualInput.value = '';
+                manualInput.placeholder = 'Select next experiment from dropdown or enter title...';
+            }
+
+            // 6. Show Additional Exp Banner
+            const addBanner = document.getElementById('attAdditionalExpBanner');
+            if (addBanner) {
+                const batchText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
+                const batchElem = document.getElementById('addExpBannerBatch');
+                if (batchElem) batchElem.textContent = batchText;
+
+                const dateElem = document.getElementById('addExpBannerDate');
+                if (dateElem) dateElem.textContent = formatDisplayDate(log.date);
+
+                const periodsElem = document.getElementById('addExpBannerPeriods');
+                if (periodsElem) periodsElem.textContent = log.period_display || ('Periods ' + log.period);
+
+                addBanner.classList.remove('d-none');
+            }
+
+            // 7. Update Save Button
+            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
+            allSaveBtns.forEach(b => {
+                b.disabled = false;
+                b.innerHTML = '<i class="fa-solid fa-plus-circle me-1.5"></i> Save Additional Experiment';
+                b.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            });
+
+            // 8. Switch to "Mark Attendance" tab & update roster
+            switchAttModalTab('take');
+            filterAttStudentsByBatch();
+
+            // Focus on experiment selector
+            setTimeout(() => {
+                if (lpSelect) {
+                    lpSelect.focus();
+                    lpSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 200);
+        }
+
+        function cancelAdditionalExpMode() {
+            window.isAddingAdditionalExperiment = false;
+            window.mobileSessionAttendanceLoaded = false;
+            const addBanner = document.getElementById('attAdditionalExpBanner');
+            if (addBanner) addBanner.classList.add('d-none');
+
+            // Reset save button style
+            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
+            allSaveBtns.forEach(b => {
+                b.disabled = false;
+                b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+                b.style.background = 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)';
+            });
+        }
+
+        function conductAnotherExperimentFromSaved() {
+            if (window.attAutoCloseTimer) {
+                clearTimeout(window.attAutoCloseTimer);
+                window.attAutoCloseTimer = null;
+            }
+            if (!window.lastSavedSessionContext) return;
+            const ctx = window.lastSavedSessionContext;
+            addAnotherExperimentToSessionByLog({
+                date: ctx.date,
+                periods: ctx.periods,
+                sub_batch: ctx.sub_batch,
+                present_students: ctx.present_students,
+                absent_students: ctx.absent_students,
+                period_display: ctx.periods.length > 1 ? ('Periods ' + ctx.periods.join(', ')) : ('Period ' + ctx.periods[0])
             });
         }
 
@@ -2134,12 +2343,17 @@
             currentAttSubjectName = subjectName || '';
             window.attEditingLog = null;
             window.attEditingLogIds = null;
+            window.isAddingAdditionalExperiment = false;
+            window.mobileSessionAttendanceLoaded = false;
+            dismissInlineDeletePrompt();
 
             const modal = document.getElementById('classAttendanceModal');
             const alertBox = document.getElementById('attModalAlert');
             if (alertBox) alertBox.classList.add('d-none');
             const editBanner = document.getElementById('attEditingBanner');
             if (editBanner) editBanner.classList.add('d-none');
+            const addBanner = document.getElementById('attAdditionalExpBanner');
+            if (addBanner) addBanner.classList.add('d-none');
 
             document.getElementById('attSubjectConfirmCode').textContent = subjectCode || 'Class';
             document.getElementById('attSubjectConfirmName').textContent = subjectName ? ` - ${subjectName}` : '';
@@ -2344,6 +2558,10 @@
         }
 
         function closeClassAttendanceModal() {
+            if (window.attAutoCloseTimer) {
+                clearTimeout(window.attAutoCloseTimer);
+                window.attAutoCloseTimer = null;
+            }
             const modal = document.getElementById('classAttendanceModal');
             if (modal) {
                 modal.style.display = 'none';
@@ -2671,7 +2889,7 @@
                     absent_students: absent,
                     sub_batch: subBatchVal,
                     log_ids: editingLogIds,
-                    is_additional_log: !!window.mobileSessionAttendanceLoaded && !editingLogIds
+                    is_additional_log: !!(window.isAddingAdditionalExperiment || window.mobileSessionAttendanceLoaded) && !editingLogIds
                 })
             })
             .then(res => {
@@ -2688,18 +2906,64 @@
                 allSaveBtns.forEach(b => {
                     b.disabled = false;
                     b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+                    b.style.background = 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)';
                 });
                 if (data.status === 'SUCCESS') {
-                    displayAttFeedback(data.message || 'Attendance saved successfully!', false);
+                    if (window.attAutoCloseTimer) {
+                        clearTimeout(window.attAutoCloseTimer);
+                        window.attAutoCloseTimer = null;
+                    }
+
+                    // Save session context for quick consecutive experiment logging
+                    window.lastSavedSessionContext = {
+                        date: date,
+                        periods: checkedPeriods,
+                        sub_batch: subBatchVal,
+                        present_students: present,
+                        absent_students: absent
+                    };
+
                     if (window.attEditingLogIds) {
                         window.attEditingLogIds = null;
                         window.attEditingLog = null;
                         const banner = document.getElementById('attEditingBanner');
                         if (banner) banner.classList.add('d-none');
                     }
-                    setTimeout(() => {
+
+                    if (window.isAddingAdditionalExperiment) {
+                        window.isAddingAdditionalExperiment = false;
+                        const addBanner = document.getElementById('attAdditionalExpBanner');
+                        if (addBanner) addBanner.classList.add('d-none');
+                    }
+
+                    // Display friendly success alert with multi-experiment action
+                    const alertBoxes = document.querySelectorAll('#attModalAlert, #attSaveInlineAlert');
+                    alertBoxes.forEach(box => {
+                        box.className = 'alert alert-success py-2.5 px-3 small font-bold mb-2.5 shadow-sm border border-success-subtle';
+                        box.innerHTML = `
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald fs-5 flex-shrink-0" style="color: #34d399;"></i>
+                                    <span class="text-white">${data.message || 'Class log and attendance recorded successfully!'}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1.5 border-top" style="border-top-color: rgba(52, 211, 153, 0.2) !important;">
+                                    <button type="button" onclick="conductAnotherExperimentFromSaved()" class="btn btn-sm btn-success py-1 px-3 font-extrabold shadow-sm rounded-pill" style="font-size: 0.76rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                                        <i class="fa-solid fa-flask-vial me-1"></i> + Conduct Another Exp (Same Attendance)
+                                    </button>
+                                    <button type="button" onclick="closeClassAttendanceModal()" class="btn btn-sm btn-outline-light py-1 px-2.5 font-bold rounded-pill" style="font-size: 0.74rem;">
+                                        <i class="fa-solid fa-check me-1"></i> Done & Close
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        box.classList.remove('d-none');
+                        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+
+                    // Set gentle 8s auto-close timer if user does not click anything
+                    window.attAutoCloseTimer = setTimeout(() => {
                         closeClassAttendanceModal();
-                    }, 1200);
+                    }, 8000);
                 } else {
                     displayAttFeedback(data.message || 'Failed to save attendance log.', true);
                 }
@@ -2848,11 +3112,22 @@
                                 const batchText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
                                 const staffName = log.staff_name || log.recorded_by || 'Staff';
 
-                                // Check if this log is a duplicate (multiple sessions recorded on the same date for the same batch)
-                                const isDuplicate = logsForDate.length > 1 && logsForDate.some(other => 
+                                // Distinguish multi-experiment sessions from exact duplicate errors
+                                const sameDateBatchLogs = logsForDate.filter(other => 
                                     other._originalIdx !== log._originalIdx && 
                                     (other.sub_batch === log.sub_batch || other.sub_batch === 'Whole' || log.sub_batch === 'Whole')
                                 );
+                                const isExactDuplicate = sameDateBatchLogs.some(other => 
+                                    (other.topics_covered || '').trim().toLowerCase() === (log.topics_covered || '').trim().toLowerCase()
+                                );
+                                const isMultiExpSession = !isExactDuplicate && sameDateBatchLogs.length > 0;
+
+                                let badgeHtml = '';
+                                if (isMultiExpSession) {
+                                    badgeHtml = `<span class="badge font-mono fw-bold px-1.5 py-0.5" style="background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; font-size: 0.65rem;" title="Multiple experiments conducted in this session"><i class="fa-solid fa-layer-group me-1"></i> Multi-Exp</span>`;
+                                } else if (isExactDuplicate) {
+                                    badgeHtml = `<span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: rgba(244, 63, 94, 0.2) !important; color: #fb7185 !important; border: 1px solid rgba(244, 63, 94, 0.4) !important; font-size: 0.65rem;" title="Identical duplicate entry recorded"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>`;
+                                }
 
                                 if (isR21Lab) {
                                     html += `
@@ -2862,13 +3137,16 @@
                                                 <span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.68rem;">${slNoDisplay}</span>
                                                 <span class="badge font-mono fw-bold px-1.5 py-0.5" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.66rem;">${periodText}</span>
                                                 <span class="badge font-mono fw-bold px-1.5 py-0.5" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.66rem;">${batchText}</span>
-                                                ${isDuplicate ? `<span class="badge font-mono fw-black px-1 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.64rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                                ${badgeHtml}
                                             </div>
                                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                <button type="button" onclick="addAnotherExperimentToSession(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
+                                                    <i class="fa-solid fa-plus me-0.5"></i> + Add Exp
+                                                </button>
                                                 <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
                                                     <i class="fa-solid fa-pen-to-square me-0.5"></i> Edit
                                                 </button>
-                                                <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
+                                                <button type="button" onclick="requestDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
                                                     <i class="fa-solid fa-trash-can me-0.5"></i> Delete
                                                 </button>
                                             </div>
@@ -2891,13 +3169,16 @@
                                                 <span class="badge font-mono fw-black px-2 py-1" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.74rem;">${slNoDisplay}</span>
                                                 <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #38bdf8 !important; font-size: 0.72rem;">${periodText}</span>
                                                 <span class="badge font-mono fw-bold px-2 py-1" style="background-color: #1e293b !important; color: #f59e0b !important; font-size: 0.72rem;">${batchText}</span>
-                                                ${isDuplicate ? `<span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; font-size: 0.68rem;" title="Duplicate session entry on this date"><i class="fa-solid fa-clone me-1"></i> Duplicate</span>` : ''}
+                                                ${badgeHtml}
                                             </div>
                                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                <button type="button" onclick="addAnotherExperimentToSession(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
+                                                    <i class="fa-solid fa-plus me-0.5"></i> + Add Exp
+                                                </button>
                                                 <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
                                                     <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                                                 </button>
-                                                <button type="button" onclick="confirmDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
+                                                <button type="button" onclick="requestDeleteClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(244, 63, 94, 0.45) !important; color: #fb7185 !important;" title="Delete this entry">
                                                     <i class="fa-solid fa-trash-can me-1"></i> Delete
                                                 </button>
                                             </div>

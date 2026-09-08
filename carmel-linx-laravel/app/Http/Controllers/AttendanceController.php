@@ -319,7 +319,7 @@ class AttendanceController extends Controller
                     if (strcasecmp(trim($l->topics_covered ?? ''), $submittedTopics) === 0) return true;
                     if ($request->practical_experiment_id) {
                         $pExp = \App\Models\PracticalExperiment::find($request->practical_experiment_id);
-                        if ($pExp && !empty($pExp->experiment_no) && preg_match('/\b(?:Exp|Experiment|Ex)\.?\s*#?\s*0*' . preg_quote($pExp->experiment_no, '/') . '\b/i', $l->topics_covered ?? '')) {
+                        if ($pExp && !empty($pExp->experiment_no) && preg_match('/\b(?:Exp|Experiment|Ex|Expt)\.?\s*#?\s*0*' . preg_quote($pExp->experiment_no, '/') . '\b/i', $l->topics_covered ?? '')) {
                             return true;
                         }
                     }
@@ -372,7 +372,10 @@ class AttendanceController extends Controller
             }
         } else if (!empty($submittedTopics)) {
             $lp = LessonPlan::where('batch_subject_id', $request->batch_subject_id)
-                ->where('topic_content', $submittedTopics)
+                ->where(function($q) use ($submittedTopics) {
+                    $q->where('topic_content', $submittedTopics)
+                      ->orWhere('topic_content', 'LIKE', '%' . $submittedTopics . '%');
+                })
                 ->first();
             if ($lp) {
                 $lp->status = 'Completed';
@@ -402,7 +405,7 @@ class AttendanceController extends Controller
                     $matched = true;
                 } elseif (!empty($submittedTopics) && stripos(trim($pExp->title), $submittedTopics) !== false) {
                     $matched = true;
-                } elseif (preg_match('/\b(?:Exp|Experiment|Ex)\.?\s*#?\s*0*' . preg_quote($pExp->experiment_no, '/') . '\b/i', $submittedTopics)) {
+                } elseif (preg_match('/\b(?:Exp|Experiment|Ex|Expt)\.?\s*#?\s*0*' . preg_quote($pExp->experiment_no, '/') . '\b/i', $submittedTopics)) {
                     $matched = true;
                 }
 

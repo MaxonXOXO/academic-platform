@@ -4950,7 +4950,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             if (!$dateToAssign && !empty($plan->topic_content)) {
                 foreach ($experiments as $exp) {
                     $needle = "Expt " . $exp->experiment_no;
-                    if (str_contains($plan->topic_content, $needle) && !empty($exp->conducted_date)) {
+                    $matched = false;
+                    if (str_contains($plan->topic_content, $needle)) {
+                        $matched = true;
+                    } elseif (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content)) {
+                        $matched = true;
+                    } elseif (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false) {
+                        $matched = true;
+                    }
+
+                    if ($matched && !empty($exp->conducted_date)) {
                         $dateToAssign = $exp->conducted_date;
                         break;
                     }

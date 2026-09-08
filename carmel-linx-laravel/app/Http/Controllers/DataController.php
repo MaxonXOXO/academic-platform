@@ -48,6 +48,9 @@ class DataController extends Controller
         }
 
         // Virtual Lab / Practical:
+        // Automatically sync conducted_date with class logs & marks
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
+
         // 1. Proposed Experiments: count from practical_experiments
         $pExps = DB::table('practical_experiments')->where('batch_subject_id', $batchSubjectId)->get();
         $totalProposed = $pExps->count();
@@ -71,37 +74,52 @@ class DataController extends Controller
         if ($pExps->isNotEmpty()) {
             $conductedExpIds = [];
             foreach ($pExps as $exp) {
-                $expNo = trim($exp->experiment_no);
-                $expTitle = strtolower(trim($exp->title ?? ''));
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
                 $matched = false;
 
-                // Priority 1: explicitly set conducted_date
-                if (!empty($exp->conducted_date)) {
-                    $matched = true;
-                }
-
-                // Priority 2: topics in class_logs_attendance
-                if (!$matched && $classLogs->isNotEmpty()) {
+                // Priority 1: topics in class_logs_attendance
+                if ($classLogs->isNotEmpty()) {
                     foreach ($classLogs as $l) {
-                        $t = strtolower($l->topics_covered ?? '');
-                        if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                        $t = trim((string)($l->topics_covered ?? ''));
+                        if (empty($t)) continue;
+
+                        if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
                             $matched = true;
                             break;
                         }
-                        if (!empty($expTitle) && (str_contains($t, $expTitle) || str_contains($expTitle, $t))) {
-                            $matched = true;
-                            break;
+                        if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                            $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                            if (in_array($expNo, array_map('trim', $nums))) {
+                                $matched = true;
+                                break;
+                            }
+                        }
+                        if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                            $tLower = strtolower($t);
+                            if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                                $matched = true;
+                                break;
+                            }
                         }
                     }
                 }
 
-                // Priority 3: marks recorded
+                // Priority 2: marks recorded with score > 0
                 if (!$matched) {
                     $hasMarks = DB::table('practical_experiment_marks')
                         ->where('practical_experiment_id', $exp->id)
                         ->where('total_mark', '>', 0)
                         ->exists();
                     if ($hasMarks) {
+                        $matched = true;
+                    }
+                }
+
+                // Priority 3: conducted_date verified against a class log date
+                if (!$matched && !empty($exp->conducted_date)) {
+                    $hasLogOnDate = $classLogs->where('date', $exp->conducted_date)->isNotEmpty();
+                    if ($hasLogOnDate) {
                         $matched = true;
                     }
                 }

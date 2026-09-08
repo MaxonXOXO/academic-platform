@@ -3389,19 +3389,45 @@
 
     function syncLessonPlanDatesFromLogs() {
       if (!confirm('Sync actual dates into the lesson plan from completed class log data?')) return;
+      const btn = document.getElementById('btnSyncLogDates');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-symbols-rounded animate-spin" style="font-size: 13px;">sync</span> Syncing...`;
+      }
+
       const endpoint = window.isCurrentSubjectPractical 
-        ? `/api/r26/classroom/practical/${currentSubjectId}/lesson-plans/sync-dates`
-        : `/api/classroom/${currentSubjectId}/practical/lesson-plans/sync-dates`;
+        ? `/api/classroom/${currentSubjectId}/practical/lesson-plans/sync-dates`
+        : `/api/classroom/${currentSubjectId}/lesson-plans/sync-dates`;
 
       fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+        },
         body: JSON.stringify({})
-      }).then(r => r.json()).then(d => {
+      })
+      .then(async r => {
+        const d = await r.json().catch(() => null);
+        if (!r.ok || !d) {
+          throw new Error((d && d.message) ? d.message : `Server error (${r.status})`);
+        }
+        return d;
+      })
+      .then(d => {
         alert((d.status === 'SUCCESS' || d.success) ? (d.message || 'Synced successfully!') : (d.message || 'Sync failed.'));
         if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
         else location.reload();
-      }).catch(e => alert('Error: ' + e.message));
+      })
+      .catch(e => alert('Error: ' + e.message))
+      .finally(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      });
     }
 
     // Wire up updateProposedDate (was a stub) — now handled by autoSavePlanRow via onchange

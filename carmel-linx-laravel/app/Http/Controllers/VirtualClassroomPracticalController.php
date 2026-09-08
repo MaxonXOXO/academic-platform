@@ -57,6 +57,9 @@ class VirtualClassroomPracticalController extends Controller
             ->get()
             ->keyBy('reg_no');
 
+        // ── Auto-sync Experiments With Class Logs & Marks ───────────────────
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
+
         // ── R2021 Experiment Setup ──────────────────────────────────────────────
         // Experiments are configured per batch_subject in practical_experiments table.
         $experiments = PracticalExperiment::where('batch_subject_id', $batchSubjectId)
@@ -78,66 +81,51 @@ class VirtualClassroomPracticalController extends Controller
                 return (object)[
                     'reg_no'           => $m->reg_no,
                     'experiment_no'    => $exp->experiment_no,
-                    'total_score_50'   => $m->total_mark,   // alias for template compatibility
+                    'date'             => $m->evaluation_date ?: ($exp->conducted_date ?? null),
+                    'evaluation_date'  => $m->evaluation_date ?: ($exp->conducted_date ?? null),
                     'rough_record'     => $m->rough_record,
                     'fair_record'      => $m->fair_record,
                     'prerequisites'    => $m->prerequisites,
                     'work_done'        => $m->work_done,
                     'result'           => $m->result,
-                    // legacy fields expected by blade template:
-                    'prep_punctuality'        => $m->rough_record,
-                    'setup_procedure'         => $m->fair_record,
-                    'observation_recording'   => $m->prerequisites,
-                    'analysis_interpretation' => $m->work_done,
-                    'viva_voce'               => $m->result,
+                    'total_mark'       => $m->total_mark,
                 ];
-            })->values();
+            });
         }
 
-        // ── R2021 Consolidated / Open-Ended / Attendance ───────────────────────
-        $evaluations = PracticalEvaluation::where('batch_subject_id', $batchSubjectId)
-            ->get()
-            ->keyBy('reg_no');
+        // Open-ended marks from practical_evaluations table
+        $openEndedLogs = collect();
+        $evalRecords = PracticalEvaluation::where('batch_subject_id', $batchSubjectId)->get();
+        foreach ($evalRecords as $ev) {
+            if ($ev->micro_project > 0 || $ev->open_ended_topic) {
+                $openEndedLogs[$ev->reg_no] = (object)[
+                    'reg_no'        => $ev->reg_no,
+                    'micro_project' => $ev->micro_project,
+                    'topic'         => $ev->open_ended_topic,
+                ];
+            }
+        }
 
-        // Open-ended logs (for blade template compatibility — keyed by reg_no)
-        $openEndedLogs = $evaluations->map(function($eval) {
-            return (object)[
-                'reg_no'        => $eval->reg_no,
-                'project_title' => $eval->open_ended_topic ?? '',
-                'total_score_50' => ($eval->micro_project ?? 0) * (50 / 7.5), // scale back to /50 for display
-                'micro_project' => $eval->micro_project ?? 0,
-            ];
-        });
-
-        // ── R2021 Practical Tests ──────────────────────────────────────────────
-        $tests = PracticalTest::where('batch_subject_id', $batchSubjectId)->get();
-        $testIds = $tests->pluck('id')->toArray();
-        $allTestMarks = PracticalTestMark::whereIn('practical_test_id', $testIds)->get();
-
-        // series exam logs (for blade template compatibility)
+        // Series exam marks from practical_tests & practical_test_marks
         $seriesExamLogs = collect();
-        $t1 = $tests->where('test_name', 'Test 1')->first();
-        $t2 = $tests->where('test_name', 'Test 2')->first();
-        if ($t1) {
-            $seriesExamLogs['Series 1'] = $allTestMarks
-                ->where('practical_test_id', $t1->id)
-                ->groupBy('reg_no')
-                ->map(function($coMarks, $regNo) {
-                    $total = $coMarks->sum('marks_obtained');
-                    return (object)['reg_no' => $regNo, 'total_score_40' => $total];
-                })->values();
-        }
-        if ($t2) {
-            $seriesExamLogs['Series 2'] = $allTestMarks
-                ->where('practical_test_id', $t2->id)
-                ->groupBy('reg_no')
-                ->map(function($coMarks, $regNo) {
-                    $total = $coMarks->sum('marks_obtained');
-                    return (object)['reg_no' => $regNo, 'total_score_40' => $total];
-                })->values();
+        $testRecords = PracticalTest::where('batch_subject_id', $batchSubjectId)->get();
+        $testIds = $testRecords->pluck('id')->toArray();
+        $allTestMarks = PracticalTestMark::whereIn('practical_test_id', $testIds)->get();
+        $t1 = $testRecords->where('test_name', 'Test 1')->first();
+        $t2 = $testRecords->where('test_name', 'Test 2')->first();
+        foreach ($testRecords as $t) {
+            $marksForTest = $allTestMarks->where('practical_test_id', $t->id);
+            $seriesExamLogs[$t->test_name] = $marksForTest->map(function($tm) use ($t) {
+                return (object)[
+                    'reg_no'         => $tm->reg_no,
+                    'test_name'      => $t->test_name,
+                    'max_marks'      => $t->max_marks,
+                    'marks_obtained' => $tm->marks_obtained,
+                ];
+            });
         }
 
-        // ── Attendance from class_logs_attendance ──────────────────────────────
+        // Attendance from class_logs_attendance
         $classLogs = DB::table('class_logs_attendance')
             ->where('batch_subject_id', $batchSubject->id)
             ->orderBy('date', 'asc')
@@ -169,35 +157,29 @@ class VirtualClassroomPracticalController extends Controller
             }
         }
 
-        $totalClasses = count($actualSlotKeys); // total actual conducted session slots
+        $totalAttClasses = count($actualSlotKeys);
 
-        // Proportional attendance marks out of 15 for all percentages (R2021)
+        // Pre-compute attendance mark per student
         $attendanceMarks = [];
-        foreach ($students as $student) {
-            $presentClasses = isset($studentPresentSlots[$student->reg_no]) ? count($studentPresentSlots[$student->reg_no]) : 0;
-            $scheduledClasses = isset($studentScheduledSlots[$student->reg_no]) ? count($studentScheduledSlots[$student->reg_no]) : 0;
-            $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalClasses;
-            $pct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.00;
+        $evalMap = $evalRecords->keyBy('reg_no');
+        foreach ($students as $st) {
+            $rNo = $st->reg_no;
+            $present = isset($studentPresentSlots[$rNo]) ? count($studentPresentSlots[$rNo]) : 0;
+            $scheduled = isset($studentScheduledSlots[$rNo]) ? count($studentScheduledSlots[$rNo]) : 0;
+            $totalForStudent = $scheduled > 0 ? $scheduled : $totalAttClasses;
+            $attMark = $totalForStudent > 0 ? round(($present / $totalForStudent) * 15, 1) : 15.0;
 
-            $mark = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
-
-            // Allow override from PracticalEvaluation.attendance_marks if set (> 0)
-            $eval = $evaluations->get($student->reg_no);
-            $overrideMark = $eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0 ? (float)$eval->attendance_marks : null;
-
-            $attendanceMarks[$student->reg_no] = [
-                'percentage'      => $pct,
-                'mark'            => $overrideMark ?? $mark,
-                'suggested_mark'  => $mark,
-                'total_classes'   => $totalForStudent,
-                'present_classes' => $presentClasses,
-            ];
+            // Allow override from practical_evaluations if manually set (> 0)
+            $ev = $evalMap->get($rNo);
+            if ($ev && $ev->attendance_marks !== null && (float)$ev->attendance_marks > 0) {
+                $attMark = (float)$ev->attendance_marks;
+            }
+            $attendanceMarks[$rNo] = $attMark;
         }
 
-        // Build detailed conducted experiments list from class logs & syllabus
-        $conductedDetails = [];
-        $recordedExpMap = [];
-
+        // ── Conducted Experiments / Class Logs ─────────────────────────────────
+        // Build conducted session details list for the Completed Experiments table.
+        // Group raw period logs into consolidated session entries (same date, sub_batch, topic).
         $groupedLogs = $classLogs->groupBy(function($l) {
             return $l->date . '###' . ($l->sub_batch ?? 'Whole') . '###' . trim($l->topics_covered ?? '');
         });
@@ -231,14 +213,13 @@ class VirtualClassroomPracticalController extends Controller
                 'lesson_plan_id' => $first->lesson_plan_id,
                 'present_count' => $presentCount,
                 'total_count' => $totalInLog > 0 ? $totalInLog : $students->count(),
-                'attendance_pct' => $totalInLog > 0 ? round(($presentCount / $totalInLog) * 100, 1) : 100.0,
+                'attendance_pct'=> $totalInLog > 0 ? round(($presentCount / $totalInLog) * 100, 1) : 100.0,
             ];
         }
 
         $conductedDetails = [];
 
         if ($experiments->isEmpty()) {
-            // If no syllabus experiments are defined in DB, each class log defines an experiment
             foreach ($logSessions as $idx => $s) {
                 $conductedDetails[] = [
                     'experiment_id' => null,
@@ -260,32 +241,50 @@ class VirtualClassroomPracticalController extends Controller
             // When syllabus experiments exist: match each conducted/graded experiment with its log session
             foreach ($experiments as $exp) {
                 $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
-                $expNo = $exp->experiment_no;
-                $expTitle = strtolower($exp->title ?? '');
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
 
                 $matchedSession = null;
                 $isExplicitMatch = false;
 
                 foreach ($logSessions as $s) {
-                    $t = strtolower($s['topic']);
-                    if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
-                        $matchedSession = $s; $isExplicitMatch = true; break;
+                    $t = trim((string)($s['topic'] ?? ''));
+                    if (empty($t)) continue;
+
+                    // Match experiment number e.g. "Exp 10", "Experiment 10", "Expt 10"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                        $matchedSession = $s;
+                        $isExplicitMatch = true;
+                        break;
                     }
-                    if (!empty($expTitle) && (str_contains($t, $expTitle) || str_contains($expTitle, $t))) {
-                        $matchedSession = $s; $isExplicitMatch = true; break;
+
+                    // Match comma/ampersand separated lists e.g. "Exp 10, 11"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                        $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                        if (in_array($expNo, array_map('trim', $nums))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
+                        }
                     }
-                    if (str_contains($expTitle, 'pointer') && str_contains($t, 'pointer')) {
-                        $matchedSession = $s; break;
-                    }
-                    if (in_array($expNo, [1, 2, 3, 4, 5]) && (str_contains($t, 'basic operators') || str_contains($t, 'i/o statements') || str_contains($t, 'data types'))) {
-                        $matchedSession = $s; break;
-                    }
-                    if ($exp->conducted_date && $s['date'] === $exp->conducted_date) {
-                        $matchedSession = $s; break;
+
+                    // Match experiment title
+                    if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                        $tLower = strtolower($t);
+                        if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
+                        }
                     }
                 }
 
-                if ($hasMarks || $exp->conducted_date || $isExplicitMatch) {
+                // If experiment has verified marks (> 0) and an explicit conducted_date, match session on that date if available
+                if (!$matchedSession && $hasMarks && !empty($exp->conducted_date)) {
+                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
+                }
+
+                if ($isExplicitMatch || $hasMarks) {
                     $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
                         'experiment_id' => $exp->id,
@@ -381,7 +380,7 @@ class VirtualClassroomPracticalController extends Controller
                 : 0.0;
 
             // 2. Open-Ended (max 7.5 direct — stored as micro_project in PracticalEvaluation)
-            $eval = $evaluations->get($regNo);
+            $eval = $evalMap->get($regNo);
             $openEndedMark = $eval ? round((float)$eval->micro_project, 2) : 0.0;
 
             // 3. Tests — avg of Test 1 + Test 2 total scores (each /40), scaled to 15
@@ -457,11 +456,8 @@ class VirtualClassroomPracticalController extends Controller
         }
 
         $expDate = $request->input('date', $request->input('exp_date', $request->input('evaluation_date')));
-        if ($expDate && empty($exp->conducted_date)) {
-            $exp->conducted_date = $expDate;
-            $exp->save();
-        }
 
+        $hasAnyGenuineMarks = false;
         foreach ($marksData as $regNo => $criteria) {
             $rough = min(5.0,  (float)($criteria['c1'] ?? 0));   // Rough Record max 5
             $fair  = min(7.5,  (float)($criteria['c2'] ?? 0));   // Fair Record max 7.5
@@ -469,6 +465,10 @@ class VirtualClassroomPracticalController extends Controller
             $proc  = min(7.5,  (float)($criteria['c4'] ?? 0));   // Procedure & Punctuality max 7.5
             $viva  = min(10.0, (float)($criteria['c5'] ?? 0));   // Viva max 10
             $total = $rough + $fair + $obs + $proc + $viva;      // max 37.5
+
+            if ($total > 0) {
+                $hasAnyGenuineMarks = true;
+            }
 
             $markData = [
                 'assessor_mobile_no' => $staff->mobile_no ?? null,
@@ -491,6 +491,15 @@ class VirtualClassroomPracticalController extends Controller
                 $markData
             );
         }
+
+        // Only stamp conducted_date if at least one student has genuine marks (> 0)
+        if ($expDate && empty($exp->conducted_date) && $hasAnyGenuineMarks) {
+            $exp->conducted_date = $expDate;
+            $exp->save();
+        }
+
+        // Reconcile experiments with class logs & marks
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
 
         return response()->json(['success' => true, 'message' => 'Experiment marks saved successfully!']);
     }
@@ -927,6 +936,9 @@ class VirtualClassroomPracticalController extends Controller
     {
         $batchSubject = BatchSubject::with('classroom')->findOrFail($batchSubjectId);
 
+        // Reconcile and sync practical experiment conducted dates against class logs and graded marks
+        AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
+
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
             ->orderBy('name', 'asc')
@@ -999,64 +1011,58 @@ class VirtualClassroomPracticalController extends Controller
             }
         } else {
             foreach ($experiments as $exp) {
-                $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->count() > 0;
-                $expNo = $exp->experiment_no;
-                $expTitle = strtolower($exp->title ?? '');
+                $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
 
                 $matchedSession = null;
                 $isExplicitMatch = false;
 
-                // Priority 1: If experiment has an explicit conducted_date, match session on that exact date first!
-                if ($exp->conducted_date) {
-                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
-                    if ($matchedSession) {
+                foreach ($logSessions as $s) {
+                    $t = trim((string)($s['topic'] ?? ''));
+                    if (empty($t)) continue;
+
+                    // Match experiment number e.g. "Exp 10", "Experiment 10", "Expt 10"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                        $matchedSession = $s;
                         $isExplicitMatch = true;
+                        break;
                     }
-                }
 
-                // Priority 2: Match by explicit experiment number in topic (e.g. "Exp 1", "Experiment 2")
-                if (!$matchedSession) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
-                            $matchedSession = $s; $isExplicitMatch = true; break;
+                    // Match comma/ampersand separated lists e.g. "Exp 10, 11"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                        $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                        if (in_array($expNo, array_map('trim', $nums))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
+                        }
+                    }
+
+                    // Match experiment title
+                    if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                        $tLower = strtolower($t);
+                        if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
                         }
                     }
                 }
 
-                // Priority 3: Match by experiment title
-                if (!$matchedSession && !empty($expTitle)) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (str_contains($t, $expTitle) || str_contains($expTitle, $t)) {
-                            $matchedSession = $s; $isExplicitMatch = true; break;
-                        }
-                    }
+                // If experiment has verified marks (> 0) and an explicit conducted_date, match session on that date if available
+                if (!$matchedSession && $hasMarks && !empty($exp->conducted_date)) {
+                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
                 }
 
-                // Priority 4: Fallback keyword match ONLY if no conducted_date was explicitly set
-                if (!$matchedSession && empty($exp->conducted_date)) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (str_contains($expTitle, 'pointer') && str_contains($t, 'pointer')) {
-                            $matchedSession = $s; break;
-                        }
-                        if (in_array($expNo, [1, 2, 3, 4, 5]) && (str_contains($t, 'basic operators') || str_contains($t, 'i/o statements') || str_contains($t, 'data types'))) {
-                            $matchedSession = $s; break;
-                        }
-                    }
-                }
-
-                $effectiveDate = $exp->conducted_date ?: ($matchedSession ? $matchedSession['date'] : 'Conducted');
-
-                if ($hasMarks || $exp->conducted_date || $isExplicitMatch) {
-                    $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->count();
+                if ($isExplicitMatch || $hasMarks) {
+                    $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
                         'experiment_id' => $exp->id,
                         'experiment_no' => 'Exp ' . $exp->experiment_no,
                         'title'         => $exp->title,
                         'co_tag'        => $exp->co_tag ?? 'CO1',
-                        'date'          => $effectiveDate,
+                        'date'          => $matchedSession ? $matchedSession['date'] : ($exp->conducted_date ?: 'Conducted'),
                         'periods'       => $matchedSession ? $matchedSession['periods'] : [1, 2, 3],
                         'hours_count'   => $matchedSession ? $matchedSession['hours_count'] : 3,
                         'hours_text'    => $matchedSession ? $matchedSession['hours_text'] : '3 hrs (Lab)',

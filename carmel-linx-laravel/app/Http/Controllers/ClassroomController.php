@@ -3264,6 +3264,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $batchSubject = \App\Models\BatchSubject::find($subjectId);
         if (!$batchSubject) return response("Subject not found.", 404);
 
+        // Synchronize conducted experiments with class logs and genuine marks
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($subjectId);
+
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
@@ -3654,6 +3657,10 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
     public function getPracticalEvaluations(Request $request, $subjectId)
     {
         $batchSubject = \App\Models\BatchSubject::findOrFail($subjectId);
+
+        // Synchronize conducted experiments with class logs and genuine marks
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($subjectId);
+
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
@@ -3778,63 +3785,57 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // When syllabus experiments exist: match each conducted/graded experiment with its log session
             foreach ($experiments as $exp) {
                 $hasMarks = $experimentMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
-                $expNo = $exp->experiment_no;
-                $expTitle = strtolower($exp->title ?? '');
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
 
                 $matchedSession = null;
                 $isExplicitMatch = false;
 
-                // Priority 1: If experiment has an explicit conducted_date, match session on that exact date first!
-                if ($exp->conducted_date) {
-                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
-                    if ($matchedSession) {
+                foreach ($logSessions as $s) {
+                    $t = trim((string)($s['topic'] ?? ''));
+                    if (empty($t)) continue;
+
+                    // Match experiment number e.g. "Exp 10", "Experiment 10", "Expt 10"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                        $matchedSession = $s;
                         $isExplicitMatch = true;
+                        break;
                     }
-                }
 
-                // Priority 2: Match by explicit experiment number in topic (e.g. "Exp 1", "Experiment 2")
-                if (!$matchedSession) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
-                            $matchedSession = $s; $isExplicitMatch = true; break;
+                    // Match comma/ampersand separated lists e.g. "Exp 10, 11"
+                    if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                        $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                        if (in_array($expNo, array_map('trim', $nums))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
+                        }
+                    }
+
+                    // Match experiment title
+                    if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                        $tLower = strtolower($t);
+                        if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                            $matchedSession = $s;
+                            $isExplicitMatch = true;
+                            break;
                         }
                     }
                 }
 
-                // Priority 3: Match by experiment title
-                if (!$matchedSession && !empty($expTitle)) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (str_contains($t, $expTitle) || str_contains($expTitle, $t)) {
-                            $matchedSession = $s; $isExplicitMatch = true; break;
-                        }
-                    }
+                // If experiment has verified marks (> 0) and an explicit conducted_date, match session on that date if available
+                if (!$matchedSession && $hasMarks && !empty($exp->conducted_date)) {
+                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
                 }
 
-                // Priority 4: Fallback keyword match ONLY if no conducted_date was explicitly set
-                if (!$matchedSession && empty($exp->conducted_date)) {
-                    foreach ($logSessions as $s) {
-                        $t = strtolower($s['topic']);
-                        if (str_contains($expTitle, 'pointer') && str_contains($t, 'pointer')) {
-                            $matchedSession = $s; break;
-                        }
-                        if (in_array($expNo, [1, 2, 3, 4, 5]) && (str_contains($t, 'basic operators') || str_contains($t, 'i/o statements') || str_contains($t, 'data types'))) {
-                            $matchedSession = $s; break;
-                        }
-                    }
-                }
-
-                $effectiveDate = $exp->conducted_date ?: ($matchedSession ? $matchedSession['date'] : 'Conducted');
-
-                if ($hasMarks || $exp->conducted_date || $isExplicitMatch) {
+                if ($isExplicitMatch || $hasMarks) {
                     $gradedCount = $experimentMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
                         'experiment_id' => $exp->id,
                         'experiment_no' => 'Exp ' . $exp->experiment_no,
                         'title'         => $exp->title,
                         'co_tag'        => $exp->co_tag ?? 'CO1',
-                        'date'          => $effectiveDate,
+                        'date'          => $matchedSession ? $matchedSession['date'] : ($exp->conducted_date ?: 'Conducted'),
                         'periods'       => $matchedSession ? $matchedSession['periods'] : [1, 2, 3],
                         'hours_count'   => $matchedSession ? $matchedSession['hours_count'] : 3,
                         'hours_text'    => $matchedSession ? $matchedSession['hours_text'] : '3 hrs (Lab)',
@@ -3854,15 +3855,22 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         // Pre-build index of matching class logs for each experiment
         $expMatchingLogs = [];
         foreach ($experiments as $exp) {
-            $expNo = $exp->experiment_no;
-            $expTitle = strtolower(trim($exp->title ?? ''));
-            $expMatchingLogs[$exp->id] = $classLogs->filter(function($l) use ($expNo, $expTitle, $exp) {
-                $t = strtolower($l->topics_covered ?? '');
-                if (preg_match('/\b(?:exp|experiment|ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) return true;
-                if (!empty($expTitle) && (str_contains($t, $expTitle) || str_contains($expTitle, $t))) return true;
-                if (str_contains($expTitle, 'pointer') && str_contains($t, 'pointer')) return true;
-                if (in_array($expNo, [1, 2, 3, 4, 5]) && (str_contains($t, 'basic operators') || str_contains($t, 'i/o statements') || str_contains($t, 'data types'))) return true;
-                if ($exp->conducted_date && $l->date === $exp->conducted_date) return true;
+            $expNo = trim((string)$exp->experiment_no);
+            $expTitle = strtolower(trim((string)($exp->title ?? '')));
+            $hasMarks = $experimentMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
+            $expMatchingLogs[$exp->id] = $classLogs->filter(function($l) use ($expNo, $expTitle, $exp, $hasMarks) {
+                $t = trim((string)($l->topics_covered ?? ''));
+                if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) return true;
+                if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                    $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                    if (in_array($expNo, array_map('trim', $nums))) return true;
+                }
+                if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                    $tLower = strtolower($t);
+                    if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) return true;
+                }
+                // Only match on date if experiment actually has graded marks (> 0) and matches conducted_date
+                if ($hasMarks && !empty($exp->conducted_date) && $l->date === $exp->conducted_date) return true;
                 return false;
             });
         }
@@ -4139,13 +4147,14 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
                     $expRecord = \App\Models\PracticalExperiment::find($expId);
                     if ($expRecord) {
-                        if ($evalDate && empty($expRecord->conducted_date)) {
+                        // Only set conducted_date if there are genuine marks awarded (> 0)
+                        if ($totalExpMark > 0 && $evalDate && empty($expRecord->conducted_date)) {
                             $expRecord->conducted_date = $evalDate;
                             $expRecord->save();
                         }
 
-                        // Update attendance for this student on this date
-                        if ($evalDate) {
+                        // Update attendance for this student on this date ONLY if genuine marks awarded
+                        if ($totalExpMark > 0 && $evalDate) {
                             $this->updateStudentAttendanceForExperiment($batchSubject, $expRecord, $regNo, $evalDate, $userId);
                         }
                     }
@@ -4180,6 +4189,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 }
             }
         }
+
+        // Reconcile conducted dates and clean up orphaned zero-mark placeholders
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($subjectId);
 
         // Perform overall semester marks synchronization
         $this->syncPracticalMarksToSemesterTable($subjectId, $regNo);
@@ -4887,7 +4899,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
      */
     public function syncLessonPlanDatesFromLogs(Request $request, $subjectId)
     {
-        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        $userId = \Illuminate\Support\Facades\Session::get('userId') ?? \Illuminate\Support\Facades\Session::get('user_id') ?? auth()->id();
         if (!$userId) return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
 
         $plans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)
@@ -4946,16 +4958,21 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 $dateToAssign = $matchedLog->date;
             }
 
-            // 2. Try match from practical_experiments conducted_date
+            // 2. Try match from practical_experiments conducted_date OR topics_covered in class logs
             if (!$dateToAssign && !empty($plan->topic_content)) {
+                $expNo = null;
+                if (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*(\d+)\b/i', $plan->topic_content, $m)) {
+                    $expNo = $m[1];
+                }
+
+                // Check experiments table
                 foreach ($experiments as $exp) {
-                    $needle = "Expt " . $exp->experiment_no;
                     $matched = false;
-                    if (str_contains($plan->topic_content, $needle)) {
+                    if ($expNo !== null && (string)$exp->experiment_no === (string)$expNo) {
                         $matched = true;
-                    } elseif (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content)) {
-                        $matched = true;
-                    } elseif (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false) {
+                    } elseif (str_contains($plan->topic_content, "Expt " . $exp->experiment_no) ||
+                              preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content) ||
+                              (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false)) {
                         $matched = true;
                     }
 
@@ -4964,9 +4981,20 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                         break;
                     }
                 }
+
+                // Check classLogs topics_covered for matching experiment number
+                if (!$dateToAssign && $expNo !== null) {
+                    $batchLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
+                    foreach ($batchLogs as $cl) {
+                        if (!empty($cl->topics_covered) && preg_match('/\b(?:Exp|Expt|Experiment|Ex)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $cl->topics_covered)) {
+                            $dateToAssign = $cl->date;
+                            break;
+                        }
+                    }
+                }
             }
 
-            // 3. Match from logs for this batch
+            // 3. Fallback: match from logs sequentially for this batch
             if (!$dateToAssign) {
                 $candidateLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
                 if ($batchIndices[$bKey] < count($candidateLogs)) {
@@ -4985,7 +5013,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => "Successfully synced {$updatedCount} actual dates from log data into the lesson plan."
+            'message' => "Successfully synced {$updatedCount} actual date(s) from log data into the lesson plan."
         ]);
     }
 

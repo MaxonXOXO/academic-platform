@@ -68,6 +68,9 @@ class StaffMobileVirtualLabController extends Controller
             ->orderBy('name', 'asc')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no']);
 
+        // ── Auto-sync Experiments With Class Logs & Marks ───────────────────
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($subjectId);
+
         // ── Experiments (R2021) ────────────────────────────────────────────────
         $experiments = PracticalExperiment::where('batch_subject_id', $subjectId)
             ->orderByRaw('CAST(experiment_no AS UNSIGNED) ASC, experiment_no ASC')
@@ -126,9 +129,27 @@ class StaffMobileVirtualLabController extends Controller
         $totalAttClasses = count($actualSlotKeys); // total actual conducted session slots
 
         // Determine which experiments have been conducted in this class
-        $conductedExpIds = $experiments->filter(function($exp) use ($allExpMarks) {
-            if ($exp->conducted_date !== null) return true;
-            return $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
+        $conductedExpIds = $experiments->filter(function($exp) use ($allExpMarks, $classLogs) {
+            $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
+            if ($hasMarks) return true;
+
+            $expNo = trim((string)$exp->experiment_no);
+            $expTitle = strtolower(trim((string)($exp->title ?? '')));
+            foreach ($classLogs as $l) {
+                $t = trim((string)($l->topics_covered ?? ''));
+                if (empty($t)) continue;
+                if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) return true;
+                if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                    $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                    if (in_array($expNo, array_map('trim', $nums))) return true;
+                }
+                if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                    $tLower = strtolower($t);
+                    if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) return true;
+                }
+            }
+
+            return false;
         })->pluck('id')->toArray();
         $conductedExperimentsCount = count($conductedExpIds);
 

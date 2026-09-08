@@ -466,6 +466,9 @@ class AttendanceController extends Controller
                         'updated_at' => now(),
                     ]);
             }
+
+            // Sync practical experiments conducted_date with current class logs and marks
+            self::syncPracticalExperimentsWithLogs($request->batch_subject_id);
         } catch (\Exception $ex) {
             \Log::warning("PracticalExperiment / student_attendance sync notice: " . $ex->getMessage());
         }
@@ -848,11 +851,125 @@ class AttendanceController extends Controller
             } catch (\Exception $e) {
                 \Log::warning("Revert practical experiment notice on log delete: " . $e->getMessage());
             }
+
+            // Sync practical experiments conducted_date with remaining class logs and marks
+            self::syncPracticalExperimentsWithLogs($batchSubjectId);
         });
 
         return response()->json([
             'status' => 'SUCCESS',
             'message' => 'Log entry and connected records removed successfully.'
         ]);
+    }
+
+    /**
+     * Synchronize practical_experiments conducted_date with class_logs_attendance and practical_experiment_marks.
+     * Ensures experiments conducted in class logs or graded with real marks have correct conducted_date,
+     * and clears conducted_date from experiments that were never conducted or have only 0-mark placeholders.
+     */
+    public static function syncPracticalExperimentsWithLogs($batchSubjectId)
+    {
+        try {
+            if (!$batchSubjectId) return;
+
+            $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $batchSubjectId)->get();
+            if ($experiments->isEmpty()) {
+                return;
+            }
+
+            $classLogs = DB::table('class_logs_attendance')
+                ->where('batch_subject_id', $batchSubjectId)
+                ->orderBy('date', 'desc')
+                ->get(['id', 'date', 'period', 'topics_covered', 'lesson_plan_id']);
+
+            $expIds = $experiments->pluck('id')->toArray();
+            $marksWithScores = DB::table('practical_experiment_marks')
+                ->whereIn('practical_experiment_id', $expIds)
+                ->where('total_mark', '>', 0)
+                ->get(['practical_experiment_id', 'evaluation_date', 'total_mark']);
+
+            foreach ($experiments as $exp) {
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
+                $matchedLogDate = null;
+
+                // 1. Check if class_logs_attendance covers this experiment
+                if ($classLogs->isNotEmpty()) {
+                    foreach ($classLogs as $l) {
+                        $t = trim((string)($l->topics_covered ?? ''));
+                        if (empty($t)) continue;
+
+                        $matched = false;
+
+                        // Match "Exp 10", "Experiment 10", "Expt 10", "Ex. 10"
+                        if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                            $matched = true;
+                        }
+                        // Match comma/ampersand separated lists e.g. "Exp 10, 11", "Expts 10 & 11"
+                        elseif (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                            $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                            if (in_array($expNo, array_map('trim', $nums))) {
+                                $matched = true;
+                            }
+                        }
+                        // Match title substring (at least 6 chars to avoid trivial matches)
+                        elseif (!empty($expTitle) && strlen($expTitle) >= 6) {
+                            $tLower = strtolower($t);
+                            if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                                $matched = true;
+                            }
+                        }
+
+                        if ($matched) {
+                            $matchedLogDate = $l->date;
+                            break; // Most recent date because classLogs is ordered desc
+                        }
+                    }
+                }
+
+                if ($matchedLogDate) {
+                    // Update conducted_date to the log date if different
+                    if ($exp->conducted_date !== $matchedLogDate) {
+                        DB::table('practical_experiments')->where('id', $exp->id)->update([
+                            'conducted_date' => $matchedLogDate,
+                            'updated_at' => now(),
+                        ]);
+                    }
+                } else {
+                    // 2. Check if student marks with score > 0 exist for this experiment
+                    $expMarks = $marksWithScores->where('practical_experiment_id', $exp->id);
+                    if ($expMarks->isNotEmpty()) {
+                        $firstDateMark = $expMarks->first(fn($m) => !empty($m->evaluation_date));
+                        $evalDate = $firstDateMark ? $firstDateMark->evaluation_date : ($exp->conducted_date ?: date('Y-m-d'));
+                        if ($exp->conducted_date !== $evalDate) {
+                            DB::table('practical_experiments')->where('id', $exp->id)->update([
+                                'conducted_date' => $evalDate,
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    } else {
+                        // 3. Neither class log nor positive marks exist -> MUST be unconducted (null)
+                        if ($exp->conducted_date !== null) {
+                            DB::table('practical_experiments')->where('id', $exp->id)->update([
+                                'conducted_date' => null,
+                                'updated_at' => now(),
+                            ]);
+                        }
+                        // Clean up any orphaned placeholder rows with no actual score > 0
+                        DB::table('practical_experiment_marks')
+                            ->where('practical_experiment_id', $exp->id)
+                            ->where('total_mark', '<=', 0)
+                            ->where('rough_record', '<=', 0)
+                            ->where('fair_record', '<=', 0)
+                            ->where('prerequisites', '<=', 0)
+                            ->where('work_done', '<=', 0)
+                            ->where('result', '<=', 0)
+                            ->delete();
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning("syncPracticalExperimentsWithLogs error: " . $e->getMessage());
+        }
     }
 }

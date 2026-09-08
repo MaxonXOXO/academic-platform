@@ -4888,9 +4888,14 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $totalRows = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->count();
 
+        // Auto-sync dates from existing class logs into the newly created lesson plan rows
+        $this->syncLessonPlanDatesFromLogs($request, $subjectId);
+
+        $syncedCount = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->whereNotNull('actual_date')->count();
+
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => "Lesson plan successfully generated from experiments ({$totalRows} sessions created including 2 Series Exams)."
+            'message' => "Lesson plan successfully loaded from experiments ({$totalRows} sessions created including 2 Series Exams, {$syncedCount} log dates synced)."
         ]);
     }
 

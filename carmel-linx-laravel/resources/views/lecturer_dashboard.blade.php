@@ -10397,7 +10397,12 @@
     }
 
     function loadPracticalExperimentsToPlanner(target_batch, allocated_hours = 3) {
-      fetch(`/api/classroom/${currentSubjectId}/practical/lesson-plans/generate`, {
+      const subjId = currentSubjectId || window.currentSubjectId;
+      if (!subjId) {
+        alert('Subject ID not found.');
+        return;
+      }
+      fetch(`/api/classroom/${subjId}/practical/lesson-plans/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ target_batch, allocated_hours })
@@ -10407,10 +10412,16 @@
         alert(res.message);
         if (res.status === 'SUCCESS' || res.success) {
           closeGeneratePlannerModal();
-          loadCourseDetails(currentSubjectId);
+          if (typeof loadCourseDetails === 'function') {
+            loadCourseDetails(subjId).then(() => {
+              if (typeof toggleClassroomTab === 'function') {
+                toggleClassroomTab('planner');
+              }
+            }).catch(err => console.error('Error reloading planner:', err));
+          }
         }
       })
-      .catch(() => alert('Failed to generate lesson planner.'));
+      .catch((err) => alert('Failed to generate lesson planner: ' + (err.message || 'Error')));
     }
 
     function triggerLoadExperimentsPlanner() {

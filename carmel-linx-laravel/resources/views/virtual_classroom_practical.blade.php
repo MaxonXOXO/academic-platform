@@ -211,11 +211,17 @@
 
     <!-- Top Navigation & Batch Filter Bar (Exact Drawing Hall 2026 Style) -->
     <div class="glass-panel mx-2 mt-2 p-2 flex flex-wrap items-center justify-between gap-2 z-30">
-        <!-- Return Button directly inside the Tab Bar container -->
-        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="{{ $vlBackTitle }}">
-            <i class="fa-solid fa-arrow-left text-xs"></i>
-            <span>{{ $vlBackText }}</span>
-        </a>
+        <div class="flex items-center gap-2 shrink-0">
+            <!-- Return Button directly inside the Tab Bar container -->
+            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="{{ $vlBackTitle }}">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>{{ $vlBackText }}</span>
+            </a>
+            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}" class="px-3 py-1.5 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 hover:text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shrink-0" title="Open Class Attendance & Log for this subject">
+                <i class="fa-solid fa-clipboard-user text-xs text-emerald-400"></i>
+                <span>Class Attendance &amp; Log</span>
+            </a>
+        </div>
 
         <!-- Horizontal Tabs (Drawing Hall 2026 Style) -->
         <div class="drawing-hall-tab-bar rounded-xl flex-1">
@@ -272,6 +278,10 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow no-underline" title="Open Class Attendance & Log for this subject">
+                        <i class="fa-solid fa-clipboard-user text-emerald-400 text-xs"></i>
+                        <span>Class Attendance &amp; Log</span>
+                    </a>
                     <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
                         <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
                         <span>Completed: <strong id="headerCompletedExpsCount">{{ $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }}</span>

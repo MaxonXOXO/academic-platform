@@ -1257,7 +1257,7 @@
 
                         <!-- Active Edit Banner (Shown when editing a past log) -->
                         <div id="attEditingBanner" class="p-2.5 mb-2.5 rounded-3 border d-none" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.2) 100%); border-color: rgba(245, 158, 11, 0.4) !important;">
-                            <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
                                 <div>
                                     <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
                                         <i class="fa-solid fa-pen-to-square text-amber" style="color: #fbbf24;"></i>
@@ -1273,40 +1273,9 @@
                                         <span class="ms-1" id="editBannerTotals"></span>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-column gap-1 flex-shrink-0">
-                                    <button type="button" onclick="convertEditToAdditionalExp()" class="btn btn-sm btn-success py-0.5 px-2 font-bold" style="font-size: 0.72rem; background-color: #10b981; border: none;" title="Conduct another experiment with this attendance">
-                                        <i class="fa-solid fa-plus me-1"></i> + Add Exp
-                                    </button>
-                                    <button type="button" onclick="cancelEditingLog()" class="btn btn-sm btn-outline-light py-0.5 px-2 font-bold" style="font-size: 0.72rem;">
+                                <div class="flex-shrink-0">
+                                    <button type="button" onclick="cancelEditingLog()" class="btn btn-sm btn-outline-light py-1 px-2.5 font-bold rounded-pill" style="font-size: 0.74rem;">
                                         <i class="fa-solid fa-xmark me-1"></i> Cancel Edit
-                                    </button>
-                                    <button type="button" onclick="requestDeleteEditingLog()" class="btn btn-sm btn-outline-danger py-0.5 px-2 font-bold" style="font-size: 0.72rem; border-color: rgba(244, 63, 94, 0.5) !important; color: #fb7185 !important;" title="Delete this log entry">
-                                        <i class="fa-solid fa-trash-can me-1"></i> Delete Log
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Active Additional Experiment Banner (Shown when logging 2nd, 3rd experiment for a session) -->
-                        <div id="attAdditionalExpBanner" class="p-2.5 mb-2.5 rounded-3 border d-none" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.2) 100%); border-color: rgba(16, 185, 129, 0.45) !important;">
-                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                <div>
-                                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
-                                        <i class="fa-solid fa-flask text-emerald" style="color: #34d399;"></i>
-                                        <strong class="text-white" style="font-size: 0.84rem;">+ Adding Additional Experiment</strong>
-                                        <span class="badge font-mono fw-black px-2 py-0.5" id="addExpBannerBatch" style="background-color: #10b981 !important; color: #0f172a !important; font-size: 0.7rem;">Batch 1</span>
-                                    </div>
-                                    <div class="text-slate-300 font-mono" style="font-size: 0.74rem; color: #cbd5e1 !important;">
-                                        <span>Date: <strong class="text-white" id="addExpBannerDate">---</strong></span> &bull; 
-                                        <span>Periods: <strong class="text-white" id="addExpBannerPeriods">---</strong></span>
-                                    </div>
-                                    <div class="text-emerald small mt-1" style="color: #6ee7b7; font-size: 0.73rem;">
-                                        <i class="fa-solid fa-circle-info me-1"></i> Same attendance preserved. Select the next experiment below and tap <strong>Save Additional Experiment</strong>.
-                                    </div>
-                                </div>
-                                <div class="d-flex flex-column gap-1 flex-shrink-0">
-                                    <button type="button" onclick="cancelAdditionalExpMode()" class="btn btn-sm btn-outline-light py-0.5 px-2 font-bold" style="font-size: 0.72rem;">
-                                        <i class="fa-solid fa-xmark me-1"></i> Cancel
                                     </button>
                                 </div>
                             </div>
@@ -1464,6 +1433,53 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extra Experiment Quick Selection Popup Modal -->
+    <div class="modal fade" id="addExtraExpModal" tabindex="-1" aria-labelledby="addExtraExpModalLabel" aria-hidden="true" style="display: none; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index: 1080;" onclick="if(event.target === this) closeExtraExpModal();">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content text-white border-0 shadow-2xl" style="background-color: #0b132b; border-radius: 1.25rem; border: 1px solid rgba(6, 182, 212, 0.35) !important;">
+                
+                <!-- Popup Header -->
+                <div class="modal-header border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between" style="border-bottom-color: rgba(255, 255, 255, 0.08) !important; background: rgba(15, 23, 42, 0.8);">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle p-1.5 bg-cyan text-dark d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background-color: #06b6d4 !important;">
+                            <i class="fa-solid fa-flask fs-6"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-black mb-0 text-white" id="addExtraExpModalLabel" style="font-size: 0.9rem;">Add Extra Experiment</h6>
+                            <div class="text-slate-400 font-mono" id="extraExpSessionSubHeader" style="font-size: 0.72rem; color: #94a3b8 !important;">Same Date &amp; Preserved Attendance</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" onclick="closeExtraExpModal()" aria-label="Close" style="font-size: 0.75rem;"></button>
+                </div>
+
+                <!-- Popup Body: Checkbox List -->
+                <div class="modal-body p-3" style="max-height: 52vh; overflow-y: auto;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-slate-300 font-bold" style="font-size: 0.75rem;">Check experiments for this session:</span>
+                        <span class="badge bg-slate-800 text-cyan font-mono" id="extraExpCountBadge" style="font-size: 0.7rem;">0 Selected</span>
+                    </div>
+
+                    <!-- Search Input inside popup -->
+                    <div class="mb-2.5">
+                        <input type="text" id="extraExpSearchInput" oninput="filterExtraExpPopupList()" placeholder="Search experiment title or number..." class="form-control form-control-sm bg-slate-900 text-white border-slate-700 rounded-3" style="font-size: 0.76rem; background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;">
+                    </div>
+
+                    <div id="extraExpListContainer" class="d-flex flex-column gap-1.5">
+                        <!-- Dynamically filled checkboxes -->
+                    </div>
+                </div>
+
+                <!-- Floating Save Button Below List -->
+                <div class="modal-footer border-top p-2.5 bg-slate-900 d-flex flex-column gap-1" style="border-top-color: rgba(255, 255, 255, 0.08) !important; background-color: #0f172a !important;">
+                    <div id="extraExpPopupAlert" class="alert alert-danger py-1.5 px-2.5 small font-bold w-100 mb-1 d-none" style="font-size: 0.75rem;"></div>
+                    <button type="button" id="btnSaveExtraExpPopup" onclick="saveExtraExperimentsFromPopup()" class="btn btn-cyan w-100 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.92rem;">
+                        <i class="fa-solid fa-circle-check me-1.5"></i> Save Selected Experiments
+                    </button>
                 </div>
             </div>
         </div>
@@ -2039,7 +2055,6 @@
             const banner = document.getElementById('attEditingBanner');
             if (banner) banner.classList.add('d-none');
 
-            cancelAdditionalExpMode();
             dismissInlineDeletePrompt();
 
             // Reset date to today
@@ -2180,146 +2195,288 @@
             });
         }
 
-        function convertEditToAdditionalExp() {
-            if (!window.attEditingLog) return;
-            const log = window.attEditingLog;
-            addAnotherExperimentToSessionByLog(log);
+        window.currentAttExperiments = [];
+        window.activeExtraExpSessionLog = null;
+
+        function showExtraExpModal() {
+            const modalEl = document.getElementById('addExtraExpModal');
+            if (!modalEl) return;
+            modalEl.style.display = 'block';
+            modalEl.classList.add('show');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeExtraExpModal() {
+            const modalEl = document.getElementById('addExtraExpModal');
+            if (modalEl) {
+                modalEl.style.display = 'none';
+                modalEl.classList.remove('show');
+            }
+        }
+
+        function openExtraExpPopup(idxOrLogId) {
+            let log = null;
+            if (typeof idxOrLogId === 'number' && window.attPastLogsCache && window.attPastLogsCache[idxOrLogId]) {
+                log = window.attPastLogsCache[idxOrLogId];
+            } else if (window.attPastLogsCache && Array.isArray(window.attPastLogsCache)) {
+                log = window.attPastLogsCache.find(l => l.id == idxOrLogId || l._originalIdx == idxOrLogId);
+            }
+            if (!log) {
+                console.warn("Log not found for extra exp popup with identifier:", idxOrLogId);
+                return;
+            }
+
+            window.activeExtraExpSessionLog = log;
+            const modalEl = document.getElementById('addExtraExpModal');
+            if (!modalEl) return;
+
+            // Display session date and period subtitle
+            const subHeader = document.getElementById('extraExpSessionSubHeader');
+            if (subHeader) {
+                const pText = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `Period ${log.period}`);
+                const bText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
+                subHeader.textContent = `${formatDisplayDate(log.date)} • ${pText} • ${bText}`;
+            }
+
+            // Clear search and alert
+            const searchInput = document.getElementById('extraExpSearchInput');
+            if (searchInput) searchInput.value = '';
+            const alertBox = document.getElementById('extraExpPopupAlert');
+            if (alertBox) {
+                alertBox.classList.add('d-none');
+                alertBox.textContent = '';
+            }
+
+            const container = document.getElementById('extraExpListContainer');
+            if (!container) return;
+
+            const renderChecklist = (exps) => {
+                if (!exps || exps.length === 0) {
+                    container.innerHTML = '<div class="text-center py-4 text-slate-400 font-mono small"><i class="fa-solid fa-circle-exclamation text-amber-400 mb-1 fs-5 d-block"></i>No practical experiments found for this subject.</div>';
+                    updateExtraExpPopupCount();
+                    showExtraExpModal();
+                    return;
+                }
+
+                const currentTopicStr = (log.topics_covered || '').trim();
+                let html = '';
+                exps.forEach(exp => {
+                    const expNoStr = String(exp.experiment_no).trim();
+                    let isChecked = false;
+                    if (currentTopicStr) {
+                        const regex = new RegExp('(?:Exp|Experiment|Ex|Expt)\\.?\\s*#?\\s*0*' + expNoStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+                        if (regex.test(currentTopicStr) || (exp.title && currentTopicStr.toLowerCase().includes(exp.title.toLowerCase().trim()))) {
+                            isChecked = true;
+                        }
+                    }
+
+                    const safeTitle = (exp.title || 'Untitled Experiment').replace(/"/g, '&quot;');
+                    const safeTag = (exp.co_tag || '').replace(/"/g, '&quot;');
+                    const searchData = (expNoStr + ' ' + (exp.title || '') + ' ' + (exp.co_tag || '')).toLowerCase().replace(/"/g, '&quot;');
+
+                    html += `
+                    <label class="extra-exp-item d-flex align-items-start gap-2.5 p-2 rounded-3 border cursor-pointer select-none transition-all" style="background-color: ${isChecked ? 'rgba(6, 182, 212, 0.12)' : 'rgba(15, 23, 42, 0.6)'}; border-color: ${isChecked ? 'rgba(6, 182, 212, 0.45)' : 'rgba(255, 255, 255, 0.08)'} !important;" data-text="${searchData}">
+                        <input type="checkbox" class="form-check-input mt-0.5 extra-exp-checkbox" value="${exp.id}" data-exp-no="${exp.experiment_no}" data-title="${safeTitle}" ${isChecked ? 'checked' : ''} onchange="onExtraExpCheckboxChange(this)" style="cursor: pointer; width: 1.15em; height: 1.15em; border-color: rgba(6, 182, 212, 0.5);">
+                        <div class="flex-grow-1" style="line-height: 1.25;">
+                            <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
+                                <span class="badge font-mono fw-black px-1.5 py-0.5" style="background-color: #06b6d4 !important; color: #0f172a !important; font-size: 0.68rem;">Exp ${exp.experiment_no}</span>
+                                ${exp.co_tag ? `<span class="badge bg-slate-800 text-slate-400 font-mono" style="font-size: 0.65rem;">${safeTag}</span>` : ''}
+                            </div>
+                            <div class="text-white fw-bold" style="font-size: 0.78rem;">${exp.title || 'Untitled Experiment'}</div>
+                        </div>
+                    </label>`;
+                });
+
+                container.innerHTML = html;
+                updateExtraExpPopupCount();
+                showExtraExpModal();
+            };
+
+            const exps = window.currentAttExperiments || [];
+            if (exps.length > 0) {
+                renderChecklist(exps);
+            } else if (currentAttBatchSubjectId) {
+                container.innerHTML = '<div class="text-center py-4 text-cyan"><i class="fa-solid fa-spinner fa-spin fs-4 mb-2"></i><div>Loading experiments...</div></div>';
+                showExtraExpModal();
+                fetch(`/api/staff/attendance/subjects/${currentAttBatchSubjectId}/details`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.status === 'SUCCESS' && d.experiments && d.experiments.length > 0) {
+                            window.currentAttExperiments = d.experiments;
+                            renderChecklist(d.experiments);
+                        } else {
+                            renderChecklist([]);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error fetching experiments for popup:", err);
+                        renderChecklist([]);
+                    });
+            } else {
+                renderChecklist([]);
+            }
+        }
+
+        function onExtraExpCheckboxChange(chk) {
+            const label = chk.closest('.extra-exp-item');
+            if (label) {
+                if (chk.checked) {
+                    label.style.backgroundColor = 'rgba(6, 182, 212, 0.12)';
+                    label.style.borderColor = 'rgba(6, 182, 212, 0.45)';
+                } else {
+                    label.style.backgroundColor = 'rgba(15, 23, 42, 0.6)';
+                    label.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                }
+            }
+            updateExtraExpPopupCount();
+        }
+
+        function updateExtraExpPopupCount() {
+            const checked = document.querySelectorAll('.extra-exp-checkbox:checked');
+            const badge = document.getElementById('extraExpCountBadge');
+            if (badge) {
+                badge.textContent = `${checked.length} Selected`;
+            }
+        }
+
+        function filterExtraExpPopupList() {
+            const query = (document.getElementById('extraExpSearchInput')?.value || '').trim().toLowerCase();
+            const items = document.querySelectorAll('.extra-exp-item');
+            items.forEach(item => {
+                const text = item.getAttribute('data-text') || '';
+                if (!query || text.includes(query)) {
+                    item.classList.remove('d-none');
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+        }
+
+        function saveExtraExperimentsFromPopup() {
+            if (!window.activeExtraExpSessionLog || !currentAttBatchSubjectId) {
+                alert("No active session selected.");
+                return;
+            }
+
+            const log = window.activeExtraExpSessionLog;
+            const checkedBoxes = Array.from(document.querySelectorAll('.extra-exp-checkbox:checked'));
+            const alertBox = document.getElementById('extraExpPopupAlert');
+
+            if (checkedBoxes.length === 0) {
+                if (alertBox) {
+                    alertBox.textContent = 'Please check at least one experiment.';
+                    alertBox.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (alertBox) alertBox.classList.add('d-none');
+
+            const btn = document.getElementById('btnSaveExtraExpPopup');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Saving Experiments...';
+            }
+
+            // Build consolidated topics string for the selected experiments
+            const selectedExpIds = [];
+            const topicsList = [];
+            checkedBoxes.forEach(chk => {
+                const id = parseInt(chk.value);
+                const expNo = chk.dataset.expNo;
+                const title = chk.dataset.title;
+                if (!isNaN(id)) selectedExpIds.push(id);
+                topicsList.push(`Exp ${expNo}: ${title}`);
+            });
+
+            const combinedTopics = topicsList.join(' & ');
+
+            // Periods array
+            const pArr = (log.periods && log.periods.length > 0)
+                ? log.periods
+                : String(log.period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
+            // Parse present & absent students from existing session log
+            let presentArr = [];
+            let absentArr = [];
+            try {
+                presentArr = typeof log.present_students === 'string' ? JSON.parse(log.present_students || '[]') : (log.present_students || []);
+                absentArr = typeof log.absent_students === 'string' ? JSON.parse(log.absent_students || '[]') : (log.absent_students || []);
+            } catch (e) {
+                presentArr = [];
+                absentArr = [];
+            }
+
+            const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
+
+            // Update existing log IDs if available so it updates current session record directly
+            const logIds = log.log_ids || [log.id];
+
+            fetch('/api/staff/attendance/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    batch_subject_id: currentAttBatchSubjectId,
+                    date: log.date,
+                    periods: pArr,
+                    log_ids: logIds,
+                    practical_experiment_id: selectedExpIds[0] || null,
+                    practical_experiment_ids: selectedExpIds,
+                    topics_covered: combinedTopics,
+                    present_students: presentArr,
+                    absent_students: absentArr,
+                    sub_batch: log.sub_batch || 'Whole',
+                    is_additional_log: false
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errData => {
+                        throw new Error(errData.message || `Server returned status ${res.status}`);
+                    }).catch(() => {
+                        throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Selected Experiments';
+                }
+
+                if (data.status === 'SUCCESS') {
+                    // Close popup modal
+                    closeExtraExpModal();
+
+                    // Refresh past logs in background instantly to show stacked experiments
+                    loadClassAttendanceReports();
+                } else {
+                    if (alertBox) {
+                        alertBox.textContent = data.message || 'Failed to update experiments.';
+                        alertBox.classList.remove('d-none');
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Selected Experiments';
+                }
+                if (alertBox) {
+                    alertBox.textContent = err.message || 'Error updating experiments.';
+                    alertBox.classList.remove('d-none');
+                }
+            });
         }
 
         function addAnotherExperimentToSession(idx) {
-            const log = window.attPastLogsCache[idx];
-            if (!log) return;
-            addAnotherExperimentToSessionByLog(log);
-        }
-
-        function addAnotherExperimentToSessionByLog(log) {
-            // Cancel any active edit IDs so we INSERT rather than overwrite
-            window.attEditingLog = null;
-            window.attEditingLogIds = null;
-            window.isAddingAdditionalExperiment = true;
-            window.mobileSessionAttendanceLoaded = true;
-
-            dismissInlineDeletePrompt();
-
-            // Hide edit banner
-            const editBanner = document.getElementById('attEditingBanner');
-            if (editBanner) editBanner.classList.add('d-none');
-
-            // 1. Pre-fill Date
-            if (log.date) {
-                const dateEl = document.getElementById('attLogDate');
-                if (dateEl) dateEl.value = log.date;
-            }
-
-            // 2. Pre-fill Periods
-            const pArr = (log.periods && log.periods.length > 0) 
-                ? log.periods 
-                : String(log.period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
-
-            document.querySelectorAll('input[name="attPeriods"]').forEach(chk => {
-                chk.checked = pArr.includes(parseInt(chk.value));
-            });
-
-            // 3. Pre-fill Sub-batch
-            if (log.sub_batch === '1') {
-                const el = document.getElementById('sb1');
-                if (el) el.checked = true;
-            } else if (log.sub_batch === '2') {
-                const el = document.getElementById('sb2');
-                if (el) el.checked = true;
-            } else {
-                const el = document.getElementById('sbWhole');
-                if (el) el.checked = true;
-            }
-
-            // 4. Pre-fill student attendance roster
-            let presentArr = [];
-            try {
-                presentArr = typeof log.present_students === 'string' ? JSON.parse(log.present_students || '[]') : (log.present_students || []);
-            } catch (e) {
-                presentArr = [];
-            }
-            const presentSet = new Set(presentArr);
-            currentAttStudents.forEach(s => {
-                s.present = presentSet.has(s.reg_no);
-            });
-
-            // 5. Clear Experiment & Topics input so user selects the next experiment
-            const lpSelect = document.getElementById('attLessonPlanSelect');
-            if (lpSelect) lpSelect.value = '';
-            const manualInput = document.getElementById('attTopicsCovered');
-            if (manualInput) {
-                manualInput.value = '';
-                manualInput.placeholder = 'Select next experiment from dropdown or enter title...';
-            }
-
-            // 6. Show Additional Exp Banner
-            const addBanner = document.getElementById('attAdditionalExpBanner');
-            if (addBanner) {
-                const batchText = (log.sub_batch === '1') ? 'Batch 1' : ((log.sub_batch === '2') ? 'Batch 2' : 'Whole Class');
-                const batchElem = document.getElementById('addExpBannerBatch');
-                if (batchElem) batchElem.textContent = batchText;
-
-                const dateElem = document.getElementById('addExpBannerDate');
-                if (dateElem) dateElem.textContent = formatDisplayDate(log.date);
-
-                const periodsElem = document.getElementById('addExpBannerPeriods');
-                if (periodsElem) periodsElem.textContent = log.period_display || ('Periods ' + log.period);
-
-                addBanner.classList.remove('d-none');
-            }
-
-            // 7. Update Save Button
-            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
-            allSaveBtns.forEach(b => {
-                b.disabled = false;
-                b.innerHTML = '<i class="fa-solid fa-plus-circle me-1.5"></i> Save Additional Experiment';
-                b.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-            });
-
-            // 8. Switch to "Mark Attendance" tab & update roster
-            switchAttModalTab('take');
-            filterAttStudentsByBatch();
-
-            // Focus on experiment selector
-            setTimeout(() => {
-                if (lpSelect) {
-                    lpSelect.focus();
-                    lpSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 200);
-        }
-
-        function cancelAdditionalExpMode() {
-            window.isAddingAdditionalExperiment = false;
-            window.mobileSessionAttendanceLoaded = false;
-            const addBanner = document.getElementById('attAdditionalExpBanner');
-            if (addBanner) addBanner.classList.add('d-none');
-
-            // Reset save button style
-            const allSaveBtns = document.querySelectorAll('.btn-save-att, #btnSaveClassAtt');
-            allSaveBtns.forEach(b => {
-                b.disabled = false;
-                b.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
-                b.style.background = 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)';
-            });
-        }
-
-        function conductAnotherExperimentFromSaved() {
-            if (window.attAutoCloseTimer) {
-                clearTimeout(window.attAutoCloseTimer);
-                window.attAutoCloseTimer = null;
-            }
-            if (!window.lastSavedSessionContext) return;
-            const ctx = window.lastSavedSessionContext;
-            addAnotherExperimentToSessionByLog({
-                date: ctx.date,
-                periods: ctx.periods,
-                sub_batch: ctx.sub_batch,
-                present_students: ctx.present_students,
-                absent_students: ctx.absent_students,
-                period_display: ctx.periods.length > 1 ? ('Periods ' + ctx.periods.join(', ')) : ('Period ' + ctx.periods[0])
-            });
+            openExtraExpPopup(idx);
         }
 
         function openClassAttendanceModal(batchSubjectId, period, subjectCode, classroomId, subjectName) {
@@ -2396,6 +2553,7 @@
                 .then(data => {
                     if (data.status === 'SUCCESS') {
                         currentAttStudents = (data.students || []).map(s => ({ ...s, present: true }));
+                        window.currentAttExperiments = data.experiments || [];
                         currentAttSubjectType = data.subject_type || 'Theory';
                         const badgeElem = document.getElementById('attSubjectTypeBadge');
                         if (badgeElem) badgeElem.textContent = currentAttSubjectType;
@@ -3068,6 +3226,9 @@
                 .then(data => {
                     if (data.status === 'SUCCESS' && data.logs && data.logs.length > 0) {
                         window.attPastLogsCache = data.logs;
+                        if (data.experiments && Array.isArray(data.experiments)) {
+                            window.currentAttExperiments = data.experiments;
+                        }
 
                         // Group logs by date so date is never repeated across cards on the same date
                         const dateGroups = {};
@@ -3120,7 +3281,18 @@
                                 const isExactDuplicate = sameDateBatchLogs.some(other => 
                                     (other.topics_covered || '').trim().toLowerCase() === (log.topics_covered || '').trim().toLowerCase()
                                 );
-                                const isMultiExpSession = !isExactDuplicate && sameDateBatchLogs.length > 0;
+
+                                // Format topics display: if multiple experiments exist separated by '&' or newlines, format as stacked bullet items
+                                const rawTopic = (log.topics_covered || 'No topic description').trim();
+                                let formattedTopicHtml = '';
+                                if (rawTopic.includes(' & ') || rawTopic.includes('\n')) {
+                                    const parts = rawTopic.split(/(?:\s+&\s+|\r?\n)/).map(p => p.trim()).filter(Boolean);
+                                    formattedTopicHtml = '<div class="d-flex flex-column gap-1 mt-0.5">' + parts.map(p => `<div class="d-flex align-items-baseline gap-1.5"><i class="fa-solid fa-flask text-cyan flex-shrink-0" style="font-size: 0.65rem;"></i><span>${p}</span></div>`).join('') + '</div>';
+                                } else {
+                                    formattedTopicHtml = `<div>${rawTopic}</div>`;
+                                }
+
+                                const isMultiExpSession = !isExactDuplicate && (sameDateBatchLogs.length > 0 || rawTopic.includes(' & ') || rawTopic.includes('\n'));
 
                                 let badgeHtml = '';
                                 if (isMultiExpSession) {
@@ -3140,7 +3312,7 @@
                                                 ${badgeHtml}
                                             </div>
                                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                                <button type="button" onclick="addAnotherExperimentToSession(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
+                                                <button type="button" onclick="openExtraExpPopup(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
                                                     <i class="fa-solid fa-plus me-0.5"></i> + Add Exp
                                                 </button>
                                                 <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-1.5 font-bold" style="font-size: 0.68rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
@@ -3151,7 +3323,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="text-white small fw-bold mb-1" style="font-size:0.75rem; line-height: 1.25;">${log.topics_covered || 'No topic description'}</div>
+                                        <div class="text-white small fw-bold mb-1" style="font-size:0.75rem; line-height: 1.3;">${formattedTopicHtml}</div>
                                         <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
                                             <small class="text-slate-400 font-mono" style="font-size:0.67rem; color: #94a3b8 !important;">
                                                 <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}
@@ -3172,7 +3344,7 @@
                                                 ${badgeHtml}
                                             </div>
                                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                                <button type="button" onclick="addAnotherExperimentToSession(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
+                                                <button type="button" onclick="openExtraExpPopup(${log._originalIdx})" class="btn btn-sm btn-outline-success py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(16, 185, 129, 0.6) !important; color: #34d399 !important;" title="Add another experiment conducted in this session (same attendance)">
                                                     <i class="fa-solid fa-plus me-0.5"></i> + Add Exp
                                                 </button>
                                                 <button type="button" onclick="editPastClassLog(${log._originalIdx})" class="btn btn-sm btn-outline-cyan py-0.5 px-2 font-bold" style="font-size: 0.74rem; border-color: rgba(6, 182, 212, 0.5) !important; color: #06b6d4 !important;">
@@ -3183,7 +3355,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="text-white small fw-bold mb-1" style="font-size:0.83rem;">${log.topics_covered || 'No topic description'}</div>
+                                        <div class="text-white small fw-bold mb-1" style="font-size:0.83rem; line-height: 1.35;">${formattedTopicHtml}</div>
                                         <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-top-color: rgba(255, 255, 255, 0.05) !important;">
                                             <small class="text-slate-400 font-mono" style="font-size:0.72rem; color: #94a3b8 !important;">
                                                 <i class="fa-solid fa-user-tie me-1 text-slate-500"></i> ${staffName}

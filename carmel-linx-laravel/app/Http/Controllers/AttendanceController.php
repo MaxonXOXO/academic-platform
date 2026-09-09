@@ -217,6 +217,8 @@ class AttendanceController extends Controller
             'periods.*' => 'integer|min:1|max:7',
             'lesson_plan_id' => 'nullable|integer',
             'practical_experiment_id' => 'nullable|integer',
+            'practical_experiment_ids' => 'nullable|array',
+            'practical_experiment_ids.*' => 'integer',
             'topics_covered' => 'required|string',
             'present_students' => 'nullable|array',
             'absent_students' => 'nullable|array',
@@ -395,6 +397,16 @@ class AttendanceController extends Controller
                     $pExp->conducted_date = $request->date;
                     $pExp->save();
                     $matchedExp = $pExp;
+                }
+            }
+
+            if ($request->practical_experiment_ids && is_array($request->practical_experiment_ids)) {
+                foreach ($request->practical_experiment_ids as $pId) {
+                    $pExp = \App\Models\PracticalExperiment::find($pId);
+                    if ($pExp) {
+                        $pExp->conducted_date = $request->date;
+                        $pExp->save();
+                    }
                 }
             }
 
@@ -589,6 +601,11 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
+        // Fetch practical experiments for this subject
+        $practicalExperiments = \App\Models\PracticalExperiment::where('batch_subject_id', $batchSubjectId)
+            ->orderByRaw('CAST(experiment_no AS UNSIGNED), experiment_no ASC')
+            ->get(['id', 'experiment_no', 'title', 'co_tag', 'conducted_date']);
+
         // 1. Fetch Class Attendance Logs in chronological order with staff profile join
         $rawLogs = DB::table('class_logs_attendance')
             ->leftJoin('staff_profiles', 'class_logs_attendance.recorded_by', '=', 'staff_profiles.mobile_no')
@@ -718,7 +735,8 @@ class AttendanceController extends Controller
             'status' => 'SUCCESS',
             'logs' => $logs,
             'dates' => $dates,
-            'matrix' => $matrix
+            'matrix' => $matrix,
+            'experiments' => $practicalExperiments
         ]);
     }
 

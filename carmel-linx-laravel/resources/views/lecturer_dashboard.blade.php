@@ -1496,6 +1496,9 @@
                   <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Grade day-to-day experiments (37.5), model tests (15),<br>micro-projects (7.5), and board exam marks (50).</p>
                 </div>
                 <div class="flex items-center gap-2.5 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
+                  <a id="btnVirtualLabAttendanceLog" href="/staff/attendance-log" onclick="openClassAttendanceLogFromVirtualLab(event)" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-300 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer no-underline" title="Open Class Attendance & Log for this subject">
+                    <span class="material-symbols-rounded text-sm text-emerald-400">co_present</span> Class Attendance &amp; Log
+                  </a>
                   <button type="button" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-400/30 text-blue-300 rounded-md text-xs font-normal transition flex items-center gap-1 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
                     <span class="material-symbols-rounded text-xs">science</span> Lab Work Grade
                   </button>
@@ -2735,6 +2738,8 @@
               if (btnPlan) btnPlan.href = `/classroom/${subjectId}/practical-report/print?type=planner`;
               const btnProj = document.getElementById('pRepBtnProjects');
               if (btnProj) btnProj.href = `/classroom/${subjectId}/practical-report/print?type=projects`;
+              const btnVlAtt = document.getElementById('btnVirtualLabAttendanceLog');
+              if (btnVlAtt) btnVlAtt.href = `/staff/attendance-log?subject_id=${subjectId}`;
             }
             toggleClassroomTab(activeTabToRestore);
           } else {
@@ -8848,6 +8853,16 @@
       val = Math.round(val * 2) / 2;
       input.value = val;
       input.dispatchEvent(new Event('input'));
+    }
+
+    function openClassAttendanceLogFromVirtualLab(e) {
+      if (e) e.preventDefault();
+      const subjId = currentSubjectId || window.currentSubjectId;
+      if (subjId) {
+        window.location.href = `/staff/attendance-log?subject_id=${subjId}`;
+      } else {
+        window.location.href = '/staff/attendance-log';
+      }
     }
 
     function openLwModal(regNo) {

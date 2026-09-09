@@ -44,195 +44,265 @@
     if ($role === 'Demonstrator') $backLink = '/dashboard/demonstrator';
     if ($role === 'Trade_Instructor') $backLink = '/dashboard/tradeinstructor';
     if ($role === 'Workshop_Superintendent') $backLink = '/dashboard/workshop';
+    if ($role === 'Tutor') $backLink = '/dashboard/tutor';
+    if ($role === 'General_Coordinator_SF') $backLink = '/dashboard/general-coordinator-sf';
+    if ($role === 'General_Coordinator_Aided') $backLink = '/dashboard/general-coordinator-aided';
+    if ($role === 'Principal') $backLink = '/dashboard/principal';
   @endphp
 
   <!-- Top Navigation Header -->
-  <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-lg">
-    <div class="flex items-center gap-3">
-      <a href="{{ $backLink }}" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center justify-center">
-        <span class="material-symbols-rounded">arrow_back</span>
-      </a>
-      <div>
-        <h1 class="font-extrabold text-white text-base sm:text-lg tracking-tight">Class Log & Attendance</h1>
-        <p class="text-sm text-slate-400 font-medium">Record today's class topics and attendance.</p>
+  <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-30 px-4 sm:px-6 py-2.5 shadow-md">
+    <div class="max-w-xl lg:max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <a href="{{ $backLink }}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center justify-center shadow-sm" title="Back to Dashboard">
+          <span class="material-symbols-rounded text-base">arrow_back</span>
+        </a>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">Class Log & Attendance</h1>
+            <span class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wide">Staff Desktop</span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium leading-none mt-1">Record class syllabus topics covered and student attendance.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="hidden md:flex flex-col text-right">
+          <span class="text-xs font-bold text-slate-200 leading-none">{{ session('userName', 'Faculty Staff') }}</span>
+          <span class="text-[10px] text-slate-400 font-medium leading-none mt-1">{{ session('userRole', 'Staff') }}</span>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black rounded-lg w-8 h-8 flex items-center justify-center shadow text-xs">CL</div>
       </div>
     </div>
-    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black rounded-lg w-9 h-9 flex items-center justify-center shadow-lg text-sm">CL</div>
   </header>
 
   <!-- Notification Banner -->
-  <div id="globalAlert" class="hidden max-w-xl mx-auto mt-4 px-4 py-3 rounded-xl text-sm font-bold text-center border shadow-md animate-pulse"></div>
+  <div id="globalAlert" class="hidden max-w-xl lg:max-w-7xl mx-auto mt-2 px-4 py-2 rounded-lg text-xs font-bold text-center border shadow-md animate-pulse"></div>
 
-  <main class="max-w-xl mx-auto w-full px-4 mt-6 flex-grow space-y-6">
+  <!-- Main Container -->
+  <main class="max-w-xl lg:max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 mt-3 lg:mt-4 flex-grow">
     
-    <!-- CLASS SELECTOR CARD -->
-    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center gap-2 pb-2 border-b border-slate-800/60">
-        <span class="material-symbols-rounded text-indigo-400 text-lg">school</span>
-        <h2 class="font-bold text-sm text-slate-200">Select Batch & Subject</h2>
-      </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-      <div>
-        <label class="block text-sm font-bold text-slate-400 mb-1.5">Class Subject / Batch</label>
-        <select id="subjectSelect" onchange="onSubjectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
-          <option value="" disabled selected>-- Choose Subject --</option>
-        </select>
-      </div>
-    </div>
+      <!-- LEFT COLUMN: Class Log Setup Panel (lg:col-span-5) -->
+      <div class="space-y-3 lg:col-span-5">
 
-    <!-- SUB-BATCH SELECTOR CARD (LABS ONLY) -->
-    <div id="subBatchCard" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center gap-2 pb-2 border-b border-slate-800/60">
-        <span class="material-symbols-rounded text-indigo-400 text-lg">splitscreen</span>
-        <h2 class="font-bold text-sm text-slate-200">Lab Sub-Batch Partitioning</h2>
-      </div>
-      <div>
-        <label class="block text-sm font-bold text-slate-400 mb-2">Select Lab Sub-Batch</label>
-        <div class="grid grid-cols-3 gap-3">
-          <label class="cursor-pointer">
-            <input type="radio" name="subBatchSelect" value="Whole" checked onchange="filterStudentsByBatch()" class="sr-only peer">
-            <div class="p-3 text-center rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
-              Whole Class
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-3">
+          
+          <!-- Card Header -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-indigo-400 text-base">school</span>
+              <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Class & Session Log</h2>
             </div>
-          </label>
-          <label class="cursor-pointer">
-            <input type="radio" name="subBatchSelect" value="1" onchange="filterStudentsByBatch()" class="sr-only peer">
-            <div id="batch1Text" class="p-3 text-center rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
-              Batch 1
+            <div>
+              <span id="logNextSlNoPointer" class="inline-block px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] font-mono font-bold text-emerald-400">Next Entry: #1</span>
             </div>
-          </label>
-          <label class="cursor-pointer">
-            <input type="radio" name="subBatchSelect" value="2" onchange="filterStudentsByBatch()" class="sr-only peer">
-            <div id="batch2Text" class="p-3 text-center rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
-              Batch 2
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- DAILY CLASS LOG DETAILS -->
-    <div id="classLogCard" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-rounded text-indigo-400 text-lg">edit_note</span>
-          <h2 class="font-bold text-sm text-slate-200">Class Log Details</h2>
-        </div>
-        <div>
-          <span id="logNextSlNoPointer" class="inline-block px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[11px] font-mono font-bold text-emerald-400">Next Entry: #1</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-bold text-slate-400 mb-1.5">Date</label>
-          <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500" value="{{ date('Y-m-d') }}">
-        </div>
-        <div>
-          <label class="block text-sm font-bold text-slate-400 mb-1.5">Period / Hour (Select multiple if Lab or Combined Class)</label>
-          <!-- Lab Timetable Continuous Hours Quick Presets -->
-          <div id="labPeriodPresets" class="hidden flex flex-wrap items-center gap-1.5 mb-2">
-            <button type="button" onclick="selectPeriodPreset([1,2,3])" class="px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-md text-[11px] font-bold cursor-pointer transition">
-              P1–P3 (Morning 3h)
-            </button>
-            <button type="button" onclick="selectPeriodPreset([4,5,6])" class="px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-md text-[11px] font-bold cursor-pointer transition">
-              P4–P6 (Afternoon 3h)
-            </button>
-            <button type="button" onclick="selectPeriodPreset([1,2])" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-md text-[11px] font-bold cursor-pointer transition">
-              P1–P2 (2h)
-            </button>
           </div>
-          <div class="flex flex-wrap gap-2">
-            @for ($p = 1; $p <= 7; $p++)
+
+          <!-- Subject Selector -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Class Subject / Batch</label>
+            <select id="subjectSelect" onchange="onSubjectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer transition">
+              <option value="" disabled selected>-- Choose Subject --</option>
+            </select>
+          </div>
+
+          <!-- Sub-Batch Selector (Labs Only, Compact) -->
+          <div id="subBatchCard" class="hidden bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 space-y-1">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lab Sub-Batch</label>
+            <div class="grid grid-cols-3 gap-1.5">
               <label class="cursor-pointer">
-                <input type="checkbox" name="logPeriods" value="{{ $p }}" onchange="checkExistingAttendance()" class="sr-only peer">
-                <div class="px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
-                  P{{ $p }}
+                <input type="radio" name="subBatchSelect" value="Whole" checked onchange="filterStudentsByBatch()" class="sr-only peer">
+                <div class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                  Whole Class
                 </div>
               </label>
-            @endfor
+              <label class="cursor-pointer">
+                <input type="radio" name="subBatchSelect" value="1" onchange="filterStudentsByBatch()" class="sr-only peer">
+                <div id="batch1Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                  Batch 1
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="subBatchSelect" value="2" onchange="filterStudentsByBatch()" class="sr-only peer">
+                <div id="batch2Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                  Batch 2
+                </div>
+              </label>
+            </div>
           </div>
+
+          <!-- Details Section: Date, Periods, Syllabus, Topics -->
+          <div id="classLogCard" class="space-y-2.5 pt-1 border-t border-slate-800/60">
+            
+            <!-- Date & Periods -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Date</label>
+                <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" value="{{ date('Y-m-d') }}">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Period / Hour</label>
+                <!-- Lab Timetable Continuous Presets -->
+                <div id="labPeriodPresets" class="hidden flex flex-wrap items-center gap-1 mb-1">
+                  <button type="button" onclick="selectPeriodPreset([1,2,3])" class="px-1.5 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded text-[10px] font-bold cursor-pointer transition">
+                    P1–P3
+                  </button>
+                  <button type="button" onclick="selectPeriodPreset([4,5,6])" class="px-1.5 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded text-[10px] font-bold cursor-pointer transition">
+                    P4–P6
+                  </button>
+                  <button type="button" onclick="selectPeriodPreset([1,2])" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded text-[10px] font-bold cursor-pointer transition">
+                    P1–P2
+                  </button>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                  @for ($p = 1; $p <= 7; $p++)
+                    <label class="cursor-pointer">
+                      <input type="checkbox" name="logPeriods" value="{{ $p }}" onchange="checkExistingAttendance()" class="sr-only peer">
+                      <div class="px-2 py-1 rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                        P{{ $p }}
+                      </div>
+                    </label>
+                  @endfor
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto Session Attendance Linked Notice -->
+            <div id="existingSessionNotice" class="hidden p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-[11px] flex items-start gap-1.5">
+              <span class="material-symbols-rounded text-sm text-amber-400 shrink-0 mt-0.5">sync_saved_locally</span>
+              <div class="space-y-0.5 leading-tight">
+                <strong class="font-bold block text-amber-200 text-[11px]">Session Attendance Linked</strong>
+                <p class="text-[10px] text-amber-300/90 leading-normal" id="existingSessionNoticeText"></p>
+              </div>
+            </div>
+
+            <div class="relative">
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[11px] font-bold text-slate-400">Practical Experiments (Multi-select)</label>
+                <span id="selectedExpDesktopCount" class="text-[10px] font-mono font-bold text-indigo-400">0 Selected</span>
+              </div>
+              
+              <!-- Dropdown Trigger Button -->
+              <button type="button" id="expDropdownToggleBtn" onclick="toggleExpDropdown()" class="w-full flex items-center justify-between bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer transition">
+                <span id="expDropdownToggleText" class="truncate text-slate-400">-- Choose Experiments (or Manual Entry below) --</span>
+                <span class="material-symbols-rounded text-base text-slate-400 shrink-0 ml-1 transition-transform" id="expDropdownArrow">expand_more</span>
+              </button>
+
+              <!-- Dropdown Menu / Checkbox List -->
+              <div id="expDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-slate-950 border border-slate-700/90 rounded-xl shadow-2xl p-2 space-y-1.5 backdrop-blur-md">
+                <div class="px-1 pt-0.5">
+                  <input type="text" id="expSearchDesktopInput" oninput="filterDesktopExpList()" placeholder="Search experiment name or number..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500">
+                </div>
+                <div id="desktopExpCheckboxContainer" class="max-h-56 overflow-y-auto custom-scrollbar space-y-1 p-0.5">
+                  <div class="text-center py-3 text-slate-500 text-xs font-mono">Select a class subject first</div>
+                </div>
+                <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between px-1">
+                  <button type="button" onclick="clearSelectedExperiments()" class="text-[10px] font-bold text-slate-400 hover:text-rose-400 transition cursor-pointer">Clear All</button>
+                  <button type="button" onclick="closeExpDropdown()" class="text-[10px] font-bold px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded cursor-pointer transition">Done</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 mb-1">Topics Covered (Editable)</label>
+              <textarea id="topicsCovered" rows="2" placeholder="Describe the topics covered in class today..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 resize-none transition"></textarea>
+            </div>
+
+          </div>
+
         </div>
+
       </div>
 
-      <!-- Auto Session Attendance Linked Notice -->
-      <div id="existingSessionNotice" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-start gap-2.5">
-        <span class="material-symbols-rounded text-base text-amber-400 shrink-0">sync_saved_locally</span>
-        <div class="space-y-0.5">
-          <strong class="font-bold block text-amber-200">Session Attendance Detected &amp; Linked</strong>
-          <p class="text-[11px] text-amber-300/90 leading-relaxed" id="existingSessionNoticeText">
-            Attendance for this session was already recorded. It has been loaded automatically so you do not need to re-mark. Saving an additional experiment on this date will record the log without multiplying attendance hours.
-          </p>
-        </div>
-      </div>
+      <!-- RIGHT COLUMN: Attendance Workspace (lg:col-span-7) -->
+      <div class="space-y-3 lg:col-span-7">
 
-      <div>
-        <label class="block text-sm font-bold text-slate-400 mb-1.5">Syllabus / Lesson Plan Topic</label>
-        <select id="lessonPlanSelect" onchange="onLessonPlanChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-[11px] text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
-          <option value="">-- Manual Entry --</option>
-        </select>
-      </div>
+        <!-- ATTENDANCE ENTRY PANEL -->
+        <div id="attendanceCard" class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-3">
+          
+          <!-- Attendance Header -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800/60">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded text-indigo-400 text-lg">fact_check</span>
+              <div>
+                <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Attendance Panel</h2>
+                <div id="studentCountLabel" class="text-[11px] text-slate-400 font-medium">Select subject to load students</div>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <!-- View Mode Switch -->
+              <div class="flex bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+                <button type="button" onclick="switchMode('list')" id="btnModeList" class="px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer">List</button>
+                <button type="button" onclick="switchMode('grid')" id="btnModeGrid" class="px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer">Grid</button>
+              </div>
 
-      <div>
-        <label class="block text-sm font-bold text-slate-400 mb-1.5">Topics Covered (Editable)</label>
-        <textarea id="topicsCovered" rows="3" placeholder="Describe the topics covered in class today..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 resize-none"></textarea>
-      </div>
-    </div>
+              <!-- Mark All Toggle -->
+              <button type="button" onclick="toggleAllCheckboxes()" id="btnCheckAll" class="px-2.5 py-1 text-xs font-bold rounded-md bg-slate-900 border border-slate-700 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 transition-all cursor-pointer">Mark All Absent</button>
 
-    <!-- ATTENDANCE ENTRY PANEL -->
-    <div id="attendanceCard" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-rounded text-indigo-400 text-lg">fact_check</span>
-          <h2 class="font-bold text-sm text-slate-200">Attendance Panel</h2>
-        </div>
-        <!-- Mode Switch -->
-        <div class="flex bg-slate-900 border border-slate-800 rounded-lg p-0.5">
-          <button onclick="switchMode('list')" id="btnModeList" class="px-2.5 py-1 text-sm font-bold rounded-md bg-indigo-600 text-white transition-all">List</button>
-          <button onclick="switchMode('grid')" id="btnModeGrid" class="px-2.5 py-1 text-sm font-bold rounded-md text-slate-400 transition-all">Grid</button>
-        </div>
-      </div>
+              <!-- Quick Save Button for Desktop in Header -->
+              <button type="button" onclick="saveAttendanceAndLog()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
+                <span class="material-symbols-rounded text-sm">save</span> Save
+              </button>
+            </div>
+          </div>
 
-      <!-- MODE 1: LIST VIEW -->
-      <div id="attendanceModeList" class="space-y-3">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-sm text-slate-400 font-bold" id="studentCountLabel">Total Students: 0</span>
-          <button onclick="toggleAllCheckboxes()" id="btnCheckAll" class="text-sm font-bold text-indigo-400 hover:text-indigo-300">Mark All Present</button>
-        </div>
-        
-        <div class="max-h-[300px] overflow-y-auto custom-scrollbar border border-slate-850 rounded-xl bg-slate-900/10">
-          <table class="w-full text-left text-sm border-collapse">
-            <thead>
-              <tr class="bg-slate-900/60 text-slate-400 border-b border-slate-850 uppercase tracking-wider text-sm font-black sticky top-0">
-                <th class="p-3 w-16 text-center">Roll No</th>
-                <th class="p-3">Name</th>
-                <th class="p-3 w-16 text-center">Present</th>
-              </tr>
-            </thead>
-            <tbody id="studentListContainer">
-              <!-- Rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <!-- MODE 1: LIST VIEW -->
+          <div id="attendanceModeList" class="space-y-2">
+            <!-- Compact, Roomy Table on Desktop (max-h-[380px] xl:max-h-[440px]) -->
+            <div class="max-h-[380px] xl:max-h-[440px] overflow-y-auto custom-scrollbar border border-slate-800/80 rounded-lg bg-slate-900/30">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-900/90 backdrop-blur-sm text-slate-400 border-b border-slate-800 uppercase tracking-wider text-[10px] font-black sticky top-0 z-10">
+                    <th class="p-2 w-14 text-center">Roll No</th>
+                    <th class="p-2">Student Name</th>
+                    <th class="p-2 w-16 text-center">Present</th>
+                  </tr>
+                </thead>
+                <tbody id="studentListContainer" class="divide-y divide-slate-800/40">
+                  <tr>
+                    <td colspan="3" class="py-12 text-center text-slate-400 font-medium">
+                      <div class="flex flex-col items-center justify-center gap-2">
+                        <span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span>
+                        <span class="text-xs font-bold text-slate-300">No Subject Selected</span>
+                        <span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      <!-- MODE 2: GRID VIEW (Roll numbers only) -->
-      <div id="attendanceModeGrid" class="hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <p class="text-sm text-slate-400">Tap buttons to toggle <strong class="text-red-400">Absent (Red)</strong> / <strong class="text-emerald-400">Present (Green)</strong>.</p>
-          <button onclick="toggleAllGrid(true)" class="text-sm font-bold text-indigo-400 hover:text-indigo-300">Reset Present</button>
+          <!-- MODE 2: GRID VIEW (Roll numbers only) -->
+          <div id="attendanceModeGrid" class="hidden space-y-2">
+            <div class="flex justify-between items-center px-1">
+              <p class="text-[11px] text-slate-400">Tap to toggle <strong class="text-rose-400">Absent</strong> / <strong class="text-emerald-400">Present</strong>.</p>
+              <button type="button" onclick="toggleAllGrid(true)" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer">Reset All Present</button>
+            </div>
+
+            <!-- Responsive Grid: 5 cols on mobile, 8-10 cols on desktop for zero-scroll matrix -->
+            <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-10 gap-1.5 p-1 max-h-[380px] xl:max-h-[440px] overflow-y-auto custom-scrollbar" id="studentGridContainer">
+              <div class="col-span-full py-12 text-center text-slate-400 font-medium">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span>
+                  <span class="text-xs font-bold text-slate-300">No Subject Selected</span>
+                  <span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM ACTION BAR -->
+          <div class="pt-2 border-t border-slate-800/60">
+            <button type="button" onclick="saveAttendanceAndLog()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
+              <span class="material-symbols-rounded text-base">check_circle</span> Save Log & Attendance
+            </button>
+          </div>
+
         </div>
 
-        <div class="grid grid-cols-5 gap-3 p-1" id="studentGridContainer">
-          <!-- Rendered via JS -->
-        </div>
-      </div>
-
-      <!-- ACTION BUTTONS -->
-      <div class="pt-4 border-t border-slate-800/60">
-        <button onclick="saveAttendanceAndLog()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-premium cursor-pointer">
-          <span class="material-symbols-rounded">check_circle</span> Save Log & Attendance
-        </button>
       </div>
 
     </div>
@@ -252,11 +322,12 @@
 
     function showMessage(msg, isError = false) {
       const banner = document.getElementById('globalAlert');
+      if (!banner) return;
       banner.classList.remove('hidden');
       if (isError) {
-        banner.className = "max-w-xl mx-auto mt-4 px-4 py-3 rounded-xl text-sm font-bold text-center border bg-red-950/40 text-red-400 border-red-900 block shadow-md animate-pulse";
+        banner.className = "max-w-xl lg:max-w-7xl mx-auto mt-4 px-4 py-3 rounded-xl text-sm font-bold text-center border bg-red-950/50 text-red-400 border-red-900 block shadow-md animate-pulse";
       } else {
-        banner.className = "max-w-xl mx-auto mt-4 px-4 py-3 rounded-xl text-sm font-bold text-center border bg-green-950/40 text-green-400 border-green-900 block shadow-md animate-pulse";
+        banner.className = "max-w-xl lg:max-w-7xl mx-auto mt-4 px-4 py-3 rounded-xl text-sm font-bold text-center border bg-emerald-950/50 text-emerald-400 border-emerald-900 block shadow-md animate-pulse";
       }
       banner.innerText = msg;
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -275,25 +346,45 @@
               opt.innerText = `${sub.classroom_id} - ${sub.subject_name} (${sub.subject_code})`;
               select.appendChild(opt);
             });
+
+            // Automatically select subject if provided via URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetSubjectId = urlParams.get('subject_id');
+            if (targetSubjectId && data.subjects.some(s => String(s.id) === String(targetSubjectId))) {
+              select.value = targetSubjectId;
+              onSubjectChange();
+            }
           } else {
             showMessage(data.message || "Failed to load subjects", true);
           }
+        })
+        .catch(err => {
+          console.error("Error loading subjects:", err);
+          showMessage("Failed to connect to server.", true);
         });
     }
 
      function onSubjectChange() {
       const subjectId = document.getElementById('subjectSelect').value;
-      if (!subjectId) return;
+
+      if (!subjectId) {
+        document.getElementById('subBatchCard').classList.add('hidden');
+        const container = document.getElementById('studentListContainer');
+        if (container) container.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></td></tr>';
+        const gridContainer = document.getElementById('studentGridContainer');
+        if (gridContainer) gridContainer.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></div>';
+        const countLabel = document.getElementById('studentCountLabel');
+        if (countLabel) countLabel.innerText = 'Select subject to load students';
+        return;
+      }
 
       // Immediate UI reset to prevent data bleeding between subjects
       const resetPointer = document.getElementById('logNextSlNoPointer');
       if (resetPointer) resetPointer.innerText = 'Next Entry: #0';
       const resetLpSelect = document.getElementById('lessonPlanSelect');
-      if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
+      if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Choose Experiment (or Manual Entry below) --</option>';
       const resetTopics = document.getElementById('topicsCovered');
       if (resetTopics) resetTopics.value = '';
-
-      // Show cards
       document.getElementById('classLogCard').classList.remove('hidden');
       document.getElementById('attendanceCard').classList.remove('hidden');
 
@@ -334,37 +425,14 @@
 
             // Reset present state (all present by default)
             currentStudents.forEach(s => s.present = true);
+            isAllChecked = true;
+            const btnCheckAll = document.getElementById('btnCheckAll');
+            if (btnCheckAll) btnCheckAll.innerText = "Mark All Absent";
 
-            // Populate Lesson Plans / Experiments dropdown
-            const lpSelect = document.getElementById('lessonPlanSelect');
-            lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
-
-            if (data.experiments && data.experiments.length > 0) {
-              const expGroup = document.createElement('optgroup');
-              expGroup.label = 'Practical Syllabus Experiments';
-              data.experiments.forEach(exp => {
-                const opt = document.createElement('option');
-                opt.value = `exp_${exp.id}`;
-                opt.dataset.topic = `Exp ${exp.experiment_no}: ${exp.title}`;
-                opt.dataset.expId = exp.id;
-                opt.innerText = `Exp ${exp.experiment_no}: ${exp.title} [${exp.co_tag || 'CO'}]`;
-                expGroup.appendChild(opt);
-              });
-              lpSelect.appendChild(expGroup);
-            }
-
-            if (data.lesson_plans && data.lesson_plans.length > 0) {
-              const lpGroup = document.createElement('optgroup');
-              lpGroup.label = 'Lesson Plans';
-              data.lesson_plans.forEach((lp, idx) => {
-                const opt = document.createElement('option');
-                opt.value = lp.id;
-                opt.dataset.topic = lp.topic_content || '';
-                opt.innerText = `#${idx + 1}. [${lp.co_id || 'CO'}] ${lp.topic_content} (${lp.status || 'Pending'})`;
-                lpGroup.appendChild(opt);
-              });
-              lpSelect.appendChild(lpGroup);
-            }
+            // Store experiments and populate Experiments multi-checkbox list
+            window.desktopSubjectExperiments = data.experiments || [];
+            window.selectedDesktopExpIds = [];
+            renderDesktopExpCheckboxes();
 
             // Reset topics textarea
             document.getElementById('topicsCovered').value = '';
@@ -381,22 +449,159 @@
         });
     }
 
-    function onLessonPlanChange() {
-      const select = document.getElementById('lessonPlanSelect');
-      const selectedOption = select.options[select.selectedIndex];
-      const topicsElem = document.getElementById('topicsCovered');
-      if (selectedOption && select.value) {
-        if (topicsElem) {
-          topicsElem.value = '';
-          topicsElem.placeholder = 'Selected from dropdown: ' + (selectedOption.dataset.topic || selectedOption.innerText || '');
-        }
-      } else {
-        if (topicsElem) {
-          topicsElem.value = '';
-          topicsElem.placeholder = 'Describe the topics covered in class today...';
-          topicsElem.focus();
+    function toggleExpDropdown() {
+      const menu = document.getElementById('expDropdownMenu');
+      const arrow = document.getElementById('expDropdownArrow');
+      if (menu) {
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+          menu.classList.remove('hidden');
+          if (arrow) arrow.style.transform = 'rotate(180deg)';
+          const search = document.getElementById('expSearchDesktopInput');
+          if (search) {
+            search.value = '';
+            filterDesktopExpList();
+            search.focus();
+          }
+        } else {
+          closeExpDropdown();
         }
       }
+    }
+
+    function closeExpDropdown() {
+      const menu = document.getElementById('expDropdownMenu');
+      const arrow = document.getElementById('expDropdownArrow');
+      if (menu) menu.classList.add('hidden');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+      const btn = document.getElementById('expDropdownToggleBtn');
+      const menu = document.getElementById('expDropdownMenu');
+      if (menu && !menu.classList.contains('hidden')) {
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+          closeExpDropdown();
+        }
+      }
+    });
+
+    function renderDesktopExpCheckboxes() {
+      const container = document.getElementById('desktopExpCheckboxContainer');
+      if (!container) return;
+
+      const exps = window.desktopSubjectExperiments || [];
+      if (exps.length === 0) {
+        container.innerHTML = '<div class="text-center py-3 text-slate-500 text-xs font-mono">No practical experiments defined for this subject.</div>';
+        updateDesktopExpSelectedDisplay();
+        return;
+      }
+
+      let html = '';
+      exps.forEach(exp => {
+        const isChecked = (window.selectedDesktopExpIds || []).includes(exp.id);
+        const expNo = exp.experiment_no;
+        const fullTopic = `Exp ${expNo}: ${exp.title}`;
+        const searchTerms = `${expNo} ${exp.title} ${exp.co_tag || ''}`.toLowerCase();
+
+        html += `
+        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-indigo-950/40 border-indigo-500/50' : ''}" data-search="${searchTerms}">
+          <input type="checkbox" value="${exp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopExpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+          <div class="flex-1 min-w-0 leading-tight">
+            <div class="flex items-center justify-between gap-1 mb-0.5">
+              <span class="text-[10px] font-mono font-black text-indigo-300">Exp ${expNo}</span>
+              ${exp.co_tag ? `<span class="text-[9px] font-mono text-slate-400 bg-slate-800 px-1 py-0.2 rounded">${exp.co_tag}</span>` : ''}
+            </div>
+            <div class="text-[11px] font-medium text-slate-200 truncate" title="${fullTopic}">${exp.title}</div>
+          </div>
+        </label>`;
+      });
+
+      container.innerHTML = html;
+      updateDesktopExpSelectedDisplay();
+    }
+
+    function onDesktopExpCheckboxChange(checkbox) {
+      const expId = parseInt(checkbox.value);
+      if (!window.selectedDesktopExpIds) window.selectedDesktopExpIds = [];
+
+      if (checkbox.checked) {
+        if (!window.selectedDesktopExpIds.includes(expId)) {
+          window.selectedDesktopExpIds.push(expId);
+        }
+      } else {
+        window.selectedDesktopExpIds = window.selectedDesktopExpIds.filter(id => id !== expId);
+      }
+
+      updateDesktopExpSelectedDisplay();
+      syncDesktopSelectedExpsToTopics();
+    }
+
+    function clearSelectedExperiments() {
+      window.selectedDesktopExpIds = [];
+      const checkboxes = document.querySelectorAll('#desktopExpCheckboxContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = false);
+      updateDesktopExpSelectedDisplay();
+      syncDesktopSelectedExpsToTopics();
+    }
+
+    function updateDesktopExpSelectedDisplay() {
+      const selected = window.selectedDesktopExpIds || [];
+      const countLabel = document.getElementById('selectedExpDesktopCount');
+      if (countLabel) countLabel.innerText = `${selected.length} Selected`;
+
+      const btnText = document.getElementById('expDropdownToggleText');
+      if (btnText) {
+        if (selected.length === 0) {
+          btnText.innerText = '-- Choose Experiments (or Manual Entry below) --';
+          btnText.className = 'truncate text-slate-400';
+        } else if (selected.length === 1) {
+          const exp = (window.desktopSubjectExperiments || []).find(e => e.id === selected[0]);
+          btnText.innerText = exp ? `Exp ${exp.experiment_no}: ${exp.title}` : `1 Experiment Selected`;
+          btnText.className = 'truncate text-indigo-300 font-bold';
+        } else {
+          const expNos = selected.map(id => {
+            const exp = (window.desktopSubjectExperiments || []).find(e => e.id === id);
+            return exp ? `Exp ${exp.experiment_no}` : '';
+          }).filter(Boolean);
+          btnText.innerText = `${selected.length} Experiments (${expNos.join(', ')})`;
+          btnText.className = 'truncate text-indigo-300 font-bold';
+        }
+      }
+    }
+
+    function syncDesktopSelectedExpsToTopics() {
+      const selected = window.selectedDesktopExpIds || [];
+      const exps = window.desktopSubjectExperiments || [];
+      const topicsElem = document.getElementById('topicsCovered');
+      if (!topicsElem) return;
+
+      if (selected.length === 0) {
+        topicsElem.value = '';
+        topicsElem.placeholder = 'Describe the topics covered in class today...';
+        return;
+      }
+
+      const list = selected.map(id => {
+        const exp = exps.find(e => e.id === id);
+        return exp ? `Exp ${exp.experiment_no}: ${exp.title}` : '';
+      }).filter(Boolean);
+
+      topicsElem.value = list.join(' & ');
+    }
+
+    function filterDesktopExpList() {
+      const query = (document.getElementById('expSearchDesktopInput')?.value || '').trim().toLowerCase();
+      const rows = document.querySelectorAll('.desktop-exp-row');
+      rows.forEach(r => {
+        const s = r.getAttribute('data-search') || '';
+        if (!query || s.includes(query)) {
+          r.classList.remove('hidden');
+        } else {
+          r.classList.add('hidden');
+        }
+      });
     }
 
     function switchMode(mode) {
@@ -407,14 +612,14 @@
       const divGrid = document.getElementById('attendanceModeGrid');
 
       if (mode === 'list') {
-        btnList.className = "px-2.5 py-1 text-sm font-bold rounded-md bg-indigo-600 text-white transition-all";
-        btnGrid.className = "px-2.5 py-1 text-sm font-bold rounded-md text-slate-400 transition-all";
+        btnList.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer";
+        btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer";
         divList.classList.remove('hidden');
         divGrid.classList.add('hidden');
         renderList();
       } else {
-        btnGrid.className = "px-2.5 py-1 text-sm font-bold rounded-md bg-indigo-600 text-white transition-all";
-        btnList.className = "px-2.5 py-1 text-sm font-bold rounded-md text-slate-400 transition-all";
+        btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer";
+        btnList.className = "px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer";
         divGrid.classList.remove('hidden');
         divList.classList.add('hidden');
         renderGrid();
@@ -438,12 +643,21 @@
       }
     }
 
-    function filterStudentsByBatch() {
+    function updateAttendanceStats() {
       const filtered = getFilteredStudents();
-      document.getElementById('studentCountLabel').innerText = `Total Students: ${filtered.length}`;
+      const presentCount = filtered.filter(s => s.present).length;
+      const absentCount = filtered.length - presentCount;
+      const countLabel = document.getElementById('studentCountLabel');
+      if (countLabel) {
+        countLabel.innerHTML = `Total: <span class="text-slate-200 font-bold">${filtered.length}</span> <span class="text-slate-600 mx-1">•</span> <span class="text-emerald-400 font-bold">${presentCount} Present</span> <span class="text-slate-600 mx-1">•</span> <span class="text-rose-400 font-bold">${absentCount} Absent</span>`;
+      }
+    }
+
+    function filterStudentsByBatch() {
       renderList();
       renderGrid();
       checkExistingAttendance();
+      updateAttendanceStats();
     }
 
     function selectPeriodPreset(periods) {
@@ -532,22 +746,43 @@
 
       const filtered = getFilteredStudents();
       if (filtered.length === 0) {
-        container.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400">No students registered in this class.</td></tr>';
+        container.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 font-medium">No students registered in this class.</td></tr>';
+        updateAttendanceStats();
         return;
       }
 
       filtered.forEach((student, index) => {
         const tr = document.createElement('tr');
-        tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium";
+        tr.className = "hover:bg-slate-900/50 transition-colors cursor-pointer select-none";
+        const isPres = !!student.present;
         tr.innerHTML = `
-          <td class="p-3 text-center font-bold font-mono text-slate-500">${student.roll_no || index + 1}</td>
-          <td class="p-3 font-bold text-white">${student.name}</td>
-          <td class="p-3 text-center">
-            <input type="checkbox" onchange="toggleStudentPresent('${student.reg_no}', this.checked)" ${student.present ? 'checked' : ''} class="w-5 h-5 rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-indigo-600 cursor-pointer">
+          <td class="py-2 px-2 text-center font-bold font-mono text-xs ${isPres ? 'text-indigo-400' : 'text-rose-400'}">${student.roll_no || index + 1}</td>
+          <td class="py-2 px-2 font-semibold text-slate-200 text-xs">
+            <div class="flex items-center justify-between">
+              <span>${student.name}</span>
+              <span class="text-[10px] text-slate-500 font-mono hidden md:inline">${student.reg_no || ''}</span>
+            </div>
+          </td>
+          <td class="py-2 px-2 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" onchange="toggleStudentPresent('${student.reg_no}', this.checked)" ${isPres ? 'checked' : ''} class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-indigo-600 cursor-pointer">
           </td>
         `;
+        tr.onclick = (e) => {
+          if (e.target.tagName !== 'INPUT') {
+            const cb = tr.querySelector('input[type="checkbox"]');
+            if (cb) {
+              cb.checked = !cb.checked;
+              toggleStudentPresent(student.reg_no, cb.checked);
+              const rollTd = tr.querySelector('td:first-child');
+              if (rollTd) {
+                rollTd.className = `py-2 px-2 text-center font-bold font-mono text-xs ${cb.checked ? 'text-indigo-400' : 'text-rose-400'}`;
+              }
+            }
+          }
+        };
         container.appendChild(tr);
       });
+      updateAttendanceStats();
     }
 
     function renderGrid() {
@@ -557,25 +792,32 @@
       const filtered = getFilteredStudents();
       if (filtered.length === 0) {
         container.innerHTML = '<div class="col-span-full p-6 text-center text-slate-400">No students registered.</div>';
+        updateAttendanceStats();
         return;
       }
 
       filtered.forEach((student, index) => {
         const roll = student.roll_no || index + 1;
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.onclick = () => {
           student.present = !student.present;
           renderGrid();
+          const listCb = document.querySelector(`input[onchange*="${student.reg_no}"]`);
+          if (listCb) listCb.checked = student.present;
         };
         
         if (student.present) {
-          btn.className = "py-3 rounded-xl font-bold bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-sm text-center cursor-pointer hover:bg-emerald-600/30 transition-premium shadow-inner shadow-emerald-500/10";
+          btn.className = "py-3 lg:py-3.5 px-2 rounded-xl font-bold bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-sm text-center cursor-pointer hover:bg-emerald-600/30 transition-all shadow-inner shadow-emerald-500/10 flex flex-col items-center justify-center gap-0.5";
+          btn.innerHTML = `<span class="text-sm font-mono font-black">${roll}</span><span class="text-[9px] uppercase tracking-wider font-semibold opacity-75">P</span>`;
         } else {
-          btn.className = "py-3 rounded-xl font-bold bg-rose-600/20 text-rose-400 border border-rose-500/30 text-sm text-center cursor-pointer hover:bg-rose-600/30 transition-premium shadow-inner shadow-rose-500/10";
+          btn.className = "py-3 lg:py-3.5 px-2 rounded-xl font-bold bg-rose-600/20 text-rose-400 border border-rose-500/30 text-sm text-center cursor-pointer hover:bg-rose-600/30 transition-all shadow-inner shadow-rose-500/10 flex flex-col items-center justify-center gap-0.5";
+          btn.innerHTML = `<span class="text-sm font-mono font-black">${roll}</span><span class="text-[9px] uppercase tracking-wider font-semibold opacity-75">A</span>`;
         }
-        btn.innerText = roll;
+        btn.title = `${student.name} (${student.reg_no || roll})`;
         container.appendChild(btn);
       });
+      updateAttendanceStats();
     }
 
     function toggleStudentPresent(regNo, isPresent) {
@@ -583,19 +825,26 @@
       if (student) {
         student.present = isPresent;
       }
+      updateAttendanceStats();
     }
 
     function toggleAllCheckboxes() {
       isAllChecked = !isAllChecked;
       const filtered = getFilteredStudents();
       filtered.forEach(s => s.present = isAllChecked);
-      document.getElementById('btnCheckAll').innerText = isAllChecked ? "Mark All Absent" : "Mark All Present";
+      const btn = document.getElementById('btnCheckAll');
+      if (btn) btn.innerText = isAllChecked ? "Mark All Absent" : "Mark All Present";
       renderList();
+      renderGrid();
     }
 
     function toggleAllGrid(isPresent) {
       const filtered = getFilteredStudents();
       filtered.forEach(s => s.present = isPresent);
+      isAllChecked = isPresent;
+      const btn = document.getElementById('btnCheckAll');
+      if (btn) btn.innerText = isAllChecked ? "Mark All Absent" : "Mark All Present";
+      renderList();
       renderGrid();
     }
 
@@ -606,18 +855,8 @@
       const date = dateSelect ? dateSelect.value : '';
       
       const checkedPeriods = Array.from(document.querySelectorAll('input[name="logPeriods"]:checked')).map(el => parseInt(el.value));
-      const lpSelect = document.getElementById('lessonPlanSelect');
-      const selOpt = (lpSelect && lpSelect.selectedIndex >= 0) ? lpSelect.options[lpSelect.selectedIndex] : null;
-      const lpId = lpSelect ? lpSelect.value : '';
       const topicsElem = document.getElementById('topicsCovered');
-      const manualTopics = topicsElem ? topicsElem.value.trim() : '';
-
-      let topics = '';
-      if (selOpt && selOpt.value) {
-        topics = manualTopics || selOpt.dataset.topic || selOpt.innerText.trim();
-      } else {
-        topics = manualTopics;
-      }
+      const topics = topicsElem ? topicsElem.value.trim() : '';
 
       if (topicsElem) topicsElem.classList.remove('border-red-500');
 
@@ -630,11 +869,11 @@
         return;
       }
       if (!topics) {
-        if (topicsElem && (!selOpt || !selOpt.value)) {
+        if (topicsElem) {
           topicsElem.classList.add('border-red-500');
           topicsElem.focus();
         }
-        showMessage("Please select a topic or enter manual topics covered in class today.", true);
+        showMessage("Please select experiment(s) or enter manual topics covered in class today.", true);
         return;
       }
 
@@ -658,13 +897,8 @@
       const csrfMeta = document.querySelector('meta[name="csrf-token"]');
       const csrfToken = csrfMeta ? csrfMeta.content : '';
 
-      let practicalExpId = null;
-      let lessonPlanIdVal = null;
-      if (lpId && lpId.toString().startsWith('exp_')) {
-        practicalExpId = parseInt(lpId.replace('exp_', ''));
-      } else if (lpId && !isNaN(parseInt(lpId))) {
-        lessonPlanIdVal = parseInt(lpId);
-      }
+      const selectedExpIds = window.selectedDesktopExpIds || [];
+      const practicalExpId = selectedExpIds.length > 0 ? selectedExpIds[0] : null;
 
       fetch('/api/staff/attendance/save', {
         method: 'POST',
@@ -676,8 +910,8 @@
           batch_subject_id: subjectId,
           date: date,
           periods: checkedPeriods,
-          lesson_plan_id: lessonPlanIdVal,
           practical_experiment_id: practicalExpId,
+          practical_experiment_ids: selectedExpIds,
           topics_covered: topics,
           present_students: present,
           absent_students: absent,
@@ -698,9 +932,7 @@
       .then(data => {
         if (data.status === 'SUCCESS') {
           showMessage(data.message || "Class log and attendance recorded successfully!", false);
-          setTimeout(() => {
-            window.location.href = "{{ $backLink }}";
-          }, 1800);
+          checkExistingAttendance();
         } else {
           showMessage(data.message || "Failed to save attendance log.", true);
         }

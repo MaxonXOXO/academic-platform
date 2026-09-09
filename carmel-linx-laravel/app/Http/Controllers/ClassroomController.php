@@ -4049,6 +4049,11 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $totalAttendanceClasses = count($actualSlotKeys);
         $actualHoursConducted = count(array_unique(array_map(fn($l) => $l->date . '_P' . $l->period, $classLogs->toArray())));
 
+        $assignedBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->pluck('lab_batch', 'reg_no');
+        $studentRollMap = $students->pluck('roll_no', 'reg_no');
+
         // Build detailed conducted experiments list from class logs & practical experiment marks
         $conductedDetails = [];
         $recordedExpMap = [];
@@ -4075,6 +4080,10 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $aList = json_decode($first->absent_students ?? '[]', true) ?: [];
             $totalInLog = count($pList) + count($aList);
             $presentCount = count($pList);
+            $absentCount = count($aList);
+
+            $absentRolls = collect($aList)->map(fn($r) => $studentRollMap->get($r))->filter(fn($r) => $r !== null)->sort()->values()->all();
+            $absentRollsStr = !empty($absentRolls) ? implode(', ', $absentRolls) : ($presentCount > 0 ? 'None' : '-');
 
             $logSessions[] = [
                 'date' => $date,
@@ -4086,6 +4095,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'topic' => $topic,
                 'lesson_plan_id' => $first->lesson_plan_id,
                 'present_count' => $presentCount,
+                'absent_count'  => $absentCount,
+                'absent_roll_nos' => $absentRollsStr,
                 'total_count' => $totalInLog > 0 ? $totalInLog : $students->count(),
                 'attendance_pct' => $totalInLog > 0 ? round(($presentCount / $totalInLog) * 100, 1) : 100.0,
             ];
@@ -4108,77 +4119,118 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'batch'         => $s['batch_label'],
                     'sub_batch'     => $s['sub_batch'],
                     'present_count' => $s['present_count'],
+                    'absent_count'  => $s['absent_count'],
+                    'absent_roll_nos' => $s['absent_roll_nos'],
                     'total_count'   => $s['total_count'],
                     'attendance_pct'=> $s['attendance_pct'],
                 ];
             }
         } else {
-            // When syllabus experiments exist: match each conducted/graded experiment with its log session
+            // When syllabus experiments exist: match each conducted/graded experiment with its log sessions for EACH batch
             foreach ($experiments as $exp) {
                 $hasMarks = $experimentMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
                 $expNo = trim((string)$exp->experiment_no);
                 $expTitle = strtolower(trim((string)($exp->title ?? '')));
 
-                $matchedSession = null;
-                $isExplicitMatch = false;
+                $matchingSessions = [];
 
                 foreach ($logSessions as $s) {
                     $t = trim((string)($s['topic'] ?? ''));
                     if (empty($t)) continue;
 
+                    $matches = false;
                     // Match experiment number e.g. "Exp 10", "Experiment 10", "Expt 10"
                     if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
-                        $matchedSession = $s;
-                        $isExplicitMatch = true;
-                        break;
-                    }
-
-                    // Match comma/ampersand separated lists e.g. "Exp 10, 11"
-                    if (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                        $matches = true;
+                    } elseif (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
                         $nums = preg_split('/[\s,&-]+/', $mList[1]);
                         if (in_array($expNo, array_map('trim', $nums))) {
-                            $matchedSession = $s;
-                            $isExplicitMatch = true;
-                            break;
+                            $matches = true;
                         }
-                    }
-
-                    // Match experiment title
-                    if (!empty($expTitle) && strlen($expTitle) >= 6) {
+                    } elseif (!empty($expTitle) && strlen($expTitle) >= 6) {
                         $tLower = strtolower($t);
                         if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
-                            $matchedSession = $s;
-                            $isExplicitMatch = true;
-                            break;
+                            $matches = true;
                         }
+                    }
+
+                    if ($matches) {
+                        $matchingSessions[] = $s;
                     }
                 }
 
-                // If experiment has verified marks (> 0) and an explicit conducted_date, match session on that date if available
-                if (!$matchedSession && $hasMarks && !empty($exp->conducted_date)) {
-                    $matchedSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
+                // If no session matched by topic, but experiment has marks/date, look by date
+                if (empty($matchingSessions) && $hasMarks && !empty($exp->conducted_date)) {
+                    $dateMatches = collect($logSessions)->where('date', $exp->conducted_date)->all();
+                    if (!empty($dateMatches)) {
+                        $matchingSessions = array_values($dateMatches);
+                    }
                 }
 
-                if ($isExplicitMatch || $hasMarks) {
+                if (!empty($matchingSessions)) {
+                    foreach ($matchingSessions as $mSession) {
+                        $conductedDetails[] = [
+                            'experiment_id' => $exp->id,
+                            'experiment_no' => 'Exp ' . $exp->experiment_no,
+                            'title'         => $exp->title,
+                            'co_tag'        => $exp->co_tag ?? 'CO1',
+                            'date'          => $mSession['date'],
+                            'periods'       => $mSession['periods'],
+                            'hours_count'   => $mSession['hours_count'],
+                            'hours_text'    => $mSession['hours_text'],
+                            'batch'         => $mSession['batch_label'],
+                            'sub_batch'     => $mSession['sub_batch'],
+                            'present_count' => $mSession['present_count'],
+                            'absent_count'  => $mSession['absent_count'],
+                            'absent_roll_nos' => $mSession['absent_roll_nos'],
+                            'total_count'   => $mSession['total_count'],
+                            'attendance_pct'=> $mSession['attendance_pct'],
+                        ];
+                    }
+                } elseif ($hasMarks) {
                     $gradedCount = $experimentMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
                         'experiment_id' => $exp->id,
                         'experiment_no' => 'Exp ' . $exp->experiment_no,
                         'title'         => $exp->title,
                         'co_tag'        => $exp->co_tag ?? 'CO1',
-                        'date'          => $matchedSession ? $matchedSession['date'] : ($exp->conducted_date ?: 'Conducted'),
-                        'periods'       => $matchedSession ? $matchedSession['periods'] : [1, 2, 3],
-                        'hours_count'   => $matchedSession ? $matchedSession['hours_count'] : 3,
-                        'hours_text'    => $matchedSession ? $matchedSession['hours_text'] : '3 hrs (Lab)',
-                        'batch'         => $matchedSession ? $matchedSession['batch_label'] : 'Whole Class',
-                        'sub_batch'     => $matchedSession ? $matchedSession['sub_batch'] : 'Whole',
-                        'present_count' => $matchedSession ? $matchedSession['present_count'] : $gradedCount,
-                        'total_count'   => $matchedSession ? $matchedSession['total_count'] : $students->count(),
-                        'attendance_pct'=> $matchedSession ? $matchedSession['attendance_pct'] : ($students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 100.0),
+                        'date'          => $exp->conducted_date ?: 'Conducted',
+                        'periods'       => [1, 2, 3],
+                        'hours_count'   => 3,
+                        'hours_text'    => '3 hrs (Lab)',
+                        'batch'         => 'Whole Class',
+                        'sub_batch'     => 'Whole',
+                        'present_count' => $gradedCount,
+                        'absent_count'  => max(0, $students->count() - $gradedCount),
+                        'absent_roll_nos' => '-',
+                        'total_count'   => $students->count(),
+                        'attendance_pct'=> $students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 100.0,
                     ];
                 }
             }
         }
+
+        // Order completed experiments: Batch 1 in initial rows, then Batch 2, then Whole Class / others
+        usort($conductedDetails, function($a, $b) {
+            $batchRank = function($item) {
+                $sb = (string)($item['sub_batch'] ?? '');
+                $b = strtolower((string)($item['batch'] ?? ''));
+                if ($sb === '1' || str_contains($b, 'batch 1') || $b === 'b1') return 1;
+                if ($sb === '2' || str_contains($b, 'batch 2') || $b === 'b2') return 2;
+                return 3;
+            };
+            $rA = $batchRank($a);
+            $rB = $batchRank($b);
+            if ($rA !== $rB) return $rA <=> $rB;
+
+            preg_match('/\d+/', (string)($a['experiment_no'] ?? ''), $mA);
+            preg_match('/\d+/', (string)($b['experiment_no'] ?? ''), $mB);
+            $numA = isset($mA[0]) ? (int)$mA[0] : 0;
+            $numB = isset($mB[0]) ? (int)$mB[0] : 0;
+            if ($numA !== $numB) return $numA <=> $numB;
+
+            return strcmp((string)($a['date'] ?? ''), (string)($b['date'] ?? ''));
+        });
 
         // Count of conducted experiments (either from detailed log entries or syllabus marked)
         $conductedExperimentsCount = count($conductedDetails);
@@ -4206,8 +4258,20 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             });
         }
 
-        $data = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentPresentSlots, $studentScheduledSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs) {
+        $data = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentPresentSlots, $studentScheduledSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs, $assignedBatches) {
             $regNo = $student->reg_no;
+
+            $labBatch = null;
+            if (isset($assignedBatches[$regNo])) {
+                $labBatch = (string)$assignedBatches[$regNo];
+            } elseif ($batchSubject->lab_batch_cutoff && $student->roll_no !== null) {
+                $labBatch = ((int)$student->roll_no <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+            } elseif ($batchSubject->lab_batch_mode === 'full') {
+                $labBatch = '1';
+            } else {
+                $mid = (int)ceil($students->count() / 2);
+                $labBatch = ($sIdx < $mid) ? '1' : '2';
+            }
 
             // Compute dynamic attendance percentage & R2021 slab mark (out of 15) using actual unique slots
             $presentClasses = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
@@ -4342,6 +4406,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'reg_no' => $regNo,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
+                'lab_batch' => $labBatch,
                 'sbte_reg_no' => $student->sbte_reg_no ?? $regNo,
                 'attendance_percentage' => round($attendancePercentage, 2),
                 'suggested_attendance_marks' => $calculatedAttendanceMarks,
@@ -4387,6 +4452,11 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             'conducted_experiments_details' => $conductedDetails,
             'total_experiments_count' => count($experiments),
             'actual_hours_conducted' => $actualHoursConducted,
+            'lab_batch_config' => [
+                'mode' => $batchSubject->lab_batch_mode ?? 'split',
+                'cutoff' => $batchSubject->lab_batch_cutoff,
+                'is_configured' => $assignedBatches->count() > 0 || !empty($batchSubject->lab_batch_cutoff) || $batchSubject->lab_batch_mode === 'full',
+            ],
             'tests' => $tests->map(function($t) {
                 return [
                     'id' => $t->id,
@@ -4594,12 +4664,27 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $affectedRegNos = [];
         if ($scope === 'batch' && ($subBatch === '1' || $subBatch === '2')) {
-            $totalCount = $students->count();
-            $mid = (int)ceil($totalCount / 2);
-            if ($subBatch === '1') {
-                $affectedRegNos = $students->slice(0, $mid)->pluck('reg_no')->toArray();
+            $assignedBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
+                ->whereIn('reg_no', $students->pluck('reg_no'))
+                ->pluck('lab_batch', 'reg_no');
+
+            if ($assignedBatches->count() > 0) {
+                $affectedRegNos = $students->filter(fn($s) => ($assignedBatches[$s->reg_no] ?? null) === (string)$subBatch)->pluck('reg_no')->toArray();
+            } elseif ($batchSubject->lab_batch_cutoff) {
+                $cutoff = (int)$batchSubject->lab_batch_cutoff;
+                if ($subBatch === '1') {
+                    $affectedRegNos = $students->filter(fn($s) => $s->roll_no !== null && (int)$s->roll_no <= $cutoff)->pluck('reg_no')->toArray();
+                } else {
+                    $affectedRegNos = $students->filter(fn($s) => $s->roll_no === null || (int)$s->roll_no > $cutoff)->pluck('reg_no')->toArray();
+                }
             } else {
-                $affectedRegNos = $students->slice($mid)->pluck('reg_no')->toArray();
+                $totalCount = $students->count();
+                $mid = (int)ceil($totalCount / 2);
+                if ($subBatch === '1') {
+                    $affectedRegNos = $students->slice(0, $mid)->pluck('reg_no')->toArray();
+                } else {
+                    $affectedRegNos = $students->slice($mid)->pluck('reg_no')->toArray();
+                }
             }
         } else {
             $affectedRegNos = $students->pluck('reg_no')->toArray();

@@ -2595,9 +2595,19 @@
                         const subBatchBox = document.getElementById('attSubBatchBox');
                         if (isLab) {
                             subBatchBox.classList.remove('d-none');
-                            const half = Math.ceil(currentAttStudents.length / 2);
-                            document.getElementById('sb1Label').textContent = `Batch 1 (1-${half})`;
-                            document.getElementById('sb2Label').textContent = `Batch 2 (${half + 1}+)`;
+                            const bSummary = data.batch_split_summary;
+                            if (data.lab_batch_mode === 'full') {
+                                document.getElementById('sb1Label').textContent = 'Batch 1';
+                                document.getElementById('sb2Label').textContent = 'Batch 2';
+                                document.getElementById('sbWhole').checked = true;
+                            } else if (bSummary && bSummary.b1_range && bSummary.b2_range) {
+                                document.getElementById('sb1Label').textContent = `Batch 1 (${bSummary.b1_range})`;
+                                document.getElementById('sb2Label').textContent = `Batch 2 (${bSummary.b2_range})`;
+                            } else {
+                                const half = Math.ceil(currentAttStudents.length / 2);
+                                document.getElementById('sb1Label').textContent = `Batch 1 (1-${half})`;
+                                document.getElementById('sb2Label').textContent = `Batch 2 (${half + 1}+)`;
+                            }
                         } else {
                             subBatchBox.classList.add('d-none');
                             document.getElementById('sbWhole').checked = true;
@@ -2788,6 +2798,11 @@
             const selected = document.querySelector('input[name="attSubBatch"]:checked');
             const val = selected ? selected.value : 'Whole';
             if (val === 'Whole') return currentAttStudents;
+
+            const hasAssignedBatches = currentAttStudents.some(s => s.lab_batch);
+            if (hasAssignedBatches) {
+                return currentAttStudents.filter(s => String(s.lab_batch) === String(val));
+            }
 
             const half = Math.ceil(currentAttStudents.length / 2);
             if (val === '1') {

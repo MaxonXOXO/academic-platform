@@ -109,7 +109,12 @@
 
           <!-- Sub-Batch Selector (Labs Only, Compact) -->
           <div id="subBatchCard" class="hidden bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 space-y-1">
-            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lab Sub-Batch</label>
+            <div class="flex items-center justify-between">
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lab Sub-Batch</label>
+              <button type="button" onclick="openLabBatchSetupModalFromAttendance()" class="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition" title="Configure Lab Batch Division (Full vs Split & Student Cutoff)">
+                <span class="material-symbols-rounded text-xs">tune</span> Batch split setup
+              </button>
+            </div>
             <div class="grid grid-cols-3 gap-1.5">
               <label class="cursor-pointer">
                 <input type="radio" name="subBatchSelect" value="Whole" checked onchange="filterStudentsByBatch()" class="sr-only peer">
@@ -179,20 +184,20 @@
 
             <div class="relative">
               <div class="flex items-center justify-between mb-1">
-                <label class="block text-[11px] font-bold text-slate-400">Practical Experiments (Multi-select)</label>
+                <label class="block text-[11px] font-bold text-slate-400">Subject Log</label>
                 <span id="selectedExpDesktopCount" class="text-[10px] font-mono font-bold text-indigo-400">0 Selected</span>
               </div>
               
               <!-- Dropdown Trigger Button -->
               <button type="button" id="expDropdownToggleBtn" onclick="toggleExpDropdown()" class="w-full flex items-center justify-between bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer transition">
-                <span id="expDropdownToggleText" class="truncate text-slate-400">-- Choose Experiments (or Manual Entry below) --</span>
+                <span id="expDropdownToggleText" class="truncate text-slate-400">-- Choose Topic / Experiment (or Manual Entry below) --</span>
                 <span class="material-symbols-rounded text-base text-slate-400 shrink-0 ml-1 transition-transform" id="expDropdownArrow">expand_more</span>
               </button>
 
               <!-- Dropdown Menu / Checkbox List -->
               <div id="expDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-slate-950 border border-slate-700/90 rounded-xl shadow-2xl p-2 space-y-1.5 backdrop-blur-md">
                 <div class="px-1 pt-0.5">
-                  <input type="text" id="expSearchDesktopInput" oninput="filterDesktopExpList()" placeholder="Search experiment name or number..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500">
+                  <input type="text" id="expSearchDesktopInput" oninput="filterDesktopExpList()" placeholder="Search topic or experiment..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500">
                 </div>
                 <div id="desktopExpCheckboxContainer" class="max-h-56 overflow-y-auto custom-scrollbar space-y-1 p-0.5">
                   <div class="text-center py-3 text-slate-500 text-xs font-mono">Select a class subject first</div>
@@ -381,10 +386,19 @@
       // Immediate UI reset to prevent data bleeding between subjects
       const resetPointer = document.getElementById('logNextSlNoPointer');
       if (resetPointer) resetPointer.innerText = 'Next Entry: #0';
-      const resetLpSelect = document.getElementById('lessonPlanSelect');
-      if (resetLpSelect) resetLpSelect.innerHTML = '<option value="">-- Choose Experiment (or Manual Entry below) --</option>';
       const resetTopics = document.getElementById('topicsCovered');
       if (resetTopics) resetTopics.value = '';
+      window.selectedDesktopExpIds = [];
+      window.selectedDesktopLpIds = [];
+      const btnText = document.getElementById('expDropdownToggleText');
+      if (btnText) {
+        btnText.innerText = '-- Choose Topic / Experiment (or Manual Entry below) --';
+        btnText.className = 'truncate text-slate-400';
+      }
+      const countLabel = document.getElementById('selectedExpDesktopCount');
+      if (countLabel) countLabel.innerText = '0 Selected';
+      const container = document.getElementById('desktopExpCheckboxContainer');
+      if (container) container.innerHTML = '<div class="text-center py-3 text-slate-500 text-xs font-mono">Loading...</div>';
       document.getElementById('classLogCard').classList.remove('hidden');
       document.getElementById('attendanceCard').classList.remove('hidden');
 
@@ -396,7 +410,20 @@
             classroomId = data.classroom_id;
 
             // Check if Lab or Practical
-            const isLab = (data.subject_type && (data.subject_type.toLowerCase().includes('lab') || data.subject_type.toLowerCase().includes('practical') || data.subject_type.toLowerCase().includes('practicum')));
+            const hasExperiments = (data.experiments && data.experiments.length > 0);
+            const isLab = hasExperiments || (data.subject_type && (
+              data.subject_type.toLowerCase().includes('lab') ||
+              data.subject_type.toLowerCase().includes('practical') ||
+              data.subject_type.toLowerCase().includes('practicum') ||
+              data.subject_type.toLowerCase().includes('drawing') ||
+              data.subject_type.toLowerCase().includes('workshop')
+            ));
+            window.isCurrentDesktopLab = isLab;
+            window.desktopSubjectExperiments = data.experiments || [];
+            window.desktopSubjectLessonPlans = data.lesson_plans || [];
+            window.selectedDesktopExpIds = [];
+            window.selectedDesktopLpIds = [];
+
             const subBatchCard = document.getElementById('subBatchCard');
             const labPresets = document.getElementById('labPeriodPresets');
             if (labPresets) {
@@ -406,9 +433,20 @@
 
             if (isLab) {
               subBatchCard.classList.remove('hidden');
-              const half = Math.ceil(currentStudents.length / 2);
-              document.getElementById('batch1Text').innerText = `Batch 1 (1-${half})`;
-              document.getElementById('batch2Text').innerText = `Batch 2 (${half + 1}+)`;
+              const bSummary = data.batch_split_summary;
+              if (data.lab_batch_mode === 'full') {
+                document.getElementById('batch1Text').innerText = 'Batch 1';
+                document.getElementById('batch2Text').innerText = 'Batch 2';
+                const wholeRadio = document.querySelector('input[name="subBatchSelect"][value="Whole"]');
+                if (wholeRadio) wholeRadio.checked = true;
+              } else if (bSummary && bSummary.b1_range && bSummary.b2_range) {
+                document.getElementById('batch1Text').innerText = `Batch 1 (${bSummary.b1_range})`;
+                document.getElementById('batch2Text').innerText = `Batch 2 (${bSummary.b2_range})`;
+              } else {
+                const half = Math.ceil(currentStudents.length / 2);
+                document.getElementById('batch1Text').innerText = `Batch 1 (1-${half})`;
+                document.getElementById('batch2Text').innerText = `Batch 2 (${half + 1}+)`;
+              }
             } else {
               subBatchCard.classList.add('hidden');
               const wholeRadio = document.querySelector('input[name="subBatchSelect"][value="Whole"]');
@@ -429,10 +467,15 @@
             const btnCheckAll = document.getElementById('btnCheckAll');
             if (btnCheckAll) btnCheckAll.innerText = "Mark All Absent";
 
-            // Store experiments and populate Experiments multi-checkbox list
-            window.desktopSubjectExperiments = data.experiments || [];
-            window.selectedDesktopExpIds = [];
-            renderDesktopExpCheckboxes();
+            // Populate dropdown based on practical/virtual lab vs theory
+            const searchInput = document.getElementById('expSearchDesktopInput');
+            if (isLab) {
+              if (searchInput) searchInput.placeholder = "Search experiment name or number...";
+              renderDesktopExpCheckboxes();
+            } else {
+              if (searchInput) searchInput.placeholder = "Search lesson plan topic or CO...";
+              renderDesktopLpCheckboxes();
+            }
 
             // Reset topics textarea
             document.getElementById('topicsCovered').value = '';
@@ -534,14 +577,15 @@
         window.selectedDesktopExpIds = window.selectedDesktopExpIds.filter(id => id !== expId);
       }
 
-      updateDesktopExpSelectedDisplay();
-      syncDesktopSelectedExpsToTopics();
-    }
+      const label = checkbox.closest('label');
+      if (label) {
+        if (checkbox.checked) {
+          label.classList.add('bg-indigo-950/40', 'border-indigo-500/50');
+        } else {
+          label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+        }
+      }
 
-    function clearSelectedExperiments() {
-      window.selectedDesktopExpIds = [];
-      const checkboxes = document.querySelectorAll('#desktopExpCheckboxContainer input[type="checkbox"]');
-      checkboxes.forEach(cb => cb.checked = false);
       updateDesktopExpSelectedDisplay();
       syncDesktopSelectedExpsToTopics();
     }
@@ -591,6 +635,137 @@
       topicsElem.value = list.join(' & ');
     }
 
+    function renderDesktopLpCheckboxes() {
+      const container = document.getElementById('desktopExpCheckboxContainer');
+      if (!container) return;
+
+      const lps = window.desktopSubjectLessonPlans || [];
+      if (lps.length === 0) {
+        container.innerHTML = '<div class="text-center py-3 text-slate-500 text-xs font-mono">No lesson plan topics defined for this subject.</div>';
+        updateDesktopLpSelectedDisplay();
+        return;
+      }
+
+      let html = '';
+      lps.forEach((lp, idx) => {
+        const isChecked = (window.selectedDesktopLpIds || []).includes(lp.id);
+        const lpNo = idx + 1;
+        const searchTerms = `${lpNo} ${lp.topic_content || ''} ${lp.co_id || ''} ${lp.status || ''}`.toLowerCase();
+        const cleanTopic = (lp.topic_content || '').replace(/"/g, '&quot;');
+
+        html += `
+        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-indigo-950/40 border-indigo-500/50' : ''}" data-search="${searchTerms}">
+          <input type="checkbox" value="${lp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopLpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+          <div class="flex-1 min-w-0 leading-tight">
+            <div class="flex items-center justify-between gap-1 mb-0.5">
+              <span class="text-[10px] font-mono font-black text-indigo-300">#${lpNo}</span>
+              <div class="flex items-center gap-1">
+                ${lp.co_id ? `<span class="text-[9px] font-mono text-slate-400 bg-slate-800 px-1 py-0.2 rounded">${lp.co_id}</span>` : ''}
+                ${lp.status ? `<span class="text-[9px] font-mono ${lp.status === 'Completed' ? 'text-emerald-400 bg-emerald-950/50' : 'text-slate-400 bg-slate-800'} px-1 py-0.2 rounded">${lp.status}</span>` : ''}
+              </div>
+            </div>
+            <div class="text-[11px] font-medium text-slate-200 line-clamp-2" title="${cleanTopic}">${lp.topic_content || ''}</div>
+          </div>
+        </label>`;
+      });
+
+      container.innerHTML = html;
+      updateDesktopLpSelectedDisplay();
+    }
+
+    function onDesktopLpCheckboxChange(checkbox) {
+      const lpId = parseInt(checkbox.value);
+      if (!window.selectedDesktopLpIds) window.selectedDesktopLpIds = [];
+
+      if (checkbox.checked) {
+        if (!window.selectedDesktopLpIds.includes(lpId)) {
+          window.selectedDesktopLpIds.push(lpId);
+        }
+      } else {
+        window.selectedDesktopLpIds = window.selectedDesktopLpIds.filter(id => id !== lpId);
+      }
+
+      const label = checkbox.closest('label');
+      if (label) {
+        if (checkbox.checked) {
+          label.classList.add('bg-indigo-950/40', 'border-indigo-500/50');
+        } else {
+          label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+        }
+      }
+
+      updateDesktopLpSelectedDisplay();
+      syncDesktopSelectedLpsToTopics();
+    }
+
+    function updateDesktopLpSelectedDisplay() {
+      const selected = window.selectedDesktopLpIds || [];
+      const countLabel = document.getElementById('selectedExpDesktopCount');
+      if (countLabel) countLabel.innerText = `${selected.length} Selected`;
+
+      const btnText = document.getElementById('expDropdownToggleText');
+      if (btnText) {
+        if (selected.length === 0) {
+          btnText.innerText = '-- Choose Lesson Plan Topic (or Manual Entry below) --';
+          btnText.className = 'truncate text-slate-400';
+        } else if (selected.length === 1) {
+          const lps = window.desktopSubjectLessonPlans || [];
+          const idx = lps.findIndex(l => l.id === selected[0]);
+          const lp = lps[idx];
+          const noStr = idx >= 0 ? `#${idx + 1}. ` : '';
+          btnText.innerText = lp ? `${noStr}${lp.topic_content}` : '1 Topic Selected';
+          btnText.className = 'truncate text-indigo-300 font-bold';
+        } else {
+          btnText.innerText = `${selected.length} Lesson Topics Selected`;
+          btnText.className = 'truncate text-indigo-300 font-bold';
+        }
+      }
+    }
+
+    function syncDesktopSelectedLpsToTopics() {
+      const selected = window.selectedDesktopLpIds || [];
+      const lps = window.desktopSubjectLessonPlans || [];
+      const topicsElem = document.getElementById('topicsCovered');
+      if (!topicsElem) return;
+
+      if (selected.length === 0) {
+        topicsElem.value = '';
+        topicsElem.placeholder = 'Describe the topics covered in class today...';
+        return;
+      }
+
+      const list = selected.map(id => {
+        const lp = lps.find(l => l.id === id);
+        return lp ? lp.topic_content : '';
+      }).filter(Boolean);
+
+      topicsElem.value = list.join(' & ');
+    }
+
+    function clearSelectedExperiments() {
+      if (window.isCurrentDesktopLab) {
+        window.selectedDesktopExpIds = [];
+        const checkboxes = document.querySelectorAll('#desktopExpCheckboxContainer input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+          cb.checked = false;
+          const label = cb.closest('label');
+          if (label) label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+        });
+        updateDesktopExpSelectedDisplay();
+        syncDesktopSelectedExpsToTopics();
+      } else {
+        window.selectedDesktopLpIds = [];
+        const checkboxes = document.querySelectorAll('#desktopExpCheckboxContainer input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+          cb.checked = false;
+          const label = cb.closest('label');
+          if (label) label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+        });
+        updateDesktopLpSelectedDisplay();
+        syncDesktopSelectedLpsToTopics();
+      }
+    }
+
     function filterDesktopExpList() {
       const query = (document.getElementById('expSearchDesktopInput')?.value || '').trim().toLowerCase();
       const rows = document.querySelectorAll('.desktop-exp-row');
@@ -634,6 +809,10 @@
       const val = selectedRadio ? selectedRadio.value : 'Whole';
       if (val === 'Whole') {
         return currentStudents;
+      }
+      const hasAssignedBatches = currentStudents.some(s => s.lab_batch);
+      if (hasAssignedBatches) {
+        return currentStudents.filter(s => String(s.lab_batch) === String(val));
       }
       const half = Math.ceil(currentStudents.length / 2);
       if (val === '1') {
@@ -712,7 +891,7 @@
                 const dp = date.split('-');
                 if (dp.length === 3 && dp[0].length === 4) displayNoticeDate = `${dp[2]}-${dp[1]}-${dp[0]}`;
               }
-              noticeText.innerHTML = `Attendance for <strong>${periodNames}</strong> on <strong>${displayNoticeDate}</strong> (${pCount} Present, ${aCount} Absent) was already logged and has been automatically loaded.${topicsSnippet} Saving an additional experiment now will record the new log without multiplying attendance hours.`;
+              noticeText.innerHTML = `Attendance for <strong>${periodNames}</strong> on <strong>${displayNoticeDate}</strong> (${pCount} Present, ${aCount} Absent) was already logged and has been automatically loaded.${topicsSnippet} Saving an additional entry now will record the new log without multiplying attendance hours.`;
               notice.classList.remove('hidden');
             }
 
@@ -873,7 +1052,7 @@
           topicsElem.classList.add('border-red-500');
           topicsElem.focus();
         }
-        showMessage("Please select experiment(s) or enter manual topics covered in class today.", true);
+        showMessage(window.isCurrentDesktopLab ? "Please select experiment(s) or enter manual topics covered in class today." : "Please select lesson plan topic(s) or enter manual topics covered in class today.", true);
         return;
       }
 
@@ -897,8 +1076,12 @@
       const csrfMeta = document.querySelector('meta[name="csrf-token"]');
       const csrfToken = csrfMeta ? csrfMeta.content : '';
 
+      const isLab = window.isCurrentDesktopLab;
       const selectedExpIds = window.selectedDesktopExpIds || [];
-      const practicalExpId = selectedExpIds.length > 0 ? selectedExpIds[0] : null;
+      const practicalExpId = (isLab && selectedExpIds.length > 0) ? selectedExpIds[0] : null;
+
+      const selectedLpIds = window.selectedDesktopLpIds || [];
+      const lessonPlanIdVal = (!isLab && selectedLpIds.length > 0) ? selectedLpIds[0] : null;
 
       fetch('/api/staff/attendance/save', {
         method: 'POST',
@@ -910,6 +1093,8 @@
           batch_subject_id: subjectId,
           date: date,
           periods: checkedPeriods,
+          lesson_plan_id: lessonPlanIdVal,
+          lesson_plan_ids: selectedLpIds,
           practical_experiment_id: practicalExpId,
           practical_experiment_ids: selectedExpIds,
           topics_covered: topics,
@@ -942,6 +1127,21 @@
         showMessage(err.message || "Error saving log and attendance.", true);
       });
     }
+
+    function openLabBatchSetupModalFromAttendance() {
+      const sid = document.getElementById('subjectSelect') ? document.getElementById('subjectSelect').value : null;
+      if (!sid) {
+        alert("Please select a subject first.");
+        return;
+      }
+      if (typeof openLabBatchSetupModal === 'function') {
+        openLabBatchSetupModal(sid, function(res) {
+          onSubjectChange();
+        });
+      }
+    }
   </script>
+
+  @include('partials.lab_batch_setup_modal')
 </body>
 </html>

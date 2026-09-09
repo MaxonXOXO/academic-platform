@@ -743,6 +743,8 @@ Route::middleware(['web'])->group(function () {
     Route::get('/classroom/practical/{subjectId}/experiments/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printExperimentsLog']);
     Route::get('/api/classroom/{subjectId}/practical/attendance-log', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'getAttendanceLog']);
     Route::post('/api/classroom/{subjectId}/practical/cia-summary', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveStudentCiaSummary']);
+    Route::get('/api/classroom/{subjectId}/practical/batch-setup', [App\Http\Controllers\AttendanceController::class, 'getLabBatchSetup']);
+    Route::post('/api/classroom/{subjectId}/practical/batch-setup', [App\Http\Controllers\AttendanceController::class, 'saveLabBatchAssignments']);
 
     // Staff Mobile Virtual Lab — R2021 Practical Evaluation (Mobile-only, does not touch R2026)
     Route::get('/staff/mobile/virtual-lab/{subjectId}', [App\Http\Controllers\StaffMobileVirtualLabController::class, 'show']);

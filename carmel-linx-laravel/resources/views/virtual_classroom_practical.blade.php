@@ -247,7 +247,7 @@
         </div>
 
         <!-- Inline Lab Batch Filters -->
-        <div class="flex items-center gap-1 text-xs">
+        <div class="flex items-center gap-1 text-xs flex-wrap">
             <span class="text-[10px] uppercase font-bold text-slate-500 me-1 hidden md:inline">Batch:</span>
             <button onclick="filterLabBatch('All')" id="batch-filter-All" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-blue-500 text-blue-400 font-medium text-[11px] transition">
                 All
@@ -255,11 +255,15 @@
             <button onclick="filterLabBatch('Unassigned')" id="batch-filter-Unassigned" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
                 Unassigned
             </button>
-            <button onclick="filterLabBatch('Batch A')" id="batch-filter-A" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
-                Batch A
+            <button onclick="filterLabBatch('1')" id="batch-filter-1" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
+                Batch 1 (<span id="batch1BtnCount">{{ $labBatchConfig['b1_count'] ?? 0 }}</span>)
             </button>
-            <button onclick="filterLabBatch('Batch B')" id="batch-filter-B" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
-                Batch B
+            <button onclick="filterLabBatch('2')" id="batch-filter-2" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
+                Batch 2 (<span id="batch2BtnCount">{{ $labBatchConfig['b2_count'] ?? 0 }}</span>)
+            </button>
+            <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="ms-1.5 px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer shadow" title="Configure Lab Batch Division (Full vs Split & Cutoff Roll No)">
+                <span class="material-symbols-rounded text-xs">tune</span>
+                <span>Batch split setup</span>
             </button>
         </div>
     </div>
@@ -319,7 +323,8 @@
                     <tbody>
                         @foreach($students as $index => $student)
                         @php
-                            $batchDesignation = $labBatches->get($student->reg_no)->lab_batch ?? 'Unassigned';
+                            $rawB = $labBatches->get($student->reg_no)->lab_batch ?? '';
+                            $batchDesignation = in_array($rawB, ['1', 'Batch 1', 'Batch A']) ? '1' : (in_array($rawB, ['2', 'Batch 2', 'Batch B']) ? '2' : 'Unassigned');
                             $expLog = $experimentLogs->get('Exp 1') ? $experimentLogs->get('Exp 1')->where('reg_no', $student->reg_no)->first() : null;
                         @endphp
                         <tr class="student-row" data-reg-no="{{ $student->reg_no }}" data-batch="{{ $batchDesignation }}">
@@ -338,9 +343,9 @@
                             </td>
                             <td class="text-center">
                                 <select onchange="updateLabBatch('{{ $student->reg_no }}', this.value)" class="bg-slate-950 border border-slate-800 text-[11px] text-slate-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-blue-500">
-                                    <option value="" {{ $batchDesignation == 'Unassigned' ? 'selected' : '' }}>Unassigned</option>
-                                    <option value="Batch A" {{ $batchDesignation == 'Batch A' ? 'selected' : '' }}>Batch A</option>
-                                    <option value="Batch B" {{ $batchDesignation == 'Batch B' ? 'selected' : '' }}>Batch B</option>
+                                    <option value="" {{ $batchDesignation === 'Unassigned' ? 'selected' : '' }}>Unassigned</option>
+                                    <option value="1" {{ $batchDesignation === '1' ? 'selected' : '' }}>Batch 1</option>
+                                    <option value="2" {{ $batchDesignation === '2' ? 'selected' : '' }}>Batch 2</option>
                                 </select>
                             </td>
                             <td class="text-center">
@@ -810,71 +815,112 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- COMPLETED EXPERIMENTS DETAILS MODAL -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-7xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+    <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-2 sm:p-3">
+        <div id="completedExperimentsModalDialog" class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-[98vw] xl:max-w-[1700px] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden shadow-2xl transition-all">
             <!-- Modal Header -->
-            <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-flask-vial text-teal-400 text-lg"></i>
-                        <h3 class="text-base font-black text-white">Completed Practical Experiments &amp; Sessions</h3>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-0.5" id="completedExpsModalSubtitle">{{ $batchSubject->subject_name }} &bull; Normalized Timetable Continuous Sessions</p>
-                </div>
+            <div class="px-5 py-3.5 bg-slate-950/90 border-b border-slate-800 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
+                        <i class="fa-solid fa-flask-vial text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm sm:text-base font-black text-white leading-tight">Completed Practical Experiments &amp; Sessions</h3>
+                            <span class="px-2 py-0.5 rounded bg-teal-500/20 border border-teal-500/30 text-teal-300 text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Workspace</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-0.5 leading-tight" id="completedExpsModalSubtitle">{{ $batchSubject->subject_name }} &bull; Normalized Timetable Continuous Sessions</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
                     <a id="btnPrintCompletedExps" href="/classroom/practical/{{ $batchSubject->id }}/experiments/print" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow shadow-blue-500/20">
                         <i class="fa-solid fa-print text-xs"></i>
                         <span>Print Report</span>
                     </a>
-                    <button onclick="closeCompletedExperimentsModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
-                        <i class="fa-solid fa-xmark text-base"></i>
+                    <button type="button" onclick="toggleCompletedExperimentsFullscreen()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg border border-slate-700/80 transition flex items-center gap-1.5 cursor-pointer" title="Toggle Fullscreen">
+                        <span class="material-symbols-rounded text-base" id="completedExpsFullscreenIcon">fullscreen</span>
+                        <span class="hidden sm:inline">Fullscreen</span>
+                    </button>
+                    <button type="button" onclick="closeCompletedExperimentsModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 hover:text-white text-xs font-bold rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Close">
+                        <span class="material-symbols-rounded text-sm">close</span>
+                        <span>Close</span>
                     </button>
                 </div>
             </div>
 
-            <!-- KPI Overview Cards -->
-            <div class="p-6 overflow-y-auto space-y-6 flex-grow">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl">
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Total In Syllabus</span>
-                        <span class="text-xl font-mono font-black text-white mt-1 block" id="kpiTotalSyllabusExps">{{ $totalExperiments ?? 0 }}</span>
+            <!-- KPI Overview Cards & Table -->
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-grow custom-scrollbar">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                    <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Syllabus Experiments</span>
+                            <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiTotalSyllabusExps">{{ $totalExperiments ?? 0 }}</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-center justify-center text-slate-300">
+                            <span class="material-symbols-rounded text-xl">menu_book</span>
+                        </div>
                     </div>
-                    <div class="p-3 bg-teal-950/30 border border-teal-800/40 rounded-xl">
-                        <span class="text-[10px] font-bold uppercase text-teal-300 block">Experiments Completed</span>
-                        <span class="text-xl font-mono font-black text-teal-400 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
+                    <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sessions Conducted</span>
+                            <span class="text-2xl font-mono font-bold text-indigo-300 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                            <span class="material-symbols-rounded text-xl">task_alt</span>
+                        </div>
                     </div>
-                    <div class="p-3 bg-blue-950/30 border border-blue-800/40 rounded-xl">
-                        <span class="text-[10px] font-bold uppercase text-blue-300 block">Actual Lab Hours</span>
-                        <span class="text-xl font-mono font-black text-blue-400 mt-1 block" id="kpiActualLabHours">{{ $actualLabHours ?? (($conductedCount ?? 0) * 3) }} hrs</span>
+                    <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Actual Lab Hours</span>
+                            <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiActualLabHours">{{ $actualLabHours ?? (($conductedCount ?? 0) * 3) }} hrs</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-center justify-center text-slate-300">
+                            <span class="material-symbols-rounded text-xl">schedule</span>
+                        </div>
                     </div>
-                    <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl">
-                        <span class="text-[10px] font-bold uppercase text-purple-300 block">Syllabus Covered</span>
-                        <span class="text-xl font-mono font-black text-purple-300 mt-1 block" id="kpiCoveragePercent">{{ ($totalExperiments ?? 0) > 0 ? round((($conductedCount ?? 0) / ($totalExperiments ?? 0)) * 100) : 0 }}%</span>
+                    <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Syllabus Coverage</span>
+                            <span class="text-2xl font-mono font-bold text-emerald-400 mt-1 block" id="kpiCoveragePercent">{{ ($totalExperiments ?? 0) > 0 ? round((($conductedCount ?? 0) / ($totalExperiments ?? 0)) * 100) : 0 }}%</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                            <span class="material-symbols-rounded text-xl">verified</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Completed Experiments Table -->
                 <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-inner">
-                    <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex justify-between items-center">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                            <i class="fa-solid fa-clipboard-check text-sm text-teal-400"></i> Completed Experiments Log Details
-                        </span>
-                        <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records</span>
+                    <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-clipboard-check text-sm text-teal-400"></i> Completed Experiments Log Details
+                            </span>
+                            <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records</span>
+                        </div>
+                        <!-- Cohort Filter Tabs -->
+                        <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-[11px]">
+                            <button type="button" onclick="filterCompletedExpsCohort('all')" id="cohortTab_all" class="px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer">All</button>
+                            <button type="button" onclick="filterCompletedExpsCohort('1')" id="cohortTab_1" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 1</button>
+                            <button type="button" onclick="filterCompletedExpsCohort('2')" id="cohortTab_2" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 2</button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[900px]">
+                        <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60 whitespace-nowrap">
-                                    <th class="p-2.5 w-12 text-center">#</th>
-                                    <th class="p-2.5 w-24">Exp No</th>
+                                    <th class="p-2.5 w-10 text-center">#</th>
+                                    <th class="p-2.5 w-20 text-center">Exp No</th>
                                     <th class="p-2.5">Title / Topics Covered</th>
-                                    <th class="p-2.5 text-center w-36">Date</th>
-                                    <th class="p-2.5 text-center w-40">Hours (Periods)</th>
-                                    <th class="p-2.5 text-center w-32">Batch</th>
-                                    <th class="p-2.5 text-center w-36">Attendance</th>
+                                    <th class="p-2.5 text-center w-28">Date</th>
+                                    <th class="p-2.5 text-center w-28">Hours (Periods)</th>
+                                    <th class="p-2.5 text-center w-24">Batch</th>
+                                    <th class="p-2.5 text-center w-28">Attendance (%)</th>
+                                    <th class="p-2.5 text-center w-20">Absent</th>
+                                    <th class="p-2.5 text-center w-40">Absent Roll Nos</th>
                                 </tr>
                             </thead>
                             <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
+                                @php $currentCompExpBatch = null; @endphp
                                 @forelse($conductedDetails ?? [] as $idx => $item)
                                 @php
                                     $rawDate = $item['date'] ?? '';
@@ -885,60 +931,92 @@
                                             $d = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
                                         }
                                     }
-                                    $sb = $item['sub_batch'] ?? 'Whole';
-                                    $bColor = ($sb === '1' || $sb === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : (($sb === '2' || $sb === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
-                                    $expId = $item['experiment_id'] ?? 'null';
-                                    $expNo = addslashes($item['experiment_no'] ?? '');
-                                    $expTitle = addslashes($item['title'] ?? '');
+                                    $sb = (string)($item['sub_batch'] ?? 'Whole');
+                                    $batchName = $item['batch'] ?? 'Whole Class';
+                                    $bColor = ($sb === '1')
+                                        ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/25'
+                                        : (($sb === '2') ? 'bg-purple-500/10 text-purple-300 border border-purple-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
+                                    $abCount = $item['absent_count'] ?? max(0, ($item['total_count'] ?? 0) - ($item['present_count'] ?? 0));
+                                    $abRolls = $item['absent_roll_nos'] ?? '-';
                                 @endphp
-                                <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs">
-                                    <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">{{ $idx + 1 }}</td>
-                                    <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">{{ $item['experiment_no'] ?? ('Exp ' . ($idx + 1)) }}</td>
-                                    <td class="p-2.5 text-slate-200 whitespace-nowrap">
+
+                                @if($currentCompExpBatch !== $batchName)
+                                    @php $currentCompExpBatch = $batchName; @endphp
+                                    <tr class="batch-section-banner bg-slate-950 border-y border-slate-800" data-batch-row="{{ $sb }}">
+                                        <td colspan="9" class="py-2.5 px-4 text-xs">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full {{ $sb === '1' ? 'bg-indigo-400' : 'bg-purple-400' }}"></span>
+                                                <span class="{{ $sb === '1' ? 'text-indigo-300' : 'text-purple-300' }} font-bold uppercase tracking-wider text-xs">{{ $batchName }}</span>
+                                                <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endif
+
+                                <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition text-xs" data-batch-row="{{ $sb }}">
+                                    <td class="p-3 text-center font-mono text-slate-400 whitespace-nowrap">{{ $idx + 1 }}</td>
+                                    <td class="p-3 text-center font-mono font-bold text-slate-200 whitespace-nowrap">{{ $item['experiment_no'] ?? ('Exp ' . ($idx + 1)) }}</td>
+                                    <td class="p-3 text-slate-200">
                                         <div class="inline-flex items-center gap-2 max-w-full">
-                                            <span class="font-bold text-slate-100">{{ $item['title'] ?? '' }}</span>
+                                            <span class="font-medium text-slate-100">{{ $item['title'] ?? '' }}</span>
                                             @if(!empty($item['co_tag']))
-                                                <span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">{{ $item['co_tag'] }}</span>
+                                                <span class="px-1.5 py-0.5 bg-slate-800/90 border border-slate-700/80 rounded text-[10px] font-mono text-slate-400 shrink-0">{{ $item['co_tag'] }}</span>
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="p-2 text-center whitespace-nowrap">
-                                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
-                                            <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
-                                            <input type="date" value="{{ $rawDate }}" 
-                                                onchange="promptEditExpDate({{ $expId }}, '{{ $rawDate }}', this.value, '{{ $sb }}', '{{ $expNo }}', '{{ $expTitle }}')"
-                                                class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
-                                            <button type="button" 
-                                                onclick="openEditExpDateModal({{ $expId }}, '{{ $rawDate }}', '{{ $sb }}', '{{ $expNo }}', '{{ $expTitle }}')"
-                                                class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
-                                                <span class="material-symbols-rounded text-xs">tune</span>
-                                            </button>
+                                    <td class="p-3 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1.5 text-slate-300 font-mono text-xs">
+                                            <span class="material-symbols-rounded text-slate-500 text-sm">calendar_today</span>
+                                            <span>{{ $d }}</span>
                                         </div>
                                     </td>
-                                    <td class="p-2.5 text-center whitespace-nowrap">
-                                        <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">{{ $item['hours_text'] ?? '3 hrs (Lab)' }}</span>
+                                    <td class="p-3 text-center whitespace-nowrap">
+                                        <span class="px-2 py-0.5 bg-slate-800/70 border border-slate-700/60 rounded text-slate-300 font-mono text-[11px]">{{ $item['hours_text'] ?? '3 hrs (Lab)' }}</span>
                                     </td>
-                                    <td class="p-2.5 text-center whitespace-nowrap">
-                                        <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block {{ $bColor }}">{{ $item['batch'] ?? 'Whole Class' }}</span>
+                                    <td class="p-3 text-center whitespace-nowrap">
+                                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap inline-block {{ $bColor }}">{{ $batchName }}</span>
                                     </td>
-                                    <td class="p-2.5 text-center whitespace-nowrap">
+                                    <td class="p-3 text-center whitespace-nowrap">
                                         <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
-                                            <span class="font-mono font-bold text-emerald-400">{{ isset($item['present_count']) ? ($item['present_count'] . '/' . ($item['total_count'] ?? count($students))) : 'Conducted' }}</span>
+                                            <span class="font-mono font-bold text-slate-100 text-xs">{{ isset($item['present_count']) ? ($item['present_count'] . '/' . ($item['total_count'] ?? count($students))) : 'Conducted' }}</span>
                                             @if(!empty($item['attendance_pct']))
-                                                <span class="text-[11px] text-slate-400 font-normal">({{ $item['attendance_pct'] }}%)</span>
+                                                <span class="px-1.5 py-0.5 rounded {{ (float)$item['attendance_pct'] >= 75 ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20' }} font-mono text-[11px] font-semibold">{{ $item['attendance_pct'] }}%</span>
                                             @endif
                                         </div>
+                                    </td>
+                                    <td class="p-3 text-center whitespace-nowrap">
+                                        @if($abCount > 0)
+                                            <span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono font-bold text-xs">{{ $abCount }}</span>
+                                        @else
+                                            <span class="text-slate-500 font-mono text-xs">0</span>
+                                        @endif
+                                    </td>
+                                    <td class="p-3 text-center whitespace-nowrap">
+                                        @if(!empty($abRolls) && $abRolls !== 'None' && $abRolls !== '-')
+                                            <span class="px-2.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-300 font-mono font-semibold text-xs tracking-wide">{{ $abRolls }}</span>
+                                        @else
+                                            <span class="text-slate-500 text-xs font-normal">None</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td>
+                                    <td colspan="9" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-2.5 bg-slate-950/90 border-t border-slate-800 flex justify-between items-center shrink-0">
+                <span class="text-xs text-slate-500 font-mono hidden sm:inline">Press ESC or click outside to dismiss</span>
+                <button type="button" onclick="closeCompletedExperimentsModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 hover:text-white text-xs font-bold rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm ml-auto">
+                    <span class="material-symbols-rounded text-sm">close</span>
+                    <span>Close</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1252,21 +1330,24 @@
                 btn.classList.add('border-slate-800', 'text-slate-400');
             });
 
-            const activeBtnMap = { 'All': 'All', 'Unassigned': 'Unassigned', 'Batch A': 'A', 'Batch B': 'B' };
-            const selectBtnId = activeBtnMap[batch] === 'All' ? 'All' : (activeBtnMap[batch] === 'Unassigned' ? 'Unassigned' : activeBtnMap[batch]);
-            const targetBtn = document.getElementById(`batch-filter-${selectBtnId}`);
+            const activeBtnId = (batch === 'All') ? 'All' : (batch === 'Unassigned' ? 'Unassigned' : (batch === '1' || batch === 'Batch 1' || batch === 'Batch A' ? '1' : '2'));
+            const targetBtn = document.getElementById(`batch-filter-${activeBtnId}`);
             if (targetBtn) {
                 targetBtn.classList.remove('border-slate-800', 'text-slate-400');
                 targetBtn.classList.add('border-blue-500', 'text-blue-400');
             }
 
             document.querySelectorAll('.student-row').forEach(row => {
-                const studentBatch = row.getAttribute('data-batch') || 'Unassigned';
+                const sbRaw = row.getAttribute('data-batch') || 'Unassigned';
+                const sb = (sbRaw === '1' || sbRaw === 'Batch 1' || sbRaw === 'Batch A') ? '1' : ((sbRaw === '2' || sbRaw === 'Batch 2' || sbRaw === 'Batch B') ? '2' : 'Unassigned');
+
                 if (batch === 'All') {
                     row.classList.remove('hidden');
-                } else if (batch === 'Unassigned' && studentBatch === 'Unassigned') {
+                } else if (batch === 'Unassigned' && sb === 'Unassigned') {
                     row.classList.remove('hidden');
-                } else if (studentBatch === batch) {
+                } else if (batch === '1' && sb === '1') {
+                    row.classList.remove('hidden');
+                } else if (batch === '2' && sb === '2') {
                     row.classList.remove('hidden');
                 } else {
                     row.classList.add('hidden');
@@ -1274,7 +1355,7 @@
             });
         }
 
-        // Assign a student to Batch A/B via API
+        // Assign a student to Batch 1/2 via API
         async function updateLabBatch(regNo, value) {
             try {
                 const res = await fetch(`/classroom/practical/${batchSubjectId}/lab-batch`, {
@@ -1288,11 +1369,22 @@
                     document.querySelectorAll(`.student-row[data-reg-no="${regNo}"]`).forEach(row => {
                         row.setAttribute('data-batch', value || 'Unassigned');
                     });
+                    const allRows = document.querySelectorAll('.student-row');
+                    let b1 = 0, b2 = 0;
+                    allRows.forEach(r => {
+                        const b = r.getAttribute('data-batch');
+                        if (b === '1') b1++;
+                        else if (b === '2') b2++;
+                    });
+                    const b1El = document.getElementById('batch1BtnCount');
+                    const b2El = document.getElementById('batch2BtnCount');
+                    if (b1El) b1El.innerText = b1;
+                    if (b2El) b2El.innerText = b2;
+
                     filterLabBatch(activeBatchFilter);
                 } else {
                     alert(data.message);
                 }
-            } catch(e) {
                 console.error(e);
                 alert("Failed to update lab batch split.");
             }
@@ -1648,6 +1740,23 @@
         }
         window.openCompletedExperimentsModal = openCompletedExperimentsModal;
 
+        function toggleCompletedExperimentsFullscreen() {
+            const dialog = document.getElementById('completedExperimentsModalDialog');
+            const icon = document.getElementById('completedExpsFullscreenIcon');
+            if (!dialog) return;
+
+            if (dialog.classList.contains('is-fullscreen')) {
+                dialog.classList.remove('is-fullscreen', '!w-full', '!h-full', '!max-w-none', '!max-h-none', '!rounded-none');
+                dialog.classList.add('rounded-2xl', 'max-w-[98vw]', 'xl:max-w-[1700px]', 'h-[95vh]', 'max-h-[95vh]');
+                if (icon) icon.innerText = 'fullscreen';
+            } else {
+                dialog.classList.add('is-fullscreen', '!w-full', '!h-full', '!max-w-none', '!max-h-none', '!rounded-none');
+                dialog.classList.remove('rounded-2xl', 'max-w-[98vw]', 'xl:max-w-[1700px]', 'h-[95vh]', 'max-h-[95vh]');
+                if (icon) icon.innerText = 'fullscreen_exit';
+            }
+        }
+        window.toggleCompletedExperimentsFullscreen = toggleCompletedExperimentsFullscreen;
+
         function closeCompletedExperimentsModal() {
             const modal = document.getElementById('completedExperimentsModal');
             if (modal) {
@@ -1657,17 +1766,62 @@
         }
         window.closeCompletedExperimentsModal = closeCompletedExperimentsModal;
 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const compModal = document.getElementById('completedExperimentsModal');
+                if (compModal && !compModal.classList.contains('hidden')) {
+                    closeCompletedExperimentsModal();
+                }
+            }
+        });
+
+        window.completedExperimentsRawList = @json($conductedDetails ?? []);
+        window.currentCompExpsCohort = 'all';
+
+        function filterCompletedExpsCohort(cohort) {
+            window.currentCompExpsCohort = cohort || 'all';
+            
+            ['all', '1', '2'].forEach(c => {
+                const btn = document.getElementById('cohortTab_' + c);
+                if (btn) {
+                    if (c === window.currentCompExpsCohort) {
+                        btn.className = "px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer";
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer";
+                    }
+                }
+            });
+
+            renderCompletedExperimentsTable(window.completedExperimentsRawList);
+        }
+        window.filterCompletedExpsCohort = filterCompletedExpsCohort;
+
         function renderCompletedExperimentsTable(list) {
+            if (list) window.completedExperimentsRawList = list;
+            const allItems = window.completedExperimentsRawList || [];
             const tbody = document.getElementById('completedExperimentsTableBody');
+            const counter = document.getElementById('completedExpsTableCounter');
             if (!tbody) return;
-            if (!list || list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td></tr>';
+
+            const filtered = allItems.filter(item => {
+                if (!window.currentCompExpsCohort || window.currentCompExpsCohort === 'all') return true;
+                const sb = String(item.sub_batch || 'Whole');
+                return sb === String(window.currentCompExpsCohort);
+            });
+
+            if (counter) {
+                counter.innerText = `Showing ${filtered.length} of ${allItems.length} completed session records`;
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded for this selection.</td></tr>';
                 return;
             }
+
             tbody.innerHTML = '';
-            list.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs";
+            let currentGroup = null;
+
+            filtered.forEach((item, idx) => {
                 let rawDate = '';
                 let dateStr = item.date || '—';
                 if (item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -1678,40 +1832,65 @@
                     const dParts = item.date.split('-');
                     if (dParts.length === 3 && dParts[0].length === 4) dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
                 }
-                const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
+                const sb = String(item.sub_batch || 'Whole');
+                const batchName = item.batch || (sb === '1' ? 'Batch 1' : (sb === '2' ? 'Batch 2' : 'Whole Class'));
+                const batchColor = (sb === '1')
+                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/25'
+                    : ((sb === '2') ? 'bg-purple-500/10 text-purple-300 border border-purple-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
+                const abCount = (item.absent_count !== undefined) ? item.absent_count : Math.max(0, (item.total_count || 0) - (item.present_count || 0));
+                const abRolls = item.absent_roll_nos || '-';
+
+                // Insert section banner when viewing "All" and batch group changes
+                if ((!window.currentCompExpsCohort || window.currentCompExpsCohort === 'all') && currentGroup !== batchName) {
+                    currentGroup = batchName;
+                    const bannerTr = document.createElement('tr');
+                    bannerTr.className = "batch-section-banner bg-slate-950 border-y border-slate-800";
+                    bannerTr.innerHTML = `
+                        <td colspan="9" class="py-2.5 px-4 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full ${sb === '1' ? 'bg-indigo-400' : 'bg-purple-400'}"></span>
+                                <span class="${sb === '1' ? 'text-indigo-300' : 'text-purple-300'} font-bold uppercase tracking-wider text-xs">${batchName}</span>
+                                <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(bannerTr);
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-800/50 hover:bg-slate-800/30 transition text-xs";
                 tr.innerHTML = `
-                    <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
-                    <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
-                    <td class="p-2.5 text-slate-200 whitespace-nowrap">
+                    <td class="p-3 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
+                    <td class="p-3 text-center font-mono font-bold text-slate-200 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+                    <td class="p-3 text-slate-200">
                         <div class="inline-flex items-center gap-2 max-w-full">
-                            <span class="font-bold text-slate-100">${item.title || ''}</span>
-                            ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">${item.co_tag}</span>` : ''}
+                            <span class="font-medium text-slate-100">${item.title || ''}</span>
+                            ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800/90 border border-slate-700/80 rounded text-[10px] font-mono text-slate-400 shrink-0">${item.co_tag}</span>` : ''}
                         </div>
                     </td>
-                    <td class="p-2 text-center whitespace-nowrap">
-                        <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
-                            <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
-                            <input type="date" value="${rawDate}" 
-                                onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
-                                class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
-                            <button type="button" 
-                                onclick="openEditExpDateModal(${item.experiment_id || 'null'}, '${rawDate}', '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
-                                class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
-                                <span class="material-symbols-rounded text-xs">tune</span>
-                            </button>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-1.5 text-slate-300 font-mono text-xs">
+                            <span class="material-symbols-rounded text-slate-500 text-sm">calendar_today</span>
+                            <span>${dateStr}</span>
                         </div>
                     </td>
-                    <td class="p-2.5 text-center whitespace-nowrap">
-                        <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">${item.hours_text || '3 hrs (Lab)'}</span>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="px-2 py-0.5 bg-slate-800/70 border border-slate-700/60 rounded text-slate-300 font-mono text-[11px]">${item.hours_text || '3 hrs (Lab)'}</span>
                     </td>
-                    <td class="p-2.5 text-center whitespace-nowrap">
-                        <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchColor}">${item.batch || 'Whole Class'}</span>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchColor}">${batchName}</span>
                     </td>
-                    <td class="p-2.5 text-center whitespace-nowrap">
+                    <td class="p-3 text-center whitespace-nowrap">
                         <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
-                            <span class="font-mono font-bold text-emerald-400">${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}</span>
-                            ${item.attendance_pct ? `<span class="text-[11px] text-slate-400 font-normal">(${item.attendance_pct}%)</span>` : ''}
+                            <span class="font-mono font-bold text-slate-100 text-xs">${item.present_count !== undefined ? `${item.present_count}/${item.total_count || ''}` : 'Conducted'}</span>
+                            ${item.attendance_pct ? `<span class="px-1.5 py-0.5 rounded ${parseFloat(item.attendance_pct) >= 75 ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'} font-mono text-[11px] font-semibold">${item.attendance_pct}%</span>` : ''}
                         </div>
+                    </td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        ${abCount > 0 ? `<span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono font-bold text-xs">${abCount}</span>` : `<span class="text-slate-500 font-mono text-xs">0</span>`}
+                    </td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        ${(abRolls && abRolls !== 'None' && abRolls !== '-') ? `<span class="px-2.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-300 font-mono font-semibold text-xs tracking-wide">${abRolls}</span>` : `<span class="text-slate-500 text-xs font-normal">None</span>`}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2616,5 +2795,19 @@
             }
         }
     </script>
+
+    @include('partials.lab_batch_setup_modal')
+
+    @if(!($labBatchConfig['is_configured'] ?? false))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof openLabBatchSetupModal === 'function') {
+                    openLabBatchSetupModal('{{ $batchSubject->id }}');
+                }
+            }, 600);
+        });
+    </script>
+    @endif
 </body>
 </html>

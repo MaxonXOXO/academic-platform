@@ -1490,34 +1490,34 @@
 
             <!-- Lab Evaluation Workspace (Revision 2021) -->
             <div id="labEvaluationContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
-              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 border-b border-slate-800/80 pb-5">
-                <div class="max-w-xl shrink-0">
+              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3.5 border-b border-slate-800/80 pb-4">
+                <div class="shrink-0">
                   <h4 class="text-base font-black text-white tracking-wide">Practical / Lab Evaluation Register</h4>
-                  <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Grade day-to-day experiments (37.5), model tests (15),<br>micro-projects (7.5), and board exam marks (50).</p>
                 </div>
-                <div class="flex items-center gap-2.5 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
-                  <a id="btnVirtualLabAttendanceLog" href="/staff/attendance-log" onclick="openClassAttendanceLogFromVirtualLab(event)" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-300 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer no-underline" title="Open Class Attendance & Log for this subject">
+                <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
+                  <a id="btnVirtualLabAttendanceLog" href="/staff/attendance-log" onclick="openClassAttendanceLogFromVirtualLab(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer no-underline" title="Open Class Attendance & Log for this subject">
                     <span class="material-symbols-rounded text-sm text-emerald-400">co_present</span> Class Attendance &amp; Log
                   </a>
-                  <button type="button" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-400/30 text-blue-300 rounded-md text-xs font-normal transition flex items-center gap-1 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
-                    <span class="material-symbols-rounded text-xs">science</span> Lab Work Grade
+                  <button type="button" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
+                    <span class="material-symbols-rounded text-sm text-sky-400">science</span> Lab Work Grade
                   </button>
-                  <button type="button" onclick="openOeModal(labStudentsData[0]?.reg_no)" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-400/30 text-blue-300 rounded-md text-xs font-normal transition flex items-center gap-1 shadow-sm shrink-0 cursor-pointer" title="Grade open-ended project with student navigation">
-                    <span class="material-symbols-rounded text-xs">assignment</span> Open Ended Grade
+                  <button type="button" onclick="openOeModal(labStudentsData[0]?.reg_no)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Grade open-ended project with student navigation">
+                    <span class="material-symbols-rounded text-sm text-blue-400">assignment</span> Open Ended Grade
                   </button>
-                  <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm focus-within:border-blue-500/50 transition-all shrink-0">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Batch:</span>
-                    <select id="labBatchFilterSelect" onchange="filterLabGridByBatch()" class="bg-transparent border-0 text-white font-medium text-xs outline-none cursor-pointer">
+                  <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm focus-within:border-slate-700 transition-all shrink-0 text-xs font-medium text-slate-300">
+                    <span class="material-symbols-rounded text-sm text-slate-400">filter_list</span>
+                    <span class="text-slate-400 font-medium">Batch:</span>
+                    <select id="labBatchFilterSelect" onchange="filterLabGridByBatch()" class="bg-transparent border-0 text-slate-200 font-medium text-xs outline-none cursor-pointer">
                       <option value="combined" class="bg-slate-950">Full</option>
                       <option value="1" class="bg-slate-950">Batch 1</option>
                       <option value="2" class="bg-slate-950">Batch 2</option>
                     </select>
                   </div>
-                  <button type="button" onclick="openManageExperimentsModal(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-sm text-teal-400">settings</span> Setup Experiments
+                  <button type="button" onclick="openLabBatchSetupModalFromDashboard()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Configure Lab Batch Division (Full vs Split & Student Cutoff)">
+                    <span class="material-symbols-rounded text-sm text-indigo-400">tune</span> Batch split setup
                   </button>
-                  <button type="button" onclick="openManageTestsModal(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-md shrink-0">
-                    <span class="material-symbols-rounded text-sm text-blue-400">assignment_turned_in</span> Configure Tests
+                  <button type="button" onclick="openManageExperimentsModal(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0" title="Setup and manage syllabus lab experiments">
+                    <span class="material-symbols-rounded text-sm text-teal-400">settings</span> Setup Experiments
                   </button>
                 </div>
               </div>
@@ -1530,10 +1530,10 @@
                   <span class="font-mono font-bold text-purple-300" id="statLabTotalExps">0</span>
                 </div>
                 <div class="h-3.5 w-px bg-slate-800 hidden sm:block"></div>
-                <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-0.5 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-teal-500/40 text-teal-300 hover:text-teal-200 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" title="Click to view completed experiments with date, hours and batch details">
+                <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" title="Click to view completed experiments with date, hours and batch details">
                   <span class="material-symbols-rounded text-xs text-teal-400">task_alt</span>
-                  <span>Completed: <strong id="statLabCompletedExps" class="font-mono text-white">0</strong></span>
-                  <span class="material-symbols-rounded text-xs text-teal-400 opacity-70">open_in_new</span>
+                  <span>Completed: <strong id="statLabCompletedExps" class="font-mono text-teal-400 font-semibold">0</strong></span>
+                  <span class="material-symbols-rounded text-xs text-slate-500">open_in_new</span>
                 </button>
               </div>
 
@@ -8311,6 +8311,10 @@
           window.conductedExpsCount = (res.conducted_experiments_count !== undefined) ? res.conducted_experiments_count : (labExperimentsData ? labExperimentsData.length : 0);
           window.conductedExpsDetails = res.conducted_experiments_details || [];
           window.actualLabHoursConducted = res.actual_hours_conducted || 0;
+          const statDoneExps = document.getElementById('statLabCompletedExps');
+          if (statDoneExps) statDoneExps.innerText = window.conductedExpsCount;
+          const statTotalExps = document.getElementById('statLabTotalExps');
+          if (statTotalExps) statTotalExps.innerText = labExperimentsData.length;
           renderLabEvaluationsTable();
           renderPracticalReportsTable();
           calculateLabStatistics();
@@ -8347,6 +8351,7 @@
         const tr = document.createElement('tr');
         tr.className = "border-b border-slate-800/40 text-xs hover:bg-slate-900/20";
         tr.setAttribute('data-reg', student.reg_no);
+        tr.setAttribute('data-batch', student.lab_batch || '');
         
         let gradedCount = 0;
         if (student.experiments_marks) {
@@ -8424,6 +8429,7 @@
         const tr = document.createElement('tr');
         tr.className = "border-b border-slate-800/40 text-xs hover:bg-slate-900/20";
         tr.setAttribute('data-reg', student.reg_no);
+        tr.setAttribute('data-batch', student.lab_batch || '');
 
         let gradedCount = 0;
         if (student.experiments_marks) {
@@ -8519,16 +8525,17 @@
       const total = rows.length;
       const mid = Math.ceil(total / 2);
       rows.forEach((row, idx) => {
+        const studentBatch = row.getAttribute('data-batch') || '';
         if (filterVal === 'combined') {
           row.classList.remove('hidden');
         } else if (filterVal === '1') {
-          if (idx < mid) {
+          if (studentBatch === '1' || (!studentBatch && idx < mid)) {
             row.classList.remove('hidden');
           } else {
             row.classList.add('hidden');
           }
         } else if (filterVal === '2') {
-          if (idx >= mid) {
+          if (studentBatch === '2' || (!studentBatch && idx >= mid)) {
             row.classList.remove('hidden');
           } else {
             row.classList.add('hidden');
@@ -8537,7 +8544,24 @@
       });
     }
 
+    function openLabBatchSetupModalFromDashboard() {
+      if (!currentSubjectId) {
+        alert("Please select a practical course first.");
+        return;
+      }
+      if (typeof openLabBatchSetupModal === 'function') {
+        openLabBatchSetupModal(currentSubjectId, function(res) {
+          fetchPracticalEvaluationsData();
+        });
+      }
+    }
+
     function calculateLabStatistics() {
+      const statTotalExps = document.getElementById('statLabTotalExps');
+      if (statTotalExps) statTotalExps.innerText = labExperimentsData ? labExperimentsData.length : 0;
+      const statDoneExps = document.getElementById('statLabCompletedExps');
+      if (statDoneExps) statDoneExps.innerText = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
+
       if (labStudentsData.length === 0) return;
       
       let sumInternals = 0;
@@ -8568,10 +8592,142 @@
       if (statAvgBrd) statAvgBrd.innerText = boardCount > 0 ? `${avgBoard.toFixed(2)} / 50` : 'N/A';
       const statPassPct = document.getElementById('statLabPassPercent');
       if (statPassPct) statPassPct.innerText = boardCount > 0 ? `${passPercent.toFixed(1)}%` : 'N/A';
-      const statTotalExps = document.getElementById('statLabTotalExps');
-      if (statTotalExps) statTotalExps.innerText = labExperimentsData.length;
-      const statDoneExps = document.getElementById('statLabCompletedExps');
-      if (statDoneExps) statDoneExps.innerText = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
+    }
+
+    window.dashboardCompletedExpsCohort = 'all';
+
+    function toggleCompletedExperimentsFullscreen() {
+      const dialog = document.getElementById('completedExperimentsModalDialog');
+      const icon = document.getElementById('completedExpsFullscreenIcon');
+      if (!dialog) return;
+
+      if (dialog.classList.contains('is-fullscreen')) {
+        dialog.classList.remove('is-fullscreen', '!w-full', '!h-full', '!max-w-none', '!max-h-none', '!rounded-none');
+        dialog.classList.add('rounded-2xl', 'max-w-[98vw]', 'xl:max-w-[1700px]', 'h-[95vh]', 'max-h-[95vh]');
+        if (icon) icon.innerText = 'fullscreen';
+      } else {
+        dialog.classList.add('is-fullscreen', '!w-full', '!h-full', '!max-w-none', '!max-h-none', '!rounded-none');
+        dialog.classList.remove('rounded-2xl', 'max-w-[98vw]', 'xl:max-w-[1700px]', 'h-[95vh]', 'max-h-[95vh]');
+        if (icon) icon.innerText = 'fullscreen_exit';
+      }
+    }
+    window.toggleCompletedExperimentsFullscreen = toggleCompletedExperimentsFullscreen;
+
+    function filterDashboardCompletedExpsCohort(cohort) {
+      window.dashboardCompletedExpsCohort = cohort || 'all';
+      ['all', '1', '2'].forEach(c => {
+        const btn = document.getElementById('dashCohortTab_' + c);
+        if (btn) {
+          if (c === window.dashboardCompletedExpsCohort) {
+            btn.className = "px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer";
+          } else {
+            btn.className = "px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer";
+          }
+        }
+      });
+      renderDashboardCompletedExperiments();
+    }
+    window.filterDashboardCompletedExpsCohort = filterDashboardCompletedExpsCohort;
+
+    function renderDashboardCompletedExperiments() {
+      const tbody = document.getElementById('completedExperimentsTableBody');
+      const counter = document.getElementById('completedExpsTableCounter');
+      const allItems = window.conductedExpsDetails || [];
+      if (!tbody) return;
+
+      const filtered = allItems.filter(item => {
+        if (!window.dashboardCompletedExpsCohort || window.dashboardCompletedExpsCohort === 'all') return true;
+        const sb = String(item.sub_batch || 'Whole');
+        return sb === String(window.dashboardCompletedExpsCohort);
+      });
+
+      if (counter) {
+        counter.innerText = `Showing ${filtered.length} of ${allItems.length} completed session records`;
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded for this selection.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      let currentBatchHeader = null;
+      filtered.forEach((item, idx) => {
+        let rawDate = '';
+        let dateStr = item.date || '—';
+        if (item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          rawDate = item.date;
+          const dParts = item.date.split('-');
+          dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+        } else if (item.date && item.date.includes('-')) {
+          const dParts = item.date.split('-');
+          if (dParts.length === 3 && dParts[0].length === 4) {
+            dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+          }
+        }
+
+        const sb = String(item.sub_batch || 'Whole');
+        const batchName = item.batch || (sb === '1' ? 'Batch 1' : (sb === '2' ? 'Batch 2' : 'Whole Class'));
+        const batchBadge = (sb === '1')
+          ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/25'
+          : ((sb === '2') ? 'bg-purple-500/10 text-purple-300 border border-purple-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
+        const abCount = (item.absent_count !== undefined) ? item.absent_count : Math.max(0, (item.total_count || 0) - (item.present_count || 0));
+        const abRolls = item.absent_roll_nos || '-';
+
+        if ((!window.dashboardCompletedExpsCohort || window.dashboardCompletedExpsCohort === 'all') && currentBatchHeader !== batchName) {
+          currentBatchHeader = batchName;
+          const bannerTr = document.createElement('tr');
+          bannerTr.className = "batch-section-banner bg-slate-950 border-y border-slate-800";
+          bannerTr.innerHTML = `
+            <td colspan="9" class="py-2.5 px-4 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full ${sb === '1' ? 'bg-indigo-400' : 'bg-purple-400'}"></span>
+                <span class="${sb === '1' ? 'text-indigo-300' : 'text-purple-300'} font-bold uppercase tracking-wider text-xs">${batchName}</span>
+                <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(bannerTr);
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-800/50 hover:bg-slate-800/30 transition text-xs";
+        tr.innerHTML = `
+          <td class="p-3 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
+          <td class="p-3 text-center font-mono font-bold text-slate-200 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
+          <td class="p-3 text-slate-200">
+            <div class="inline-flex items-center gap-2 max-w-full">
+              <span class="font-medium text-slate-100">${item.title}</span>
+              ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800/90 border border-slate-700/80 rounded text-[10px] font-mono text-slate-400 shrink-0">${item.co_tag}</span>` : ''}
+            </div>
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            <div class="inline-flex items-center justify-center gap-1.5 text-slate-300 font-mono text-xs">
+              <span class="material-symbols-rounded text-slate-500 text-sm">calendar_today</span>
+              <span>${dateStr}</span>
+            </div>
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            <span class="px-2 py-0.5 bg-slate-800/70 border border-slate-700/60 rounded text-slate-300 font-mono text-[11px]">${item.hours_text || '3 hrs (Lab)'}</span>
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchBadge}">${batchName}</span>
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+              <span class="font-mono font-bold text-slate-100 text-xs">${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}</span>
+              ${item.attendance_pct ? `<span class="px-1.5 py-0.5 rounded ${parseFloat(item.attendance_pct) >= 75 ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'} font-mono text-[11px] font-semibold">${item.attendance_pct}%</span>` : ''}
+            </div>
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            ${abCount > 0 ? `<span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono font-bold text-xs">${abCount}</span>` : `<span class="text-slate-500 font-mono text-xs">0</span>`}
+          </td>
+          <td class="p-3 text-center whitespace-nowrap">
+            ${(abRolls && abRolls !== 'None' && abRolls !== '-') ? `<span class="px-2.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-300 font-mono font-semibold text-xs tracking-wide">${abRolls}</span>` : `<span class="text-slate-500 text-xs font-normal">None</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     function openCompletedExperimentsModal() {
@@ -8583,8 +8739,8 @@
         subTitle.textContent = `${currentVirtualBatchId || 'Classroom'} • Normalized Timetable Continuous Sessions`;
       }
 
-      const totalSyllabus = labExperimentsData ? labExperimentsData.length : 0;
-      const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : 0;
+      const totalSyllabus = window.totalSyllabusExps || (labExperimentsData ? labExperimentsData.length : 0);
+      const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : (window.conductedExpsDetails || []).length;
       const hoursCount = (window.actualLabHoursConducted !== undefined && window.actualLabHoursConducted > 0)
         ? window.actualLabHoursConducted
         : (doneCount * 3);
@@ -8599,75 +8755,7 @@
       const kpiPct = document.getElementById('kpiCoveragePercent');
       if (kpiPct) kpiPct.innerText = `${pct}%`;
 
-      const tbody = document.getElementById('completedExperimentsTableBody');
-      const counter = document.getElementById('completedExpsTableCounter');
-      const list = window.conductedExpsDetails || [];
-
-      if (counter) counter.innerText = `Showing ${list.length} completed session records`;
-
-      if (tbody) {
-        tbody.innerHTML = '';
-        if (list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">No completed experiments recorded yet.</td></tr>`;
-        } else {
-          list.forEach((item, idx) => {
-            const tr = document.createElement('tr');
-            tr.className = "border-b border-slate-800/40 hover:bg-slate-900/30 transition text-xs";
-            
-            let rawDate = '';
-            let dateStr = item.date || '—';
-            if (item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-              rawDate = item.date;
-              const dParts = item.date.split('-');
-              dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
-            } else if (item.date && item.date.includes('-')) {
-              const dParts = item.date.split('-');
-              if (dParts.length === 3 && dParts[0].length === 4) {
-                dateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
-              }
-            }
-
-            const batchColor = (item.sub_batch === '1' || item.sub_batch === 1) ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/60' : ((item.sub_batch === '2' || item.sub_batch === 2) ? 'bg-purple-950/40 text-purple-300 border-purple-700/60' : 'bg-slate-800/90 text-slate-300 border-slate-700');
-
-            tr.innerHTML = `
-              <td class="p-2.5 text-center font-mono text-slate-400 whitespace-nowrap">${idx + 1}</td>
-              <td class="p-2.5 font-mono font-semibold text-teal-400 whitespace-nowrap">${item.experiment_no || ('Exp ' + (idx + 1))}</td>
-              <td class="p-2.5 text-slate-200 whitespace-nowrap">
-                <div class="inline-flex items-center gap-2 max-w-full">
-                  <span class="font-bold text-slate-100">${item.title}</span>
-                  ${item.co_tag ? `<span class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] font-mono text-amber-300 font-semibold shrink-0">${item.co_tag}</span>` : ''}
-                </div>
-              </td>
-              <td class="p-2 text-center whitespace-nowrap">
-                <div class="inline-flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/80 focus-within:border-cyan-400 transition">
-                  <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
-                  <input type="date" value="${rawDate}" 
-                    onchange="promptEditExpDate(${item.experiment_id || 'null'}, '${rawDate}', this.value, '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
-                    class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark] w-28" title="Click to edit conducted date">
-                  <button type="button" 
-                    onclick="openEditExpDateModal(${item.experiment_id || 'null'}, '${rawDate}', '${item.sub_batch || 'Whole'}', '${(item.experiment_no || '').replace(/'/g, "\\'")}', '${(item.title || '').replace(/'/g, "\\'")}')"
-                    class="text-slate-400 hover:text-cyan-300 p-0.5 rounded transition cursor-pointer" title="Edit Date & Batch Scope">
-                    <span class="material-symbols-rounded text-xs">tune</span>
-                  </button>
-                </div>
-              </td>
-              <td class="p-2.5 text-center whitespace-nowrap">
-                <span class="px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-md font-mono text-xs font-semibold text-sky-300 inline-block">${item.hours_text || '3 hrs (P1-P3)'}</span>
-              </td>
-              <td class="p-2.5 text-center whitespace-nowrap">
-                <span class="px-2.5 py-1 border rounded-md text-[11px] font-semibold whitespace-nowrap inline-block ${batchColor}">${item.batch || 'Whole Class'}</span>
-              </td>
-              <td class="p-2.5 text-center whitespace-nowrap">
-                <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
-                  <span class="font-mono font-bold text-emerald-400">${item.present_count !== undefined ? `${item.present_count}/${item.total_count}` : 'Conducted'}</span>
-                  ${item.attendance_pct ? `<span class="text-[11px] text-slate-400 font-normal">(${item.attendance_pct}%)</span>` : ''}
-                </div>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-      }
+      renderDashboardCompletedExperiments();
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -9316,6 +9404,11 @@
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
+        const compModal = document.getElementById('completedExperimentsModal');
+        if (compModal && !compModal.classList.contains('hidden')) {
+          closeCompletedExperimentsModal();
+          return;
+        }
         const modal = document.getElementById('studentLabModal');
         if (modal && !modal.classList.contains('hidden')) {
           closeStudentLabModal();
@@ -11508,78 +11601,127 @@
   </div>
 
   <!-- Completed Experiments Details Modal -->
-  <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-7xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+  <div id="completedExperimentsModal" onclick="if(event.target === this) closeCompletedExperimentsModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden justify-center items-center p-2 sm:p-3">
+    <div id="completedExperimentsModalDialog" class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-[98vw] xl:max-w-[1700px] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden shadow-2xl transition-all">
       <!-- Modal Header -->
-      <div class="px-6 py-4 bg-slate-950/70 border-b border-slate-800 flex justify-between items-center">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded text-teal-400 text-xl">biotech</span>
-            <h3 class="text-base font-black text-white">Completed Practical Experiments &amp; Sessions</h3>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5" id="completedExpsModalSubtitle">Classroom &bull; Normalized Timetable Continuous Sessions</p>
-        </div>
+      <div class="px-5 py-3.5 bg-slate-950/90 border-b border-slate-800 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
+            <span class="material-symbols-rounded text-xl">biotech</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm sm:text-base font-black text-white leading-tight">Completed Practical Experiments &amp; Sessions</h3>
+              <span class="px-2 py-0.5 rounded bg-teal-500/20 border border-teal-500/30 text-teal-300 text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Workspace</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 leading-tight" id="completedExpsModalSubtitle">Classroom &bull; Normalized Timetable Continuous Sessions</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
           <button type="button" onclick="printCompletedExperimentsLog()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow shadow-blue-500/20">
             <span class="material-symbols-rounded text-sm">print</span>
             <span>Print Report</span>
           </button>
-          <button onclick="closeCompletedExperimentsModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1">
-            <span class="material-symbols-rounded">close</span>
+          <button type="button" onclick="toggleCompletedExperimentsFullscreen()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg border border-slate-700/80 transition flex items-center gap-1.5 cursor-pointer" title="Toggle Fullscreen">
+            <span class="material-symbols-rounded text-base" id="completedExpsFullscreenIcon">fullscreen</span>
+            <span class="hidden sm:inline">Fullscreen</span>
+          </button>
+          <button type="button" onclick="closeCompletedExperimentsModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 hover:text-white text-xs font-bold rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Close">
+            <span class="material-symbols-rounded text-sm">close</span>
+            <span>Close</span>
           </button>
         </div>
       </div>
 
-      <!-- KPI Overview Cards -->
-      <div class="p-6 overflow-y-auto space-y-6 flex-grow">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="p-3 bg-slate-950/50 border border-slate-800/80 rounded-xl">
-            <span class="text-[10px] font-bold uppercase text-slate-400 block">Total In Syllabus</span>
-            <span class="text-xl font-mono font-black text-white mt-1 block" id="kpiTotalSyllabusExps">0</span>
+      <!-- KPI Overview Cards & Table -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-grow custom-scrollbar">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Syllabus Experiments</span>
+              <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiTotalSyllabusExps">0</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-center justify-center text-slate-300">
+              <span class="material-symbols-rounded text-xl">menu_book</span>
+            </div>
           </div>
-          <div class="p-3 bg-teal-950/30 border border-teal-800/40 rounded-xl">
-            <span class="text-[10px] font-bold uppercase text-teal-300 block">Experiments Completed</span>
-            <span class="text-xl font-mono font-black text-teal-400 mt-1 block" id="kpiCompletedExpsCount">0</span>
+          <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sessions Conducted</span>
+              <span class="text-2xl font-mono font-bold text-indigo-300 mt-1 block" id="kpiCompletedExpsCount">0</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <span class="material-symbols-rounded text-xl">task_alt</span>
+            </div>
           </div>
-          <div class="p-3 bg-blue-950/30 border border-blue-800/40 rounded-xl">
-            <span class="text-[10px] font-bold uppercase text-blue-300 block">Actual Lab Hours</span>
-            <span class="text-xl font-mono font-black text-blue-400 mt-1 block" id="kpiActualLabHours">0 hrs</span>
+          <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Actual Lab Hours</span>
+              <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiActualLabHours">0 hrs</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-center justify-center text-slate-300">
+              <span class="material-symbols-rounded text-xl">schedule</span>
+            </div>
           </div>
-          <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl">
-            <span class="text-[10px] font-bold uppercase text-purple-300 block">Syllabus Covered</span>
-            <span class="text-xl font-mono font-black text-purple-300 mt-1 block" id="kpiCoveragePercent">0%</span>
+          <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Syllabus Coverage</span>
+              <span class="text-2xl font-mono font-bold text-emerald-400 mt-1 block" id="kpiCoveragePercent">0%</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <span class="material-symbols-rounded text-xl">verified</span>
+            </div>
           </div>
         </div>
 
         <!-- Completed Experiments Table -->
         <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden shadow-inner">
-          <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex justify-between items-center">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <span class="material-symbols-rounded text-sm text-teal-400">task_alt</span> Completed Experiments Log Details
-            </span>
-            <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing 0 completed session records</span>
+          <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-sm text-teal-400">task_alt</span> Completed Experiments Log Details
+              </span>
+              <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing 0 completed session records</span>
+            </div>
+            <!-- Cohort Filter Tabs -->
+            <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-[11px]">
+              <button type="button" onclick="filterDashboardCompletedExpsCohort('all')" id="dashCohortTab_all" class="px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer">All</button>
+              <button type="button" onclick="filterDashboardCompletedExpsCohort('1')" id="dashCohortTab_1" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 1</button>
+              <button type="button" onclick="filterDashboardCompletedExpsCohort('2')" id="dashCohortTab_2" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 2</button>
+            </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[900px]">
+            <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] bg-slate-900/60 whitespace-nowrap">
-                  <th class="p-2.5 w-12 text-center">#</th>
-                  <th class="p-2.5 w-24">Exp No</th>
+                  <th class="p-2.5 w-10 text-center">#</th>
+                  <th class="p-2.5 w-20 text-center">Exp No</th>
                   <th class="p-2.5">Title / Topics Covered</th>
-                  <th class="p-2.5 text-center w-36">Date</th>
-                  <th class="p-2.5 text-center w-40">Hours (Periods)</th>
-                  <th class="p-2.5 text-center w-32">Batch</th>
-                  <th class="p-2.5 text-center w-36">Attendance</th>
+                  <th class="p-2.5 text-center w-28">Date</th>
+                  <th class="p-2.5 text-center w-28">Hours (Periods)</th>
+                  <th class="p-2.5 text-center w-24">Batch</th>
+                  <th class="p-2.5 text-center w-28">Attendance (%)</th>
+                  <th class="p-2.5 text-center w-20">Absent</th>
+                  <th class="p-2.5 text-center w-40">Absent Roll Nos</th>
                 </tr>
               </thead>
               <tbody id="completedExperimentsTableBody" class="divide-y divide-slate-800/40 text-xs">
                 <tr>
-                  <td colspan="7" class="p-6 text-center text-slate-500">No completed experiments recorded yet.</td>
+                  <td colspan="9" class="p-6 text-center text-slate-500">No completed experiments recorded yet.</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-2.5 bg-slate-950/90 border-t border-slate-800 flex justify-between items-center shrink-0">
+        <span class="text-xs text-slate-500 font-mono hidden sm:inline">Press ESC or click outside to dismiss</span>
+        <button type="button" onclick="closeCompletedExperimentsModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 hover:text-white text-xs font-bold rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm ml-auto">
+          <span class="material-symbols-rounded text-sm">close</span>
+          <span>Close</span>
+        </button>
       </div>
     </div>
   </div>
@@ -11754,5 +11896,6 @@
 
   @include('partials.support_desk_overlay')
   @include('partials.birthday_wish_modal')
+  @include('partials.lab_batch_setup_modal')
 </body>
 </html>

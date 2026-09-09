@@ -114,6 +114,53 @@ class AttendanceController extends Controller
 
         $nextLogSlNo = ($lastLogCount > 0 || $hasLessonPlans || $practicalExperiments->isNotEmpty()) ? ($lastLogCount + 1) : 0;
 
+        // Fetch lab batch assignments from r26_student_lab_batches
+        $labBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $id)->pluck('lab_batch', 'reg_no');
+        if ($labBatches->isEmpty()) {
+            $siblingIds = BatchSubject::where('classroom_id', $batchSubject->classroom_id)
+                ->where('semester', $batchSubject->semester)
+                ->where('id', '!=', $id)
+                ->pluck('id');
+            if ($siblingIds->isNotEmpty()) {
+                $labBatches = \App\Models\R26StudentLabBatch::whereIn('batch_subject_id', $siblingIds)->pluck('lab_batch', 'reg_no');
+            }
+        }
+
+        // Attach normalized lab_batch to each student
+        $students = $students->map(function($s) use ($labBatches) {
+            $b = $labBatches->get($s->reg_no);
+            if ($b !== null) {
+                $bNorm = ($b === '1' || $b === 'Batch 1' || $b === 'Batch A') ? '1' : (($b === '2' || $b === 'Batch 2' || $b === 'Batch B') ? '2' : $b);
+                $s->lab_batch = $bNorm;
+                $s->lab_batch_label = ($bNorm === '1') ? 'Batch 1' : (($bNorm === '2') ? 'Batch 2' : $b);
+            } else {
+                $s->lab_batch = null;
+                $s->lab_batch_label = 'Unassigned';
+            }
+            return $s;
+        });
+
+        $labMode = $batchSubject->lab_batch_mode ?: 'split';
+        $b1Students = $students->filter(fn($s) => $s->lab_batch === '1')->values();
+        $b2Students = $students->filter(fn($s) => $s->lab_batch === '2')->values();
+
+        $b1Rolls = $b1Students->pluck('roll_no')->filter(fn($r) => $r !== null)->sort()->values()->all();
+        $b2Rolls = $b2Students->pluck('roll_no')->filter(fn($r) => $r !== null)->sort()->values()->all();
+
+        $b1Range = !empty($b1Rolls) ? ($b1Rolls[0] . '-' . end($b1Rolls)) : ($b1Students->count() > 0 ? ('1-' . $b1Students->count()) : '-');
+        $b2Range = !empty($b2Rolls) ? ($b2Rolls[0] . '-' . end($b2Rolls)) : ($b2Students->count() > 0 ? (($b1Students->count() + 1) . '+') : '-');
+
+        $batchSplitSummary = [
+            'mode' => $labMode,
+            'cutoff' => $batchSubject->lab_batch_cutoff,
+            'is_configured' => $labBatches->isNotEmpty() || $batchSubject->lab_batch_cutoff !== null,
+            'b1_count' => $b1Students->count(),
+            'b2_count' => $b2Students->count(),
+            'b1_range' => $b1Range,
+            'b2_range' => $b2Range,
+            'total_students' => $students->count(),
+        ];
+
         return response()->json([
             'status' => 'SUCCESS',
             'students' => $students,
@@ -122,8 +169,151 @@ class AttendanceController extends Controller
             'classroom_id' => $batchSubject->classroom_id,
             'subject_type' => $batchSubject->subject_type,
             'syllabus_revision_code' => $batchSubject->syllabus_revision_code,
+            'lab_batch_mode' => $labMode,
+            'lab_batch_cutoff' => $batchSubject->lab_batch_cutoff,
+            'batch_split_summary' => $batchSplitSummary,
             'last_log_sl_no' => $lastLogCount,
             'next_log_sl_no' => $nextLogSlNo
+        ]);
+    }
+
+    /**
+     * Get lab batch setup details for modal/configuration.
+     */
+    public function getLabBatchSetup($id)
+    {
+        $role = Session::get('userRole');
+        if (!$role || $role === 'Student') {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($id);
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->where(function($q) {
+                $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
+            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'name', 'roll_no']);
+
+        $labBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $id)->pluck('lab_batch', 'reg_no');
+        if ($labBatches->isEmpty()) {
+            $siblingIds = BatchSubject::where('classroom_id', $batchSubject->classroom_id)
+                ->where('semester', $batchSubject->semester)
+                ->where('id', '!=', $id)
+                ->pluck('id');
+            if ($siblingIds->isNotEmpty()) {
+                $labBatches = \App\Models\R26StudentLabBatch::whereIn('batch_subject_id', $siblingIds)->pluck('lab_batch', 'reg_no');
+            }
+        }
+
+        $studentList = $students->map(function($s) use ($labBatches) {
+            $b = $labBatches->get($s->reg_no);
+            $bNorm = ($b === '1' || $b === 'Batch 1' || $b === 'Batch A') ? '1' : (($b === '2' || $b === 'Batch 2' || $b === 'Batch B') ? '2' : $b);
+            return [
+                'reg_no' => $s->reg_no,
+                'name' => $s->name,
+                'roll_no' => $s->roll_no,
+                'lab_batch' => $bNorm ?: '1',
+            ];
+        });
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'subject_id' => $batchSubject->id,
+            'subject_name' => $batchSubject->subject_name,
+            'classroom_id' => $batchSubject->classroom_id,
+            'semester' => $batchSubject->semester,
+            'lab_batch_mode' => $batchSubject->lab_batch_mode ?: 'split',
+            'lab_batch_cutoff' => $batchSubject->lab_batch_cutoff,
+            'is_configured' => $labBatches->isNotEmpty() || $batchSubject->lab_batch_cutoff !== null,
+            'total_students' => $students->count(),
+            'students' => $studentList,
+        ]);
+    }
+
+    /**
+     * Save practical lab batch division (Full vs Split, cutoff roll, or individual assignments).
+     */
+    public function saveLabBatchAssignments(Request $request, $subjectId)
+    {
+        $role = Session::get('userRole');
+        if (!$role || $role === 'Student') {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $mode = $request->input('mode', 'split'); // 'full' or 'split'
+        $cutoffRoll = $request->input('cutoff_roll'); // e.g. 25
+        $applyToClassroom = (bool)$request->input('apply_to_classroom', true);
+        $assignments = $request->input('assignments'); // optional array of { reg_no, lab_batch }
+
+        $targetSubjectIds = [$batchSubject->id];
+        if ($applyToClassroom) {
+            $siblingIds = BatchSubject::where('classroom_id', $batchSubject->classroom_id)
+                ->where('semester', $batchSubject->semester)
+                ->pluck('id')
+                ->toArray();
+            $targetSubjectIds = array_unique(array_merge($targetSubjectIds, $siblingIds));
+        }
+
+        // Update mode & cutoff on target batch_subjects
+        BatchSubject::whereIn('id', $targetSubjectIds)->update([
+            'lab_batch_mode' => $mode,
+            'lab_batch_cutoff' => ($cutoffRoll !== null && $cutoffRoll !== '') ? (int)$cutoffRoll : null,
+        ]);
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->where(function($q) {
+                $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
+            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'roll_no']);
+
+        foreach ($targetSubjectIds as $tId) {
+            if ($mode === 'full') {
+                // Delete split assignments or assign 'Whole'
+                \App\Models\R26StudentLabBatch::where('batch_subject_id', $tId)->delete();
+            } elseif (!empty($assignments) && is_array($assignments)) {
+                // Explicit student assignment map
+                foreach ($assignments as $item) {
+                    $reg = $item['reg_no'] ?? null;
+                    $b = $item['lab_batch'] ?? '1';
+                    if ($reg) {
+                        \App\Models\R26StudentLabBatch::updateOrCreate(
+                            ['batch_subject_id' => $tId, 'reg_no' => $reg],
+                            ['lab_batch' => $b]
+                        );
+                    }
+                }
+            } elseif ($cutoffRoll) {
+                // Cutoff roll number split
+                $cutoff = (int)$cutoffRoll;
+                foreach ($students as $s) {
+                    $b = ($s->roll_no !== null && (int)$s->roll_no <= $cutoff) ? '1' : '2';
+                    \App\Models\R26StudentLabBatch::updateOrCreate(
+                        ['batch_subject_id' => $tId, 'reg_no' => $s->reg_no],
+                        ['lab_batch' => $b]
+                    );
+                }
+            } else {
+                // Auto 50/50 split
+                $mid = (int)ceil($students->count() / 2);
+                foreach ($students as $idx => $s) {
+                    $b = ($idx < $mid) ? '1' : '2';
+                    \App\Models\R26StudentLabBatch::updateOrCreate(
+                        ['batch_subject_id' => $tId, 'reg_no' => $s->reg_no],
+                        ['lab_batch' => $b]
+                    );
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Lab batch configuration saved successfully!' . ($applyToClassroom ? ' Applied to ' . count($targetSubjectIds) . ' subjects.' : '')
         ]);
     }
 

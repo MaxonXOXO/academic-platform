@@ -190,6 +190,24 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            .batch-header-row td {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        .batch-header-row td {
+            background-color: #f8fafc;
+            font-weight: 800;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+            padding: 8px 10px;
+            border-top: 2px solid #cbd5e1;
+            border-bottom: 1.5px solid #cbd5e1;
         }
 
         .action-bar {
@@ -283,19 +301,23 @@
     <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 5%">Sl.</th>
-                <th style="width: 10%">Exp No</th>
-                <th style="width: 32%">Title &amp; Topics Covered</th>
-                <th style="width: 8%">CO</th>
-                <th style="width: 13%">Conducted Date</th>
-                <th style="width: 14%">Hours / Periods</th>
-                <th style="width: 10%">Batch</th>
-                <th style="width: 8%">Attendance</th>
+                <th style="width: 4%">Sl.</th>
+                <th style="width: 8%">Exp No</th>
+                <th style="width: 22%">Title &amp; Topics Covered</th>
+                <th style="width: 5%">CO</th>
+                <th style="width: 8%">Batch</th>
+                <th style="width: 10%">Conducted Date</th>
+                <th style="width: 10%">Hours / Periods</th>
+                <th style="width: 9%">Attendance (%)</th>
+                <th style="width: 6%">Absent</th>
+                <th style="width: 18%">Absentee Roll Nos</th>
             </tr>
         </thead>
         <tbody>
+            @php $currentBatchHeader = null; @endphp
             @forelse($conductedDetails as $idx => $exp)
                 @php
+                    $thisBatch = $exp['batch'] ?? 'Practical Session';
                     $formattedDate = '-';
                     if (!empty($exp['date']) && $exp['date'] !== 'Conducted') {
                         $ts = strtotime($exp['date']);
@@ -303,7 +325,19 @@
                     } elseif ($exp['date'] === 'Conducted') {
                         $formattedDate = 'Conducted';
                     }
+                    $abCount = $exp['absent_count'] ?? max(0, ($exp['total_count'] ?? 0) - ($exp['present_count'] ?? 0));
+                    $abRolls = $exp['absent_roll_nos'] ?? '-';
+                    $attPct = isset($exp['attendance_pct']) ? ($exp['attendance_pct'] . '%') : '-';
                 @endphp
+
+                @if($currentBatchHeader !== $thisBatch)
+                    @php $currentBatchHeader = $thisBatch; @endphp
+                    <tr class="batch-header-row">
+                        <td colspan="10">
+                            {{ $thisBatch }} — Practical Experiments &amp; Conducted Log Sessions
+                        </td>
+                    </tr>
+                @endif
                 <tr>
                     <td class="align-center" style="font-weight: bold;">{{ $idx + 1 }}</td>
                     <td class="align-center" style="font-weight: bold; color: #1e3a8a;">{{ $exp['experiment_no'] }}</td>
@@ -311,23 +345,39 @@
                     <td class="align-center">
                         <span class="badge-co">{{ $exp['co_tag'] ?? 'CO1' }}</span>
                     </td>
-                    <td class="align-center" style="font-weight: bold; font-family: monospace; font-size: 10.5px;">
+                    <td class="align-center">
+                        <span class="badge-batch">{{ $exp['batch'] }}</span>
+                    </td>
+                    <td class="align-center" style="font-weight: bold; font-family: monospace; font-size: 10px;">
                         {{ $formattedDate }}
                     </td>
                     <td class="align-center" style="font-size: 9.5px;">
                         {{ $exp['hours_text'] }}
                     </td>
-                    <td class="align-center">
-                        <span class="badge-batch">{{ $exp['batch'] }}</span>
+                    <td class="align-center" style="font-size: 9.5px;">
+                        <span style="color: #166534; font-weight: bold;">{{ $exp['present_count'] }}</span> / {{ $exp['total_count'] }}
+                        <div style="color: #1d4ed8; font-weight: bold; font-size: 8.5px;">({{ $attPct }})</div>
                     </td>
                     <td class="align-center" style="font-size: 9.5px;">
-                        {{ $exp['present_count'] }}/{{ $exp['total_count'] }}<br>
-                        <span style="color: #166534; font-weight: bold;">({{ $exp['attendance_pct'] }}%)</span>
+                        @if($abCount > 0)
+                            <span style="color: #dc2626; font-weight: bold;">{{ $abCount }}</span>
+                        @else
+                            <span style="color: #166534; font-weight: 600;">0</span>
+                        @endif
+                    </td>
+                    <td class="align-center" style="font-size: 9.5px;">
+                        @if(!empty($abRolls) && $abRolls !== 'None' && $abRolls !== '-')
+                            <span style="font-family: monospace; font-weight: bold; color: #b91c1c; font-size: 10px;">{{ $abRolls }}</span>
+                        @elseif($abCount > 0)
+                            <span style="font-family: monospace; color: #b91c1c;">{{ $abRolls }}</span>
+                        @else
+                            <span style="color: #6b7280; font-size: 8.5px;">None</span>
+                        @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="align-center" style="padding: 20px; color: #6b7280; font-style: italic;">
+                    <td colspan="10" class="align-center" style="padding: 20px; color: #6b7280; font-style: italic;">
                         No conducted practical experiments or sessions logged yet.
                     </td>
                 </tr>

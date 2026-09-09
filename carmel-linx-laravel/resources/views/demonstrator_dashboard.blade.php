@@ -441,7 +441,7 @@
                           $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
                         }
                       } else {
-                        $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id);
+                        $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($s->subject_type ?? 'Practical');
                       }
 
                       $prog = \App\Http\Controllers\DataController::getSubjectProgressData($s->subject_id, $s->subject_type);

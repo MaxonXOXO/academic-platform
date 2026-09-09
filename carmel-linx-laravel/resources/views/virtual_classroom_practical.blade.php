@@ -118,6 +118,10 @@
         } elseif ($role === 'Workshop_Superintendent') {
             $dashboardUrl = '/dashboard/workshop';
         }
+        $isRev2021Subject = (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21') || empty($batchSubject->syllabus_revision_code));
+        $isDemonstratorRev21 = ($role === 'Demonstrator' && $isRev2021Subject);
+        $vlBackTitle = $isDemonstratorRev21 ? 'Return to Demonstrator Dashboard' : 'Return to Virtual Lab';
+        $vlBackText  = $isDemonstratorRev21 ? 'Return to Dashboard' : 'Return to Virtual Lab';
     @endphp
 
     <!-- Top Compact Header (Sticky Top) -->
@@ -160,9 +164,9 @@
                 <i class="fa-solid fa-graduation-cap text-[11px]"></i> <span class="hidden sm:inline">Final ESE (125M)</span>
             </a>
 
-            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="Return to Virtual Lab">
+            <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20" title="{{ $vlBackTitle }}">
                 <i class="fa-solid fa-arrow-left text-xs"></i>
-                <span>Return to Virtual Lab</span>
+                <span>{{ $vlBackText }}</span>
             </a>
         </div>
     </header>
@@ -208,9 +212,9 @@
     <!-- Top Navigation & Batch Filter Bar (Exact Drawing Hall 2026 Style) -->
     <div class="glass-panel mx-2 mt-2 p-2 flex flex-wrap items-center justify-between gap-2 z-30">
         <!-- Return Button directly inside the Tab Bar container -->
-        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="Return to Virtual Lab">
+        <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="{{ $vlBackTitle }}">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            <span>Return to Virtual Lab</span>
+            <span>{{ $vlBackText }}</span>
         </a>
 
         <!-- Horizontal Tabs (Drawing Hall 2026 Style) -->
@@ -2231,6 +2235,20 @@
 
         function handleVirtualLabBack(e) {
             if (e) e.preventDefault();
+
+            @if($isDemonstratorRev21)
+                if (window.opener && !window.opener.closed) {
+                    try {
+                        if (window.opener.location.href.includes('/dashboard/demonstrator')) {
+                            window.opener.focus();
+                            window.close();
+                            return false;
+                        }
+                    } catch(err) {}
+                }
+                window.location.href = '/dashboard/demonstrator';
+                return false;
+            @endif
 
             if (window.opener && !window.opener.closed) {
                 try {

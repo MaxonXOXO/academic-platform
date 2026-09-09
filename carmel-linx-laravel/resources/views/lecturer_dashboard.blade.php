@@ -955,7 +955,7 @@
           <span id="themeToggleIcon" class="material-symbols-rounded text-lg">light_mode</span>
           <span id="themeToggleText" class="text-xs font-bold uppercase tracking-wider hidden sm:inline">Light Mode</span>
         </button>
-        <button id="headerBackBtn" onclick="switchPanel('dashboard')" class="hidden items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer shadow-sm group shrink-0" title="Return to Main Dashboard">
+        <button id="headerBackBtn" onclick="handleHeaderDashboardBack()" class="hidden items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer shadow-sm group shrink-0" title="Return to Main Dashboard">
           <span class="material-symbols-rounded text-xs text-rose-400">arrow_back</span>
           <span class="hidden sm:inline font-bold text-[11px] tracking-wide text-rose-400 group-hover:text-rose-300">Dashboard</span>
         </button>
@@ -1948,7 +1948,30 @@
       checkTodaySeminars();
     });
 
+    function isRev2021VirtualLab() {
+      const isPractical = !!window.isCurrentSubjectPractical;
+      const rev = (window.currentVirtualRevision || 'REV2021').toString().toUpperCase();
+      const isRev2021 = !rev.includes('2026') && !rev.includes('R26');
+      return isPractical && isRev2021;
+    }
+
+    function handleHeaderDashboardBack() {
+      const userRole = '{{ session("userRole") }}';
+      if (userRole === 'Demonstrator' && isRev2021VirtualLab()) {
+        window.location.href = '/dashboard/demonstrator';
+        return;
+      }
+      switchPanel('dashboard');
+    }
+
     function switchPanel(panelId) {
+      if (panelId === 'dashboard') {
+        const userRole = '{{ session("userRole") }}';
+        if (userRole === 'Demonstrator' && isRev2021VirtualLab()) {
+          window.location.href = '/dashboard/demonstrator';
+          return;
+        }
+      }
       activePanel = panelId;
       const sidebar = document.getElementById('mainSidebar');
       if (sidebar) {
@@ -1980,6 +2003,9 @@
         } else {
           headerBackBtn.classList.remove('hidden');
           headerBackBtn.classList.add('flex');
+          if ('{{ session("userRole") }}' === 'Demonstrator' && isRev2021VirtualLab()) {
+            headerBackBtn.title = "Return to Demonstrator Dashboard";
+          }
         }
       }
 
@@ -2671,8 +2697,13 @@
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab(activeTabToRestore);
           } else if (isPractical) {
+            window.isCurrentSubjectPractical = true;
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
             if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-sm">science</span> Virtual Lab Workspace`;
+            if ('{{ session("userRole") }}' === 'Demonstrator' && (!rStrVal.includes('2026') && !rStrVal.includes('26'))) {
+              const backBtn = document.getElementById('headerBackBtn');
+              if (backBtn) backBtn.title = "Return to Demonstrator Dashboard";
+            }
             if (tabSeminar) tabSeminar.classList.add('hidden');
             if (tabLab) tabLab.classList.remove('hidden');
             if (tabLabCoPo) tabLabCoPo.classList.add('hidden');

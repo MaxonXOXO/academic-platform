@@ -19,6 +19,7 @@ use App\Models\R26PracticalSeriesEvaluation;
 use App\Models\R26PracticalSeriesExam;
 use App\Models\R26PracticalEseMark;
 use App\Models\R26PracticalCourseFile;
+use App\Models\CourseFile;
 use App\Models\StaffProfile;
 use App\Models\SubjectStaffAssignment;
 
@@ -889,6 +890,18 @@ class R26VirtualClassroomPracticalController extends Controller
             $copo    = $pcf ? json_decode($pcf->parsed_copo, true) : [];
             $mappings = $copo['mappings'] ?? [];
 
+            $cf = CourseFile::where('batch_subject_id', $subjectId)->first();
+            $settings = [];
+            if ($cf && $cf->attainment_settings) {
+                $settings = is_string($cf->attainment_settings) ? json_decode($cf->attainment_settings, true) : $cf->attainment_settings;
+            }
+            $eseConfig = $settings['ese_config'] ?? [];
+            $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+            $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+            $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+            $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+            $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+
             $directStats = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
                 $totalAssessed = 0; $totalMet = 0;
@@ -903,11 +916,11 @@ class R26VirtualClassroomPracticalController extends Controller
                     };
                     $eseCo = ($sc['ese_score_40'] ?? 0) / 4;
                     $pct   = (($coScore + $eseCo) / 25) * 100;
-                    if ($pct >= 50) $totalMet++;
+                    if ($pct >= $cieThreshold) $totalMet++;
                     $totalAssessed++;
                 }
                 $met  = $totalAssessed > 0 ? ($totalMet / $totalAssessed) * 100 : 0;
-                $lvl  = $met >= 70 ? 3 : ($met >= 60 ? 2 : ($met >= 50 ? 1 : 0));
+                $lvl  = \App\Services\AttainmentService::calculateBatchLevel($met, $lvl3Val, $lvl2Val, $lvl1Val);
                 $directStats[$coTag] = ['met_percent' => round($met, 1), 'level' => $lvl];
             }
 
@@ -934,7 +947,7 @@ class R26VirtualClassroomPracticalController extends Controller
             $combinedStats = [];
             $poAttainments = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-                $combined = 0.80 * $directStats[$coTag]['level'] + 0.20 * $indirectStats[$coTag]['level'];
+                $combined = \App\Services\AttainmentService::calculateOverallAttainment($directStats[$coTag]['level'], $indirectStats[$coTag]['level'], 0.80, 0.20);
                 $combinedStats[$coTag] = round($combined, 2);
             }
             for ($p = 1; $p <= 11; $p++) {

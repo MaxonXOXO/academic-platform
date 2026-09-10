@@ -2785,8 +2785,48 @@ Return ONLY valid JSON matching this exact structure:
                 ->get();
         }
 
-        $cieThreshold = 50.0;
-        $targetStudentPercent = 70.0;
+        $eseConfig = $settings['ese_config'] ?? [];
+        $thresholdGrade = $eseConfig['ese_threshold_grade'] ?? $eseConfig['target_grade'] ?? 'D';
+        $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+        $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+        $maxEseMarks = (float)($eseConfig['max_marks'] ?? 60.0);
+
+        $boardGrades = \Illuminate\Support\Facades\DB::table('student_board_grades')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->keyBy('reg_no');
+
+        // Evaluate batch ESE Attainment (SBTE Kerala Scale)
+        $eseAppeared = 0;
+        $eseMet = 0;
+        foreach ($students as $stud) {
+            $regNo = $stud->reg_no ?: $stud->sbte_reg_no;
+            $studMarks = $academicMarks->get($regNo, collect());
+            $eseRecord = $studMarks->where('category', 'ESE')->first();
+            $gradeRecord = $boardGrades->get($regNo);
+
+            $markVal = $eseRecord ? (float)$eseRecord->marks_obtained : null;
+            $gradeVal = $gradeRecord ? $gradeRecord->grade : null;
+
+            if ($markVal !== null) {
+                $eseAppeared++;
+                $pct = ($markVal / ($maxEseMarks > 0 ? $maxEseMarks : 60)) * 100;
+                $calcGrade = \App\Services\AttainmentService::percentageToGrade($pct);
+                if (\App\Services\AttainmentService::isGradeMet($calcGrade, $thresholdGrade) || $pct >= (float)($eseConfig['ese_threshold_percent'] ?? 50.0)) {
+                    $eseMet++;
+                }
+            } elseif ($gradeVal !== null && strtoupper(trim($gradeVal)) !== 'FE') {
+                $eseAppeared++;
+                if (\App\Services\AttainmentService::isGradeMet($gradeVal, $thresholdGrade)) {
+                    $eseMet++;
+                }
+            }
+        }
+        $eseMetPct = $eseAppeared > 0 ? round(($eseMet / $eseAppeared) * 100, 1) : 0.0;
+        $eseLevel = \App\Services\AttainmentService::calculateBatchLevel($eseMetPct, $lvl3Val, $lvl2Val, $lvl1Val);
 
         $directStats = [];
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
@@ -2811,15 +2851,19 @@ Return ONLY valid JSON matching this exact structure:
                 $totalAssessed++;
             }
 
-            $metPercentage = $totalAssessed > 0 ? ($totalMet / $totalAssessed) * 100 : 0.0;
-            $level = 0;
-            if ($metPercentage >= $targetStudentPercent) $level = 3;
-            elseif ($metPercentage >= ($targetStudentPercent - 10)) $level = 2;
-            elseif ($metPercentage >= ($targetStudentPercent - 20)) $level = 1;
+            $cieMetPercentage = $totalAssessed > 0 ? ($totalMet / $totalAssessed) * 100 : 0.0;
+            $cieLevel = \App\Services\AttainmentService::calculateBatchLevel($cieMetPercentage, $lvl3Val, $lvl2Val, $lvl1Val);
+
+            // Direct Attainment: 30% CIE + 70% ESE if ESE is evaluated, else CIE Level
+            $directLevel = $eseAppeared > 0
+                ? \App\Services\AttainmentService::calculateDirectAttainment($cieLevel, $eseLevel, 0.30, 0.70)
+                : (float)$cieLevel;
 
             $directStats[$coTag] = [
-                'met_percent' => round($metPercentage, 1),
-                'level' => $level
+                'met_percent' => round($cieMetPercentage, 1),
+                'cie_level' => $cieLevel,
+                'ese_level' => $eseLevel,
+                'level' => $directLevel
             ];
         }
 
@@ -2849,13 +2893,10 @@ Return ONLY valid JSON matching this exact structure:
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
             $directLevel = $directStats[$coTag]['level'];
             $indirectLevel = $indirectStats[$coTag]['level'];
-            $overallLevel = round((0.8 * $directLevel) + (0.2 * $indirectLevel), 2);
+            $overallLevel = \App\Services\AttainmentService::calculateOverallAttainment($directLevel, $indirectLevel, 0.80, 0.20);
             $combinedStats[$coTag] = $overallLevel;
 
-            $nbaRating = 'Level 0 (Nil)';
-            if ($overallLevel >= 2.5) $nbaRating = 'Level 3 (High)';
-            elseif ($overallLevel >= 1.75) $nbaRating = 'Level 2 (Medium)';
-            elseif ($overallLevel >= 1.0) $nbaRating = 'Level 1 (Low)';
+            $nbaRating = \App\Services\AttainmentService::getLevelLabel((int)round($overallLevel));
 
             $coAttainments[$coTag] = [
                 'direct_level' => $directLevel,

@@ -15,6 +15,8 @@ use App\Models\R26PracticumExperimentEvaluation;
 use App\Models\R26PracticumSeriesTheory;
 use App\Models\R26PracticumSeriesPractical;
 use App\Models\R26PracticumEseMark;
+use App\Models\CourseFile;
+use App\Services\AttainmentService;
 
 class R26VirtualClassroomPracticumController extends Controller
 {
@@ -461,13 +463,30 @@ class R26VirtualClassroomPracticumController extends Controller
                 ->get();
         }
 
+        $cf = CourseFile::where('batch_subject_id', $subjectId)->first();
+        $settings = [];
+        if ($cf && $cf->attainment_settings) {
+            $settings = is_string($cf->attainment_settings) ? json_decode($cf->attainment_settings, true) : $cf->attainment_settings;
+        }
+        $eseConfig = $settings['ese_config'] ?? [];
+        $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+        $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-            $attainedCount = $studentResults->filter(function($s) {
-                return $s['total_course_marks'] >= ($s['max_course_marks'] * 0.55);
+            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold) {
+                // Strictly exclude attendance marks from academic attainment calculation
+                $academicCia = max(0, ($s['total_cia_marks'] ?? 0) - ($s['att_marks'] ?? 0));
+                $academicScore = $academicCia + ($s['total_ese'] ?? 0);
+                $maxAcademicMarks = max(1, ($s['max_course_marks'] ?? 100) - 5.0); // subtract 5M attendance
+                $pct = ($academicScore / $maxAcademicMarks) * 100;
+                return $pct >= $cieThreshold;
             })->count();
 
             $percentage = ($attainedCount / $totalStudents) * 100;
-            $directLevel = ($percentage >= 70) ? 3.0 : (($percentage >= 60) ? 2.0 : (($percentage >= 50) ? 1.0 : 0.0));
+            $directLevel = (float)AttainmentService::calculateBatchLevel($percentage, $lvl3Val, $lvl2Val, $lvl1Val);
             
             $directStats[$coTag] = [
                 'count' => $attainedCount,
@@ -491,7 +510,7 @@ class R26VirtualClassroomPracticumController extends Controller
                     $indirectAvg = ($exitSurveyResponses->avg('co4_q7') + $exitSurveyResponses->avg('co4_q8') + $exitSurveyResponses->avg('co4_q9')) / 3;
                 }
                 $indirectPct = ($indirectAvg / 3.0) * 100;
-                $indirectLevel = ($indirectPct >= 70) ? 3.0 : (($indirectPct >= 60) ? 2.0 : (($indirectPct >= 50) ? 1.0 : 0.0));
+                $indirectLevel = (float)AttainmentService::calculateBatchLevel($indirectPct, $lvl3Val, $lvl2Val, $lvl1Val);
             }
 
             $rating = ($indirectPct >= 70) ? 'High' : (($indirectPct >= 60) ? 'Medium' : (($indirectPct >= 50) ? 'Low' : 'Nil'));
@@ -503,7 +522,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 'rating' => $rating
             ];
 
-            $combinedLevel = round((0.80 * $directLevel) + (0.20 * $indirectLevel), 2);
+            $combinedLevel = AttainmentService::calculateOverallAttainment($directLevel, $indirectLevel);
             $combinedStats[$coTag] = $combinedLevel;
         }
 

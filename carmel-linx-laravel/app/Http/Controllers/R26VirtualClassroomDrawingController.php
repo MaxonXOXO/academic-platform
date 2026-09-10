@@ -291,23 +291,39 @@ class R26VirtualClassroomDrawingController extends Controller
             ];
         }
 
+        $cf = \App\Models\CourseFile::where('batch_subject_id', $subjectId)->first();
+        $settings = [];
+        if ($cf && $cf->attainment_settings) {
+            $settings = is_string($cf->attainment_settings) ? json_decode($cf->attainment_settings, true) : $cf->attainment_settings;
+        }
+        $eseConfig = $settings['ese_config'] ?? [];
+        $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+        $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+
         $totalStudents = max(1, $studentResults->count());
         $directStats = [];
         $indirectStats = [];
         $combinedStats = [];
 
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-            $attainedCount = $studentResults->filter(function($s) {
-                return $s['total_course_marks'] >= 50.0; // 50% target
+            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold) {
+                // Strictly exclude attendance marks from outcome attainment calculation
+                $academicScore = max(0, ($s['total_cie_marks'] ?? 0) - ($s['att_marks'] ?? 0)) + ($s['total_ese'] ?? 0);
+                $maxAcademicMarks = 90.0; // 50M academic CIE + 40M ESE
+                $pct = ($academicScore / $maxAcademicMarks) * 100;
+                return $pct >= $cieThreshold;
             })->count();
 
             $percentage = ($attainedCount / $totalStudents) * 100;
-            $directLevel = ($percentage >= 70) ? 3.0 : (($percentage >= 60) ? 2.0 : (($percentage >= 50) ? 1.0 : 0.0));
+            $directLevel = \App\Services\AttainmentService::calculateBatchLevel($percentage, $lvl3Val, $lvl2Val, $lvl1Val);
             
             $directStats[$coTag] = [
                 'count' => $attainedCount,
                 'percentage' => round($percentage, 1),
-                'level' => $directLevel
+                'level' => (float)$directLevel
             ];
 
             // Indirect attainment from surveys
@@ -326,9 +342,9 @@ class R26VirtualClassroomDrawingController extends Controller
                     $indirectAvg = ($exitSurveyResponses->avg('co4_q7') + $exitSurveyResponses->avg('co4_q8') + $exitSurveyResponses->avg('co4_q9')) / 3;
                 }
                 $indirectPct = ($indirectAvg / 3.0) * 100;
-                $indirectLevel = ($indirectPct >= 70) ? 3.0 : (($indirectPct >= 60) ? 2.0 : (($indirectPct >= 50) ? 1.0 : 0.0));
+                $indirectLevel = (float)\App\Services\AttainmentService::calculateBatchLevel($indirectPct, $lvl3Val, $lvl2Val, $lvl1Val);
             }
-            $indirectRating = ($indirectPct >= 70) ? 'High (L3)' : (($indirectPct >= 60) ? 'Medium (L2)' : (($indirectPct >= 50) ? 'Low (L1)' : 'Nil (L0)'));
+            $indirectRating = \App\Services\AttainmentService::getLevelLabel((int)round($indirectLevel));
 
             $indirectStats[$coTag] = [
                 'avg_score' => round($indirectAvg, 2),
@@ -337,7 +353,7 @@ class R26VirtualClassroomDrawingController extends Controller
                 'rating' => $indirectRating
             ];
 
-            $combinedLevel = round((0.80 * $directLevel) + (0.20 * $indirectLevel), 2);
+            $combinedLevel = \App\Services\AttainmentService::calculateOverallAttainment($directLevel, $indirectLevel, 0.80, 0.20);
             $combinedStats[$coTag] = $combinedLevel;
         }
 

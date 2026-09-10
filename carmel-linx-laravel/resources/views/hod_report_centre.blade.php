@@ -257,6 +257,29 @@
         </div>
       </div>
 
+      <!-- Card 8B: Program Attainment (PO/PSO) Engine - NBA Criterion 3 -->
+      <div class="card-gradient border border-teal-500/30 bg-teal-950/10 rounded-xl p-3 space-y-2 hover:border-teal-400 transition-premium shadow-md flex flex-col justify-between">
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="material-symbols-rounded text-teal-400 text-lg">stacked_bar_chart</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-500/10 text-teal-300 border border-teal-500/30">NBA 2025</span>
+              <span class="w-6 h-6 flex items-center justify-center rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-300 font-bold text-xs">PO</span>
+            </div>
+          </div>
+          <h3 class="text-white text-xs font-bold m-0">Program Attainment (PO / PSO)</h3>
+          <p class="text-slate-400 text-[11px] leading-snug m-0">
+            Evaluate batch PO1–PO11 and PSO1–PSO3 attainments, direct course matrices, and indirect survey audits (NBA Criterion 3).
+          </p>
+        </div>
+        <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between mt-1">
+          <span class="text-[10px] text-teal-400 font-medium">Rev 2021 & 2026</span>
+          <button onclick="openProgramAttainmentModal()" class="px-2.5 py-1 bg-teal-500/20 hover:bg-teal-500/40 text-teal-300 hover:text-white border border-teal-500/40 rounded-lg font-bold transition-premium cursor-pointer text-xs">
+            Open Engine
+          </button>
+        </div>
+      </div>
+
       <!-- Card 9: Academic Calendar Preparation -->
       <div class="card-gradient border border-slate-800/80 rounded-xl p-3 space-y-2 hover:border-amber-500/40 transition-premium shadow-md flex flex-col justify-between">
         <div class="space-y-1">
@@ -489,12 +512,70 @@
     </div>
   </div>
 
+  <!-- Modal: Program Attainment Selection -->
+  <div id="programAttainmentModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-rounded text-teal-400">stacked_bar_chart</span>
+          <h3 class="text-white text-sm font-bold m-0">Program Attainment (PO/PSO)</h3>
+        </div>
+        <button onclick="closeProgramAttainmentModal()" class="text-slate-500 hover:text-white transition">
+          <span class="material-symbols-rounded text-sm">close</span>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 font-bold">Select Cohort / Classroom</label>
+          <select id="selectProgramAttainmentBatch" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
+            @foreach($batches as $batch)
+              <option value="{{ $batch->classroom_id }}">{{ $batch->classroom_id }} (Sem {{ $batch->current_semester ?? 1 }})</option>
+            @endforeach
+          </select>
+          <p class="text-[11px] text-slate-400 mt-1.5">
+            Works across both <span class="text-teal-300 font-bold">Revision 2021</span> (3-year cohort) and <span class="text-teal-300 font-bold">Revision 2026</span> (modular semester) programs.
+          </p>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeProgramAttainmentModal()" class="flex-1 py-2 border border-slate-850 hover:bg-slate-800/60 rounded-xl font-bold transition-premium text-slate-300 text-sm cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" onclick="launchProgramAttainment()" class="flex-1 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white rounded-xl font-bold shadow-lg transition-premium flex items-center justify-center gap-2 text-sm cursor-pointer">
+            <span class="material-symbols-rounded text-sm">rocket_launch</span> Launch Console
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Sticky Footer -->
   <footer class="bg-slate-900 border-t border-slate-800/80 py-4 text-center text-slate-500 text-xs mt-auto">
     <p>&copy; 2026 Carmel Linx - Report Centre Engine. All rights reserved.</p>
   </footer>
 
   <script>
+    function openProgramAttainmentModal() {
+      const modal = document.getElementById('programAttainmentModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProgramAttainmentModal() {
+      const modal = document.getElementById('programAttainmentModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function launchProgramAttainment() {
+      const batchId = document.getElementById('selectProgramAttainmentBatch').value;
+      if (!batchId) {
+        alert('Please select a batch.');
+        return;
+      }
+      closeProgramAttainmentModal();
+      window.location.href = '/hod/program-attainment/' + encodeURIComponent(batchId);
+    }
     function openAttendanceModal() {
       const modal = document.getElementById('attendanceModal');
       modal.classList.remove('hidden');

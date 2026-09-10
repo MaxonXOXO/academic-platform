@@ -1757,8 +1757,26 @@
       document.getElementById('batchBCountBadge').innerText = data.batch_b.length;
 
       // Check if current user is Tutor (Mentor 1)
-      const isTutor = (data.mentor1.mobile == '{{ session('userId') }}');
-      const isMentor2 = (data.mentor2.mobile == '{{ session('userId') }}');
+      const currentUserId = '{{ session('userId') }}';
+      const cleanCurrentUserId = currentUserId.replace(/\D/g, '');
+      const cleanMentor1Mobile = (data.mentor1.mobile || '').replace(/\D/g, '');
+      const cleanMentor2Mobile = (data.mentor2.mobile || '').replace(/\D/g, '');
+      const isTutor = (data.mentor1.mobile == currentUserId) || (cleanCurrentUserId && cleanMentor1Mobile === cleanCurrentUserId);
+      const isMentor2 = (data.mentor2.mobile == currentUserId) || (cleanCurrentUserId && cleanMentor2Mobile === cleanCurrentUserId);
+
+      // Helper function to sort students by roll number (class number)
+      const sortByRollNo = (arr) => {
+        return (arr || []).slice().sort((a, b) => {
+          const rA = (a.roll_no !== null && a.roll_no !== undefined && a.roll_no !== '') ? parseInt(a.roll_no) : 999999;
+          const rB = (b.roll_no !== null && b.roll_no !== undefined && b.roll_no !== '') ? parseInt(b.roll_no) : 999999;
+          if (rA !== rB) return rA - rB;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+      };
+
+      const sortedUnassigned = sortByRollNo(data.unassigned);
+      const sortedBatchA = sortByRollNo(data.batch_a);
+      const sortedBatchB = sortByRollNo(data.batch_b);
 
       // Helper to create assignment buttons
       const getActionButtons = (regNo, currentBatch) => {
@@ -1778,11 +1796,14 @@
 
       // Unassigned List
       unassignedList.innerHTML = '';
-      if (data.unassigned.length === 0) unassignedList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">No unassigned students.</td></tr>';
-      data.unassigned.forEach(s => {
+      if (sortedUnassigned.length === 0) unassignedList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">No unassigned students.</td></tr>';
+      sortedUnassigned.forEach(s => {
         unassignedList.innerHTML += `
           <tr class="border-b border-slate-800/40 hover:bg-slate-800/40">
-            <td class="p-3 font-bold text-slate-200">${s.name}</td>
+            <td class="p-3 font-bold text-slate-200 flex items-center">
+              ${s.roll_no ? `<span class="inline-block min-w-[28px] text-teal-400 font-mono text-xs font-bold mr-2">#${s.roll_no}</span>` : '<span class="inline-block min-w-[28px] text-slate-500 font-mono text-xs mr-2">-</span>'}
+              <span>${s.name}</span>
+            </td>
             <td class="p-3 font-mono text-slate-500">${s.reg_no}</td>
             <td class="p-3 text-right whitespace-nowrap">${getActionButtons(s.reg_no, null)}</td>
           </tr>
@@ -1791,11 +1812,14 @@
 
       // Batch A List
       batchAList.innerHTML = '';
-      if (data.batch_a.length === 0) batchAList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">Empty batch.</td></tr>';
-      data.batch_a.forEach(s => {
+      if (sortedBatchA.length === 0) batchAList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">Empty batch.</td></tr>';
+      sortedBatchA.forEach(s => {
         batchAList.innerHTML += `
           <tr class="border-b border-sky-900/40 hover:bg-sky-900/20">
-            <td class="p-3 font-bold text-sky-100">${s.name}</td>
+            <td class="p-3 font-bold text-sky-100 flex items-center">
+              ${s.roll_no ? `<span class="inline-block min-w-[28px] text-teal-300 font-mono text-xs font-bold mr-2">#${s.roll_no}</span>` : '<span class="inline-block min-w-[28px] text-sky-600 font-mono text-xs mr-2">-</span>'}
+              <span>${s.name}</span>
+            </td>
             <td class="p-3 font-mono text-sky-500">${s.reg_no}</td>
             <td class="p-3 text-right whitespace-nowrap">${getActionButtons(s.reg_no, 'A')}</td>
           </tr>
@@ -1804,11 +1828,14 @@
 
       // Batch B List
       batchBList.innerHTML = '';
-      if (data.batch_b.length === 0) batchBList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">Empty batch.</td></tr>';
-      data.batch_b.forEach(s => {
+      if (sortedBatchB.length === 0) batchBList.innerHTML = '<tr><td class="p-4 text-center text-slate-500">Empty batch.</td></tr>';
+      sortedBatchB.forEach(s => {
         batchBList.innerHTML += `
           <tr class="border-b border-emerald-900/40 hover:bg-emerald-900/20">
-            <td class="p-3 font-bold text-emerald-100">${s.name}</td>
+            <td class="p-3 font-bold text-emerald-100 flex items-center">
+              ${s.roll_no ? `<span class="inline-block min-w-[28px] text-teal-300 font-mono text-xs font-bold mr-2">#${s.roll_no}</span>` : '<span class="inline-block min-w-[28px] text-emerald-600 font-mono text-xs mr-2">-</span>'}
+              <span>${s.name}</span>
+            </td>
             <td class="p-3 font-mono text-emerald-500">${s.reg_no}</td>
             <td class="p-3 text-right whitespace-nowrap">${getActionButtons(s.reg_no, 'B')}</td>
           </tr>
@@ -1820,10 +1847,10 @@
       let myStudents = [];
       if (isTutor) {
         // Tutor sees everyone
-        myStudents = [...data.batch_a, ...data.batch_b, ...data.unassigned];
+        myStudents = sortByRollNo([...data.batch_a, ...data.batch_b, ...data.unassigned]);
       } else if (isMentor2) {
         // Mentor 2 sees only Batch B
-        myStudents = data.batch_b;
+        myStudents = sortByRollNo(data.batch_b);
       }
       
       if (myStudents.length === 0) {
@@ -1835,7 +1862,10 @@
           
           myList.innerHTML += `
             <tr class="border-b border-slate-800/40 hover:bg-slate-800/20">
-              <td class="p-3 font-bold text-slate-200">${s.name}</td>
+              <td class="p-3 font-bold text-slate-200 flex items-center">
+                ${s.roll_no ? `<span class="inline-block min-w-[28px] text-teal-400 font-mono text-xs font-bold mr-2">#${s.roll_no}</span>` : '<span class="inline-block min-w-[28px] text-slate-500 font-mono text-xs mr-2">-</span>'}
+                <span>${s.name}</span>
+              </td>
               <td class="p-3 font-mono text-slate-400">${s.reg_no}</td>
               <td class="p-3">
                 <span class="px-2 py-0.5 rounded text-xs font-bold bg-${batchColor}-500/10 text-${batchColor}-400 border border-${batchColor}-500/20">
@@ -1862,11 +1892,11 @@
       const reportStudentSelect = document.getElementById('reportStudentSelect');
       if (reportStudentSelect) {
         reportStudentSelect.innerHTML = '<option value="">Select student...</option>';
-        const allStudents = [...data.batch_a, ...data.batch_b, ...data.unassigned];
+        const allStudents = sortByRollNo([...data.batch_a, ...data.batch_b, ...data.unassigned]);
         allStudents.forEach(s => {
           const opt = document.createElement('option');
           opt.value = s.reg_no;
-          opt.innerText = `${s.name} (${s.reg_no})`;
+          opt.innerText = `${s.roll_no ? '#' + s.roll_no + ' ' : ''}${s.name} (${s.reg_no})`;
           reportStudentSelect.appendChild(opt);
         });
       }
@@ -1889,6 +1919,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
+          showGlobalMessage(data.message, false);
           loadMentoringData(); // Refresh UI
         } else {
           showGlobalMessage(data.message, true);

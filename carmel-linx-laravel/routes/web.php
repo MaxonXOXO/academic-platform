@@ -868,6 +868,11 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
+    // Program Attainment (PO/PSO) Engine - NBA Criterion 3 (Rev 2021 & Rev 2026)
+    Route::get('/hod/program-attainment/{classroomId}', [App\Http\Controllers\ProgramAttainmentController::class, 'index']);
+    Route::post('/hod/program-attainment/{classroomId}/save', [App\Http\Controllers\ProgramAttainmentController::class, 'saveConfig']);
+    Route::get('/hod/program-attainment/{classroomId}/print', [App\Http\Controllers\ProgramAttainmentController::class, 'printReport']);
+
     Route::get('/hod/report-centre/workload-panel', function (Illuminate\Http\Request $request) {
         $role = Session::get('userRole');
         if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman'])) return redirect('/');

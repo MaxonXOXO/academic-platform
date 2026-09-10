@@ -104,6 +104,11 @@
                           <span class="material-symbols-rounded text-sm">visibility</span> View PDF
                         </a>
                       @endif
+                      @if($i == 3)
+                        <a href="/hod/report-centre" class="text-xs font-black text-teal-400 hover:text-teal-300 hover:underline flex items-center gap-1.5 transition">
+                          <span class="material-symbols-rounded text-sm">rocket_launch</span> Launch Attainment Engine
+                        </a>
+                      @endif
                     </div>
                   </div>
 

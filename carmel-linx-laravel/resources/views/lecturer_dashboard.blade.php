@@ -11162,18 +11162,20 @@
       let html = '';
       students.forEach(s => {
         const reg = s.reg_no || s.sbte_reg_no;
-        const markVal = s.ese_marks !== null && s.ese_marks !== undefined ? s.ese_marks : 40.0;
-        const gradeVal = s.ese_grade || 'D';
+        const markVal = s.ese_marks !== null && s.ese_marks !== undefined ? s.ese_marks : null;
+        const gradeVal = s.ese_grade ? s.ese_grade.trim().toUpperCase() : '';
 
         const inputHtml = `
-          <select data-reg="${reg}" onchange="recalculateEseStats()" class="ese-val-input bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-44 px-2 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer">
-            <option value="S" ${gradeVal === 'S' ? 'selected' : ''}>S (90%+ Outstanding)</option>
-            <option value="A" ${gradeVal === 'A' ? 'selected' : ''}>A (80%-89% Excellent)</option>
-            <option value="B" ${gradeVal === 'B' ? 'selected' : ''}>B (70%-79% Very Good)</option>
-            <option value="C" ${gradeVal === 'C' ? 'selected' : ''}>C (60%-69% Good)</option>
-            <option value="D" ${gradeVal === 'D' ? 'selected' : ''}>D (50%-59% Average)</option>
-            <option value="E" ${gradeVal === 'E' || gradeVal === 'P' ? 'selected' : ''}>E (40%-49% Pass)</option>
-            <option value="F" ${gradeVal === 'F' ? 'selected' : ''}>F (Below 40% Fail)</option>
+          <select data-reg="${reg}" onchange="recalculateEseStats()" class="ese-val-input bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-52 px-2 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer">
+            <option value="" ${!gradeVal ? 'selected' : ''} class="text-slate-500 font-normal">-- Select Grade --</option>
+            <option value="S" ${gradeVal === 'S' ? 'selected' : ''}>S (90%+ Outstanding — 10 GP)</option>
+            <option value="A" ${gradeVal === 'A' ? 'selected' : ''}>A (80%-89% Excellent — 9 GP)</option>
+            <option value="B" ${gradeVal === 'B' ? 'selected' : ''}>B (70%-79% Very Good — 8 GP)</option>
+            <option value="C" ${gradeVal === 'C' ? 'selected' : ''}>C (60%-69% Good — 7 GP)</option>
+            <option value="D" ${gradeVal === 'D' ? 'selected' : ''}>D (50%-59% Average — 6 GP)</option>
+            <option value="E" ${gradeVal === 'E' || gradeVal === 'P' ? 'selected' : ''}>E (40%-49% Pass — 5 GP)</option>
+            <option value="F" ${gradeVal === 'F' ? 'selected' : ''}>F (Below 40% Fail — 0 GP)</option>
+            <option value="FE" ${gradeVal === 'FE' ? 'selected' : ''}>FE (Absent / Expelled — 0 GP)</option>
           </select>
         `;
 
@@ -11184,7 +11186,7 @@
             <td class="p-3 font-bold text-slate-200">${s.name}</td>
             <td class="p-3 text-center">${inputHtml}</td>
             <td class="p-3 text-center" id="status_cell_${reg}">
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Target Met</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">PENDING</span>
             </td>
           </tr>
         `;
@@ -11197,6 +11199,7 @@
     function recalculateEseStats(fromTarget = false) {
       const mode = document.getElementById('eseEntryMode').value;
       const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
+      const eseThresholdGrade = document.getElementById('eseThresholdGrade').value || 'D';
       const eseTargetPct = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
       const targetStudentPct = parseFloat(document.getElementById('targetStudentPercent').value || 70);
 
@@ -11214,6 +11217,12 @@
       const lvl2Val = elL2Input ? parseFloat(elL2Input.value || (targetStudentPct - 10)) : Math.max(0, targetStudentPct - 10);
       const lvl1Val = elL1Input ? parseFloat(elL1Input.value || (targetStudentPct - 20)) : Math.max(0, targetStudentPct - 20);
 
+      // Official SBTE Kerala Polytechnic Grading Scale (10 Grade Points max)
+      const SBTE_GRADE_POINTS = {
+        'S': 10, 'A': 9, 'B': 8, 'C': 7, 'D': 6, 'E': 5, 'F': 0, 'FE': 0
+      };
+      const minRequiredPoints = SBTE_GRADE_POINTS[eseThresholdGrade] || 6;
+
       const inputs = document.querySelectorAll('.ese-val-input');
       const totalStudents = inputs.length;
       let appeared = 0;
@@ -11221,30 +11230,60 @@
 
       inputs.forEach(inp => {
         const reg = inp.getAttribute('data-reg');
-        const val = inp.value.trim();
+        const val = inp.value.trim().toUpperCase();
         const statusCell = document.getElementById(`status_cell_${reg}`);
         
         let isMet = false;
+        let isPending = false;
+        let isAbsent = false;
+
         if (mode === 'grades') {
-          if (val && val !== 'F' && val !== 'FE') {
+          if (!val) {
+            isPending = true;
+          } else if (val === 'FE') {
+            isAbsent = true;
+          } else {
             appeared++;
-            isMet = true;
-            metTarget++;
-          }
-        } else {
-          const mark = parseFloat(val);
-          if (!isNaN(mark)) {
-            appeared++;
-            const pct = (mark / (maxMarks > 0 ? maxMarks : 60)) * 100;
-            if (pct >= eseTargetPct) {
+            const studentPoints = SBTE_GRADE_POINTS[val] || 0;
+            // Student must pass (points >= 5) AND meet or exceed the configured threshold grade points
+            if (studentPoints >= 5 && studentPoints >= minRequiredPoints) {
               isMet = true;
               metTarget++;
+            }
+          }
+        } else {
+          if (!val) {
+            isPending = true;
+          } else {
+            const mark = parseFloat(val);
+            if (!isNaN(mark)) {
+              appeared++;
+              const pct = (mark / (maxMarks > 0 ? maxMarks : 60)) * 100;
+              let markGrade = 'F';
+              if (pct >= 90) markGrade = 'S';
+              else if (pct >= 80) markGrade = 'A';
+              else if (pct >= 70) markGrade = 'B';
+              else if (pct >= 60) markGrade = 'C';
+              else if (pct >= 50) markGrade = 'D';
+              else if (pct >= 40) markGrade = 'E';
+
+              const studentPoints = SBTE_GRADE_POINTS[markGrade] || 0;
+              if ((studentPoints >= 5 && studentPoints >= minRequiredPoints) || pct >= eseTargetPct) {
+                isMet = true;
+                metTarget++;
+              }
+            } else {
+              isPending = true;
             }
           }
         }
 
         if (statusCell) {
-          if (isMet) {
+          if (isPending) {
+            statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-800 text-slate-400 border border-slate-700">NOT ENTERED</span>';
+          } else if (isAbsent) {
+            statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">ABSENT</span>';
+          } else if (isMet) {
             statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ATTAINED ✓</span>';
           } else {
             statusCell.innerHTML = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">NOT MET</span>';
@@ -11252,19 +11291,21 @@
         }
       });
 
-      const metPercent = totalStudents > 0 ? ((metTarget / totalStudents) * 100).toFixed(1) : 0;
-      let levelText = 'Level 0 (Nil)';
-      let levelClass = 'text-rose-400';
+      const metPercent = appeared > 0 ? ((metTarget / appeared) * 100).toFixed(1) : 0;
+      let levelText = appeared === 0 ? 'Pending Evaluation' : 'Level 0 (Nil)';
+      let levelClass = appeared === 0 ? 'text-slate-400' : 'text-rose-400';
 
-      if (parseFloat(metPercent) >= lvl3Val) {
-        levelText = `Level 3 (High - ${metPercent}%)`;
-        levelClass = 'text-emerald-400';
-      } else if (parseFloat(metPercent) >= lvl2Val) {
-        levelText = `Level 2 (Moderate - ${metPercent}%)`;
-        levelClass = 'text-amber-400';
-      } else if (parseFloat(metPercent) >= lvl1Val) {
-        levelText = `Level 1 (Low - ${metPercent}%)`;
-        levelClass = 'text-blue-400';
+      if (appeared > 0) {
+        if (parseFloat(metPercent) >= lvl3Val) {
+          levelText = `Level 3 (High - ${metPercent}%)`;
+          levelClass = 'text-emerald-400';
+        } else if (parseFloat(metPercent) >= lvl2Val) {
+          levelText = `Level 2 (Moderate - ${metPercent}%)`;
+          levelClass = 'text-amber-400';
+        } else if (parseFloat(metPercent) >= lvl1Val) {
+          levelText = `Level 1 (Low - ${metPercent}%)`;
+          levelClass = 'text-blue-400';
+        }
       }
 
       updateEseSummaryStats({
@@ -11403,12 +11444,12 @@
               <div>
                 <label class="block text-[10px] font-bold text-slate-400 mb-1">ESE Threshold Grade (SBTE)</label>
                 <select id="eseThresholdGrade" onchange="recalculateEseStats()" class="w-full bg-slate-900 border border-slate-700 text-teal-400 font-bold text-xs px-2 py-1.5 rounded-lg outline-none focus:border-teal-500 overflow-ellipsis">
-                  <option value="E">E Grade & Above (Pass - 40%+)</option>
-                  <option value="D" selected>D Grade & Above (Average - 50%+)</option>
-                  <option value="C">C Grade & Above (Good - 60%+)</option>
-                  <option value="B">B Grade & Above (Very Good - 70%+)</option>
-                  <option value="A">A Grade & Above (Excellent - 80%+)</option>
-                  <option value="S">S Grade (Outstanding - 90%+)</option>
+                  <option value="E">E Grade & Above (Pass - 40%+ | 5 GP)</option>
+                  <option value="D" selected>D Grade & Above (Average - 50%+ | 6 GP)</option>
+                  <option value="C">C Grade & Above (Good - 60%+ | 7 GP)</option>
+                  <option value="B">B Grade & Above (Very Good - 70%+ | 8 GP)</option>
+                  <option value="A">A Grade & Above (Excellent - 80%+ | 9 GP)</option>
+                  <option value="S">S Grade (Outstanding - 90%+ | 10 GP)</option>
                 </select>
               </div>
 

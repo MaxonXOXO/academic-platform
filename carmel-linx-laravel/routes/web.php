@@ -617,6 +617,17 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/drawing/exercises/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printExerciseList']);
     Route::get('/r26/classroom/drawing/ce-consolidated/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printCeConsolidatedReport']);
 
+    // Revision 2021 Virtual Drawing Classroom (Regulation 11.2.3)
+    Route::get('/r21/classroom/drawing/{subjectId}', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'show']);
+    Route::post('/r21/classroom/drawing/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'uploadSyllabus']);
+    Route::post('/r21/classroom/drawing/{subjectId}/sheets/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSheetMarks']);
+    Route::post('/r21/classroom/drawing/{subjectId}/tests/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSeriesTestMarks']);
+    Route::post('/r21/classroom/drawing/{subjectId}/attendance/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveAttendanceMarks']);
+    Route::get('/r21/classroom/drawing/{subjectId}/print/sheets', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printFormativeRegister']);
+    Route::get('/r21/classroom/drawing/{subjectId}/print/tests', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printSummativeRegister']);
+    Route::get('/r21/classroom/drawing/{subjectId}/print/cia', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printConsolidatedCia']);
+    Route::get('/r21/classroom/drawing/{subjectId}/print/lesson-plan', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printLessonPlan']);
+
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'uploadSyllabus']);

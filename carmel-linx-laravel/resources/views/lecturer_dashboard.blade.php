@@ -1158,27 +1158,27 @@
                   </div>
                   <span class="text-[11px] font-medium text-slate-400">Official CIA & Lab Audit Documentation</span>
                 </div>
-                <div class="flex flex-wrap gap-2.5 pt-1">
-                  <a id="pRepBtnRegister" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                <div class="flex items-center gap-2 pt-1 overflow-x-auto scrollbar-hidden">
+                  <a id="pRepBtnRegister" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-teal-400">grid_on</span> Consolidated Register
                   </a>
-                  <a id="pRepBtnAttendance" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                  <a id="pRepBtnAttendance" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-emerald-400">playlist_add_check</span> Attendance Log
                   </a>
-                  <a id="pRepBtnExperiments" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                  <a id="pRepBtnExperiments" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-amber-400">list_alt</span> Experiments List
                   </a>
-                  <a id="pRepBtnPlanner" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                  <a id="pRepBtnPlanner" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-purple-400">calendar_today</span> Lesson Planner
                   </a>
-                  <a id="pRepBtnProjects" target="_blank" class="px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
+                  <a id="pRepBtnProjects" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-rose-400">assignment</span> Open-Ended Projects
                   </a>
-                  <a id="printLabReportBtn" target="_blank" class="px-4 py-2.5 bg-blue-600/80 hover:bg-blue-600 border border-blue-500/50 hover:border-blue-400 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span class="material-symbols-rounded text-sm">print</span> Print Register
+                  <a id="printLabReportBtn" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
+                    <span class="material-symbols-rounded text-sm text-sky-400">print</span> Print Register
                   </a>
-                  <a id="printLabExperimentsBtn" target="_blank" class="px-4 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 border border-emerald-500/50 hover:border-emerald-400 text-white rounded-xl text-sm font-bold transition-premium no-underline flex items-center gap-2 cursor-pointer shadow-sm" title="Print Completed Practical Experiments & Sessions Log">
-                    <span class="material-symbols-rounded text-sm">checklist</span> Print Experiments Log
+                  <a id="printLabExperimentsBtn" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap" title="Print Completed Practical Experiments & Sessions Log">
+                    <span class="material-symbols-rounded text-sm text-cyan-400">checklist</span> Print Experiments Log
                   </a>
                 </div>
               </div>
@@ -2200,6 +2200,12 @@
           return;
         }
       } else {
+        // Revision 2021 Drawing Classroom
+        if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics')) {
+          window.open(`/r21/classroom/drawing/${subjectId}`, '_blank');
+          return;
+        }
+
         currentSubjectId = subjectId;
         window.currentVirtualRevision = revision;
 
@@ -3604,8 +3610,8 @@
             <div class="font-bold text-base text-slate-300 flex items-center gap-2 tracking-wide uppercase">
               <span class="material-symbols-rounded text-base text-emerald-400">edit_note</span> Enter Assignment Marks
             </div>
-            <button onclick="saveAssignmentMarks('${currentSubjectId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer">
-              Save Marks
+            <button id="btnSaveAssignmentMarksTop" onclick="saveAssignmentMarks('${currentSubjectId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
+              <span class="material-symbols-rounded text-sm">save</span> Save Marks
             </button>
           </div>
           <div class="overflow-x-auto">
@@ -3649,7 +3655,10 @@
             return `
               <div class="relative">
                 <input type="number" step="1" max="20" min="0" value="${val !== null ? Math.round(val) : ''}" 
-                       class="${styleClasses}" data-co="${co}">
+                       class="${styleClasses}" data-co="${co}"
+                       oninput="triggerAssignmentMarksAutoSave()"
+                       onchange="triggerAssignmentMarksAutoSave(true)"
+                       onkeydown="handleAssignmentMarkKeyDown(event, this)">
                 ${indicator}
               </div>
             `;
@@ -3672,7 +3681,24 @@
         html += `<tr><td colspan="8" class="p-6 text-center text-slate-500 text-sm font-bold">No students found in this classroom.</td></tr>`;
       }
 
-      html += `</tbody></table></div></div>`;
+      html += `
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bottom Save Action Bar for Assignment Marks -->
+        <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span id="formativeSaveStatus" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
+            </span>
+          </div>
+          <button id="btnSaveAssignmentMarksBottom" onclick="saveAssignmentMarks('${currentSubjectId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
+            <span class="material-symbols-rounded text-sm">save</span> Save Marks
+          </button>
+        </div>
+      </div>
+      `;
       const faContent = document.getElementById('formativeAssessmentContent');
       if (faContent) faContent.innerHTML = html;
     }
@@ -3999,7 +4025,63 @@
       .catch(() => alert("Failed to save assignment questions."));
     }
 
-    function saveAssignmentMarks(subjectId) {
+    let _assignmentMarksAutoSaveTimer = null;
+    function triggerAssignmentMarksAutoSave(immediate = false) {
+      const statusSpan = document.getElementById('formativeSaveStatus');
+      if (statusSpan) {
+        statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> <span class="text-amber-300 font-medium">Unsaved changes...</span>';
+      }
+
+      if (_assignmentMarksAutoSaveTimer) {
+        clearTimeout(_assignmentMarksAutoSaveTimer);
+        _assignmentMarksAutoSaveTimer = null;
+      }
+
+      if (immediate) {
+        saveAssignmentMarks(currentSubjectId, true);
+      } else {
+        _assignmentMarksAutoSaveTimer = setTimeout(() => {
+          saveAssignmentMarks(currentSubjectId, true);
+        }, 1200);
+      }
+    }
+    window.triggerAssignmentMarksAutoSave = triggerAssignmentMarksAutoSave;
+
+    function handleAssignmentMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const td = inputElem.closest('td');
+        const nextTd = td?.nextElementSibling;
+        const nextInputInRow = nextTd?.querySelector('.co-mark');
+        if (nextInputInRow) {
+          nextInputInRow.focus();
+        } else {
+          const row = inputElem.closest('tr');
+          const nextRow = row?.nextElementSibling;
+          if (nextRow) {
+            const firstInputInNextRow = nextRow.querySelector('.co-mark');
+            if (firstInputInNextRow) firstInputInNextRow.focus();
+          } else {
+            // Reached last mark! Auto-save immediately
+            triggerAssignmentMarksAutoSave(true);
+          }
+        }
+      }
+    }
+    window.handleAssignmentMarkKeyDown = handleAssignmentMarkKeyDown;
+
+    function saveAssignmentMarks(subjectId, isAutoSave = false) {
+      if (_assignmentMarksAutoSaveTimer) {
+        clearTimeout(_assignmentMarksAutoSaveTimer);
+        _assignmentMarksAutoSaveTimer = null;
+      }
+
+      const sid = subjectId || currentSubjectId;
+      if (!sid) {
+        if (!isAutoSave) alert('Subject ID is missing.');
+        return;
+      }
+
       let marksPayload = [];
       const rows = document.querySelectorAll('#markEntryTbody tr[data-reg]');
       rows.forEach(row => {
@@ -4017,21 +4099,82 @@
       });
 
       if (marksPayload.length === 0) {
-        alert("No marks entered.");
+        if (!isAutoSave) alert("No marks entered.");
         return;
       }
 
-      fetch(`/api/classroom/${subjectId}/save-assignment-marks`, {
+      const btnTop = document.getElementById('btnSaveAssignmentMarksTop');
+      const btnBottom = document.getElementById('btnSaveAssignmentMarksBottom');
+      const statusSpan = document.getElementById('formativeSaveStatus');
+
+      if (isAutoSave) {
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Auto-saving...</span>';
+        }
+      } else {
+        if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
+        if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Saving...</span>';
+        }
+      }
+
+      fetch(`/api/classroom/${sid}/save-assignment-marks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ marks: marksPayload })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.status === 'SUCCESS') alert("Marks successfully saved!");
-        else alert(data.message || "Failed to save marks.");
+        if (data.status === 'SUCCESS') {
+          if (btnTop) {
+            btnTop.disabled = false;
+            btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">check_circle</span> Saved!';
+          }
+          if (btnBottom) {
+            btnBottom.disabled = false;
+            btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">check_circle</span> Saved!';
+          }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span class="text-emerald-400 font-medium">' + (isAutoSave ? 'All marks auto-saved' : 'Marks successfully saved!') + '</span>';
+          }
+          setTimeout(() => {
+            if (btnTop) {
+              btnTop.disabled = false;
+              btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks';
+            }
+            if (btnBottom) {
+              btnBottom.disabled = false;
+              btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks';
+            }
+            if (statusSpan) {
+              statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> <span class="text-slate-400">Auto-save ready</span>';
+            }
+          }, 2500);
+
+          if (!isAutoSave) {
+            alert("Assignment Marks successfully saved!");
+          }
+        } else {
+          if (!isAutoSave) alert(data.message || "Failed to save marks.");
+          if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks'; }
+          if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks'; }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error saving assignment marks:', err);
+        if (!isAutoSave) alert('Failed to save marks.');
+        if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks'; }
+        if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Marks'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+        }
       });
     }
+    window.saveAssignmentMarks = saveAssignmentMarks;
 
     function updateProposedDate(lessonPlanId, dateValue) {
         console.log("Updating lesson plan", lessonPlanId, "with date", dateValue);
@@ -4280,7 +4423,7 @@
                 <span class="material-symbols-rounded text-sky-400 text-base">assignment_turned_in</span>
                 <span class="text-xs font-bold uppercase text-slate-200 tracking-wider">Series Practical Examination &amp; Board Exam Grade Register</span>
               </div>
-              <button type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
+              <button id="btnSavePracSummativeTop" type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
                 <span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks
               </button>
             </div>
@@ -4313,16 +4456,16 @@
                 <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
                 <td class="p-2.5 text-center font-mono text-slate-400">${student.sbte_reg_no || student.reg_no}</td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-sky-500/5">
                   <span class="prac-avg-display font-mono font-bold text-sky-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
                 </td>
                 <td class="p-2.5 text-center bg-emerald-500/5">
-                  <select class="prac-board-grade w-32 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-emerald-400 focus:border-emerald-500 outline-none cursor-pointer">
+                  <select class="prac-board-grade w-32 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center font-mono font-bold text-emerald-400 focus:border-emerald-500 outline-none cursor-pointer" onchange="triggerPracMarksAutoSave(true);">
                     <option value="">Grade -</option>
                     <option value="S" ${boardGrade === 'S' ? 'selected' : ''}>S (90%+)</option>
                     <option value="A+" ${boardGrade === 'A+' ? 'selected' : ''}>A+ (80%+)</option>
@@ -4348,6 +4491,18 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- Bottom Save Action Bar -->
+            <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span id="pracSummativeSaveStatus" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+                  <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
+                </span>
+              </div>
+              <button id="btnSavePracSummativeBottom" type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
+                <span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks
+              </button>
+            </div>
           </div>
         `;
 
@@ -4371,18 +4526,18 @@
           <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between cursor-pointer hover:bg-slate-800/80 transition-premium" onclick="document.getElementById('manualMarksWrapper').classList.toggle('hidden'); document.getElementById('marksToggleIcon').innerText = document.getElementById('manualMarksWrapper').classList.contains('hidden') ? 'expand_more' : 'expand_less';">
             <div class="font-bold text-sm text-slate-400 flex items-center gap-2 tracking-wider uppercase">
               <span class="material-symbols-rounded text-sm text-emerald-400">edit_document</span> Enter Manual Marks
-              <span id="marksToggleIcon" class="material-symbols-rounded text-sm text-slate-500">expand_more</span>
+              <span id="marksToggleIcon" class="material-symbols-rounded text-sm text-slate-500">expand_less</span>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="event.stopPropagation(); printSummativeReport('${currentSubjectId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer">
                 Print Written Report
               </button>
-              <button onclick="event.stopPropagation(); saveSummativeMarks('${currentSubjectId}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer">
-                Save Written Marks
+              <button id="btnSaveSummativeMarksTop" onclick="event.stopPropagation(); saveSummativeMarks('${currentSubjectId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
+                <span class="material-symbols-rounded text-sm">save</span> Save Written Marks
               </button>
             </div>
           </div>
-          <div id="manualMarksWrapper" class="hidden overflow-x-auto">
+          <div id="manualMarksWrapper" class="overflow-x-auto">
             <table class="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr class="bg-slate-900/40 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
@@ -4408,17 +4563,32 @@
               <td class="p-3 font-bold text-slate-200">${student.name}</td>
               <td class="p-3 font-mono text-slate-400">${student.reg_no}</td>
               <td class="p-3 font-mono text-slate-400">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
             </tr>
           `;
         });
       } else {
         marksEntryHtml += `<tr><td colspan="8" class="p-6 text-center text-slate-500 text-sm font-bold">No students found.</td></tr>`;
       }
-      marksEntryHtml += `</tbody></table></div></div>`;
+      marksEntryHtml += `
+            </tbody>
+          </table>
+        </div>
+        <!-- Bottom Save Action Bar for Written Marks -->
+        <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span id="summativeSaveStatus" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
+            </span>
+          </div>
+          <button id="btnSaveSummativeMarksBottom" onclick="saveSummativeMarks('${currentSubjectId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
+            <span class="material-symbols-rounded text-sm">save</span> Save Written Marks
+          </button>
+        </div>
+      </div>`;
 
       html += marksEntryHtml;
 
@@ -5137,7 +5307,63 @@
         });
     }
 
-    function saveSummativeMarks(subjectId) {
+    let _summativeMarksAutoSaveTimer = null;
+    function triggerSummativeMarksAutoSave(immediate = false) {
+      const statusSpan = document.getElementById('summativeSaveStatus');
+      if (statusSpan) {
+        statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> <span class="text-amber-300 font-medium">Unsaved changes...</span>';
+      }
+
+      if (_summativeMarksAutoSaveTimer) {
+        clearTimeout(_summativeMarksAutoSaveTimer);
+        _summativeMarksAutoSaveTimer = null;
+      }
+
+      if (immediate) {
+        saveSummativeMarks(currentSubjectId, true);
+      } else {
+        _summativeMarksAutoSaveTimer = setTimeout(() => {
+          saveSummativeMarks(currentSubjectId, true);
+        }, 1200);
+      }
+    }
+    window.triggerSummativeMarksAutoSave = triggerSummativeMarksAutoSave;
+
+    function handleSummativeMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const td = inputElem.closest('td');
+        const nextTd = td?.nextElementSibling;
+        const nextInputInRow = nextTd?.querySelector('.summ-mark');
+        if (nextInputInRow) {
+          nextInputInRow.focus();
+        } else {
+          const row = inputElem.closest('tr');
+          const nextRow = row?.nextElementSibling;
+          if (nextRow) {
+            const firstInputInNextRow = nextRow.querySelector('.summ-mark');
+            if (firstInputInNextRow) firstInputInNextRow.focus();
+          } else {
+            // Reached last mark! Auto-save immediately
+            triggerSummativeMarksAutoSave(true);
+          }
+        }
+      }
+    }
+    window.handleSummativeMarkKeyDown = handleSummativeMarkKeyDown;
+
+    function saveSummativeMarks(subjectId, isAutoSave = false) {
+      if (_summativeMarksAutoSaveTimer) {
+        clearTimeout(_summativeMarksAutoSaveTimer);
+        _summativeMarksAutoSaveTimer = null;
+      }
+
+      const sid = subjectId || currentSubjectId;
+      if (!sid) {
+        if (!isAutoSave) alert('Subject ID is missing.');
+        return;
+      }
+
       let marksPayload = [];
       const rows = document.querySelectorAll('#summativeMarkEntryTbody tr[data-reg]');
       rows.forEach(row => {
@@ -5155,21 +5381,82 @@
       });
 
       if (marksPayload.length === 0) {
-        alert("No marks entered.");
+        if (!isAutoSave) alert("No marks entered.");
         return;
       }
 
-      fetch(`/api/classroom/${subjectId}/save-written-test-marks`, {
+      const btnTop = document.getElementById('btnSaveSummativeMarksTop');
+      const btnBottom = document.getElementById('btnSaveSummativeMarksBottom');
+      const statusSpan = document.getElementById('summativeSaveStatus');
+
+      if (isAutoSave) {
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Auto-saving...</span>';
+        }
+      } else {
+        if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
+        if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Saving...</span>';
+        }
+      }
+
+      fetch(`/api/classroom/${sid}/save-written-test-marks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ marks: marksPayload })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.status === 'SUCCESS') alert("Written Marks successfully saved!");
-        else alert(data.message || "Failed to save marks.");
+        if (data.status === 'SUCCESS') {
+          if (btnTop) {
+            btnTop.disabled = false;
+            btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
+          }
+          if (btnBottom) {
+            btnBottom.disabled = false;
+            btnBottom.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
+          }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span class="text-emerald-400 font-medium">' + (isAutoSave ? 'All marks auto-saved' : 'Written Marks successfully saved!') + '</span>';
+          }
+          setTimeout(() => {
+            if (btnTop) {
+              btnTop.disabled = false;
+              btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks';
+            }
+            if (btnBottom) {
+              btnBottom.disabled = false;
+              btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks';
+            }
+            if (statusSpan) {
+              statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> <span class="text-slate-400">Auto-save ready</span>';
+            }
+          }, 2500);
+
+          if (!isAutoSave) {
+            alert("Written Marks successfully saved!");
+          }
+        } else {
+          if (!isAutoSave) alert(data.message || "Failed to save marks.");
+          if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks'; }
+          if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks'; }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error saving summative written marks:', err);
+        if (!isAutoSave) alert('Failed to save marks.');
+        if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks'; }
+        if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Written Marks'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+        }
       });
     }
+    window.saveSummativeMarks = saveSummativeMarks;
 
     function updatePracAvg(elem) {
       const row = elem.closest('tr');
@@ -5194,10 +5481,59 @@
     }
     window.updatePracAvg = updatePracAvg;
 
-    function savePracticalSummativeMarks() {
+    let _pracMarksAutoSaveTimer = null;
+    function triggerPracMarksAutoSave(immediate = false) {
+      const statusSpan = document.getElementById('pracSummativeSaveStatus');
+      if (statusSpan) {
+        statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> <span class="text-amber-300 font-medium">Unsaved changes...</span>';
+      }
+
+      if (_pracMarksAutoSaveTimer) {
+        clearTimeout(_pracMarksAutoSaveTimer);
+        _pracMarksAutoSaveTimer = null;
+      }
+
+      if (immediate) {
+        savePracticalSummativeMarks(true);
+      } else {
+        _pracMarksAutoSaveTimer = setTimeout(() => {
+          savePracticalSummativeMarks(true);
+        }, 1200);
+      }
+    }
+    window.triggerPracMarksAutoSave = triggerPracMarksAutoSave;
+
+    function handlePracMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const row = inputElem.closest('tr');
+        const isS1 = inputElem.classList.contains('prac-s1-input');
+        if (isS1) {
+          const s2 = row?.querySelector('.prac-s2-input');
+          if (s2) s2.focus();
+        } else {
+          const nextRow = row?.nextElementSibling;
+          if (nextRow) {
+            const nextS1 = nextRow.querySelector('.prac-s1-input');
+            if (nextS1) nextS1.focus();
+          } else {
+            // Reached last mark! Auto-save immediately
+            triggerPracMarksAutoSave(true);
+          }
+        }
+      }
+    }
+    window.handlePracMarkKeyDown = handlePracMarkKeyDown;
+
+    function savePracticalSummativeMarks(isAutoSave = false) {
+      if (_pracMarksAutoSaveTimer) {
+        clearTimeout(_pracMarksAutoSaveTimer);
+        _pracMarksAutoSaveTimer = null;
+      }
+
       const rows = document.querySelectorAll('#pracSummativeMarkTbody tr[data-reg]');
       if (!rows || rows.length === 0) {
-        alert('No student records found to save.');
+        if (!isAutoSave) alert('No student records found to save.');
         return;
       }
 
@@ -5218,8 +5554,24 @@
 
       const subjId = currentSubjectId || window.currentSubjectId;
       if (!subjId) {
-        alert('Subject ID is missing.');
+        if (!isAutoSave) alert('Subject ID is missing.');
         return;
+      }
+
+      const btnTop = document.getElementById('btnSavePracSummativeTop');
+      const btnBottom = document.getElementById('btnSavePracSummativeBottom');
+      const statusSpan = document.getElementById('pracSummativeSaveStatus');
+
+      if (isAutoSave) {
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Auto-saving...</span>';
+        }
+      } else {
+        if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
+        if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Saving...</span>';
+        }
       }
 
       fetch(`/api/classroom/${subjId}/practical/evaluate-bulk`, {
@@ -5233,17 +5585,54 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
-          alert('Practical Series Exam marks and Board Exam Grades saved successfully!');
+          if (btnTop) {
+            btnTop.disabled = false;
+            btnTop.innerHTML = '<span class="material-symbols-rounded text-sm text-white">check_circle</span> Saved!';
+          }
+          if (btnBottom) {
+            btnBottom.disabled = false;
+            btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm text-white">check_circle</span> Saved!';
+          }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span class="text-emerald-400 font-medium">' + (isAutoSave ? 'All marks auto-saved' : 'Saved successfully') + '</span>';
+          }
+          setTimeout(() => {
+            if (btnTop) {
+              btnTop.disabled = false;
+              btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
+            }
+            if (btnBottom) {
+              btnBottom.disabled = false;
+              btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
+            }
+            if (statusSpan) {
+              statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> <span class="text-slate-400">Auto-save ready</span>';
+            }
+          }, 2500);
+
+          if (!isAutoSave) {
+            alert('Practical Series Exam marks and Board Exam Grades saved successfully!');
+          }
           if (typeof fetchPracticalEvaluations === 'function') {
             fetchPracticalEvaluations();
           }
         } else {
-          alert('Error saving marks: ' + (data.message || 'Unknown error'));
+          if (!isAutoSave) alert('Error saving marks: ' + (data.message || 'Unknown error'));
+          if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
+          if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
+          if (statusSpan) {
+            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+          }
         }
       })
       .catch(err => {
         console.error('Error saving practical summative marks:', err);
-        alert('Failed to save practical marks.');
+        if (!isAutoSave) alert('Failed to save practical marks.');
+        if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
+        if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
+        if (statusSpan) {
+          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+        }
       });
     }
     window.savePracticalSummativeMarks = savePracticalSummativeMarks;

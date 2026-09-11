@@ -9,6 +9,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- Google Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Flatpickr for premium Date/Time selection -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -2206,6 +2208,12 @@
           return;
         }
 
+        // Revision 2021 Virtual Seminar Classroom (Clause 11.2.6)
+        if (sTypeLower.includes('seminar') || sNameLower.includes('seminar')) {
+          window.open(`/r21/classroom/seminar/${subjectId}`, '_blank');
+          return;
+        }
+
         currentSubjectId = subjectId;
         window.currentVirtualRevision = revision;
 
@@ -2745,7 +2753,10 @@
               const btnProj = document.getElementById('pRepBtnProjects');
               if (btnProj) btnProj.href = `/classroom/${subjectId}/practical-report/print?type=projects`;
               const btnVlAtt = document.getElementById('btnVirtualLabAttendanceLog');
-              if (btnVlAtt) btnVlAtt.href = `/staff/attendance-log?subject_id=${subjectId}`;
+              if (btnVlAtt) {
+                const returnUrl = `/dashboard/lecturer?subject_id=${subjectId}&tab=lab_evaluation`;
+                btnVlAtt.href = `/staff/attendance-log?subject_id=${subjectId}&from=formative&tab=lab_evaluation&return_to=${encodeURIComponent(returnUrl)}`;
+              }
             }
             toggleClassroomTab(activeTabToRestore);
           } else {
@@ -7044,7 +7055,10 @@
             <td class="p-4 text-center font-bold text-emerald-400">${log.present_count}</td>
             <td class="p-4 text-center font-bold text-rose-400">${log.absent_count}</td>
             <td class="p-4 text-center whitespace-nowrap">
-              <button type="button" onclick="deleteClassLogDesktop('${logIdsStr}', '${log.sl_no || ''}', '${log.date}', '${periodDisplay}')" class="px-2.5 py-1 rounded text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-premium" title="Delete accidental or duplicate log entry">
+              <button type="button" onclick="editClassLogDesktop('${logIdsStr}')" class="px-2.5 py-1 rounded text-xs font-bold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-premium mr-1.5 cursor-pointer" title="Edit this log entry and student attendance">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+              </button>
+              <button type="button" onclick="deleteClassLogDesktop('${logIdsStr}', '${log.sl_no || ''}', '${log.date}', '${periodDisplay}')" class="px-2.5 py-1 rounded text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-premium cursor-pointer" title="Delete accidental or duplicate log entry">
                 <i class="fa-solid fa-trash-can mr-1"></i> Delete
               </button>
             </td>
@@ -7058,6 +7072,15 @@
         </div>
       `;
       container.innerHTML = html;
+    }
+
+    function editClassLogDesktop(logIdsStr) {
+      if (!currentSubjectId || !logIdsStr) {
+        alert("Subject or log ID missing.");
+        return;
+      }
+      const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/staff/attendance-log?subject_id=${currentSubjectId}&edit_log_ids=${encodeURIComponent(logIdsStr)}&return_to=${returnUrl}`;
     }
 
     function deleteClassLogDesktop(logIdsStr, slNo, date, periods) {
@@ -9336,7 +9359,8 @@
       if (e) e.preventDefault();
       const subjId = currentSubjectId || window.currentSubjectId;
       if (subjId) {
-        window.location.href = `/staff/attendance-log?subject_id=${subjId}`;
+        const returnUrl = `/dashboard/lecturer?subject_id=${subjId}&tab=lab_evaluation`;
+        window.location.href = `/staff/attendance-log?subject_id=${subjId}&from=formative&tab=lab_evaluation&return_to=${encodeURIComponent(returnUrl)}`;
       } else {
         window.location.href = '/staff/attendance-log';
       }

@@ -217,7 +217,7 @@
                 <i class="fa-solid fa-arrow-left text-xs"></i>
                 <span>{{ $vlBackText }}</span>
             </a>
-            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}" class="px-3 py-1.5 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 hover:text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shrink-0" title="Open Class Attendance & Log for this subject">
+            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-3 py-1.5 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 hover:text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shrink-0" title="Open Class Attendance & Log for this subject">
                 <i class="fa-solid fa-clipboard-user text-xs text-emerald-400"></i>
                 <span>Class Attendance &amp; Log</span>
             </a>
@@ -282,7 +282,7 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow no-underline" title="Open Class Attendance & Log for this subject">
+                    <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow no-underline" title="Open Class Attendance & Log for this subject">
                         <i class="fa-solid fa-clipboard-user text-emerald-400 text-xs"></i>
                         <span>Class Attendance &amp; Log</span>
                     </a>

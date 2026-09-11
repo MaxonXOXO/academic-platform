@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -39,22 +41,35 @@
 
   @php
     $role = session('userRole');
-    $backLink = '/dashboard/lecturer';
-    if ($role === 'HOD') $backLink = '/dashboard/hod';
-    if ($role === 'Demonstrator') $backLink = '/dashboard/demonstrator';
-    if ($role === 'Trade_Instructor') $backLink = '/dashboard/tradeinstructor';
-    if ($role === 'Workshop_Superintendent') $backLink = '/dashboard/workshop';
-    if ($role === 'Tutor') $backLink = '/dashboard/tutor';
-    if ($role === 'General_Coordinator_SF') $backLink = '/dashboard/general-coordinator-sf';
-    if ($role === 'General_Coordinator_Aided') $backLink = '/dashboard/general-coordinator-aided';
-    if ($role === 'Principal') $backLink = '/dashboard/principal';
+    $defaultBackLink = '/dashboard/lecturer';
+    if ($role === 'HOD') $defaultBackLink = '/dashboard/hod';
+    if ($role === 'Demonstrator') $defaultBackLink = '/dashboard/demonstrator';
+    if ($role === 'Trade_Instructor') $defaultBackLink = '/dashboard/tradeinstructor';
+    if ($role === 'Workshop_Superintendent') $defaultBackLink = '/dashboard/workshop';
+    if ($role === 'Tutor') $defaultBackLink = '/dashboard/tutor';
+    if ($role === 'General_Coordinator_SF') $defaultBackLink = '/dashboard/general-coordinator-sf';
+    if ($role === 'General_Coordinator_Aided') $defaultBackLink = '/dashboard/general-coordinator-aided';
+    if ($role === 'Principal') $defaultBackLink = '/dashboard/principal';
+
+    $backLink = $defaultBackLink;
+    $rawReturnTo = request('return_to');
+    if (!empty($rawReturnTo)) {
+      // Validate that return_to is a safe relative path starting with '/'
+      if (str_starts_with($rawReturnTo, '/') && !str_starts_with($rawReturnTo, '//') && !str_starts_with($rawReturnTo, '/\\')) {
+        $backLink = $rawReturnTo;
+      }
+    } elseif (request('from') === 'formative' && request()->has('subject_id')) {
+      $sid = request('subject_id');
+      $tab = request('tab', 'lab_evaluation');
+      $backLink = $defaultBackLink . '?subject_id=' . $sid . '&tab=' . $tab;
+    }
   @endphp
 
   <!-- Top Navigation Header -->
   <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-30 px-4 sm:px-6 py-2.5 shadow-md">
     <div class="max-w-xl lg:max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <a href="{{ $backLink }}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center justify-center shadow-sm" title="Back to Dashboard">
+        <a id="attendanceLogBackBtn" href="{{ $backLink }}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center justify-center shadow-sm cursor-pointer no-underline" title="Back">
           <span class="material-symbols-rounded text-base">arrow_back</span>
         </a>
         <div>
@@ -97,6 +112,26 @@
             <div>
               <span id="logNextSlNoPointer" class="inline-block px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] font-mono font-bold text-emerald-400">Next Entry: #1</span>
             </div>
+          </div>
+
+          <!-- Active Edit Mode Banner -->
+          <div id="attEditingBanner" class="hidden p-2.5 bg-sky-500/15 border border-sky-500/40 rounded-xl flex items-center justify-between gap-2 shadow-sm">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="material-symbols-rounded text-sky-400 text-xl shrink-0">edit_note</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-sky-200 truncate flex items-center gap-1.5">
+                  <span>Editing <strong id="editBannerSlNo" class="text-white font-mono">Log #1</strong></span>
+                  <span class="text-sky-400">•</span>
+                  <span id="editBannerDate" class="text-slate-200"></span>
+                  <span class="text-sky-400">•</span>
+                  <span id="editBannerPeriods" class="text-sky-300"></span>
+                </div>
+                <div class="text-[10px] text-sky-300/80 truncate mt-0.5" id="editBannerTopic"></div>
+              </div>
+            </div>
+            <button type="button" onclick="cancelDesktopEditingLog()" class="shrink-0 px-2.5 py-1 text-[11px] font-bold rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition cursor-pointer" title="Cancel editing and revert to new entry">
+              Cancel Edit
+            </button>
           </div>
 
           <!-- Subject Selector -->
@@ -247,7 +282,7 @@
               <button type="button" onclick="toggleAllCheckboxes()" id="btnCheckAll" class="px-2.5 py-1 text-xs font-bold rounded-md bg-slate-900 border border-slate-700 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 transition-all cursor-pointer">Mark All Absent</button>
 
               <!-- Quick Save Button for Desktop in Header -->
-              <button type="button" onclick="saveAttendanceAndLog()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
+              <button type="button" id="btnQuickSave" onclick="saveAttendanceAndLog()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
                 <span class="material-symbols-rounded text-sm">save</span> Save
               </button>
             </div>
@@ -301,7 +336,7 @@
 
           <!-- BOTTOM ACTION BAR -->
           <div class="pt-2 border-t border-slate-800/60">
-            <button type="button" onclick="saveAttendanceAndLog()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
+            <button type="button" id="btnBottomSave" onclick="saveAttendanceAndLog()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
               <span class="material-symbols-rounded text-base">check_circle</span> Save Log & Attendance
             </button>
           </div>
@@ -312,6 +347,31 @@
 
     </div>
 
+    <!-- PAST ATTENDANCE LOGS & VERIFICATION TABLE -->
+    <div id="desktopPastLogsSection" class="mt-6 bg-slate-950 border border-slate-800 rounded-xl p-4 shadow-lg hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800/80 mb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-rounded text-indigo-400 text-xl">history_edu</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-xs sm:text-sm text-slate-200 uppercase tracking-wider">Recorded Class Attendance Logs</h3>
+              <span id="pastLogsCountBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">0 Records</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Verify, edit, or delete previously recorded attendance logs directly without switching back and forth to Reports.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="loadDesktopPastLogs()" class="px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg flex items-center gap-1.5 transition cursor-pointer" title="Refresh recorded logs">
+            <span class="material-symbols-rounded text-sm">refresh</span> Refresh Logs
+          </button>
+        </div>
+      </div>
+
+      <div id="desktopPastLogsTableContainer" class="overflow-x-auto">
+        <div class="text-center py-8 text-slate-500 text-xs font-mono">Select a class subject to view recorded logs.</div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Javascript Logic -->
@@ -320,8 +380,29 @@
     let currentStudents = [];
     let classroomId = '';
     let isAllChecked = true;
+    window.attPastLogsCache = [];
+    window.attEditingLog = null;
+    window.attEditingLogIds = null;
+    window.pendingEditLogIds = null;
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Store return_to if passed in URL query parameter, or restore from sessionStorage if navigating within log
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnToParam = urlParams.get('return_to');
+      if (returnToParam && returnToParam.startsWith('/') && !returnToParam.startsWith('//') && !returnToParam.startsWith('/\\')) {
+        sessionStorage.setItem('attendance_log_return_url', returnToParam);
+        const backBtn = document.getElementById('attendanceLogBackBtn');
+        if (backBtn) backBtn.href = returnToParam;
+      } else if (!returnToParam) {
+        // If no return_to was passed (e.g. from sidebar), clear any stale return url
+        sessionStorage.removeItem('attendance_log_return_url');
+      }
+
+      const editLogIdsParam = urlParams.get('edit_log_ids');
+      if (editLogIdsParam) {
+        window.pendingEditLogIds = editLogIdsParam;
+      }
+
       loadSubjects();
     });
 
@@ -374,6 +455,9 @@
 
       if (!subjectId) {
         document.getElementById('subBatchCard').classList.add('hidden');
+        document.getElementById('desktopPastLogsSection')?.classList.add('hidden');
+        window.attPastLogsCache = [];
+        cancelDesktopEditingLog();
         const container = document.getElementById('studentListContainer');
         if (container) container.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></td></tr>';
         const gridContainer = document.getElementById('studentGridContainer');
@@ -382,6 +466,9 @@
         if (countLabel) countLabel.innerText = 'Select subject to load students';
         return;
       }
+
+      // Reset any active editing log session when changing subject
+      cancelDesktopEditingLog();
 
       // Immediate UI reset to prevent data bleeding between subjects
       const resetPointer = document.getElementById('logNextSlNoPointer');
@@ -486,6 +573,10 @@
             // Render views
             renderList();
             renderGrid();
+
+            // Load and display recorded past attendance logs table below the form
+            document.getElementById('desktopPastLogsSection')?.classList.remove('hidden');
+            loadDesktopPastLogs();
           } else {
             showMessage(data.message || "Failed to load subject details", true);
           }
@@ -849,6 +940,11 @@
     let isSessionAttendanceLoaded = false;
 
     function checkExistingAttendance() {
+      // Do not run auto-overwrite if user is actively editing a recorded log
+      if (window.attEditingLogIds && window.attEditingLogIds.length > 0) {
+        return;
+      }
+
       const subjectSelect = document.getElementById('subjectSelect');
       const subjectId = subjectSelect ? subjectSelect.value : '';
       const dateSelect = document.getElementById('logDate');
@@ -1083,26 +1179,32 @@
       const selectedLpIds = window.selectedDesktopLpIds || [];
       const lessonPlanIdVal = (!isLab && selectedLpIds.length > 0) ? selectedLpIds[0] : null;
 
+      const payload = {
+        batch_subject_id: subjectId,
+        date: date,
+        periods: checkedPeriods,
+        lesson_plan_id: lessonPlanIdVal,
+        lesson_plan_ids: selectedLpIds,
+        practical_experiment_id: practicalExpId,
+        practical_experiment_ids: selectedExpIds,
+        topics_covered: topics,
+        present_students: present,
+        absent_students: absent,
+        sub_batch: subBatchVal,
+        is_additional_log: isSessionAttendanceLoaded
+      };
+
+      if (window.attEditingLogIds && window.attEditingLogIds.length > 0) {
+        payload.log_ids = window.attEditingLogIds;
+      }
+
       fetch('/api/staff/attendance/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken
         },
-        body: JSON.stringify({
-          batch_subject_id: subjectId,
-          date: date,
-          periods: checkedPeriods,
-          lesson_plan_id: lessonPlanIdVal,
-          lesson_plan_ids: selectedLpIds,
-          practical_experiment_id: practicalExpId,
-          practical_experiment_ids: selectedExpIds,
-          topics_covered: topics,
-          present_students: present,
-          absent_students: absent,
-          sub_batch: subBatchVal,
-          is_additional_log: isSessionAttendanceLoaded
-        })
+        body: JSON.stringify(payload)
       })
       .then(res => {
         if (!res.ok) {
@@ -1116,8 +1218,23 @@
       })
       .then(data => {
         if (data.status === 'SUCCESS') {
-          showMessage(data.message || "Class log and attendance recorded successfully!", false);
-          checkExistingAttendance();
+          const wasEditing = !!window.attEditingLogIds;
+          showMessage(data.message || (wasEditing ? "Class log and attendance updated successfully!" : "Class log and attendance recorded successfully!"), false);
+          if (wasEditing) {
+            cancelDesktopEditingLog();
+          } else {
+            checkExistingAttendance();
+          }
+          loadDesktopPastLogs();
+          // Also refresh subject details to update next_log_sl_no
+          fetch(`/api/staff/attendance/subjects/${subjectId}/details`)
+            .then(r => r.json())
+            .then(d => {
+              if (d.status === 'SUCCESS' && typeof d.next_log_sl_no !== 'undefined') {
+                const nextPointer = document.getElementById('logNextSlNoPointer');
+                if (nextPointer) nextPointer.innerText = `Next Entry: #${d.next_log_sl_no}`;
+              }
+            }).catch(() => {});
         } else {
           showMessage(data.message || "Failed to save attendance log.", true);
         }
@@ -1125,6 +1242,382 @@
       .catch(err => {
         console.error('Attendance Save Error:', err);
         showMessage(err.message || "Error saving log and attendance.", true);
+      });
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr || dateStr === '-' || dateStr === '—') return '—';
+      if (typeof dateStr !== 'string') return String(dateStr);
+      const m = dateStr.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        return `${m[3]}-${m[2]}-${m[1]}`;
+      }
+      const parts = dateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    function loadDesktopPastLogs() {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      const container = document.getElementById('desktopPastLogsTableContainer');
+      const badge = document.getElementById('pastLogsCountBadge');
+      if (!subjectId || !container) return;
+
+      container.innerHTML = `
+        <div class="text-center py-8 text-slate-400 text-xs font-mono">
+          <span class="material-symbols-rounded text-2xl mb-1 block animate-spin text-indigo-400">progress_activity</span>
+          Loading recorded class logs...
+        </div>
+      `;
+
+      fetch(`/api/staff/attendance/subjects/${subjectId}/reports`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS') {
+            window.attPastLogsCache = data.logs || [];
+            if (badge) badge.innerText = `${window.attPastLogsCache.length} Records`;
+            renderDesktopPastLogsTable();
+
+            // Check if there is an edit request pending from URL
+            if (window.pendingEditLogIds) {
+              const targetIds = String(window.pendingEditLogIds).split(',').map(id => id.trim());
+              const targetIdx = window.attPastLogsCache.findIndex(l => {
+                if (l.log_ids && l.log_ids.some(id => targetIds.includes(String(id)))) return true;
+                return targetIds.includes(String(l.id));
+              });
+              if (targetIdx >= 0) {
+                editDesktopLog(targetIdx);
+              }
+              window.pendingEditLogIds = null;
+            }
+          } else {
+            container.innerHTML = `<div class="text-center py-6 text-rose-400 text-xs font-semibold">${data.message || 'Failed to load recorded logs.'}</div>`;
+          }
+        })
+        .catch(err => {
+          console.error('Error loading past logs:', err);
+          container.innerHTML = '<div class="text-center py-6 text-rose-400 text-xs font-semibold">Error connecting to server.</div>';
+        });
+    }
+
+    function renderDesktopPastLogsTable() {
+      const container = document.getElementById('desktopPastLogsTableContainer');
+      if (!container) return;
+      const logs = window.attPastLogsCache || [];
+
+      if (logs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400 font-medium">
+            <span class="material-symbols-rounded text-3xl text-slate-600 mb-1.5 block">folder_open</span>
+            <span class="text-xs font-bold text-slate-300">No Class Logs Recorded Yet</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Use the form above to record attendance and class syllabus logs.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="overflow-x-auto border border-slate-800/80 rounded-xl bg-slate-900/30">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950/70 text-slate-400 border-b border-slate-800 uppercase tracking-wider text-[10px] font-black">
+                <th class="p-3 whitespace-nowrap">Date & Log #</th>
+                <th class="p-3 text-center whitespace-nowrap">Period</th>
+                <th class="p-3">Topics Covered</th>
+                <th class="p-3 text-center whitespace-nowrap">Present</th>
+                <th class="p-3 text-center whitespace-nowrap">Absent</th>
+                <th class="p-3 text-center whitespace-nowrap">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/50">
+      `;
+
+      logs.forEach((log, idx) => {
+        const periodDisplay = log.period_display || (log.periods && log.periods.length > 1 ? `Periods ${log.periods.join(', ')}` : `P${log.period}`);
+        const subBatchBadge = log.sub_batch && log.sub_batch !== 'Whole' 
+            ? `<span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Batch ${log.sub_batch}</span>` 
+            : '';
+        const staffText = log.staff_name ? `<div class="text-[10px] text-slate-500 mt-0.5 font-mono">Recorded by: ${log.staff_name}</div>` : '';
+        const logIdsStr = log.log_ids ? log.log_ids.join(',') : (log.id || '');
+        const formattedLogDate = formatDisplayDate(log.date);
+        const isCurrentlyEditing = window.attEditingLogIds && (
+          (log.log_ids && log.log_ids.some(id => window.attEditingLogIds.includes(id))) ||
+          window.attEditingLogIds.includes(log.id)
+        );
+
+        html += `
+          <tr class="hover:bg-slate-900/60 transition ${isCurrentlyEditing ? 'bg-sky-950/30 border-l-2 border-l-sky-400' : ''}">
+            <td class="p-3 font-mono font-bold text-slate-300 whitespace-nowrap">
+              <div class="flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">#${log.sl_no || '-'}</span>
+                <span>${formattedLogDate}</span>
+                ${subBatchBadge}
+              </div>
+            </td>
+            <td class="p-3 text-center font-bold text-slate-400 whitespace-nowrap">${periodDisplay}</td>
+            <td class="p-3 text-slate-200 min-w-[220px]">
+              <div class="font-medium line-clamp-2">${log.topics_covered || '-'}</div>
+              ${staffText}
+            </td>
+            <td class="p-3 text-center font-bold text-emerald-400">${log.present_count}</td>
+            <td class="p-3 text-center font-bold text-rose-400">${log.absent_count}</td>
+            <td class="p-3 text-center whitespace-nowrap">
+              <button type="button" onclick="editDesktopLog(${idx})" class="px-2.5 py-1 rounded text-xs font-bold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition mr-1.5 cursor-pointer" title="Edit this log entry and student attendance">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+              </button>
+              <button type="button" onclick="deleteDesktopLog('${logIdsStr}', '${log.sl_no || ''}', '${log.date}', '${periodDisplay}')" class="px-2.5 py-1 rounded text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition cursor-pointer" title="Delete accidental or duplicate log entry">
+                <i class="fa-solid fa-trash-can mr-1"></i> Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    function editDesktopLog(idx) {
+      const log = (window.attPastLogsCache || [])[idx];
+      if (!log) return;
+
+      window.attEditingLog = log;
+      window.attEditingLogIds = log.log_ids || [log.id];
+
+      // 1. Set Date
+      if (log.date) {
+        const dateInput = document.getElementById('logDate');
+        if (dateInput) dateInput.value = log.date;
+      }
+
+      // 2. Set Periods
+      const pArr = (log.periods && log.periods.length > 0)
+        ? log.periods
+        : String(log.period).split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
+      document.querySelectorAll('input[name="logPeriods"]').forEach(chk => {
+        chk.checked = pArr.includes(parseInt(chk.value));
+      });
+
+      // 3. Set Sub-batch
+      if (log.sub_batch === '1') {
+        const r1 = document.querySelector('input[name="subBatchSelect"][value="1"]');
+        if (r1) r1.checked = true;
+      } else if (log.sub_batch === '2') {
+        const r2 = document.querySelector('input[name="subBatchSelect"][value="2"]');
+        if (r2) r2.checked = true;
+      } else {
+        const rw = document.querySelector('input[name="subBatchSelect"][value="Whole"]');
+        if (rw) rw.checked = true;
+      }
+
+      // 4. Set Topics & Select Experiment / Lesson Plan in dropdown
+      const isLab = window.isCurrentDesktopLab;
+      const cleanTopic = (log.topics_covered || '').trim().toLowerCase();
+
+      if (isLab) {
+        window.selectedDesktopExpIds = [];
+        const exps = window.desktopSubjectExperiments || [];
+        let matchedExp = null;
+        if (log.practical_experiment_id) {
+          matchedExp = exps.find(e => e.id == log.practical_experiment_id);
+        }
+        if (!matchedExp) {
+          matchedExp = exps.find(e => {
+            const fullTopic = `exp ${e.experiment_no}: ${e.title}`.toLowerCase();
+            return cleanTopic.includes(`exp ${e.experiment_no}:`) || cleanTopic.includes(`exp ${e.experiment_no} `) || cleanTopic === fullTopic;
+          });
+        }
+        if (matchedExp) {
+          window.selectedDesktopExpIds = [matchedExp.id];
+        }
+        renderDesktopExpCheckboxes();
+      } else {
+        window.selectedDesktopLpIds = [];
+        const lps = window.desktopSubjectLessonPlans || [];
+        let matchedLp = null;
+        if (log.lesson_plan_id) {
+          matchedLp = lps.find(l => l.id == log.lesson_plan_id);
+        }
+        if (!matchedLp) {
+          matchedLp = lps.find(l => cleanTopic.includes((l.topic_content || '').trim().toLowerCase()));
+        }
+        if (matchedLp) {
+          window.selectedDesktopLpIds = [matchedLp.id];
+        }
+        renderDesktopLpCheckboxes();
+      }
+
+      const topicsElem = document.getElementById('topicsCovered');
+      if (topicsElem) {
+        topicsElem.value = log.topics_covered || '';
+      }
+
+      // 5. Restore Student Attendance states
+      let presentArr = [];
+      try {
+        presentArr = typeof log.present_students === 'string' ? JSON.parse(log.present_students || '[]') : (log.present_students || []);
+      } catch (e) {
+        presentArr = [];
+      }
+      const presentSet = new Set(presentArr);
+      currentStudents.forEach(s => {
+        s.present = presentSet.has(s.reg_no);
+      });
+      renderList();
+      renderGrid();
+
+      // 6. Update and show Active Edit Banner
+      const banner = document.getElementById('attEditingBanner');
+      if (banner) {
+        const slNoElem = document.getElementById('editBannerSlNo');
+        if (slNoElem) slNoElem.textContent = log.sl_no ? `Log #${log.sl_no}` : `Log #${idx + 1}`;
+
+        const dateElem = document.getElementById('editBannerDate');
+        if (dateElem) dateElem.textContent = formatDisplayDate(log.date);
+
+        const periodsElem = document.getElementById('editBannerPeriods');
+        if (periodsElem) periodsElem.textContent = log.period_display || ('Periods ' + log.period);
+
+        const topicElem = document.getElementById('editBannerTopic');
+        if (topicElem) topicElem.textContent = log.topics_covered ? `Topic: ${log.topics_covered}` : '';
+
+        banner.classList.remove('hidden');
+      }
+
+      // 7. Update Save Buttons text & styling
+      const quickSave = document.getElementById('btnQuickSave');
+      if (quickSave) {
+        quickSave.innerHTML = '<span class="material-symbols-rounded text-sm">edit_note</span> Update';
+        quickSave.className = "px-3 py-1 bg-sky-600 hover:bg-sky-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition";
+      }
+      const bottomSave = document.getElementById('btnBottomSave');
+      if (bottomSave) {
+        bottomSave.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Update Log & Attendance';
+        bottomSave.className = "w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer";
+      }
+
+      // Re-render past logs table to highlight active editing row
+      renderDesktopPastLogsTable();
+
+      // Smooth scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showMessage(`Editing Log #${log.sl_no || (idx + 1)} for ${formatDisplayDate(log.date)}. Adjust details and click Update.`, false);
+    }
+
+    function cancelDesktopEditingLog() {
+      window.attEditingLog = null;
+      window.attEditingLogIds = null;
+
+      const banner = document.getElementById('attEditingBanner');
+      if (banner) banner.classList.add('hidden');
+
+      // Reset Date to Today
+      const dateInput = document.getElementById('logDate');
+      if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+      // Reset periods to none
+      document.querySelectorAll('input[name="logPeriods"]').forEach(cb => {
+        cb.checked = false;
+      });
+
+      // Reset Sub-batch to Whole
+      const wholeRadio = document.querySelector('input[name="subBatchSelect"][value="Whole"]');
+      if (wholeRadio) wholeRadio.checked = true;
+
+      // Clear topics and selections
+      clearSelectedExperiments();
+      const topicsElem = document.getElementById('topicsCovered');
+      if (topicsElem) topicsElem.value = '';
+
+      // Reset all students present
+      currentStudents.forEach(s => s.present = true);
+      isAllChecked = true;
+      const btnCheckAll = document.getElementById('btnCheckAll');
+      if (btnCheckAll) btnCheckAll.innerText = "Mark All Absent";
+
+      renderList();
+      renderGrid();
+
+      // Reset Save Buttons
+      const quickSave = document.getElementById('btnQuickSave');
+      if (quickSave) {
+        quickSave.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save';
+        quickSave.className = "px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition";
+      }
+      const bottomSave = document.getElementById('btnBottomSave');
+      if (bottomSave) {
+        bottomSave.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Save Log & Attendance';
+        bottomSave.className = "w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer";
+      }
+
+      // Re-render past logs table to clear highlight
+      renderDesktopPastLogsTable();
+    }
+
+    function deleteDesktopLog(logIdsStr, slNo, date, periods) {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      if (!subjectId || !logIdsStr) {
+        showMessage("Subject or log ID missing.", true);
+        return;
+      }
+      const logIds = logIdsStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      if (logIds.length === 0) {
+        showMessage("Invalid log IDs.", true);
+        return;
+      }
+
+      const slText = slNo ? `Log #${slNo}` : 'this log entry';
+      const promptMsg = `Are you sure you want to permanently delete ${slText} on ${formatDisplayDate(date)} (${periods})?\n\nIf this was an accidental duplicate entry, the original surviving log and student attendance will be preserved safely.`;
+      if (!confirm(promptMsg)) return;
+
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+      fetch('/api/staff/attendance/delete-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          batch_subject_id: subjectId,
+          log_ids: logIds
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          showMessage(data.message || 'Log entry removed successfully.', false);
+          // If the log being edited was just deleted, cancel edit mode
+          if (window.attEditingLogIds && logIds.some(id => window.attEditingLogIds.includes(id))) {
+            cancelDesktopEditingLog();
+          }
+          loadDesktopPastLogs();
+          // Also refresh subject details to update next_log_sl_no
+          fetch(`/api/staff/attendance/subjects/${subjectId}/details`)
+            .then(r => r.json())
+            .then(d => {
+              if (d.status === 'SUCCESS' && typeof d.next_log_sl_no !== 'undefined') {
+                const nextPointer = document.getElementById('logNextSlNoPointer');
+                if (nextPointer) nextPointer.innerText = `Next Entry: #${d.next_log_sl_no}`;
+              }
+            }).catch(() => {});
+        } else {
+          showMessage(data.message || 'Failed to delete log entry.', true);
+        }
+      })
+      .catch(err => {
+        console.error('Delete Log Error:', err);
+        showMessage('Error connecting to server.', true);
       });
     }
 

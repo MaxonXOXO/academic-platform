@@ -628,6 +628,13 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r21/classroom/drawing/{subjectId}/print/cia', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printConsolidatedCia']);
     Route::get('/r21/classroom/drawing/{subjectId}/print/lesson-plan', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printLessonPlan']);
 
+    // Revision 2021 Virtual Seminar Classroom (Regulation Clause 11.2.6)
+    Route::get('/r21/classroom/seminar/{subjectId}', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'show']);
+    Route::post('/r21/classroom/seminar/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'uploadSyllabus']);
+    Route::post('/r21/classroom/seminar/{subjectId}/evaluate', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'saveEvaluation']);
+    Route::post('/r21/classroom/seminar/{subjectId}/schedule', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'updateSeminarSchedule']);
+    Route::get('/r21/classroom/seminar/{subjectId}/print', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'printReport']);
+
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'uploadSyllabus']);

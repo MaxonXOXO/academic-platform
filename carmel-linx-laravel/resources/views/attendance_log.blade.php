@@ -96,10 +96,10 @@
   <!-- Main Container -->
   <main class="max-w-xl lg:max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 mt-3 lg:mt-4 flex-grow">
     
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
-      <!-- LEFT COLUMN: Class Log Setup Panel (lg:col-span-5) -->
-      <div class="space-y-3 lg:col-span-5">
+      <!-- LEFT COLUMN: Class Log Setup Panel (Equal 50% Desktop Width) -->
+      <div class="space-y-3">
 
         <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-3">
           
@@ -109,8 +109,13 @@
               <span class="material-symbols-rounded text-indigo-400 text-base">school</span>
               <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Class & Session Log</h2>
             </div>
-            <div>
-              <span id="logNextSlNoPointer" class="inline-block px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] font-mono font-bold text-emerald-400">Next Entry: #1</span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Bulk Import previous attendance & topics from official SBTE PDF">
+                <span class="material-symbols-rounded text-sm">cloud_upload</span>
+                <span>SBTE Bulk Import</span>
+              </button>
+              <!-- Avoid next entry label in green as requested (kept hidden for script safety) -->
+              <span id="logNextSlNoPointer" class="hidden"></span>
             </div>
           </div>
 
@@ -146,26 +151,26 @@
           <div id="subBatchCard" class="hidden bg-slate-900/60 border border-slate-800/80 rounded-lg p-2 space-y-1">
             <div class="flex items-center justify-between">
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lab Sub-Batch</label>
-              <button type="button" onclick="openLabBatchSetupModalFromAttendance()" class="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition" title="Configure Lab Batch Division (Full vs Split & Student Cutoff)">
+              <button type="button" onclick="openLabBatchSetupModalFromAttendance()" class="text-[10px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition" title="Configure Lab Batch Division (Full vs Split & Student Cutoff)">
                 <span class="material-symbols-rounded text-xs">tune</span> Batch split setup
               </button>
             </div>
             <div class="grid grid-cols-3 gap-1.5">
               <label class="cursor-pointer">
                 <input type="radio" name="subBatchSelect" value="Whole" checked onchange="filterStudentsByBatch()" class="sr-only peer">
-                <div class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                <div class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 hover:bg-slate-800 transition-all select-none">
                   Whole Class
                 </div>
               </label>
               <label class="cursor-pointer">
                 <input type="radio" name="subBatchSelect" value="1" onchange="filterStudentsByBatch()" class="sr-only peer">
-                <div id="batch1Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                <div id="batch1Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 hover:bg-slate-800 transition-all select-none">
                   Batch 1
                 </div>
               </label>
               <label class="cursor-pointer">
                 <input type="radio" name="subBatchSelect" value="2" onchange="filterStudentsByBatch()" class="sr-only peer">
-                <div id="batch2Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                <div id="batch2Text" class="py-1 text-center rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 hover:bg-slate-800 transition-all select-none">
                   Batch 2
                 </div>
               </label>
@@ -255,8 +260,8 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Attendance Workspace (lg:col-span-7) -->
-      <div class="space-y-3 lg:col-span-7">
+      <!-- RIGHT COLUMN: Attendance Workspace (Equal 50% Desktop Width) -->
+      <div class="space-y-3">
 
         <!-- ATTENDANCE ENTRY PANEL -->
         <div id="attendanceCard" class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 shadow-lg space-y-3">
@@ -322,8 +327,8 @@
               <button type="button" onclick="toggleAllGrid(true)" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer">Reset All Present</button>
             </div>
 
-            <!-- Responsive Grid: 5 cols on mobile, 8-10 cols on desktop for zero-scroll matrix -->
-            <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-10 gap-1.5 p-1 max-h-[380px] xl:max-h-[440px] overflow-y-auto custom-scrollbar" id="studentGridContainer">
+            <!-- Responsive Grid: 5 cols on mobile, 6-8 cols on desktop for zero-scroll matrix -->
+            <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 p-1 max-h-[380px] xl:max-h-[440px] overflow-y-auto custom-scrollbar" id="studentGridContainer">
               <div class="col-span-full py-12 text-center text-slate-400 font-medium">
                 <div class="flex flex-col items-center justify-center gap-2">
                   <span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span>
@@ -360,7 +365,19 @@
             <p class="text-[11px] text-slate-400 mt-0.5">Verify, edit, or delete previously recorded attendance logs directly without switching back and forth to Reports.</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-md" title="Bulk Import from official SBTE PDF">
+            <span class="material-symbols-rounded text-sm">cloud_upload</span> SBTE Bulk Import
+          </button>
+          <button type="button" onclick="syncSubjectLogsFromLessonPlan()" class="px-3 py-1.5 text-xs font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Auto-fill any pending class logs from available Lesson Plans in chronological order">
+            <span class="material-symbols-rounded text-sm">auto_stories</span> Sync from Lesson Plan
+          </button>
+          <button type="button" onclick="printCurrentClassLog()" class="px-3 py-1.5 text-xs font-bold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Print official A4 classroom teaching & attendance log">
+            <span class="material-symbols-rounded text-sm">print</span> Print Class Log (A4)
+          </button>
+          <button type="button" onclick="printCurrentClassRoster()" class="px-3 py-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Print official A4 class roster with attendance & marks">
+            <span class="material-symbols-rounded text-sm">badge</span> Print Class Roster (A4)
+          </button>
           <button type="button" onclick="loadDesktopPastLogs()" class="px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg flex items-center gap-1.5 transition cursor-pointer" title="Refresh recorded logs">
             <span class="material-symbols-rounded text-sm">refresh</span> Refresh Logs
           </button>
@@ -496,16 +513,18 @@
             currentStudents = data.students;
             classroomId = data.classroom_id;
 
-            // Check if Lab or Practical
+            // Check if Practicum vs Pure Lab vs Theory
+            const isPracticum = Boolean(data.is_practicum || (data.subject_type && data.subject_type.toLowerCase().includes('practicum')) || (data.subject_name && data.subject_name.toLowerCase().includes('practicum')));
             const hasExperiments = (data.experiments && data.experiments.length > 0);
-            const isLab = hasExperiments || (data.subject_type && (
+            const isPureLab = !isPracticum && (hasExperiments || (data.subject_type && (
               data.subject_type.toLowerCase().includes('lab') ||
               data.subject_type.toLowerCase().includes('practical') ||
-              data.subject_type.toLowerCase().includes('practicum') ||
               data.subject_type.toLowerCase().includes('drawing') ||
               data.subject_type.toLowerCase().includes('workshop')
-            ));
+            )));
+            const isLab = isPureLab || isPracticum;
             window.isCurrentDesktopLab = isLab;
+            window.isCurrentDesktopPracticum = isPracticum;
             window.desktopSubjectExperiments = data.experiments || [];
             window.desktopSubjectLessonPlans = data.lesson_plans || [];
             window.selectedDesktopExpIds = [];
@@ -554,9 +573,12 @@
             const btnCheckAll = document.getElementById('btnCheckAll');
             if (btnCheckAll) btnCheckAll.innerText = "Mark All Absent";
 
-            // Populate dropdown based on practical/virtual lab vs theory
+            // Populate dropdown based on practical/virtual lab vs practicum vs theory
             const searchInput = document.getElementById('expSearchDesktopInput');
-            if (isLab) {
+            if (isPracticum) {
+              if (searchInput) searchInput.placeholder = "Search lesson plan topic (Theory / Lab) or CO...";
+              renderDesktopLpCheckboxes();
+            } else if (isPureLab) {
               if (searchInput) searchInput.placeholder = "Search experiment name or number...";
               renderDesktopExpCheckboxes();
             } else {
@@ -740,8 +762,18 @@
       let html = '';
       lps.forEach((lp, idx) => {
         const isChecked = (window.selectedDesktopLpIds || []).includes(lp.id);
-        const lpNo = idx + 1;
-        const searchTerms = `${lpNo} ${lp.topic_content || ''} ${lp.co_id || ''} ${lp.status || ''}`.toLowerCase();
+        const lpNo = lp.day_no ? lp.day_no : (idx + 1);
+        const modeStr = (lp.mode || '').toLowerCase();
+        let modeBadge = '';
+        if (modeStr.includes('lab') || modeStr.includes('practical') || modeStr === 'p') {
+          modeBadge = '<span class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/70 border border-amber-800/60 px-1 py-0.2 rounded">Lab (P)</span>';
+        } else if (modeStr.includes('theory') || modeStr.includes('lecture') || modeStr === 'l') {
+          modeBadge = '<span class="text-[9px] font-mono font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-1 py-0.2 rounded">Theory (L)</span>';
+        } else if (lp.mode) {
+          modeBadge = `<span class="text-[9px] font-mono font-bold text-purple-300 bg-purple-950/70 border border-purple-800/60 px-1 py-0.2 rounded">${lp.mode}</span>`;
+        }
+
+        const searchTerms = `${lpNo} ${lp.topic_content || ''} ${lp.co_id || ''} ${lp.status || ''} ${lp.mode || ''}`.toLowerCase();
         const cleanTopic = (lp.topic_content || '').replace(/"/g, '&quot;');
 
         html += `
@@ -749,7 +781,10 @@
           <input type="checkbox" value="${lp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopLpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
           <div class="flex-1 min-w-0 leading-tight">
             <div class="flex items-center justify-between gap-1 mb-0.5">
-              <span class="text-[10px] font-mono font-black text-indigo-300">#${lpNo}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-mono font-black text-indigo-300">Hour #${lpNo}</span>
+                ${modeBadge}
+              </div>
               <div class="flex items-center gap-1">
                 ${lp.co_id ? `<span class="text-[9px] font-mono text-slate-400 bg-slate-800 px-1 py-0.2 rounded">${lp.co_id}</span>` : ''}
                 ${lp.status ? `<span class="text-[9px] font-mono ${lp.status === 'Completed' ? 'text-emerald-400 bg-emerald-950/50' : 'text-slate-400 bg-slate-800'} px-1 py-0.2 rounded">${lp.status}</span>` : ''}
@@ -797,13 +832,15 @@
       const btnText = document.getElementById('expDropdownToggleText');
       if (btnText) {
         if (selected.length === 0) {
-          btnText.innerText = '-- Choose Lesson Plan Topic (or Manual Entry below) --';
+          btnText.innerText = window.isCurrentDesktopPracticum
+            ? '-- Choose Lesson Plan Topic (Theory & Lab) or Manual Entry --'
+            : '-- Choose Lesson Plan Topic (or Manual Entry below) --';
           btnText.className = 'truncate text-slate-400';
         } else if (selected.length === 1) {
           const lps = window.desktopSubjectLessonPlans || [];
           const idx = lps.findIndex(l => l.id === selected[0]);
           const lp = lps[idx];
-          const noStr = idx >= 0 ? `#${idx + 1}. ` : '';
+          const noStr = lp ? `Hour #${lp.day_no || (idx + 1)}: ` : (idx >= 0 ? `#${idx + 1}. ` : '');
           btnText.innerText = lp ? `${noStr}${lp.topic_content}` : '1 Topic Selected';
           btnText.className = 'truncate text-indigo-300 font-bold';
         } else {
@@ -834,7 +871,7 @@
     }
 
     function clearSelectedExperiments() {
-      if (window.isCurrentDesktopLab) {
+      if (window.isCurrentDesktopLab && !window.isCurrentDesktopPracticum) {
         window.selectedDesktopExpIds = [];
         const checkboxes = document.querySelectorAll('#desktopExpCheckboxContainer input[type="checkbox"]');
         checkboxes.forEach(cb => {
@@ -1148,7 +1185,7 @@
           topicsElem.classList.add('border-red-500');
           topicsElem.focus();
         }
-        showMessage(window.isCurrentDesktopLab ? "Please select experiment(s) or enter manual topics covered in class today." : "Please select lesson plan topic(s) or enter manual topics covered in class today.", true);
+        showMessage(window.isCurrentDesktopLab && !window.isCurrentDesktopPracticum ? "Please select experiment(s) or enter manual topics covered in class today." : "Please select lesson plan topic(s) or enter manual topics covered in class today.", true);
         return;
       }
 
@@ -1173,11 +1210,12 @@
       const csrfToken = csrfMeta ? csrfMeta.content : '';
 
       const isLab = window.isCurrentDesktopLab;
+      const isPracticum = window.isCurrentDesktopPracticum;
       const selectedExpIds = window.selectedDesktopExpIds || [];
-      const practicalExpId = (isLab && selectedExpIds.length > 0) ? selectedExpIds[0] : null;
+      const practicalExpId = (!isPracticum && isLab && selectedExpIds.length > 0) ? selectedExpIds[0] : null;
 
       const selectedLpIds = window.selectedDesktopLpIds || [];
-      const lessonPlanIdVal = (!isLab && selectedLpIds.length > 0) ? selectedLpIds[0] : null;
+      const lessonPlanIdVal = ((!isLab || isPracticum) && selectedLpIds.length > 0) ? selectedLpIds[0] : null;
 
       const payload = {
         batch_subject_id: subjectId,
@@ -1186,7 +1224,7 @@
         lesson_plan_id: lessonPlanIdVal,
         lesson_plan_ids: selectedLpIds,
         practical_experiment_id: practicalExpId,
-        practical_experiment_ids: selectedExpIds,
+        practical_experiment_ids: (!isPracticum && isLab) ? selectedExpIds : [],
         topics_covered: topics,
         present_students: present,
         absent_students: absent,
@@ -1257,6 +1295,26 @@
         return `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
       return dateStr;
+    }
+
+    function printCurrentClassLog() {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      if (!subjectId) {
+        alert("Please select a class subject first.");
+        return;
+      }
+      window.open(`/classroom/${subjectId}/class-log/print`, '_blank');
+    }
+
+    function printCurrentClassRoster() {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      if (!subjectId) {
+        alert("Please select a class subject first.");
+        return;
+      }
+      window.open(`/classroom/${subjectId}/class-roster/print`, '_blank');
     }
 
     function loadDesktopPastLogs() {
@@ -1420,9 +1478,10 @@
 
       // 4. Set Topics & Select Experiment / Lesson Plan in dropdown
       const isLab = window.isCurrentDesktopLab;
+      const isPracticum = window.isCurrentDesktopPracticum;
       const cleanTopic = (log.topics_covered || '').trim().toLowerCase();
 
-      if (isLab) {
+      if (isLab && !isPracticum) {
         window.selectedDesktopExpIds = [];
         const exps = window.desktopSubjectExperiments || [];
         let matchedExp = null;
@@ -1633,8 +1692,60 @@
         });
       }
     }
+
+    function syncSubjectLogsFromLessonPlan() {
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
+      if (!subjectId) {
+        alert("Please select a Class Subject / Batch first.");
+        return;
+      }
+
+      const promptMsg = "This will automatically populate all pending/empty class log topics for this subject using available syllabus Lesson Plans in sequential order.\n\nDo you want to proceed?";
+      if (!confirm(promptMsg)) return;
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+      showMessage("Synchronizing subject logs with lesson plans...", false);
+
+      fetch('/api/staff/attendance/sync-from-lesson-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          batch_subject_id: subjectId
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          showMessage(data.message || "Subject logs synchronized successfully!", false);
+          loadDesktopPastLogs();
+          // Also refresh subject details to update next_log_sl_no and lesson plans
+          fetch(`/api/staff/attendance/subjects/${subjectId}/details`)
+            .then(r => r.json())
+            .then(d => {
+              if (d.status === 'SUCCESS') {
+                if (typeof d.next_log_sl_no !== 'undefined') {
+                  const nextPointer = document.getElementById('logNextSlNoPointer');
+                  if (nextPointer) nextPointer.innerText = `Next Entry: #${d.next_log_sl_no}`;
+                }
+              }
+            }).catch(() => {});
+        } else {
+          showMessage(data.message || "Failed to synchronize logs.", true);
+        }
+      })
+      .catch(err => {
+        console.error("Sync Lesson Plan Error:", err);
+        showMessage("Error communicating with server.", true);
+      });
+    }
   </script>
 
   @include('partials.lab_batch_setup_modal')
+  @include('partials.sbte_bulk_import_modal')
 </body>
 </html>

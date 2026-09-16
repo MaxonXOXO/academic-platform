@@ -5,13 +5,13 @@
         <!-- Header -->
         <div class="px-5 py-3.5 bg-slate-950/95 border-b border-slate-800 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-sm">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
                     <span class="material-symbols-rounded text-xl">group_work</span>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
                         <h3 class="text-sm sm:text-base font-bold text-white leading-tight">Practical Lab Batch Setup</h3>
-                        <span class="px-2 py-0.5 rounded-md bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Workspace</span>
+                        <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Workspace</span>
                     </div>
                     <p class="text-[11px] text-slate-400 leading-tight mt-0.5" id="batchSetupSubjectSubtitle">Configure Full vs Split Batch &amp; Cutoff Roll Numbers</p>
                 </div>
@@ -33,10 +33,10 @@
             <div class="lg:w-[420px] xl:w-[460px] shrink-0 flex flex-col overflow-y-auto custom-scrollbar space-y-4 pr-1">
                 
                 <!-- Notice Alert Box -->
-                <div id="batchSetupNoticeBox" class="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-indigo-200 flex items-start gap-2.5 shrink-0 shadow-sm">
-                    <span class="material-symbols-rounded text-indigo-400 text-lg shrink-0 mt-0.5">info</span>
+                <div id="batchSetupNoticeBox" class="p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-200 flex items-start gap-2.5 shrink-0 shadow-sm">
+                    <span class="material-symbols-rounded text-blue-400 text-lg shrink-0 mt-0.5">info</span>
                     <div class="text-[11px] leading-relaxed">
-                        <span class="font-bold block text-indigo-100 mb-0.5">Faculty Batch Division Authority</span>
+                        <span class="font-bold block text-blue-100 mb-0.5">Faculty Batch Division Authority</span>
                         Faculty have complete control to set this practical as <strong>Full Batch</strong> (whole class) or <strong>Split Batch</strong> (2 batches) based on lab space, workstation availability, and syllabus requirements.
                     </div>
                 </div>
@@ -47,19 +47,19 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         
                         <!-- Split Batch Card -->
-                        <label class="relative flex items-start gap-2.5 p-3 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-indigo-500/70 transition cursor-pointer group">
-                            <input type="radio" name="labBatchModeRadio" value="split" checked onchange="onLabBatchModeChange()" class="mt-0.5 text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700">
+                        <label class="relative flex items-start gap-2.5 p-3 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-blue-500/70 transition cursor-pointer group">
+                            <input type="radio" name="labBatchModeRadio" value="split" checked onchange="onLabBatchModeChange()" class="mt-0.5 text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700">
                             <div class="space-y-0.5">
-                                <span class="block text-xs font-bold text-white group-hover:text-indigo-300 transition">Split Batch</span>
+                                <span class="block text-xs font-bold text-white group-hover:text-blue-300 transition">Split Batch</span>
                                 <p class="text-[10px] text-slate-400 leading-snug">Divide into Batch 1 &amp; Batch 2 for practical slots.</p>
                             </div>
                         </label>
 
                         <!-- Full Batch Card -->
-                        <label class="relative flex items-start gap-2.5 p-3 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-indigo-500/70 transition cursor-pointer group">
-                            <input type="radio" name="labBatchModeRadio" value="full" onchange="onLabBatchModeChange()" class="mt-0.5 text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700">
+                        <label class="relative flex items-start gap-2.5 p-3 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-blue-500/70 transition cursor-pointer group">
+                            <input type="radio" name="labBatchModeRadio" value="full" onchange="onLabBatchModeChange()" class="mt-0.5 text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700">
                             <div class="space-y-0.5">
-                                <span class="block text-xs font-bold text-white group-hover:text-indigo-300 transition">Full Batch</span>
+                                <span class="block text-xs font-bold text-white group-hover:text-blue-300 transition">Full Batch</span>
                                 <p class="text-[10px] text-slate-400 leading-snug">Whole class conducts practicals together.</p>
                             </div>
                         </label>
@@ -79,7 +79,7 @@
                         
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
                             <!-- Stepper Container -->
-                            <div class="sm:col-span-6 flex items-center rounded-xl border border-slate-700 bg-slate-950 focus-within:border-indigo-500 shadow-inner transition overflow-hidden">
+                            <div class="sm:col-span-6 flex items-center rounded-xl border border-slate-700 bg-slate-950 focus-within:border-blue-500 shadow-inner transition overflow-hidden">
                                 <button type="button" onclick="stepCutoff(-1)" class="w-10 h-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer select-none" title="Decrease Roll Cutoff">
                                     <span class="material-symbols-rounded text-lg">remove</span>
                                 </button>
@@ -106,17 +106,17 @@
 
                     <!-- Live Batch Summary Cards -->
                     <div class="grid grid-cols-2 gap-3 p-3 bg-slate-950/80 border border-slate-800 rounded-xl shadow-sm">
-                        <div class="p-2.5 bg-indigo-950/40 border border-indigo-700/40 rounded-xl text-center">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">Batch 1</span>
+                        <div class="p-2.5 bg-blue-950/40 border border-blue-500/40 rounded-xl text-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-400 block">Batch 1</span>
                             <div class="text-base font-bold text-white font-mono mt-0.5">
-                                <span id="setupB1CountText">0</span> <span class="text-[11px] font-normal text-indigo-300">Students</span>
+                                <span id="setupB1CountText">0</span> <span class="text-[11px] font-normal text-blue-300">Students</span>
                             </div>
                             <div class="text-[10.5px] text-slate-400 font-mono mt-0.5" id="setupB1RangeText">Roll 1 - 25</div>
                         </div>
-                        <div class="p-2.5 bg-purple-950/40 border border-purple-700/40 rounded-xl text-center">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">Batch 2</span>
+                        <div class="p-2.5 bg-sky-950/40 border border-sky-500/40 rounded-xl text-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400 block">Batch 2</span>
                             <div class="text-base font-bold text-white font-mono mt-0.5">
-                                <span id="setupB2CountText">0</span> <span class="text-[11px] font-normal text-purple-300">Students</span>
+                                <span id="setupB2CountText">0</span> <span class="text-[11px] font-normal text-sky-300">Students</span>
                             </div>
                             <div class="text-[10.5px] text-slate-400 font-mono mt-0.5" id="setupB2RangeText">Roll 26 - 51</div>
                         </div>
@@ -127,7 +127,7 @@
                 <!-- Apply to all subjects checkbox (sticks neatly at bottom of left column) -->
                 <div class="pt-3 border-t border-slate-800/80 mt-auto">
                     <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 cursor-pointer select-none transition">
-                        <input type="checkbox" id="batchSetupApplyAllCheckbox" checked class="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700 shrink-0">
+                        <input type="checkbox" id="batchSetupApplyAllCheckbox" checked class="mt-0.5 rounded text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700 shrink-0">
                         <div class="space-y-0.5">
                             <span class="text-xs font-semibold text-slate-200 block">Apply to all practicals in this semester</span>
                             <p class="text-[10.5px] text-slate-400 leading-snug">Synchronizes Batch 1 &amp; Batch 2 across all practical subjects in this classroom so student groupings remain identical.</p>
@@ -144,7 +144,7 @@
                 <div class="p-3 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
                     <div class="flex items-center gap-2.5">
                         <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-                            <span class="material-symbols-rounded text-indigo-400 text-base">badge</span>
+                            <span class="material-symbols-rounded text-blue-400 text-base">badge</span>
                             Student Roster &amp; Batch Assignments
                         </span>
                         <span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono text-[10.5px] font-bold" id="rosterTotalCountBadge">0 Students</span>
@@ -153,14 +153,14 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <!-- Filter Tabs -->
                         <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-[11px]">
-                            <button type="button" onclick="filterBatchSetupRosterTab('all')" id="rosterTab_all" class="px-2.5 py-0.5 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer">All</button>
+                            <button type="button" onclick="filterBatchSetupRosterTab('all')" id="rosterTab_all" class="px-2.5 py-0.5 rounded-md font-bold transition bg-blue-600 text-white cursor-pointer">All</button>
                             <button type="button" onclick="filterBatchSetupRosterTab('1')" id="rosterTab_1" class="px-2.5 py-0.5 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 1</button>
                             <button type="button" onclick="filterBatchSetupRosterTab('2')" id="rosterTab_2" class="px-2.5 py-0.5 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 2</button>
                         </div>
 
                         <!-- Search Box -->
                         <div class="relative">
-                            <input type="text" id="batchSetupStudentSearch" placeholder="Search roll, name..." oninput="filterBatchSetupStudentList()" class="bg-slate-950 border border-slate-700 rounded-lg pl-7 pr-2.5 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 w-36 sm:w-48 transition">
+                            <input type="text" id="batchSetupStudentSearch" placeholder="Search roll, name..." oninput="filterBatchSetupStudentList()" class="bg-slate-950 border border-slate-700 rounded-lg pl-7 pr-2.5 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 w-36 sm:w-48 transition">
                             <span class="material-symbols-rounded text-xs text-slate-500 absolute left-2 top-1.5 pointer-events-none">search</span>
                         </div>
                     </div>
@@ -187,8 +187,8 @@
                 <!-- Roster Bottom Status Bar -->
                 <div class="px-3.5 py-2 bg-slate-900/80 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
                     <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-rounded text-indigo-400 text-xs">touch_app</span>
-                        <span>Click <strong class="text-indigo-300">B1</strong> or <strong class="text-purple-300">B2</strong> to manually toggle any individual student.</span>
+                        <span class="material-symbols-rounded text-blue-400 text-xs">touch_app</span>
+                        <span>Click <strong class="text-blue-400">B1</strong> or <strong class="text-sky-400">B2</strong> to manually toggle any individual student.</span>
                     </div>
                     <div id="rosterShowingCounter" class="font-mono text-slate-400">Showing 51 students</div>
                 </div>
@@ -207,7 +207,7 @@
                 <button type="button" onclick="closeLabBatchSetupModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer">
                     Cancel
                 </button>
-                <button type="button" id="btnSaveLabBatchSetup" onclick="saveLabBatchSetup()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/30 cursor-pointer">
+                <button type="button" id="btnSaveLabBatchSetup" onclick="saveLabBatchSetup()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-blue-600/30 cursor-pointer">
                     <span class="material-symbols-rounded text-base">check</span>
                     <span>Save Batch Configuration</span>
                 </button>
@@ -445,21 +445,21 @@
 
             const isB1 = (s.lab_batch === '1');
             tr.innerHTML = `
-                <td class="py-2.5 px-3 text-center font-bold font-mono ${isB1 ? 'text-indigo-400' : 'text-purple-400'}">${s.roll_no || (idx + 1)}</td>
+                <td class="py-2.5 px-3 text-center font-bold font-mono ${isB1 ? 'text-blue-400' : 'text-sky-400'}">${s.roll_no || (idx + 1)}</td>
                 <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${s.reg_no}</td>
                 <td class="py-2.5 px-3 font-medium text-slate-200">
                     <span class="text-white font-semibold">${s.name}</span>
                 </td>
                 <td class="py-2.5 px-3 text-center">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold ${isB1 ? 'bg-indigo-950/70 text-indigo-300 border border-indigo-700/50' : 'bg-purple-950/70 text-purple-300 border border-purple-700/50'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isB1 ? 'bg-indigo-400' : 'bg-purple-400'}"></span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold ${isB1 ? 'bg-blue-950/70 text-blue-300 border border-blue-600/50' : 'bg-sky-950/70 text-sky-300 border border-sky-600/50'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isB1 ? 'bg-blue-400' : 'bg-sky-400'}"></span>
                         ${isB1 ? 'Batch 1' : 'Batch 2'}
                     </span>
                 </td>
                 <td class="py-2.5 px-3 text-center">
                     <div class="inline-flex rounded-lg p-0.5 bg-slate-900 border border-slate-800 shadow-sm">
-                        <button type="button" onclick="toggleStudentLabBatch('${s.reg_no}', '1')" class="px-2.5 py-1 rounded text-[10.5px] font-bold transition cursor-pointer ${isB1 ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}">B1</button>
-                        <button type="button" onclick="toggleStudentLabBatch('${s.reg_no}', '2')" class="px-2.5 py-1 rounded text-[10.5px] font-bold transition cursor-pointer ${!isB1 ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}">B2</button>
+                        <button type="button" onclick="toggleStudentLabBatch('${s.reg_no}', '1')" class="px-2.5 py-1 rounded text-[10.5px] font-bold transition cursor-pointer ${isB1 ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}">B1</button>
+                        <button type="button" onclick="toggleStudentLabBatch('${s.reg_no}', '2')" class="px-2.5 py-1 rounded text-[10.5px] font-bold transition cursor-pointer ${!isB1 ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}">B2</button>
                     </div>
                 </td>
             `;
@@ -484,10 +484,10 @@
             const btn = document.getElementById(`rosterTab_${t}`);
             if (btn) {
                 if (t === tab) {
-                    btn.classList.add('bg-indigo-600', 'text-white');
+                    btn.classList.add('bg-blue-600', 'text-white');
                     btn.classList.remove('text-slate-400');
                 } else {
-                    btn.classList.remove('bg-indigo-600', 'text-white');
+                    btn.classList.remove('bg-blue-600', 'text-white');
                     btn.classList.add('text-slate-400');
                 }
             }

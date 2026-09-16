@@ -2,16 +2,16 @@
 function switchStudentMentoringTab(tabId) {
   document.querySelectorAll('.smd-content-pane').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.smd-tab').forEach(el => {
-    el.classList.remove('bg-slate-800/80', 'text-blue-400', 'border', 'border-slate-700/60', 'shadow-md');
-    el.classList.add('text-slate-400');
+    el.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25', 'shadow-blue-600/20', 'bg-slate-800/80', 'text-blue-400', 'border', 'border-slate-700/60', 'font-semibold', 'font-bold');
+    el.classList.add('text-slate-400', 'hover:bg-slate-900/60', 'hover:text-slate-200', 'font-medium');
   });
 
   const pane = document.getElementById(tabId);
   if (pane) pane.classList.remove('hidden');
   const btn = document.getElementById('tabBtn_' + tabId);
   if (btn) {
-    btn.classList.remove('text-slate-400');
-    btn.classList.add('bg-slate-800/80', 'text-blue-400', 'border', 'border-slate-700/60', 'shadow-md');
+    btn.classList.remove('text-slate-400', 'hover:bg-slate-900/60', 'hover:text-slate-200', 'font-medium');
+    btn.classList.add('bg-blue-600', 'text-white', 'font-semibold');
   }
 }
 
@@ -65,43 +65,43 @@ function switchStudentMentoringTab(tabId) {
            let attPercent = 0;
            // Estimate attendance based on the raw subjects data if present, or just show '-'
            let att = '-';
-           let attColor = 'text-emerald-400 font-bold';
+           let attColor = 'text-emerald-400 font-semibold';
            if (sub.attendance_percentage !== undefined && sub.attendance_percentage !== null) {
               att = sub.attendance_percentage + '%';
-              attColor = (sub.attendance_percentage < 75) ? 'text-rose-400 font-black' : 'text-emerald-400 font-bold';
+              attColor = (sub.attendance_percentage < 75) ? 'text-rose-400 font-semibold' : 'text-emerald-400 font-semibold';
            }
            
            rows += `<tr class="border-b border-slate-800/50 hover:bg-slate-900/30 transition-premium">
               <td class="p-2 whitespace-nowrap">
-                <div class="font-black text-slate-200 text-xs">${sub.subject_code}</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">${sub.subject_name}</div>
+                <div class="font-semibold text-slate-200 text-xs">${sub.subject_code}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${sub.subject_name}</div>
               </td>
               <td class="p-2 text-center border-l border-slate-800/50"><span class="text-xs ${attColor}">${att}</span></td>
             </tr>`;
         });
       } else {
-        rows = `<tr><td colspan="2" class="p-4 text-center text-xs text-slate-500 font-bold">No subjects available</td></tr>`;
+        rows = `<tr><td colspan="2" class="p-4 text-center text-xs text-slate-400 font-medium">No subjects available</td></tr>`;
       }
 
       htmlRows += `
         <div class="mb-5">
           <div class="flex justify-between items-end mb-2 px-1">
-            <h5 class="text-xs font-black text-slate-400 uppercase tracking-widest">Semester ${sem}</h5>
+            <h5 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Semester ${sem}</h5>
             <div class="flex gap-2">
               <div class="bg-slate-900 border border-slate-800 px-2 py-1 rounded flex items-center gap-1.5 shadow-inner">
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SGPA:</span>
-                <span class="text-[11px] font-black text-white">${sgpa > 0 ? sgpa : '-'}</span>
+                <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">SGPA:</span>
+                <span class="text-[11px] font-semibold text-white">${sgpa > 0 ? sgpa : '-'}</span>
               </div>
               <div class="bg-amber-950/20 border border-amber-900/40 px-2 py-1 rounded flex items-center gap-1.5 shadow-inner">
-                <span class="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Pts:</span>
-                <span class="text-[11px] font-black text-amber-400">${pts > 0 ? pts : '-'}</span>
+                <span class="text-[10px] text-amber-500 font-medium uppercase tracking-wider">Pts:</span>
+                <span class="text-[11px] font-semibold text-amber-400">${pts > 0 ? pts : '-'}</span>
               </div>
             </div>
           </div>
           <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl overflow-x-auto shadow-sm">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase tracking-wider font-black text-slate-500">
+                <tr class="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase tracking-wider font-semibold text-slate-400">
                   <th class="p-2 w-3/4">Subject</th>
                   <th class="p-2 w-1/4 text-center border-l border-slate-800/50">Attend.</th>
                 </tr>
@@ -118,12 +118,12 @@ function switchStudentMentoringTab(tabId) {
     let html = `
       <div class="grid grid-cols-2 gap-4 mb-5">
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex flex-col items-center justify-center shadow-inner">
-          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total CGPA</span>
-          <span class="text-2xl font-black text-white">${displayCgpa}</span>
+          <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">Total CGPA</span>
+          <span class="text-2xl font-bold text-white">${displayCgpa}</span>
         </div>
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex flex-col items-center justify-center shadow-inner">
-          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Activity Points</span>
-          <span class="text-2xl font-black text-amber-400">${displayPts}</span>
+          <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">Activity Points</span>
+          <span class="text-2xl font-bold text-amber-400">${displayPts}</span>
         </div>
       </div>
       <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-3 mb-6 h-40 flex justify-center items-center">
@@ -430,9 +430,9 @@ function populateMentoringUI(data) {
               <button onclick="approveLeave(${lv.id}, 'Rejected')" class="px-2 py-1 bg-red-700/30 text-red-400 hover:bg-red-600 hover:text-white rounded text-[10px] font-bold transition-premium">Reject</button>
             `;
           } else if (isTutorView) {
-            actionHtml = `<button onclick='editLeave(${safeLv})' class="text-indigo-400 hover:text-indigo-300 text-xs cursor-pointer"><span class="material-symbols-rounded text-sm">edit</span></button>`;
+            actionHtml = `<button onclick='editLeave(${safeLv})' class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer"><span class="material-symbols-rounded text-sm">edit</span></button>`;
           } else {
-            actionHtml = `<button onclick='editLeave(${safeLv})' class="text-indigo-400 hover:text-indigo-300 text-xs cursor-pointer"><span class="material-symbols-rounded text-sm">edit</span></button>`;
+            actionHtml = `<button onclick='editLeave(${safeLv})' class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer"><span class="material-symbols-rounded text-sm">edit</span></button>`;
           }
 
           tr.innerHTML = `
@@ -466,7 +466,7 @@ function populateMentoringUI(data) {
             <div class="flex justify-between items-start">
               <div class="flex items-center gap-2">
                 <span class="text-xs bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-bold border border-emerald-800/40">${m.date || '-'}</span>
-                <span class="text-xs text-indigo-400 font-bold uppercase tracking-wider">${m.category || 'Meeting'}</span>
+                <span class="text-xs text-blue-400 font-bold uppercase tracking-wider">${m.category || 'Meeting'}</span>
               </div>
               <div class="flex items-center">
                 <span class="text-[10px] text-slate-500 font-bold">${m.logged_by_name || ''}</span>
@@ -474,7 +474,7 @@ function populateMentoringUI(data) {
               </div>
             </div>
             <p class="text-xs text-slate-200 font-semibold leading-relaxed">${m.discussion_notes || ''}</p>
-            ${m.action_taken ? '<p class="text-[10px] text-slate-400 mt-1"><span class="font-black text-slate-300 uppercase tracking-wide">Action:</span> ' + m.action_taken + '</p>' : ''}
+            ${m.action_taken ? '<p class="text-[10px] text-slate-400 mt-1"><span class="font-semibold text-slate-300 uppercase tracking-wide">Action:</span> ' + m.action_taken + '</p>' : ''}
           </div>
         `;
       });
@@ -502,7 +502,7 @@ function populateMentoringUI(data) {
           <td class="p-3 max-w-[200px] truncate" title="${dc.description || '-'}">${dc.description || '-'}</td>
           <td class="p-3">${dc.action_taken || '-'}</td>
           <td class="p-3 text-right">
-            <button onclick='editDisc(${safeDc})' class="text-indigo-400 hover:text-indigo-300 text-xs cursor-pointer mr-2"><span class="material-symbols-rounded text-sm">edit</span></button>
+            <button onclick='editDisc(${safeDc})' class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer mr-2"><span class="material-symbols-rounded text-sm">edit</span></button>
             ${deleteBtn}
           </td>
         `;
@@ -624,7 +624,7 @@ function addExtraRow(ex) {
       <td class="p-3 font-bold text-blue-400">${ex.points_claimed || '0'}</td>
       <td class="p-3 font-bold ${statusColor}">${ex.status || 'Pending'}</td>
       <td class="p-3 text-right">
-        <button onclick="editStudentActivity(${safeEx})" class="text-indigo-400 hover:text-indigo-300 text-xs cursor-pointer mr-2"><span class="material-symbols-rounded text-sm">edit</span></button>
+        <button onclick="editStudentActivity(${safeEx})" class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer mr-2"><span class="material-symbols-rounded text-sm">edit</span></button>
       </td>
     `;
     document.getElementById('smdExtraList').appendChild(tr);

@@ -1877,38 +1877,127 @@
                     (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) &&
                     !revCode.includes('2026') && !revCode.includes('R26');
                 
+                const virtualLabBtn = isR21Practical ? `
+                            <button onclick="openMobileVirtualLab('${batchSubId}')"
+                                style="
+                                    flex:1;
+                                    background: linear-gradient(135deg,#7c3aed,#a855f7);
+                                    color:#fff;
+                                    border:none;
+                                    border-radius:10px;
+                                    font-size:0.76rem;
+                                    font-weight:800;
+                                    padding:8px 0;
+                                    cursor:pointer;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    gap:5px;
+                                    box-shadow: 0 2px 8px rgba(168,85,247,0.3);
+                                ">
+                                <i class="fa-solid fa-flask"></i> Virtual Lab
+                            </button>` : '';
+
+                const progressSection = hasProgress ? `
+                            <div style="margin-top:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                    <span style="font-size:0.67rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">${isPracticalSlot ? 'Experiments' : 'Topics Covered'}</span>
+                                    <span style="
+                                        background: ${isPracticalSlot ? 'rgba(168,85,247,0.2)' : 'rgba(6,182,212,0.15)'};
+                                        color: ${isPracticalSlot ? '#c084fc' : '#22d3ee'};
+                                        border-radius: 20px;
+                                        font-size: 0.68rem;
+                                        font-weight: 800;
+                                        padding: 1px 8px;
+                                        font-family: monospace;
+                                    ">${st.completed_lesson_plans}/${st.total_lesson_plans} &nbsp;·&nbsp; ${st.progress_percent}%</span>
+                                </div>
+                                <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden;">
+                                    <div style="
+                                        height:100%;
+                                        width:${st.progress_percent}%;
+                                        background: ${isPracticalSlot ? 'linear-gradient(90deg,#7c3aed,#a855f7,#c084fc)' : 'linear-gradient(90deg,#0891b2,#06b6d4,#38bdf8)'};
+                                        border-radius:99px;
+                                        transition: width 0.5s ease;
+                                    "></div>
+                                </div>
+                            </div>` : '';
+
                 html += `
-                    <div class="p-3 rounded-3 bg-slate-900 border border-slate-800 mb-2.5 shadow-sm" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div class="flex-fill me-2 overflow-hidden">
-                                <span class="badge font-mono me-1 fw-black" style="background-color: #38bdf8 !important; color: #000000 !important; border: 1px solid #38bdf8 !important; font-size: 0.74rem;">${periodText}</span>
-                                <strong class="text-white font-mono ms-1 fw-black" style="font-size: 0.95rem; color: #ffffff !important; letter-spacing: 0.5px;">${st.subject_code}</strong>
-                                <small class="text-slate-400 d-block mt-1" style="font-size: 0.76rem; color: #94a3b8 !important;">${st.subject_name || ''}${st.subject_name ? ' | ' : ''}<strong class="text-cyan">${st.classroom_id}</strong></small>
+                    <div style="
+                        background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+                        border: 1px solid rgba(255,255,255,0.10);
+                        border-left: 4px solid ${isPracticalSlot ? '#a855f7' : '#06b6d4'};
+                        border-radius: 14px;
+                        margin-bottom: 10px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+                    ">
+                        <!-- Top info row -->
+                        <div style="padding: 12px 14px 10px 14px;">
+                            <!-- Period + Type badges -->
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:7px; flex-wrap:wrap;">
+                                <span style="
+                                    background: rgba(6,182,212,0.20);
+                                    color: #ffffff;
+                                    border: 1px solid rgba(6,182,212,0.40);
+                                    border-radius: 20px;
+                                    font-size: 1.05rem;
+                                    font-weight: 900;
+                                    padding: 3px 12px;
+                                    letter-spacing: 0.5px;
+                                    text-transform: uppercase;
+                                    font-family: monospace;
+                                ">${periodText}</span>
+                                <span style="
+                                    background: ${isPracticalSlot ? 'rgba(124,58,237,0.25)' : 'rgba(30,41,59,0.8)'};
+                                    color: ${isPracticalSlot ? '#e9d5ff' : '#94a3b8'};
+                                    border: 1px solid ${isPracticalSlot ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.1)'};
+                                    border-radius: 20px;
+                                    font-size: 0.65rem;
+                                    font-weight: 700;
+                                    padding: 2px 8px;
+                                    letter-spacing: 0.3px;
+                                ">${isPracticalSlot ? '⚗ Practical' : '📘 Theory'}</span>
                             </div>
-                            <div class="d-flex flex-column align-items-end flex-shrink-0" style="gap: 8px; width: 120px;">
-                                <button onclick="openClassAttendanceModal('${batchSubId}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')" class="btn btn-sm btn-cyan w-100 py-1.5 rounded-pill fw-black shadow-sm text-center" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.76rem;">
-                                    <i class="fa-solid fa-clipboard-user me-1"></i> Attendance
-                                </button>
-                                ${isR21Practical ? `
-                                <button onclick="openMobileVirtualLab('${batchSubId}')" class="btn btn-sm w-100 py-1.5 rounded-pill fw-black shadow-sm text-center" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: #ffffff !important; border: none; font-size: 0.76rem;" title="Virtual Lab Evaluation">
-                                    <i class="fa-solid fa-flask me-1"></i> Virtual Lab
-                                </button>` : ''}
+                            <!-- Subject code + Classroom ID -->
+                            <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
+                                <span style="font-size:0.78rem; font-weight:700; color:#cbd5e1; font-family:monospace; letter-spacing:0.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:1px 7px;">${st.subject_code}</span>
+                                <span style="font-size:0.75rem; font-weight:700; color:#38bdf8; font-family:monospace; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:1px 7px;">${st.classroom_id}</span>
                             </div>
+                            <!-- Subject name -->
+                            <div style="font-size:0.84rem; color:#ffffff; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${st.subject_name || ''}</div>
+                            ${progressSection}
                         </div>
-                        ${hasProgress ? `
-                        <div class="mt-2.5 pt-2 border-top border-slate-800" style="border-top-color: rgba(255, 255, 255, 0.1) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.72rem;">
-                                <span class="text-slate-400" style="color: #94a3b8 !important;">${isPracticalSlot ? 'Virtual Lab • Experiments Progress' : 'Syllabus / Topic Coverage'}</span>
-                                <span class="${isPracticalSlot ? 'text-purple-400' : 'text-cyan'} font-mono fw-bold" style="color: ${isPracticalSlot ? '#c084fc' : '#06b6d4'} !important;">
-                                    ${isPracticalSlot
-                                        ? `${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} conducted)`
-                                        : `${st.progress_percent}% (${st.completed_lesson_plans}/${st.total_lesson_plans} topics)`}
-                                </span>
-                            </div>
-                            <div class="progress rounded-pill" style="height: 5px; background-color: rgba(255, 255, 255, 0.1);">
-                                <div class="progress-bar rounded-pill" role="progressbar" style="width: ${st.progress_percent}%; background: ${isPracticalSlot ? 'linear-gradient(90deg, #9333ea 0%, #06b6d4 100%)' : 'linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%)'} !important;"></div>
-                            </div>
-                        </div>` : ''}
+                        <!-- Action buttons row -->
+                        <div style="
+                            display:flex;
+                            gap:8px;
+                            padding: 9px 14px 11px 14px;
+                            border-top: 1px solid rgba(255,255,255,0.07);
+                            background: rgba(0,0,0,0.15);
+                        ">
+                            <button onclick="openClassAttendanceModal('${batchSubId}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')"
+                                style="
+                                    flex:1;
+                                    background: linear-gradient(135deg,#0891b2,#3b82f6);
+                                    color:#fff;
+                                    border:none;
+                                    border-radius:10px;
+                                    font-size:0.76rem;
+                                    font-weight:800;
+                                    padding:8px 0;
+                                    cursor:pointer;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    gap:5px;
+                                    box-shadow: 0 2px 8px rgba(6,182,212,0.25);
+                                ">
+                                <i class="fa-solid fa-clipboard-user"></i> Attendance
+                            </button>
+                            ${virtualLabBtn}
+                        </div>
                     </div>`;
             });
             container.innerHTML = html;
@@ -2573,14 +2662,16 @@
                             dateInput.value = new Date().toISOString().split('T')[0];
                         }
 
+                        const isPracticum = Boolean(data.is_practicum || (currentAttSubjectType && currentAttSubjectType.toLowerCase().includes('practicum')));
                         const hasExperiments = (data.experiments && data.experiments.length > 0);
-                        const isLab = hasExperiments || (currentAttSubjectType && (
+                        const isPureLab = !isPracticum && (hasExperiments || (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
                             currentAttSubjectType.toLowerCase().includes('practical') ||
-                            currentAttSubjectType.toLowerCase().includes('practicum') ||
                             currentAttSubjectType.toLowerCase().includes('drawing') ||
                             currentAttSubjectType.toLowerCase().includes('workshop')
-                        ));
+                        )));
+                        const isLab = isPureLab || isPracticum;
+                        window.isCurrentAttPracticum = isPracticum;
 
                         let revCode = (data.syllabus_revision_code || currentAttRevCode || '').toUpperCase();
                         if (!revCode && typeof assignmentsData !== 'undefined' && Array.isArray(assignmentsData)) {
@@ -2618,7 +2709,34 @@
                         const lpSelect = document.getElementById('attLessonPlanSelect');
                         lpSelect.innerHTML = '<option value="">-- Manual Entry --</option>';
 
-                        if (isLab && hasExperiments) {
+                        if (isPracticum) {
+                            if (lblText) lblText.textContent = 'Lesson Plan Topic (Theory & Lab)';
+                            if (lblIcon) lblIcon.className = 'fa-solid fa-book-bookmark text-cyan';
+                            if (lpSelect) {
+                                lpSelect.classList.remove('d-none');
+                                lpSelect.style.fontSize = '0.72rem';
+                                lpSelect.style.padding = '4px 8px';
+                            }
+
+                            (data.lesson_plans || []).forEach((lp, idx) => {
+                                const opt = document.createElement('option');
+                                opt.value = lp.id;
+                                let rawTopic = lp.topic_content || '';
+                                opt.dataset.topic = rawTopic;
+                                let displayTopic = rawTopic.length > 44 ? rawTopic.substring(0, 41) + '...' : rawTopic;
+                                const hrNo = lp.day_no ? lp.day_no : (idx + 1);
+                                const modeStr = (lp.mode || '').toLowerCase();
+                                let modePrefix = '';
+                                if (modeStr.includes('lab') || modeStr.includes('practical') || modeStr === 'p') {
+                                    modePrefix = '[Lab]';
+                                } else if (modeStr.includes('theory') || modeStr.includes('lecture') || modeStr === 'l') {
+                                    modePrefix = '[Theory]';
+                                }
+                                opt.textContent = `#${hrNo} ${modePrefix} [${lp.co_id || 'CO'}] ${displayTopic}`;
+                                opt.title = `Hour #${hrNo} ${modePrefix} [${lp.co_id || ''}] ${rawTopic}`;
+                                lpSelect.appendChild(opt);
+                            });
+                        } else if (isPureLab && hasExperiments) {
                             if (lblText) lblText.textContent = 'Experiment Number';
                             if (lblIcon) lblIcon.className = 'fa-solid fa-flask text-cyan';
 

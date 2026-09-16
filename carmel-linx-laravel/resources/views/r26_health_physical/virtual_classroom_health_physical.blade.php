@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     
     <script>
         tailwind.config = {
@@ -72,11 +73,11 @@
     <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-6 py-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
-                <div class="flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
-                    <span class="font-extrabold text-white text-sm tracking-tight">Carmel Linx</span>
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" class="flex items-center gap-2 shrink-0 no-underline text-white group" title="Return to Dashboard">
+                    <span class="material-symbols-rounded text-sky-400 text-xl group-hover:scale-105 transition-transform">school</span>
+                    <span class="font-extrabold text-white text-base tracking-tight group-hover:text-sky-300 transition-colors">Carmel Linx</span>
                     <span class="text-slate-600 font-bold">|</span>
-                </div>
+                </a>
                 <div>
                     <div class="flex items-center space-x-3">
                         <h1 class="text-xl font-bold font-display tracking-tight text-white">

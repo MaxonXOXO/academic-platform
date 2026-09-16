@@ -54,18 +54,35 @@
       <div class="px-2 py-1 text-xs text-teal-400 font-bold uppercase tracking-wider">Course Outcome specific questions (Required)</div>
 
       @php
-        $defaultQuestions = [
-          'q1'  => ['icon' => 'menu_book',       'label' => 'Q1. CO1 - Subject Knowledge', 'desc' => 'How well did the course help you understand and remember the core academic principles, models, and structural fundamentals?'],
-          'q2'  => ['icon' => 'auto_stories',    'label' => 'Q2. CO1 - Outcome Mapping',   'desc' => 'How clearly were the course objectives, scope, and basic terms aligned with the class presentations?'],
-          'q3'  => ['icon' => 'analytics',       'label' => 'Q3. CO2 - Analytical Ability', 'desc' => 'How effectively did the course build your reasoning skills, mathematical derivations, or logical analysis capabilities?'],
-          'q4'  => ['icon' => 'build',           'label' => 'Q4. CO2 - Design & Analysis',  'desc' => 'To what extent can you design models, troubleshoot bugs, or draft structural layouts based on class lessons?'],
-          'q5'  => ['icon' => 'science',         'label' => 'Q5. CO3 - Practical Skills',  'desc' => 'How confident are you in operating laboratory kits, executing computer programs, or handling workshop machines?'],
-          'q6'  => ['icon' => 'health_and_safety','label' => 'Q6. CO3 - Industry Standards', 'desc' => 'How clearly do you understand safety regulations, instrumentation limits, and standard protocols?'],
-          'q7'  => ['icon' => 'assignment',      'label' => 'Q7. CO4 - Evaluation Standards','desc' => 'To what extent did assignments, written internal exams, and presentations evaluate your skills thoroughly?'],
-          'q8'  => ['icon' => 'gavel',           'label' => 'Q8. CO4 - Professional Ethics', 'desc' => 'How effectively did the course emphasize engineering ethics, environmental issues, and professional conduct?'],
-          'q9'  => ['icon' => 'school',          'label' => 'Q9. CO4 - Lifelong Learning',  'desc' => 'How strongly has this course inspired you to self-learn, explore external publications, or research modern field advancements?'],
-          'q10' => ['icon' => 'thumb_up',        'label' => 'Q10. Overall Course Rating',  'desc' => 'Rate your overall satisfaction with the course syllabus delivery, faculty guidance, and academic outcomes.'],
-        ];
+        $isProject = str_contains(strtolower($survey->subject_name ?? ''), 'project');
+
+        if ($isProject) {
+          $defaultQuestions = [
+            'q1'  => ['icon' => 'lightbulb',       'label' => 'Q1. CO1 - Problem Identification', 'desc' => 'How well did the major project guide you in identifying relevant engineering problems and defining feasible project objectives?'],
+            'q2'  => ['icon' => 'menu_book',       'label' => 'Q2. CO1 - Literature Review & Feasibility', 'desc' => 'How thoroughly were you able to survey existing publications, technical journals, and market solutions?'],
+            'q3'  => ['icon' => 'architecture',    'label' => 'Q3. CO2 - System Design & Engineering', 'desc' => 'How effectively did you formulate design architectures, engineering schematics, and component selections?'],
+            'q4'  => ['icon' => 'build',           'label' => 'Q4. CO2 - Prototype Fabrication & Testing', 'desc' => 'To what extent were you able to fabricate, assemble, and iteratively test the working model or prototype?'],
+            'q5'  => ['icon' => 'computer',        'label' => 'Q5. CO3 - Modern Tools Utilization', 'desc' => 'How effectively did you utilize modern simulation tools, programming languages, CAD/EDA suites, or lab test equipment?'],
+            'q6'  => ['icon' => 'security',        'label' => 'Q6. CO3 - Industry Standards & Safety', 'desc' => 'How clearly were engineering safety norms, operational standards, and sustainability considerations applied in your project?'],
+            'q7'  => ['icon' => 'groups',          'label' => 'Q7. CO4 - Teamwork & Task Sharing', 'desc' => 'How effectively did your project group distribute tasks, collaborate constructively, and coordinate work throughout the semester?'],
+            'q8'  => ['icon' => 'schedule',        'label' => 'Q8. CO4 - Project Management & Budgeting', 'desc' => 'To what extent did you adhere to project timelines, budget constraints, and milestone reviews?'],
+            'q9'  => ['icon' => 'description',     'label' => 'Q9. CO5 - Technical Documentation & Report', 'desc' => 'How thoroughly did the project enhance your ability to write technical reports, compile logs, and cite references accurately?'],
+            'q10' => ['icon' => 'record_voice_over','label' => 'Q10. CO5 - Presentation, Viva Voce & Ethics', 'desc' => 'How effectively did the department reviews prepare you to present, defend your work in viva voce, and observe professional ethics?'],
+          ];
+        } else {
+          $defaultQuestions = [
+            'q1'  => ['icon' => 'menu_book',       'label' => 'Q1. CO1 - Subject Knowledge', 'desc' => 'How well did the course help you understand and remember the core academic principles, models, and structural fundamentals?'],
+            'q2'  => ['icon' => 'auto_stories',    'label' => 'Q2. CO1 - Outcome Mapping',   'desc' => 'How clearly were the course objectives, scope, and basic terms aligned with the class presentations?'],
+            'q3'  => ['icon' => 'analytics',       'label' => 'Q3. CO2 - Analytical Ability', 'desc' => 'How effectively did the course build your reasoning skills, mathematical derivations, or logical analysis capabilities?'],
+            'q4'  => ['icon' => 'build',           'label' => 'Q4. CO2 - Design & Analysis',  'desc' => 'To what extent can you design models, troubleshoot bugs, or draft structural layouts based on class lessons?'],
+            'q5'  => ['icon' => 'science',         'label' => 'Q5. CO3 - Practical Skills',  'desc' => 'How confident are you in operating laboratory kits, executing computer programs, or handling workshop machines?'],
+            'q6'  => ['icon' => 'health_and_safety','label' => 'Q6. CO3 - Industry Standards', 'desc' => 'How clearly do you understand safety regulations, instrumentation limits, and standard protocols?'],
+            'q7'  => ['icon' => 'assignment',      'label' => 'Q7. CO4 - Evaluation Standards','desc' => 'To what extent did assignments, written internal exams, and presentations evaluate your skills thoroughly?'],
+            'q8'  => ['icon' => 'gavel',           'label' => 'Q8. CO4 - Professional Ethics', 'desc' => 'How effectively did the course emphasize engineering ethics, environmental issues, and professional conduct?'],
+            'q9'  => ['icon' => 'school',          'label' => 'Q9. CO4 - Lifelong Learning',  'desc' => 'How strongly has this course inspired you to self-learn, explore external publications, or research modern field advancements?'],
+            'q10' => ['icon' => 'thumb_up',        'label' => 'Q10. Overall Course Rating',  'desc' => 'Rate your overall satisfaction with the course syllabus delivery, faculty guidance, and academic outcomes.'],
+          ];
+        }
 
         $custom = json_decode($survey->custom_questions, true) ?: [];
         $questions = [];

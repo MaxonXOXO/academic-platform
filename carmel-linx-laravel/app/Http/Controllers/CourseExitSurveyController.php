@@ -10,13 +10,20 @@ use App\Models\Student;
 
 class CourseExitSurveyController extends Controller
 {
+    private function isAuthorizedRole(): bool
+    {
+        $role = Session::get('userRole');
+        if (!$role) return false;
+        $r = strtolower(trim($role));
+        return in_array($r, ['lecturer', 'hod', 'admin', 'academic coordinator', 'academic_coordinator', 'principal']);
+    }
+
     /**
      * Initiate a course exit survey for a subject.
      */
     public function initiateSurvey(Request $request, $subjectId)
     {
-        $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['Lecturer', 'HOD'])) {
+        if (!$this->isAuthorizedRole()) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
         }
 
@@ -60,8 +67,7 @@ class CourseExitSurveyController extends Controller
      */
     public function closeSurvey(Request $request, $subjectId)
     {
-        $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['Lecturer', 'HOD'])) {
+        if (!$this->isAuthorizedRole()) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
         }
 
@@ -112,43 +118,59 @@ class CourseExitSurveyController extends Controller
 
             $respondedCount = $responses->count();
 
-            $averages = [
-                'CO1' => 0.0,
-                'CO2' => 0.0,
-                'CO3' => 0.0,
-                'CO4' => 0.0,
-            ];
-            $attainmentPercentages = [
-                'CO1' => 0.0,
-                'CO2' => 0.0,
-                'CO3' => 0.0,
-                'CO4' => 0.0,
-            ];
+            $isProject = str_contains(strtolower($batchSubject->subject_name ?? ''), 'project');
+            $coKeys = $isProject ? ['CO1', 'CO2', 'CO3', 'CO4', 'CO5'] : ['CO1', 'CO2', 'CO3', 'CO4'];
+
+            $averages = array_fill_keys($coKeys, 0.0);
+            $attainmentPercentages = array_fill_keys($coKeys, 0.0);
 
             if ($respondedCount > 0) {
-                $avgCo1 = ($responses->avg('co1_q1') + $responses->avg('co1_q2')) / 2;
-                $avgCo2 = ($responses->avg('co2_q3') + $responses->avg('co2_q4')) / 2;
-                $avgCo3 = ($responses->avg('co3_q5') + $responses->avg('co3_q6')) / 2;
-                $avgCo4 = ($responses->avg('co4_q7') + $responses->avg('co4_q8') + $responses->avg('co4_q9')) / 3;
+                if ($isProject) {
+                    $avgCo1 = ($responses->avg('co1_q1') + $responses->avg('co1_q2')) / 2;
+                    $avgCo2 = ($responses->avg('co2_q3') + $responses->avg('co2_q4')) / 2;
+                    $avgCo3 = ($responses->avg('co3_q5') + $responses->avg('co3_q6')) / 2;
+                    $avgCo4 = ($responses->avg('co4_q7') + $responses->avg('co4_q8')) / 2;
+                    $avgCo5 = ($responses->avg('co4_q9') + $responses->avg('co_overall_q10')) / 2;
 
-                $averages = [
-                    'CO1' => round($avgCo1, 2),
-                    'CO2' => round($avgCo2, 2),
-                    'CO3' => round($avgCo3, 2),
-                    'CO4' => round($avgCo4, 2),
-                ];
+                    $averages = [
+                        'CO1' => round($avgCo1, 2),
+                        'CO2' => round($avgCo2, 2),
+                        'CO3' => round($avgCo3, 2),
+                        'CO4' => round($avgCo4, 2),
+                        'CO5' => round($avgCo5, 2),
+                    ];
+                    $attainmentPercentages = [
+                        'CO1' => round(($avgCo1 / 3) * 100, 1),
+                        'CO2' => round(($avgCo2 / 3) * 100, 1),
+                        'CO3' => round(($avgCo3 / 3) * 100, 1),
+                        'CO4' => round(($avgCo4 / 3) * 100, 1),
+                        'CO5' => round(($avgCo5 / 3) * 100, 1),
+                    ];
+                } else {
+                    $avgCo1 = ($responses->avg('co1_q1') + $responses->avg('co1_q2')) / 2;
+                    $avgCo2 = ($responses->avg('co2_q3') + $responses->avg('co2_q4')) / 2;
+                    $avgCo3 = ($responses->avg('co3_q5') + $responses->avg('co3_q6')) / 2;
+                    $avgCo4 = ($responses->avg('co4_q7') + $responses->avg('co4_q8') + $responses->avg('co4_q9')) / 3;
 
-                $attainmentPercentages = [
-                    'CO1' => round(($avgCo1 / 3) * 100, 1),
-                    'CO2' => round(($avgCo2 / 3) * 100, 1),
-                    'CO3' => round(($avgCo3 / 3) * 100, 1),
-                    'CO4' => round(($avgCo4 / 3) * 100, 1),
-                ];
+                    $averages = [
+                        'CO1' => round($avgCo1, 2),
+                        'CO2' => round($avgCo2, 2),
+                        'CO3' => round($avgCo3, 2),
+                        'CO4' => round($avgCo4, 2),
+                    ];
+
+                    $attainmentPercentages = [
+                        'CO1' => round(($avgCo1 / 3) * 100, 1),
+                        'CO2' => round(($avgCo2 / 3) * 100, 1),
+                        'CO3' => round(($avgCo3 / 3) * 100, 1),
+                        'CO4' => round(($avgCo4 / 3) * 100, 1),
+                    ];
+                }
             }
 
             $attainmentLevels = [];
             $attainmentRatings = [];
-            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coKey) {
+            foreach ($coKeys as $coKey) {
                 $pct = $attainmentPercentages[$coKey] ?? 0;
                 $lvl = ($pct >= 70) ? 3 : (($pct >= 60) ? 2 : (($pct >= 50) ? 1 : 0));
                 $rtg = ($pct >= 70) ? 'High' : (($pct >= 60) ? 'Medium' : (($pct >= 50) ? 'Low' : 'Nil'));
@@ -284,8 +306,7 @@ class CourseExitSurveyController extends Controller
      */
     public function printSurveyReport($subjectId)
     {
-        $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['Lecturer', 'HOD', 'Principal'])) {
+        if (!$this->isAuthorizedRole()) {
             return redirect('/');
         }
 

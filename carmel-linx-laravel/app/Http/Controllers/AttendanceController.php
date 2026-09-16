@@ -90,6 +90,33 @@ class AttendanceController extends Controller
 
         $batchSubject = BatchSubject::findOrFail($id);
 
+        $isPracticum = (stripos($batchSubject->subject_type ?? '', 'practicum') !== false) ||
+                       (stripos($batchSubject->subject_name ?? '', 'practicum') !== false) ||
+                       \App\Models\R26PracticumCourseFile::where('batch_subject_id', $id)->exists();
+
+        if ($isPracticum) {
+            $practicumFile = \App\Models\R26PracticumCourseFile::firstOrCreate(
+                ['batch_subject_id' => $id],
+                [
+                    'course_code' => $batchSubject->subject_code,
+                    'course_title' => $batchSubject->subject_name,
+                    'contact_hours' => 90,
+                    'lecture_hours' => 45,
+                    'practical_hours' => 45,
+                    'cie_marks' => 40,
+                    'ese_marks' => 60,
+                    'semester' => $batchSubject->semester ?? 1,
+                    'subject_type' => 'practicum',
+                    'syllabus_revision_code' => 'R26'
+                ]
+            );
+
+            $lpCount = LessonPlan::where('batch_subject_id', $id)->count();
+            if ($lpCount < 90) {
+                (new \App\Http\Controllers\R26VirtualClassroomPracticumController)->generate90HourLessonPlan($batchSubject, $practicumFile);
+            }
+        }
+
         // Fetch students ordered by roll number, then name
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where(function($q) {
@@ -99,10 +126,11 @@ class AttendanceController extends Controller
             ->orderBy('name', 'asc')
             ->get(['reg_no', 'name', 'roll_no']);
 
-        // Fetch pending/in-progress lesson plans for dropdown selection
+        // Fetch lesson plans for dropdown selection (ordered by day_no, then id)
         $lessonPlans = LessonPlan::where('batch_subject_id', $id)
+            ->orderBy('day_no', 'asc')
             ->orderBy('id', 'asc')
-            ->get(['id', 'topic_content', 'co_id', 'status']);
+            ->get(['id', 'day_no', 'topic_content', 'co_id', 'status', 'mode', 'pedagogy']);
 
         $lastLogCount = DB::table('class_logs_attendance')->where('batch_subject_id', $id)->count();
         $hasLessonPlans = LessonPlan::where('batch_subject_id', $id)->exists();
@@ -163,6 +191,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'status' => 'SUCCESS',
+            'is_practicum' => (bool)$isPracticum,
             'students' => $students,
             'lesson_plans' => $lessonPlans,
             'experiments' => $practicalExperiments,
@@ -748,6 +777,256 @@ class AttendanceController extends Controller
             'status' => 'SUCCESS',
             'classroom_id' => $classroom->classroom_id,
             'students' => $students
+        ]);
+    }
+
+    /**
+     * Consolidated Semester Attendance Report for Tutor Dashboard (SBTE Kerala Clause 10)
+     * Categorizes students into:
+     *   - Eligible (>= 75%)
+     *   - Condonation Shortage (65% - 74.9%)
+     *   - Detained / Must Repeat (< 65%)
+     */
+    public function getConsolidatedTutorAttendance(Request $request)
+    {
+        $staffMobile = Session::get('userId');
+        $role = Session::get('userRole');
+
+        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Demonstrator', 'Workshop Superintendent', 'Principal', 'Admin', 'Super_Admin'])) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
+
+        $staff = \App\Models\StaffProfile::where('mobile_no', $staffMobile)
+            ->orWhere('email', $staffMobile)
+            ->orWhere('id', $staffMobile)
+            ->first();
+        if ($staff && $staff->mobile_no) {
+            $staffMobile = $staff->mobile_no;
+        }
+
+        $cleanMobile = preg_replace('/[^0-9]/', '', $staffMobile);
+
+        $classes1 = DB::table('class_management')->where(function($q) use ($staffMobile, $cleanMobile) {
+            $q->where('tutor_mobile_no', $staffMobile)->orWhere('mentor_mobile_no', $staffMobile);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
+        $classes2 = DB::table('r26_class_management')->where(function($q) use ($staffMobile, $cleanMobile) {
+            $q->where('tutor_mobile_no', $staffMobile)->orWhere('mentor_mobile_no', $staffMobile);
+            if ($cleanMobile) {
+                $q->orWhere('tutor_mobile_no', $cleanMobile)->orWhere('mentor_mobile_no', $cleanMobile);
+            }
+        })->get();
+
+        $allClasses = $classes1->concat($classes2);
+
+        $requestedClassId = $request->input('classroom_id') ?? $request->input('classroom');
+        $classroom = null;
+        if ($requestedClassId) {
+            $classroom = DB::table('class_management')->where('classroom_id', $requestedClassId)->first();
+            if (!$classroom) {
+                $classroom = DB::table('r26_class_management')->where('classroom_id', $requestedClassId)->first();
+            }
+        }
+        if (!$classroom) {
+            $classroom = $allClasses->first();
+        }
+
+        if (!$classroom) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'No classroom assigned as advisor/tutor/mentor to your profile.'
+            ]);
+        }
+
+        $classroomId = $classroom->classroom_id;
+
+        $subjectsQuery = BatchSubject::where('classroom_id', $classroomId);
+        if (!empty($classroom->current_semester)) {
+            $subjectsQuery->where('semester', (int)$classroom->current_semester);
+        }
+        $subjects = $subjectsQuery->orderBy('subject_code', 'asc')
+            ->get(['id', 'subject_code', 'subject_name', 'subject_type']);
+
+        $students = Student::getClassroomStudentsQuery($classroomId)
+            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderBy('name', 'asc')
+            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
+
+        $subjectCodes = $subjects->pluck('subject_code')->filter()->unique();
+        $subjectIds = $subjects->pluck('id');
+
+        $studentAttQuery = DB::table('student_attendance')
+            ->whereIn('subject_code', $subjectCodes)
+            ->get();
+        $studentAttGrouped = $studentAttQuery->groupBy('reg_no');
+
+        $classLogs = DB::table('class_logs_attendance')
+            ->whereIn('batch_subject_id', $subjectIds)
+            ->get();
+        $classLogsBySubject = $classLogs->groupBy('batch_subject_id');
+
+        $reportRows = [];
+        $totalEligible = 0;
+        $totalCondonation = 0;
+        $totalDetained = 0;
+        $aggregateSum = 0;
+
+        foreach ($students as $stud) {
+            $regNo = $stud->reg_no;
+            $stRecords = $studentAttGrouped->get($regNo, collect());
+
+            $subjectBreakdown = [];
+            $totalConductedAll = 0;
+            $totalAttendedAll = 0;
+
+            foreach ($subjects as $subj) {
+                $sCode = $subj->subject_code;
+                $sLogs = $classLogsBySubject->get($subj->id, collect());
+                $stSubjAtt = $stRecords->where('subject_code', $sCode);
+
+                $conducted = $sLogs->count();
+                if ($conducted == 0) {
+                    $conducted = $stSubjAtt->count();
+                }
+
+                $attended = 0;
+                if ($sLogs->isNotEmpty()) {
+                    foreach ($sLogs as $log) {
+                        $pArr = json_decode($log->present_students ?? '[]', true) ?: [];
+                        if (in_array($regNo, $pArr)) {
+                            $attended++;
+                        }
+                    }
+                } else {
+                    $attended = $stSubjAtt->whereIn('status', ['Present', 'Late'])->count();
+                }
+
+                $pct = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
+
+                $isPractical = stripos($subj->subject_type ?? '', 'pract') !== false || stripos($subj->subject_type ?? '', 'lab') !== false;
+                $isSeminar = stripos($subj->subject_type ?? '', 'seminar') !== false;
+                $isProject = stripos($subj->subject_type ?? '', 'project') !== false;
+
+                $ciaAttMark = 0.0;
+                if ($isPractical || $isProject) {
+                    if ($pct >= 90) $ciaAttMark = 15.0;
+                    elseif ($pct >= 80) $ciaAttMark = 12.0;
+                    elseif ($pct >= 75) $ciaAttMark = 9.0;
+                    elseif ($pct >= 70) $ciaAttMark = 6.0;
+                    elseif ($pct >= 65) $ciaAttMark = 3.0;
+                    else $ciaAttMark = 0.0;
+                } elseif ($isSeminar) {
+                    if ($pct >= 90) $ciaAttMark = 7.5;
+                    elseif ($pct >= 80) $ciaAttMark = 6.0;
+                    elseif ($pct >= 75) $ciaAttMark = 4.5;
+                    elseif ($pct >= 70) $ciaAttMark = 3.0;
+                    elseif ($pct >= 65) $ciaAttMark = 1.5;
+                    else $ciaAttMark = 0.0;
+                } else {
+                    if ($pct >= 90) $ciaAttMark = 10.0;
+                    elseif ($pct >= 80) $ciaAttMark = 8.0;
+                    elseif ($pct >= 75) $ciaAttMark = 6.0;
+                    elseif ($pct >= 70) $ciaAttMark = 4.0;
+                    elseif ($pct >= 65) $ciaAttMark = 2.0;
+                    else $ciaAttMark = 0.0;
+                }
+
+                $subjectBreakdown[$subj->id] = [
+                    'subject_id' => $subj->id,
+                    'subject_code' => $sCode,
+                    'subject_name' => $subj->subject_name,
+                    'conducted' => $conducted,
+                    'attended' => $attended,
+                    'percentage' => $pct,
+                    'cia_attendance_mark' => $ciaAttMark
+                ];
+
+                $totalConductedAll += $conducted;
+                $totalAttendedAll += $attended;
+            }
+
+            $overallPct = $totalConductedAll > 0 ? round(($totalAttendedAll / $totalConductedAll) * 100, 1) : 100.0;
+
+            if ($overallPct >= 75.0) {
+                $status = 'Eligible';
+                $statusBadge = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                $totalEligible++;
+            } elseif ($overallPct >= 65.0) {
+                $status = 'Condonation';
+                $statusBadge = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                $totalCondonation++;
+            } else {
+                $status = 'Detained';
+                $statusBadge = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                $totalDetained++;
+            }
+
+            $aggregateSum += $overallPct;
+
+            $reportRows[] = [
+                'roll_no' => $stud->roll_no,
+                'reg_no' => $regNo,
+                'sbte_reg_no' => $stud->sbte_reg_no ?: $regNo,
+                'name' => $stud->name,
+                'phone' => $stud->guardian_mobile ?: $stud->phone,
+                'total_conducted' => $totalConductedAll,
+                'total_attended' => $totalAttendedAll,
+                'overall_percentage' => $overallPct,
+                'status' => $status,
+                'status_badge' => $statusBadge,
+                'subjects' => $subjectBreakdown
+            ];
+        }
+
+        $totalStudents = count($students);
+        $avgAttendance = $totalStudents > 0 ? round($aggregateSum / $totalStudents, 1) : 0.0;
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'classroom' => [
+                'id' => $classroom->classroom_id,
+                'name' => $classroom->classroom_id,
+                'department' => $classroom->department ?? $classroom->branch ?? '',
+                'semester' => $classroom->current_semester ?? '',
+            ],
+            'summary' => [
+                'total_students' => $totalStudents,
+                'eligible_count' => $totalEligible,
+                'condonation_count' => $totalCondonation,
+                'detained_count' => $totalDetained,
+                'average_attendance' => $avgAttendance
+            ],
+            'subjects' => $subjects,
+            'students' => $reportRows
+        ]);
+    }
+
+    /**
+     * Printable Consolidated Semester Attendance Register
+     */
+    public function printTutorAttendanceReport(Request $request)
+    {
+        $res = $this->getConsolidatedTutorAttendance($request);
+        $data = $res->getData(true);
+
+        if (($data['status'] ?? '') !== 'SUCCESS') {
+            abort(404, $data['message'] ?? 'Failed to load report.');
+        }
+
+        $classroomId = $data['classroom']['id'];
+        $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
+        }
+
+        return view('tutor.attendance_consolidated_print', [
+            'classroom' => $classroom,
+            'summary' => $data['summary'],
+            'subjects' => collect($data['subjects'])->map(fn($s) => (object)$s),
+            'students' => $data['students']
         ]);
     }
 

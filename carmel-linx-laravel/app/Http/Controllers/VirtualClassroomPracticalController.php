@@ -301,7 +301,7 @@ class VirtualClassroomPracticalController extends Controller
                             'attendance_pct'=> $mSession['attendance_pct'],
                         ];
                     }
-                } elseif ($hasMarks && !empty($exp->conducted_date)) {
+                } elseif ($hasMarks || !empty($exp->conducted_date)) {
                     $mSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
                     $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
@@ -347,8 +347,10 @@ class VirtualClassroomPracticalController extends Controller
             return strcmp((string)($a['date'] ?? ''), (string)($b['date'] ?? ''));
         });
 
-        // Determine which experiments have been conducted in this class
-        $conductedCount = count($conductedDetails);
+        // Determine which experiments have been conducted in this class (do not club batch 1 + batch 2)
+        $conductedCount = $experiments->isEmpty()
+            ? count($conductedDetails)
+            : collect($conductedDetails)->pluck('experiment_id')->filter()->unique()->count();
 
         $actualLabHours = $classLogs->map(function($l) {
             return $l->date . '_P' . $l->period;
@@ -417,15 +419,15 @@ class VirtualClassroomPracticalController extends Controller
                     $studentExpScores[] = floatval($mark->total_mark);
                 }
             }
-            $avgLabWork375 = count($studentExpScores) > 0
-                ? round(array_sum($studentExpScores) / count($studentExpScores), 2)
-                : 0.0;
+            $totalCompletedExps = ($conductedCount > 0) ? $conductedCount : ($experiments->count() > 0 ? $experiments->count() : 1);
+            $totalDivisor = max($totalCompletedExps, count($studentExpScores), 1);
+            $avgLabWork375 = round(array_sum($studentExpScores) / $totalDivisor, 2);
 
             // 2. Open-Ended (max 7.5 direct — stored as micro_project in PracticalEvaluation)
             $eval = $evalMap->get($regNo);
             $openEndedMark = $eval ? round((float)$eval->micro_project, 2) : 0.0;
 
-            // 3. Tests — avg of Test 1 + Test 2 total scores (each /40), scaled to 15
+            // 3. Tests — avg of Test 1 + Test 2 total scores (each max 15)
             $t1Score = 0; $t2Score = 0;
             if ($t1) {
                 $t1Score = $allTestMarks->where('practical_test_id', $t1->id)->where('reg_no', $regNo)->sum('marks_obtained');
@@ -433,8 +435,8 @@ class VirtualClassroomPracticalController extends Controller
             if ($t2) {
                 $t2Score = $allTestMarks->where('practical_test_id', $t2->id)->where('reg_no', $regNo)->sum('marks_obtained');
             }
-            $avgTest40 = ($t1Score + $t2Score) / 2;
-            $scaledTests15 = round(($avgTest40 / 40) * 15, 2);
+            $scaledTests15 = round(($t1Score + $t2Score) / 2, 2);
+            $avgTest40 = $scaledTests15;
 
             // 4. Attendance mark (slab, out of 15)
             $attMark = $attendanceMarks[$regNo]['mark'] ?? 0;
@@ -852,7 +854,13 @@ class VirtualClassroomPracticalController extends Controller
         $t1 = $tests->where('test_name', 'Test 1')->first();
         $t2 = $tests->where('test_name', 'Test 2')->first();
 
-        $mappedStudents = $students->map(function ($student) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $studentAttCounts, $studentScheduledCounts) {
+        $conductedExpIds = $experiments->filter(function($e) use ($allExpMarks) {
+            return !empty($e->conducted_date) || $allExpMarks->where('practical_experiment_id', $e->id)->where('total_mark', '>', 0)->count() > 0;
+        })->pluck('id')->unique();
+        $conductedCount = $conductedExpIds->count();
+        $totalCompletedExps = ($conductedCount > 0) ? $conductedCount : ($experiments->count() > 0 ? $experiments->count() : 1);
+
+        $mappedStudents = $students->map(function ($student) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $studentAttCounts, $studentScheduledCounts, $totalCompletedExps) {
             $regNo = $student->reg_no;
 
             // Attendance calculation (proportional out of 15 for R2021)
@@ -893,11 +901,12 @@ class VirtualClassroomPracticalController extends Controller
                 }
             }
 
-            $avgRough = $gradedExpCount > 0 ? round($sumRough / $gradedExpCount, 2) : 0.00;
-            $avgFair  = $gradedExpCount > 0 ? round($sumFair / $gradedExpCount, 2) : 0.00;
-            $avgObs   = $gradedExpCount > 0 ? round($sumObs / $gradedExpCount, 2) : 0.00;
-            $avgProc  = $gradedExpCount > 0 ? round($sumProc / $gradedExpCount, 2) : 0.00;
-            $avgViva  = $gradedExpCount > 0 ? round($sumViva / $gradedExpCount, 2) : 0.00;
+            $totalDivisor = max($totalCompletedExps, $gradedExpCount, 1);
+            $avgRough = round($sumRough / $totalDivisor, 2);
+            $avgFair  = round($sumFair / $totalDivisor, 2);
+            $avgObs   = round($sumObs / $totalDivisor, 2);
+            $avgProc  = round($sumProc / $totalDivisor, 2);
+            $avgViva  = round($sumViva / $totalDivisor, 2);
             $avgLabWork = round($avgRough + $avgFair + $avgObs + $avgProc + $avgViva, 2);
 
             // Practical Series Tests (Max 15)
@@ -1123,7 +1132,7 @@ class VirtualClassroomPracticalController extends Controller
                             'attendance_pct'=> $mSession['attendance_pct'],
                         ];
                     }
-                } elseif ($hasMarks && !empty($exp->conducted_date)) {
+                } elseif ($hasMarks || !empty($exp->conducted_date)) {
                     $mSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
                     $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
                     $conductedDetails[] = [
@@ -1177,7 +1186,9 @@ class VirtualClassroomPracticalController extends Controller
         }
 
         $totalExperiments = $experiments->count();
-        $conductedCount = count($conductedDetails);
+        $conductedCount = $experiments->isEmpty()
+            ? count($conductedDetails)
+            : collect($conductedDetails)->pluck('experiment_id')->filter()->unique()->count();
         $coveragePct = $totalExperiments > 0 ? round(($conductedCount / $totalExperiments) * 100) : 0;
 
         $cleanedBatch = preg_replace('/^([A-Z]+)_(\d{4})_(\d{4})$/', '$1 ($2-$3)', $batchSubject->classroom_id ?? '');
@@ -1195,6 +1206,289 @@ class VirtualClassroomPracticalController extends Controller
         return view('classroom_practical_experiments_print', compact(
             'batchSubject', 'students', 'conductedDetails', 'totalExperiments',
             'conductedCount', 'actualLabHours', 'coveragePct', 'cleanedBatch', 'fullDepartment'
+        ));
+    }
+
+    /**
+     * Print Individual Student Practical Evaluation & Attendance Record (Revision 2021).
+     */
+    public function printStudentReport($batchSubjectId, $regNo)
+    {
+        $batchSubject = BatchSubject::with(['classroom', 'courseFile'])->findOrFail($batchSubjectId);
+
+        // Sync practical experiments with logs
+        AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
+
+        $student = Student::where('reg_no', $regNo)
+            ->orWhere('sbte_reg_no', $regNo)
+            ->firstOrFail();
+
+        $experiments = PracticalExperiment::where('batch_subject_id', $batchSubjectId)
+            ->orderByRaw('CAST(experiment_no AS UNSIGNED) ASC, experiment_no ASC')
+            ->get();
+        $expIds = $experiments->pluck('id')->toArray();
+        $totalExperiments = $experiments->count();
+
+        // Student marks
+        $allExpMarks = PracticalExperimentMark::whereIn('practical_experiment_id', $expIds)
+            ->where('reg_no', $student->reg_no)
+            ->get();
+
+        // Conducted experiments identification across class
+        $allClassExpMarks = PracticalExperimentMark::whereIn('practical_experiment_id', $expIds)
+            ->where('total_mark', '>', 0)
+            ->get();
+        $conductedExpIds = $experiments->filter(function($e) use ($allClassExpMarks) {
+            return !empty($e->conducted_date) || $allClassExpMarks->where('practical_experiment_id', $e->id)->count() > 0;
+        })->pluck('id')->unique();
+        $conductedCount = $conductedExpIds->count();
+        $totalCompletedExps = ($conductedCount > 0) ? $conductedCount : ($totalExperiments > 0 ? $totalExperiments : 1);
+
+        // Class logs for attendance tracking
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $batchSubjectId)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        $totalClasses = $classLogs->count();
+        $presentClasses = 0;
+        $scheduledClasses = 0;
+
+        foreach ($classLogs as $log) {
+            $pList = json_decode($log->present_students ?? '[]', true) ?: [];
+            $aList = json_decode($log->absent_students ?? '[]', true) ?: [];
+            if (in_array($student->reg_no, $pList)) {
+                $presentClasses++;
+                $scheduledClasses++;
+            } elseif (in_array($student->reg_no, $aList)) {
+                $scheduledClasses++;
+            }
+        }
+
+        $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalClasses;
+        $attendancePercentage = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 1) : 100.0;
+        $suggestedAttendance = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+
+        // Practical Evaluation summary
+        $eval = PracticalEvaluation::where('batch_subject_id', $batchSubjectId)
+            ->where('reg_no', $student->reg_no)
+            ->first();
+
+        $microProject = $eval ? (float)$eval->micro_project : 0.00;
+        $openEndedTopic = $eval ? ($eval->open_ended_topic ?: ($eval->open_ended_project_topic ?: '')) : '';
+        $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
+            ? (float)$eval->attendance_marks
+            : $suggestedAttendance;
+
+        $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
+        if ($boardExam === null) {
+            $bGrade = DB::table('student_board_grades')
+                ->where('reg_no', $student->reg_no)
+                ->where('subject_code', $batchSubject->subject_code)
+                ->value('grade');
+            if ($bGrade) {
+                $boardExam = $bGrade;
+            }
+        }
+
+        // Tests
+        $tests = PracticalTest::where('batch_subject_id', $batchSubjectId)->get();
+        $testIds = $tests->pluck('id')->toArray();
+        $testMarks = PracticalTestMark::whereIn('practical_test_id', $testIds)
+            ->where('reg_no', $student->reg_no)
+            ->get();
+
+        $t1 = $tests->where('test_name', 'Test 1')->first();
+        $t2 = $tests->where('test_name', 'Test 2')->first();
+        $scoreT1 = $t1 ? (float)$testMarks->where('practical_test_id', $t1->id)->sum('marks_obtained') : 0.0;
+        $scoreT2 = $t2 ? (float)$testMarks->where('practical_test_id', $t2->id)->sum('marks_obtained') : 0.0;
+        $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
+
+        // Lab Batch
+        $labBatch = DB::table('r26_student_lab_batches')
+            ->where('batch_subject_id', $batchSubjectId)
+            ->where('reg_no', $student->reg_no)
+            ->value('lab_batch');
+        if (empty($labBatch) && $batchSubject->lab_batch_cutoff && $student->roll_no !== null) {
+            $labBatch = ((int)$student->roll_no <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+        }
+
+        // Detailed experiment log list
+        $expRecords = [];
+        $sumRough = 0; $sumFair = 0; $sumObs = 0; $sumProc = 0; $sumViva = 0; $sumTotal = 0;
+        $gradedCount = 0;
+        $attendedCount = 0;
+
+        foreach ($experiments as $exp) {
+            $mark = $allExpMarks->where('practical_experiment_id', $exp->id)->first();
+            $hasScore = $mark && (
+                (float)$mark->total_mark > 0 ||
+                (float)$mark->rough_record > 0 ||
+                (float)$mark->fair_record > 0 ||
+                (float)$mark->prerequisites > 0 ||
+                (float)$mark->work_done > 0 ||
+                (float)$mark->result > 0
+            );
+
+            // Determine attendance and date for this experiment
+            $evalDate = ($mark && !empty($mark->evaluation_date)) ? (string)$mark->evaluation_date : null;
+            $isAttended = false;
+
+            if ($evalDate) {
+                $isAttended = true;
+            } else {
+                // Check class log matching
+                $expNo = trim((string)$exp->experiment_no);
+                $expTitle = strtolower(trim((string)($exp->title ?? '')));
+                foreach ($classLogs as $l) {
+                    $pList = json_decode($l->present_students ?? '[]', true) ?: [];
+                    if (!in_array($student->reg_no, $pList)) continue;
+
+                    $t = trim((string)($l->topics_covered ?? ''));
+                    $matched = false;
+                    if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                        $matched = true;
+                    } elseif (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
+                        $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                        if (in_array($expNo, array_map('trim', $nums))) $matched = true;
+                    } elseif (!empty($expTitle) && strlen($expTitle) >= 6 && str_contains(strtolower($t), $expTitle)) {
+                        $matched = true;
+                    } elseif (!empty($exp->conducted_date) && $l->date === $exp->conducted_date) {
+                        $matched = true;
+                    }
+
+                    if ($matched) {
+                        $isAttended = true;
+                        $evalDate = $l->date;
+                        break;
+                    }
+                }
+            }
+
+            if ($hasScore) {
+                $isAttended = true;
+                if (!$evalDate && $exp->conducted_date) $evalDate = $exp->conducted_date;
+            }
+
+            if ($isAttended) $attendedCount++;
+
+            $rMark = $hasScore ? (float)$mark->rough_record : 0.0;
+            $fMark = $hasScore ? (float)$mark->fair_record : 0.0;
+            $oMark = $hasScore ? (float)$mark->prerequisites : 0.0;
+            $pMark = $hasScore ? (float)$mark->work_done : 0.0;
+            $vMark = $hasScore ? (float)$mark->result : 0.0;
+            $tMark = $hasScore ? (float)$mark->total_mark : 0.0;
+
+            if ($hasScore) {
+                $sumRough += $rMark;
+                $sumFair  += $fMark;
+                $sumObs   += $oMark;
+                $sumProc  += $pMark;
+                $sumViva  += $vMark;
+                $sumTotal += $tMark;
+                $gradedCount++;
+            }
+
+            $expRecords[] = [
+                'experiment_no'   => $exp->experiment_no,
+                'title'           => $exp->title,
+                'co_tag'          => $exp->co_tag ?: 'CO1',
+                'conducted_date'  => $exp->conducted_date,
+                'evaluation_date' => $evalDate,
+                'is_attended'     => $isAttended,
+                'has_score'       => $hasScore,
+                'rough_record'    => $rMark,
+                'fair_record'     => $fMark,
+                'obs_prep'        => $oMark,
+                'proc_punct'      => $pMark,
+                'viva_voce'       => $vMark,
+                'total_mark'      => $tMark,
+            ];
+        }
+
+        // Consolidated averages across all conducted experiments (consistent criteria)
+        $totalDivisor = max($totalCompletedExps, $attendedCount, 1);
+        $avgRoughRecord = round($sumRough / $totalDivisor, 2);
+        $avgFairRecord  = round($sumFair / $totalDivisor, 2);
+        $avgObsPrep     = round($sumObs / $totalDivisor, 2);
+        $avgProcPunct   = round($sumProc / $totalDivisor, 2);
+        $avgVivaVoce    = round($sumViva / $totalDivisor, 2);
+        $avgLabWork     = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
+
+        // Total Internal CIA (Max 75)
+        $totalInternal = round($avgLabWork + $microProject + $avgTests + $attendanceMarks, 2);
+
+        // ESE and Final Results calculation
+        $eseDisplay = '-';
+        $finalResultDisplay = '-';
+        $eseNumeric = null;
+        if ($boardExam !== null) {
+            if (is_numeric($boardExam)) {
+                $eseNumeric = (float)$boardExam;
+                $eseDisplay = number_format($eseNumeric, 1) . ' / 50';
+                $totalScore = $totalInternal + $eseNumeric;
+                $pct = ($totalScore / 125) * 100;
+                $grade = $pct >= 90 ? 'S' : ($pct >= 80 ? 'A' : ($pct >= 70 ? 'B' : ($pct >= 60 ? 'C' : ($pct >= 50 ? 'D' : ($pct >= 40 ? 'E' : 'F')))));
+                $finalResultDisplay = number_format($totalScore, 1) . " / 125 (Grade {$grade})";
+            } else {
+                $gradeLetter = strtoupper(trim($boardExam));
+                $eseDisplay = "Grade {$gradeLetter}";
+                $finalResultDisplay = "Grade {$gradeLetter}";
+            }
+        }
+
+        $branchMap = [
+            'EL' => 'Electronics Engineering',
+            'CE' => 'Civil Engineering',
+            'ME' => 'Mechanical Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'CH' => 'Chemical Engineering',
+            'CS' => 'Computer Engineering',
+            'CT' => 'Computer Engineering',
+            'AU' => 'Automobile Engineering',
+        ];
+        $branchKey = strtoupper(explode('_', $batchSubject->classroom_id)[0] ?? '');
+        $fullDepartment = $branchMap[$branchKey] ?? ($branchKey . ' Department');
+        $cleanedBatch = preg_replace('/^([A-Z]+)_(\d{4})_(\d{4})$/', '$1 ($2-$3)', $batchSubject->classroom_id ?? '');
+
+        return view('classroom_practical_student_report_print', compact(
+            'batchSubject',
+            'student',
+            'fullDepartment',
+            'cleanedBatch',
+            'labBatch',
+            'totalExperiments',
+            'conductedCount',
+            'totalCompletedExps',
+            'attendedCount',
+            'gradedCount',
+            'expRecords',
+            'sumRough',
+            'sumFair',
+            'sumObs',
+            'sumProc',
+            'sumViva',
+            'sumTotal',
+            'avgRoughRecord',
+            'avgFairRecord',
+            'avgObsPrep',
+            'avgProcPunct',
+            'avgVivaVoce',
+            'avgLabWork',
+            'microProject',
+            'openEndedTopic',
+            'attendanceMarks',
+            'presentClasses',
+            'totalForStudent',
+            'attendancePercentage',
+            'scoreT1',
+            'scoreT2',
+            'avgTests',
+            'totalInternal',
+            'boardExam',
+            'eseDisplay',
+            'finalResultDisplay'
         ));
     }
 }

@@ -10,7 +10,7 @@
       </h3>
       <p class="text-xs text-muted mt-1">Publish lecture notes, PDFs, diagram images, and video clips for students with evening pre-class notifications.</p>
     </div>
-    <button onclick="toggleMaterialUploadForm(this)" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
+    <button onclick="toggleMaterialUploadForm(this)" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
       <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
       Publish New Material
     </button>
@@ -34,27 +34,27 @@
         <!-- Topic / Experiment No -->
         <div>
           <label class="block text-xs font-bold text-muted mb-1">Topic / Day / Experiment No. <span class="text-rose-500">*</span></label>
-          <input type="text" name="experiment_or_topic_no" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none" placeholder="e.g. Day 12 / Exp 03 (CRO Calibration)">
+          <input type="text" name="experiment_or_topic_no" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="e.g. Day 12 / Exp 03 (CRO Calibration)">
         </div>
 
         <!-- Material Title -->
         <div>
           <label class="block text-xs font-bold text-muted mb-1">Material Title <span class="text-rose-500">*</span></label>
-          <input type="text" name="title" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none" placeholder="e.g. Pre-Lab Rough Record Guidelines & Circuit PDF">
+          <input type="text" name="title" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="e.g. Pre-Lab Rough Record Guidelines & Circuit PDF">
         </div>
       </div>
 
       <!-- Pre-Class Instructions / Guidelines -->
       <div>
         <label class="block text-xs font-bold text-muted mb-1">Pre-Class Instructions for Students (Optional)</label>
-        <textarea name="pre_class_instruction" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none" placeholder="e.g. Draw circuit diagram in rough record before 9:00 AM class tomorrow..."></textarea>
+        <textarea name="pre_class_instruction" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="e.g. Draw circuit diagram in rough record before 9:00 AM class tomorrow..."></textarea>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Material Type -->
         <div>
           <label class="block text-xs font-bold text-muted mb-1">Material Type <span class="text-rose-500">*</span></label>
-          <select name="material_type" id="vlm_material_type" onchange="toggleMaterialInputFields()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none font-medium">
+          <select name="material_type" id="vlm_material_type" onchange="toggleMaterialInputFields()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none font-medium">
             <option value="pdf">PDF Document (Notes / Manual)</option>
             <option value="video">Video Clip (YouTube / Vimeo Link)</option>
             <option value="image">Diagram / Image (PNG / JPG)</option>
@@ -66,7 +66,7 @@
         <!-- Target Date -->
         <div>
           <label class="block text-xs font-bold text-muted mb-1">Target Class / Lab Date</label>
-          <input type="date" name="target_date" value="{{ now()->addDay()->toDateString() }}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none font-medium">
+          <input type="date" name="target_date" value="{{ now()->addDay()->toDateString() }}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none font-medium">
         </div>
 
         <!-- Pre-Class Notice Checkbox -->
@@ -81,13 +81,13 @@
       <!-- File Attachment Field -->
       <div id="vlm_file_input_container">
         <label class="block text-xs font-bold text-muted mb-1">Upload File (PDF / Image / Doc up to 25MB)</label>
-        <input type="file" name="file" id="vlm_file_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-title focus:border-indigo-500 outline-none">
+        <input type="file" name="file" id="vlm_file_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-title focus:border-blue-500 outline-none">
       </div>
 
       <!-- Video / Link URL Field -->
       <div id="vlm_url_input_container" class="hidden">
         <label class="block text-xs font-bold text-muted mb-1">Video Link or URL</label>
-        <input type="url" name="video_url" id="vlm_url_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-indigo-500 outline-none" placeholder="https://www.youtube.com/watch?v=... or Drive link">
+        <input type="url" name="video_url" id="vlm_url_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="https://www.youtube.com/watch?v=... or Drive link">
       </div>
 
       <!-- Submit Button -->
@@ -229,7 +229,7 @@
         res.materials.forEach(m => {
           let typeBadge = '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded font-bold text-xs">PDF</span>';
           if (m.material_type === 'video') typeBadge = '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>';
-          else if (m.material_type === 'image') typeBadge = '<span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded font-bold text-xs">Image</span>';
+          else if (m.material_type === 'image') typeBadge = '<span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-bold text-xs">Image</span>';
           else if (m.material_type === 'link') typeBadge = '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold text-xs">Link</span>';
 
           let alertBadge = m.is_pre_class_notice ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded font-bold text-[10px]">⚡ Urgent Alert</span>' : '<span class="text-slate-400 text-xs">Standard</span>';
@@ -238,7 +238,7 @@
           if (m.file_path) {
             actionBtn = `<a href="${m.file_path}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all">Preview File</a>`;
           } else if (m.video_url) {
-            actionBtn = `<button onclick="openVlmVideoModal('${m.title.replace(/'/g, "\\'")}', '${m.video_url}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-bold transition-all shadow-sm">Watch Video</button>`;
+            actionBtn = `<button onclick="openVlmVideoModal('${m.title.replace(/'/g, "\\'")}', '${m.video_url}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm">Watch Video</button>`;
           }
 
           html += `

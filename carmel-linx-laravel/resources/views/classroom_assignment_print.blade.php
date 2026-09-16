@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assignment Printout - {{ $coTag }} - {{ $subject->subject_code }}</title>
+    <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false });"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -315,7 +319,15 @@
                 @forelse($questions as $q)
                     <tr>
                         <td class="text-center" style="vertical-align: top;">{{ $q['q_no'] }}.</td>
-                        <td style="vertical-align: top; line-height: 1.4;">{{ $q['question'] }}</td>
+                        <td style="vertical-align: top; line-height: 1.5;">
+                            <div class="q-text-body">{!! nl2br(e($q['question'])) !!}</div>
+                            @if(!empty($q['image_url']))
+                                <div class="q-figure-box" style="margin-top: 10px; text-align: center;">
+                                    <img src="{{ asset($q['image_url']) }}" alt="Figure for Q. {{ $q['q_no'] }}" style="max-width: 85%; max-height: 240px; object-fit: contain; border: 1px solid #ccc; padding: 4px; background: #fff; border-radius: 4px; display: inline-block;">
+                                    <div style="font-size: 11px; font-style: italic; color: #444; margin-top: 3px;">Figure for Q. {{ $q['q_no'] }}</div>
+                                </div>
+                            @endif
+                        </td>
                         <td class="text-center" style="vertical-align: top; font-weight: bold;">{{ $q['bt_level'] }}</td>
                         <td class="text-center" style="vertical-align: top;">{{ $q['marks'] }}</td>
                     </tr>

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 
     <style>
         body {
@@ -127,14 +128,14 @@
     <!-- Top Compact Header (Sticky Top) -->
     <header class="glass-panel px-4 py-2.5 flex items-center justify-between shadow-xl sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 rounded-none">
         <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 shrink-0">
-                <i class="fa-solid fa-graduation-cap text-sky-400 text-base"></i>
-                <span class="font-extrabold text-white text-sm tracking-tight">Carmel Linx</span>
+            <a href="{{ $dashboardUrl }}" class="flex items-center gap-2 shrink-0 no-underline text-white group" title="Return to Dashboard">
+                <span class="material-symbols-rounded text-sky-400 text-xl group-hover:scale-105 transition-transform">school</span>
+                <span class="font-extrabold text-white text-base tracking-tight group-hover:text-sky-300 transition-colors">Carmel Linx</span>
                 <span class="text-slate-600 font-bold">|</span>
-            </div>
+            </a>
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm">
+                    <span class="px-2.5 py-0.5 text-[10px] font-black tracking-wider rounded-md bg-blue-600 text-white border border-blue-400/80 shadow-md shadow-blue-600/30">
                         VIRTUAL LAB ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
                     </span>
                     <span class="text-[11px] text-cyan-400 font-mono font-bold">{{ $batchSubject->subject_code }}</span>
@@ -261,7 +262,7 @@
             <button onclick="filterLabBatch('2')" id="batch-filter-2" class="batch-filter-btn px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-medium text-[11px] transition">
                 Batch 2 (<span id="batch2BtnCount">{{ $labBatchConfig['b2_count'] ?? 0 }}</span>)
             </button>
-            <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="ms-1.5 px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer shadow" title="Configure Lab Batch Division (Full vs Split & Cutoff Roll No)">
+            <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="ms-1.5 px-2.5 py-1 rounded-md bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer shadow" title="Configure Lab Batch Division (Full vs Split & Cutoff Roll No)">
                 <span class="material-symbols-rounded text-xs">tune</span>
                 <span>Batch split setup</span>
             </button>
@@ -543,7 +544,7 @@
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="text-center w-24">Batch</th>
-                            <th class="text-center w-28">Exps Graded</th>
+                            <th class="text-center w-28">Exps Done</th>
                             <th class="text-center w-28">Lab Work (37.5M)</th>
                             <th class="text-center w-28">Tests (15M)</th>
                             <th class="text-center w-28">Open Ended (7.5M)</th>
@@ -574,12 +575,12 @@
                                 </button>
                             </td>
                             <td class="text-center">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $batchDesignation == 'Batch A' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : ($batchDesignation == 'Batch B' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'bg-slate-900 text-slate-400') }}">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $batchDesignation == 'Batch A' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : ($batchDesignation == 'Batch B' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'bg-slate-900 text-slate-400') }}">
                                     {{ $batchDesignation }}
                                 </span>
                             </td>
                             <td class="text-center">
-                                <span class="font-mono text-xs font-bold {{ $gradedColor }}" id="graded-count-{{ $student->reg_no }}" title="{{ $graded }} Attended / {{ $totalExp }} Conducted ({{ $totalExperiments }} in syllabus)">{{ $graded }} / {{ $totalExp }}</span>
+                                <span class="font-mono text-xs font-bold {{ $gradedColor }}" id="graded-count-{{ $student->reg_no }}" title="{{ $graded }} Done Marked / {{ $totalExp }} Total Completed ({{ $totalExperiments }} in syllabus)">{{ $graded }} / {{ $totalExp }}</span>
                             </td>
                             <td class="text-center font-mono text-blue-400 text-xs" id="cia-lab-work-{{ $student->reg_no }}">{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-purple-400 text-xs" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
@@ -608,9 +609,15 @@
                     <span id="detailModalStudentReg" class="text-xs font-mono text-cyan-400 font-semibold">Reg No</span>
                     <span id="detailModalGradedBadge" class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/15 text-amber-400 border border-amber-500/30"></span>
                 </div>
-                <button onclick="closeStudentDetailModal()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center text-xs cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <a id="btnDetailModalPrintStudent" href="#" target="_blank" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Print Individual Student Practical Evaluation & Attendance Report">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print Report</span>
+                    </a>
+                    <button onclick="closeStudentDetailModal()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center text-xs cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="p-4 space-y-4">
@@ -862,9 +869,9 @@
                     <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sessions Conducted</span>
-                            <span class="text-2xl font-mono font-bold text-indigo-300 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
+                            <span class="text-2xl font-mono font-bold text-blue-300 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                             <span class="material-symbols-rounded text-xl">task_alt</span>
                         </div>
                     </div>
@@ -899,7 +906,7 @@
                         </div>
                         <!-- Cohort Filter Tabs -->
                         <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-[11px]">
-                            <button type="button" onclick="filterCompletedExpsCohort('all')" id="cohortTab_all" class="px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer">All</button>
+                            <button type="button" onclick="filterCompletedExpsCohort('all')" id="cohortTab_all" class="px-2.5 py-1 rounded-md font-bold transition bg-blue-600 text-white cursor-pointer">All</button>
                             <button type="button" onclick="filterCompletedExpsCohort('1')" id="cohortTab_1" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 1</button>
                             <button type="button" onclick="filterCompletedExpsCohort('2')" id="cohortTab_2" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer">Batch 2</button>
                         </div>
@@ -934,8 +941,8 @@
                                     $sb = (string)($item['sub_batch'] ?? 'Whole');
                                     $batchName = $item['batch'] ?? 'Whole Class';
                                     $bColor = ($sb === '1')
-                                        ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/25'
-                                        : (($sb === '2') ? 'bg-purple-500/10 text-purple-300 border border-purple-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
+                                        ? 'bg-blue-500/10 text-blue-300 border border-blue-500/25'
+                                        : (($sb === '2') ? 'bg-sky-500/10 text-sky-300 border border-sky-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
                                     $abCount = $item['absent_count'] ?? max(0, ($item['total_count'] ?? 0) - ($item['present_count'] ?? 0));
                                     $abRolls = $item['absent_roll_nos'] ?? '-';
                                 @endphp
@@ -943,14 +950,14 @@
                                 @if($currentCompExpBatch !== $batchName)
                                     @php $currentCompExpBatch = $batchName; @endphp
                                     <tr class="batch-section-banner bg-slate-950 border-y border-slate-800" data-batch-row="{{ $sb }}">
-                                        <td colspan="9" class="py-2.5 px-4 text-xs">
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-2 h-2 rounded-full {{ $sb === '1' ? 'bg-indigo-400' : 'bg-purple-400' }}"></span>
-                                                <span class="{{ $sb === '1' ? 'text-indigo-300' : 'text-purple-300' }} font-bold uppercase tracking-wider text-xs">{{ $batchName }}</span>
-                                                <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                         <td colspan="9" class="py-2.5 px-4 text-xs">
+                                             <div class="flex items-center gap-2">
+                                                 <span class="w-2 h-2 rounded-full {{ $sb === '1' ? 'bg-blue-400' : 'bg-sky-400' }}"></span>
+                                                 <span class="{{ $sb === '1' ? 'text-blue-300' : 'text-sky-300' }} font-bold uppercase tracking-wider text-xs">{{ $batchName }}</span>
+                                                 <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
+                                             </div>
+                                         </td>
+                                     </tr>
                                 @endif
 
                                 <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition text-xs" data-batch-row="{{ $sb }}">
@@ -1715,7 +1722,9 @@
 
             const list = window.conductedExpsDetails || [];
             const totalSyllabus = window.totalSyllabusExps || {{ $totalExperiments ?? 0 }};
-            const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : list.length;
+            const doneCount = (window.conductedExpsCount !== undefined)
+                ? window.conductedExpsCount
+                : (new Set(list.map(x => x.experiment_id || x.experiment_no)).size || list.length);
             const hoursCount = (window.actualLabHoursConducted !== undefined && window.actualLabHoursConducted > 0)
                 ? window.actualLabHoursConducted
                 : (doneCount * 3);
@@ -1785,7 +1794,7 @@
                 const btn = document.getElementById('cohortTab_' + c);
                 if (btn) {
                     if (c === window.currentCompExpsCohort) {
-                        btn.className = "px-2.5 py-1 rounded-md font-bold transition bg-indigo-600 text-white cursor-pointer";
+                        btn.className = "px-2.5 py-1 rounded-md font-bold transition bg-blue-600 text-white cursor-pointer";
                     } else {
                         btn.className = "px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-slate-200 cursor-pointer";
                     }
@@ -1835,8 +1844,8 @@
                 const sb = String(item.sub_batch || 'Whole');
                 const batchName = item.batch || (sb === '1' ? 'Batch 1' : (sb === '2' ? 'Batch 2' : 'Whole Class'));
                 const batchColor = (sb === '1')
-                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/25'
-                    : ((sb === '2') ? 'bg-purple-500/10 text-purple-300 border border-purple-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
+                    ? 'bg-blue-500/10 text-blue-300 border border-blue-500/25'
+                    : ((sb === '2') ? 'bg-sky-500/10 text-sky-300 border border-sky-500/25' : 'bg-slate-800 text-slate-300 border border-slate-700/80');
                 const abCount = (item.absent_count !== undefined) ? item.absent_count : Math.max(0, (item.total_count || 0) - (item.present_count || 0));
                 const abRolls = item.absent_roll_nos || '-';
 
@@ -1848,8 +1857,8 @@
                     bannerTr.innerHTML = `
                         <td colspan="9" class="py-2.5 px-4 text-xs">
                             <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full ${sb === '1' ? 'bg-indigo-400' : 'bg-purple-400'}"></span>
-                                <span class="${sb === '1' ? 'text-indigo-300' : 'text-purple-300'} font-bold uppercase tracking-wider text-xs">${batchName}</span>
+                                <span class="w-2 h-2 rounded-full ${sb === '1' ? 'bg-blue-400' : 'bg-sky-400'}"></span>
+                                <span class="${sb === '1' ? 'text-blue-300' : 'text-sky-300'} font-bold uppercase tracking-wider text-xs">${batchName}</span>
                                 <span class="text-slate-500 text-[11px] font-normal">• Practical Sessions &amp; Conducted Log Records</span>
                             </div>
                         </td>
@@ -2494,6 +2503,11 @@
 
             renderDetailExpTable(regNo);
             renderDetailCIASummary(regNo);
+
+            const btnPrint = document.getElementById('btnDetailModalPrintStudent');
+            if (btnPrint) {
+                btnPrint.href = `/classroom/practical/{{ $batchSubject->id }}/student/${encodeURIComponent(regNo)}/print`;
+            }
 
             // Reset att log
             document.getElementById('attLogBody').classList.add('hidden');

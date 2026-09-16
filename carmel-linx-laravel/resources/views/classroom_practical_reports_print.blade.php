@@ -172,7 +172,41 @@
     <!-- SUB-REPORT: CONSOLIDATED ATTENDANCE MATRIX -->
     @if($type === 'attendance')
         @php
-            $activeCols = $attendanceLogs->take(20); // Limit to latest 20 columns to fit A4 Landscape neatly
+            $dayColumns = [];
+            $groupedByDate = $attendanceLogs->groupBy('date');
+            foreach ($groupedByDate as $date => $dayLogs) {
+                $periods = $dayLogs->pluck('period')->unique()->sort()->values()->all();
+                $periodStr = !empty($periods) ? 'P' . implode(',', $periods) : 'P1,2,3';
+
+                $batches = $dayLogs->pluck('sub_batch')->unique()->filter()->values()->all();
+                $batchLabels = array_map(function($b) {
+                    if ($b === '1' || $b === 1) return 'B1';
+                    if ($b === '2' || $b === 2) return 'B2';
+                    return (string)$b;
+                }, $batches);
+                $batchStr = !empty($batchLabels) ? implode(', ', $batchLabels) : '';
+
+                $presentSet = [];
+                $absentSet = [];
+                foreach ($dayLogs as $l) {
+                    $p = json_decode($l->present_students ?? '[]', true) ?: [];
+                    $a = json_decode($l->absent_students ?? '[]', true) ?: [];
+                    foreach ($p as $r) $presentSet[$r] = true;
+                    foreach ($a as $r) $absentSet[$r] = true;
+                }
+
+                $dayColumns[] = [
+                    'date'           => $date,
+                    'date_formatted' => date('d/m', strtotime($date)),
+                    'period_str'     => $periodStr,
+                    'batch_str'      => $batchStr,
+                    'present_set'    => $presentSet,
+                    'absent_set'     => $absentSet,
+                ];
+            }
+            $activeCols = $dayColumns;
+            $numCols = count($activeCols);
+            $colWidth = $numCols > 0 ? (66 / $numCols) : 3.3;
         @endphp
         <table class="report-table">
             <thead>
@@ -180,10 +214,12 @@
                     <th style="width: 4%">Roll</th>
                     <th style="width: 10%">Reg No</th>
                     <th style="width: 20%">Student Name</th>
-                    @foreach($activeCols as $log)
-                        <th style="font-size:7px; font-weight:normal; width: 3.3%">
-                            {{ date('d/m', strtotime($log->date)) }}<br>P{{ $log->period }}<br>
-                            <span style="font-size:6px; color:#555;">({{ $log->sub_batch }})</span>
+                    @foreach($activeCols as $col)
+                        <th style="font-size:7px; font-weight:normal; width: {{ round($colWidth, 2) }}%">
+                            {{ $col['date_formatted'] }}<br>{{ $col['period_str'] }}<br>
+                            @if(!empty($col['batch_str']))
+                                <span style="font-size:6px; color:#555;">({{ $col['batch_str'] }})</span>
+                            @endif
                         </th>
                     @endforeach
                 </tr>
@@ -194,14 +230,12 @@
                         <td>{{ $student->roll_no ?? '-' }}</td>
                         <td style="font-family:monospace;">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                         <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
-                        @foreach($activeCols as $log)
+                        @foreach($activeCols as $col)
                             @php
-                                $pList = json_decode($log->present_students ?? '[]', true);
-                                $aList = json_decode($log->absent_students ?? '[]', true);
                                 $statusText = '-';
-                                if (is_array($pList) && in_array($student->reg_no, $pList)) {
+                                if (isset($col['present_set'][$student->reg_no])) {
                                     $statusText = 'P';
-                                } elseif (is_array($aList) && in_array($student->reg_no, $aList)) {
+                                } elseif (isset($col['absent_set'][$student->reg_no])) {
                                     $statusText = 'A';
                                 }
                             @endphp

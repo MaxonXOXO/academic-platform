@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/80 rounded-t-3xl">
       <div class="flex items-center gap-4">
-        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2 rounded-xl shadow-lg">
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-2 rounded-xl shadow-sm">
           <span class="material-symbols-rounded text-2xl">menu_book</span>
         </div>
         <div>
@@ -15,7 +15,7 @@
           </h2>
           <p class="text-slate-400 font-mono mt-0.5 text-[10px] text-xs">
             <span id="fmdStudentName" class="font-bold text-slate-200">Loading...</span> | 
-            <span id="fmdStudentReg" class="text-indigo-400">Loading...</span>
+            <span id="fmdStudentReg" class="text-blue-400">Loading...</span>
           </p>
         </div>
       </div>
@@ -37,7 +37,7 @@
       
       <!-- Sidebar Navigation (7 Tabs) -->
       <div class="w-64 bg-slate-950/50 border-r border-slate-800 p-4 flex flex-col gap-2 overflow-y-auto scrollbar-hidden shrink-0">
-        <button onclick="switchDiaryTab('tab-profile')" id="btn-tab-profile" class="diary-tab-btn w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-premium bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 text-[10px] text-xs">
+        <button onclick="switchDiaryTab('tab-profile')" id="btn-tab-profile" class="diary-tab-btn w-full text-left px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-premium bg-blue-600 text-white shadow-sm text-[10px] text-xs">
           <span class="material-symbols-rounded text-lg">person</span> Personal & Family
         </button>
         <button onclick="switchDiaryTab('tab-education')" id="btn-tab-education" class="diary-tab-btn w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 text-[10px] text-xs">
@@ -68,7 +68,7 @@
         
         <!-- Loading Overlay for Data -->
         <div id="fmdLoading" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 hidden">
-          <div class="w-8 h-8 border-4 border-slate-700 border-t-indigo-500 rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
         </div>
 
         <!-- TAB 1: Personal & Family Profile -->
@@ -82,14 +82,14 @@
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h4 class="font-bold text-indigo-400 border-b border-slate-800 pb-2 text-sm">Student Particulars</h4>
+              <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-2 text-sm">Student Particulars</h4>
               <div class="space-y-3 text-[10px] text-xs">
                 <div class="flex justify-between"><span class="text-slate-500">Annual Income:</span> <span id="fmdIncome" class="font-bold text-white">--</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Residential Status:</span> <span id="fmdResidence" class="font-bold text-white">--</span></div>
               </div>
             </div>
             <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h4 class="font-bold text-indigo-400 border-b border-slate-800 pb-2 text-sm">Local Guardian (If Hosteller)</h4>
+              <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-2 text-sm">Local Guardian (If Hosteller)</h4>
               <div class="space-y-3 text-[10px] text-xs">
                 <div class="flex justify-between"><span class="text-slate-500">Name:</span> <span id="fmdGuardName" class="font-bold text-white">--</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Relation:</span> <span id="fmdGuardRel" class="font-bold text-white">--</span></div>
@@ -161,7 +161,7 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
              <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h4 class="font-bold text-indigo-400 border-b border-slate-800 pb-2 text-sm">Scholarships & Grants</h4>
+              <h4 class="font-bold text-blue-400 border-b border-slate-800 pb-2 text-sm">Scholarships & Grants</h4>
               <p id="fmdScholarships" class="text-white p-3 bg-slate-900 rounded-xl border border-slate-800 min-h-[60px] text-[10px] text-xs">--</p>
               <div class="flex items-center gap-3 mt-4 pt-4 border-t border-slate-800">
                 <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] text-xs">Tuition Fee Waiver Beneficiary:</span>
@@ -267,7 +267,7 @@
               <h3 class="font-black text-slate-200 text-lg">Extra-Curricular Activities</h3>
               <p class="text-slate-500 uppercase tracking-widest mt-1">Page 7 of physical diary</p>
             </div>
-            <button onclick="openActivityModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-1 text-[10px] text-xs"><span class="material-symbols-rounded text-sm">add</span> Add Activity</button>
+            <button onclick="openActivityModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-premium cursor-pointer flex items-center gap-1 shadow-sm text-[10px] text-xs"><span class="material-symbols-rounded text-sm">add</span> Add Activity</button>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -321,35 +321,35 @@
               <h3 class="font-black text-slate-200 text-lg">Mentor-Mentee Meeting Details</h3>
               <p class="text-slate-500 uppercase tracking-widest mt-1">Page 10 of physical diary</p>
             </div>
-            <button onclick="toggleDiaryAddForm()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer flex items-center gap-2 shadow-lg shadow-indigo-500/20 text-[10px] text-xs">
+            <button onclick="toggleDiaryAddForm()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-premium cursor-pointer flex items-center gap-2 shadow-sm text-[10px] text-xs">
               <span class="material-symbols-rounded text-sm">edit_square</span> Log New Meeting
             </button>
           </div>
 
           <!-- Add Entry Form (Hidden by Default) -->
-          <div id="fmdAddMeetingForm" class="hidden bg-indigo-950/20 border border-indigo-500/30 p-5 rounded-2xl space-y-4 mb-6">
-            <h4 class="font-bold text-indigo-300 mb-2 text-sm">Record Meeting Log</h4>
+          <div id="fmdAddMeetingForm" class="hidden bg-blue-950/20 border border-blue-500/30 p-5 rounded-2xl space-y-4 mb-6">
+            <h4 class="font-bold text-blue-300 mb-2 text-sm">Record Meeting Log</h4>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-indigo-300/70 font-bold uppercase tracking-wider mb-1.5">Date</label>
-                <input type="date" id="fmdMeetingDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-indigo-500 text-[10px] text-xs">
+                <label class="block text-blue-300/70 font-bold uppercase tracking-wider mb-1.5">Date</label>
+                <input type="date" id="fmdMeetingDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-[10px] text-xs">
               </div>
               <div>
-                <label class="block text-indigo-300/70 font-bold uppercase tracking-wider mb-1.5">Topic / Category</label>
-                <input type="text" id="fmdMeetingCategory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-indigo-500 text-[10px] text-xs" placeholder="e.g., Evaluation of Series Test">
+                <label class="block text-blue-300/70 font-bold uppercase tracking-wider mb-1.5">Topic / Category</label>
+                <input type="text" id="fmdMeetingCategory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-[10px] text-xs" placeholder="e.g., Evaluation of Series Test">
               </div>
             </div>
             <div>
-              <label class="block text-indigo-300/70 font-bold uppercase tracking-wider mb-1.5">Description</label>
-              <textarea id="fmdMeetingNotes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-indigo-500 text-[10px] text-xs" placeholder="Details of the discussion..."></textarea>
+              <label class="block text-blue-300/70 font-bold uppercase tracking-wider mb-1.5">Description</label>
+              <textarea id="fmdMeetingNotes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-[10px] text-xs" placeholder="Details of the discussion..."></textarea>
             </div>
             <div>
-              <label class="block text-indigo-300/70 font-bold uppercase tracking-wider mb-1.5">Suggestions / Action Taken</label>
-              <textarea id="fmdMeetingAction" rows="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-indigo-500 text-[10px] text-xs" placeholder="What actions were recommended..."></textarea>
+              <label class="block text-blue-300/70 font-bold uppercase tracking-wider mb-1.5">Suggestions / Action Taken</label>
+              <textarea id="fmdMeetingAction" rows="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-[10px] text-xs" placeholder="What actions were recommended..."></textarea>
             </div>
             <div class="flex justify-end gap-2 pt-2">
-              <button onclick="toggleDiaryAddForm()" class="px-4 py-2 font-bold text-slate-400 hover:text-white transition-premium cursor-pointer text-[10px] text-xs">Cancel</button>
-              <button onclick="submitNewMeeting()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-premium cursor-pointer text-[10px] text-xs">Save Entry</button>
+              <button onclick="toggleDiaryAddForm()" class="px-4 py-2 font-medium text-slate-400 hover:text-white transition-premium cursor-pointer text-[10px] text-xs">Cancel</button>
+              <button onclick="submitNewMeeting()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-premium cursor-pointer shadow-sm text-[10px] text-xs">Save Entry</button>
             </div>
           </div>
 
@@ -380,7 +380,7 @@
               <h3 class="font-black text-slate-200 text-lg">Leave Record</h3>
               <p class="text-slate-500 uppercase tracking-widest mt-1">Page 13 of physical diary</p>
             </div>
-            <button onclick="openLeaveModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-premium cursor-pointer flex items-center gap-1 text-[10px] text-xs">
+            <button onclick="openLeaveModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-premium cursor-pointer flex items-center gap-1 shadow-sm text-[10px] text-xs">
               <span class="material-symbols-rounded text-sm">add</span> Log Leave
             </button>
           </div>
@@ -638,14 +638,14 @@
     
     // Update button styles
     document.querySelectorAll('.diary-tab-btn').forEach(btn => {
-      btn.classList.remove('bg-indigo-600/20', 'text-indigo-400', 'border-indigo-500/30');
-      btn.classList.add('text-slate-400');
+      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm', 'font-semibold');
+      btn.classList.add('text-slate-400', 'hover:bg-slate-800', 'font-medium');
       btn.classList.remove('border');
     });
     const activeBtn = document.getElementById('btn-' + tabId);
     if(activeBtn) {
-      activeBtn.classList.remove('text-slate-400');
-      activeBtn.classList.add('bg-indigo-600/20', 'text-indigo-400', 'border', 'border-indigo-500/30');
+      activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800', 'font-medium');
+      activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-sm', 'font-semibold');
     }
   }
 
@@ -752,7 +752,7 @@
                 ${s.mcq.CO1}/${s.mcq.CO2}/${s.mcq.CO3}/${s.mcq.CO4}
               </td>
               <td class="p-3 text-center border-l border-slate-800/40">${s.attendance}</td>
-              <td class="p-3 text-center border-l border-slate-800/40 font-bold text-indigo-400">${s.internal_mark}</td>
+              <td class="p-3 text-center border-l border-slate-800/40 font-bold text-blue-400">${s.internal_mark}</td>
               <td class="p-3 text-center border-l border-slate-800/40 font-bold ${s.board_grade && s.board_grade !== 'F' ? 'text-green-400' : 'text-red-400'}">
                 ${s.board_grade || '--'}
               </td>
@@ -762,7 +762,7 @@
 
         mAcContainer.innerHTML += `
           <div class="bg-slate-950/50 border border-slate-800 rounded-2xl overflow-hidden mb-6">
-            <div class="p-3 border-b border-slate-800 bg-slate-900/50 font-bold text-indigo-300 text-sm">
+            <div class="p-3 border-b border-slate-800 bg-slate-900/50 font-bold text-blue-400 text-sm">
               Semester ${semester}
             </div>
             <div class="overflow-x-auto">
@@ -818,7 +818,7 @@
           <td class="p-3">${e.maths_marks || '--'}</td>
           <td class="p-3">${e.physics_marks || '--'}</td>
           <td class="p-3">${e.chemistry_marks || '--'}</td>
-          <td class="p-3 font-bold text-indigo-400">${e.total_percentage || '--'}%</td>
+          <td class="p-3 font-bold text-blue-400">${e.total_percentage || '--'}%</td>
         </tr>
       `).join('');
     } else {
@@ -847,7 +847,7 @@
         <tr class="border-b border-slate-800/40">
           <td class="p-3 font-bold text-white">S${b.semester}</td>
           <td class="p-3">${b.sgpa || '--'}</td>
-          <td class="p-3 font-bold text-indigo-400">${b.cgpa || '--'}</td>
+          <td class="p-3 font-bold text-blue-400">${b.cgpa || '--'}</td>
           <td class="p-3">${b.activity_points || '--'}</td>
         </tr>
       `).join('');
@@ -863,10 +863,10 @@
           <td class="p-3">S${ex.semester || (ex.activity_segment ? '-' : '')}</td>
           <td class="p-3 text-white font-bold">${ex.activity_name}</td>
           <td class="p-3">${ex.achievement || ex.level || '--'}</td>
-          <td class="p-3 text-indigo-400 font-bold">${ex.points_awarded}</td>
+          <td class="p-3 text-blue-400 font-bold">${ex.points_awarded}</td>
           <td class="p-3">${ex.status}</td>
           <td class="p-3 text-right">
-            <button onclick='editActivity(${JSON.stringify(ex).replace(/'/g, "&apos;")})' class="text-indigo-400 hover:text-indigo-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
+            <button onclick='editActivity(${JSON.stringify(ex).replace(/'/g, "&apos;")})' class="text-blue-400 hover:text-blue-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
           </td>
         </tr>
       `).join('');
@@ -884,7 +884,7 @@
           <td class="p-3 text-center">${l.parent_informed ? 'Yes' : 'No'}</td>
           <td class="p-3 text-right">${l.status}</td>
           <td class="p-3 text-right">
-            <button onclick='editLeave(${JSON.stringify(l).replace(/'/g, "&apos;")})' class="text-indigo-400 hover:text-indigo-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
+            <button onclick='editLeave(${JSON.stringify(l).replace(/'/g, "&apos;")})' class="text-blue-400 hover:text-blue-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
           </td>
         </tr>
       `).join('');
@@ -901,7 +901,7 @@
           <td class="p-3 text-white">${d.description}</td>
           <td class="p-3">${d.action_taken || '--'}</td>
           <td class="p-3 text-right">
-            <button onclick='editDisc(${JSON.stringify(d).replace(/'/g, "&apos;")})' class="text-indigo-400 hover:text-indigo-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
+            <button onclick='editDisc(${JSON.stringify(d).replace(/'/g, "&apos;")})' class="text-blue-400 hover:text-blue-300 transition-colors"><span class="material-symbols-rounded text-sm">edit</span></button>
           </td>
         </tr>
       `).join('');
@@ -1022,7 +1022,7 @@
         <div class="space-y-4">
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Segment</label>
-            <select id="activitySegment" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <select id="activitySegment" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
               <option value="NCC">NCC</option>
               <option value="NSS">NSS</option>
               <option value="Sports & Games">Sports & Games</option>
@@ -1035,31 +1035,31 @@
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Activity Name</label>
-            <input type="text" id="activityName" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <input type="text" id="activityName" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Level (e.g. State, College)</label>
-            <input type="text" id="activityLevel" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <input type="text" id="activityLevel" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Points Claimed</label>
-              <input type="number" id="activityPtsClaimed" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+              <input type="number" id="activityPtsClaimed" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
             </div>
             <div>
               <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Points Awarded</label>
-              <input type="number" id="activityPtsAwarded" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+              <input type="number" id="activityPtsAwarded" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
             </div>
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Status</label>
-            <select id="activityStatus" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <select id="activityStatus" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
               <option value="Verified">Verified</option>
               <option value="Pending">Pending</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
-          <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm">Save Activity</button>
+          <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-xs shadow-sm">Save Activity</button>
         </div>
       </form>
     </div>
@@ -1078,36 +1078,36 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Semester</label>
-              <input type="number" id="leaveSem" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+              <input type="number" id="leaveSem" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
             </div>
             <div>
                   <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">From Date</label>
-                  <input type="date" id="leaveDateFrom" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+                  <input type="date" id="leaveDateFrom" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">To Date (Optional)</label>
-                  <input type="date" id="leaveDateTo" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+                  <input type="date" id="leaveDateTo" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
                 </div>
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Reason</label>
-            <input type="text" id="leaveReason" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <input type="text" id="leaveReason" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Status</label>
-            <select id="leaveStatus" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <select id="leaveStatus" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
               <option value="Approved">Approved</option>
               <option value="Pending">Pending</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
           <div class="flex items-center gap-2">
-            <input type="checkbox" id="leaveParent" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-500">
+            <input type="checkbox" id="leaveParent" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-blue-500">
             <label class="text-slate-300 text-[10px] text-xs">Parent Informed?</label>
           </div>
-          <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm">Save Leave</button>
+          <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-xs shadow-sm">Save Leave</button>
         </div>
       </form>
     </div>
@@ -1125,17 +1125,17 @@
         <div class="space-y-4">
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Date</label>
-            <input type="date" id="discDate" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 text-sm">
+            <input type="date" id="discDate" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 text-sm">
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Description</label>
-            <textarea id="discDesc" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 h-24 text-sm"></textarea>
+            <textarea id="discDesc" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 h-24 text-sm"></textarea>
           </div>
           <div>
             <label class="block font-bold text-slate-400 mb-1 text-[10px] text-xs">Action Taken (Optional)</label>
-            <textarea id="discAction" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-indigo-500 h-20 text-sm"></textarea>
+            <textarea id="discAction" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-blue-500 h-20 text-sm"></textarea>
           </div>
-          <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm">Save Action</button>
+          <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-xs shadow-sm">Save Action</button>
         </div>
       </form>
     </div>

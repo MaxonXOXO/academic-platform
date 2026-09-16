@@ -19,6 +19,11 @@
   <!-- SheetJS for client-side Excel parse & generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
+  <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  
   <style>
     /* Hide up/down spinner buttons in number inputs */
     .no-spinner::-webkit-inner-spin-button,
@@ -1310,15 +1315,19 @@
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <button onclick="openPrintReport('cie_marksheet')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Internal CIE Marksheet Report</span>
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Assignment Mark Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('series_marks')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">edit_note</span> Summative Exam Marksheet Report</span>
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">edit_note</span> Written Text Mark</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
+                    <button onclick="openPrintReport('class_roster')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-emerald-700/50 hover:border-emerald-600 text-emerald-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-emerald-400">badge</span> Consolidated Mark Report</span>
+                      <span class="material-symbols-rounded text-xs text-emerald-400">arrow_forward</span>
+                    </button>
                     <button onclick="openPrintReport('final_results')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">grade</span> Final Results & ESE Marksheet</span>
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">grade</span> Internal Mark Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                   </div>
@@ -1339,6 +1348,12 @@
                     </button>
                     <button onclick="loadClassReport('summary_matrix')" id="btnReportMatrix" class="px-3.5 py-1.5 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-800 transition-premium">
                       Attendance Matrix
+                    </button>
+                    <button onclick="openPrintReport('class_log')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-indigo-300 border border-indigo-500/40 rounded-xl font-bold text-xs cursor-pointer transition-premium flex items-center gap-1.5 shadow-sm" title="Print official A4 classroom teaching & attendance log">
+                      <span class="material-symbols-rounded text-xs text-indigo-400">print</span> Print Class Log (A4)
+                    </button>
+                    <button onclick="openPrintReport('class_roster')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-emerald-300 border border-emerald-500/40 rounded-xl font-bold text-xs cursor-pointer transition-premium flex items-center gap-1.5 shadow-sm" title="Print official A4 class roster with attendance & marks">
+                      <span class="material-symbols-rounded text-xs text-emerald-400">print</span> Print Class Roster (A4)
                     </button>
                   </div>
                 </div>
@@ -2214,6 +2229,12 @@
           return;
         }
 
+        // Revision 2021 Virtual Major Project Classroom (Clauses 11.2.5 & 11.3.4)
+        if (sTypeLower.includes('project') || sNameLower.includes('project')) {
+          window.open(`/r21/classroom/project/${subjectId}`, '_blank');
+          return;
+        }
+
         currentSubjectId = subjectId;
         window.currentVirtualRevision = revision;
 
@@ -2229,7 +2250,7 @@
           if (isSeminar) {
             pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-indigo-400 text-lg">co_present</span> Virtual Seminar Room</span>`;
           } else if (isPractical) {
-            pTitle.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabel} )</span>`;
+            pTitle.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-blue-600 border border-blue-400 text-white rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md shadow-blue-600/30 tracking-tight"><span class="material-symbols-rounded text-white text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabel} )</span>`;
           } else {
             pTitle.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021</span>`;
           }
@@ -2243,7 +2264,7 @@
         const vcTitle = document.getElementById('vcTitle');
         if (vcTitle) {
           if (isPractical) {
-            vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-xl">science</span> <span class="text-base md:text-lg font-black text-sky-300">Virtual Lab ( ${revLabel} )</span>`;
+            vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-xl">science</span> <span class="text-base md:text-lg font-black text-blue-200">Virtual Lab ( ${revLabel} )</span>`;
           } else {
             vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-base">science</span> ${subjectName || 'Virtual Lab Workspace'}`;
           }
@@ -2377,7 +2398,10 @@
         </div>
       `;
 
-      fetch(`/api/r26/classroom/${currentSubjectId}/attainment-summary`)
+      const isR26 = window.currentSyllabusRevision === '2026' || (window.currentVirtualRevision && window.currentVirtualRevision.includes('2026'));
+      const attainmentUrl = isR26 ? `/api/r26/classroom/${currentSubjectId}/attainment-summary` : `/api/classroom/${currentSubjectId}/attainment-summary`;
+
+      fetch(attainmentUrl)
         .then(res => res.json())
         .then(data => {
           if (data.status !== 'SUCCESS') {
@@ -2715,8 +2739,8 @@
             toggleClassroomTab(activeTabToRestore);
           } else if (isPractical) {
             window.isCurrentSubjectPractical = true;
-            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md tracking-tight"><span class="material-symbols-rounded text-sky-400 text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
-            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-sky-400 text-sm">science</span> Virtual Lab Workspace`;
+            if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2.5 px-4 py-1.5 bg-blue-600 border border-blue-400 text-white rounded-xl font-black text-base md:text-lg lg:text-xl shadow-md shadow-blue-600/30 tracking-tight"><span class="material-symbols-rounded text-white text-xl md:text-2xl">science</span> Virtual Lab ( ${revLabelVal} )</span>`;
+            if (vcTitle) vcTitle.innerHTML = `<span class="material-symbols-rounded text-blue-400 text-sm">science</span> Virtual Lab Workspace`;
             if ('{{ session("userRole") }}' === 'Demonstrator' && (!rStrVal.includes('2026') && !rStrVal.includes('26'))) {
               const backBtn = document.getElementById('headerBackBtn');
               if (backBtn) backBtn.title = "Return to Demonstrator Dashboard";
@@ -3549,13 +3573,15 @@
               });
             }
 
-            const avgRough = gradedCount > 0 ? (sumRough / gradedCount).toFixed(2) : '0.00';
-            const avgFair  = gradedCount > 0 ? (sumFair / gradedCount).toFixed(2)  : '0.00';
-            const avgObs   = gradedCount > 0 ? (sumObs / gradedCount).toFixed(2)   : '0.00';
-            const avgProc  = gradedCount > 0 ? (sumProc / gradedCount).toFixed(2)  : '0.00';
+            const conductedCount = (window.conductedExpsCount !== undefined && window.conductedExpsCount > 0) ? window.conductedExpsCount : (totalExps > 0 ? totalExps : 1);
+            const totalDivisor = Math.max(conductedCount, gradedCount, 1);
+            const avgRough = (sumRough / totalDivisor).toFixed(2);
+            const avgFair  = (sumFair / totalDivisor).toFixed(2);
+            const avgObs   = (sumObs / totalDivisor).toFixed(2);
+            const avgProc  = (sumProc / totalDivisor).toFixed(2);
             const avgViva  = student.avg_viva_voce !== undefined && student.avg_viva_voce !== null ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
 
-            const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
+            const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : (parseFloat(avgRough) + parseFloat(avgFair) + parseFloat(avgObs) + parseFloat(avgProc) + parseFloat(avgViva)).toFixed(2);
 
             html += `
               <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-xs">
@@ -3737,13 +3763,14 @@
           let qText = typeof q === 'object' ? q.question : q;
           let bt = typeof q === 'object' ? q.bt_level : null;
           let marksVal = typeof q === 'object' ? q.marks : null;
+          let imgUrl = typeof q === 'object' ? (q.image_url || null) : null;
           
           let cog = '';
           if (bt) {
             let color = bt.toLowerCase() === 'remember' ? 'text-blue-400' : (bt.toLowerCase() === 'apply' ? 'text-emerald-400' : 'text-indigo-400');
             cog = ` <span class="${color} font-bold">[${bt}]</span>`;
           } else {
-            let lower = qText.toLowerCase();
+            let lower = (qText || '').toLowerCase();
             if (!lower.includes('[remember]') && !lower.includes('[u]') && !lower.includes('[a]') && !lower.includes('[r]') && !lower.includes('cognitive')) {
               if (lower.includes('define') || lower.includes('list') || lower.includes('what is') || lower.includes('state') || lower.includes('name')) {
                 cog = ' <span class="text-blue-400 font-bold">[Remember - R]</span>';
@@ -3755,7 +3782,14 @@
             }
           }
           let marksText = marksVal ? ` <span class="text-slate-500 font-bold">(${marksVal} Marks)</span>` : '';
-          return `<li class="text-sm text-slate-300 mb-2 leading-relaxed font-medium">${qText}${cog}${marksText}</li>`;
+          let imgHtml = imgUrl ? `
+            <div class="mt-2 mb-1">
+              <a href="${imgUrl}" target="_blank" class="inline-block group/img" title="Click to view full image">
+                <img src="${imgUrl}" alt="Question Diagram" class="max-h-36 rounded-lg border border-slate-700/80 bg-slate-950 p-1 object-contain hover:border-blue-500 transition-all shadow-md">
+                <span class="text-[10px] text-blue-400 block mt-0.5 group-hover/img:underline flex items-center gap-1"><span class="material-symbols-rounded text-[12px]">zoom_in</span> View full diagram</span>
+              </a>
+            </div>` : '';
+          return `<li class="text-sm text-slate-300 mb-2.5 leading-relaxed font-medium"><div class="q-display-body">${qText}${cog}${marksText}</div>${imgHtml}</li>`;
         }).join('');
         let schedule = currentDeadlines[co] || { start: '', due: '', locked: false };
         if (typeof schedule === 'string') schedule = { start: '', due: schedule, locked: false }; // Legacy fallback
@@ -3816,6 +3850,15 @@
         `;
       }
       document.getElementById('aiQuestionsContainer').innerHTML = html;
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('aiQuestionsContainer'), {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
     }
 
     function generateAIQuestions(subjectId, coTag = null, mode = 'ai') {
@@ -3921,7 +3964,8 @@
           let qText = typeof q === 'object' ? q.question : q;
           let bt = typeof q === 'object' ? q.bt_level : 'Understand';
           let marksVal = typeof q === 'object' ? q.marks : 5;
-          addManualQuestionField(qText, bt, marksVal);
+          let imgUrl = typeof q === 'object' ? (q.image_url || '') : '';
+          addManualQuestionField(qText, bt, marksVal, imgUrl);
         });
       }
 
@@ -3938,21 +3982,63 @@
       modal.classList.add('hidden');
     }
 
-    function addManualQuestionField(question = '', btLevel = 'Understand', marks = 5) {
+    function addManualQuestionField(question = '', btLevel = 'Understand', marks = 5, imageUrl = '') {
       const container = document.getElementById('editQuestionsFieldsContainer');
       const div = document.createElement('div');
       div.className = "p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3 relative question-field-row shadow-sm";
       
+      const safeImg = imageUrl ? imageUrl.replace(/"/g, '&quot;') : '';
+
       div.innerHTML = `
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Question Description</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wide">Question Description</span>
+            <span class="text-[10px] text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20" title="KaTeX Math supported: $...$ or $$...$$">LaTeX Math ($...$) Enabled</span>
+          </div>
           <button type="button" onclick="this.closest('.question-field-row').remove(); updateEditQuestionsTotalMarks();" class="text-rose-400 hover:text-rose-300 cursor-pointer p-1 rounded hover:bg-rose-500/10 transition" title="Delete Question">
             <span class="material-symbols-rounded text-base">delete</span>
           </button>
         </div>
         <div>
-          <textarea class="w-full bg-slate-900/90 border border-slate-700/60 rounded-xl p-3 text-slate-100 text-sm font-normal outline-none focus:border-blue-500/80 leading-relaxed resize-y min-h-[130px] q-text" rows="5" placeholder="Type descriptive question content..." required oninput="autoGrowTextarea(this)" onfocus="autoGrowTextarea(this)">${question}</textarea>
+          <textarea class="w-full bg-slate-900/90 border border-slate-700/60 rounded-xl p-3 text-slate-100 text-sm font-normal outline-none focus:border-blue-500/80 leading-relaxed resize-y min-h-[110px] q-text" rows="4" placeholder="Type or paste question content (supports LaTeX formulas like $V = I \\times R$ or $$\\frac{a}{b}$$, Unicode symbols θ, Ω, √, and Ctrl+V image paste)..." required oninput="autoGrowTextarea(this); updateRowMathPreview(this)" onfocus="autoGrowTextarea(this); updateRowMathPreview(this)">${question}</textarea>
         </div>
+
+        <!-- Live Math Expression Preview -->
+        <div class="q-math-preview hidden p-2.5 bg-slate-900/95 border border-indigo-500/30 rounded-lg text-slate-200 text-xs">
+          <div class="text-[10px] font-bold uppercase text-indigo-400 mb-1 flex items-center gap-1">
+            <span class="material-symbols-rounded text-xs">functions</span> Formula Preview:
+          </div>
+          <div class="q-math-render leading-relaxed overflow-x-auto text-slate-100 font-sans"></div>
+        </div>
+
+        <!-- Diagram / Image Attachment Section -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <input type="file" accept="image/*" class="q-image-file hidden" onchange="handleQuestionImageUpload(this)">
+              <button type="button" onclick="this.closest('.question-field-row').querySelector('.q-image-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <span class="material-symbols-rounded text-sm">add_photo_alternate</span>
+                <span>Attach Diagram / Image</span>
+              </button>
+              <span class="text-[11px] text-slate-400">or press <strong>Ctrl+V</strong> in the box to paste screenshot</span>
+            </div>
+            <input type="hidden" class="q-image-url" value="${safeImg}">
+          </div>
+
+          <!-- Preview box for attached diagram -->
+          <div class="q-image-preview-container ${safeImg ? '' : 'hidden'} mt-2">
+            ${safeImg ? `
+              <div class="relative inline-block group/preview">
+                <img src="${safeImg}" alt="Attached Diagram" class="max-h-32 rounded-lg border border-slate-700 bg-slate-900 object-contain p-1 shadow-md">
+                <button type="button" onclick="removeRowImage(this)" class="absolute -top-2 -right-2 w-6 h-6 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg transition-all cursor-pointer" title="Remove Diagram">
+                  <span class="material-symbols-rounded text-sm">close</span>
+                </button>
+                <span class="text-[10px] text-slate-400 block mt-1 font-medium">Attached Diagram</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">BT Level</label>
@@ -3970,8 +4056,135 @@
       `;
       container.appendChild(div);
       const ta = div.querySelector('textarea.q-text');
-      if (ta) autoGrowTextarea(ta);
+      if (ta) {
+        autoGrowTextarea(ta);
+        updateRowMathPreview(ta);
+
+        // Clipboard paste listener: if user pastes an image, upload it
+        ta.addEventListener('paste', function(e) {
+          const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || {}).items;
+          if (items) {
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type && items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const file = items[i].getAsFile();
+                if (file) {
+                  uploadQuestionImageBlob(file, div);
+                }
+                break;
+              }
+            }
+          }
+        });
+      }
       updateEditQuestionsTotalMarks();
+    }
+
+    function handleQuestionImageUpload(fileInput) {
+      if (fileInput.files && fileInput.files[0]) {
+        const row = fileInput.closest('.question-field-row');
+        uploadQuestionImageBlob(fileInput.files[0], row);
+        fileInput.value = '';
+      }
+    }
+
+    function uploadQuestionImageBlob(file, rowElement) {
+      if (!file) return;
+      if (!currentEditSubjectId) {
+        alert("Subject ID not loaded.");
+        return;
+      }
+      const previewContainer = rowElement.querySelector('.q-image-preview-container');
+      if (previewContainer) {
+        previewContainer.classList.remove('hidden');
+        previewContainer.innerHTML = `<div class="text-xs text-blue-400 flex items-center gap-1.5 py-2 font-bold animate-pulse"><div class="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div> Uploading diagram...</div>`;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch(`/api/classroom/${currentEditSubjectId}/upload-assignment-image`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS' && data.image_url) {
+          rowElement.querySelector('.q-image-url').value = data.image_url;
+          renderRowImagePreview(rowElement, data.image_url);
+        } else {
+          alert(data.message || 'Image upload failed.');
+          if (previewContainer) previewContainer.classList.add('hidden');
+        }
+      })
+      .catch(err => {
+        console.error('Image upload error:', err);
+        alert('Failed to upload image: ' + err.message);
+        if (previewContainer) previewContainer.classList.add('hidden');
+      });
+    }
+
+    function renderRowImagePreview(rowElement, imageUrl) {
+      const container = rowElement.querySelector('.q-image-preview-container');
+      const hiddenInput = rowElement.querySelector('.q-image-url');
+      if (!container) return;
+      if (!imageUrl) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        if (hiddenInput) hiddenInput.value = '';
+        return;
+      }
+      container.classList.remove('hidden');
+      container.innerHTML = `
+        <div class="relative inline-block group/preview">
+          <img src="${imageUrl}" alt="Attached Diagram" class="max-h-32 rounded-lg border border-slate-700 bg-slate-900 object-contain p-1 shadow-md">
+          <button type="button" onclick="removeRowImage(this)" class="absolute -top-2 -right-2 w-6 h-6 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg transition-all cursor-pointer" title="Remove Diagram">
+            <span class="material-symbols-rounded text-sm">close</span>
+          </button>
+          <span class="text-[10px] text-slate-400 block mt-1 font-medium">Attached Diagram</span>
+        </div>
+      `;
+    }
+
+    function removeRowImage(btn) {
+      const row = btn.closest('.question-field-row');
+      if (!row) return;
+      row.querySelector('.q-image-url').value = '';
+      const previewContainer = row.querySelector('.q-image-preview-container');
+      if (previewContainer) {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+      }
+    }
+
+    function updateRowMathPreview(textarea) {
+      const row = textarea.closest('.question-field-row');
+      if (!row) return;
+      const preview = row.querySelector('.q-math-preview');
+      const text = textarea.value || '';
+      if (!preview) return;
+
+      if (text.includes('$')) {
+        preview.classList.remove('hidden');
+        const renderEl = preview.querySelector('.q-math-render');
+        if (renderEl) {
+          renderEl.textContent = text;
+          if (window.renderMathInElement) {
+            renderMathInElement(renderEl, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              throwOnError: false
+            });
+          }
+        }
+      } else {
+        preview.classList.add('hidden');
+      }
     }
 
     function updateEditQuestionsTotalMarks() {
@@ -3992,12 +4205,15 @@
         const text = row.querySelector('.q-text').value.trim();
         const bt = row.querySelector('.q-bt').value;
         const marks = parseInt(row.querySelector('.q-marks').value || 0);
+        const imgInput = row.querySelector('.q-image-url');
+        const imgUrl = imgInput ? imgInput.value.trim() : '';
         
-        if (text) {
+        if (text || imgUrl) {
           questions.push({
             question: text,
             bt_level: bt,
-            marks: marks
+            marks: marks,
+            image_url: imgUrl || null
           });
           totalMarks += marks;
         }
@@ -4534,17 +4750,23 @@
       // Build the marks entry table FIRST so it's at the top
       let marksEntryHtml = `
         <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner no-print mb-6">
-          <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between cursor-pointer hover:bg-slate-800/80 transition-premium" onclick="document.getElementById('manualMarksWrapper').classList.toggle('hidden'); document.getElementById('marksToggleIcon').innerText = document.getElementById('manualMarksWrapper').classList.contains('hidden') ? 'expand_more' : 'expand_less';">
-            <div class="font-bold text-sm text-slate-400 flex items-center gap-2 tracking-wider uppercase">
-              <span class="material-symbols-rounded text-sm text-emerald-400">edit_document</span> Enter Manual Marks
+          <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between cursor-pointer hover:bg-slate-800/80 transition-premium flex-wrap gap-2.5" onclick="document.getElementById('manualMarksWrapper').classList.toggle('hidden'); document.getElementById('marksToggleIcon').innerText = document.getElementById('manualMarksWrapper').classList.contains('hidden') ? 'expand_more' : 'expand_less';">
+            <div class="font-bold text-sm text-slate-300 flex items-center gap-2 tracking-wider uppercase shrink-0">
+              <span class="material-symbols-rounded text-base text-emerald-400">edit_document</span> Enter Manual Marks
               <span id="marksToggleIcon" class="material-symbols-rounded text-sm text-slate-500">expand_less</span>
             </div>
-            <div class="flex items-center gap-2">
-              <button onclick="event.stopPropagation(); printSummativeReport('${currentSubjectId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer">
-                Print Written Report
+            <div class="flex items-center gap-2 flex-wrap" onclick="event.stopPropagation()">
+              <button type="button" onclick="event.stopPropagation(); document.getElementById('summativeTestSettingSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Jump down to Series Test Question Paper Setting">
+                <span class="material-symbols-rounded text-sm">tune</span> Test Setting ↓
               </button>
-              <button id="btnSaveSummativeMarksTop" onclick="event.stopPropagation(); saveSummativeMarks('${currentSubjectId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
-                <span class="material-symbols-rounded text-sm">save</span> Save Written Marks
+              <button type="button" onclick="event.stopPropagation(); const ow = document.getElementById('onlineTestWrapper'); if(ow){ ow.classList.remove('hidden'); const oi = document.getElementById('onlineTestIcon'); if(oi) oi.innerText = 'expand_less'; ow.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Jump to Online MCQ Tests Setup">
+                <span class="material-symbols-rounded text-sm">devices</span> MCQ Setup ↓
+              </button>
+              <button type="button" onclick="event.stopPropagation(); printSummativeReport('${currentSubjectId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Print Summative Exam Marksheet Report">
+                <span class="material-symbols-rounded text-sm">print</span> Print Report
+              </button>
+              <button type="button" id="btnSaveSummativeMarksTop" onclick="event.stopPropagation(); saveSummativeMarks('${currentSubjectId}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Save Written Test Marks">
+                <span class="material-symbols-rounded text-sm">save</span> Save Marks
               </button>
             </div>
           </div>
@@ -4589,33 +4811,69 @@
           </table>
         </div>
         <!-- Bottom Save Action Bar for Written Marks -->
-        <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+        <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2.5">
           <div class="flex items-center gap-2">
             <span id="summativeSaveStatus" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
               <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
             </span>
           </div>
-          <button id="btnSaveSummativeMarksBottom" onclick="saveSummativeMarks('${currentSubjectId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 shadow">
-            <span class="material-symbols-rounded text-sm">save</span> Save Written Marks
-          </button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="document.getElementById('summativeTestSettingSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Jump down to Series Test Question Paper Setting">
+              <span class="material-symbols-rounded text-sm">tune</span> Test Setting ↓
+            </button>
+            <button type="button" onclick="const ow = document.getElementById('onlineTestWrapper'); if(ow){ ow.classList.remove('hidden'); const oi = document.getElementById('onlineTestIcon'); if(oi) oi.innerText = 'expand_less'; ow.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Jump to Online MCQ Tests Setup">
+              <span class="material-symbols-rounded text-sm">devices</span> MCQ Setup ↓
+            </button>
+            <button type="button" onclick="printSummativeReport('${currentSubjectId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Print Summative Exam Marksheet Report">
+              <span class="material-symbols-rounded text-sm">print</span> Print Report
+            </button>
+            <button type="button" id="btnSaveSummativeMarksBottom" onclick="saveSummativeMarks('${currentSubjectId}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap" title="Save Written Test Marks">
+              <span class="material-symbols-rounded text-sm">save</span> Save Marks
+            </button>
+          </div>
         </div>
       </div>`;
 
       html += marksEntryHtml;
 
+      // Always fallback to standard 4 Course Outcomes (CO1 to CO4) if syllabus COs are not parsed yet
+      let effectiveCos = (cos && Array.isArray(cos) && cos.length > 0) ? cos : [
+        { id: 'CO1', description: 'Understand and explain the fundamental concepts.' },
+        { id: 'CO2', description: 'Apply theoretical principles and methodologies to solve engineering problems.' },
+        { id: 'CO3', description: 'Analyze systems, circuits, or components and evaluate outcomes.' },
+        { id: 'CO4', description: 'Formulate, design, or evaluate integrated engineering solutions.' }
+      ];
+
       html += `
+        <!-- Question Paper Setting & AI Generator Section -->
+        <div id="summativeTestSettingSection" class="mt-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-t border-slate-800/80 pt-6 no-print">
+          <div>
+            <h4 class="text-sm md:text-base font-black text-slate-100 flex items-center gap-2">
+              <span class="material-symbols-rounded text-sky-400">quiz</span>
+              Series / Summative Test Question Paper Setting (CO1 – CO4)
+            </h4>
+            <p class="text-xs text-slate-400 mt-1">Configure exam pattern, generate AI questions or enter custom questions, and print question papers with cognitive level analysis.</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="toggleAllSummativeCards()" class="text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg px-3 py-1.5 transition flex items-center gap-1 cursor-pointer">
+              <span id="toggleAllCardsIcon" class="material-symbols-rounded text-sm">unfold_more</span>
+              <span id="toggleAllCardsText">Expand All Cards</span>
+            </button>
+          </div>
+        </div>
+
         <div id="summativePapersContainer" class="flex flex-col gap-6 mb-6 no-print">
       `;
 
-      if (cos && cos.length > 0) {
-        cos.forEach(co => {
+      effectiveCos.forEach((co, cIdx) => {
           let testData = currentSummativeTests[co.id] || null;
           let generatedContent = '';
           
           if (testData) {
-            let partAStr = testData.part_a ? testData.part_a.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
-            let partBStr = testData.part_b ? testData.part_b.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
-            let partCStr = testData.part_c ? testData.part_c.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
+            const renderQImageThumb = (imgUrl) => imgUrl ? `<div class="mt-1"><img src="${imgUrl}" class="max-h-24 rounded border border-slate-700 object-contain inline-block bg-slate-900/60 p-1"></div>` : '';
+            let partAStr = testData.part_a ? testData.part_a.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q}${renderQImageThumb(q.image_url)} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
+            let partBStr = testData.part_b ? testData.part_b.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q}${renderQImageThumb(q.image_url)} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
+            let partCStr = testData.part_c ? testData.part_c.questions.map(q => `<li class="mb-1.5"><span class="font-mono text-sm text-emerald-400 mr-1">[${q.level}]</span> ${q.q}${renderQImageThumb(q.image_url)} <span class="float-right text-sm text-slate-500">(${q.marks})</span></li>`).join('') : '';
 
             generatedContent = `
               <div class="mt-4 pt-4 border-t border-slate-800/60" id="paper-${co.id}">
@@ -4676,20 +4934,33 @@
             </div>
           `;
 
+          let statusBadge = isLocked 
+            ? `<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[11px] font-bold">Locked</span>` 
+            : (testData 
+                ? `<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[11px] font-bold">Ready (${testData.total_marks || 20}M)</span>` 
+                : `<span class="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[11px] font-bold">Draft</span>`);
+
+          // Expand card if testData exists or if it's the first card (CO1)
+          let shouldExpand = (testData !== null && testData !== undefined) || cIdx === 0;
+
           html += `
             <div id="summ_card_${co.id}" class="bg-slate-900/50 border border-slate-800/60 p-5 rounded-xl relative ${isLocked ? 'ring-1 ring-amber-500/30' : ''}">
               <div class="flex items-center justify-between mb-4 border-b border-slate-800/60 pb-3 cursor-pointer hover:opacity-80 transition-premium" onclick="document.getElementById('co_body_${co.id}').classList.toggle('hidden'); document.getElementById('co_icon_${co.id}').innerText = document.getElementById('co_body_${co.id}').classList.contains('hidden') ? 'expand_more' : 'expand_less';">
-                <h5 class="text-sm font-black text-blue-400 flex items-center gap-1">
-                  <span id="co_icon_${co.id}" class="material-symbols-rounded text-sm text-slate-500">expand_more</span>
-                  ${co.id} Written Test ${lockStr}
-                </h5>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h5 class="text-sm font-black text-blue-400 flex items-center gap-1">
+                    <span id="co_icon_${co.id}" class="material-symbols-rounded text-sm text-slate-500">${shouldExpand ? 'expand_less' : 'expand_more'}</span>
+                    ${co.id} Series Written Test ${lockStr}
+                  </h5>
+                  ${statusBadge}
+                  ${co.description ? `<span class="text-xs text-slate-400 font-normal hidden lg:inline max-w-md truncate">(${co.description})</span>` : ''}
+                </div>
                 <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                   ${dateInputStr}
                   ${lockBtn}
                 </div>
               </div>
  
-              <div id="co_body_${co.id}" class="hidden pt-2">
+              <div id="co_body_${co.id}" class="${shouldExpand ? '' : 'hidden'} pt-2">
  
               <div class="flex items-center gap-4 mb-4 mt-1 text-sm font-bold text-slate-400 bg-slate-950/50 p-2 rounded-lg border border-slate-800/40 w-max">
                  <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-400 transition-premium">
@@ -4743,9 +5014,22 @@
             </div>
           `;
         });
-      }
 
       html += `</div>`;
+
+      setTimeout(() => {
+        if (window.renderMathInElement) {
+          const containerEl = document.getElementById('summativePapersContainer');
+          if (containerEl) {
+            renderMathInElement(containerEl, {
+              delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+              ]
+            });
+          }
+        }
+      }, 100);
 
       // Online MCQ Test Setup (Collapsible)
       let onlineTestHtml = `
@@ -4956,6 +5240,27 @@
 
     let tempSummativePatterns = {};
 
+    window.toggleAllSummativeCards = function() {
+      const bodies = document.querySelectorAll('[id^="co_body_CO"]');
+      if (!bodies || bodies.length === 0) return;
+      const anyHidden = Array.from(bodies).some(b => b.classList.contains('hidden'));
+      bodies.forEach(b => {
+        const coId = b.id.replace('co_body_', '');
+        const icon = document.getElementById(`co_icon_${coId}`);
+        if (anyHidden) {
+          b.classList.remove('hidden');
+          if (icon) icon.innerText = 'expand_less';
+        } else {
+          b.classList.add('hidden');
+          if (icon) icon.innerText = 'expand_more';
+        }
+      });
+      const btnText = document.getElementById('toggleAllCardsText');
+      const btnIcon = document.getElementById('toggleAllCardsIcon');
+      if (btnText) btnText.innerText = anyHidden ? 'Collapse All Cards' : 'Expand All Cards';
+      if (btnIcon) btnIcon.innerText = anyHidden ? 'unfold_less' : 'unfold_more';
+    };
+
     function saveSummativePatterns() {
        document.querySelectorAll('[id^="summ_q_A_"]').forEach(el => {
           let coTag = el.id.replace('summ_q_A_', '');
@@ -5032,19 +5337,38 @@
       
       const buildFields = (count, partName, prefix, savedQuestions) => {
          let fHtml = '';
-         if(count > 0) fHtml += `<div class="font-bold text-slate-400 border-b border-slate-800 pb-1.5">${partName}</div><div class="space-y-3 mt-2">`;
+         if(count > 0) fHtml += `<div class="font-bold text-slate-400 border-b border-slate-800 pb-1.5">${partName}</div><div class="space-y-4 mt-2">`;
          for(let i=0; i<count; i++) {
-            let qText = savedQuestions && savedQuestions[i] ? savedQuestions[i].q : '';
-            let qLvl = savedQuestions && savedQuestions[i] ? savedQuestions[i].level : 'U';
+            let qText = savedQuestions && savedQuestions[i] ? (savedQuestions[i].q || '') : '';
+            let qLvl = savedQuestions && savedQuestions[i] ? (savedQuestions[i].level || 'U') : 'U';
+            let qImg = savedQuestions && savedQuestions[i] ? (savedQuestions[i].image_url || '') : '';
             fHtml += `
-              <div class="flex gap-3 items-start">
-                 <span class="text-slate-500 mt-2 font-mono">${i+1}.</span>
-                 <textarea id="man_q_${prefix}_${coTag}_${i}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 outline-none focus:border-emerald-500 text-sm" rows="2" placeholder="Enter question ${i+1}...">${qText}</textarea>
-                 <select id="man_lvl_${prefix}_${coTag}_${i}" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-sm w-24 outline-none focus:border-emerald-500 mt-0.5">
-                    <option value="U" ${qLvl === 'U' ? 'selected' : ''}>U (Understand)</option>
-                    <option value="R" ${qLvl === 'R' ? 'selected' : ''}>R (Remember)</option>
-                    <option value="A" ${qLvl === 'A' ? 'selected' : ''}>A (Apply)</option>
-                 </select>
+              <div class="p-3 bg-slate-900/40 rounded-xl border border-slate-800/50 space-y-2">
+                 <div class="flex gap-3 items-start">
+                    <span class="text-slate-500 mt-2 font-mono font-bold">${i+1}.</span>
+                    <div class="flex-1 space-y-2">
+                      <textarea id="man_q_${prefix}_${coTag}_${i}" oninput="updateSummativeRowMathPreview('${prefix}', '${coTag}', ${i}, this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 outline-none focus:border-indigo-500 text-sm" rows="2" placeholder="Enter question ${i+1}... (Paste screenshot directly with Ctrl+V)">${qText}</textarea>
+                      <div id="man_math_preview_${prefix}_${coTag}_${i}" class="hidden text-xs text-sky-300 bg-slate-950/80 p-2 rounded-lg border border-slate-800 font-mono"></div>
+                      
+                      <!-- Diagram Attachment Toolbar -->
+                      <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                        <button type="button" onclick="document.getElementById('file_man_img_${prefix}_${coTag}_${i}').click()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                          <span class="material-symbols-rounded text-sm text-indigo-400">image</span> Attach Diagram / Image
+                        </button>
+                        <input type="file" id="file_man_img_${prefix}_${coTag}_${i}" accept="image/*" class="hidden" onchange="handleSummativeQuestionImageUpload(this, '${prefix}', '${coTag}', ${i})">
+                        <input type="hidden" id="man_img_${prefix}_${coTag}_${i}" value="${qImg}">
+                        
+                        <div id="preview_man_img_${prefix}_${coTag}_${i}" class="${qImg ? 'inline-flex' : 'hidden'} items-center gap-2 px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300">
+                          ${qImg ? `<img src="${qImg}" class="w-7 h-7 object-cover rounded border border-slate-700"> <a href="${qImg}" target="_blank" class="text-indigo-400 hover:underline">View</a> <button type="button" onclick="removeSummativeRowImage('${prefix}', '${coTag}', ${i})" class="text-rose-400 hover:text-rose-300 font-bold ml-1 cursor-pointer">✕</button>` : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <select id="man_lvl_${prefix}_${coTag}_${i}" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs font-bold w-28 outline-none focus:border-indigo-500 mt-0.5 shrink-0">
+                       <option value="U" ${qLvl === 'U' ? 'selected' : ''}>U (Understand)</option>
+                       <option value="R" ${qLvl === 'R' ? 'selected' : ''}>R (Remember)</option>
+                       <option value="A" ${qLvl === 'A' ? 'selected' : ''}>A (Apply)</option>
+                    </select>
+                 </div>
               </div>
             `;
          }
@@ -5060,10 +5384,110 @@
       let wrapper = document.getElementById(`manual_form_wrapper_${coTag}`);
       if (wrapper) {
           wrapper.innerHTML = html;
+          // Attach Ctrl+V paste listener to all textareas in this form
+          wrapper.querySelectorAll('textarea[id^="man_q_"]').forEach(ta => {
+            ta.addEventListener('paste', function(e) {
+              const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+              if (!items) return;
+              for (let item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                  e.preventDefault();
+                  const blob = item.getAsFile();
+                  const parts = ta.id.replace('man_q_', '').split('_');
+                  if (parts.length >= 3) {
+                    uploadSummativeQuestionBlob(blob, parts[0], parts[1], parseInt(parts[2]));
+                  }
+                  break;
+                }
+              }
+            });
+          });
       }
       
       const btn = document.getElementById(`gen_btn_${coTag}`);
       if (btn) btn.innerText = 'Save Custom Questions';
+    }
+
+    function handleSummativeQuestionImageUpload(fileInput, prefix, coTag, idx) {
+      if (!fileInput.files || !fileInput.files[0]) return;
+      uploadSummativeQuestionBlob(fileInput.files[0], prefix, coTag, idx);
+    }
+
+    function uploadSummativeQuestionBlob(blob, prefix, coTag, idx) {
+      const prevDiv = document.getElementById(`preview_man_img_${prefix}_${coTag}_${idx}`);
+      if (prevDiv) {
+        prevDiv.classList.remove('hidden');
+        prevDiv.classList.add('inline-flex');
+        prevDiv.innerHTML = `<span class="text-xs text-sky-400 flex items-center gap-1"><span class="w-3 h-3 border border-sky-400 border-t-transparent rounded-full animate-spin"></span> Uploading image...</span>`;
+      }
+
+      const formData = new FormData();
+      formData.append('image', blob);
+
+      fetch(`/api/classroom/${currentSubjectId}/upload-assignment-image`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS' && data.image_url) {
+          const input = document.getElementById(`man_img_${prefix}_${coTag}_${idx}`);
+          if (input) input.value = data.image_url;
+          renderSummativeRowImagePreview(prefix, coTag, idx, data.image_url);
+        } else {
+          alert(data.message || 'Image upload failed.');
+          if (prevDiv) prevDiv.classList.add('hidden');
+        }
+      })
+      .catch(err => {
+        console.error('Image upload error:', err);
+        alert('Image upload failed.');
+        if (prevDiv) prevDiv.classList.add('hidden');
+      });
+    }
+
+    function renderSummativeRowImagePreview(prefix, coTag, idx, url) {
+      const prevDiv = document.getElementById(`preview_man_img_${prefix}_${coTag}_${idx}`);
+      if (!prevDiv) return;
+      prevDiv.classList.remove('hidden');
+      prevDiv.classList.add('inline-flex');
+      prevDiv.innerHTML = `
+        <img src="${url}" class="w-7 h-7 object-cover rounded border border-slate-700 shadow-sm">
+        <a href="${url}" target="_blank" class="text-indigo-400 hover:underline">View</a>
+        <button type="button" onclick="removeSummativeRowImage('${prefix}', '${coTag}', ${idx})" class="text-rose-400 hover:text-rose-300 font-bold ml-1 cursor-pointer">✕</button>
+      `;
+    }
+
+    function removeSummativeRowImage(prefix, coTag, idx) {
+      const input = document.getElementById(`man_img_${prefix}_${coTag}_${idx}`);
+      if (input) input.value = '';
+      const prevDiv = document.getElementById(`preview_man_img_${prefix}_${coTag}_${idx}`);
+      if (prevDiv) {
+        prevDiv.innerHTML = '';
+        prevDiv.classList.add('hidden');
+      }
+    }
+
+    function updateSummativeRowMathPreview(prefix, coTag, idx, text) {
+      const p = document.getElementById(`man_math_preview_${prefix}_${coTag}_${idx}`);
+      if (!p) return;
+      if (text.includes('$') || text.includes('\\(') || text.includes('\\[') || text.includes('^') || text.includes('_')) {
+        p.classList.remove('hidden');
+        p.innerText = text;
+        if (window.renderMathInElement) {
+          renderMathInElement(p, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false }
+            ]
+          });
+        }
+      } else {
+        p.classList.add('hidden');
+      }
     }
 
     function saveManualSummativePaper(subjectId, coTag) {
@@ -5084,14 +5508,17 @@
          for(let i=0; i<count; i++) {
             let elQ = document.getElementById(`man_q_${prefix}_${coTag}_${i}`);
             let elL = document.getElementById(`man_lvl_${prefix}_${coTag}_${i}`);
+            let elImg = document.getElementById(`man_img_${prefix}_${coTag}_${i}`);
             if(elQ) {
                let qVal = elQ.value.trim();
                let oldAns = existingQuestions[i]?.ans || ['Statement / Key point', 'Explanation details'];
+               let imgVal = elImg ? (elImg.value.trim() || null) : (existingQuestions[i]?.image_url || null);
                questions.push({ 
                   q: qVal, 
                   ans: oldAns,
                   level: elL?.value || 'U', 
-                  marks: marks 
+                  marks: marks,
+                  image_url: imgVal
                });
             }
          }
@@ -5699,9 +6126,10 @@
         if (!part || !part.q_count || !part.questions) return '';
         return part.questions.map((q, i) => {
           let bt = (q.level || 'U').toUpperCase()[0];
+          let imgHtml = q.image_url ? `<div style="margin-top:6px; margin-bottom:4px; text-align:center;"><img src="${q.image_url}" style="max-height: 180px; max-width: 95%; border: 1px solid #cbd5e1; padding: 2px; object-fit: contain;" alt="Figure"></div>` : '';
           return `<tr>
             <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; font-weight: bold; vertical-align: top; width: 45px; font-size: 10pt;">${i+1}</td>
-            <td style="border: 1px solid #000; padding: 4px 8px; vertical-align: top; line-height: 1.3; font-size: 10pt;">${q.q}</td>
+            <td style="border: 1px solid #000; padding: 4px 8px; vertical-align: top; line-height: 1.3; font-size: 10pt;">${q.q}${imgHtml}</td>
             <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 50px; font-weight: bold; font-size: 10pt;">${coTag}</td>
             <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 45px; font-weight: bold; font-size: 10pt;">${bt}</td>
             <td style="border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: top; width: 50px; font-weight: bold; font-size: 10pt;">${q.marks || part.marks_per_q}</td>
@@ -5776,6 +6204,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Examination Question Paper - ${seriesTestTitle} - ${subjectCode}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></' + 'script>'}
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: \'$$\', right: \'$$\', display: true},{left: \'$\', right: \'$\', display: false}]});"></' + 'script>'}
   <style>
     @page {
       size: A4 portrait;
@@ -5971,9 +6402,10 @@
             if (lvl === 'R') lvl = 'Remember';
             else if (lvl === 'U') lvl = 'Understand';
             else if (lvl === 'A') lvl = 'Apply';
+            let imgHtml = q.image_url ? `<div style="margin-top:6px; margin-bottom:4px; text-align:center;"><img src="${q.image_url}" style="max-height: 160px; max-width: 95%; border: 1px solid #cbd5e1; padding: 2px; object-fit: contain;" alt="Figure"></div>` : '';
             return `<tr>
               <td style="border: 1px solid #000; padding: 4px; text-align: center; vertical-align: top;">${i+1}</td>
-              <td style="border: 1px solid #000; padding: 4px; vertical-align: top;">${q.q}</td>
+              <td style="border: 1px solid #000; padding: 4px; vertical-align: top;">${q.q}${imgHtml}</td>
               <td style="border: 1px solid #000; padding: 4px; text-align: center; vertical-align: top;">${coTag}</td>
               <td style="border: 1px solid #000; padding: 4px; text-align: center; vertical-align: top;">${lvl}</td>
             </tr>`;
@@ -6225,6 +6657,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Course File Document - ${seriesTestTitle} - ${subjectCode}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></' + 'script>'}
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: \'$$\', right: \'$$\', display: true},{left: \'$\', right: \'$\', display: false}]});"></' + 'script>'}
   <style>
     @page { size: A4 portrait; margin: 10mm 12mm 10mm 12mm; }
     * { box-sizing: border-box; }
@@ -6407,10 +6842,12 @@
             </div>`;
           }
           
+          let imgHtml = q.image_url ? `<div style="margin-top:6px; margin-bottom:6px;"><img src="${q.image_url}" style="max-height: 160px; max-width: 95%; border: 1px solid #cbd5e1; padding: 2px; object-fit: contain;" alt="Figure"></div>` : '';
           return `<tr>
             <td style="width: 40px; text-align: center; vertical-align: top; padding: 10px 5px; border: 1px solid #000; font-weight: bold;">${i+1}</td>
             <td style="vertical-align: top; padding: 10px; border: 1px solid #000;">
               <div style="font-weight: 500; margin-bottom: 6px; font-size: 13px;">${q.q}</div>
+              ${imgHtml}
               ${ansHtml}
               <div style="font-size: 11px; font-weight: bold; color: #555; margin-bottom: 2px; margin-top: 6px;">Marking Scheme / Answer Pointers:</div>
               ${buildRubricHtml(q.rubric, q.marks)}
@@ -6438,17 +6875,17 @@
 
       if (data.part_a && data.part_a.q_count > 0) {
         bodyHtml += `
-          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART A <small style="font-weight:normal; font-size:12px;">(${data.part_a.q_count} Ã ${data.part_a.marks_per_q} = ${data.part_a.total_marks} Marks)</small></h4>
+          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART A <small style="font-weight:normal; font-size:12px;">(${data.part_a.q_count} × ${data.part_a.marks_per_q} = ${data.part_a.total_marks} Marks)</small></h4>
           ${tableHeader}${buildRows(data.part_a)}</tbody></table>`;
       }
       if (data.part_b && data.part_b.q_count > 0) {
         bodyHtml += `
-          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART B <small style="font-weight:normal; font-size:12px;">(${data.part_b.q_count} Ã ${data.part_b.marks_per_q} = ${data.part_b.total_marks} Marks)</small></h4>
+          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART B <small style="font-weight:normal; font-size:12px;">(${data.part_b.q_count} × ${data.part_b.marks_per_q} = ${data.part_b.total_marks} Marks)</small></h4>
           ${tableHeader}${buildRows(data.part_b)}</tbody></table>`;
       }
       if (data.part_c && data.part_c.q_count > 0) {
         bodyHtml += `
-          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART C <small style="font-weight:normal; font-size:12px;">(${data.part_c.q_count} Ã ${data.part_c.marks_per_q} = ${data.part_c.total_marks} Marks)</small></h4>
+          <h4 style="font-weight:bold; margin: 15px 0 8px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block;">PART C <small style="font-weight:normal; font-size:12px;">(${data.part_c.q_count} × ${data.part_c.marks_per_q} = ${data.part_c.total_marks} Marks)</small></h4>
           ${tableHeader}${buildRows(data.part_c)}</tbody></table>`;
       }
 
@@ -6457,6 +6894,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Answer Key - ${coTag}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></' + 'script>'}
+  ${'<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: \'$$\', right: \'$$\', display: true},{left: \'$\', right: \'$\', display: false}]});"></' + 'script>'}
   <style>
     @page { size: A4 portrait; margin: 1.5cm 2cm; }
     * { box-sizing: border-box; }
@@ -6910,10 +7350,22 @@
           case 'final_results':
             url = `/classroom/${subjId}/final-results/print`;
             break;
+          case 'class_roster':
+            url = `/classroom/${subjId}/class-roster/print`;
+            break;
+          case 'class_log':
+            url = `/classroom/${subjId}/class-log/print`;
+            break;
         }
       } else {
         // Practical / Labs
         switch(reportType) {
+          case 'class_roster':
+            url = `/classroom/${subjId}/class-roster/print`;
+            break;
+          case 'class_log':
+            url = `/classroom/${subjId}/class-log/print`;
+            break;
           case 'course_exit':
             url = `/classroom/${subjId}/course-exit/report`;
             break;
@@ -8795,7 +9247,7 @@
             <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
           </td>
           <td class="p-2 text-center">
-            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Attended / ${conductedExps} Conducted (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Done Marked / ${conductedExps} Total Completed (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
           </td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
           <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
@@ -8873,7 +9325,7 @@
             <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded inline-block mt-0.5">${student.sbte_reg_no || student.reg_no}</span>
           </td>
           <td class="p-2.5 text-center">
-            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Attended / ${conductedExps} Conducted (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
+            <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Done Marked / ${conductedExps} Total Completed (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
           </td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
           <td class="p-2.5 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
@@ -9152,7 +9604,9 @@
       }
 
       const totalSyllabus = window.totalSyllabusExps || (labExperimentsData ? labExperimentsData.length : 0);
-      const doneCount = (window.conductedExpsCount !== undefined) ? window.conductedExpsCount : (window.conductedExpsDetails || []).length;
+      const doneCount = (window.conductedExpsCount !== undefined)
+        ? window.conductedExpsCount
+        : (new Set((window.conductedExpsDetails || []).map(x => x.experiment_id || x.experiment_no)).size || (window.conductedExpsDetails || []).length);
       const hoursCount = (window.actualLabHoursConducted !== undefined && window.actualLabHoursConducted > 0)
         ? window.actualLabHoursConducted
         : (doneCount * 3);
@@ -9695,6 +10149,12 @@
         if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
         if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%` + ((student.total_classes !== undefined && student.total_classes > 0) ? ` (${student.present_classes || 0}/${student.total_classes} hrs)` : '');
 
+        const btnPrint = document.getElementById('btnLabModalPrintStudent');
+        if (btnPrint) {
+          const sid = currentSubjectId || window.currentSubjectId;
+          btnPrint.href = `/classroom/practical/${sid}/student/${encodeURIComponent(student.reg_no)}/print`;
+        }
+
         // Set input values safely
         const projectTopic = document.getElementById('labScore_projectTopic');
         const projectMark = document.getElementById('labScore_projectMark');
@@ -9847,7 +10307,9 @@
         }
       });
 
-      const expAvg = gradedExpsCount > 0 ? (totalGradedSum / gradedExpsCount) : 0;
+      const conductedCount = (window.conductedExpsCount !== undefined && window.conductedExpsCount > 0) ? window.conductedExpsCount : (labExperimentsData ? labExperimentsData.length : gradedExpsCount);
+      const totalDivisor = Math.max(conductedCount, gradedExpsCount, 1);
+      const expAvg = totalDivisor > 0 ? (totalGradedSum / totalDivisor) : 0;
       const labelExp = document.getElementById('labModalLabelExp');
       if (labelExp) labelExp.innerText = expAvg.toFixed(2);
       const labelSummaryExp = document.getElementById('labModalLabelExpSummary');
@@ -11144,7 +11606,10 @@
       const tbody = document.getElementById('eseMarksTableBody');
       tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">Loading student records...</td></tr>';
 
-      fetch(`/api/r26/classroom/${currentSubjectId}/ese-marks`)
+      const isR26 = window.currentSyllabusRevision === '2026' || (window.currentVirtualRevision && window.currentVirtualRevision.includes('2026'));
+      const eseApiUrl = isR26 ? `/api/r26/classroom/${currentSubjectId}/ese-marks` : `/api/classroom/${currentSubjectId}/ese-marks`;
+
+      fetch(eseApiUrl)
         .then(res => res.json())
         .then(data => {
           if (data.status !== 'SUCCESS') {
@@ -11153,8 +11618,9 @@
           }
 
           const cfg = data.config || {};
-          document.getElementById('eseEntryMode').value = cfg.entry_mode || 'grades';
-          document.getElementById('eseMaxMarks').value = cfg.max_marks || 60;
+          const defaultMax = isR26 ? 60 : 75;
+          document.getElementById('eseEntryMode').value = cfg.entry_mode || 'dual';
+          document.getElementById('eseMaxMarks').value = cfg.max_marks || defaultMax;
           document.getElementById('eseThresholdPercent').value = cfg.ese_threshold_percent || cfg.target_threshold_percent || 50;
           document.getElementById('eseThresholdGrade').value = cfg.ese_threshold_grade || cfg.target_grade || 'D';
           document.getElementById('cieThresholdPercent').value = cfg.cie_threshold_percent || 50;
@@ -11164,7 +11630,7 @@
           if (document.getElementById('inputLevel2Percent')) document.getElementById('inputLevel2Percent').value = cfg.level2_percent || Math.max(0, targetVal - 10);
           if (document.getElementById('inputLevel1Percent')) document.getElementById('inputLevel1Percent').value = cfg.level1_percent || Math.max(0, targetVal - 20);
 
-          renderEseStudentRows(data.students || [], 'grades', cfg.max_marks || 60);
+          renderEseStudentRows(data.students || [], 'dual', cfg.max_marks || defaultMax);
           updateEseSummaryStats(data.summary);
         })
         .catch(err => {
@@ -11173,6 +11639,49 @@
     }
 
     function toggleEseModeInputs() {
+      recalculateEseStats();
+    }
+
+    function onEseMarkChange(reg) {
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 75);
+      const markInp = document.querySelector(`.ese-mark-input[data-reg="${reg}"]`);
+      const gradeSel = document.querySelector(`.ese-grade-select[data-reg="${reg}"]`);
+      if (!markInp || !gradeSel) return;
+      const rawVal = markInp.value.trim();
+      if (rawVal === '') {
+        gradeSel.value = '';
+      } else {
+        const mark = parseFloat(rawVal);
+        if (!isNaN(mark) && maxMarks > 0) {
+          const pct = (mark / maxMarks) * 100.0;
+          let g = 'F';
+          if (pct >= 90.0) g = 'S';
+          else if (pct >= 80.0) g = 'A';
+          else if (pct >= 70.0) g = 'B';
+          else if (pct >= 60.0) g = 'C';
+          else if (pct >= 50.0) g = 'D';
+          else if (pct >= 40.0) g = 'E';
+          gradeSel.value = g;
+        }
+      }
+      recalculateEseStats();
+    }
+
+    function onEseGradeChange(reg) {
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 75);
+      const markInp = document.querySelector(`.ese-mark-input[data-reg="${reg}"]`);
+      const gradeSel = document.querySelector(`.ese-grade-select[data-reg="${reg}"]`);
+      if (!markInp || !gradeSel) return;
+      const g = gradeSel.value.trim().toUpperCase();
+      if (!g) {
+        markInp.value = '';
+      } else if (g === 'FE' || g === 'F') {
+        markInp.value = '0';
+      } else {
+        const midpoints = { 'S': 0.95, 'A': 0.85, 'B': 0.75, 'C': 0.65, 'D': 0.55, 'E': 0.45 };
+        const ratio = midpoints[g] || 0.45;
+        markInp.value = (ratio * maxMarks).toFixed(1);
+      }
       recalculateEseStats();
     }
 
@@ -11190,17 +11699,23 @@
         const gradeVal = s.ese_grade ? s.ese_grade.trim().toUpperCase() : '';
 
         const inputHtml = `
-          <select data-reg="${reg}" onchange="recalculateEseStats()" class="ese-val-input bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-52 px-2 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer">
-            <option value="" ${!gradeVal ? 'selected' : ''} class="text-slate-500 font-normal">-- Select Grade --</option>
-            <option value="S" ${gradeVal === 'S' ? 'selected' : ''}>S (90%+ Outstanding — 10 GP)</option>
-            <option value="A" ${gradeVal === 'A' ? 'selected' : ''}>A (80%-89% Excellent — 9 GP)</option>
-            <option value="B" ${gradeVal === 'B' ? 'selected' : ''}>B (70%-79% Very Good — 8 GP)</option>
-            <option value="C" ${gradeVal === 'C' ? 'selected' : ''}>C (60%-69% Good — 7 GP)</option>
-            <option value="D" ${gradeVal === 'D' ? 'selected' : ''}>D (50%-59% Average — 6 GP)</option>
-            <option value="E" ${gradeVal === 'E' || gradeVal === 'P' ? 'selected' : ''}>E (40%-49% Pass — 5 GP)</option>
-            <option value="F" ${gradeVal === 'F' ? 'selected' : ''}>F (Below 40% Fail — 0 GP)</option>
-            <option value="FE" ${gradeVal === 'FE' ? 'selected' : ''}>FE (Absent / Expelled — 0 GP)</option>
-          </select>
+          <div class="flex items-center justify-center gap-1.5 flex-nowrap">
+            <div class="flex items-center gap-1">
+              <input type="number" step="0.5" min="0" max="${maxMarks}" placeholder="Marks" data-reg="${reg}" class="ese-mark-input w-20 bg-slate-900 border border-slate-700 text-blue-400 font-mono font-bold text-center px-1.5 py-1 rounded-lg outline-none focus:border-blue-500 text-xs" value="${markVal !== null ? markVal : ''}" oninput="onEseMarkChange('${reg}')">
+              <span class="text-[10px] text-slate-500 font-bold">/${maxMarks}</span>
+            </div>
+            <select data-reg="${reg}" onchange="onEseGradeChange('${reg}')" class="ese-val-input ese-grade-select bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-36 px-1.5 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer text-xs">
+              <option value="" ${!gradeVal ? 'selected' : ''} class="text-slate-500 font-normal">-- Grade --</option>
+              <option value="S" ${gradeVal === 'S' ? 'selected' : ''}>S (90%+ | 10 GP)</option>
+              <option value="A" ${gradeVal === 'A' ? 'selected' : ''}>A (80%-89% | 9 GP)</option>
+              <option value="B" ${gradeVal === 'B' ? 'selected' : ''}>B (70%-79% | 8 GP)</option>
+              <option value="C" ${gradeVal === 'C' ? 'selected' : ''}>C (60%-69% | 7 GP)</option>
+              <option value="D" ${gradeVal === 'D' ? 'selected' : ''}>D (50%-59% | 6 GP)</option>
+              <option value="E" ${gradeVal === 'E' || gradeVal === 'P' ? 'selected' : ''}>E (40%-49% | 5 GP)</option>
+              <option value="F" ${gradeVal === 'F' ? 'selected' : ''}>F (&lt;40% Fail | 0 GP)</option>
+              <option value="FE" ${gradeVal === 'FE' ? 'selected' : ''}>FE (Absent | 0 GP)</option>
+            </select>
+          </div>
         `;
 
         html += `
@@ -11221,8 +11736,7 @@
     }
 
     function recalculateEseStats(fromTarget = false) {
-      const mode = document.getElementById('eseEntryMode').value;
-      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 75);
       const eseThresholdGrade = document.getElementById('eseThresholdGrade').value || 'D';
       const eseTargetPct = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
       const targetStudentPct = parseFloat(document.getElementById('targetStudentPercent').value || 70);
@@ -11247,58 +11761,34 @@
       };
       const minRequiredPoints = SBTE_GRADE_POINTS[eseThresholdGrade] || 6;
 
-      const inputs = document.querySelectorAll('.ese-val-input');
-      const totalStudents = inputs.length;
+      const gradeSelects = document.querySelectorAll('.ese-grade-select');
+      const totalStudents = gradeSelects.length;
       let appeared = 0;
       let metTarget = 0;
 
-      inputs.forEach(inp => {
-        const reg = inp.getAttribute('data-reg');
-        const val = inp.value.trim().toUpperCase();
+      gradeSelects.forEach(sel => {
+        const reg = sel.getAttribute('data-reg');
+        const val = sel.value.trim().toUpperCase();
+        const markInp = document.querySelector(`.ese-mark-input[data-reg="${reg}"]`);
+        const markVal = markInp && markInp.value.trim() !== '' ? parseFloat(markInp.value.trim()) : null;
         const statusCell = document.getElementById(`status_cell_${reg}`);
         
         let isMet = false;
         let isPending = false;
         let isAbsent = false;
 
-        if (mode === 'grades') {
-          if (!val) {
-            isPending = true;
-          } else if (val === 'FE') {
-            isAbsent = true;
-          } else {
-            appeared++;
-            const studentPoints = SBTE_GRADE_POINTS[val] || 0;
-            // Student must pass (points >= 5) AND meet or exceed the configured threshold grade points
-            if (studentPoints >= 5 && studentPoints >= minRequiredPoints) {
-              isMet = true;
-              metTarget++;
-            }
-          }
+        if (!val && markVal === null) {
+          isPending = true;
+        } else if (val === 'FE') {
+          isAbsent = true;
+          appeared++;
         } else {
-          if (!val) {
-            isPending = true;
-          } else {
-            const mark = parseFloat(val);
-            if (!isNaN(mark)) {
-              appeared++;
-              const pct = (mark / (maxMarks > 0 ? maxMarks : 60)) * 100;
-              let markGrade = 'F';
-              if (pct >= 90) markGrade = 'S';
-              else if (pct >= 80) markGrade = 'A';
-              else if (pct >= 70) markGrade = 'B';
-              else if (pct >= 60) markGrade = 'C';
-              else if (pct >= 50) markGrade = 'D';
-              else if (pct >= 40) markGrade = 'E';
-
-              const studentPoints = SBTE_GRADE_POINTS[markGrade] || 0;
-              if ((studentPoints >= 5 && studentPoints >= minRequiredPoints) || pct >= eseTargetPct) {
-                isMet = true;
-                metTarget++;
-              }
-            } else {
-              isPending = true;
-            }
+          appeared++;
+          const studentPoints = SBTE_GRADE_POINTS[val] || 0;
+          const markPct = markVal !== null && maxMarks > 0 ? (markVal / maxMarks) * 100 : 0;
+          if ((studentPoints >= 5 && studentPoints >= minRequiredPoints) || markPct >= eseTargetPct) {
+            isMet = true;
+            metTarget++;
           }
         }
 
@@ -11363,8 +11853,9 @@
     }
 
     function saveEseMarks() {
-      const mode = document.getElementById('eseEntryMode').value;
-      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 60);
+      const isR26 = window.currentSyllabusRevision === '2026' || (window.currentVirtualRevision && window.currentVirtualRevision.includes('2026'));
+      const mode = 'dual';
+      const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || (isR26 ? 60 : 75));
       const eseThresholdGrade = document.getElementById('eseThresholdGrade').value;
       const eseThresholdPercent = parseFloat(document.getElementById('eseThresholdPercent').value || 50);
       const cieThresholdPercent = parseFloat(document.getElementById('cieThresholdPercent').value || 50);
@@ -11373,11 +11864,20 @@
       const level2Percent = parseFloat(document.getElementById('inputLevel2Percent')?.value || Math.max(0, targetStudentPercent - 10));
       const level1Percent = parseFloat(document.getElementById('inputLevel1Percent')?.value || Math.max(0, targetStudentPercent - 20));
 
-      const inputs = document.querySelectorAll('.ese-val-input');
+      const gradeSelects = document.querySelectorAll('.ese-grade-select');
       const marks = {};
-      inputs.forEach(inp => {
-        const reg = inp.getAttribute('data-reg');
-        if (reg) marks[reg] = inp.value;
+      const grades = {};
+      gradeSelects.forEach(sel => {
+        const reg = sel.getAttribute('data-reg');
+        if (reg) {
+          const markInp = document.querySelector(`.ese-mark-input[data-reg="${reg}"]`);
+          if (markInp && markInp.value.trim() !== '') {
+            marks[reg] = markInp.value.trim();
+          }
+          if (sel.value.trim() !== '') {
+            grades[reg] = sel.value.trim();
+          }
+        }
       });
 
       const payload = {
@@ -11390,10 +11890,15 @@
         level3_percent: level3Percent,
         level2_percent: level2Percent,
         level1_percent: level1Percent,
-        marks: marks
+        marks: marks,
+        grades: grades
       };
 
-      fetch(`/api/r26/classroom/${currentSubjectId}/ese-marks/bulk-update`, {
+      const saveEseApiUrl = isR26 
+        ? `/api/r26/classroom/${currentSubjectId}/ese-marks/bulk-update` 
+        : `/api/classroom/${currentSubjectId}/ese-marks/bulk-update`;
+
+      fetch(saveEseApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -11565,7 +12070,7 @@
                   <th class="p-3 w-16">Roll</th>
                   <th class="p-3 w-36">Register No</th>
                   <th class="p-3">Student Name</th>
-                  <th class="p-3 text-center w-44">ESE Score / Grade</th>
+                  <th class="p-3 text-center w-64">ESE Score & SBTE Grade</th>
                   <th class="p-3 text-center w-28">Status</th>
                 </tr>
               </thead>
@@ -11812,9 +12317,15 @@
           <h3 id="labModalStudentName" class="text-lg sm:text-xl font-black text-white uppercase tracking-wide">Student Evaluation</h3>
           <p id="labModalStudentReg" class="text-sm font-bold text-cyan-400 font-mono mt-0.5"></p>
         </div>
-        <button type="button" onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 flex items-center justify-center">
-          <span class="material-symbols-rounded text-2xl">close</span>
-        </button>
+        <div class="flex items-center gap-3">
+          <a id="btnLabModalPrintStudent" href="#" target="_blank" class="px-3.5 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Print Individual Student Practical Evaluation & Attendance Report">
+            <span class="material-symbols-rounded text-base">print</span>
+            <span>Print Student Report</span>
+          </a>
+          <button type="button" onclick="closeStudentLabModal()" class="text-slate-400 hover:text-white transition-premium cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 flex items-center justify-center">
+            <span class="material-symbols-rounded text-2xl">close</span>
+          </button>
+        </div>
       </div>
       <div class="px-6 py-2 bg-slate-900 border-b border-slate-800/50 flex gap-4 text-xs font-bold">
         <button onclick="switchLabModalTab('exp')" id="labTabBtn_exp" class="py-2 border-b-2 border-blue-500 text-blue-400 px-1 transition-premium">Experiments (37.5)</button>

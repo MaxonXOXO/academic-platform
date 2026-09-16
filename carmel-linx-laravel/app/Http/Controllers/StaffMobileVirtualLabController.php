@@ -165,10 +165,12 @@ class StaffMobileVirtualLabController extends Controller
             $presentAtt = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
             $scheduledAtt = isset($studentScheduledSlots[$regNo]) ? count($studentScheduledSlots[$regNo]) : 0;
             $totalForStudent = $scheduledAtt > 0 ? $scheduledAtt : $totalAttClasses;
-            $attPct = $totalForStudent > 0 ? round(($presentAtt / $totalForStudent) * 100, 1) : 100.0;
 
             // Attendance marks out of 15 proportional to attendance % for all percentages (R2021)
-            $calculatedAttMark = $totalForStudent > 0 ? round(($presentAtt / $totalForStudent) * 15, 1) : 15.0;
+            // If no logs exist for this student at all, show 0 — never fake 15 or 100%
+            $hasAttData = $totalForStudent > 0;
+            $attPct = $hasAttData ? round(($presentAtt / $totalForStudent) * 100, 1) : 0.0;
+            $calculatedAttMark = $hasAttData ? round(($presentAtt / $totalForStudent) * 15, 1) : 0.0;
 
             // Allow override from PracticalEvaluation.attendance_marks if set (> 0) by faculty
             $eval = $evaluations->get($regNo);
@@ -227,10 +229,12 @@ class StaffMobileVirtualLabController extends Controller
                 }
             }
 
-            // Lab Work mark = average of graded experiment totals (max 37.5)
-            $avgLabWork = $countGraded > 0 ? round($sumExpTotal / $countGraded, 2) : 0.0;
+            // Lab Work mark = average across conducted/completed experiments (max 37.5)
+            $totalCompletedExps = ($conductedExperimentsCount > 0) ? $conductedExperimentsCount : ($totalExperiments > 0 ? $totalExperiments : 1);
+            $totalDivisor = max($totalCompletedExps, $countGraded, 1);
+            $avgLabWork = round($sumExpTotal / $totalDivisor, 2);
 
-            // ── Test marks ─────────────────────────────────────────────────────
+            // ── Test marks (Max 15) ───────────────────────────────────────────
             $scoreT1 = $t1
                 ? $allTestMarks->where('practical_test_id', $t1->id)->where('reg_no', $regNo)->sum('marks_obtained')
                 : 0.0;
@@ -238,8 +242,8 @@ class StaffMobileVirtualLabController extends Controller
                 ? $allTestMarks->where('practical_test_id', $t2->id)->where('reg_no', $regNo)->sum('marks_obtained')
                 : 0.0;
 
-            $avgTest40     = ($scoreT1 + $scoreT2) / 2;
-            $scaledTests15 = round(($avgTest40 / 40) * 15, 2);
+            $scaledTests15 = round(($scoreT1 + $scoreT2) / 2, 2);
+            $avgTest40     = $scaledTests15;
 
             // ── CIA Total (identical formula to desktop) ───────────────────────
             $totalCIA = round($avgLabWork + $openEndedMarks + $scaledTests15 + $attendanceMarks, 2);

@@ -109,12 +109,159 @@ class AttainmentService
     }
 
     /**
-     * Calculate overall course attainment combining Direct and Indirect (Course Exit Survey).
-     * Standard NBA weights: 80% Direct + 20% Indirect.
+     * Calculate overall course outcome attainment combining Direct & Indirect attainment as per NBA manual.
+     * Standard weights: 80% Direct + 20% Indirect (or configurable).
      */
-    public static function calculateOverallAttainment(float $directLevel, float $indirectLevel, float $wDirect = 0.80, float $wIndirect = 0.20): float
+    public static function calculateOverallAttainment(float|int $directLevel, float|int $indirectLevel, float $wDirect = 0.80, float $wIndirect = 0.20): float
     {
-        return round(($wDirect * $directLevel) + ($wIndirect * $indirectLevel), 2);
+        return round(($wDirect * (float)$directLevel) + ($wIndirect * (float)$indirectLevel), 2);
+    }
+
+    /**
+     * Determine SBTE letter grade from numeric marks and maximum marks.
+     */
+    public static function convertMarksToGrade(float $marks, float $maxMarks = 75.0): string
+    {
+        if ($maxMarks <= 0) return 'F';
+        $pct = ($marks / $maxMarks) * 100.0;
+        return self::percentageToGrade($pct);
+    }
+
+    /**
+     * Convert SBTE letter grade to estimated numeric marks given maximum marks.
+     */
+    public static function convertGradeToMarks(string $grade, float $maxMarks = 75.0): float
+    {
+        return self::gradeToMarks($grade, $maxMarks);
+    }
+
+    /**
+     * Get official default assessment & attainment configuration per subject type and curriculum revision.
+     */
+    public static function getDefaultEseConfig(string $subjectType = 'Theory', string $revision = 'REV2021'): array
+    {
+        $type = strtolower(trim($subjectType));
+        $isR26 = strtoupper(trim($revision)) === 'REV2026';
+
+        if ($isR26) {
+            return [
+                'entry_mode' => 'grades',
+                'max_marks' => 60,
+                'cia_marks' => 60,
+                'ese_threshold_grade' => 'D',
+                'ese_threshold_percent' => 50.0,
+                'cie_threshold_percent' => 50.0,
+                'target_student_percent' => 70.0,
+                'level3_percent' => 70.0,
+                'level2_percent' => 60.0,
+                'level1_percent' => 50.0,
+                'w_cie' => 0.30,
+                'w_ese' => 0.70,
+            ];
+        }
+
+        // Revision 2021 Official Configurations (SBTE Kerala Rules & Regulations)
+        if (str_contains($type, 'practical') || str_contains($type, 'lab')) {
+            return [
+                'entry_mode' => 'dual', // Supports both marks and grades
+                'max_marks' => 50,      // ESE = 50 Marks (Institution Level Exam)
+                'cia_marks' => 75,      // CIA = 75 Marks (Lab Work 37.5 + Tests 15 + Open Ended 7.5 + Att 15)
+                'ese_threshold_grade' => 'D',
+                'ese_threshold_percent' => 50.0,
+                'cie_threshold_percent' => 50.0,
+                'target_student_percent' => 70.0,
+                'level3_percent' => 70.0,
+                'level2_percent' => 60.0,
+                'level1_percent' => 50.0,
+                'w_cie' => 0.30,
+                'w_ese' => 0.70,
+            ];
+        }
+
+        if (str_contains($type, 'seminar')) {
+            return [
+                'entry_mode' => 'marks',
+                'max_marks' => 0,       // No Board ESE for Seminar (Clause 11.2.6)
+                'cia_marks' => 75,      // CIA = 75 Marks
+                'ese_threshold_grade' => 'D',
+                'ese_threshold_percent' => 50.0,
+                'cie_threshold_percent' => 50.0,
+                'target_student_percent' => 70.0,
+                'level3_percent' => 70.0,
+                'level2_percent' => 60.0,
+                'level1_percent' => 50.0,
+                'w_cie' => 1.00,        // 100% CIA-based direct attainment
+                'w_ese' => 0.00,
+            ];
+        }
+
+        if (str_contains($type, 'project')) {
+            return [
+                'entry_mode' => 'dual', // Dual: marks out of 50 or letter grade
+                'max_marks' => 50,      // ESE = 50 Marks (Clause 11.3.4)
+                'cia_marks' => 75,      // CIA = 75 Marks (Clause 11.2.5: Summative 30 + Formative 30 + Att 15)
+                'ese_threshold_grade' => 'D',
+                'ese_threshold_percent' => 50.0,
+                'cie_threshold_percent' => 50.0,
+                'target_student_percent' => 70.0,
+                'level3_percent' => 70.0,
+                'level2_percent' => 60.0,
+                'level1_percent' => 50.0,
+                'w_cie' => 0.30,
+                'w_ese' => 0.70,
+            ];
+        }
+
+        if (str_contains($type, 'drawing')) {
+            return [
+                'entry_mode' => 'dual',
+                'max_marks' => 75,      // ESE = 75 Marks (or 100 as per scheme)
+                'cia_marks' => 50,      // CIA = 50 Marks (Summative 20 + Formative 20 + Att 10)
+                'ese_threshold_grade' => 'D',
+                'ese_threshold_percent' => 50.0,
+                'cie_threshold_percent' => 50.0,
+                'target_student_percent' => 70.0,
+                'level3_percent' => 70.0,
+                'level2_percent' => 60.0,
+                'level1_percent' => 50.0,
+                'w_cie' => 0.30,
+                'w_ese' => 0.70,
+            ];
+        }
+
+        // Standard Theory Course (Revision 2021)
+        return [
+            'entry_mode' => 'dual',     // Dual: SBTE Grade or Raw Mark
+            'max_marks' => 75,          // ESE = 75 Marks (Clause 11.3.2)
+            'cia_marks' => 50,          // CIA = 50 Marks (Summative 20 + Formative 20 + Att 10)
+            'ese_threshold_grade' => 'D',
+            'ese_threshold_percent' => 50.0,
+            'cie_threshold_percent' => 50.0,
+            'target_student_percent' => 70.0,
+            'level3_percent' => 70.0,
+            'level2_percent' => 60.0,
+            'level1_percent' => 50.0,
+            'w_cie' => 0.30,
+            'w_ese' => 0.70,
+        ];
+    }
+
+    /**
+     * Calculate CIA Attainment Level for a student cohort.
+     */
+    public static function calculateCiaAttainmentLevel(array $studentScores, float $maxMarks = 40.0, float $thresholdPct = 50.0, float $lvl3 = 70.0, float $lvl2 = 60.0, float $lvl1 = 50.0): int
+    {
+        if (empty($studentScores) || $maxMarks <= 0) return 0;
+        $metCount = 0;
+        $total = count($studentScores);
+        foreach ($studentScores as $score) {
+            $pct = ((float)$score / $maxMarks) * 100.0;
+            if ($pct >= $thresholdPct) {
+                $metCount++;
+            }
+        }
+        $metPercent = round(($metCount / $total) * 100.0, 1);
+        return self::calculateBatchLevel($metPercent, $lvl3, $lvl2, $lvl1);
     }
 
     /**

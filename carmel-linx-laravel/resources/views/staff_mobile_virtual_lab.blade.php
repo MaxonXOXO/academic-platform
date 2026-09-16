@@ -165,23 +165,28 @@
 
         <!-- TAB 1: LAB WORK EVALUATION -->
         <div id="tab-labwork" class="tab-panel active">
-            <div class="d-flex align-items-center justify-content-between mb-3">
+
+            <!-- Section header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;">
                 <div>
-                    <h6 class="text-white fw-bold mb-0"><i class="fa-solid fa-vials text-info me-1.5"></i>Lab Work Evaluation</h6>
-                    <small class="text-slate-300" style="font-size: 0.74rem; color: #cbd5e1 !important;">Continuous Day-to-Day Practical Marks</small>
+                    <div style="font-size:0.95rem; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:7px;">
+                        <i class="fa-solid fa-vials" style="color:#38bdf8;"></i> Lab Work Evaluation
+                    </div>
+                    <div style="font-size:0.72rem; color:#64748b; font-weight:600; margin-top:2px;">Continuous Day-to-Day Practical Marks</div>
                 </div>
                 @if(count($experiments) > 0)
-                <select id="selectedExpId" class="form-select form-select-sm bg-dark text-white border-secondary font-mono" style="width: auto; font-size: 0.70rem; padding-top: 3px; padding-bottom: 3px;" onchange="changeActiveExp(this.value)">
+                <select id="selectedExpId" onchange="changeActiveExp(this.value)"
+                    style="background:#1e293b; color:#38bdf8; border:1px solid rgba(56,189,248,0.3); border-radius:10px; font-size:0.72rem; font-weight:700; padding:6px 10px; font-family:monospace; outline:none; max-width:160px;">
                     @foreach($experiments as $exp)
-                        <option value="{{ $exp->id }}" style="font-size: 0.70rem;">Exp {{ $exp->experiment_no }}: {{ Str::limit($exp->title, 18) }}</option>
+                        <option value="{{ $exp->id }}">Exp {{ $exp->experiment_no }}: {{ Str::limit($exp->title, 16) }}</option>
                     @endforeach
                 </select>
                 @endif
             </div>
 
             @if(count($experiments) == 0)
-                <div class="alert alert-warning text-center rounded-3 p-3" style="font-size: 0.82rem;">
-                    <i class="fa-solid fa-triangle-exclamation me-1"></i> No experiments configured for this subject yet.
+                <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:16px; text-align:center; font-size:0.82rem; color:#fbbf24;">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>No experiments configured for this subject yet.
                 </div>
             @else
                 <div id="labWorkStudentList">
@@ -192,27 +197,68 @@
                             $expScore = ($expMark && $expMark['total'] !== null) ? $expMark['total'] : 0;
                             $graded = $student['graded_count'] ?? 0;
                             $totalExp = $student['total_exp_count'] ?? count($experiments);
-                            $gradedBadgeClass = $graded === 0 ? 'bg-danger' : ($graded < $totalExp ? 'bg-warning text-dark' : 'bg-success');
+                            $gradePct = $totalExp > 0 ? round(($graded / $totalExp) * 100) : 0;
+                            $accentColor = $graded === 0 ? '#ef4444' : ($graded < $totalExp ? '#f59e0b' : '#10b981');
+                            $scoreColor = $graded === 0 ? '#ef4444' : ($graded < $totalExp ? '#f59e0b' : '#22d3ee');
+                            $statusText = $graded === 0 ? 'Not Graded' : ($graded < $totalExp ? "{$graded}/{$totalExp} Done" : 'Complete');
                         @endphp
-                        <div class="student-card student-row-exp" data-reg="{{ $student['reg_no'] }}">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <div>
-                                    <span class="badge badge-cyan font-mono me-1" style="font-size: 0.68rem;">Roll #{{ $student['roll_no'] ?? '-' }}</span>
+                        <div class="student-row-exp" data-reg="{{ $student['reg_no'] }}" style="
+                            background: linear-gradient(135deg,#0f172a,#111827);
+                            border: 1px solid rgba(255,255,255,0.08);
+                            border-left: 4px solid {{ $accentColor }};
+                            border-radius: 14px;
+                            margin-bottom: 8px;
+                            overflow: hidden;
+                        ">
+                            <!-- Top row: student info + score -->
+                            <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 13px 8px 13px; gap:8px;">
+                                <!-- Left: roll + name + reg -->
+                                <div style="min-width:0; flex:1;">
+                                    <div style="display:flex; align-items:center; gap:7px; margin-bottom:3px;">
+                                        <span style="background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); border-radius:20px; font-size:0.65rem; font-weight:800; padding:1px 8px; font-family:monospace; white-space:nowrap;">Roll #{{ $student['roll_no'] ?? '—' }}</span>
+                                        <span style="background:{{ $graded === 0 ? 'rgba(239,68,68,0.15)' : ($graded < $totalExp ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)') }}; color:{{ $accentColor }}; border:1px solid {{ $graded === 0 ? 'rgba(239,68,68,0.3)' : ($graded < $totalExp ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.3)') }}; border-radius:20px; font-size:0.62rem; font-weight:700; padding:1px 7px;">{{ $statusText }}</span>
+                                    </div>
                                     <button onclick="openStudentDetailMobile('{{ $student['reg_no'] }}')"
-                                        class="text-white fw-bold border-0 bg-transparent p-0 text-decoration-underline" style="font-size: 0.80rem; cursor: pointer;">
+                                        style="background:none; border:none; padding:0; color:#f1f5f9; font-size:0.88rem; font-weight:800; cursor:pointer; text-align:left; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">
                                         {{ $student['name'] }}
                                     </button>
-                                    <small class="d-block text-slate-300 font-mono" style="font-size: 0.68rem; color: #cbd5e1 !important;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</small>
+                                    <div style="font-size:0.68rem; color:#64748b; font-family:monospace; font-weight:600; margin-top:1px;">{{ !empty($student['sbte_reg_no']) ? $student['sbte_reg_no'] : $student['reg_no'] }}</div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="badge {{ $gradedBadgeClass }} font-mono mb-1" style="font-size: 0.65rem;">{{ $graded }} / {{ $totalExp }} Graded</span>
-                                    <span class="d-block font-mono text-cyan fw-bold text-exp-total-{{ $student['reg_no'] }}" style="font-size: 0.85rem; color: #38bdf8 !important;">
-                                        {{ $expScore !== null ? number_format($expScore, 1) : '—' }} / 37.5
-                                    </span>
-                                    <button class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-0.5 mt-1 text-white fw-semibold" style="font-size: 0.70rem;" onclick="openGradingModal('{{ $student['reg_no'] }}')">
-                                        <i class="fa-solid fa-sliders me-1 text-info"></i>Grade
-                                    </button>
+                                <!-- Right: score -->
+                                <div style="text-align:right; flex-shrink:0;">
+                                    <div style="font-size:1.4rem; font-weight:900; color:{{ $scoreColor }}; font-family:monospace; line-height:1; text-exp-total-{{ $student['reg_no'] }}">
+                                        <span class="text-exp-total-{{ $student['reg_no'] }}">{{ number_format($expScore, 1) }}</span>
+                                    </div>
+                                    <div style="font-size:0.65rem; color:#64748b; font-weight:600; font-family:monospace;">/ 37.5</div>
                                 </div>
+                            </div>
+
+                            <!-- Progress strip -->
+                            <div style="height:3px; background:rgba(255,255,255,0.06); margin:0 13px;">
+                                <div style="height:100%; width:{{ $gradePct }}%; background:{{ $accentColor }}; border-radius:99px; transition:width 0.4s;"></div>
+                            </div>
+
+                            <!-- Grade button -->
+                            <div style="padding:8px 13px 10px 13px;">
+                                <button onclick="openGradingModal('{{ $student['reg_no'] }}')"
+                                    style="
+                                        width:100%;
+                                        background: linear-gradient(135deg,#0e7490,#06b6d4);
+                                        color:#fff;
+                                        border:none;
+                                        border-radius:10px;
+                                        font-size:0.8rem;
+                                        font-weight:800;
+                                        padding:9px 0;
+                                        cursor:pointer;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        gap:7px;
+                                        box-shadow:0 2px 8px rgba(6,182,212,0.2);
+                                    ">
+                                    <i class="fa-solid fa-sliders"></i> Grade This Student
+                                </button>
                             </div>
                         </div>
                     @endforeach
@@ -512,79 +558,114 @@
     <!-- Grading Modal (Slide-up Sheet) -->
     <div class="modal fade" id="gradingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-secondary text-white rounded-4 shadow-lg" style="background-color: #0f172a !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;">
-                <div class="modal-header border-secondary py-2.5 px-3" style="border-bottom-color: rgba(255, 255, 255, 0.12) !important;">
-                    <div>
-                        <h6 class="modal-title fw-bold text-white mb-0" id="modalStudentName" style="font-size: 0.95rem;">Student Name</h6>
-                        <small class="text-cyan font-mono fw-semibold" style="font-size: 0.75rem; color: #38bdf8 !important;" id="modalStudentReg">Reg No</small>
+            <div class="modal-content text-white rounded-4 shadow-lg" style="background: linear-gradient(160deg,#0b1120,#0f172a); border: 1px solid rgba(56,189,248,0.2) !important;">
+
+                <!-- Header -->
+                <div class="modal-header py-2 px-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px; flex-wrap:wrap;">
+                            <span style="background:rgba(6,182,212,0.15); color:#22d3ee; border:1px solid rgba(6,182,212,0.3); border-radius:20px; font-size:0.65rem; font-weight:800; padding:1px 8px; font-family:monospace;" id="modalRollBadge">Roll #—</span>
+                            <span style="background:rgba(15,23,42,0.8); color:#94a3b8; border:1px solid rgba(255,255,255,0.1); border-radius:20px; font-size:0.63rem; font-weight:700; padding:1px 7px; font-family:monospace;" id="modalExpBadge">Exp</span>
+                        </div>
+                        <div style="font-size:0.95rem; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="modalStudentName">Student Name</div>
+                        <div style="font-size:0.72rem; font-weight:600; color:#38bdf8; font-family:monospace;" id="modalStudentReg">Reg No</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white ms-2 flex-shrink-0" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-3">
+
+                <!-- Body -->
+                <div class="modal-body p-3" style="padding-top:10px !important;">
                     <input type="hidden" id="modalRegNo">
-                    
-                    <!-- Experiment & Evaluation Date Picker -->
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label text-slate-300 mb-0 fw-bold d-flex align-items-center gap-1.5" style="font-size:0.78rem; color: #cbd5e1 !important;">
-                                <i class="fa-regular fa-calendar-check text-cyan"></i> Experiment / Evaluation Date:
-                            </label>
-                            <span class="badge bg-dark text-cyan font-mono" style="font-size: 0.72rem; color: #38bdf8 !important;" id="modalExpBadge">Exp</span>
-                        </div>
-                        <input type="date" id="modalExpDate" class="form-control form-control-sm bg-dark text-white border-secondary font-mono fw-bold" style="background-color: #020617 !important; color: #ffffff !important; font-size: 0.82rem;" title="Evaluation / Conducted Date">
+
+                    <!-- Evaluation Date -->
+                    <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+                        <label style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">
+                            <i class="fa-regular fa-calendar-check" style="color:#38bdf8; margin-right:5px;"></i>Evaluation Date
+                        </label>
+                        <input type="date" id="modalExpDate" class="form-control form-control-sm font-mono fw-bold"
+                            style="background:#020617; color:#ffffff; border:1px solid rgba(56,189,248,0.25); border-radius:8px; font-size:0.82rem;">
                     </div>
 
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">1. Rough Record</span>
-                            <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_rough">0</span>
+                    <!-- Criteria sliders -->
+                    <!-- 1. Rough Record — teal -->
+                    <div style="background:#0f1f2e; border:1px solid rgba(255,255,255,0.07); border-left:3px solid #06b6d4; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#e2e8f0;">1. Rough Record</span>
+                            <div style="display:flex; align-items:baseline; gap:4px;">
+                                <span style="font-size:1.05rem; font-weight:900; color:#06b6d4; font-family:monospace;" id="val_rough">0</span>
+                                <span style="font-size:0.65rem; color:#64748b; font-weight:600;">/ 5</span>
+                            </div>
                         </div>
-                        <input type="range" min="0" max="5" step="0.5" id="range_rough" value="0" oninput="updateSliderVal('rough', this.value)">
+                        <input type="range" min="0" max="5" step="0.5" id="range_rough" value="0" oninput="updateSliderVal('rough', this.value)" style="accent-color:#06b6d4;">
                     </div>
 
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">2. Fair Record</span>
-                            <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_fair">0</span>
+                    <!-- 2. Fair Record — sky -->
+                    <div style="background:#0f1f2e; border:1px solid rgba(255,255,255,0.07); border-left:3px solid #38bdf8; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#e2e8f0;">2. Fair Record</span>
+                            <div style="display:flex; align-items:baseline; gap:4px;">
+                                <span style="font-size:1.05rem; font-weight:900; color:#38bdf8; font-family:monospace;" id="val_fair">0</span>
+                                <span style="font-size:0.65rem; color:#64748b; font-weight:600;">/ 7.5</span>
+                            </div>
                         </div>
-                        <input type="range" min="0" max="7.5" step="0.5" id="range_fair" value="0" oninput="updateSliderVal('fair', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_fair" value="0" oninput="updateSliderVal('fair', this.value)" style="accent-color:#38bdf8;">
                     </div>
 
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">3. Observation & Prep</span>
-                            <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_obs">0</span>
+                    <!-- 3. Observation & Prep — emerald -->
+                    <div style="background:#0f1f2e; border:1px solid rgba(255,255,255,0.07); border-left:3px solid #10b981; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#e2e8f0;">3. Observation &amp; Prep</span>
+                            <div style="display:flex; align-items:baseline; gap:4px;">
+                                <span style="font-size:1.05rem; font-weight:900; color:#10b981; font-family:monospace;" id="val_obs">0</span>
+                                <span style="font-size:0.65rem; color:#64748b; font-weight:600;">/ 7.5</span>
+                            </div>
                         </div>
-                        <input type="range" min="0" max="7.5" step="0.5" id="range_obs" value="0" oninput="updateSliderVal('obs', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_obs" value="0" oninput="updateSliderVal('obs', this.value)" style="accent-color:#10b981;">
                     </div>
 
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">4. Procedure & Punctuality</span>
-                            <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_proc">0</span>
+                    <!-- 4. Procedure & Punctuality — amber -->
+                    <div style="background:#0f1f2e; border:1px solid rgba(255,255,255,0.07); border-left:3px solid #f59e0b; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#e2e8f0;">4. Procedure &amp; Punctuality</span>
+                            <div style="display:flex; align-items:baseline; gap:4px;">
+                                <span style="font-size:1.05rem; font-weight:900; color:#f59e0b; font-family:monospace;" id="val_proc">0</span>
+                                <span style="font-size:0.65rem; color:#64748b; font-weight:600;">/ 7.5</span>
+                            </div>
                         </div>
-                        <input type="range" min="0" max="7.5" step="0.5" id="range_proc" value="0" oninput="updateSliderVal('proc', this.value)">
+                        <input type="range" min="0" max="7.5" step="0.5" id="range_proc" value="0" oninput="updateSliderVal('proc', this.value)" style="accent-color:#f59e0b;">
                     </div>
 
-                    <div class="mb-2.5 p-2.5 rounded-3" style="background-color: #1e293b !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="text-white fw-semibold" style="font-size: 0.82rem; color: #f8fafc !important;">5. Viva / Output</span>
-                            <span class="badge bg-dark text-cyan font-mono fw-bold fs-6 px-2 py-0.5" style="color: #38bdf8 !important;" id="val_viva">0</span>
+                    <!-- 5. Viva / Output — indigo -->
+                    <div style="background:#0f1f2e; border:1px solid rgba(255,255,255,0.07); border-left:3px solid #6366f1; border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#e2e8f0;">5. Viva / Output</span>
+                            <div style="display:flex; align-items:baseline; gap:4px;">
+                                <span style="font-size:1.05rem; font-weight:900; color:#818cf8; font-family:monospace;" id="val_viva">0</span>
+                                <span style="font-size:0.65rem; color:#64748b; font-weight:600;">/ 10</span>
+                            </div>
                         </div>
-                        <input type="range" min="0" max="10" step="0.5" id="range_viva" value="0" oninput="updateSliderVal('viva', this.value)">
+                        <input type="range" min="0" max="10" step="0.5" id="range_viva" value="0" oninput="updateSliderVal('viva', this.value)" style="accent-color:#6366f1;">
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center p-2.5 rounded-3 mt-3" style="background-color: rgba(6, 182, 212, 0.15) !important; border: 1px solid rgba(6, 182, 212, 0.3) !important;">
-                        <strong class="text-white" style="font-size: 0.9rem;">Total Mark (/37.5):</strong>
-                        <span class="text-cyan font-mono fw-black fs-4" style="color: #38bdf8 !important;" id="modalTotalMark">0.0</span>
+                    <!-- Total -->
+                    <div style="background:linear-gradient(135deg,rgba(6,182,212,0.12),rgba(56,189,248,0.06)); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:0.67rem; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Total Mark</div>
+                            <div style="font-size:0.75rem; color:#94a3b8; font-weight:600;">Out of 37.5</div>
+                        </div>
+                        <span style="font-size:2rem; font-weight:900; color:#22d3ee; font-family:monospace; letter-spacing:-1px; text-shadow:0 0 20px rgba(34,211,238,0.4);" id="modalTotalMark">0.0</span>
                     </div>
                 </div>
-                <div class="modal-footer border-secondary p-2.5 d-flex justify-content-between" style="border-top-color: rgba(255, 255, 255, 0.12) !important;">
-                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="navigateStudentModal(-1)">
+
+                <!-- Footer -->
+                <div class="modal-footer p-2 px-3" style="border-top:1px solid rgba(255,255,255,0.08); gap:8px;">
+                    <button type="button" onclick="navigateStudentModal(-1)"
+                        style="flex:1; background:rgba(255,255,255,0.06); color:#cbd5e1; border:1px solid rgba(255,255,255,0.12); border-radius:10px; font-size:0.78rem; font-weight:700; padding:9px 0; cursor:pointer;">
                         <i class="fa-solid fa-chevron-left me-1"></i>Prev
                     </button>
-                    <button type="button" class="btn btn-sm btn-info text-dark fw-bold rounded-pill px-4" onclick="saveExpMarkModal()">
-                        <i class="fa-solid fa-check me-1"></i>Save & Next
+                    <button type="button" onclick="saveExpMarkModal()"
+                        style="flex:2; background:linear-gradient(135deg,#0891b2,#06b6d4); color:#fff; border:none; border-radius:10px; font-size:0.82rem; font-weight:800; padding:9px 0; cursor:pointer; box-shadow:0 2px 10px rgba(6,182,212,0.3);">
+                        <i class="fa-solid fa-check me-1"></i>Save &amp; Next
                     </button>
                 </div>
             </div>
@@ -638,6 +719,8 @@
             document.getElementById('modalStudentName').innerText = student.name;
             document.getElementById('modalStudentReg').innerText = (student.sbte_reg_no && student.sbte_reg_no.trim() !== '') ? student.sbte_reg_no : student.reg_no;
             document.getElementById('modalRegNo').value = student.reg_no;
+            const rollBadge = document.getElementById('modalRollBadge');
+            if (rollBadge) rollBadge.innerText = `Roll #${student.roll_no || '—'}`;
 
             const expMark = (student.exp_marks && activeExpId) ? student.exp_marks[activeExpId] : null;
 

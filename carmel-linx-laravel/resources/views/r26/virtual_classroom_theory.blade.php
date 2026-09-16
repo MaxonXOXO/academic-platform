@@ -8,7 +8,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- Google Icons & Fonts -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   
   <style>
     body {
@@ -2155,6 +2158,26 @@
       ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
         validateConfigSum(co);
       });
+
+      // Assignment modal image paste listener
+      const qTa = document.getElementById('modal-q-text');
+      if (qTa) {
+        qTa.addEventListener('paste', function(e) {
+          const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || {}).items;
+          if (items) {
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type && items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const file = items[i].getAsFile();
+                if (file) {
+                  uploadR26QuestionImageBlob(file);
+                }
+                break;
+              }
+            }
+          }
+        });
+      }
     });
 
     function toggleSidebarWideMode() {
@@ -2254,9 +2277,19 @@
       modalQuestionsList.forEach((q, idx) => {
         const tr = document.createElement('tr');
         tr.className = "bg-slate-900/10 hover:bg-slate-900/40 border-b border-slate-800 transition-all font-normal text-slate-200";
+        let imgHtml = q.image_url ? `
+          <div class="mt-2 mb-1">
+            <a href="${q.image_url}" target="_blank" class="inline-block group/img" title="Click to view diagram">
+              <img src="${q.image_url}" alt="Diagram" class="max-h-24 rounded border border-slate-700 bg-slate-950 p-1 object-contain shadow-sm hover:border-indigo-500">
+              <span class="text-[10px] text-indigo-400 block mt-0.5">View Diagram</span>
+            </a>
+          </div>` : '';
         tr.innerHTML = `
           <td class="p-2.5 font-mono text-center text-slate-350">${idx + 1}</td>
-          <td class="p-2.5 text-slate-100 font-medium leading-relaxed text-left text-base">${q.question}</td>
+          <td class="p-2.5 text-slate-100 font-medium leading-relaxed text-left text-sm">
+            <div>${q.question}</div>
+            ${imgHtml}
+          </td>
           <td class="p-2.5 text-center text-slate-200 font-medium">${q.bt_level}</td>
           <td class="p-2.5 text-center font-mono text-emerald-450 font-bold">${q.marks}M</td>
           <td class="p-2.5 text-slate-350 font-normal leading-relaxed text-left">${q.scheme || '—'}</td>
@@ -2270,6 +2303,13 @@
         `;
         container.appendChild(tr);
       });
+
+      if (window.renderMathInElement) {
+        renderMathInElement(container, {
+          delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
+          throwOnError: false
+        });
+      }
     }
 
     function addQuestionToModalList() {
@@ -2277,9 +2317,11 @@
       const marks = parseFloat(document.getElementById('modal-q-marks').value) || 5;
       const bt = document.getElementById('modal-q-bt').value;
       const scheme = document.getElementById('modal-q-scheme').value.trim();
+      const imgInput = document.getElementById('modal-q-image-url');
+      const imageUrl = imgInput ? imgInput.value.trim() : '';
       
-      if (!text) {
-        alert("Please enter question text.");
+      if (!text && !imageUrl) {
+        alert("Please enter question text or attach a diagram.");
         return;
       }
       
@@ -2287,7 +2329,8 @@
         question: text,
         marks: marks,
         bt_level: bt,
-        scheme: scheme
+        scheme: scheme,
+        image_url: imageUrl || null
       });
       
       renderModalQuestionsList();
@@ -2295,11 +2338,113 @@
       // Clear inputs
       document.getElementById('modal-q-text').value = '';
       document.getElementById('modal-q-scheme').value = '';
+      if (imgInput) imgInput.value = '';
+      const preview = document.getElementById('modal-q-image-preview');
+      if (preview) {
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+      }
+      const mathPrev = document.getElementById('modal-q-math-preview');
+      if (mathPrev) mathPrev.classList.add('hidden');
     }
 
     function deleteModalQuestion(idx) {
       modalQuestionsList.splice(idx, 1);
       renderModalQuestionsList();
+    }
+
+    function handleR26QuestionImageUpload(fileInput) {
+      if (fileInput.files && fileInput.files[0]) {
+        uploadR26QuestionImageBlob(fileInput.files[0]);
+        fileInput.value = '';
+      }
+    }
+
+    function uploadR26QuestionImageBlob(file) {
+      if (!file) return;
+      const preview = document.getElementById('modal-q-image-preview');
+      if (preview) {
+        preview.classList.remove('hidden');
+        preview.innerHTML = `<div class="text-xs text-indigo-400 flex items-center gap-1.5 py-1 font-bold animate-pulse"><div class="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div> Uploading diagram...</div>`;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch(`/api/classroom/{{ $batchSubject->id }}/upload-assignment-image`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS' && data.image_url) {
+          document.getElementById('modal-q-image-url').value = data.image_url;
+          renderR26ImagePreview(data.image_url);
+        } else {
+          alert(data.message || 'Image upload failed.');
+          if (preview) preview.classList.add('hidden');
+        }
+      })
+      .catch(err => {
+        alert('Failed to upload image: ' + err.message);
+        if (preview) preview.classList.add('hidden');
+      });
+    }
+
+    function renderR26ImagePreview(imageUrl) {
+      const preview = document.getElementById('modal-q-image-preview');
+      if (!preview) return;
+      if (!imageUrl) {
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+        return;
+      }
+      preview.classList.remove('hidden');
+      preview.innerHTML = `
+        <div class="relative inline-block mt-2">
+          <img src="${imageUrl}" alt="Attached Diagram" class="max-h-28 rounded-lg border border-slate-700 bg-slate-900 object-contain p-1 shadow-md">
+          <button type="button" onclick="removeR26Image()" class="absolute -top-2 -right-2 w-5 h-5 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center shadow transition-all cursor-pointer" title="Remove Diagram">
+            <span class="material-symbols-rounded text-xs">close</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function removeR26Image() {
+      document.getElementById('modal-q-image-url').value = '';
+      const preview = document.getElementById('modal-q-image-preview');
+      if (preview) {
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+      }
+    }
+
+    function updateR26MathPreview(textarea) {
+      const preview = document.getElementById('modal-q-math-preview');
+      const text = textarea.value || '';
+      if (!preview) return;
+
+      if (text.includes('$')) {
+        preview.classList.remove('hidden');
+        const renderEl = document.getElementById('modal-q-math-render');
+        if (renderEl) {
+          renderEl.textContent = text;
+          if (window.renderMathInElement) {
+            renderMathInElement(renderEl, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              throwOnError: false
+            });
+          }
+        }
+      } else {
+        preview.classList.add('hidden');
+      }
     }
 
     function autoGenerateFromBank() {
@@ -2416,8 +2561,37 @@
         <h4 class="font-bold text-title text-xs uppercase tracking-wider">Add/Edit Question</h4>
         <div class="space-y-4">
           <div>
-            <label class="block text-xs text-slate-400 mb-1.5 font-bold">Question Description:</label>
-            <textarea id="modal-q-text" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:border-indigo-500 outline-none font-normal" placeholder="Type assignment question description here..."></textarea>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-xs text-slate-300 font-bold">Question Description:</label>
+              <span class="text-[10px] text-indigo-400 font-mono bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">LaTeX Math ($...$) Enabled</span>
+            </div>
+            <textarea id="modal-q-text" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:border-indigo-500 outline-none font-normal" placeholder="Type assignment question description (supports LaTeX formulas like $V=IR$ or $$\frac{a}{b}$$, Unicode symbols, and Ctrl+V image paste)..." oninput="updateR26MathPreview(this)"></textarea>
+          </div>
+
+          <!-- Live Math Expression Preview -->
+          <div id="modal-q-math-preview" class="hidden p-2.5 bg-slate-900 border border-indigo-500/30 rounded-lg text-slate-200 text-xs">
+            <div class="text-[10px] font-bold uppercase text-indigo-400 mb-1 flex items-center gap-1">
+              <span class="material-symbols-rounded text-xs">functions</span> Math Preview:
+            </div>
+            <div id="modal-q-math-render" class="leading-relaxed overflow-x-auto text-slate-100"></div>
+          </div>
+
+          <!-- Diagram Attachment Section -->
+          <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <input type="file" id="modal-q-image-file" accept="image/*" class="hidden" onchange="handleR26QuestionImageUpload(this)">
+                <button type="button" onclick="document.getElementById('modal-q-image-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs font-bold border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <span class="material-symbols-rounded text-sm">add_photo_alternate</span>
+                  <span>Attach Diagram / Image</span>
+                </button>
+                <span class="text-[11px] text-slate-400">or press <strong>Ctrl+V</strong> in the box to paste screenshot</span>
+              </div>
+              <input type="hidden" id="modal-q-image-url" value="">
+            </div>
+
+            <!-- Preview box for attached diagram -->
+            <div id="modal-q-image-preview" class="hidden mt-2"></div>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2556,7 +2730,7 @@
           <!-- Inline Form -->
           <div class="grid grid-cols-1 gap-2 pt-2 border-t border-slate-800" id="editor-PartA">
             <div class="flex flex-col md:flex-row gap-2">
-              <input type="text" id="series-q-text-PartA" placeholder="Enter Part A Question Description..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
+              <input type="text" id="series-q-text-PartA" placeholder="Enter Part A Question (Ctrl+V to paste diagram)..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
               <select id="series-q-co-PartA" class="w-24 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-indigo-500">
                 <!-- Populated dynamically -->
               </select>
@@ -2568,10 +2742,16 @@
                 <option value="Evaluate">Evaluate</option>
               </select>
               <div class="flex gap-1.5">
+                <input type="file" id="series-q-image-file-PartA" accept="image/*" class="hidden" onchange="handleSeriesQuestionImageUpload('Part A', this)">
+                <input type="hidden" id="series-q-image-url-PartA" value="">
+                <button type="button" onclick="document.getElementById('series-q-image-file-PartA').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
+                </button>
                 <button type="button" onclick="autoGenPartQuestion('Part A')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part A')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
               </div>
             </div>
+            <div id="series-q-image-preview-PartA" class="hidden"></div>
           </div>
         </div>
 
@@ -2604,7 +2784,7 @@
           <!-- Inline Form -->
           <div class="grid grid-cols-1 gap-2 pt-2 border-t border-slate-800" id="editor-PartB">
             <div class="flex flex-col md:flex-row gap-2">
-              <input type="text" id="series-q-text-PartB" placeholder="Enter Part B Question Description..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
+              <input type="text" id="series-q-text-PartB" placeholder="Enter Part B Question (Ctrl+V to paste diagram)..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
               <select id="series-q-co-PartB" class="w-24 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-indigo-500">
                 <!-- Populated dynamically -->
               </select>
@@ -2616,10 +2796,16 @@
                 <option value="Evaluate">Evaluate</option>
               </select>
               <div class="flex gap-1.5">
+                <input type="file" id="series-q-image-file-PartB" accept="image/*" class="hidden" onchange="handleSeriesQuestionImageUpload('Part B', this)">
+                <input type="hidden" id="series-q-image-url-PartB" value="">
+                <button type="button" onclick="document.getElementById('series-q-image-file-PartB').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
+                </button>
                 <button type="button" onclick="autoGenPartQuestion('Part B')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part B')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
               </div>
             </div>
+            <div id="series-q-image-preview-PartB" class="hidden"></div>
           </div>
         </div>
 
@@ -2652,7 +2838,7 @@
           <!-- Inline Form -->
           <div class="grid grid-cols-1 gap-2 pt-2 border-t border-slate-800" id="editor-PartC">
             <div class="flex flex-col md:flex-row gap-2">
-              <input type="text" id="series-q-text-PartC" placeholder="Enter Part C Question Description..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
+              <input type="text" id="series-q-text-PartC" placeholder="Enter Part C Question (Ctrl+V to paste diagram)..." class="flex-1 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500">
               <select id="series-q-co-PartC" class="w-24 bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-indigo-500">
                 <!-- Populated dynamically -->
               </select>
@@ -2664,10 +2850,16 @@
                 <option value="Evaluate">Evaluate</option>
               </select>
               <div class="flex gap-1.5">
+                <input type="file" id="series-q-image-file-PartC" accept="image/*" class="hidden" onchange="handleSeriesQuestionImageUpload('Part C', this)">
+                <input type="hidden" id="series-q-image-url-PartC" value="">
+                <button type="button" onclick="document.getElementById('series-q-image-file-PartC').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
+                </button>
                 <button type="button" onclick="autoGenPartQuestion('Part C')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part C')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
               </div>
             </div>
+            <div id="series-q-image-preview-PartC" class="hidden"></div>
           </div>
         </div>
 
@@ -2783,9 +2975,108 @@
       const isLocked = !!(examRecord && examRecord.locked);
       applySeriesLockState(isLocked);
 
+      // Reset image attachment fields
+      ['Part A', 'Part B', 'Part C'].forEach(partName => removeSeriesImage(partName));
+
+      // Setup paste listener for diagram screenshot paste
+      setupSeriesPasteListeners();
+
       renderSeriesQuestionsList();
 
       document.getElementById('series-modal').classList.remove('hidden');
+    }
+
+    let seriesPasteListenersInitialized = false;
+    function setupSeriesPasteListeners() {
+      if (seriesPasteListenersInitialized) return;
+      ['PartA', 'PartB', 'PartC'].forEach(pKey => {
+        const partName = pKey === 'PartA' ? 'Part A' : (pKey === 'PartB' ? 'Part B' : 'Part C');
+        const inputEl = document.getElementById('series-q-text-' + pKey);
+        if (inputEl) {
+          inputEl.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.indexOf('image') !== -1) {
+                const blob = items[i].getAsFile();
+                uploadSeriesQuestionImageBlob(partName, blob);
+                break;
+              }
+            }
+          });
+        }
+      });
+      seriesPasteListenersInitialized = true;
+    }
+
+    function handleSeriesQuestionImageUpload(partName, input) {
+      if (input.files && input.files[0]) {
+        uploadSeriesQuestionImageBlob(partName, input.files[0]);
+      }
+    }
+
+    function uploadSeriesQuestionImageBlob(partName, file) {
+      if (!file) return;
+      const pKey = partName.replace(' ', '');
+      const preview = document.getElementById('series-q-image-preview-' + pKey);
+      if (preview) {
+        preview.classList.remove('hidden');
+        preview.innerHTML = `<div class="text-xs text-indigo-400 flex items-center gap-1.5 py-1 font-bold animate-pulse"><div class="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div> Uploading diagram...</div>`;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch(`/api/classroom/{{ $batchSubject->id }}/upload-assignment-image`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS' && data.image_url) {
+          const urlInput = document.getElementById('series-q-image-url-' + pKey);
+          if (urlInput) urlInput.value = data.image_url;
+          renderSeriesImagePreview(partName, data.image_url);
+        } else {
+          alert(data.message || 'Image upload failed.');
+          if (preview) preview.classList.add('hidden');
+        }
+      })
+      .catch(err => {
+        alert('Failed to upload diagram: ' + err.message);
+        if (preview) preview.classList.add('hidden');
+      });
+    }
+
+    function renderSeriesImagePreview(partName, imageUrl) {
+      const pKey = partName.replace(' ', '');
+      const preview = document.getElementById('series-q-image-preview-' + pKey);
+      if (!preview) return;
+      if (!imageUrl) {
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+        return;
+      }
+      preview.classList.remove('hidden');
+      preview.innerHTML = `
+        <div class="relative inline-block mt-1">
+          <img src="${imageUrl}" alt="Attached Diagram" class="max-h-20 rounded border border-slate-700 bg-slate-900 object-contain p-1 shadow-md">
+          <button type="button" onclick="removeSeriesImage('${partName}')" class="absolute -top-2 -right-2 w-4.5 h-4.5 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center shadow transition-all cursor-pointer" title="Remove Diagram">
+            <span class="material-symbols-rounded text-xs">close</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function removeSeriesImage(partName) {
+      const pKey = partName.replace(' ', '');
+      const urlInput = document.getElementById('series-q-image-url-' + pKey);
+      if (urlInput) urlInput.value = '';
+      const fileInput = document.getElementById('series-q-image-file-' + pKey);
+      if (fileInput) fileInput.value = '';
+      renderSeriesImagePreview(partName, '');
     }
 
     function closeSeriesModal() {
@@ -2809,17 +3100,15 @@
       });
 
       if (isLocked) {
-        btnLock.disabled = true;
-        btnLock.innerHTML = `<span class="material-symbols-rounded text-xs">lock</span> Locked`;
-        btnLock.className = "px-3 py-1.5 bg-emerald-600/10 text-emerald-550 border border-emerald-500/20 rounded text-xs font-medium cursor-not-allowed border-0";
+        btnLock.innerHTML = `<span class="material-symbols-rounded text-xs">lock_open</span> Unlock`;
+        btnLock.className = "px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-medium transition-all cursor-pointer border-0 shadow-sm";
         if (btnSave) btnSave.classList.add('hidden');
         if (lockBadge) {
           lockBadge.classList.remove('hidden');
           lockBadge.style.display = 'inline-flex';
         }
       } else {
-        btnLock.disabled = false;
-        btnLock.innerHTML = `<span class="material-symbols-rounded text-xs">lock</span> Lock & Notify`;
+        btnLock.innerHTML = `<span class="material-symbols-rounded text-xs">lock</span> Lock Paper`;
         btnLock.className = "px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-medium transition-all cursor-pointer border-0 shadow-sm";
         if (btnSave) btnSave.classList.remove('hidden');
         if (lockBadge) {
@@ -2851,13 +3140,23 @@
         list.forEach((q, idx) => {
           const tr = document.createElement('tr');
           tr.className = "bg-slate-900/10 hover:bg-slate-900/40 border-b border-slate-800 transition-all font-normal text-slate-200";
+          const imgThumb = q.image_url ? `
+            <div class="mt-1.5">
+              <a href="${q.image_url}" target="_blank" class="inline-block" title="Click to view full diagram">
+                <img src="${q.image_url}" class="max-h-16 rounded border border-slate-700 bg-slate-950 p-1 hover:border-indigo-400 transition-all object-contain">
+              </a>
+            </div>` : '';
+
           tr.innerHTML = `
-            <td class="p-2 font-mono text-center text-slate-350">${idx + 1}</td>
-            <td class="p-2 text-slate-100 font-medium leading-relaxed text-left text-base">${q.question}</td>
-            <td class="p-2 text-center text-slate-200 font-medium series-co-cell" ${isSingle ? 'style="display:none;"' : ''}>${q.co_tag}</td>
-            <td class="p-2 text-center text-slate-200 font-medium">${q.bt_level}</td>
-            <td class="p-2 text-center font-mono text-emerald-450 font-bold">${q.marks}M</td>
-            <td class="p-2 text-center">
+            <td class="p-2 font-mono text-center text-slate-350 align-top">${idx + 1}</td>
+            <td class="p-2 text-slate-100 font-medium leading-relaxed text-left text-base">
+              ${q.question}
+              ${imgThumb}
+            </td>
+            <td class="p-2 text-center text-slate-200 font-medium series-co-cell align-top" ${isSingle ? 'style="display:none;"' : ''}>${q.co_tag}</td>
+            <td class="p-2 text-center text-slate-200 font-medium align-top">${q.bt_level}</td>
+            <td class="p-2 text-center font-mono text-emerald-450 font-bold align-top">${q.marks}M</td>
+            <td class="p-2 text-center align-top">
               ${isLocked ? `<span class="text-slate-400 font-bold text-xs">Locked</span>` : `
               <button type="button" onclick="deleteSeriesQuestionDirect('${partName}', ${idx})" class="text-rose-500 hover:text-rose-600 cursor-pointer border-0 bg-transparent">
                 <span class="material-symbols-rounded text-sm">delete</span>
@@ -2876,6 +3175,7 @@
       const coSelect = document.getElementById('series-q-co-' + key);
       const co = (coSelect && coSelect.style.display !== 'none' && coSelect.value) ? coSelect.value : (activeExamCoTags[0] || 'CO1');
       const bt = document.getElementById('series-q-bt-' + key).value;
+      const imageUrl = document.getElementById('series-q-image-url-' + key)?.value || '';
       
       const examRecord = dbSeriesExams.find(ex => ex.id === activeSeriesExamId);
       const isSingle = examRecord ? (examRecord.mode === 'single_co') : false;
@@ -2901,23 +3201,25 @@
       if (partName === 'Part B') marks = 3;
       else if (partName === 'Part C') marks = 7;
 
-      if (!text) {
-        alert("Please enter a question description.");
+      if (!text && !imageUrl) {
+        alert("Please enter a question description or attach a diagram.");
         return;
       }
 
       seriesQuestionsList[partName].push({
-        question: text,
+        question: text || '[Refer to attached diagram]',
         marks: marks,
         co_tag: co,
         bt_level: bt,
-        scheme: ''
+        scheme: '',
+        image_url: imageUrl
       });
 
       renderSeriesQuestionsList();
 
       // Clear inputs
       document.getElementById('series-q-text-' + key).value = '';
+      removeSeriesImage(partName);
     }
 
     function deleteSeriesQuestionDirect(partName, idx) {

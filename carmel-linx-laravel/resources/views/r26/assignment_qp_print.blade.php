@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assignment Question Paper - {{ $coTag }}</title>
+    <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false });"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -213,7 +217,15 @@
                 @forelse($questions as $idx => $q)
                     <tr>
                         <td class="text-center">{{ $idx + 1 }}</td>
-                        <td class="text-left">{{ $q['question'] }}</td>
+                        <td class="text-left" style="line-height: 1.5;">
+                            <div>{!! nl2br(e($q['question'])) !!}</div>
+                            @if(!empty($q['image_url']))
+                                <div style="margin-top: 10px; text-align: center;">
+                                    <img src="{{ asset($q['image_url']) }}" alt="Figure for Q. {{ $idx + 1 }}" style="max-width: 85%; max-height: 240px; object-fit: contain; border: 1px solid #ccc; padding: 4px; background: #fff; border-radius: 4px; display: inline-block;">
+                                    <div style="font-size: 11px; font-style: italic; color: #444; margin-top: 3px;">Figure for Q. {{ $idx + 1 }}</div>
+                                </div>
+                            @endif
+                        </td>
                         <td class="text-center">{{ $q['bt_level'] ?? 'Understand' }}</td>
                         <td class="text-center">{{ $q['marks'] ?? 5 }}M</td>
                     </tr>

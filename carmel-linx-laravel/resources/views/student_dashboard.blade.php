@@ -8,6 +8,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <style>
     @media (max-width: 1440px) {
       html, body {
@@ -1224,9 +1228,20 @@
           let hasQuestions = t.questions && t.questions.length > 0;
           if (hasQuestions) {
             qQuestionsList = `<div class="mt-2 p-3 bg-slate-950/70 border border-slate-800 rounded-xl hidden" id="taskQ_${index}">
-              <h4 class="text-xs uppercase font-black text-slate-400 mb-1.5">Assignment Questions</h4>
-              <ul class="space-y-1 text-xs text-slate-300 font-medium list-disc pl-4">
-                ${t.questions.map(q => `<li>${q}</li>`).join('')}
+              <h4 class="text-xs uppercase font-black text-slate-400 mb-2">Assignment Questions</h4>
+              <ul class="space-y-2 text-xs text-slate-300 font-medium list-disc pl-4">
+                ${t.questions.map(q => {
+                  let text = typeof q === 'object' ? (q.question || '') : q;
+                  let marks = (typeof q === 'object' && q.marks) ? ` <span class="text-blue-400 font-bold">(${q.marks} Marks)</span>` : '';
+                  let img = (typeof q === 'object' && q.image_url) ? `
+                    <div class="mt-2 mb-1">
+                      <a href="${q.image_url}" target="_blank" class="inline-block group/img">
+                        <img src="${q.image_url}" alt="Question Diagram" class="max-h-48 rounded-lg border border-slate-700 bg-slate-900 object-contain p-1 shadow">
+                        <span class="text-[10px] text-blue-400 block mt-0.5 group-hover/img:underline">Click to view full diagram</span>
+                      </a>
+                    </div>` : '';
+                  return `<li class="leading-relaxed mb-2.5"><div>${text}${marks}</div>${img}</li>`;
+                }).join('')}
               </ul>
             </div>`;
           }
@@ -1266,6 +1281,15 @@
           `;
         });
         tasksContainer.innerHTML = tasksHtml;
+        if (window.renderMathInElement) {
+          renderMathInElement(tasksContainer, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        }
         assignmentsSection.classList.remove('hidden');
       } else {
         tasksContainer.innerHTML = '';

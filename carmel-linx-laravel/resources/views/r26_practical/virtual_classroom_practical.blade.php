@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 
     <style>
         :root {
@@ -349,10 +350,10 @@
         <!-- Row 1: Badge · Subject Name · Actions · Back Button -->
         <div class="row1">
             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                <div style="display:inline-flex;align-items:center;gap:6px;font-weight:800;color:#ffffff;font-size:15px;letter-spacing:-.01em;flex-shrink:0;">
-                    <i class="fa-solid fa-graduation-cap" style="color:#38bdf8;font-size:16px;"></i>
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" style="display:inline-flex;align-items:center;gap:6px;font-weight:800;color:#ffffff;font-size:15px;letter-spacing:-.01em;flex-shrink:0;text-decoration:none;" title="Return to Dashboard">
+                    <span class="material-symbols-rounded" style="color:#38bdf8;font-size:20px;">school</span>
                     <span>Carmel Linx</span>
-                </div>
+                </a>
                 <span style="color:#475569;font-weight:700;">|</span>
                 <span class="vl-badge vl-badge-blue" style="font-size:13.5px;font-weight:800;letter-spacing:.06em;padding:5px 12px;border-radius:7px;">
                     <i class="fa-solid fa-flask-vial" style="font-size:14px;"></i> VIRTUAL LAB · {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}

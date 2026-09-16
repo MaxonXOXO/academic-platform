@@ -7,6 +7,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
@@ -72,13 +73,15 @@
     <!-- TOP NAVIGATION & HEADER -->
     <div class="glass-card rounded-2xl p-4 md:p-5 flex flex-wrap justify-between items-center gap-4 shadow-xl border border-slate-800/80">
       <div class="flex items-center space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold shadow-inner">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
+        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}" class="flex items-center gap-2 shrink-0 no-underline text-white group" title="Return to Practicum Virtual Classroom">
+          <span class="material-symbols-rounded text-sky-400 text-xl group-hover:scale-105 transition-transform">school</span>
+          <span class="font-extrabold text-white text-base tracking-tight group-hover:text-sky-300 transition-colors">Carmel Linx</span>
+          <span class="text-slate-600 font-bold">|</span>
+        </a>
         <div>
           <div class="flex items-center space-x-2">
-            <span class="font-bold text-white text-base">Carmel Linx</span>
             <span class="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[11px] font-bold tracking-wide">R2026 PRACTICUM</span>
+            <span class="font-bold text-white text-sm">{{ $batchSubject->subject_name }}</span>
           </div>
           <p class="text-xs text-slate-400 font-medium tracking-wide">NBA Audit Preparation & Course File Catalog Console</p>
         </div>

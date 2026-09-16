@@ -352,9 +352,9 @@ class R26VirtualClassroomPracticumController extends Controller
             $maxCourseMarks = 40 + $maxEse; // 140 or 100
 
             // Pass Criteria Check:
-            // 1. Min 40% in ESE Theory = 24 / 60 (or S, A, B, C, D, P grade)
+            // 1. Min 40% in ESE Theory = 24 / 60 (or S, A, B, C, D, E, P grade)
             // 2. Min 40% in Total Combined = 56 / 140 (or 40 / 100)
-            $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','P'])));
+            $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
             $passCombined = ($totalCourseMarks >= ($maxCourseMarks * 0.40));
             $isPassed = ($passTheoryEse && $passCombined);
 
@@ -1429,6 +1429,26 @@ class R26VirtualClassroomPracticumController extends Controller
     }
 
     /**
+     * Delete one or more lesson plan rows (accepts { ids: [1,2,3] } in JSON body).
+     */
+    public function deleteLessonPlanRows(Request $request, $subjectId)
+    {
+        $request->validate(['ids' => 'required|array']);
+
+        $ids = array_filter($request->input('ids'), fn($id) => !str_starts_with((string)$id, 'new_'));
+
+        if (empty($ids)) {
+            return response()->json(['status' => 'OK', 'message' => 'Nothing to delete.']);
+        }
+
+        LessonPlan::whereIn('id', $ids)
+            ->where('batch_subject_id', $subjectId)
+            ->delete();
+
+        return response()->json(['status' => 'SUCCESS', 'message' => count($ids) . ' row(s) deleted.']);
+    }
+
+    /**
      * Helper to resolve Lecturer Name specifically (filtering out Demonstrators, Tradesmen, etc.)
      */
     private function resolveLecturerName($subjectId, $branchCode)
@@ -2250,6 +2270,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             case 'B': return 45.00; // 75%
             case 'C': return 39.00; // 65%
             case 'D': return 33.00; // 55%
+            case 'E': return 27.00; // 45% (Satisfactory)
             case 'P': return 27.00; // 45% (Pass)
             case 'F': return 0.00;  // Fail
             case 'FE': return 0.00;
@@ -2441,6 +2462,13 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         // Group attendance by lesson_plan_id
         $attByPlan = $allAttendance->groupBy('lesson_plan_id');
 
+        // Fetch class_logs_attendance in addition to student_attendance
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->get();
+
+        $accountedPlanIds = [];
+
         // Build Theory Totals: [reg_no => ['present' => 0, 'total' => 0]]
         $theoryTotals = [];
         foreach ($students as $st) {
@@ -2448,6 +2476,9 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         }
         foreach ($theoryPlans as $plan) {
             $planAtt = $attByPlan->get($plan->id, collect());
+            if ($planAtt->isNotEmpty()) {
+                $accountedPlanIds[$plan->id] = true;
+            }
             $planAttByReg = $planAtt->keyBy('reg_no');
             foreach ($students as $st) {
                 $rec = $planAttByReg->get($st->reg_no);
@@ -2468,6 +2499,9 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         }
         foreach ($labPlans as $plan) {
             $planAtt = $attByPlan->get($plan->id, collect());
+            if ($planAtt->isNotEmpty()) {
+                $accountedPlanIds[$plan->id] = true;
+            }
             $planAttByReg = $planAtt->keyBy('reg_no');
             foreach ($students as $st) {
                 $rec = $planAttByReg->get($st->reg_no);
@@ -2476,6 +2510,59 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
                     $labTotals[$st->reg_no]['total']++;
                     if (in_array($status, ['Present', 'Late'])) {
                         $labTotals[$st->reg_no]['present']++;
+                    }
+                }
+            }
+        }
+
+        // Merge any class_logs_attendance entries not already captured via student_attendance
+        $labPlanIds = $labPlans->pluck('id')->flip();
+        $theoryPlanIds = $theoryPlans->pluck('id')->flip();
+
+        foreach ($classLogs as $log) {
+            if ($log->lesson_plan_id && isset($accountedPlanIds[$log->lesson_plan_id])) {
+                continue; // Already counted from student_attendance
+            }
+
+            $presArr = json_decode($log->present_students ?? '[]', true) ?: [];
+            $absArr = json_decode($log->absent_students ?? '[]', true) ?: [];
+
+            if (empty($presArr) && empty($absArr)) {
+                continue;
+            }
+
+            $presMap = array_flip($presArr);
+            $absMap = array_flip($absArr);
+
+            $isLabLog = false;
+            if ($log->lesson_plan_id && isset($labPlanIds[$log->lesson_plan_id])) {
+                $isLabLog = true;
+            } elseif ($log->lesson_plan_id && isset($theoryPlanIds[$log->lesson_plan_id])) {
+                $isLabLog = false;
+            } else {
+                $subB = strtolower(trim((string)($log->sub_batch ?? '')));
+                $topic = strtolower((string)($log->topics_covered ?? ''));
+                if (in_array($subB, ['1', '2', 'batch 1', 'batch 2', 'batch a', 'batch b', 'b1', 'b2']) ||
+                    str_contains($topic, 'lab') || str_contains($topic, 'exp') || str_contains($topic, 'practical')) {
+                    $isLabLog = true;
+                }
+            }
+
+            foreach ($students as $st) {
+                $r = $st->reg_no;
+                if (isset($presMap[$r])) {
+                    if ($isLabLog) {
+                        $labTotals[$r]['total']++;
+                        $labTotals[$r]['present']++;
+                    } else {
+                        $theoryTotals[$r]['total']++;
+                        $theoryTotals[$r]['present']++;
+                    }
+                } elseif (isset($absMap[$r])) {
+                    if ($isLabLog) {
+                        $labTotals[$r]['total']++;
+                    } else {
+                        $theoryTotals[$r]['total']++;
                     }
                 }
             }
@@ -2498,6 +2585,112 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             'theoryTotals',
             'labTotals',
             'assignedStaff'
+        ));
+    }
+
+    /**
+     * Print Official Teaching & Attendance Log Register (A4 Portrait) for Practicum Course
+     * Route: GET /r26/classroom/practicum/{subjectId}/attendance-log-report
+     */
+    public function printLogAttendanceReport($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $lecturerName = $meta['lecturerName'];
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderBy('roll_no', 'asc')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $totalEnrolled = $students->count();
+        $studentsByReg = $students->keyBy('reg_no');
+
+        $rawLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->orderBy('date', 'asc')
+            ->orderBy('period', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $totalHours = $rawLogs->count();
+        $totalAttnPctSum = 0;
+
+        $logs = $rawLogs->map(function($l) use ($totalEnrolled, $studentsByReg, &$totalAttnPctSum) {
+            $presArr = json_decode($l->present_students ?? '[]', true) ?: [];
+            $absArr = json_decode($l->absent_students ?? '[]', true) ?: [];
+
+            $presCount = count($presArr);
+            $absCount = count($absArr);
+            $effectiveTotal = ($presCount + $absCount) > 0 ? ($presCount + $absCount) : $totalEnrolled;
+
+            if ($absCount === 0 && $effectiveTotal > $presCount && $presCount > 0) {
+                $absCount = max(0, $effectiveTotal - $presCount);
+            }
+
+            $attPct = $effectiveTotal > 0 ? round(($presCount / $effectiveTotal) * 100, 1) : 0;
+            $totalAttnPctSum += $attPct;
+
+            $absentDisplay = [];
+            foreach ($absArr as $rNo) {
+                if (isset($studentsByReg[$rNo])) {
+                    $absentDisplay[] = $studentsByReg[$rNo]->roll_no ?: $studentsByReg[$rNo]->name;
+                } else {
+                    $absentDisplay[] = $rNo;
+                }
+            }
+
+            $formattedDate = $l->date;
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $l->date, $m)) {
+                $formattedDate = "{$m[3]}-{$m[2]}-{$m[1]}";
+            }
+
+            return (object)[
+                'id' => $l->id,
+                'date' => $l->date,
+                'formatted_date' => $formattedDate,
+                'period' => $l->period,
+                'sub_batch' => $l->sub_batch,
+                'period_label' => 'Hour ' . $l->period,
+                'topics_covered' => $l->topics_covered,
+                'present_count' => $presCount,
+                'absent_count' => $absCount,
+                'absent_display' => implode(', ', $absentDisplay),
+                'attendance_pct' => $attPct,
+            ];
+        });
+
+        $overallAvgAttn = $logs->count() > 0 ? round($totalAttnPctSum / $logs->count(), 1) : 0;
+
+        $completedTopicsCount = DB::table('lesson_plans')
+            ->where('batch_subject_id', $subjectId)
+            ->where('status', 'Completed')
+            ->count();
+
+        $totalPlannedTopics = DB::table('lesson_plans')
+            ->where('batch_subject_id', $subjectId)
+            ->count() ?: 90;
+
+        return view('r26_practicum.attendance_log_report_print', compact(
+            'batchSubject',
+            'classroom',
+            'departmentName',
+            'batchName',
+            'lecturerName',
+            'students',
+            'totalEnrolled',
+            'logs',
+            'totalHours',
+            'overallAvgAttn',
+            'completedTopicsCount',
+            'totalPlannedTopics'
         ));
     }
 }

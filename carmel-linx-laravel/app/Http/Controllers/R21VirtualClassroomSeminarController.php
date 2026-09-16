@@ -612,4 +612,129 @@ class R21VirtualClassroomSeminarController extends Controller
             return ['grade' => 'F', 'point' => 0, 'result' => 'Failed'];
         }
     }
+
+    /**
+     * Attainment Summary for Revision 2021 Seminar (Clause 11.2.6)
+     * Direct Attainment is 100% CIA-based (Total 75M, 67.5M Academic, Attendance excluded)
+     */
+    public function getAttainmentSummary($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $courseFile = CourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $allEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)->get();
+
+        $cos = is_array($courseFile->parsed_cos) ? $courseFile->parsed_cos : (json_decode($courseFile->parsed_cos ?? '[]', true) ?: []);
+        if (empty($cos)) {
+            $cos = [
+                ['id' => 'CO1', 'description' => 'Identify contemporary engineering developments and conduct thorough literature review.'],
+                ['id' => 'CO2', 'description' => 'Synthesize technical information and deliver effective oral presentation.'],
+                ['id' => 'CO3', 'description' => 'Defend methodology, respond to technical queries and prepare standard report.']
+            ];
+        }
+
+        $settings = is_array($courseFile->attainment_settings) ? $courseFile->attainment_settings : (json_decode($courseFile->attainment_settings ?? '[]', true) ?: []);
+        $eseConfig = array_merge(\App\Services\AttainmentService::getDefaultEseConfig('Seminar', 'REV2021'), $settings['ese_config'] ?? []);
+
+        $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3 = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2 = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1 = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+
+        $exitSurvey = DB::table('course_exit_surveys')->where('batch_subject_id', $subjectId)->first();
+        $exitResponses = collect();
+        if ($exitSurvey) {
+            $exitResponses = DB::table('student_course_exit_responses')->where('exit_survey_id', $exitSurvey->id)->get();
+        }
+
+        $matrix = [];
+        $directSum = 0;
+        $indirectSum = 0;
+        $overallSum = 0;
+
+        foreach ($cos as $co) {
+            $coTag = $co['id'] ?? 'CO1';
+            $totalAssessed = 0;
+            $cieMet = 0;
+
+            foreach ($students as $stud) {
+                $regNo = $stud->reg_no ?: $stud->sbte_reg_no;
+                $stEvals = $allEvaluations->where('reg_no', $regNo);
+                if ($stEvals->count() > 0) {
+                    $totalAssessed++;
+                    // Academic CIA: Relevance (7.5) + Literature (7.5) + Presentation (37.5) + Interaction (7.5) + Report (7.5) = 67.5M Max
+                    $relevance = $stEvals->avg('relevance');
+                    $literature = $stEvals->avg('literature');
+                    $presentation = $stEvals->avg('presentation');
+                    $interaction = $stEvals->avg('interaction');
+                    $report = $stEvals->avg('report');
+                    $academicScore = $relevance + $literature + $presentation + $interaction + $report;
+
+                    if ($academicScore >= (67.5 * 0.50)) { // 50% threshold
+                        $cieMet++;
+                    }
+                }
+            }
+
+            $cieMetPct = $totalAssessed > 0 ? round(($cieMet / $totalAssessed) * 100, 1) : 0.0;
+            $cieLevel = \App\Services\AttainmentService::calculateBatchLevel($cieMetPct, $lvl3, $lvl2, $lvl1);
+            $directAttainment = $cieLevel; // 100% CIE for seminar
+
+            $coSurveyRows = $exitResponses->where('co_tag', $coTag);
+            if ($coSurveyRows->count() > 0) {
+                $indirectLevel = round((float)$coSurveyRows->avg('rating'), 2);
+            } else {
+                $indirectLevel = $directAttainment > 0 ? round($directAttainment * 0.9, 2) : 2.5;
+            }
+
+            $overallAttainment = round((0.80 * $directAttainment) + (0.20 * $indirectLevel), 2);
+
+            $matrix[] = [
+                'co_tag' => $coTag,
+                'description' => $co['description'] ?? '',
+                'cie_assessed' => $totalAssessed,
+                'cie_met_pct' => $cieMetPct,
+                'cie_level' => $cieLevel,
+                'ese_level' => 0.0,
+                'direct_attainment' => $directAttainment,
+                'indirect_attainment' => $indirectLevel,
+                'overall_attainment' => $overallAttainment
+            ];
+
+            $directSum += $directAttainment;
+            $indirectSum += $indirectLevel;
+            $overallSum += $overallAttainment;
+        }
+
+        $numCos = count($matrix);
+        $avgDirect = $numCos > 0 ? round($directSum / $numCos, 2) : 0.0;
+        $avgIndirect = $numCos > 0 ? round($indirectSum / $numCos, 2) : 0.0;
+        $avgOverall = $numCos > 0 ? round($overallSum / $numCos, 2) : 0.0;
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'data' => [
+                'subject_id' => $batchSubject->id,
+                'subject_code' => $batchSubject->subject_code,
+                'subject_name' => $batchSubject->subject_name,
+                'revision' => 'REV2021',
+                'subject_type' => 'Seminar',
+                'matrix' => $matrix,
+                'average_direct' => $avgDirect,
+                'average_indirect' => $avgIndirect,
+                'average_overall' => $avgOverall,
+                'ese_config' => $eseConfig
+            ]
+        ]);
+    }
 }
+

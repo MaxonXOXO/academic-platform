@@ -87,6 +87,8 @@ Route::get('/login', function () {
     return redirect('/');
 });
 
+Route::redirect('/lecturer/dashboard', '/dashboard/lecturer');
+
 Route::get('/virtual-lab/user-manual', function () {
     $filePath = public_path('docs/virtual_lab_staff_user_manual.html');
     if (file_exists($filePath)) {
@@ -578,6 +580,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practicum/{subjectId}/copo-matrix/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveCoPoMatrix']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveLessonPlanRow']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/save-all', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveAllLessonPlans']);
+    Route::post('/api/r26/classroom/practicum/{subjectId}/lesson-plan/delete', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'deleteLessonPlanRows']);
 
     Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/experiment', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveExperimentMarks']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/series-theory', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveSeriesTheoryMarks']);
@@ -590,6 +593,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/practicum/{subjectId}/print-self-learning-summary', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSelfLearningSummaryPdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/attendance-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printAttendanceReport']);
     Route::get('/r26/classroom/practicum/{subjectId}/attendance-consolidated', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printConsolidatedAttendanceReport']);
+    Route::get('/r26/classroom/practicum/{subjectId}/attendance-log-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printLogAttendanceReport']);
 
 
     // Revision 2026 Practicum Series QP / Scheme / Answer Key
@@ -634,6 +638,17 @@ Route::middleware(['web'])->group(function () {
     Route::post('/r21/classroom/seminar/{subjectId}/evaluate', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'saveEvaluation']);
     Route::post('/r21/classroom/seminar/{subjectId}/schedule', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'updateSeminarSchedule']);
     Route::get('/r21/classroom/seminar/{subjectId}/print', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'printReport']);
+    Route::get('/r21/classroom/seminar/{subjectId}/attainment-summary', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'getAttainmentSummary']);
+
+    // Revision 2021 Virtual Major Project Classroom (Regulation Clauses 11.2.5 & 11.3.4)
+    Route::get('/r21/classroom/project/{subjectId}', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'show']);
+    Route::post('/r21/classroom/project/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'uploadSyllabus']);
+    Route::post('/r21/classroom/project/{subjectId}/save-groups', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveGroups']);
+    Route::post('/r21/classroom/project/{subjectId}/save-evaluation', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveEvaluation']);
+    Route::get('/r21/classroom/project/{subjectId}/ese-marks', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'getEseMarks']);
+    Route::post('/r21/classroom/project/{subjectId}/ese-marks/bulk-update', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'bulkUpdateEseMarks']);
+    Route::get('/r21/classroom/project/{subjectId}/attainment-summary', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'getAttainmentSummary']);
+    Route::get('/r21/classroom/project/{subjectId}/report/print', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'printReport']);
 
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);
@@ -668,7 +683,6 @@ Route::middleware(['web'])->group(function () {
         return view('course_files_dashboard');
     });
 
-    // Course File API Routes
     Route::get('/api/course-files/subjects', [App\Http\Controllers\CourseFileController::class, 'getStaffSubjects']);
     Route::get('/api/course-files/{id}', [App\Http\Controllers\CourseFileController::class, 'getCourseFile']);
     Route::post('/api/course-files/{id}', [App\Http\Controllers\CourseFileController::class, 'saveCourseFile']);
@@ -692,6 +706,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/classroom/{subjectId}/lesson-plans/load-template', [App\Http\Controllers\ClassroomController::class, 'loadTemplate']);
     Route::get('/api/classroom/{subjectId}/generate-questions', [App\Http\Controllers\ClassroomController::class, 'generateAssignmentQuestions']);
     Route::post('/api/classroom/{subjectId}/save-assignment-questions', [App\Http\Controllers\ClassroomController::class, 'saveAssignmentQuestions']);
+    Route::post('/api/classroom/{subjectId}/upload-assignment-image', [App\Http\Controllers\ClassroomController::class, 'uploadAssignmentImage']);
     Route::post('/api/classroom/{subjectId}/save-assignment-deadline', [App\Http\Controllers\ClassroomController::class, 'saveAssignmentDeadline']);
     Route::post('/api/classroom/{subjectId}/save-assignment-marks', [App\Http\Controllers\ClassroomController::class, 'saveAssignmentMarks']);
     Route::post('/api/classroom/{subjectId}/generate-summative-paper', [App\Http\Controllers\ClassroomController::class, 'generateSummativePaper']);
@@ -707,7 +722,13 @@ Route::middleware(['web'])->group(function () {
     Route::get('/classroom/{subjectId}/lesson-plan/print', [App\Http\Controllers\ClassroomController::class, 'printLessonPlan']);
     Route::get('/classroom/{subjectId}/attainment-report', [App\Http\Controllers\ClassroomController::class, 'printAttainmentReport']);
     Route::get('/classroom/{subjectId}/final-results/print', [App\Http\Controllers\ClassroomController::class, 'printTheoryFinalResults']);
+    Route::get('/classroom/{subjectId}/class-roster/print', [App\Http\Controllers\ClassroomController::class, 'printTheoryClassRoster']);
+    Route::get('/classroom/{subjectId}/class-log/print', [App\Http\Controllers\ClassroomController::class, 'printTheoryClassLog']);
     Route::get('/classroom/{subjectId}/course-file/print', [App\Http\Controllers\ClassroomController::class, 'printCourseFileA4']);
+    Route::get('/api/classroom/{subjectId}/ese-marks', [App\Http\Controllers\ClassroomController::class, 'getEseMarks']);
+    Route::post('/api/classroom/{subjectId}/ese-marks/bulk-update', [App\Http\Controllers\ClassroomController::class, 'bulkUpdateEseMarks']);
+    Route::get('/api/classroom/{subjectId}/attainment-summary', [App\Http\Controllers\ClassroomController::class, 'getAttainmentSummary']);
+
 
     // Universal System Settings
     Route::get('/api/admin/settings', [App\Http\Controllers\SystemSettingController::class, 'getSettings']);
@@ -759,6 +780,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/classroom/practical/{subjectId}/series-report/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printSeriesReport']);
     Route::get('/classroom/practical/{subjectId}/final-results/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printFinalResults']);
     Route::get('/classroom/practical/{subjectId}/experiments/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printExperimentsLog']);
+    Route::get('/classroom/practical/{subjectId}/student/{regNo}/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printStudentReport']);
     Route::get('/api/classroom/{subjectId}/practical/attendance-log', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'getAttendanceLog']);
     Route::post('/api/classroom/{subjectId}/practical/cia-summary', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveStudentCiaSummary']);
     Route::get('/api/classroom/{subjectId}/practical/batch-setup', [App\Http\Controllers\AttendanceController::class, 'getLabBatchSetup']);
@@ -1659,8 +1681,15 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/staff/attendance/session-check', [App\Http\Controllers\AttendanceController::class, 'checkSessionAttendance']);
     Route::post('/api/staff/attendance/save', [App\Http\Controllers\AttendanceController::class, 'saveAttendance']);
     Route::post('/api/staff/attendance/delete-log', [App\Http\Controllers\AttendanceController::class, 'deleteAttendanceLog']);
+    Route::post('/api/staff/attendance/import-sbte-pdf', [App\Http\Controllers\SbteSubjectLogImportController::class, 'importPdf']);
+    Route::post('/api/staff/attendance/sync-from-lesson-plan', [App\Http\Controllers\SbteSubjectLogImportController::class, 'syncFromLessonPlan']);
     Route::get('/api/tutor/attendance/students', [App\Http\Controllers\AttendanceController::class, 'getTutorStudents']);
     Route::post('/api/tutor/attendance/roll-numbers', [App\Http\Controllers\AttendanceController::class, 'updateRollNumbers']);
+    Route::get('/api/tutor/attendance/consolidated', [App\Http\Controllers\AttendanceController::class, 'getConsolidatedTutorAttendance']);
+    Route::get('/tutor/attendance/report/print', [App\Http\Controllers\AttendanceController::class, 'printTutorAttendanceReport']);
+    Route::get('/api/tutor/progress-report', [App\Http\Controllers\TutorController::class, 'getProgressReportData']);
+    Route::get('/tutor/progress-report/print', [App\Http\Controllers\TutorController::class, 'printProgressReport']);
+    Route::get('/tutor/progress-report/student/{regNo}/print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);
     Route::get('/api/staff/attendance/subjects/{id}/reports', [App\Http\Controllers\AttendanceController::class, 'getReports']);
 
     // SBTE Compliance Console Routes

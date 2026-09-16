@@ -37,7 +37,40 @@ class DataController extends Controller
 
         if (!$isPractical) {
             $total = DB::table('lesson_plans')->where('batch_subject_id', $batchSubjectId)->count();
-            $completed = DB::table('lesson_plans')->where('batch_subject_id', $batchSubjectId)->where('status', 'Completed')->count();
+
+            // For theory subjects, derive 'completed' from actual class logs (consolidated unique sessions),
+            // NOT from lesson_plans.status which can be incorrectly bulk-set by SBTE imports.
+            // This ensures the mobile dashboard card always matches the Past Log count.
+            $rawLogs = DB::table('class_logs_attendance')
+                ->where('batch_subject_id', $batchSubjectId)
+                ->orderBy('date', 'asc')
+                ->orderBy('period', 'asc')
+                ->orderBy('id', 'asc')
+                ->get(['id', 'date', 'period', 'sub_batch', 'topics_covered', 'lesson_plan_id']);
+
+            if ($rawLogs->isNotEmpty()) {
+                // Group by (date, period) — each period on the same day is a separate teaching hour
+                // and may have different lesson plan content. Matches desktop's DISTINCT (date, period) logic.
+                $groupedSessions = [];
+                foreach ($rawLogs as $raw) {
+                    $key = $raw->date . '__' . ($raw->period ?? '0');
+                    if (!isset($groupedSessions[$key])) {
+                        $groupedSessions[$key] = true;
+                    }
+                }
+                $completed = count($groupedSessions);
+                // Cap completed at total planned (in case of over-logging)
+                if ($completed > $total && $total > 0) {
+                    $completed = $total;
+                }
+            } else {
+                // No class logs yet — fall back to lesson_plan status count
+                $completed = DB::table('lesson_plans')
+                    ->where('batch_subject_id', $batchSubjectId)
+                    ->where('status', 'Completed')
+                    ->count();
+            }
+
             $pct = $total > 0 ? round(($completed / $total) * 100) : 0;
             return [
                 'is_practical' => false,
@@ -2499,7 +2532,8 @@ class DataController extends Controller
                     $totalTopics = $prog['total'];
                     $coveredTopics = $prog['completed'];
 
-                    // Count actual distinct hours (date + period) to avoid multiplying for multi-experiment sessions
+                    // Count sessions as DISTINCT (date, period) — each period on the same day
+                    // is a separate teaching hour and may have different lesson plan content.
                     $engagedHours = \DB::table('class_logs_attendance')
                         ->where('batch_subject_id', $subjId)
                         ->select('date', 'period')
@@ -2585,19 +2619,23 @@ class DataController extends Controller
             $classroom = $classroomId ? DB::table('class_management')->where('classroom_id', $classroomId)->first() : null;
             $currentSem = $student->semester ?: ($classroom ? (int)$classroom->current_semester : 1);
 
-            // Auto-create a default Seminar type subject if none exists for this classroom and semester (only for S5 & S6)
-            if (!empty($classroomId) && in_array((int)$currentSem, [5, 6])) {
+            // Auto-create a default Seminar type subject if none exists for this classroom and semester (strictly only for S5)
+            if (!empty($classroomId) && (int)$currentSem === 5) {
                 $hasSeminarSubject = \App\Models\BatchSubject::where('classroom_id', $classroomId)
-                    ->where('semester', $currentSem)
-                    ->where('subject_type', 'Seminar')
+                    ->where('semester', 5)
+                    ->where(function($q) {
+                        $q->where('subject_type', 'Seminar')
+                          ->orWhere('subject_code', '5008')
+                          ->orWhere('subject_code', 'like', '%-5008');
+                    })
                     ->exists();
 
                 if (!$hasSeminarSubject) {
                     $branchKey = strtoupper(explode('_', $classroomId)[0] ?? 'EL');
                     \App\Models\BatchSubject::create([
                         'classroom_id' => $classroomId,
-                        'semester' => $currentSem,
-                        'subject_code' => $branchKey . '-5008',
+                        'semester' => 5,
+                        'subject_code' => '5008',
                         'subject_name' => 'Seminar',
                         'subject_type' => 'Seminar',
                         'credits' => 1

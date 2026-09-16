@@ -158,6 +158,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false},{left: '\\(', right: '\\)', display: false},{left: '\\[', right: '\\]', display: true}]});"></script>
 </head>
 <body>
 
@@ -231,13 +234,24 @@
                     <tbody>
                         @foreach($partQ as $idx => $q)
                             <tr>
-                                <td class="text-center" style="font-weight: bold;">{{ $idx + 1 }}</td>
-                                <td>{{ $q['question'] }}</td>
-                                <td class="text-center" style="font-weight: bold;">{{ $q['co_tag'] ?? 'CO1' }}</td>
-                                <td class="text-center">{{ $q['bt_level'] ?? 'Understand' }}</td>
-                                <td class="text-center" style="font-weight: bold;">{{ $q['marks'] ?? $defaultMarks }}M</td>
+                                <td class="text-center" style="font-weight: bold; vertical-align: top;">{{ $idx + 1 }}</td>
+                                <td style="vertical-align: top; line-height: 1.4;">
+                                    <div>{{ $q['question'] }}</div>
+                                    @if(!empty($q['image_url']))
+                                        <div style="margin-top: 6px; margin-bottom: 4px; text-align: center;">
+                                            <img src="{{ $q['image_url'] }}" style="max-height: 180px; max-width: 95%; border: 1px solid #cbd5e1; padding: 3px; object-fit: contain;" alt="Figure">
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="text-center" style="font-weight: bold; vertical-align: top;">{{ $q['co_tag'] ?? 'CO1' }}</td>
+                                <td class="text-center" style="vertical-align: top;">{{ $q['bt_level'] ?? 'Understand' }}</td>
+                                <td class="text-center" style="font-weight: bold; vertical-align: top;">{{ $q['marks'] ?? $defaultMarks }}M</td>
                             </tr>
                         @endforeach
+                    </tbody>
+                </table>
+            @endif
+        @endforeach
                     </tbody>
                 </table>
             @endif

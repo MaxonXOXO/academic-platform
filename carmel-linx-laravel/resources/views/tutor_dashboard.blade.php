@@ -241,6 +241,13 @@
         <span class="material-symbols-rounded text-lg">format_list_numbered</span> Student Roll Numbers
       </button>
 
+      <button id="navAttendanceReport" onclick="switchPanel('attendanceReport')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
+        <span class="material-symbols-rounded text-lg text-emerald-400">fact_check</span> Semester Attendance Register
+      </button>
+      <button id="navProgressReport" onclick="switchPanel('progressReport')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
+        <span class="material-symbols-rounded text-lg text-indigo-400">trending_up</span> Student Progress Report
+      </button>
+
       <button id="navMentoring" onclick="switchPanel('mentoring')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">diversity_3</span> Mentoring Batches
       </button>
@@ -448,6 +455,166 @@
                 <!-- Loaded dynamically -->
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: CONSOLIDATED SEMESTER ATTENDANCE (CLAUSE 10) -->
+      <div id="panelAttendanceReport" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Clause 10</span>
+                <h3 class="font-black text-white text-lg">Consolidated Semester Attendance Register</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Aggregated student attendance across all subjects with eligibility status: 
+                <strong class="text-emerald-400">&ge;75% Eligible</strong>, 
+                <strong class="text-amber-400">65-74.9% Condonation Shortage</strong>, 
+                <strong class="text-rose-400">&lt;65% Detained</strong>.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadConsolidatedAttendance()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh Data
+              </button>
+              <a id="btnPrintAttendanceReport" href="/tutor/attendance/report/print" target="_blank" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4)
+              </a>
+            </div>
+          </div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Enrolled</div>
+              <div class="text-xl font-black text-white font-mono" id="attCardTotal">0</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible (&ge;75%)</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="attCardEligible">0</div>
+            </div>
+            <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-amber-400">Condonation (65-74.9%)</div>
+              <div class="text-xl font-black text-amber-400 font-mono" id="attCardCondonation">0</div>
+            </div>
+            <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-rose-400">Detained (&lt;65%)</div>
+              <div class="text-xl font-black text-rose-400 font-mono" id="attCardDetained">0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Average</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="attCardAverage">0%</div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2">
+              <button onclick="filterAttendanceStatus('all')" class="att-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
+              <button onclick="filterAttendanceStatus('Eligible')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Eligible">Eligible (&ge;75%)</button>
+              <button onclick="filterAttendanceStatus('Condonation')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Condonation">Condonation (65-74.9%)</button>
+              <button onclick="filterAttendanceStatus('Detained')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Detained">Detained (&lt;65%)</button>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+              <input type="text" id="attSearchInput" onkeyup="renderAttendanceTable()" placeholder="Search roll, reg no, student name..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+            </div>
+          </div>
+
+          <!-- Attendance Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="attTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
+              <div class="text-xs mt-2">Loading consolidated semester attendance...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: STUDENT PROGRESS REPORT (REV2021) -->
+      <div id="panelProgressReport" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Series Exam CO1-CO4</span>
+                <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs font-bold">Class Rank</span>
+                <h3 class="font-black text-white text-lg">Student Semester Progress Report</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Consolidated continuous performance report: Series Exam marks (CO1, CO2, CO3, CO4) for all subjects, total attendance percentage (Clause 10), and class rank.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadStudentProgressReport()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh
+              </button>
+              <a id="btnPrintProgressReport" href="/tutor/progress-report/print" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4 Landscape)
+              </a>
+              <a id="btnPrintAllStudentCards" href="/tutor/progress-report/print?mode=all_cards" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">badge</span> Print PTM Report Cards
+              </a>
+            </div>
+          </div>
+
+          <!-- Metadata Context Banner -->
+          <div id="progClassroomBanner" class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-300 flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div><strong>Class / Batch:</strong> <span id="progBannerClass">-</span></div>
+            <div><strong>Department:</strong> <span id="progBannerDept">-</span></div>
+            <div><strong>Semester:</strong> <span id="progBannerSem">-</span></div>
+            <div><strong>Scheme:</strong> <span class="text-sky-400 font-bold">Revision 2021 (REV2021)</span></div>
+            <div><strong>Tutor:</strong> <span id="progBannerTutor">-</span></div>
+          </div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Students</div>
+              <div class="text-xl font-black text-white font-mono" id="progCardTotal">0</div>
+            </div>
+            <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-amber-400">Class Topper (#1)</div>
+              <div class="text-sm font-black text-amber-300 truncate" id="progCardTopper">N/A</div>
+            </div>
+            <div class="p-3 bg-indigo-950/20 border border-indigo-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-indigo-400">Avg Series Score</div>
+              <div class="text-xl font-black text-indigo-300 font-mono" id="progCardAvgMarks">0.0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Average Attd</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="progCardAvgAtt">0%</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible Attd (≥75%)</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="progCardEligible">0</div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="filterProgressReport('all')" class="prog-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
+              <button onclick="filterProgressReport('top10')" class="prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="top10">Top 10 Ranks</button>
+              <button onclick="filterProgressReport('shortage')" class="prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="shortage">Attd Shortage (&lt;75%)</button>
+              <button onclick="filterProgressReport('hasMarks')" class="prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="hasMarks">Marks Recorded</button>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+              <input type="text" id="progSearchInput" onkeyup="renderProgressReportTable()" placeholder="Search name, roll, reg no..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <!-- Progress Report Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="progTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-indigo-400">progress_activity</span>
+              <div class="text-xs mt-2">Loading student progress report...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -955,7 +1122,7 @@
     function switchPanel(panelId) {
       activePanel = panelId;
       
-      const panels = ['roster', 'rollNumbers', 'audit', 'profile', 'mentoring', 'activity', 'leaveApproval'];
+      const panels = ['roster', 'rollNumbers', 'attendanceReport', 'progressReport', 'audit', 'profile', 'mentoring', 'activity', 'leaveApproval'];
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
         const nav = document.getElementById('nav' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -972,6 +1139,8 @@
       const titles = {
         'roster': 'Supervised Class Roster',
         'rollNumbers': 'Student Roll Numbers',
+        'attendanceReport': 'Consolidated Semester Attendance Register (Clause 10)',
+        'progressReport': 'Student Progress Report (Series Exam Marks CO1-CO4, Attendance & Class Rank)',
         'audit': 'Classroom Audit Trail',
         'profile': 'My Tutor Profile',
         'mentoring': 'Mentoring Batches',
@@ -984,6 +1153,8 @@
       }
 
       if (panelId === 'roster') loadUsers();
+      if (panelId === 'attendanceReport') loadConsolidatedAttendance();
+      if (panelId === 'progressReport') loadStudentProgressReport();
       if (panelId === 'rollNumbers') loadTutorStudents();
       if (panelId === 'audit') loadAuditTrail();
       if (panelId === 'profile') loadSelfSecurityLogs();
@@ -2616,7 +2787,406 @@
         });
       }
     }
+
+    // Consolidated Semester Attendance Logic (SBTE Kerala Clause 10)
+    let attendanceDataCache = null;
+    let currentAttendanceFilter = 'all';
+
+    function loadConsolidatedAttendance() {
+      const wrapper = document.getElementById('attTableWrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
+          <div class="text-xs mt-2">Loading consolidated semester attendance...</div>
+        </div>
+      `;
+
+      fetch('/api/tutor/attendance/consolidated')
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            attendanceDataCache = res;
+
+            const sum = res.summary || {};
+            if (document.getElementById('attCardTotal')) document.getElementById('attCardTotal').innerText = sum.total_students || 0;
+            if (document.getElementById('attCardEligible')) document.getElementById('attCardEligible').innerText = sum.eligible_count || 0;
+            if (document.getElementById('attCardCondonation')) document.getElementById('attCardCondonation').innerText = sum.condonation_count || 0;
+            if (document.getElementById('attCardDetained')) document.getElementById('attCardDetained').innerText = sum.detained_count || 0;
+            if (document.getElementById('attCardAverage')) document.getElementById('attCardAverage').innerText = (sum.average_attendance || 0) + '%';
+
+            renderAttendanceTable();
+          } else {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                <div>${res.message || 'Failed to load attendance report.'}</div>
+              </div>
+            `;
+          }
+        })
+        .catch(err => {
+          wrapper.innerHTML = `
+            <div class="py-8 text-center text-rose-400 text-xs">
+              <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
+              <div>Network error loading attendance. Please try again.</div>
+            </div>
+          `;
+        });
+    }
+
+    function filterAttendanceStatus(status) {
+      currentAttendanceFilter = status;
+      document.querySelectorAll('.att-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === status) {
+          btn.className = 'att-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700';
+        } else {
+          btn.className = 'att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-white rounded-lg text-xs font-bold border border-slate-800';
+        }
+      });
+      renderAttendanceTable();
+    }
+
+    function renderAttendanceTable() {
+      if (!attendanceDataCache) return;
+      const subjects = attendanceDataCache.subjects || [];
+      const allStudents = attendanceDataCache.students || [];
+      const query = (document.getElementById('attSearchInput')?.value || '').toLowerCase();
+
+      const filtered = allStudents.filter(st => {
+        const matchesFilter = (currentAttendanceFilter === 'all') || (st.status === currentAttendanceFilter);
+        const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
+        const matchesSearch = text.includes(query);
+        return matchesFilter && matchesSearch;
+      });
+
+      const wrapper = document.getElementById('attTableWrapper');
+      if (!wrapper) return;
+
+      let headersHtml = `
+        <th class="p-3 text-left w-12 text-slate-400">#</th>
+        <th class="p-3 text-left w-20 text-slate-300">Roll</th>
+        <th class="p-3 text-left w-28 text-slate-300">Reg No</th>
+        <th class="p-3 text-left text-slate-300">Student Name</th>
+      `;
+
+      subjects.forEach(s => {
+        headersHtml += `
+          <th class="p-3 text-center text-slate-300 whitespace-nowrap" title="${s.subject_name}">
+            <div class="font-bold text-xs">${s.subject_code}</div>
+            <div class="text-[0.62rem] text-slate-400 font-normal">Att/Tot (CIA)</div>
+          </th>
+        `;
+      });
+
+      headersHtml += `
+        <th class="p-3 text-center bg-slate-900 text-slate-300">Total Attd / Cond</th>
+        <th class="p-3 text-center bg-blue-950/40 text-blue-300 font-bold">Sem %</th>
+        <th class="p-3 text-center text-slate-300">Status</th>
+        <th class="p-3 text-center text-slate-300">Alert</th>
+      `;
+
+      let rowsHtml = '';
+      filtered.forEach((st, idx) => {
+        let subjCols = '';
+        subjects.forEach(s => {
+          const sData = st.subjects ? st.subjects[s.id] : null;
+          if (sData && sData.conducted > 0) {
+            const pColor = sData.percentage >= 75 ? 'text-emerald-400' : (sData.percentage >= 65 ? 'text-amber-400' : 'text-rose-400');
+            subjCols += `
+              <td class="p-2 text-center text-xs border-b border-slate-800">
+                <div class="font-mono text-[0.72rem]">${sData.attended}/${sData.conducted}</div>
+                <div class="font-bold ${pColor} font-mono text-xs">${sData.percentage}%</div>
+                <div class="text-[0.6rem] text-slate-400" title="Suggested CIA Attendance Marks">${sData.cia_attendance_mark}M</div>
+              </td>
+            `;
+          } else {
+            subjCols += `<td class="p-2 text-center text-xs text-slate-600 border-b border-slate-800">-</td>`;
+          }
+        });
+
+        const statusClass = st.status === 'Eligible'
+          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+          : (st.status === 'Condonation'
+            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+            : 'bg-rose-500/10 text-rose-400 border border-rose-500/30');
+
+        const smsHref = `sms:${st.phone || ''}?body=${encodeURIComponent('Carmel Polytechnic College Alert: Attendance status of ' + st.name + ' (' + st.sbte_reg_no + ') is ' + st.overall_percentage + '% [' + st.status + ']. Min 75% required for SBTE exam eligibility.')}`;
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/30 transition-colors">
+            <td class="p-3 text-slate-500 text-xs border-b border-slate-800">${idx + 1}</td>
+            <td class="p-3 font-mono font-bold text-slate-300 text-xs border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-3 font-mono text-white text-xs border-b border-slate-800">${st.sbte_reg_no}</td>
+            <td class="p-3 font-bold text-slate-200 text-xs border-b border-slate-800">${st.name}</td>
+            ${subjCols}
+            <td class="p-3 text-center font-mono text-xs bg-slate-900/50 text-slate-300 border-b border-slate-800">
+              ${st.total_attended} / ${st.total_conducted}
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-sm bg-blue-950/20 text-blue-300 border-b border-slate-800">
+              ${st.overall_percentage}%
+            </td>
+            <td class="p-3 text-center border-b border-slate-800">
+              <span class="px-2.5 py-1 rounded text-[0.68rem] font-bold ${statusClass}">
+                ${st.status}
+              </span>
+            </td>
+            <td class="p-3 text-center border-b border-slate-800">
+              <a href="${smsHref}" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg inline-flex items-center text-xs transition-all" title="Send SMS Warning to Parent">
+                <span class="material-symbols-rounded text-base">sms</span>
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="${subjects.length + 8}" class="p-8 text-center text-slate-400 text-xs">No students matching the criteria.</td></tr>`;
+      }
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/60 text-[0.7rem] uppercase tracking-wider">
+              ${headersHtml}
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ==========================================
+    // STUDENT PROGRESS REPORT LOGIC (REV2021)
+    // ==========================================
+    let progressReportDataCache = null;
+    let currentProgressFilter = 'all';
+
+    function loadStudentProgressReport() {
+      const wrapper = document.getElementById('progTableWrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <span class="material-symbols-rounded text-3xl animate-spin text-indigo-400">progress_activity</span>
+          <div class="text-xs mt-2">Compiling student progress report & series marks...</div>
+        </div>
+      `;
+
+      fetch('/api/tutor/progress-report')
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            progressReportDataCache = res;
+
+            // Metadata banner
+            const cls = res.classroom || {};
+            if (document.getElementById('progBannerClass')) document.getElementById('progBannerClass').innerText = cls.batch || cls.id || '-';
+            if (document.getElementById('progBannerDept')) document.getElementById('progBannerDept').innerText = (cls.branch_name || cls.branch_code) + ' (' + (cls.branch_code || '') + ')';
+            if (document.getElementById('progBannerSem')) document.getElementById('progBannerSem').innerText = 'Semester ' + (cls.semester || 1) + ' (S' + (cls.semester || 1) + ')';
+            if (document.getElementById('progBannerTutor')) document.getElementById('progBannerTutor').innerText = cls.tutor_name || 'Assigned Tutor';
+
+            // Summary cards
+            const sum = res.summary || {};
+            if (document.getElementById('progCardTotal')) document.getElementById('progCardTotal').innerText = sum.total_students || 0;
+            if (document.getElementById('progCardAvgMarks')) document.getElementById('progCardAvgMarks').innerText = (sum.average_marks || 0) + 'M';
+            if (document.getElementById('progCardAvgAtt')) document.getElementById('progCardAvgAtt').innerText = (sum.average_attendance || 0) + '%';
+            if (document.getElementById('progCardEligible')) document.getElementById('progCardEligible').innerText = sum.eligible_count || 0;
+
+            if (document.getElementById('progCardTopper')) {
+              if (sum.topper) {
+                document.getElementById('progCardTopper').innerText = sum.topper.name + ' (' + sum.topper.marks + 'M)';
+                document.getElementById('progCardTopper').title = 'Topper: ' + sum.topper.name + ' | Roll #' + sum.topper.roll_no + ' | Score: ' + sum.topper.marks + 'M | Attd: ' + sum.topper.attendance + '%';
+              } else {
+                document.getElementById('progCardTopper').innerText = 'N/A';
+              }
+            }
+
+            // Update print button hrefs with classroom_id
+            if (document.getElementById('btnPrintProgressReport')) {
+              document.getElementById('btnPrintProgressReport').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id);
+            }
+            if (document.getElementById('btnPrintAllStudentCards')) {
+              document.getElementById('btnPrintAllStudentCards').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id) + '&mode=all_cards';
+            }
+
+            renderProgressReportTable();
+          } else {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                <div>${res.message || 'Failed to load student progress report.'}</div>
+              </div>
+            `;
+          }
+        })
+        .catch(err => {
+          wrapper.innerHTML = `
+            <div class="py-8 text-center text-rose-400 text-xs">
+              <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
+              <div>Network error loading progress report. Please try again.</div>
+            </div>
+          `;
+        });
+    }
+
+    function filterProgressReport(filterType) {
+      currentProgressFilter = filterType;
+      document.querySelectorAll('.prog-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filterType) {
+          btn.className = 'prog-filter-btn px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow-sm';
+        } else {
+          btn.className = 'prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-white rounded-lg text-xs font-bold border border-slate-800';
+        }
+      });
+      renderProgressReportTable();
+    }
+
+    function renderProgressReportTable() {
+      if (!progressReportDataCache) return;
+      const subjects = progressReportDataCache.subjects || [];
+      const allStudents = progressReportDataCache.students || [];
+      const query = (document.getElementById('progSearchInput')?.value || '').toLowerCase();
+
+      const filtered = allStudents.filter(st => {
+        // Filter by tab
+        let matchesTab = true;
+        if (currentProgressFilter === 'top10') {
+          matchesTab = st.class_rank !== null && st.class_rank <= 10;
+        } else if (currentProgressFilter === 'shortage') {
+          matchesTab = st.overall_attendance < 75.0;
+        } else if (currentProgressFilter === 'hasMarks') {
+          matchesTab = st.has_marks;
+        }
+
+        // Filter by search query
+        const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
+        const matchesSearch = text.includes(query);
+
+        return matchesTab && matchesSearch;
+      });
+
+      const wrapper = document.getElementById('progTableWrapper');
+      if (!wrapper) return;
+
+      // Multi-tier header
+      let headerRow1 = `
+        <th rowspan="2" class="p-2.5 text-left w-10 text-slate-400 border-r border-slate-800">#</th>
+        <th rowspan="2" class="p-2.5 text-left w-14 text-slate-300 border-r border-slate-800">Roll</th>
+        <th rowspan="2" class="p-2.5 text-left w-24 text-slate-300 border-r border-slate-800">SBTE Reg No</th>
+        <th rowspan="2" class="p-2.5 text-left min-w-[160px] text-slate-300 border-r border-slate-800">Student Name</th>
+      `;
+
+      let headerRow2 = '';
+
+      subjects.forEach(s => {
+        headerRow1 += `
+          <th colspan="5" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name}">
+            <span class="font-bold text-xs text-sky-400 font-mono">${s.subject_code}</span>
+            <span class="text-[0.62rem] text-slate-400 font-normal block truncate max-w-[160px] mx-auto">${s.subject_name}</span>
+          </th>
+        `;
+
+        headerRow2 += `
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO1</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO2</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO3</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO4</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800">Tot</th>
+        `;
+      });
+
+      headerRow1 += `
+        <th rowspan="2" class="p-2.5 text-center bg-indigo-950/40 text-indigo-300 font-black border-r border-slate-800">Grand Total</th>
+        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/30 text-emerald-300 font-bold border-r border-slate-800">Total Attd %</th>
+        <th rowspan="2" class="p-2.5 text-center bg-amber-950/30 text-amber-300 font-black border-r border-slate-800">Class Rank</th>
+        <th rowspan="2" class="p-2.5 text-center text-slate-300">Action</th>
+      `;
+
+      let rowsHtml = '';
+      filtered.forEach((st, idx) => {
+        let subjCols = '';
+        subjects.forEach(s => {
+          const sData = st.subjects ? st.subjects[s.id] : null;
+          const co = sData ? sData.co_marks : { CO1: null, CO2: null, CO3: null, CO4: null };
+
+          subjCols += `
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO1 !== null ? co.CO1 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO2 !== null ? co.CO2 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO3 !== null ? co.CO3 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO4 !== null ? co.CO4 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono font-bold text-[0.75rem] text-indigo-300 bg-indigo-950/20 border-r border-b border-slate-800/80">
+              ${(sData && sData.subject_total !== null) ? sData.subject_total : '<span class="text-slate-600">-</span>'}
+            </td>
+          `;
+        });
+
+        const attStatusClass = st.status === 'Eligible'
+          ? 'text-emerald-400'
+          : (st.status === 'Condonation' ? 'text-amber-400' : 'text-rose-400');
+
+        let rankBadgeHtml = '<span class="text-slate-600">-</span>';
+        if (st.class_rank === 1) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-sm">👑 Rank 1</span>';
+        } else if (st.class_rank === 2) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-300/20 text-slate-200 border border-slate-400/40">🥈 Rank 2</span>';
+        } else if (st.class_rank === 3) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40">🥉 Rank 3</span>';
+        } else if (st.class_rank !== null) {
+          rankBadgeHtml = `<span class="px-2 py-0.5 rounded font-bold text-xs bg-slate-800 text-slate-300 border border-slate-700">#${st.class_rank}</span>`;
+        }
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="p-2.5 text-slate-500 text-xs border-r border-b border-slate-800">${idx + 1}</td>
+            <td class="p-2.5 font-mono font-bold text-slate-300 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-2.5 font-mono text-white text-xs border-r border-b border-slate-800">${st.sbte_reg_no}</td>
+            <td class="p-2.5 font-bold text-slate-200 text-xs border-r border-b border-slate-800 truncate max-w-[180px]" title="${st.name}">
+              ${st.name}
+            </td>
+            ${subjCols}
+            <td class="p-2.5 text-center font-mono font-black text-sm text-indigo-300 bg-indigo-950/20 border-r border-b border-slate-800">
+              ${st.grand_total_marks > 0 ? st.grand_total_marks : '<span class="text-slate-600">-</span>'}
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/10">
+              <div class="font-mono font-bold text-xs ${attStatusClass}">${st.overall_attendance}%</div>
+              <div class="text-[0.62rem] text-slate-400">${st.total_attended}/${st.total_conducted}</div>
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-amber-950/10">
+              ${rankBadgeHtml}
+            </td>
+            <td class="p-2.5 text-center border-b border-slate-800">
+              <a href="/tutor/progress-report/student/${encodeURIComponent(st.reg_no)}/print" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
+                <span class="material-symbols-rounded text-sm">print</span> Card
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="${(subjects.length * 5) + 8}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
+      }
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse min-w-[900px]">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950 text-[0.7rem] uppercase tracking-wider">
+              ${headerRow1}
+            </tr>
+            <tr class="border-b border-slate-800 bg-slate-950/80">
+              ${headerRow2}
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
   </script>
+
 
   <!-- BULK IMPORT STUDENTS MODAL -->
   <div id="bulkImportModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">

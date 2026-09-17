@@ -9,8 +9,8 @@
           <span class="material-symbols-rounded text-lg">cloud_upload</span>
         </div>
         <div>
-          <h3 class="font-extrabold text-sm sm:text-base text-white">SBTE Subject Log & Attendance Bulk Import</h3>
-          <p class="text-[11px] text-slate-400">Import classes, hours, syllabus topics & attendance directly from official SBTE PDF.</p>
+          <h3 class="font-extrabold text-sm sm:text-base text-white">Upload TEAMS Attendance</h3>
+          <p class="text-[11px] text-slate-400">Upload class attendance PDF from TEAMS portal (Subject Log & Attendance).</p>
         </div>
       </div>
       <button type="button" onclick="closeSbteImportModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer">
@@ -43,11 +43,11 @@
 
       <!-- File Upload Zone -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 mb-1">Official SBTE Subject Log PDF</label>
+        <label class="block text-[11px] font-bold text-slate-400 mb-1">Upload Class Attendance PDF from TEAMS</label>
         <div id="sbteDropZone" onclick="document.getElementById('sbteFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2">
           <input type="file" id="sbteFileInput" name="file" accept=".pdf" class="hidden" onchange="handleSbteFileSelect(this)">
           <span class="material-symbols-rounded text-3xl text-indigo-400">picture_as_pdf</span>
-          <div class="text-xs font-bold text-slate-300" id="sbteFileLabel">Click or drag & drop official SBTE PDF here</div>
+          <div class="text-xs font-bold text-slate-300" id="sbteFileLabel">Click or drag & drop class attendance PDF from TEAMS here</div>
           <div class="text-[10px] text-slate-500">Official "SUBJECT LOG FROM ... TO ..." exported from TEAMS portal</div>
           <div id="sbteSelectedFileInfo" class="hidden mt-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-xs text-indigo-300 font-mono font-medium"></div>
         </div>
@@ -109,7 +109,7 @@
         </button>
         <button type="submit" id="sbteSubmitBtn" class="px-5 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer">
           <span class="material-symbols-rounded text-sm">cloud_upload</span>
-          <span id="sbteSubmitText">Import Logs & Attendance</span>
+          <span id="sbteSubmitText">Upload TEAMS Attendance</span>
         </button>
       </div>
 
@@ -141,7 +141,7 @@
     const fileInfo = document.getElementById('sbteSelectedFileInfo');
     if (fileInfo) fileInfo.classList.add('hidden');
     const fileLabel = document.getElementById('sbteFileLabel');
-    if (fileLabel) fileLabel.innerText = 'Click or drag & drop official SBTE PDF here';
+    if (fileLabel) fileLabel.innerText = 'Click or drag & drop class attendance PDF from TEAMS here';
 
     document.getElementById('sbteImportModal').classList.remove('hidden');
   }
@@ -199,7 +199,7 @@
     const submitText = document.getElementById('sbteSubmitText');
 
     if (!fileInput.files || fileInput.files.length === 0) {
-      errorDiv.innerText = "Please select an official SBTE Subject Log PDF file to upload.";
+      errorDiv.innerText = "Please select a TEAMS class attendance PDF file to upload.";
       errorDiv.classList.remove('hidden');
       return;
     }
@@ -221,7 +221,7 @@
     .then(r => r.json())
     .then(data => {
       submitBtn.disabled = false;
-      submitText.innerText = "Import Logs & Attendance";
+      submitText.innerText = "Upload TEAMS Attendance";
 
       if (data.status === 'SUCCESS') {
         successDiv.classList.remove('hidden');

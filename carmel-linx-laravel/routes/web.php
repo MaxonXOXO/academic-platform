@@ -594,6 +594,10 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/practicum/{subjectId}/attendance-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printAttendanceReport']);
     Route::get('/r26/classroom/practicum/{subjectId}/attendance-consolidated', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printConsolidatedAttendanceReport']);
     Route::get('/r26/classroom/practicum/{subjectId}/attendance-log-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printLogAttendanceReport']);
+    Route::post('/api/r26/classroom/practicum/{subjectId}/experiments/save', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveCustomExperimentsRoster']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-experiment-list', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printExperimentList']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-experiments-log', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printExperimentsLog']);
+    Route::get('/r26/classroom/practicum/{subjectId}/export-experiments-log-csv', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'exportExperimentsLogCsv']);
 
 
     // Revision 2026 Practicum Series QP / Scheme / Answer Key

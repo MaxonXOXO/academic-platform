@@ -13,6 +13,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Flatpickr for dd/mm/yyyy Date Selection -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <style>
         .material-symbols-rounded {
@@ -149,6 +153,43 @@
             border-color: #3b82f6 !important;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
             outline: none !important;
+        }
+
+        /* Flatpickr dark theme adjustments */
+        .flatpickr-calendar {
+            background: #0f172a !important;
+            border: 1px solid #334155 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+            border-radius: 12px !important;
+        }
+        .flatpickr-calendar .flatpickr-months {
+            background: #0f172a !important;
+            border-bottom: 1px solid #1e293b !important;
+        }
+        .flatpickr-calendar .flatpickr-current-month {
+            color: #f1f5f9 !important;
+            font-weight: 700 !important;
+        }
+        .flatpickr-calendar .flatpickr-weekday {
+            color: #94a3b8 !important;
+            font-weight: 600 !important;
+        }
+        .flatpickr-calendar .flatpickr-day {
+            color: #e2e8f0 !important;
+            border-radius: 8px !important;
+        }
+        .flatpickr-calendar .flatpickr-day:hover {
+            background: #1e293b !important;
+            color: #38bdf8 !important;
+        }
+        .flatpickr-calendar .flatpickr-day.selected {
+            background: #0284c7 !important;
+            border-color: #0284c7 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+        .flatpickr-calendar .flatpickr-day.today {
+            border-color: #38bdf8 !important;
         }
 
         /* Strict Table Styling & High Contrast Grid Lines */
@@ -334,8 +375,8 @@
                 <div class="space-y-0.5">
                     <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
                         <h1 class="text-lg font-bold text-white tracking-tight">{{ $batchSubject->subject_name }}</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-semibold whitespace-nowrap">
-                            Practicum Course ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold whitespace-nowrap">
+                            🔬 Basic Science Practicum ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
                         </span>
 
                         @php
@@ -397,13 +438,13 @@
             
             <!-- Hours & Assessment Details (Dynamic from Uploaded Syllabus) -->
             <div class="flex items-center space-x-3 flex-wrap gap-y-1 text-slate-300 schedule-meta-text">
-                <span>Theory: <span class="font-bold text-blue-400">{{ $theoryHours ?? 45 }} Hrs</span> (L)</span>
+                <span>Theory: <span class="font-bold text-blue-400">45 Hrs</span> (L)</span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>Practical: <span class="font-bold text-emerald-400">{{ $practicalHours ?? 45 }} Hrs</span> (P)</span>
+                <span>Practical: <span class="font-bold text-emerald-400">45 Hrs</span> (P)</span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>Total Schedule: <span class="font-bold text-sky-400">{{ $practicumCourseFile->contact_hours ?? (($theoryHours ?? 45) + ($practicalHours ?? 45)) }} Hrs</span></span>
+                <span>Total Schedule: <span class="font-bold text-sky-400">90 Hrs</span></span>
                 <span class="text-slate-600 font-bold">•</span>
-                <span>CIE: <span class="font-bold text-amber-400">{{ $practicumCourseFile->cie_marks ?? 40 }}M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-sky-400">{{ $practicumCourseFile->ese_marks ?? 60 }}M</span></span>
+                <span>CIE: <span class="font-bold text-amber-400">40M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-sky-400">60M</span> <span class="text-slate-500">(Total: <span class="text-emerald-400 font-bold">100M</span>)</span></span>
             </div>
 
             <!-- Action Controls -->
@@ -629,10 +670,22 @@
                                     </select>
                                 </td>
                                 <td class="p-2">
-                                    <input type="date" id="lp-prop-{{ $plan->id }}" value="{{ $plan->proposed_date }}" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                                    @php
+                                        $propVal = '';
+                                        if (!empty($plan->proposed_date)) {
+                                            $propVal = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->proposed_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $plan->proposed_date;
+                                        }
+                                    @endphp
+                                    <input type="text" id="lp-prop-{{ $plan->id }}" value="{{ $propVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $plan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">
                                 </td>
                                 <td class="p-2">
-                                    <input type="date" id="lp-act-{{ $plan->id }}" value="{{ $plan->actual_date }}" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                                    @php
+                                        $actVal = '';
+                                        if (!empty($plan->actual_date)) {
+                                            $actVal = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->actual_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $plan->actual_date;
+                                        }
+                                    @endphp
+                                    <input type="text" id="lp-act-{{ $plan->id }}" value="{{ $actVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $plan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
                                 </td>
                                 <td class="p-2">
                                     <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; lpAutoSave({{ $plan->id }})">{{ $plan->topic_content }}</textarea>
@@ -769,36 +822,37 @@
             <!-- Subtab 4: Theory Series Examinations -->
             <div id="theory-subcontent-series" class="space-y-4 hidden">
 
-                <!-- QP Generator Panel — 4 Cards -->
+                <!-- QP Generator Panel — 2 Cards for Basic Science Practicum -->
                 <div class="glass-card p-5 rounded-xl border border-slate-800 no-print">
                     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
                             <h3 class="text-base font-bold text-white flex items-center gap-2 flex-wrap">
                                 <span>📄 Series Exam QP Generator</span>
-                                <span class="px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-sky-300 border border-blue-500/30 text-xs font-semibold">
-                                    {{ $subjectType['label'] ?? '💻 Program Core - ESE 100M' }}
+                                <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-semibold">
+                                    🔬 Basic Science Practicum (50 Marks | 2 Hours)
                                 </span>
                             </h3>
                             <p class="text-slate-400 text-xs mt-1">
-                                @if(($subjectType['pattern'] ?? '') === 'table_4_2_design')
-                                    Table 4.2 Design Paper: Part A (6×5=30M) + Part B (2×10=20M) = 50 Marks | 2 Hours
-                                @else
-                                    Single CO Test: Part A (2×1=2M) + Part B (3×3=9M) + Part C (answer any 2 of 3 × 7=14M) = 25 Marks | 1½ Hours
-                                @endif
-                                | Scaled to 10 CIA Marks
+                                SBTE Pattern: Part A (4×1=4M) + Part B (6×3=18M) + Part C (4×7=28M) = 50 Marks | 2 Hours | Averaged (CA4 &amp; CA5) &amp; Scaled to 10 CIA Marks
                             </p>
                         </div>
                     </div>
 
-                    <!-- 4 Series Cards -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        @foreach(['Series 1' => 'CO1', 'Series 2' => 'CO2', 'Series 3' => 'CO3', 'Series 4' => 'CO4'] as $series => $co)
+                    <!-- 2 Series Cards for Basic Science -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach([
+                            'Series 1' => ['label' => 'Series Exam 1 (CA4)', 'co' => 'CO1 + CO2', 'modules' => 'Modules I & II'],
+                            'Series 2' => ['label' => 'Series Exam 2 (CA5)', 'co' => 'CO3 + CO4', 'modules' => 'Modules III & IV']
+                        ] as $series => $sMeta)
                         @php $savedQp = $seriesQps[$series] ?? null; @endphp
-                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-900/15' : 'border-slate-700 bg-slate-800/50' }} p-3 flex flex-col gap-2">
+                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-900/15' : 'border-slate-700 bg-slate-800/50' }} p-4 flex flex-col gap-2.5">
                             <!-- Card Header -->
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-white text-sm">{{ $series }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded-full {{ $savedQp ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-700 text-slate-400' }}">{{ $co }}</span>
+                                <div>
+                                    <span class="font-bold text-white text-sm">{{ $sMeta['label'] }}</span>
+                                    <span class="text-xs text-slate-400 block">{{ $sMeta['modules'] }}</span>
+                                </div>
+                                <span class="text-xs px-2.5 py-1 rounded-full font-mono {{ $savedQp ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-700 text-slate-400' }}">{{ $sMeta['co'] }}</span>
                             </div>
 
                             <!-- Status -->
@@ -809,31 +863,31 @@
                             @endif
 
                             <!-- Generate buttons -->
-                            <div class="flex flex-col gap-1.5 mt-1">
-                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $co }}', 'ai')"
-                                    class="w-full py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all text-center">
+                            <div class="flex flex-col sm:flex-row gap-2 mt-1">
+                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'ai')"
+                                    class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all text-center cursor-pointer">
                                     ⚡ AI Generate
                                 </button>
-                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $co }}', 'manual')"
-                                    class="w-full py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all text-center">
+                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'manual')"
+                                    class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all text-center cursor-pointer">
                                     ✏ Manual Entry
                                 </button>
                             </div>
 
                             <!-- Print buttons (only if saved) -->
                             @if($savedQp)
-                            <div class="border-t border-slate-700/50 pt-2 flex flex-col gap-1.5">
+                            <div class="border-t border-slate-700/50 pt-2.5 flex flex-col gap-2">
                                 <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-qp/{{ rawurlencode($series) }}" target="_blank"
-                                    class="w-full py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-sky-300 text-center block">
+                                    class="w-full py-2 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-sky-300 text-center block no-underline">
                                     🖨️ Print QP
                                 </a>
-                                <div class="grid grid-cols-2 gap-1.5">
+                                <div class="grid grid-cols-2 gap-2">
                                     <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block">
+                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block no-underline">
                                         📋 Scheme
                                     </a>
                                     <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block">
+                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block no-underline">
                                         🔑 Key
                                     </a>
                                 </div>
@@ -851,12 +905,12 @@
                 <div class="glass-card p-5 rounded-xl border border-slate-800">
                     <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                         <div>
-                            <h3 class="text-base font-semibold text-slate-200">Theory Series Examinations</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">4 Series Tests (CO1, CO2, CO3, CO4 - 2 Hours each out of 50 marks), averaged and scaled to 10 CIA marks</p>
+                            <h3 class="text-base font-semibold text-slate-200">Theory Series Examinations (CA4 &amp; CA5)</h3>
+                            <p class="text-slate-400 text-xs mt-0.5">2 Series Exams (CA4: Mod 1&amp;2, CA5: Mod 3&amp;4 - 2 Hours each out of 50 Marks), averaged and scaled to 10 CIA Marks</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             <button onclick="printSubtabReport('Theory Series Examinations Report', 'theory-subcontent-series')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openSeriesTheoryModal()" class="header-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm">Enter Theory Series Marks</button>
+                            <button onclick="openSeriesTheoryModal()" class="header-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm cursor-pointer">Enter Theory Series Marks</button>
                         </div>
                     </div>
 
@@ -867,11 +921,9 @@
                                     <th class="p-2">Roll</th>
                                     <th class="p-2">SBTE Reg No</th>
                                     <th class="p-2">Student Name</th>
-                                    <th class="p-2 text-center w-28">Test 1 (CO1)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 2 (CO2)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 3 (CO3)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 4 (CO4)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-24">Avg (/50)</th>
+                                    <th class="p-2 text-center w-36">Series 1 (CA4: Mod 1&amp;2)<br><span class="text-[9px] text-slate-500 normal-case font-normal">Max 50 Marks (2 Hrs)</span></th>
+                                    <th class="p-2 text-center w-36">Series 2 (CA5: Mod 3&amp;4)<br><span class="text-[9px] text-slate-500 normal-case font-normal">Max 50 Marks (2 Hrs)</span></th>
+                                    <th class="p-2 text-center w-28">Avg (/50)</th>
                                     <th class="p-2 text-center w-28">CIA (/10M)</th>
                                 </tr>
                             </thead>
@@ -879,10 +931,8 @@
                                 @foreach($studentResults as $res)
                                 @php
                                     $stEvals = $seriesTheoryEvals->get($res['reg_no'], collect());
-                                    $s1 = $stEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
-                                    $s2 = $stEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
-                                    $s3 = $stEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
-                                    $s4 = $stEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+                                    $s1 = $stEvals->whereIn('series_no', ['Series 1', 'CO1', 'CA4'])->first();
+                                    $s2 = $stEvals->whereIn('series_no', ['Series 2', 'CO2', 'CA5'])->first();
                                     $regKey = preg_replace('/[^a-zA-Z0-9_]/', '_', $res['reg_no']);
                                 @endphp
                                 <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
@@ -892,8 +942,6 @@
                                     @foreach([
                                         ['s1', 'Series 1', $s1],
                                         ['s2', 'Series 2', $s2],
-                                        ['s3', 'Series 3', $s3],
-                                        ['s4', 'Series 4', $s4],
                                     ] as [$key, $seriesNo, $rec])
                                     <td class="p-1.5 text-center">
                                         <input type="number"
@@ -904,7 +952,7 @@
                                             value="{{ $rec ? number_format((float)$rec->total_score_50, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             onchange="autoSaveSeriesTheory(this)"
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-bold text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all"
+                                            class="w-full max-w-[120px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
                                     @endforeach
@@ -1654,7 +1702,7 @@
                 <button onclick="switchLabSubtab('planner')" id="lab-tab-planner" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📅 Lab Planner</button>
                 <button onclick="switchLabSubtab('eval')" id="lab-tab-eval" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🔬 Lab Eval</button>
                 <button onclick="switchLabSubtab('series')" id="lab-tab-series" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📝 Lab Series</button>
-                <button onclick="switchLabSubtab('ese')" id="lab-tab-ese" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🏆 Lab ESE</button>
+                <button onclick="switchLabSubtab('ese')" id="lab-tab-ese" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">🏆 Lab ESE (Internal 0M)</button>
                 <button onclick="switchLabSubtab('attendance')" id="lab-tab-attendance" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📅 Attendance &amp; Logs</button>
                 <button onclick="switchLabSubtab('materials')" id="lab-tab-materials" class="subtab-btn px-2.5 py-1.5 rounded-lg font-semibold text-slate-300 hover:text-white whitespace-nowrap">📁 Pre-Lab Materials</button>
             </div>
@@ -1988,10 +2036,22 @@
                                     </select>
                                 </td>
                                 <td class="p-2">
-                                    <input type="date" id="lp-prop-{{ $firstPlan->id }}" value="{{ $firstPlan->proposed_date }}" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                                    @php
+                                        $propValPr = '';
+                                        if (!empty($firstPlan->proposed_date)) {
+                                            $propValPr = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $firstPlan->proposed_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $firstPlan->proposed_date;
+                                        }
+                                    @endphp
+                                    <input type="text" id="lp-prop-{{ $firstPlan->id }}" value="{{ $propValPr }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $firstPlan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
                                 </td>
                                 <td class="p-2">
-                                    <input type="date" id="lp-act-{{ $firstPlan->id }}" value="{{ $firstPlan->actual_date }}" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                                    @php
+                                        $actValPr = '';
+                                        if (!empty($firstPlan->actual_date)) {
+                                            $actValPr = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $firstPlan->actual_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $firstPlan->actual_date;
+                                        }
+                                    @endphp
+                                    <input type="text" id="lp-act-{{ $firstPlan->id }}" value="{{ $actValPr }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $firstPlan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
                                 </td>
                                 <td class="p-2">
                                     <textarea id="lp-topic-{{ $firstPlan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-emerald-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; lpAutoSave({{ $firstPlan->id }})">{{ $cleanTopic }}</textarea>
@@ -2055,32 +2115,49 @@
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
                         <h3 class="text-base font-normal text-white">Continuous Practical Evaluation (CE - 10 CIA Marks)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 2.2 Rubrics (Criteria 1 to 6 out of 50 Marks) converted to 10 CIA marks</p>
+                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 2.2 Rubrics (Criteria 1 to 6 out of 50 Marks) converted to 10 CIA marks &bull; Inline editable with auto-save</p>
                     </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openExperimentEvalModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 font-semibold text-xs shadow-sm transition-all">Evaluate Experiment</button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
+                            <label class="text-xs text-slate-400 font-semibold whitespace-nowrap">Experiment:</label>
+                            <select id="ce-table-exp-select" onchange="onCeTableExpChange(this.value)" class="bg-transparent text-emerald-400 font-bold text-xs outline-none cursor-pointer">
+                                <option value="Continuous Evaluation" class="bg-slate-900 text-amber-300">⭐ Continuous Evaluation (Table 2.2)</option>
+                                @php
+                                    $evalExps = $practicumCourseFile->parsed_experiments ?? [];
+                                    if (is_string($evalExps)) $evalExps = json_decode($evalExps, true) ?: [];
+                                @endphp
+                                @foreach($evalExps as $exp)
+                                @php
+                                    $expCodeVal = $exp['code'] ?? ($exp['experiment_no'] ?? '');
+                                @endphp
+                                <option value="{{ $expCodeVal }}" class="bg-slate-900 text-slate-200">{{ $expCodeVal }} - {{ $exp['title'] ?? '' }}</option>
+                                @endforeach
+                            </select>
                         </div>
+                        <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
+                        <button onclick="openExperimentEvalModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 font-semibold text-xs shadow-sm transition-all">Evaluate Experiment</button>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header">
+                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="ce-eval-table">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80">
-                                <th class="p-2.5 w-12 text-center">Roll</th>
-                                <th class="p-2.5">SBTE Reg No</th>
-                                <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Prep (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs (5M)</th>
-                                <th class="p-2.5 text-center">Analysis (10M)</th>
-                                <th class="p-2.5 text-center">Viva (10M)</th>
-                                <th class="p-2.5 text-center">Work (5M)</th>
-                                <th class="p-2.5 text-center">Total Avg (/50)</th>
-                                <th class="p-2.5 text-center">Converted CIA (/10M)</th>
+                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80 text-[10px]">
+                                <th class="p-2 text-center w-8">Roll</th>
+                                <th class="p-2 w-28">SBTE Reg No</th>
+                                <th class="p-2 min-w-[130px]">Student Name</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Prep (10M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Setup (10M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Obs (5M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Analysis (10M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Viva (10M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Work (5M)</th>
+                                <th class="p-2 text-center w-20 text-sky-400 font-bold">Total (/50)</th>
+                                <th class="p-2 text-center w-24 text-amber-300 font-bold">Converted CIA (/10M)</th>
+                                <th class="p-2 text-center w-12 no-print">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 font-normal text-xs">
+                        <tbody id="ce-eval-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
                             @foreach($studentResults as $res)
                             @php
                                 $stExps = $experimentEvals->get($res['reg_no'], collect());
@@ -2092,19 +2169,43 @@
                                 $avgViva = $count > 0 ? $stExps->avg('viva_voce') : 0;
                                 $avgWorkmanship = $count > 0 ? $stExps->avg('workmanship_discipline') : 0;
                                 $totalAvg50 = $avgPrep + $avgSetup + $avgObs + $avgAnalysis + $avgViva + $avgWorkmanship;
+                                $cia10 = round((($totalAvg50 / 50.0) * 10.0) * 2) / 2;
                             @endphp
-                            <tr class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgPrep, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgSetup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgObs, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgAnalysis, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgViva, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgWorkmanship, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ number_format($totalAvg50, 2) }}</td>
-                                <td class="p-2.5 text-center text-amber-300">{{ number_format($res['continuous_eval_marks'], 1) }} / 10.0</td>
+                            <tr id="ce-row-{{ $res['reg_no'] }}" class="hover:bg-slate-800/30 transition-all">
+                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
+                                <td class="p-2 font-mono text-[11px] font-bold text-emerald-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2 font-medium text-slate-200">
+                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-prep_punctuality" value="{{ number_format($avgPrep, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'prep_punctuality', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-setup_procedure" value="{{ number_format($avgSetup, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'setup_procedure', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="5" id="ce-input-{{ $res['reg_no'] }}-observation_recording" value="{{ number_format($avgObs, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'observation_recording', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-analysis_interpretation" value="{{ number_format($avgAnalysis, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'analysis_interpretation', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-viva_voce" value="{{ number_format($avgViva, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'viva_voce', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="5" id="ce-input-{{ $res['reg_no'] }}-workmanship_discipline" value="{{ number_format($avgWorkmanship, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'workmanship_discipline', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center font-mono font-bold text-sky-400 text-xs">
+                                    <span id="ce-total-{{ $res['reg_no'] }}">{{ number_format($totalAvg50, 1) }}</span>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ce-cia-{{ $res['reg_no'] }}" value="{{ number_format($cia10, 1) }}" oninput="onCeCiaInput('{{ $res['reg_no'] }}', this.value)" class="w-14 bg-slate-950 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-black text-amber-300 text-xs outline-none transition-all" title="Direct Converted CIA mark (auto-scales criteria)">
+                                </td>
+                                <td class="p-1.5 text-center no-print">
+                                    <button type="button" onclick="openExpModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600/60 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                        ✏️
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -2116,12 +2217,20 @@
             <div id="lab-subcontent-series" class="glass-card p-5 rounded-xl border border-slate-800 hidden">
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
-                        <h3 class="text-base font-semibold text-slate-200">Practical Series Examinations</h3>
+                        <h3 class="text-base font-normal text-white">Practical Series Examinations</h3>
+                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 3.1 Rubrics (Criteria 1 to 5 out of 40 Marks) &bull; Scaled to 10 CIA marks &bull; Inline editable with auto-save</p>
                     </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openSeriesPracticalModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all">Enter Lab Series Test Marks</button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
+                            <label class="text-xs text-slate-400 font-semibold whitespace-nowrap">Series Test:</label>
+                            <select id="series-pr-table-test-select" onchange="onSeriesPrTableTestChange(this.value)" class="bg-transparent text-amber-400 font-bold text-xs outline-none cursor-pointer">
+                                <option value="Series 1" class="bg-slate-900 text-amber-300">🧪 Practical Test 1 (CO1+CO2)</option>
+                                <option value="Series 2" class="bg-slate-900 text-sky-300">🧪 Practical Test 2 (CO3+CO4)</option>
+                            </select>
                         </div>
+                        <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
+                        <button onclick="openSeriesPracticalModal()" class="px-3 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/35 text-sky-300 border border-sky-500/40 font-semibold text-xs shadow-sm transition-all">Enter Lab Series Test Marks</button>
+                    </div>
                 </div>
  
                 <!-- Practical QP Generator Panel -->
@@ -2195,49 +2304,80 @@
                 </div><!-- /Practical QP Generator Panel -->
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header">
+                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="series-pr-eval-table">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80">
-                                <th class="p-2.5 w-12 text-center">Roll</th>
-                                <th class="p-2.5">SBTE Reg No</th>
-                                <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Writeup (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs/Result (8M)</th>
-                                <th class="p-2.5 text-center">Viva (8M)</th>
-                                <th class="p-2.5 text-center">Record (4M)</th>
-                                <th class="p-2.5 text-center">Test 1 (/40)</th>
-                                <th class="p-2.5 text-center">Test 2 (/40)</th>
-                                <th class="p-2.5 text-center">Avg (/40)</th>
-                                <th class="p-2.5 text-center">Converted CIA (/10M)</th>
+                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80 text-[10px]">
+                                <th class="p-2 text-center w-8">Roll</th>
+                                <th class="p-2 w-28">SBTE Reg No</th>
+                                <th class="p-2 min-w-[130px]">Student Name</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-1">Writeup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-2">Setup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-3">Obs/Res (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-4">Viva (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-5">Record (4M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 1 (/40)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 2 (/40)</th>
+                                <th class="p-2 text-center w-16 text-indigo-300 font-bold">Avg (/40)</th>
+                                <th class="p-2 text-center w-24 text-amber-300 font-bold">Converted CIA (/10M)</th>
+                                <th class="p-2 text-center w-12 no-print">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 font-normal text-xs">
+                        <tbody id="series-pr-eval-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
                             @foreach($studentResults as $res)
                             @php
                                 $spEvals = $seriesPracticalEvals->get($res['reg_no'], collect());
-                                $sp1 = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)'])->first();
-                                $sp2 = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)'])->first();
-                                $spCount = $spEvals->count();
-                                $spWriteup = $spCount > 0 ? $spEvals->avg('writeup_procedure') : 0;
-                                $spSetup = $spCount > 0 ? $spEvals->avg('setup_execution') : 0;
-                                $spObs = $spCount > 0 ? $spEvals->avg('observation_result') : 0;
-                                $spViva = $spCount > 0 ? $spEvals->avg('viva_voce') : 0;
-                                $spRecord = $spCount > 0 ? $spEvals->avg('record_completion') : 0;
+                                $sp1 = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+                                $sp2 = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+                                $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+                                $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+                                $avgScore = ($sp1Score + $sp2Score) / 2.0;
+                                $ciaScore = round((($avgScore / 40.0) * 10.0) * 2) / 2;
+
+                                // Initial active test is Series 1
+                                $activeW = $sp1 ? $sp1->writeup_procedure : 0;
+                                $activeS = $sp1 ? $sp1->setup_execution : 0;
+                                $activeO = $sp1 ? $sp1->observation_result : 0;
+                                $activeV = $sp1 ? $sp1->viva_voce : 0;
+                                $activeR = $sp1 ? $sp1->record_completion : 0;
                             @endphp
-                            <tr class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spWriteup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spSetup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spObs, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spViva, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spRecord, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ $sp1 ? number_format($sp1->total_score_40, 2) : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ $sp2 ? number_format($sp2->total_score_40, 2) : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ number_format($res['series_practical_marks'] * 4, 2) }}</td>
-                                <td class="p-2.5 text-center text-blue-300">{{ number_format($res['series_practical_marks'], 1) }} / 10.0</td>
+                            <tr id="sp-row-{{ $res['reg_no'] }}" class="hover:bg-slate-800/30 transition-all">
+                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
+                                <td class="p-2 font-mono text-[11px] font-bold text-sky-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2 font-medium text-slate-200">
+                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-writeup_procedure" value="{{ number_format($activeW, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'writeup_procedure', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-setup_execution" value="{{ number_format($activeS, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'setup_execution', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-observation_result" value="{{ number_format($activeO, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'observation_result', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-viva_voce" value="{{ number_format($activeV, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'viva_voce', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="4" id="sp-input-{{ $res['reg_no'] }}-record_completion" value="{{ number_format($activeR, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'record_completion', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t1-{{ $res['reg_no'] }}" value="{{ number_format($sp1Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 1', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 1 Total (/40)">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t2-{{ $res['reg_no'] }}" value="{{ number_format($sp2Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 2', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 2 Total (/40)">
+                                </td>
+                                <td class="p-1.5 text-center font-mono font-bold text-indigo-300 text-xs">
+                                    <span id="sp-avg-{{ $res['reg_no'] }}">{{ number_format($avgScore, 1) }}</span>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-cia-{{ $res['reg_no'] }}" value="{{ number_format($ciaScore, 1) }}" oninput="onSeriesPrCiaInput('{{ $res['reg_no'] }}', this.value)" class="w-14 bg-slate-950 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-black text-amber-300 text-xs outline-none transition-all" title="Direct Practical Series CIA mark (/10M)">
+                                </td>
+                                <td class="p-1.5 text-center no-print">
+                                    <button type="button" onclick="openSeriesPrModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-sky-600/30 hover:bg-sky-600/60 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                        ✏️
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -2245,78 +2385,59 @@
                 </div>
             </div>
 
-            <!-- Subtab 5: Practical ESE -->
-            <div id="lab-subcontent-ese" class="glass-card p-5 rounded-xl border border-blue-600/40 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-950/20 hidden">
-                <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
-                    <div>
-                        <h3 class="text-base font-semibold text-blue-300 flex items-center space-x-2">
-                            <span>🏆 Institutional Practical End Semester Exam (40 Marks)</span>
-                        </h3>
-                        <p class="text-slate-400 text-xs mt-0.5">
-                            Rubrics splitup: Procedure (10M) + Setup (10M) + Result (8M) + Viva (8M) + Record (4M) = 40 Marks
+            <!-- Subtab 5: Practical ESE (Basic Science Internal Scheme) -->
+            <div id="lab-subcontent-ese" class="glass-card p-6 rounded-xl border border-sky-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950/30 hidden space-y-5">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center text-xl shrink-0">
+                            🔬
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <span>Basic Science Practicum: Practical ESE is Internal Only</span>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">0 ESE Marks</span>
+                            </h3>
+                            <p class="text-slate-400 text-xs mt-0.5">
+                                SBTE Revision 2026 Examination Scheme • 100% Internal Lab Evaluation (Continuous CE 10M + Practical Tests 10M)
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="switchMode('theory'); switchTheorySubtab('ese');" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-md transition-all flex items-center space-x-1.5 cursor-pointer">
+                        <span>🏆 Go to Theory Written ESE (60M)</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-sky-400 font-bold text-xs uppercase tracking-wider">1. Continuous Lab Evaluation (CE)</div>
+                        <div class="text-2xl font-black text-white font-mono">10 Marks <span class="text-xs text-slate-500 font-normal">/ 50 Scaled</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Continuous evaluation of day-to-day experiments based on Table 2.2 rubrics (Preparation, Setup, Observation, Analysis, Viva, Discipline).
                         </p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="printSubtabReport('Practical End Semester Exam (ESE) Report', 'lab-subcontent-ese')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                        <button onclick="openEsePracticalModal()" class="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 font-semibold text-xs shadow-sm transition-all flex items-center space-x-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            <span>Enter Practical ESE Marks</span>
-                        </button>
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-amber-400 font-bold text-xs uppercase tracking-wider">2. Practical Tests (CA2 &amp; CA3)</div>
+                        <div class="text-2xl font-black text-white font-mono">10 Marks <span class="text-xs text-slate-500 font-normal">/ 40 Scaled</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Two 3-hour practical tests: Test 1 (first half of experiments) and Test 2 (second half of experiments) as evaluated in Table 3.1.
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-emerald-400 font-bold text-xs uppercase tracking-wider">3. Theory Written ESE (Board Exam)</div>
+                        <div class="text-2xl font-black text-white font-mono">60 Marks <span class="text-xs text-slate-500 font-normal">Pass: 24/60</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            External written board examination of 2.5 hours duration covering all 4 modules. Grades S, A, B, C, D, E, F awarded by SBTE.
+                        </p>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80">
-                                <th class="p-2.5 w-12 text-center">Roll</th>
-                                <th class="p-2.5">SBTE Reg No</th>
-                                <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Writeup (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs/Result (8M)</th>
-                                <th class="p-2.5 text-center">Viva (8M)</th>
-                                <th class="p-2.5 text-center">Record (4M)</th>
-                                <th class="p-2.5 text-center">Practical ESE Total</th>
-                                <th class="p-2.5 text-center">Grade</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60" id="ese-practical-table-body">
-                            @foreach($studentResults as $res)
-                            @php
-                                $score = $res['ese_practical'] ?? 0;
-                                $pct = ($score / 40) * 100;
-                                if ($pct >= 90) { $g = 'S'; $gc = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'; }
-                                elseif ($pct >= 80) { $g = 'A'; $gc = 'text-blue-400 bg-blue-500/10 border-blue-500/30'; }
-                                elseif ($pct >= 70) { $g = 'B'; $gc = 'text-sky-400 bg-blue-500/10 border-blue-500/30'; }
-                                elseif ($pct >= 60) { $g = 'C'; $gc = 'text-sky-400 bg-sky-500/10 border-sky-500/30'; }
-                                elseif ($pct >= 50) { $g = 'D'; $gc = 'text-amber-400 bg-amber-500/10 border-amber-500/30'; }
-                                elseif ($pct >= 40) { $g = 'E'; $gc = 'text-orange-400 bg-orange-500/10 border-orange-500/30'; }
-                                else { $g = 'F'; $gc = 'text-rose-400 bg-rose-500/10 border-rose-500/30'; }
-                                
-                                $wInit = number_format(($score / 40.0) * 10.0, 1);
-                                $sInit = number_format(($score / 40.0) * 10.0, 1);
-                                $rInit = number_format(($score / 40.0) * 8.0, 1);
-                                $vInit = number_format(($score / 40.0) * 8.0, 1);
-                                $recInit = number_format(($score / 40.0) * 4.0, 1);
-                            @endphp
-                            <tr class="hover:bg-slate-800/30 transition-all" id="ese-row-{{ $res['reg_no'] }}">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 font-bold text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-writeup">{{ $score > 0 ? $wInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-setup">{{ $score > 0 ? $sInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-result">{{ $score > 0 ? $rInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-viva">{{ $score > 0 ? $vInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-record">{{ $score > 0 ? $recInit : '-' }}</td>
-                                <td class="p-2.5 text-center font-bold text-blue-400 ese-val-total">{{ round($score) }}</td>
-                                <td class="p-2.5 text-center ese-val-grade">
-                                    <span class="px-2.5 py-0.5 rounded-full border text-xs font-bold {{ $gc }}">{{ $g }}</span>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-base">📌</span>
+                        <span>Total Course Marks = <strong>40 CIA</strong> (Attendance 5 + SL 5 + CE 10 + Practical Tests 10 + Theory Series 10) + <strong>60 ESE</strong> (Written Theory) = <strong class="text-emerald-400">100 Marks</strong></span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 font-mono text-sky-300 font-bold">Min Passing: 40/100 Combined</span>
                 </div>
             </div>
 
@@ -2503,21 +2624,24 @@
                 </div>
 
                 <!-- Ledger Table Container -->
-                <div class="max-h-40 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-1 flex-shrink-0">
+                <div class="max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-1 flex-shrink-0">
                     <table class="w-full text-left border-collapse text-[11px]" id="sl-confirmation-table">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/80 text-[10px]">
-                                <th class="p-1.5 text-center w-10">Roll</th>
-                                <th class="p-1.5 w-32">SBTE Reg No</th>
-                                <th class="p-1.5">Student Name</th>
-                                <th class="p-1.5 text-center">CO Breakdown (Out of 15)</th>
-                                <th class="p-1.5 text-center w-24">Raw Score</th>
-                                <th class="p-1.5 text-center w-28">Converted CA1</th>
-                                <th class="p-1.5 text-center w-20">Action</th>
+                                <th class="p-1.5 text-center w-8">Roll</th>
+                                <th class="p-1.5 w-28">SBTE Reg No</th>
+                                <th class="p-1.5 min-w-[130px]">Student Name</th>
+                                <th class="p-1.5 text-center w-16 text-amber-300">CO1 (15)</th>
+                                <th class="p-1.5 text-center w-16 text-amber-300">CO2 (15)</th>
+                                <th class="p-1.5 text-center w-16 text-amber-300">CO3 (15)</th>
+                                <th class="p-1.5 text-center w-16 text-amber-300">CO4 (15)</th>
+                                <th class="p-1.5 text-center w-20 text-sky-300">Raw Avg</th>
+                                <th class="p-1.5 text-center w-24 text-emerald-300">CA1 (5M)</th>
+                                <th class="p-1.5 text-center w-14">Action</th>
                             </tr>
                         </thead>
                         <tbody id="sl-confirmation-tbody" class="divide-y divide-slate-800/60 font-normal text-slate-300">
-                            <!-- Populated / Appended dynamically when loaded & saved -->
+                            <!-- Populated dynamically when loaded & saved -->
                         </tbody>
                     </table>
                 </div>
@@ -2534,62 +2658,59 @@
         </div>
     </div>
 
-    <!-- Practical ESE Evaluator Modal (Blue Theme Sliders) -->
+    <!-- Practical ESE Evaluator Modal (Single Page Desktop View with Small Sliders) -->
     <div id="ese-practical-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-3xl w-full p-5 rounded-2xl border border-blue-500/40 shadow-2xl space-y-4 max-h-[92vh] flex flex-col bg-slate-950">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-blue-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-xl font-bold text-blue-300 flex items-center space-x-2">
-                        <span>🏆 Institutional Practical ESE Evaluator</span>
-                    </h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Adjust rubrics sliders or steppers for procedure, setup, result, viva, and record.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🏆</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Practical End Semester Exam Evaluator (Table 4.1)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 5 practical rubrics (40 Marks) &bull; Auto-saved</p>
+                    </div>
                 </div>
-                <button onclick="closeEsePracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button type="button" onclick="closeEsePracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
             <!-- Student Selection & Stepper Bar -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-shrink-0">
-                <button type="button" onclick="prevEseStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>◀ Prev</span>
-                </button>
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-shrink-0">
+                <button type="button" onclick="prevEseStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
 
-                <div class="flex-1 max-w-md">
-                    <select id="ese-student-select" onchange="loadEseStudent(this.value)" class="w-full bg-slate-950 border border-blue-500/40 rounded-lg px-3 py-1.5 font-bold text-sm text-blue-200 outline-none focus:border-blue-400">
+                <div class="flex-1 max-w-lg">
+                    <select id="ese-student-select" onchange="loadEseStudent(this.value)" class="w-full bg-slate-950 border border-blue-500/40 rounded-lg px-2.5 py-1 font-bold text-xs text-blue-200 outline-none focus:border-blue-400 cursor-pointer">
                         @foreach($studentResults as $idx => $res)
                         <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }} (SBTE: {{ $res['sbte_reg_no'] ?: $res['reg_no'] }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <button type="button" onclick="nextEseStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>Next ▶</span>
-                </button>
+                <button type="button" onclick="nextEseStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
             </div>
 
-            <!-- Live Score Summary Card -->
-            <div class="bg-gradient-to-r from-slate-900 via-blue-950/40 to-slate-900 p-3 rounded-xl border border-blue-500/40 flex items-center justify-between text-xs flex-shrink-0">
-                <div>
-                    <span class="text-slate-400 font-medium">Practical ESE Score:</span>
-                    <span id="ese-student-total-raw" class="font-extrabold text-blue-400 text-base ml-1.5">0.00 / 40.00 Marks</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="text-slate-400 font-medium">Evaluated Grade:</span>
-                    <span id="ese-student-grade-badge" class="font-black text-blue-300 text-base px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30">S</span>
-                </div>
+            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="ese-rubrics-container">
+                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
             </div>
 
-            <!-- Scrollable Rubric Sliders Container -->
-            <div id="ese-sliders-container" class="overflow-y-auto space-y-3.5 flex-1 pr-1">
-                <!-- Dynamically populated by JS loadEseStudent() -->
+            <!-- Live Converted Result Display -->
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-semibold text-xs">Practical ESE Score:</span>
+                    <span id="ese-student-total-raw" class="font-bold text-sky-400 text-sm font-mono">0.00 / 40.00 M</span>
+                </div>
+                <div class="flex items-center gap-2 text-right">
+                    <span class="text-slate-400 font-semibold text-xs">Evaluated Grade:</span>
+                    <span id="ese-student-grade-badge" class="font-bold text-blue-300 text-sm font-mono px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">S</span>
+                </div>
             </div>
 
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeEsePracticalModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeEsePracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextEseStudent()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700">Next Student ▶</button>
-                    <button type="button" onclick="saveAllEseMarks()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm">Save All ESE Marks</button>
+                    <button type="button" onclick="saveAndNextEseStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllEseMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -2739,6 +2860,9 @@
             if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
                 loadSubjectMaterials();
             }
+            if (tab === 'planner' && typeof initPracticumDatePickers === 'function') {
+                initPracticumDatePickers();
+            }
         }
 
         function switchLabSubtab(tab) {
@@ -2756,6 +2880,9 @@
             localStorage.setItem('active_lab_subtab', tab);
             if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
                 loadSubjectMaterials();
+            }
+            if (tab === 'planner' && typeof initPracticumDatePickers === 'function') {
+                initPracticumDatePickers();
             }
         }
 
@@ -3123,6 +3250,7 @@
             document.getElementById('sl-marks-modal').classList.remove('hidden');
             const sel = document.getElementById('sl-student-select');
             if (sel && sel.value) {
+                renderSlConfirmationTable(sel.value);
                 loadSlStudent(sel.value);
             } else {
                 const container = document.getElementById('sl-sliders-container');
@@ -3140,6 +3268,9 @@
 
         function closeSlMarksModal() {
             document.getElementById('sl-marks-modal').classList.add('hidden');
+            if (typeof _slDirty !== 'undefined' && _slDirty) {
+                location.reload();
+            }
         }
 
         function loadSlStudent(regNo) {
@@ -3153,6 +3284,13 @@
                     'CO3': { assignment: 0, mcq: 0 },
                     'CO4': { assignment: 0, mcq: 0 }
                 };
+            }
+
+            const tbody = document.getElementById('sl-confirmation-tbody');
+            if (tbody && tbody.children.length === 0) {
+                renderSlConfirmationTable(regNo);
+            } else {
+                highlightSlLedgerRow(regNo);
             }
 
             const targetCo = document.getElementById('sl-co-filter') ? document.getElementById('sl-co-filter').value : 'ALL';
@@ -3229,8 +3367,39 @@
             calculateSlLiveTotal(regNo);
         }
 
+        let _slDirty = false;
+        const _slAutoSaveTimers = {};
+
+        function autoSaveSlMarks(regNo) {
+            _slDirty = true;
+            clearTimeout(_slAutoSaveTimers[regNo]);
+            _slAutoSaveTimers[regNo] = setTimeout(() => {
+                const payload = {
+                    marks_data: [{
+                        reg_no: regNo,
+                        co_details: slSplitupState[regNo] || {}
+                    }]
+                };
+                fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/self-learning/marks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS') {
+                        const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1400, timerProgressBar: true });
+                        toast.fire({ icon: 'success', title: 'Marks Auto-saved ✓' });
+                    }
+                })
+                .catch(() => {});
+            }, 750);
+        }
+
         function syncSlSlider(regNo, co, actKey, val) {
-            // (kept for compatibility — now just delegates to syncSlInput)
             syncSlInput(regNo, co, actKey, val);
         }
 
@@ -3247,12 +3416,79 @@
             if (input && parseFloat(input.value) !== num) input.value = num;
 
             calculateSlLiveTotal(regNo);
+
+            // Update ledger row for this CO live
+            const coData = slSplitupState[regNo][co] || {};
+            let coSum = 0, coCnt = 0;
+            Object.values(coData).forEach(v => { coSum += parseFloat(v) || 0; coCnt++; });
+            const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
+            const ledgerInput = document.getElementById(`sl-ledger-input-${regNo}-${co}`);
+            if (ledgerInput && parseFloat(ledgerInput.value) !== parseFloat(coAvg.toFixed(1))) {
+                ledgerInput.value = coAvg.toFixed(1);
+            }
+
+            autoSaveSlMarks(regNo);
         }
 
         function stepSlSlider(regNo, co, actKey, delta) {
             const current = slSplitupState[regNo]?.[co]?.[actKey] || 0;
             const next = Math.max(0, Math.min(15, current + delta));
             syncSlInput(regNo, co, actKey, next);
+        }
+
+        function onLedgerCoInput(regNo, co, val) {
+            const num = Math.max(0, Math.min(15, parseFloat(val) || 0));
+            if (!slSplitupState[regNo]) slSplitupState[regNo] = {};
+            if (!slSplitupState[regNo][co]) slSplitupState[regNo][co] = {};
+
+            const activeActs = slConfigs[co] || { assignment: true, mcq: true };
+            let actKeys = Object.keys(activeActs).filter(k => activeActs[k]);
+            if (actKeys.length === 0) actKeys = ['assignment', 'mcq'];
+
+            actKeys.forEach(k => {
+                slSplitupState[regNo][co][k] = num;
+            });
+
+            // If this student is currently loaded in top card, update top card UI
+            const sel = document.getElementById('sl-student-select');
+            if (sel && sel.value === regNo) {
+                actKeys.forEach(k => {
+                    const badge = document.getElementById(`badge-${co}-${k}`);
+                    if (badge) badge.innerText = `${num.toFixed(1)} / 15.0`;
+                    const inp = document.getElementById(`input-${co}-${k}`);
+                    if (inp && parseFloat(inp.value) !== num) inp.value = num;
+                });
+                const coSumSpan = document.getElementById(`co-sum-${co}`);
+                if (coSumSpan) coSumSpan.innerText = `Avg: ${num.toFixed(2)} / 15.0`;
+            }
+
+            // Recalculate row totals
+            const stData = slSplitupState[regNo] || {};
+            let stTotal = 0, stCount = 0;
+            ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+                const cData = stData[c] || {};
+                let cSum = 0, cCnt = 0;
+                Object.values(cData).forEach(v => { cSum += parseFloat(v) || 0; cCnt++; });
+                stTotal += cSum;
+                stCount += cCnt;
+            });
+            const stAvg = stCount > 0 ? (stTotal / stCount) : 0;
+            const stCia = Math.min(5.0, (stAvg / 15.0) * 5.0);
+
+            const rawEl = document.getElementById(`sl-ledger-raw-${regNo}`);
+            if (rawEl) rawEl.innerText = `${stAvg.toFixed(2)}`;
+            const ciaEl = document.getElementById(`sl-ledger-cia-${regNo}`);
+            if (ciaEl) ciaEl.innerText = `${stCia.toFixed(2)}`;
+
+            if (sel && sel.value === regNo) {
+                const topRaw = document.getElementById('sl-student-total-raw');
+                const topCia = document.getElementById('sl-student-converted-cia');
+                if (topRaw) topRaw.innerText = `${stAvg.toFixed(2)} / 15.00 M`;
+                if (topCia) topCia.innerText = `${stCia.toFixed(2)} / 5.00 M`;
+            }
+
+            updateSlEvaluatedBadge();
+            autoSaveSlMarks(regNo);
         }
 
         function calculateSlLiveTotal(regNo) {
@@ -3288,7 +3524,46 @@
             if (rawElem) rawElem.innerText = `${overallAvg.toFixed(2)} / 15.00 M`;
             if (ciaElem) ciaElem.innerText = `${ciaConverted.toFixed(2)} / 5.00 M`;
 
-            renderSlConfirmationTable(regNo);
+            const rawEl = document.getElementById(`sl-ledger-raw-${regNo}`);
+            if (rawEl) rawEl.innerText = `${overallAvg.toFixed(2)}`;
+            const ciaEl = document.getElementById(`sl-ledger-cia-${regNo}`);
+            if (ciaEl) ciaEl.innerText = `${ciaConverted.toFixed(2)}`;
+
+            highlightSlLedgerRow(regNo);
+            updateSlEvaluatedBadge();
+        }
+
+        function highlightSlLedgerRow(regNo) {
+            const tbody = document.getElementById('sl-confirmation-tbody');
+            if (!tbody) return;
+            tbody.querySelectorAll('tr').forEach(tr => {
+                tr.classList.remove('bg-slate-800', 'border-l-2', 'border-blue-400', 'font-semibold');
+                tr.classList.add('hover:bg-slate-900/50');
+            });
+            const activeRow = document.getElementById(`sl-ledger-row-${regNo}`);
+            if (activeRow) {
+                activeRow.classList.remove('hover:bg-slate-900/50');
+                activeRow.classList.add('bg-slate-800', 'border-l-2', 'border-blue-400', 'font-semibold');
+            }
+        }
+
+        function updateSlEvaluatedBadge() {
+            const badge = document.getElementById('sl-evaluated-count-badge');
+            if (!badge) return;
+            const students = typeof studentsList !== 'undefined' && studentsList.length ? studentsList : [];
+            let count = 0;
+            students.forEach(st => {
+                const data = slSplitupState[st.reg_no] || {};
+                let hasVal = false;
+                ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+                    const cd = data[c] || {};
+                    Object.values(cd).forEach(v => {
+                        if (parseFloat(v) > 0) hasVal = true;
+                    });
+                });
+                if (hasVal) count++;
+            });
+            badge.innerText = `${count} Evaluated`;
         }
 
         function renderSlConfirmationTable(currentRegNo) {
@@ -3306,7 +3581,7 @@
 
                 let totalScore = 0;
                 let totalCount = 0;
-                let coBreakdownArr = [];
+                const coScores = {};
 
                 ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
                     const coData = data[co] || {};
@@ -3317,9 +3592,7 @@
                         coCnt++;
                     });
                     const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
-                    if (coCnt > 0) {
-                        coBreakdownArr.push(`<span class="px-1 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-amber-300 border border-slate-700">${co}:${coAvg.toFixed(1)}</span>`);
-                    }
+                    coScores[co] = coAvg;
                     totalScore += coSum;
                     totalCount += coCnt;
                 });
@@ -3335,22 +3608,33 @@
                 const activeBg = isCurrent ? 'bg-slate-800 border-l-2 border-blue-400 font-semibold' : 'hover:bg-slate-900/50';
 
                 html += `
-                    <tr class="${activeBg} transition-all">
+                    <tr id="sl-ledger-row-${regNo}" class="${activeBg} transition-all">
                         <td class="p-1.5 text-center font-bold text-slate-400">${student.roll_no}</td>
                         <td class="p-1.5 font-mono text-[10px] font-bold text-emerald-400/90">${student.sbte_reg_no || student.reg_no}</td>
                         <td class="p-1.5 font-medium text-slate-200">
-                            <div class="text-[11px] font-bold text-white">${student.name}</div>
+                            <div class="text-[11px] font-bold text-white truncate max-w-[130px]" title="${student.name}">${student.name}</div>
                         </td>
-                        <td class="p-1.5 text-center">
-                            <div class="flex items-center justify-center gap-1 flex-wrap">${coBreakdownArr.join('') || '<span class="text-slate-600 text-[10px]">-</span>'}</div>
+                        <td class="p-1 text-center">
+                            <input type="number" step="0.5" min="0" max="15" id="sl-ledger-input-${regNo}-CO1" value="${coScores['CO1'].toFixed(1)}" oninput="onLedgerCoInput('${regNo}', 'CO1', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-bold text-amber-300 text-xs outline-none transition-all">
                         </td>
-                        <td class="p-1.5 text-center font-bold text-amber-400 text-xs">${overallAvg.toFixed(2)} / 15.0</td>
-                        <td class="p-1.5 text-center font-black text-emerald-400 text-xs">
-                            <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">${ciaConverted.toFixed(2)} / 5.0</span>
+                        <td class="p-1 text-center">
+                            <input type="number" step="0.5" min="0" max="15" id="sl-ledger-input-${regNo}-CO2" value="${coScores['CO2'].toFixed(1)}" oninput="onLedgerCoInput('${regNo}', 'CO2', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-bold text-amber-300 text-xs outline-none transition-all">
                         </td>
-                        <td class="p-1.5 text-center">
-                            <button type="button" onclick="jumpToSlStudent('${regNo}')" class="px-2 py-0.5 rounded bg-blue-600/30 hover:bg-blue-600/60 text-sky-300 border border-blue-500/30 text-[10px] font-bold transition-all cursor-pointer">
-                                Edit ✏️
+                        <td class="p-1 text-center">
+                            <input type="number" step="0.5" min="0" max="15" id="sl-ledger-input-${regNo}-CO3" value="${coScores['CO3'].toFixed(1)}" oninput="onLedgerCoInput('${regNo}', 'CO3', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-bold text-amber-300 text-xs outline-none transition-all">
+                        </td>
+                        <td class="p-1 text-center">
+                            <input type="number" step="0.5" min="0" max="15" id="sl-ledger-input-${regNo}-CO4" value="${coScores['CO4'].toFixed(1)}" oninput="onLedgerCoInput('${regNo}', 'CO4', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-bold text-amber-300 text-xs outline-none transition-all">
+                        </td>
+                        <td class="p-1 text-center font-mono font-bold text-sky-400 text-xs">
+                            <span id="sl-ledger-raw-${regNo}">${overallAvg.toFixed(2)}</span>
+                        </td>
+                        <td class="p-1 text-center font-mono font-black text-emerald-400 text-xs">
+                            <span id="sl-ledger-cia-${regNo}" class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">${ciaConverted.toFixed(2)}</span>
+                        </td>
+                        <td class="p-1 text-center">
+                            <button type="button" onclick="jumpToSlStudent('${regNo}')" title="Edit Activities in Card" class="px-2 py-0.5 rounded bg-blue-600/30 hover:bg-blue-600/60 text-sky-300 border border-blue-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                ✏️
                             </button>
                         </td>
                     </tr>
@@ -3366,6 +3650,8 @@
             if (sel) {
                 sel.value = regNo;
                 loadSlStudent(regNo);
+                const topCard = document.getElementById('sl-sliders-container');
+                if (topCard) topCard.scrollTop = 0;
             }
         }
 
@@ -3377,30 +3663,40 @@
                 <head>
                     <title>CA1 Self-Learning Evaluation Confirmation Ledger</title>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; color: #000; font-size: 11px; }
+                        @page { size: A4 portrait; margin: 12mm 10mm; }
+                        @media print {
+                            @page { size: A4 portrait; margin: 12mm 10mm; }
+                            body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        }
+                        body { font-family: Arial, sans-serif; margin: 15px; color: #000; font-size: 10px; }
                         h2, h4 { margin: 2px 0; text-align: center; }
                         .meta { text-align: center; font-size: 10px; margin-bottom: 12px; color: #444; }
                         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        th, td { border: 1px solid #333; padding: 5px 8px; text-align: left; font-size: 10px; }
-                        th { background-color: #f2f2f2; font-weight: bold; text-align: center; text-transform: uppercase; }
+                        th, td { border: 1px solid #333; padding: 4px 6px; text-align: left; font-size: 9.5px; }
+                        th { background-color: #f2f2f2; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 9px; }
                         .text-center { text-align: center; }
-                        .signatures { margin-top: 45px; display: flex; justify-content: space-between; }
-                        .sig-box { text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 10px; }
+                        .font-mono { font-family: ui-monospace, monospace; }
+                        .signatures { margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+                        .sig-box { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 9.5px; }
+                        tr { page-break-inside: avoid; }
                     </style>
                 </head>
                 <body>
                     <h2>{{ $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</h2>
                     <h4>Continuous Assessment (CA1) Self-Learning Evaluation Confirmation Ledger</h4>
-                    <div class="meta">Academic Semester: {{ $batchSubject->semester ?? 'R2026' }} | Printed: ${new Date().toLocaleString()}</div>
+                    <div class="meta">Academic Semester: {{ $batchSubject->semester ?? 'R2026' }} | Date: ${new Date().toLocaleDateString('en-GB')}</div>
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 35px;">Roll</th>
-                                <th style="width: 110px;">SBTE Reg No</th>
+                                <th style="width: 32px;">Roll</th>
+                                <th style="width: 95px;">SBTE Reg No</th>
                                 <th>Student Name</th>
-                                <th style="width: 160px;">CO Average (Out of 15)</th>
-                                <th style="width: 90px;">Raw Score (15M)</th>
-                                <th style="width: 90px;">CA1 CIA (5M)</th>
+                                <th style="width: 48px;">CO1 (15M)</th>
+                                <th style="width: 48px;">CO2 (15M)</th>
+                                <th style="width: 48px;">CO3 (15M)</th>
+                                <th style="width: 48px;">CO4 (15M)</th>
+                                <th style="width: 75px;">Raw Score (15M)</th>
+                                <th style="width: 75px;">CA1 CIA (5M)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3412,7 +3708,7 @@
 
                 let totalScore = 0;
                 let totalCount = 0;
-                let coParts = [];
+                const coScores = {};
 
                 ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
                     const coData = data[co] || {};
@@ -3423,7 +3719,7 @@
                         coCnt++;
                     });
                     const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
-                    coParts.push(`${co}: ${coAvg.toFixed(1)}`);
+                    coScores[co] = coAvg;
                     totalScore += coSum;
                     totalCount += coCnt;
                 });
@@ -3433,12 +3729,15 @@
 
                 printHtml += `
                     <tr>
-                        <td class="text-center">${student.roll_no}</td>
-                        <td>${student.sbte_reg_no || student.reg_no}</td>
+                        <td class="text-center font-bold">${student.roll_no}</td>
+                        <td class="font-mono text-center">${student.sbte_reg_no || student.reg_no}</td>
                         <td><strong>${student.name}</strong></td>
-                        <td class="text-center">${coParts.join(' | ')}</td>
-                        <td class="text-center"><strong>${overallAvg.toFixed(2)}</strong></td>
-                        <td class="text-center" style="font-weight: bold; background-color: #f9f9f9;">${ciaConverted.toFixed(2)}</td>
+                        <td class="text-center font-mono">${coScores['CO1'].toFixed(1)}</td>
+                        <td class="text-center font-mono">${coScores['CO2'].toFixed(1)}</td>
+                        <td class="text-center font-mono">${coScores['CO3'].toFixed(1)}</td>
+                        <td class="text-center font-mono">${coScores['CO4'].toFixed(1)}</td>
+                        <td class="text-center font-mono font-bold">${overallAvg.toFixed(2)}</td>
+                        <td class="text-center font-mono" style="font-weight: bold; background-color: #f9f9f9;">${ciaConverted.toFixed(2)}</td>
                     </tr>
                 `;
             });
@@ -3522,6 +3821,23 @@
             });
         }
 
+        function initPracticumDatePickers(container) {
+            const root = container || document;
+            if (typeof flatpickr !== 'undefined') {
+                root.querySelectorAll('.lp-date-picker, input.date-picker').forEach(el => {
+                    if (el._flatpickr) el._flatpickr.destroy();
+                    flatpickr(el, {
+                        dateFormat: "d/m/Y",
+                        allowInput: true,
+                        disableMobile: true,
+                        onChange: function(selectedDates, dateStr, instance) {
+                            el.dispatchEvent(new Event('change'));
+                        }
+                    });
+                });
+            }
+        }
+
         function addCustomLessonPlanRow(tbodyId, defaultMode) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
@@ -3560,10 +3876,10 @@
                     </select>
                 </td>
                 <td class="p-2">
-                    <input type="date" id="lp-prop-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                    <input type="text" id="lp-prop-${newId}" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">
                 </td>
                 <td class="p-2">
-                    <input type="date" id="lp-act-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                    <input type="text" id="lp-act-${newId}" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
                 </td>
                 <td class="p-2">
                     <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter custom lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug"></textarea>
@@ -3598,6 +3914,7 @@
             `;
 
             tbody.appendChild(tr);
+            initPracticumDatePickers(tr);
 
             // Automatically shift vertical scroll to max down to show the new row
             const scrollContainer = tbody.closest('.max-h-\\[650px\\], .overflow-y-auto, div') || tbody.parentElement;
@@ -4468,7 +4785,7 @@
 
     function updateSeriesTheoryRowLive(regNo) {
         const regKey = regNo.replace(/[^a-zA-Z0-9_]/g, '_');
-        const keys = ['s1', 's2', 's3', 's4'];
+        const keys = ['s1', 's2'];
         let sum = 0, count = 0;
 
         keys.forEach(k => {
@@ -4517,6 +4834,9 @@
 
         if (typeof updateExpRosterSummary === 'function') {
             updateExpRosterSummary();
+        }
+        if (typeof initPracticumDatePickers === 'function') {
+            initPracticumDatePickers();
         }
     });
     </script>
@@ -4582,10 +4902,8 @@
                 <div class="flex items-center justify-between gap-3">
                     <label class="text-slate-300 text-xs font-semibold">Select Series Test:</label>
                     <select id="series-theory-test-select" onchange="onSeriesTheoryTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-amber-400 font-bold outline-none focus:border-amber-500">
-                        <option value="Series 1">Test 1 (CO1)</option>
-                        <option value="Series 2">Test 2 (CO2)</option>
-                        <option value="Series 3">Test 3 (CO3)</option>
-                        <option value="Series 4">Test 4 (CO4)</option>
+                        <option value="Series 1">Series Exam 1 (CA4: Modules 1 &amp; 2)</option>
+                        <option value="Series 2">Series Exam 2 (CA5: Modules 3 &amp; 4)</option>
                     </select>
                 </div>
 
@@ -4646,24 +4964,28 @@
     </div>
 
     <!-- ================================================================
-         Continuous Lab Experiment Evaluation Modal
+         Continuous Lab Experiment Evaluation Modal (Single Page Desktop View)
     ================================================================= -->
     <div id="experiment-eval-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-2xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-emerald-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-lg font-bold text-white">Continuous Lab Work Evaluator (Table 2.2)</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Grade the student on 6 criteria. Total is out of 50, automatically scaled to 10 CIA marks.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🔬</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Continuous Lab Work Evaluator (Table 2.2)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 6 criteria (50 Marks) &bull; Auto-scaled to 10 CIA marks &bull; Auto-saved</p>
+                    </div>
                 </div>
-                <button onclick="closeExperimentEvalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="closeExperimentEvalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
  
             <!-- Selectors and Steppers -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-3 flex-shrink-0">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Select Experiment:</label>
-                    <select id="eval-exp-select" onchange="onEvalExpChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-normal text-xs text-emerald-400 outline-none w-full sm:max-w-xs focus:border-emerald-500">
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2 w-full sm:w-1/2">
+                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Experiment:</label>
+                    <select id="eval-exp-select" onchange="onEvalExpChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-emerald-400 font-semibold outline-none w-full focus:border-emerald-500 cursor-pointer">
+                        <option value="Continuous Evaluation">⭐ Continuous Evaluation (Overall Table 2.2)</option>
                         @php
                             $evalExps = $practicumCourseFile->parsed_experiments ?? [];
                             if (is_string($evalExps)) $evalExps = json_decode($evalExps, true) ?: [];
@@ -4677,48 +4999,40 @@
                     </select>
                 </div>
  
-                <div class="flex items-center justify-between gap-2">
-                    <button type="button" onclick="prevExpStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>◀ Prev</span>
-                    </button>
- 
-                    <div class="flex-1">
-                        <select id="eval-student-select" onchange="loadExpStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500">
-                            @foreach($studentResults as $idx => $res)
-                            <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
- 
-                    <button type="button" onclick="nextExpStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>Next ▶</span>
-                    </button>
+                <div class="flex items-center gap-1.5 w-full sm:w-1/2">
+                    <button type="button" onclick="prevExpStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
+                    <select id="eval-student-select" onchange="loadExpStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-bold text-xs text-white outline-none focus:border-emerald-500 cursor-pointer">
+                        @foreach($studentResults as $idx => $res)
+                        <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" onclick="nextExpStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
                 </div>
             </div>
  
-            <!-- Rubrics Form Card -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex-1 overflow-y-auto" id="exp-rubrics-container">
-                <!-- Javascript will populate sliders here -->
+            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="exp-rubrics-container">
+                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
             </div>
  
             <!-- Live Converted Result Display -->
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
-                <div>
-                    <span class="text-slate-400 font-semibold block">Total Evaluation Score:</span>
-                    <span id="exp-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 50.00 M</span>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-semibold text-xs">Total Evaluation Score:</span>
+                    <span id="exp-live-total" class="font-bold text-emerald-400 text-sm font-mono">0.00 / 50.00 M</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-slate-400 font-semibold block">CIA Marks:</span>
-                    <span id="exp-live-cia" class="font-bold text-amber-400 text-sm">0.00 / 10.00 M</span>
+                <div class="flex items-center gap-2 text-right">
+                    <span class="text-slate-400 font-semibold text-xs">Continuous Evaluation CIA:</span>
+                    <span id="exp-live-cia" class="font-bold text-amber-300 text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">0.00 / 10.00 M</span>
                 </div>
             </div>
  
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeExperimentEvalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeExperimentEvalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextExpStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm">Next Student ▶</button>
-                    <button type="button" onclick="saveAllExpMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextExpStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllExpMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -4728,68 +5042,63 @@
          Practical Series Exam Evaluation Modal
     ================================================================= -->
     <div id="series-practical-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-2xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-sky-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-lg font-bold text-white">Practical Series Test Marks Evaluator (Table 3.1)</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Grade the student on 5 practical criteria. Total is out of 40, automatically scaled to 10 CIA marks.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🧪</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Practical Series Test Marks Evaluator (Table 3.1)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 5 practical criteria (40 Marks) &bull; Scaled to 10 CIA marks &bull; Auto-saved</p>
+                    </div>
                 </div>
-                <button onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
- 
+
             <!-- Series and Student Selection -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-3 flex-shrink-0">
-                <div class="flex items-center justify-between gap-3">
-                    <label class="text-slate-300 text-xs font-semibold">Select Series Test:</label>
-                    <select id="series-pr-test-select" onchange="onSeriesPrTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-bold outline-none focus:border-amber-500">
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2 w-full sm:w-1/2">
+                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Series Test:</label>
+                    <select id="series-pr-test-select" onchange="onSeriesPrTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-semibold outline-none w-full focus:border-amber-500 cursor-pointer">
                         <option value="Series 1">Practical Test 1 (CO1+CO2)</option>
                         <option value="Series 2">Practical Test 2 (CO3+CO4)</option>
                     </select>
                 </div>
- 
-                <div class="flex items-center justify-between gap-2">
-                    <button type="button" onclick="prevSeriesPrStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>◀ Prev</span>
-                    </button>
- 
-                    <div class="flex-1">
-                        <select id="series-pr-student-select" onchange="loadSeriesPrStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500">
-                            @foreach($studentResults as $idx => $res)
-                            <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
- 
-                    <button type="button" onclick="nextSeriesPrStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>Next ▶</span>
-                    </button>
+
+                <div class="flex items-center gap-1.5 w-full sm:w-1/2">
+                    <button type="button" onclick="prevSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
+                    <select id="series-pr-student-select" onchange="loadSeriesPrStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-bold text-xs text-white outline-none focus:border-sky-500 cursor-pointer">
+                        @foreach($studentResults as $idx => $res)
+                        <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" onclick="nextSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
                 </div>
             </div>
- 
-            <!-- Rubrics Form Card -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex-1 overflow-y-auto" id="series-pr-rubrics-container">
-                <!-- Javascript will populate sliders here -->
+
+            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="series-pr-rubrics-container">
+                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
             </div>
- 
+
             <!-- Live Converted Result Display -->
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
-                <div>
-                    <span class="text-slate-400 font-semibold block">Total Exam Score:</span>
-                    <span id="series-pr-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 40.00 M</span>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-semibold text-xs">Total Series Score:</span>
+                    <span id="series-pr-live-total" class="font-bold text-sky-400 text-sm font-mono">0.00 / 40.00 M</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-slate-400 font-semibold block">CIA Marks:</span>
-                    <span id="series-pr-live-cia" class="font-bold text-blue-400 text-sm">0.00 / 10.00 M</span>
+                <div class="flex items-center gap-2 text-right">
+                    <span class="text-slate-400 font-semibold text-xs">Practical Series CIA:</span>
+                    <span id="series-pr-live-cia" class="font-bold text-amber-300 text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">0.00 / 10.00 M</span>
                 </div>
             </div>
- 
+
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeSeriesPracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeSeriesPracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextSeriesPrStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm">Next Student ▶</button>
-                    <button type="button" onclick="saveAllSeriesPrMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextSeriesPrStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllSeriesPrMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -4801,7 +5110,8 @@
     // =====================================================================
     const experimentEvalsDb = @json($experimentEvals);
     const experimentEvalsState = {};
- 
+    let expAutoSaveTimers = {};
+
     // Initialize state
     studentsList.forEach(s => {
         const regNo = s.reg_no;
@@ -4809,19 +5119,74 @@
         
         // Populate from DB if exists
         const dbList = experimentEvalsDb[regNo] || [];
+        let hasCe = false;
+        let sumPrep = 0, sumSetup = 0, sumObs = 0, sumAnalysis = 0, sumViva = 0, sumWork = 0, expCount = 0;
+
         dbList.forEach(rec => {
-            experimentEvalsState[regNo][rec.experiment_no] = {
-                prep_punctuality: parseFloat(rec.prep_punctuality) || 0,
-                setup_procedure: parseFloat(rec.setup_procedure) || 0,
-                observation_recording: parseFloat(rec.observation_recording) || 0,
-                analysis_interpretation: parseFloat(rec.analysis_interpretation) || 0,
-                viva_voce: parseFloat(rec.viva_voce) || 0,
-                workmanship_discipline: parseFloat(rec.workmanship_discipline) || 0,
-                total_score_50: parseFloat(rec.total_score_50) || 0
+            const eNo = rec.experiment_no;
+            const p1 = parseFloat(rec.prep_punctuality) || 0;
+            const p2 = parseFloat(rec.setup_procedure) || 0;
+            const p3 = parseFloat(rec.observation_recording) || 0;
+            const p4 = parseFloat(rec.analysis_interpretation) || 0;
+            const p5 = parseFloat(rec.viva_voce) || 0;
+            const p6 = parseFloat(rec.workmanship_discipline) || 0;
+            const tot = parseFloat(rec.total_score_50) || (p1 + p2 + p3 + p4 + p5 + p6);
+
+            experimentEvalsState[regNo][eNo] = {
+                prep_punctuality: p1,
+                setup_procedure: p2,
+                observation_recording: p3,
+                analysis_interpretation: p4,
+                viva_voce: p5,
+                workmanship_discipline: p6,
+                total_score_50: tot
             };
+
+            if (eNo === 'Continuous Evaluation') {
+                hasCe = true;
+            } else {
+                sumPrep += p1;
+                sumSetup += p2;
+                sumObs += p3;
+                sumAnalysis += p4;
+                sumViva += p5;
+                sumWork += p6;
+                expCount++;
+            }
         });
+
+        if (!hasCe) {
+            if (expCount > 0) {
+                const p1 = Math.round((sumPrep / expCount) * 2) / 2;
+                const p2 = Math.round((sumSetup / expCount) * 2) / 2;
+                const p3 = Math.round((sumObs / expCount) * 2) / 2;
+                const p4 = Math.round((sumAnalysis / expCount) * 2) / 2;
+                const p5 = Math.round((sumViva / expCount) * 2) / 2;
+                const p6 = Math.round((sumWork / expCount) * 2) / 2;
+                const tot = p1 + p2 + p3 + p4 + p5 + p6;
+                experimentEvalsState[regNo]['Continuous Evaluation'] = {
+                    prep_punctuality: p1,
+                    setup_procedure: p2,
+                    observation_recording: p3,
+                    analysis_interpretation: p4,
+                    viva_voce: p5,
+                    workmanship_discipline: p6,
+                    total_score_50: tot
+                };
+            } else {
+                experimentEvalsState[regNo]['Continuous Evaluation'] = {
+                    prep_punctuality: 0,
+                    setup_procedure: 0,
+                    observation_recording: 0,
+                    analysis_interpretation: 0,
+                    viva_voce: 0,
+                    workmanship_discipline: 0,
+                    total_score_50: 0
+                };
+            }
+        }
     });
- 
+
     function openExperimentEvalModal() {
         document.getElementById('experiment-eval-modal').classList.remove('hidden');
         const selectStudent = document.getElementById('eval-student-select');
@@ -4829,26 +5194,88 @@
             loadExpStudent(selectStudent.value);
         }
     }
- 
+
     function closeExperimentEvalModal() {
         document.getElementById('experiment-eval-modal').classList.add('hidden');
     }
- 
+
+    function openExpModalForStudent(regNo) {
+        const tableExp = document.getElementById('ce-table-exp-select')?.value || 'Continuous Evaluation';
+        const evalExpSel = document.getElementById('eval-exp-select');
+        if (evalExpSel) evalExpSel.value = tableExp;
+
+        const evalStudentSel = document.getElementById('eval-student-select');
+        if (evalStudentSel) evalStudentSel.value = regNo;
+
+        openExperimentEvalModal();
+    }
+
     function onEvalExpChange(expNo) {
+        const tableSel = document.getElementById('ce-table-exp-select');
+        if (tableSel && tableSel.value !== expNo) {
+            tableSel.value = expNo;
+            onCeTableExpChange(expNo, false);
+        }
         const selectStudent = document.getElementById('eval-student-select');
         if (selectStudent && selectStudent.value) {
             loadExpStudent(selectStudent.value);
         }
     }
- 
+
+    function onCeTableExpChange(expNo, syncModal = true) {
+        if (syncModal) {
+            const evalExpSel = document.getElementById('eval-exp-select');
+            if (evalExpSel && evalExpSel.value !== expNo) {
+                evalExpSel.value = expNo;
+            }
+        }
+
+        studentsList.forEach(s => {
+            const regNo = s.reg_no;
+            const state = experimentEvalsState[regNo]?.[expNo] || {
+                prep_punctuality: 0, setup_procedure: 0, observation_recording: 0,
+                analysis_interpretation: 0, viva_voce: 0, workmanship_discipline: 0,
+                total_score_50: 0
+            };
+            const p1 = state.prep_punctuality || 0;
+            const p2 = state.setup_procedure || 0;
+            const p3 = state.observation_recording || 0;
+            const p4 = state.analysis_interpretation || 0;
+            const p5 = state.viva_voce || 0;
+            const p6 = state.workmanship_discipline || 0;
+            const tot = p1 + p2 + p3 + p4 + p5 + p6;
+            const cia = Math.round(((tot / 50.0) * 10.0) * 2) / 2;
+
+            const elPrep = document.getElementById(`ce-input-${regNo}-prep_punctuality`);
+            if (elPrep) elPrep.value = p1.toFixed(1);
+            const elSetup = document.getElementById(`ce-input-${regNo}-setup_procedure`);
+            if (elSetup) elSetup.value = p2.toFixed(1);
+            const elObs = document.getElementById(`ce-input-${regNo}-observation_recording`);
+            if (elObs) elObs.value = p3.toFixed(1);
+            const elAna = document.getElementById(`ce-input-${regNo}-analysis_interpretation`);
+            if (elAna) elAna.value = p4.toFixed(1);
+            const elViva = document.getElementById(`ce-input-${regNo}-viva_voce`);
+            if (elViva) elViva.value = p5.toFixed(1);
+            const elWork = document.getElementById(`ce-input-${regNo}-workmanship_discipline`);
+            if (elWork) elWork.value = p6.toFixed(1);
+            const elTot = document.getElementById(`ce-total-${regNo}`);
+            if (elTot) elTot.innerText = tot.toFixed(1);
+            const elCia = document.getElementById(`ce-cia-${regNo}`);
+            if (elCia) elCia.value = cia.toFixed(1);
+        });
+    }
+
     function loadExpStudent(regNo) {
         const student = studentsList.find(s => s.reg_no === regNo);
         if (!student) return;
- 
+
         const expNo = document.getElementById('eval-exp-select').value;
         if (!expNo) return;
- 
-        // Ensure state exists for this student/experiment
+
+        if (!experimentEvalsState[regNo]) {
+            experimentEvalsState[regNo] = {};
+        }
+
         if (!experimentEvalsState[regNo][expNo]) {
             experimentEvalsState[regNo][expNo] = {
                 prep_punctuality: 0,
@@ -4860,10 +5287,10 @@
                 total_score_50: 0
             };
         }
- 
+
         const state = experimentEvalsState[regNo][expNo];
         const container = document.getElementById('exp-rubrics-container');
- 
+
         const criteria = [
             { label: '1. Prep & Punctuality', key: 'prep_punctuality', max: 10, step: 0.5 },
             { label: '2. Setup & Procedure', key: 'setup_procedure', max: 10, step: 0.5 },
@@ -4872,98 +5299,291 @@
             { label: '5. Viva Voce', key: 'viva_voce', max: 10, step: 0.5 },
             { label: '6. Workmanship & Discipline', key: 'workmanship_discipline', max: 5, step: 0.5 }
         ];
- 
+
         let html = `
-            <div class="mb-2 text-xs text-slate-400 font-semibold uppercase">Grading criteria for: ${student.name}</div>
+            <div class="flex items-center justify-between px-1 mb-1">
+                <div class="text-[11px] text-slate-300 font-semibold truncate">
+                    Candidate: <span class="text-white font-bold">#${student.roll_no} - ${student.name}</span> <span class="text-emerald-400 font-mono text-[10px]">(${student.reg_no})</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Target: <span class="text-amber-300 font-bold">${expNo}</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         `;
- 
+
         criteria.forEach(c => {
             const val = state[c.key] || 0;
             html += `
-                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-semibold">
-                        <span class="text-slate-350">${c.label} (Max ${c.max})</span>
-                        <span class="text-emerald-400 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded" id="exp-val-badge-${c.key}">${val.toFixed(1)}</span>
+                <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 space-y-1.5 hover:border-slate-700 transition-all">
+                    <div class="flex justify-between items-center text-[11px] font-semibold">
+                        <span class="text-slate-300 truncate" title="${c.label}">${c.label}</span>
+                        <span class="text-slate-500 text-[10px] ml-1 flex-shrink-0">Max ${c.max}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="adjustExpVal('${c.key}', -${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-750 font-black text-white flex items-center justify-center transition-all">-</button>
-                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="exp-slider-${c.key}" oninput="syncExpSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-emerald-500 bg-slate-900 border border-slate-750 rounded-lg h-2 outline-none">
-                        <button type="button" onclick="adjustExpVal('${c.key}', ${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-black text-white flex items-center justify-center transition-all">+</button>
+                    <div class="flex items-center gap-1.5">
+                        <input type="number" min="0" max="${c.max}" step="${c.step}" value="${val.toFixed(1)}" id="exp-num-${c.key}" oninput="syncExpInput('${c.key}', this.value, ${c.max})" class="w-14 px-1 py-0.5 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-xs text-emerald-400 text-center focus:border-emerald-500 outline-none transition-all flex-shrink-0">
+                        <button type="button" onclick="adjustExpVal('${c.key}', -${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">-</button>
+                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="exp-slider-${c.key}" oninput="syncExpSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-emerald-500 bg-slate-900 border border-slate-800 rounded h-1.5 outline-none cursor-pointer">
+                        <button type="button" onclick="adjustExpVal('${c.key}', ${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">+</button>
                     </div>
                 </div>
             `;
         });
- 
+
+        html += `</div>`;
+
         container.innerHTML = html;
         updateExpLiveDisplay(regNo, expNo);
     }
- 
+
     function syncExpSlider(key, val, max) {
         const num = parseFloat(val) || 0;
         const regNo = document.getElementById('eval-student-select').value;
         const expNo = document.getElementById('eval-exp-select').value;
         if (!regNo || !expNo) return;
- 
+
         experimentEvalsState[regNo][expNo][key] = num;
- 
-        const badge = document.getElementById(`exp-val-badge-${key}`);
-        if (badge) badge.innerText = num.toFixed(1);
- 
+
+        const numInput = document.getElementById(`exp-num-${key}`);
+        if (numInput) numInput.value = num.toFixed(1);
+
         updateExpLiveDisplay(regNo, expNo);
+        syncToCeTable(regNo, expNo, key, num);
+        triggerDebouncedAutoSave(regNo, expNo);
     }
- 
+
+    function syncExpInput(key, val, max) {
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        const regNo = document.getElementById('eval-student-select').value;
+        const expNo = document.getElementById('eval-exp-select').value;
+        if (!regNo || !expNo) return;
+
+        experimentEvalsState[regNo][expNo][key] = num;
+
+        const slider = document.getElementById(`exp-slider-${key}`);
+        if (slider) slider.value = num;
+
+        updateExpLiveDisplay(regNo, expNo);
+        syncToCeTable(regNo, expNo, key, num);
+        triggerDebouncedAutoSave(regNo, expNo);
+    }
+
     function adjustExpVal(key, delta, max) {
         const slider = document.getElementById(`exp-slider-${key}`);
         if (!slider) return;
- 
+
         let current = parseFloat(slider.value) || 0;
-        let next = Math.max(0, Math.min(max, current + delta));
+        let next = Math.max(0, Math.min(max, Math.round((current + delta) * 2) / 2));
         slider.value = next;
         syncExpSlider(key, next, max);
     }
- 
+
     function updateExpLiveDisplay(regNo, expNo) {
-        const state = experimentEvalsState[regNo][expNo];
+        const state = experimentEvalsState[regNo]?.[expNo];
         if (!state) return;
- 
+
         const total = (state.prep_punctuality || 0) +
                       (state.setup_procedure || 0) +
                       (state.observation_recording || 0) +
                       (state.analysis_interpretation || 0) +
                       (state.viva_voce || 0) +
                       (state.workmanship_discipline || 0);
- 
+
         state.total_score_50 = total;
- 
+
         const cia = Math.round(((total / 50.0) * 10.0) * 2) / 2;
- 
-        document.getElementById('exp-live-total').innerText = `${total.toFixed(1)} / 50.0 M`;
-        document.getElementById('exp-live-cia').innerText = `${cia.toFixed(1)} / 10.0 M`;
+
+        const liveTotal = document.getElementById('exp-live-total');
+        if (liveTotal) liveTotal.innerText = `${total.toFixed(1)} / 50.0 M`;
+        const liveCia = document.getElementById('exp-live-cia');
+        if (liveCia) liveCia.innerText = `${cia.toFixed(1)} / 10.0 M`;
     }
- 
-    function prevExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        if (!sel || sel.selectedIndex <= 0) return;
-        sel.selectedIndex--;
-        loadExpStudent(sel.value);
+
+    function syncToCeTable(regNo, expNo, key, val) {
+        const currentTableExp = document.getElementById('ce-table-exp-select')?.value;
+        if (currentTableExp !== expNo) return;
+
+        const tableInput = document.getElementById(`ce-input-${regNo}-${key}`);
+        if (tableInput) tableInput.value = parseFloat(val).toFixed(1);
+
+        const state = experimentEvalsState[regNo]?.[expNo];
+        if (!state) return;
+
+        const tot = (state.prep_punctuality || 0) +
+                    (state.setup_procedure || 0) +
+                    (state.observation_recording || 0) +
+                    (state.analysis_interpretation || 0) +
+                    (state.viva_voce || 0) +
+                    (state.workmanship_discipline || 0);
+        state.total_score_50 = tot;
+        const cia = Math.round(((tot / 50.0) * 10.0) * 2) / 2;
+
+        const totEl = document.getElementById(`ce-total-${regNo}`);
+        if (totEl) totEl.innerText = tot.toFixed(1);
+
+        const ciaEl = document.getElementById(`ce-cia-${regNo}`);
+        if (ciaEl) ciaEl.value = cia.toFixed(1);
     }
- 
-    function nextExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
-        sel.selectedIndex++;
-        loadExpStudent(sel.value);
-    }
- 
-    function saveAndNextExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        const regNo = sel.value;
-        const expNo = document.getElementById('eval-exp-select').value;
-        if (!regNo || !expNo) return;
- 
+
+    function onCeTableInput(regNo, key, val) {
+        const expNo = document.getElementById('ce-table-exp-select')?.value || 'Continuous Evaluation';
+        if (!experimentEvalsState[regNo]) experimentEvalsState[regNo] = {};
+        if (!experimentEvalsState[regNo][expNo]) {
+            experimentEvalsState[regNo][expNo] = {
+                prep_punctuality: 0, setup_procedure: 0, observation_recording: 0,
+                analysis_interpretation: 0, viva_voce: 0, workmanship_discipline: 0,
+                total_score_50: 0
+            };
+        }
+
+        const maxMap = {
+            prep_punctuality: 10, setup_procedure: 10, observation_recording: 5,
+            analysis_interpretation: 10, viva_voce: 10, workmanship_discipline: 5
+        };
+        const max = maxMap[key] || 10;
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        experimentEvalsState[regNo][expNo][key] = num;
+
         const state = experimentEvalsState[regNo][expNo];
+        const tot = (state.prep_punctuality || 0) +
+                    (state.setup_procedure || 0) +
+                    (state.observation_recording || 0) +
+                    (state.analysis_interpretation || 0) +
+                    (state.viva_voce || 0) +
+                    (state.workmanship_discipline || 0);
+        state.total_score_50 = tot;
+        const cia = Math.round(((tot / 50.0) * 10.0) * 2) / 2;
+
+        const totEl = document.getElementById(`ce-total-${regNo}`);
+        if (totEl) totEl.innerText = tot.toFixed(1);
+        const ciaEl = document.getElementById(`ce-cia-${regNo}`);
+        if (ciaEl) ciaEl.value = cia.toFixed(1);
+
+        // Sync modal if open on same student and experiment
+        const modalStudent = document.getElementById('eval-student-select')?.value;
+        const modalExp = document.getElementById('eval-exp-select')?.value;
+        if (modalStudent === regNo && modalExp === expNo) {
+            const inputEl = document.getElementById(`exp-num-${key}`);
+            if (inputEl) inputEl.value = num.toFixed(1);
+            const sliderEl = document.getElementById(`exp-slider-${key}`);
+            if (sliderEl) sliderEl.value = num;
+            updateExpLiveDisplay(regNo, expNo);
+        }
+
+        triggerDebouncedAutoSave(regNo, expNo);
+    }
+
+    function onCeCiaInput(regNo, val) {
+        const expNo = document.getElementById('ce-table-exp-select')?.value || 'Continuous Evaluation';
+        if (!experimentEvalsState[regNo]) experimentEvalsState[regNo] = {};
+        if (!experimentEvalsState[regNo][expNo]) {
+            experimentEvalsState[regNo][expNo] = {
+                prep_punctuality: 0, setup_procedure: 0, observation_recording: 0,
+                analysis_interpretation: 0, viva_voce: 0, workmanship_discipline: 0,
+                total_score_50: 0
+            };
+        }
+
+        let cia = parseFloat(val);
+        if (isNaN(cia)) cia = 0;
+        if (cia < 0) cia = 0;
+        if (cia > 10) cia = 10;
+
+        // Scale proportionately: total out of 50 = cia * 5.0
+        const totTarget = cia * 5.0;
+        const p1 = Math.round((totTarget * 0.20) * 2) / 2;
+        const p2 = Math.round((totTarget * 0.20) * 2) / 2;
+        const p3 = Math.round((totTarget * 0.10) * 2) / 2;
+        const p4 = Math.round((totTarget * 0.20) * 2) / 2;
+        const p5 = Math.round((totTarget * 0.20) * 2) / 2;
+        const p6 = Math.max(0, Math.round((totTarget - (p1 + p2 + p3 + p4 + p5)) * 2) / 2);
+
+        const state = experimentEvalsState[regNo][expNo];
+        state.prep_punctuality = Math.min(10, p1);
+        state.setup_procedure = Math.min(10, p2);
+        state.observation_recording = Math.min(5, p3);
+        state.analysis_interpretation = Math.min(10, p4);
+        state.viva_voce = Math.min(10, p5);
+        state.workmanship_discipline = Math.min(5, p6);
+        state.total_score_50 = state.prep_punctuality + state.setup_procedure + state.observation_recording + state.analysis_interpretation + state.viva_voce + state.workmanship_discipline;
+
+        // Update table inputs
+        const elPrep = document.getElementById(`ce-input-${regNo}-prep_punctuality`);
+        if (elPrep) elPrep.value = state.prep_punctuality.toFixed(1);
+        const elSetup = document.getElementById(`ce-input-${regNo}-setup_procedure`);
+        if (elSetup) elSetup.value = state.setup_procedure.toFixed(1);
+        const elObs = document.getElementById(`ce-input-${regNo}-observation_recording`);
+        if (elObs) elObs.value = state.observation_recording.toFixed(1);
+        const elAna = document.getElementById(`ce-input-${regNo}-analysis_interpretation`);
+        if (elAna) elAna.value = state.analysis_interpretation.toFixed(1);
+        const elViva = document.getElementById(`ce-input-${regNo}-viva_voce`);
+        if (elViva) elViva.value = state.viva_voce.toFixed(1);
+        const elWork = document.getElementById(`ce-input-${regNo}-workmanship_discipline`);
+        if (elWork) elWork.value = state.workmanship_discipline.toFixed(1);
+        const elTot = document.getElementById(`ce-total-${regNo}`);
+        if (elTot) elTot.innerText = state.total_score_50.toFixed(1);
+
+        // Sync modal if open on same student
+        const modalStudent = document.getElementById('eval-student-select')?.value;
+        const modalExp = document.getElementById('eval-exp-select')?.value;
+        if (modalStudent === regNo && modalExp === expNo) {
+            loadExpStudent(regNo);
+        }
+
+        triggerDebouncedAutoSave(regNo, expNo);
+    }
+
+    function triggerDebouncedAutoSave(regNo, expNo) {
+        const timerKey = `${regNo}_${expNo}`;
+        if (expAutoSaveTimers[timerKey]) {
+            clearTimeout(expAutoSaveTimers[timerKey]);
+        }
+        showExpAutoSaveIndicator('saving');
+        expAutoSaveTimers[timerKey] = setTimeout(() => {
+            saveSingleExpStudentMarks(regNo, expNo);
+        }, 750);
+    }
+
+    function showExpAutoSaveIndicator(status) {
+        let indicator = document.getElementById('exp-autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'exp-autosave-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        if (status === 'saving') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
+            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving lab marks...';
+        } else if (status === 'saved') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-emerald-400 border border-emerald-500/40 opacity-100';
+            indicator.innerHTML = '<span>✓</span> Lab Evaluation Auto-saved';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        } else if (status === 'error') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
+            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+    }
+
+    function saveSingleExpStudentMarks(regNo, expNo) {
+        const state = experimentEvalsState[regNo]?.[expNo];
+        if (!state) return;
+
         const bsId = {{ $batchSubject->id }};
- 
         fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/experiment`, {
             method: 'POST',
             headers: {
@@ -4987,18 +5607,75 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'SUCCESS') {
+                showExpAutoSaveIndicator('saved');
+            } else {
+                showExpAutoSaveIndicator('error');
+            }
+        })
+        .catch(err => {
+            showExpAutoSaveIndicator('error');
+        });
+    }
+
+    function prevExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        if (!sel || sel.selectedIndex <= 0) return;
+        sel.selectedIndex--;
+        loadExpStudent(sel.value);
+    }
+
+    function nextExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
+        sel.selectedIndex++;
+        loadExpStudent(sel.value);
+    }
+
+    function saveAndNextExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        const regNo = sel.value;
+        const expNo = document.getElementById('eval-exp-select').value;
+        if (!regNo || !expNo) return;
+
+        const state = experimentEvalsState[regNo][expNo];
+        const bsId = {{ $batchSubject->id }};
+
+        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/experiment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({
+                experiment_no: expNo,
+                marks_data: [{
+                    reg_no: regNo,
+                    prep_punctuality: state.prep_punctuality,
+                    setup_procedure: state.setup_procedure,
+                    observation_recording: state.observation_recording,
+                    analysis_interpretation: state.analysis_interpretation,
+                    viva_voce: state.viva_voce,
+                    workmanship_discipline: state.workmanship_discipline,
+                    total_score_50: state.total_score_50
+                }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                showExpAutoSaveIndicator('saved');
                 nextExpStudent();
             } else {
                 alert('Auto-save error: ' + data.message);
             }
         });
     }
- 
+
     function saveAllExpMarks() {
         const marksData = [];
         const expNo = document.getElementById('eval-exp-select').value;
         if (!expNo) return;
- 
+
         Object.keys(experimentEvalsState).forEach(regNo => {
             const state = experimentEvalsState[regNo][expNo];
             if (state) {
@@ -5014,14 +5691,14 @@
                 });
             }
         });
- 
+
         Swal.fire({
             title: 'Saving Lab Work Marks...',
             text: `Saving scores for ${expNo}`,
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
- 
+
         fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/experiment', {
             method: 'POST',
             headers: {
@@ -5055,35 +5732,42 @@
     // =====================================================================
     const seriesPracticalEvalsDb = @json($seriesPracticalEvals);
     const seriesPracticalEvalsState = {};
- 
+    let seriesPrAutoSaveTimers = {};
+
     studentsList.forEach(s => {
         const regNo = s.reg_no;
         seriesPracticalEvalsState[regNo] = {
             'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
             'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
         };
- 
+
         const dbList = seriesPracticalEvalsDb[regNo] || [];
         dbList.forEach(rec => {
             const sNo = rec.series_no;
             let mapped = sNo;
-            if (sNo === 'Test 1 (CO1+CO2)') mapped = 'Series 1';
-            if (sNo === 'Test 2 (CO3+CO4)') mapped = 'Series 2';
- 
+            if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'Test 1' || sNo === 'CA2') mapped = 'Series 1';
+            if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'Test 2' || sNo === 'CA3') mapped = 'Series 2';
+
             if (seriesPracticalEvalsState[regNo][mapped]) {
+                const w = parseFloat(rec.writeup_procedure) || 0;
+                const set = parseFloat(rec.setup_execution) || 0;
+                const o = parseFloat(rec.observation_result) || 0;
+                const v = parseFloat(rec.viva_voce) || 0;
+                const r = parseFloat(rec.record_completion) || 0;
+                const tot = parseFloat(rec.total_score_40) || (w + set + o + v + r);
                 seriesPracticalEvalsState[regNo][mapped] = {
-                    writeup_procedure: parseFloat(rec.writeup_procedure) || 0,
-                    setup_execution: parseFloat(rec.setup_execution) || 0,
-                    observation_result: parseFloat(rec.observation_result) || 0,
-                    viva_voce: parseFloat(rec.viva_voce) || 0,
-                    record_completion: parseFloat(rec.record_completion) || 0,
-                    total_score_40: parseFloat(rec.total_score_40) || 0,
+                    writeup_procedure: w,
+                    setup_execution: set,
+                    observation_result: o,
+                    viva_voce: v,
+                    record_completion: r,
+                    total_score_40: rec.is_absent ? 0 : tot,
                     is_absent: !!rec.is_absent
                 };
             }
         });
     });
- 
+
     function openSeriesPracticalModal() {
         document.getElementById('series-practical-modal').classList.remove('hidden');
         const selectStudent = document.getElementById('series-pr-student-select');
@@ -5091,127 +5775,463 @@
             loadSeriesPrStudent(selectStudent.value);
         }
     }
- 
+
     function closeSeriesPracticalModal() {
         document.getElementById('series-practical-modal').classList.add('hidden');
     }
- 
+
+    function openSeriesPrModalForStudent(regNo) {
+        const tableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        const testSel = document.getElementById('series-pr-test-select');
+        if (testSel) testSel.value = tableTest;
+
+        const stSel = document.getElementById('series-pr-student-select');
+        if (stSel) stSel.value = regNo;
+
+        openSeriesPracticalModal();
+    }
+
     function onSeriesPrTestChange(test) {
+        const tableSel = document.getElementById('series-pr-table-test-select');
+        if (tableSel && tableSel.value !== test) {
+            tableSel.value = test;
+            onSeriesPrTableTestChange(test, false);
+        }
         const selectStudent = document.getElementById('series-pr-student-select');
         if (selectStudent && selectStudent.value) {
             loadSeriesPrStudent(selectStudent.value);
         }
     }
- 
+
+    function onSeriesPrTableTestChange(test, syncModal = true) {
+        if (syncModal) {
+            const modalTestSel = document.getElementById('series-pr-test-select');
+            if (modalTestSel && modalTestSel.value !== test) {
+                modalTestSel.value = test;
+            }
+        }
+
+        studentsList.forEach(s => {
+            const regNo = s.reg_no;
+            const state = seriesPracticalEvalsState[regNo]?.[test] || {
+                writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false
+            };
+            const w = state.writeup_procedure || 0;
+            const set = state.setup_execution || 0;
+            const o = state.observation_result || 0;
+            const v = state.viva_voce || 0;
+            const r = state.record_completion || 0;
+
+            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
+            if (elW) elW.value = w.toFixed(1);
+            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
+            if (elS) elS.value = set.toFixed(1);
+            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
+            if (elO) elO.value = o.toFixed(1);
+            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
+            if (elV) elV.value = v.toFixed(1);
+            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
+            if (elR) elR.value = r.toFixed(1);
+
+            const t1 = seriesPracticalEvalsState[regNo]?.['Series 1']?.total_score_40 || 0;
+            const t2 = seriesPracticalEvalsState[regNo]?.['Series 2']?.total_score_40 || 0;
+            const avg = (t1 + t2) / 2.0;
+            const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
+
+            const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
+            if (elT1) elT1.value = t1.toFixed(1);
+            const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
+            if (elT2) elT2.value = t2.toFixed(1);
+            const elAvg = document.getElementById(`sp-avg-${regNo}`);
+            if (elAvg) elAvg.innerText = avg.toFixed(1);
+            const elCia = document.getElementById(`sp-cia-${regNo}`);
+            if (elCia) elCia.value = cia.toFixed(1);
+        });
+    }
+
     function loadSeriesPrStudent(regNo) {
         const student = studentsList.find(s => s.reg_no === regNo);
         if (!student) return;
- 
+
         const test = document.getElementById('series-pr-test-select').value;
         if (!test) return;
- 
+
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
         const state = seriesPracticalEvalsState[regNo][test];
         const container = document.getElementById('series-pr-rubrics-container');
- 
+
         const criteria = [
-            { label: '1. Write-up / Procedure (Aim, Circuit/Flowchart, Stepwise procedure)', key: 'writeup_procedure', max: 10, step: 0.5 },
-            { label: '2. Experiment Setup & Execution (Connections, Handling, Accuracy)', key: 'setup_execution', max: 10, step: 0.5 },
-            { label: '3. Observation & Result / Output (Tabulation, Calculations, Outcome)', key: 'observation_result', max: 8, step: 0.5 },
-            { label: '4. Viva Voce (Conceptual understanding, Theory knowledge)', key: 'viva_voce', max: 8, step: 0.5 },
-            { label: '5. Record (Completion & neatness, Faculty certification)', key: 'record_completion', max: 4, step: 0.5 }
+            { label: '1. Write-up / Procedure', key: 'writeup_procedure', max: 10, step: 0.5 },
+            { label: '2. Setup & Execution', key: 'setup_execution', max: 10, step: 0.5 },
+            { label: '3. Observation & Result', key: 'observation_result', max: 8, step: 0.5 },
+            { label: '4. Viva Voce', key: 'viva_voce', max: 8, step: 0.5 },
+            { label: '5. Record Completion', key: 'record_completion', max: 4, step: 0.5 }
         ];
- 
+
+        const testTitle = test === 'Series 1' ? 'Practical Test 1 (CO1+CO2)' : 'Practical Test 2 (CO3+CO4)';
+
         let html = `
-            <div class="mb-2 text-xs text-slate-400 font-semibold uppercase">Grading criteria for: ${student.name}</div>
+            <div class="flex items-center justify-between px-1 mb-1">
+                <div class="text-[11px] text-slate-300 font-semibold truncate">
+                    Candidate: <span class="text-white font-bold">#${student.roll_no} - ${student.name}</span> <span class="text-sky-400 font-mono text-[10px]">(${student.reg_no})</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Test: <span class="text-amber-300 font-bold">${testTitle}</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         `;
- 
+
         criteria.forEach(c => {
             const val = state[c.key] || 0;
             html += `
-                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-semibold">
-                        <span class="text-slate-350">${c.label} (Max ${c.max})</span>
-                        <span class="text-sky-400 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded" id="series-pr-val-badge-${c.key}">${val.toFixed(1)}</span>
+                <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 space-y-1.5 hover:border-slate-700 transition-all">
+                    <div class="flex justify-between items-center text-[11px] font-semibold">
+                        <span class="text-slate-300 truncate" title="${c.label}">${c.label}</span>
+                        <span class="text-slate-500 text-[10px] ml-1 flex-shrink-0">Max ${c.max}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', -${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-750 font-black text-white flex items-center justify-center transition-all">-</button>
-                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="series-pr-slider-${c.key}" oninput="syncSeriesPrSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-blue-500 bg-slate-900 border border-slate-750 rounded-lg h-2 outline-none">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', ${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-black text-white flex items-center justify-center transition-all">+</button>
+                    <div class="flex items-center gap-1.5">
+                        <input type="number" min="0" max="${c.max}" step="${c.step}" value="${val.toFixed(1)}" id="series-pr-num-${c.key}" oninput="syncSeriesPrInput('${c.key}', this.value, ${c.max})" class="w-14 px-1 py-0.5 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-xs text-sky-400 text-center focus:border-sky-500 outline-none transition-all flex-shrink-0">
+                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', -${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">-</button>
+                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="series-pr-slider-${c.key}" oninput="syncSeriesPrSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-sky-500 bg-slate-900 border border-slate-800 rounded h-1.5 outline-none cursor-pointer">
+                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', ${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">+</button>
                     </div>
                 </div>
             `;
         });
- 
+
+        // 6th Card: Status / Absent toggle
+        html += `
+            <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
+                <div class="flex justify-between items-center text-[11px] font-semibold">
+                    <span class="text-slate-300">Candidate Exam Status</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full ${state.is_absent ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'}">${state.is_absent ? 'ABSENT' : 'PRESENT'}</span>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="series-pr-absent-check" ${state.is_absent ? 'checked' : ''} onchange="toggleSeriesPrAbsent(this.checked)" class="w-4 h-4 rounded border-slate-700 text-rose-600 focus:ring-rose-500">
+                        <span class="text-xs text-rose-300 font-semibold">Mark Absent (0/40)</span>
+                    </label>
+                    <span class="text-[10px] text-slate-500">Table 3.1 Rubric</span>
+                </div>
+            </div>
+        `;
+
+        html += `</div>`;
+
         container.innerHTML = html;
         updateSeriesPrLiveDisplay(regNo, test);
     }
- 
+
     function syncSeriesPrSlider(key, val, max) {
         const num = parseFloat(val) || 0;
         const regNo = document.getElementById('series-pr-student-select').value;
         const test = document.getElementById('series-pr-test-select').value;
         if (!regNo || !test) return;
- 
+
         seriesPracticalEvalsState[regNo][test][key] = num;
- 
-        const badge = document.getElementById(`series-pr-val-badge-${key}`);
-        if (badge) badge.innerText = num.toFixed(1);
- 
+        seriesPracticalEvalsState[regNo][test].is_absent = false;
+
+        const numInput = document.getElementById(`series-pr-num-${key}`);
+        if (numInput) numInput.value = num.toFixed(1);
+
+        const absCheck = document.getElementById('series-pr-absent-check');
+        if (absCheck) absCheck.checked = false;
+
         updateSeriesPrLiveDisplay(regNo, test);
+        syncToSeriesPrTable(regNo, test, key, num);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
     }
- 
+
+    function syncSeriesPrInput(key, val, max) {
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        const regNo = document.getElementById('series-pr-student-select').value;
+        const test = document.getElementById('series-pr-test-select').value;
+        if (!regNo || !test) return;
+
+        seriesPracticalEvalsState[regNo][test][key] = num;
+        seriesPracticalEvalsState[regNo][test].is_absent = false;
+
+        const slider = document.getElementById(`series-pr-slider-${key}`);
+        if (slider) slider.value = num;
+
+        const absCheck = document.getElementById('series-pr-absent-check');
+        if (absCheck) absCheck.checked = false;
+
+        updateSeriesPrLiveDisplay(regNo, test);
+        syncToSeriesPrTable(regNo, test, key, num);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
     function adjustSeriesPrVal(key, delta, max) {
         const slider = document.getElementById(`series-pr-slider-${key}`);
         if (!slider) return;
- 
+
         let current = parseFloat(slider.value) || 0;
-        let next = Math.max(0, Math.min(max, current + delta));
+        let next = Math.max(0, Math.min(max, Math.round((current + delta) * 2) / 2));
         slider.value = next;
         syncSeriesPrSlider(key, next, max);
     }
- 
-    function updateSeriesPrLiveDisplay(regNo, test) {
-        const state = seriesPracticalEvalsState[regNo][test];
-        if (!state) return;
- 
-        const total = (state.writeup_procedure || 0) +
-                      (state.setup_execution || 0) +
-                      (state.observation_result || 0) +
-                      (state.viva_voce || 0) +
-                      (state.record_completion || 0);
- 
-        state.total_score_40 = total;
- 
-        const cia = Math.round(((total / 40.0) * 10.0) * 2) / 2;
- 
-        document.getElementById('series-pr-live-total').innerText = `${total.toFixed(1)} / 40.0 M`;
-        document.getElementById('series-pr-live-cia').innerText = `${cia.toFixed(1)} / 10.0 M`;
-    }
- 
-    function prevSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        if (!sel || sel.selectedIndex <= 0) return;
-        sel.selectedIndex--;
-        loadSeriesPrStudent(sel.value);
-    }
- 
-    function nextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
-        sel.selectedIndex++;
-        loadSeriesPrStudent(sel.value);
-    }
- 
-    function saveAndNextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        const regNo = sel.value;
+
+    function toggleSeriesPrAbsent(checked) {
+        const regNo = document.getElementById('series-pr-student-select').value;
         const test = document.getElementById('series-pr-test-select').value;
         if (!regNo || !test) return;
- 
+
         const state = seriesPracticalEvalsState[regNo][test];
+        state.is_absent = !!checked;
+
+        if (checked) {
+            state.writeup_procedure = 0;
+            state.setup_execution = 0;
+            state.observation_result = 0;
+            state.viva_voce = 0;
+            state.record_completion = 0;
+            state.total_score_40 = 0;
+        } else {
+            state.total_score_40 = (state.writeup_procedure || 0) +
+                                   (state.setup_execution || 0) +
+                                   (state.observation_result || 0) +
+                                   (state.viva_voce || 0) +
+                                   (state.record_completion || 0);
+        }
+
+        loadSeriesPrStudent(regNo);
+        syncAllToSeriesPrTableRow(regNo);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function updateSeriesPrLiveDisplay(regNo, test) {
+        const state = seriesPracticalEvalsState[regNo]?.[test];
+        if (!state) return;
+
+        const total = state.is_absent ? 0 : (
+            (state.writeup_procedure || 0) +
+            (state.setup_execution || 0) +
+            (state.observation_result || 0) +
+            (state.viva_voce || 0) +
+            (state.record_completion || 0)
+        );
+
+        state.total_score_40 = total;
+
+        const cia = Math.round(((total / 40.0) * 10.0) * 2) / 2;
+
+        const liveTotal = document.getElementById('series-pr-live-total');
+        if (liveTotal) liveTotal.innerText = `${total.toFixed(1)} / 40.0 M`;
+        const liveCia = document.getElementById('series-pr-live-cia');
+        if (liveCia) liveCia.innerText = `${cia.toFixed(1)} / 10.0 M`;
+    }
+
+    function syncToSeriesPrTable(regNo, test, key, val) {
+        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (currentTableTest === test) {
+            const tableInput = document.getElementById(`sp-input-${regNo}-${key}`);
+            if (tableInput) tableInput.value = parseFloat(val).toFixed(1);
+        }
+
+        syncAllToSeriesPrTableRow(regNo);
+    }
+
+    function syncAllToSeriesPrTableRow(regNo) {
+        const state1 = seriesPracticalEvalsState[regNo]?.['Series 1'] || { total_score_40: 0 };
+        const state2 = seriesPracticalEvalsState[regNo]?.['Series 2'] || { total_score_40: 0 };
+
+        const t1 = state1.is_absent ? 0 : (state1.total_score_40 || 0);
+        const t2 = state2.is_absent ? 0 : (state2.total_score_40 || 0);
+        const avg = (t1 + t2) / 2.0;
+        const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
+
+        const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
+        if (elT1) elT1.value = t1.toFixed(1);
+        const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
+        if (elT2) elT2.value = t2.toFixed(1);
+        const elAvg = document.getElementById(`sp-avg-${regNo}`);
+        if (elAvg) elAvg.innerText = avg.toFixed(1);
+        const elCia = document.getElementById(`sp-cia-${regNo}`);
+        if (elCia) elCia.value = cia.toFixed(1);
+    }
+
+    function onSeriesPrTableInput(regNo, key, val) {
+        const test = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        const maxMap = {
+            writeup_procedure: 10,
+            setup_execution: 10,
+            observation_result: 8,
+            viva_voce: 8,
+            record_completion: 4
+        };
+        const max = maxMap[key] || 10;
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        state[key] = num;
+        state.is_absent = false;
+        state.total_score_40 = (state.writeup_procedure || 0) +
+                               (state.setup_execution || 0) +
+                               (state.observation_result || 0) +
+                               (state.viva_voce || 0) +
+                               (state.record_completion || 0);
+
+        syncAllToSeriesPrTableRow(regNo);
+
+        // Sync modal if open on same student and test
+        const modalStudent = document.getElementById('series-pr-student-select')?.value;
+        const modalTest = document.getElementById('series-pr-test-select')?.value;
+        if (modalStudent === regNo && modalTest === test) {
+            const numEl = document.getElementById(`series-pr-num-${key}`);
+            if (numEl) numEl.value = num.toFixed(1);
+            const sliderEl = document.getElementById(`series-pr-slider-${key}`);
+            if (sliderEl) sliderEl.value = num;
+            updateSeriesPrLiveDisplay(regNo, test);
+        }
+
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function onSeriesPrTotalInput(regNo, test, val) {
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > 40) num = 40;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        state.is_absent = false;
+        state.total_score_40 = num;
+
+        // Scale 5 criteria proportionately:
+        // writeup: 25% (10/40), setup: 25% (10/40), obs: 20% (8/40), viva: 20% (8/40), record: 10% (4/40)
+        const w = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const set = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const o = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const v = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const r = Math.min(4, Math.max(0, Math.round((num - (w + set + o + v)) * 2) / 2));
+
+        state.writeup_procedure = w;
+        state.setup_execution = set;
+        state.observation_result = o;
+        state.viva_voce = v;
+        state.record_completion = r;
+
+        // If currently displayed in table criteria columns, update them
+        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (currentTableTest === test) {
+            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
+            if (elW) elW.value = w.toFixed(1);
+            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
+            if (elS) elS.value = set.toFixed(1);
+            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
+            if (elO) elO.value = o.toFixed(1);
+            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
+            if (elV) elV.value = v.toFixed(1);
+            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
+            if (elR) elR.value = r.toFixed(1);
+        }
+
+        syncAllToSeriesPrTableRow(regNo);
+
+        // Sync modal if open on same student
+        const modalStudent = document.getElementById('series-pr-student-select')?.value;
+        const modalTest = document.getElementById('series-pr-test-select')?.value;
+        if (modalStudent === regNo && modalTest === test) {
+            loadSeriesPrStudent(regNo);
+        }
+
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function onSeriesPrCiaInput(regNo, val) {
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        let cia = parseFloat(val);
+        if (isNaN(cia)) cia = 0;
+        if (cia < 0) cia = 0;
+        if (cia > 10) cia = 10;
+
+        const targetAvg40 = cia * 4.0;
+
+        // Apply targetAvg40 to both tests
+        onSeriesPrTotalInput(regNo, 'Series 1', targetAvg40);
+        onSeriesPrTotalInput(regNo, 'Series 2', targetAvg40);
+    }
+
+    function triggerDebouncedSeriesPrAutoSave(regNo, test) {
+        const timerKey = `${regNo}_${test}`;
+        if (seriesPrAutoSaveTimers[timerKey]) {
+            clearTimeout(seriesPrAutoSaveTimers[timerKey]);
+        }
+        showSeriesPrAutoSaveIndicator('saving');
+        seriesPrAutoSaveTimers[timerKey] = setTimeout(() => {
+            saveSingleSeriesPrStudentMarks(regNo, test);
+        }, 750);
+    }
+
+    function showSeriesPrAutoSaveIndicator(status) {
+        let indicator = document.getElementById('series-pr-autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'series-pr-autosave-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        if (status === 'saving') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
+            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving practical series marks...';
+        } else if (status === 'saved') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-sky-400 border border-sky-500/40 opacity-100';
+            indicator.innerHTML = '<span>✓</span> Practical Series Auto-saved';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        } else if (status === 'error') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
+            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+    }
+
+    function saveSingleSeriesPrStudentMarks(regNo, test) {
+        const state = seriesPracticalEvalsState[regNo]?.[test];
+        if (!state) return;
+
         const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
         const bsId = {{ $batchSubject->id }};
- 
+
         fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
             method: 'POST',
             headers: {
@@ -5234,20 +6254,77 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'SUCCESS') {
+                showSeriesPrAutoSaveIndicator('saved');
+            } else {
+                showSeriesPrAutoSaveIndicator('error');
+            }
+        })
+        .catch(err => {
+            showSeriesPrAutoSaveIndicator('error');
+        });
+    }
+
+    function prevSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        if (!sel || sel.selectedIndex <= 0) return;
+        sel.selectedIndex--;
+        loadSeriesPrStudent(sel.value);
+    }
+
+    function nextSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
+        sel.selectedIndex++;
+        loadSeriesPrStudent(sel.value);
+    }
+
+    function saveAndNextSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        const regNo = sel.value;
+        const test = document.getElementById('series-pr-test-select').value;
+        if (!regNo || !test) return;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
+        const bsId = {{ $batchSubject->id }};
+
+        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({
+                series_no: dbSeriesName,
+                marks_data: [{
+                    reg_no: regNo,
+                    writeup_procedure: state.writeup_procedure,
+                    setup_execution: state.setup_execution,
+                    observation_result: state.observation_result,
+                    viva_voce: state.viva_voce,
+                    record_completion: state.record_completion,
+                    is_absent: state.is_absent
+                }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                showSeriesPrAutoSaveIndicator('saved');
                 nextSeriesPrStudent();
             } else {
                 alert('Auto-save error: ' + data.message);
             }
         });
     }
- 
+
     function saveAllSeriesPrMarks() {
         const marksData = [];
         const test = document.getElementById('series-pr-test-select').value;
         if (!test) return;
- 
+
         const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
- 
+
         Object.keys(seriesPracticalEvalsState).forEach(regNo => {
             const state = seriesPracticalEvalsState[regNo][test];
             if (state) {
@@ -5262,14 +6339,14 @@
                 });
             }
         });
- 
+
         Swal.fire({
             title: 'Saving Series Test Marks...',
             text: `Saving scores for ${dbSeriesName}`,
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
- 
+
         fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/series-practical', {
             method: 'POST',
             headers: {
@@ -5288,7 +6365,7 @@
                     text: data.message,
                     timer: 1500,
                     showConfirmButton: false
-                }).then(() => location.reload());
+                });
             } else {
                 Swal.fire('Error', data.message, 'error');
             }
@@ -5298,20 +6375,27 @@
         });
     }
         const eseSplitupState = {};
-        
+        let eseAutoSaveTimers = {};
+
         studentsList.forEach(st => {
             const currentTotal = parseFloat(st.ese_practical || 0);
             if (currentTotal > 0) {
                 const factor = currentTotal / 40.0;
+                const w = Math.min(10, Math.round(10 * factor * 2) / 2);
+                const s = Math.min(10, Math.round(10 * factor * 2) / 2);
+                const o = Math.min(8, Math.round(8 * factor * 2) / 2);
+                const v = Math.min(8, Math.round(8 * factor * 2) / 2);
+                const r = Math.min(4, Math.max(0, Math.round((currentTotal - (w + s + o + v)) * 2) / 2));
                 eseSplitupState[st.reg_no] = {
-                    writeup: Math.round(10 * factor * 2) / 2,
-                    setup: Math.round(10 * factor * 2) / 2,
-                    result: Math.round(8 * factor * 2) / 2,
-                    viva: Math.round(8 * factor * 2) / 2,
-                    record: Math.round(4 * factor * 2) / 2
+                    writeup: w,
+                    setup: s,
+                    result: o,
+                    viva: v,
+                    record: r,
+                    is_absent: false
                 };
             } else {
-                eseSplitupState[st.reg_no] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
+                eseSplitupState[st.reg_no] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, is_absent: false };
             }
         });
 
@@ -5323,46 +6407,72 @@
             }
         }
 
+        function openEsePracticalModalForStudent(regNo) {
+            const sel = document.getElementById('ese-student-select');
+            if (sel) sel.value = regNo;
+            document.getElementById('ese-practical-modal').classList.remove('hidden');
+            loadEseStudent(regNo);
+        }
+
         function closeEsePracticalModal() {
             document.getElementById('ese-practical-modal').classList.add('hidden');
         }
 
         const eseRubrics = [
-            { key: 'writeup', label: 'Procedure & Writeup', max: 10 },
-            { key: 'setup', label: 'Setup & Circuit Execution', max: 10 },
+            { key: 'writeup', label: 'Writeup / Procedure', max: 10 },
+            { key: 'setup', label: 'Setup & Execution', max: 10 },
             { key: 'result', label: 'Observation & Result', max: 8 },
-            { key: 'viva', label: 'Viva-Voce Examination', max: 8 },
-            { key: 'record', label: 'Record & Logbook', max: 4 }
+            { key: 'viva', label: 'Viva Voce', max: 8 },
+            { key: 'record', label: 'Record Completion', max: 4 }
         ];
 
         function loadEseStudent(regNo) {
-            const container = document.getElementById('ese-sliders-container');
+            const container = document.getElementById('ese-rubrics-container');
             if (!container) return;
 
             if (!eseSplitupState[regNo]) {
-                eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
+                eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, is_absent: false };
             }
 
-            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+            const state = eseSplitupState[regNo];
+            const isAbsent = !!state.is_absent;
+
+            let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">';
 
             eseRubrics.forEach(rub => {
-                const currentVal = eseSplitupState[regNo][rub.key] || 0;
+                const currentVal = state[rub.key] || 0;
                 html += `
-                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                    <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-1.5 ${isAbsent ? 'opacity-40 pointer-events-none' : ''}">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-200 text-xs">${rub.label}</span>
-                            <span id="ese-badge-${rub.key}" class="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/20">
-                                ${parseFloat(currentVal).toFixed(1)} / ${rub.max}.0
-                            </span>
+                            <span class="font-semibold text-slate-300 text-[11px] truncate" title="${rub.label}">${rub.label}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">Max ${rub.max}M</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', -0.5, ${rub.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">-</button>
-                            <input type="range" id="ese-slider-${rub.key}" min="0" max="${rub.max}" step="0.5" value="${currentVal}" oninput="syncEseSlider('${regNo}', '${rub.key}', this.value, ${rub.max})" class="flex-1 accent-emerald-400 h-2 bg-slate-800 rounded-lg cursor-pointer">
-                            <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', 0.5, ${rub.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">+</button>
+                        <div class="flex items-center space-x-1.5">
+                            <button type="button" onclick="adjustEseVal('${regNo}', '${rub.key}', -0.5, ${rub.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer">-</button>
+                            <input type="range" id="ese-slider-${rub.key}" min="0" max="${rub.max}" step="0.5" value="${currentVal}" oninput="syncEseSlider('${regNo}', '${rub.key}', this.value, ${rub.max})" class="flex-1 accent-sky-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                            <button type="button" onclick="adjustEseVal('${regNo}', '${rub.key}', 0.5, ${rub.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer">+</button>
+                            <input type="number" min="0" max="${rub.max}" step="0.5" id="ese-num-${rub.key}" value="${currentVal}" oninput="syncEseInput('${regNo}', '${rub.key}', this.value, ${rub.max})" class="w-12 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-center font-mono font-bold text-sky-400 text-xs outline-none focus:border-sky-500 shrink-0">
                         </div>
                     </div>
                 `;
             });
+
+            // 6th Card: Absentee toggle
+            html += `
+                <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-slate-300 text-[11px]">Candidate Exam Status</span>
+                        <span class="text-[10px] ${isAbsent ? 'text-rose-400 font-bold' : 'text-emerald-400'}">${isAbsent ? 'ABSENT' : 'PRESENT'}</span>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="ese-absent-check" ${isAbsent ? 'checked' : ''} onchange="toggleEseAbsent('${regNo}', this.checked)" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-rose-500 focus:ring-0 cursor-pointer">
+                            <span class="text-xs font-semibold ${isAbsent ? 'text-rose-400' : 'text-slate-400'}">Mark as Absent</span>
+                        </label>
+                        <span class="text-[10px] text-slate-500">Zeroes all marks</span>
+                    </div>
+                </div>
+            `;
 
             html += '</div>';
             container.innerHTML = html;
@@ -5374,57 +6484,242 @@
             if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
             eseSplitupState[regNo][key] = num;
 
-            const badge = document.getElementById(`ese-badge-${key}`);
-            if (badge) badge.innerText = `${num.toFixed(1)} / ${maxVal}.0`;
+            const numInp = document.getElementById(`ese-num-${key}`);
+            if (numInp) numInp.value = num;
 
             calculateEseLiveTotal(regNo);
+            syncAllToEseTableRow(regNo);
+            triggerDebouncedEseAutoSave(regNo);
         }
 
-        function stepEseSlider(regNo, key, delta, maxVal) {
-            const slider = document.getElementById(`ese-slider-${key}`);
-            if (!slider) return;
+        function syncEseInput(regNo, key, val, maxVal) {
+            const num = Math.min(maxVal, Math.max(0, parseFloat(val) || 0));
+            if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+            eseSplitupState[regNo][key] = num;
 
-            let current = parseFloat(slider.value) || 0;
+            const slider = document.getElementById(`ese-slider-${key}`);
+            if (slider) slider.value = num;
+
+            calculateEseLiveTotal(regNo);
+            syncAllToEseTableRow(regNo);
+            triggerDebouncedEseAutoSave(regNo);
+        }
+
+        function adjustEseVal(regNo, key, delta, maxVal) {
+            const slider = document.getElementById(`ese-slider-${key}`);
+            let current = parseFloat(slider?.value || eseSplitupState[regNo]?.[key] || 0);
             let next = Math.max(0, Math.min(maxVal, current + delta));
-            slider.value = next;
+            if (slider) slider.value = next;
             syncEseSlider(regNo, key, next, maxVal);
+        }
+
+        function toggleEseAbsent(regNo, isAbsent) {
+            if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+            eseSplitupState[regNo].is_absent = isAbsent;
+            if (isAbsent) {
+                eseSplitupState[regNo].writeup = 0;
+                eseSplitupState[regNo].setup = 0;
+                eseSplitupState[regNo].result = 0;
+                eseSplitupState[regNo].viva = 0;
+                eseSplitupState[regNo].record = 0;
+            }
+            loadEseStudent(regNo);
+            syncAllToEseTableRow(regNo);
+            triggerDebouncedEseAutoSave(regNo);
+        }
+
+        function onEseTableInput(regNo, key, val) {
+            if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+            const maxVal = (key === 'writeup' || key === 'setup') ? 10 : (key === 'record' ? 4 : 8);
+            const num = Math.min(maxVal, Math.max(0, parseFloat(val) || 0));
+            eseSplitupState[regNo][key] = num;
+            eseSplitupState[regNo].is_absent = false;
+
+            const total = (eseSplitupState[regNo].writeup || 0) +
+                          (eseSplitupState[regNo].setup || 0) +
+                          (eseSplitupState[regNo].result || 0) +
+                          (eseSplitupState[regNo].viva || 0) +
+                          (eseSplitupState[regNo].record || 0);
+
+            const totInput = document.getElementById(`ese-input-${regNo}-total`);
+            if (totInput) totInput.value = total.toFixed(1);
+
+            updateEseRowGrade(regNo, total, false);
+
+            const curSel = document.getElementById('ese-student-select')?.value;
+            if (curSel === regNo) {
+                calculateEseLiveTotal(regNo);
+                const slider = document.getElementById(`ese-slider-${key}`);
+                if (slider) slider.value = num;
+                const numInp = document.getElementById(`ese-num-${key}`);
+                if (numInp) numInp.value = num;
+            }
+
+            triggerDebouncedEseAutoSave(regNo);
+        }
+
+        function onEseTableTotalInput(regNo, val) {
+            const total = Math.min(40, Math.max(0, parseFloat(val) || 0));
+            if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+
+            if (total <= 0) {
+                eseSplitupState[regNo].writeup = 0;
+                eseSplitupState[regNo].setup = 0;
+                eseSplitupState[regNo].result = 0;
+                eseSplitupState[regNo].viva = 0;
+                eseSplitupState[regNo].record = 0;
+            } else {
+                eseSplitupState[regNo].is_absent = false;
+                const factor = total / 40.0;
+                const w = Math.min(10, Math.round(10 * factor * 2) / 2);
+                const s = Math.min(10, Math.round(10 * factor * 2) / 2);
+                const o = Math.min(8, Math.round(8 * factor * 2) / 2);
+                const v = Math.min(8, Math.round(8 * factor * 2) / 2);
+                const r = Math.min(4, Math.max(0, Math.round((total - (w + s + o + v)) * 2) / 2));
+
+                eseSplitupState[regNo].writeup = w;
+                eseSplitupState[regNo].setup = s;
+                eseSplitupState[regNo].result = o;
+                eseSplitupState[regNo].viva = v;
+                eseSplitupState[regNo].record = r;
+            }
+
+            syncAllToEseTableRow(regNo);
+
+            const curSel = document.getElementById('ese-student-select')?.value;
+            if (curSel === regNo) {
+                loadEseStudent(regNo);
+            }
+
+            triggerDebouncedEseAutoSave(regNo);
+        }
+
+        function syncAllToEseTableRow(regNo) {
+            const data = eseSplitupState[regNo] || {};
+            const isAbsent = !!data.is_absent;
+            const w = isAbsent ? 0 : (data.writeup || 0);
+            const s = isAbsent ? 0 : (data.setup || 0);
+            const o = isAbsent ? 0 : (data.result || 0);
+            const v = isAbsent ? 0 : (data.viva || 0);
+            const r = isAbsent ? 0 : (data.record || 0);
+            const total = w + s + o + v + r;
+
+            const wInp = document.getElementById(`ese-input-${regNo}-writeup`); if (wInp) wInp.value = w.toFixed(1);
+            const sInp = document.getElementById(`ese-input-${regNo}-setup`); if (sInp) sInp.value = s.toFixed(1);
+            const oInp = document.getElementById(`ese-input-${regNo}-result`); if (oInp) oInp.value = o.toFixed(1);
+            const vInp = document.getElementById(`ese-input-${regNo}-viva`); if (vInp) vInp.value = v.toFixed(1);
+            const rInp = document.getElementById(`ese-input-${regNo}-record`); if (rInp) rInp.value = r.toFixed(1);
+            const totInp = document.getElementById(`ese-input-${regNo}-total`); if (totInp) totInp.value = total.toFixed(1);
+
+            updateEseRowGrade(regNo, total, isAbsent);
+        }
+
+        function updateEseRowGrade(regNo, total, isAbsent) {
+            const cell = document.getElementById(`ese-grade-cell-${regNo}`);
+            if (!cell) return;
+
+            if (isAbsent) {
+                cell.innerHTML = '<span class="px-2 py-0.5 rounded-full border text-[11px] font-bold text-rose-400 bg-rose-500/10 border-rose-500/30">AB</span>';
+                return;
+            }
+
+            const pct = (total / 40.0) * 100.0;
+            let g = 'F', gc = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+            if (pct >= 90) { g = 'S'; gc = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'; }
+            else if (pct >= 80) { g = 'A'; gc = 'text-blue-400 bg-blue-500/10 border-blue-500/30'; }
+            else if (pct >= 70) { g = 'B'; gc = 'text-sky-400 bg-blue-500/10 border-blue-500/30'; }
+            else if (pct >= 60) { g = 'C'; gc = 'text-sky-400 bg-sky-500/10 border-sky-500/30'; }
+            else if (pct >= 50) { g = 'D'; gc = 'text-amber-400 bg-amber-500/10 border-amber-500/30'; }
+            else if (pct >= 40) { g = 'E'; gc = 'text-orange-400 bg-orange-500/10 border-orange-500/30'; }
+
+            cell.innerHTML = `<span class="px-2 py-0.5 rounded-full border text-[11px] font-bold ${gc}">${g}</span>`;
         }
 
         function calculateEseLiveTotal(regNo) {
             const data = eseSplitupState[regNo] || {};
-            const total = (data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0);
+            const isAbsent = !!data.is_absent;
+            const total = isAbsent ? 0 : ((data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0));
 
             const rawElem = document.getElementById('ese-student-total-raw');
             const gradeBadge = document.getElementById('ese-student-grade-badge');
 
-            if (rawElem) rawElem.innerText = `${Math.round(total)} / 40 Marks`;
-
-            const pct = (total / 40) * 100;
-            let grade = 'F';
-            let gClass = 'text-rose-400 bg-rose-500/20 border-rose-500/30';
-            if (pct >= 90) { grade = 'S'; gClass = 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30'; }
-            else if (pct >= 80) { grade = 'A'; gClass = 'text-blue-400 bg-blue-500/20 border-blue-500/30'; }
-            else if (pct >= 70) { grade = 'B'; gClass = 'text-sky-400 bg-blue-500/15 border-blue-500/30'; }
-            else if (pct >= 60) { grade = 'C'; gClass = 'text-sky-400 bg-sky-500/15 border-sky-500/30'; }
-            else if (pct >= 50) { grade = 'D'; gClass = 'text-amber-400 bg-amber-500/20 border-amber-500/30'; }
-            else if (pct >= 40) { grade = 'E'; gClass = 'text-orange-400 bg-orange-500/20 border-orange-500/30'; }
+            if (rawElem) rawElem.innerText = isAbsent ? 'ABSENT (0.00 / 40.00 M)' : `${total.toFixed(1)} / 40.00 M`;
 
             if (gradeBadge) {
-                gradeBadge.innerText = grade;
-                gradeBadge.className = `font-black text-base px-3 py-0.5 rounded-full border ${gClass}`;
-            }
+                if (isAbsent) {
+                    gradeBadge.innerText = 'AB';
+                    gradeBadge.className = 'font-bold text-rose-400 text-sm font-mono px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20';
+                } else {
+                    const pct = (total / 40.0) * 100.0;
+                    let grade = 'F';
+                    let gClass = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+                    if (pct >= 90) { grade = 'S'; gClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'; }
+                    else if (pct >= 80) { grade = 'A'; gClass = 'text-blue-400 bg-blue-500/10 border-blue-500/20'; }
+                    else if (pct >= 70) { grade = 'B'; gClass = 'text-sky-400 bg-blue-500/10 border-blue-500/20'; }
+                    else if (pct >= 60) { grade = 'C'; gClass = 'text-sky-400 bg-sky-500/10 border-sky-500/20'; }
+                    else if (pct >= 50) { grade = 'D'; gClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20'; }
+                    else if (pct >= 40) { grade = 'E'; gClass = 'text-orange-400 bg-orange-500/10 border-orange-500/20'; }
 
-            const row = document.getElementById(`ese-row-${regNo}`);
-            if (row) {
-                const w = row.querySelector('.ese-val-writeup'); if (w) w.innerText = (data.writeup || 0).toFixed(1);
-                const s = row.querySelector('.ese-val-setup'); if (s) s.innerText = (data.setup || 0).toFixed(1);
-                const r = row.querySelector('.ese-val-result'); if (r) r.innerText = (data.result || 0).toFixed(1);
-                const v = row.querySelector('.ese-val-viva'); if (v) v.innerText = (data.viva || 0).toFixed(1);
-                const rec = row.querySelector('.ese-val-record'); if (rec) rec.innerText = (data.record || 0).toFixed(1);
-                const tot = row.querySelector('.ese-val-total'); if (tot) tot.innerText = Math.round(total);
-                const gr = row.querySelector('.ese-val-grade');
-                if (gr) gr.innerHTML = `<span class="px-2.5 py-0.5 rounded-full border text-xs font-bold ${gClass}">${grade}</span>`;
+                    gradeBadge.innerText = grade;
+                    gradeBadge.className = `font-bold text-sm font-mono px-2 py-0.5 rounded border ${gClass}`;
+                }
             }
+        }
+
+        function triggerDebouncedEseAutoSave(regNo) {
+            if (eseAutoSaveTimers[regNo]) {
+                clearTimeout(eseAutoSaveTimers[regNo]);
+            }
+            eseAutoSaveTimers[regNo] = setTimeout(() => {
+                saveSingleEseStudentMarks(regNo);
+            }, 750);
+        }
+
+        function saveSingleEseStudentMarks(regNo) {
+            const data = eseSplitupState[regNo] || {};
+            const isAbsent = !!data.is_absent;
+            const total = isAbsent ? 0 : ((data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0));
+
+            fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/ese', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    marks_data: [
+                        {
+                            reg_no: regNo,
+                            ese_practical_marks: total,
+                            practical_absent: isAbsent
+                        }
+                    ]
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    showPracticalEseAutoSaveToast();
+                }
+            })
+            .catch(err => {
+                console.error('Practical ESE Auto-save error:', err);
+            });
+        }
+
+        function showPracticalEseAutoSaveToast() {
+            let toast = document.getElementById('ese-autosave-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'ese-autosave-toast';
+                toast.className = 'fixed bottom-4 right-4 z-50 px-3 py-2 rounded-lg bg-emerald-950/90 border border-emerald-500/40 text-emerald-300 text-xs font-semibold shadow-xl transition-all duration-300 flex items-center space-x-2';
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = '<span>✓ Practical ESE Auto-saved</span>';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
         }
 
         function prevEseStudent() {
@@ -5444,21 +6739,30 @@
         function saveAndNextEseStudent() {
             const sel = document.getElementById('ese-student-select');
             if (!sel) return;
+            saveSingleEseStudentMarks(sel.value);
             if (sel.selectedIndex < sel.options.length - 1) {
                 sel.selectedIndex++;
                 loadEseStudent(sel.value);
             } else {
-                Swal.fire('End of List', 'Reached last student in list.', 'info');
+                Swal.fire({
+                    icon: 'info',
+                    title: 'End of List',
+                    text: 'Reached last student in list.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
             }
         }
 
         function saveAllEseMarks() {
             const marksData = studentsList.map(st => {
-                const splitup = eseSplitupState[st.reg_no] || { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
-                const totalScore = (splitup.writeup || 0) + (splitup.setup || 0) + (splitup.result || 0) + (splitup.viva || 0) + (splitup.record || 0);
+                const data = eseSplitupState[st.reg_no] || { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
+                const isAbsent = !!data.is_absent;
+                const totalScore = isAbsent ? 0 : ((data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0));
                 return {
                     reg_no: st.reg_no,
-                    ese_practical_marks: totalScore
+                    ese_practical_marks: totalScore,
+                    practical_absent: isAbsent
                 };
             });
 
@@ -5551,7 +6855,20 @@
 
             const clone = container.cloneNode(true);
             
-            // Remove non-printable elements, buttons, inputs, dropdowns, QP generator cards
+            // Replace input fields with readable text spans containing active values
+            const origInputs = container.querySelectorAll('input');
+            const cloneInputs = clone.querySelectorAll('input');
+            origInputs.forEach((orig, idx) => {
+                const cloneInput = cloneInputs[idx];
+                if (cloneInput) {
+                    const span = document.createElement('span');
+                    span.className = 'font-mono text-xs font-semibold text-black';
+                    span.innerText = orig.value !== undefined ? orig.value : '';
+                    cloneInput.parentNode.replaceChild(span, cloneInput);
+                }
+            });
+
+            // Remove non-printable elements, buttons, dropdowns, QP generator cards
             clone.querySelectorAll('button, select, input, .no-print, #qp-gen-status').forEach(el => el.remove());
 
             const collegeName = "CARMEL COLLEGE OF ENGINEERING & TECHNOLOGY, ALAPPUZHA";
@@ -5564,6 +6881,8 @@
             const eseMarks = @json($practicumCourseFile->ese_marks);
             const todayStr = new Date().toLocaleDateString('en-GB');
 
+            const isPortrait = reportTitle.toLowerCase().includes('continuous assessment') || reportTitle.toLowerCase().includes('ca mark');
+
             const printWin = window.open('', '_blank', 'width=1150,height=850');
             printWin.document.write(`
                 <!DOCTYPE html>
@@ -5572,7 +6891,7 @@
                     <title>${reportTitle} - ${subjectName}</title>
                     <style>
                         @page {
-                            size: A4 landscape;
+                            size: ${isPortrait ? 'A4 portrait' : 'A4 landscape'};
                             margin: 12mm 10mm 12mm 10mm;
                         }
                         body {

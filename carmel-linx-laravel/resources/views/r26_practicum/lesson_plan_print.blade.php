@@ -89,8 +89,8 @@
                 <td class="border border-slate-300 p-2 font-semibold">
                     {{ $plan->pedagogy ?? ($plan->mode === 'L' ? 'Lecture (L)' : ($plan->mode === 'P' ? 'Practical Lab (P)' : ($plan->mode === 'ST' ? 'Theory Series (ST)' : 'Lab Series (SP)'))) }}
                 </td>
-                <td class="border border-slate-300 p-2">{{ $plan->proposed_date }}</td>
-                <td class="border border-slate-300 p-2">{{ $plan->actual_date }}</td>
+                <td class="border border-slate-300 p-2 text-center font-mono">{{ $plan->proposed_date ? (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->proposed_date, $pm) ? "{$pm[3]}/{$pm[2]}/{$pm[1]}" : $plan->proposed_date) : '-' }}</td>
+                <td class="border border-slate-300 p-2 text-center font-mono">{{ $plan->actual_date ? (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->actual_date, $am) ? "{$am[3]}/{$am[2]}/{$am[1]}" : $plan->actual_date) : '-' }}</td>
                 <td class="border border-slate-300 p-2 font-medium">{{ $plan->topic_content }}</td>
                 <td class="border border-slate-300 p-2 text-center font-bold text-slate-800">{{ $plan->co_id }}</td>
                 <td class="border border-slate-300 p-2">{{ $plan->sub_batch ?? 'Batch A & B' }}</td>

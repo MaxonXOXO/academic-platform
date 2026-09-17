@@ -52,6 +52,13 @@ class R26VirtualClassroomPracticumController extends Controller
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch or Create Practicum Course File Record
+        $isBasicScienceSubject = str_contains(strtolower($batchSubject->subject_type ?? ''), 'basic science')
+            || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry')
+            || str_contains(strtolower($batchSubject->subject_name ?? ''), 'physics')
+            || str_contains(strtoupper($batchSubject->subject_code ?? ''), '2003')
+            || str_contains(strtoupper($batchSubject->subject_code ?? ''), '2002')
+            || str_contains(strtoupper($batchSubject->subject_code ?? ''), '2001');
+
         $practicumCourseFile = R26PracticumCourseFile::firstOrCreate(
             ['batch_subject_id' => $subjectId],
             [
@@ -64,7 +71,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 'contact_hours' => 90,
                 'credits' => 4.5,
                 'cie_marks' => 40,
-                'ese_marks' => 100, // 100 for standard practicum (60 theory + 40 practical)
+                'ese_marks' => $isBasicScienceSubject ? 60 : 100, // 60 for Basic Science, 100 for Program Core Practicum (60 theory + 40 practical)
                 'parsed_cos' => [
                     ['id' => 'CO1', 'description' => 'Demonstrate basic concepts, electrical quantities, signal types, and electronic measuring instruments.', 'cognitive_level' => 'Apply'],
                     ['id' => 'CO2', 'description' => 'Construct and analyze basic electronic circuits using passive electronic components.', 'cognitive_level' => 'Apply'],
@@ -240,6 +247,8 @@ class R26VirtualClassroomPracticumController extends Controller
             $slStudentSplitup[$rNo] = $split;
         }
 
+        $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
+
         // Map Students and Compute Consolidated CIA & ESE Scores
         $studentResults = $students->map(function ($student) use (
             $attendanceData,
@@ -250,9 +259,11 @@ class R26VirtualClassroomPracticumController extends Controller
             $slAcademicMarks,
             $slSubmissions,
             $practicumCourseFile,
-            $batchSubject
+            $batchSubject,
+            $subjectType
         ) {
             $regNo = $student->reg_no;
+            $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
 
             // 1. Attendance Marks (Table 2.1 - Max 5)
             $stAtt = $attendanceData->get($regNo, collect());
@@ -292,23 +303,34 @@ class R26VirtualClassroomPracticumController extends Controller
             $avgExpScore50 = $stExps->avg('total_score_50') ?: 0.00;
             $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
 
-            // 4. Theory Series Exam Marks (4 CO 1-Hour Tests: CO1, CO2, CO3, CO4 - Max 10 CIA Marks)
+            // 4. Theory Series Exam Marks (Max 10 CIA Marks)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
-            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
-            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
-            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
-            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
-            $st1Score = $st1 ? $st1->total_score_50 : 0.00;
-            $st2Score = $st2 ? $st2->total_score_50 : 0.00;
-            $st3Score = $st3 ? $st3->total_score_50 : 0.00;
-            $st4Score = $st4 ? $st4->total_score_50 : 0.00;
-            $avgTheorySeries50 = ($st1Score + $st2Score + $st3Score + $st4Score) / 4.0;
-            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            if ($isBasicScience) {
+                // Basic Science: CA4 is Series 1 (Mod 1&2), CA5 is Series 2 (Mod 3&4) - Max 50 each
+                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1', 'CA4'])->first();
+                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2', 'CA5'])->first();
+                $st1Score = $st1 ? $st1->total_score_50 : 0.00;
+                $st2Score = $st2 ? $st2->total_score_50 : 0.00;
+                $avgTheorySeries50 = ($st1Score + $st2Score) / 2.0;
+                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            } else {
+                // Program Core: 4 CO 1-Hour Tests
+                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
+                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
+                $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
+                $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+                $st1Score = $st1 ? $st1->total_score_50 : 0.00;
+                $st2Score = $st2 ? $st2->total_score_50 : 0.00;
+                $st3Score = $st3 ? $st3->total_score_50 : 0.00;
+                $st4Score = $st4 ? $st4->total_score_50 : 0.00;
+                $avgTheorySeries50 = ($st1Score + $st2Score + $st3Score + $st4Score) / 4.0;
+                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            }
 
             // 5. Practical Series Exam Marks (2 Tests: Test 1 CO1+CO2 & Test 2 CO3+CO4 - Max 10 CIA Marks)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)'])->first();
+            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
             $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
             $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
             $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
@@ -344,19 +366,33 @@ class R26VirtualClassroomPracticumController extends Controller
                 $eseTheory = floatval($stEse->ese_theory_marks);
             }
 
-            $esePractical = $stEse ? floatval($stEse->ese_practical_marks) : 0.00;
-            $totalEse = $eseTheory + $esePractical;
+            if ($isBasicScience) {
+                $esePractical = 0.00; // Practical ESE is internal only (0 Marks)
+                $totalEse = $eseTheory;
+                $maxEse = 60;
+                $totalCourseMarks = $totalCiaMarks + $totalEse;
+                $maxCourseMarks = 100; // 40 CIA + 60 ESE
 
-            $maxEse = $practicumCourseFile->ese_marks; // 100 or 60
-            $totalCourseMarks = $totalCiaMarks + $totalEse;
-            $maxCourseMarks = 40 + $maxEse; // 140 or 100
+                // Pass Criteria Check:
+                // 1. Min 40% in ESE Theory = 24 / 60 (or S, A, B, C, D, E, P grade)
+                // 2. Min 40% in Total Combined = 40 / 100
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= 40.0);
+                $isPassed = ($passTheoryEse && $passCombined);
+            } else {
+                $esePractical = $stEse ? floatval($stEse->ese_practical_marks) : 0.00;
+                $totalEse = $eseTheory + $esePractical;
+                $maxEse = $practicumCourseFile->ese_marks; // 100 or 60
+                $totalCourseMarks = $totalCiaMarks + $totalEse;
+                $maxCourseMarks = 40 + $maxEse; // 140 or 100
 
-            // Pass Criteria Check:
-            // 1. Min 40% in ESE Theory = 24 / 60 (or S, A, B, C, D, E, P grade)
-            // 2. Min 40% in Total Combined = 56 / 140 (or 40 / 100)
-            $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
-            $passCombined = ($totalCourseMarks >= ($maxCourseMarks * 0.40));
-            $isPassed = ($passTheoryEse && $passCombined);
+                // Pass Criteria Check:
+                // 1. Min 40% in ESE Theory = 24 / 60 (or S, A, B, C, D, E, P grade)
+                // 2. Min 40% in Total Combined = 56 / 140 (or 40 / 100)
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= ($maxCourseMarks * 0.40));
+                $isPassed = ($passTheoryEse && $passCombined);
+            }
 
             return [
                 'reg_no' => $student->reg_no,
@@ -556,7 +592,11 @@ class R26VirtualClassroomPracticumController extends Controller
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
         $seriesQps = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)->get()->keyBy('series_no');
 
-        return view('r26_practicum.virtual_classroom_practicum', compact(
+        $viewName = ($subjectType['type'] === 'basic_science')
+            ? 'r26_practicum.virtual_classroom_basic_science_practicum'
+            : 'r26_practicum.virtual_classroom_practicum';
+
+        return view($viewName, compact(
             'batchSubject',
             'classroom',
             'students',
@@ -1329,6 +1369,34 @@ class R26VirtualClassroomPracticumController extends Controller
     }
 
     /**
+     * Parse date string into Y-m-d format for database storage.
+     * Supports dd/mm/yyyy, dd-mm-yyyy, and YYYY-MM-DD.
+     */
+    protected function parseDateForStorage($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+        $value = trim((string)$value);
+        if ($value === '' || $value === '-' || strtolower($value) === 'null') {
+            return null;
+        }
+        // Check dd/mm/yyyy or dd-mm-yyyy
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $value, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        }
+        // Check YYYY-MM-DD
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return $value;
+        }
+        try {
+            return \Carbon\Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Save/Edit Single Lesson Plan Row
      */
     public function saveLessonPlanRow(Request $request, $subjectId)
@@ -1336,8 +1404,8 @@ class R26VirtualClassroomPracticumController extends Controller
         $request->validate([
             'plan_id' => 'required|integer',
             'topic_content' => 'required|string',
-            'proposed_date' => 'nullable|date',
-            'actual_date' => 'nullable|date',
+            'proposed_date' => 'nullable',
+            'actual_date' => 'nullable',
             'co_id' => 'required|string',
             'sub_batch' => 'nullable|string',
             'mode' => 'required|string',
@@ -1348,15 +1416,18 @@ class R26VirtualClassroomPracticumController extends Controller
             ->where('batch_subject_id', $subjectId)
             ->firstOrFail();
 
+        $propDate = $this->parseDateForStorage($request->input('proposed_date'));
+        $actDate = $this->parseDateForStorage($request->input('actual_date'));
+
         $plan->update([
             'topic_content' => $request->input('topic_content'),
-            'proposed_date' => $request->input('proposed_date'),
-            'actual_date' => $request->input('actual_date'),
+            'proposed_date' => $propDate,
+            'actual_date' => $actDate,
             'co_id' => $request->input('co_id'),
             'sub_batch' => $request->input('sub_batch'),
             'mode' => $request->input('mode'),
             'remarks' => $request->input('remarks'),
-            'status' => $request->input('status', 'Completed')
+            'status' => $actDate ? 'Completed' : 'Pending'
         ]);
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Lesson plan topic updated successfully!']);
@@ -1387,6 +1458,8 @@ class R26VirtualClassroomPracticumController extends Controller
             }
 
             $topicText = trim($item['topic_content'] ?? '');
+            $propDate = $this->parseDateForStorage($item['proposed_date'] ?? null);
+            $actDate = $this->parseDateForStorage($item['actual_date'] ?? null);
 
             if (str_starts_with((string)$item['id'], 'new_')) {
                 // If new row added with no text entered, never save or calculate that row
@@ -1399,28 +1472,28 @@ class R26VirtualClassroomPracticumController extends Controller
                     'batch_subject_id' => $subjectId,
                     'day_no' => $maxDay + 1,
                     'topic_content' => $topicText,
-                    'proposed_date' => !empty($item['proposed_date']) ? $item['proposed_date'] : null,
-                    'actual_date' => !empty($item['actual_date']) ? $item['actual_date'] : null,
+                    'proposed_date' => $propDate,
+                    'actual_date' => $actDate,
                     'co_id' => $item['co_id'] ?? 'CO1',
                     'sub_batch' => $item['sub_batch'] ?? 'ALL',
                     'pedagogy' => $pedagogy,
                     'mode' => $mode,
                     'remarks' => $item['remarks'] ?? '',
-                    'status' => !empty($item['actual_date']) ? 'Completed' : 'Pending'
+                    'status' => $actDate ? 'Completed' : 'Pending'
                 ]);
             } else {
                 LessonPlan::where('id', $item['id'])
                     ->where('batch_subject_id', $subjectId)
                     ->update([
                         'topic_content' => $topicText,
-                        'proposed_date' => !empty($item['proposed_date']) ? $item['proposed_date'] : null,
-                        'actual_date' => !empty($item['actual_date']) ? $item['actual_date'] : null,
+                        'proposed_date' => $propDate,
+                        'actual_date' => $actDate,
                         'co_id' => $item['co_id'] ?? 'CO1',
                         'sub_batch' => $item['sub_batch'] ?? '',
                         'pedagogy' => $pedagogy,
                         'mode' => $mode,
                         'remarks' => $item['remarks'] ?? '',
-                        'status' => !empty($item['actual_date']) ? 'Completed' : 'Pending'
+                        'status' => $actDate ? 'Completed' : 'Pending'
                     ]);
             }
         }
@@ -1494,7 +1567,9 @@ class R26VirtualClassroomPracticumController extends Controller
     private function resolveSubjectType($practicumCourseFile, $batchSubject)
     {
         $title = strtolower(($practicumCourseFile ? $practicumCourseFile->course_title : '') . ' ' . ($batchSubject ? $batchSubject->subject_name : ''));
-        
+        $code = strtoupper(($practicumCourseFile ? $practicumCourseFile->course_code : '') . ' ' . ($batchSubject ? $batchSubject->subject_code : ''));
+        $subType = strtolower($batchSubject->subject_type ?? '');
+
         if (str_contains($title, 'design') || str_contains($title, 'drawing') || str_contains($title, 'cad') || str_contains($title, 'drafting')) {
             $ese = $practicumCourseFile->ese_marks ?? 60;
             return [
@@ -1505,15 +1580,15 @@ class R26VirtualClassroomPracticumController extends Controller
             ];
         }
 
-        $ese = $practicumCourseFile->ese_marks ?? 100;
-        if ($ese >= 100) {
-            return [
-                'type' => 'program_core',
-                'label' => '💻 Program Core - ESE 100M',
-                'pattern' => 'table_4_1_standard',
-                'ese_marks' => 100
-            ];
-        } else {
+        $isBasicScience = str_contains($subType, 'basic science') 
+            || str_contains($title, 'chemistry') 
+            || str_contains($title, 'physics') 
+            || str_contains($code, '2003') 
+            || str_contains($code, '2002') 
+            || str_contains($code, '2001') 
+            || (($practicumCourseFile->ese_marks ?? 100) <= 60);
+
+        if ($isBasicScience) {
             return [
                 'type' => 'basic_science',
                 'label' => '🔬 Basic Science - ESE 60M',
@@ -1521,6 +1596,13 @@ class R26VirtualClassroomPracticumController extends Controller
                 'ese_marks' => 60
             ];
         }
+
+        return [
+            'type' => 'program_core',
+            'label' => '💻 Program Core - ESE 100M',
+            'pattern' => 'table_4_1_standard',
+            'ese_marks' => 100
+        ];
     }
 
     /**
@@ -2649,7 +2731,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             $formattedDate = $l->date;
             if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $l->date, $m)) {
-                $formattedDate = "{$m[3]}-{$m[2]}-{$m[1]}";
+                $formattedDate = "{$m[3]}/{$m[2]}/{$m[1]}";
             }
 
             return (object)[
@@ -2692,6 +2774,417 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             'completedTopicsCount',
             'totalPlannedTopics'
         ));
+    }
+
+    /**
+     * Save Customized Experiments Roster and Sync with Lesson Plan
+     * Route: POST /api/r26/classroom/practicum/{subjectId}/experiments/save
+     */
+    public function saveCustomExperimentsRoster(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
+        }
+
+        $request->validate([
+            'experiments' => 'required|array'
+        ]);
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $practicumFile = R26PracticumCourseFile::firstOrCreate(
+            ['batch_subject_id' => $subjectId],
+            [
+                'course_title' => $batchSubject->subject_name,
+                'course_code' => $batchSubject->subject_code,
+                'type_of_course' => 'Practicum',
+                'teaching_scheme' => '3:0:3:0',
+                'contact_hours' => 90,
+                'credits' => 4.5,
+            ]
+        );
+
+        $rawExps = $request->input('experiments', []);
+        $cleanExps = [];
+
+        foreach ($rawExps as $idx => $item) {
+            $title = trim($item['title'] ?? '');
+            if ($title === '') {
+                continue;
+            }
+
+            $sessionCode = trim($item['session_code'] ?? '') ?: ('Sess ' . ($idx + 1));
+            $code = trim($item['code'] ?? ($item['experiment_no'] ?? '')) ?: ('EXP-' . sprintf('%02d', $idx + 1));
+            $coId = trim($item['co_id'] ?? 'CO1') ?: 'CO1';
+            $hours = max(1, min(12, intval($item['hours'] ?? 3)));
+
+            $cleanExps[] = [
+                'session_code' => $sessionCode,
+                'experiment_no' => $code,
+                'code' => $code,
+                'title' => $title,
+                'co_id' => $coId,
+                'hours' => $hours
+            ];
+        }
+
+        if (empty($cleanExps)) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'At least one experiment with a valid title is required.'
+            ], 422);
+        }
+
+        // 1. Save updated experiments roster to R26PracticumCourseFile
+        $practicumFile->parsed_experiments = $cleanExps;
+        $practicumFile->save();
+
+        // 2. Synchronize to lesson plans (mode = 'P')
+        $this->syncExperimentsToLessonPlans($subjectId, $cleanExps);
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Experiments roster saved and synchronized with practical lesson plan successfully.',
+            'experiments' => $cleanExps
+        ]);
+    }
+
+    /**
+     * Synchronize experiments roster with practical lesson plans (mode = 'P')
+     */
+    protected function syncExperimentsToLessonPlans($subjectId, array $experiments)
+    {
+        $practicalHourTopics = [];
+        foreach ($experiments as $exp) {
+            $eCode = $exp['code'] ?? $exp['experiment_no'] ?? 'EXP';
+            $eTitle = $exp['title'] ?? 'Practical Experiment';
+            $coId = $exp['co_id'] ?? 'CO1';
+            $eHrs = max(1, intval($exp['hours'] ?? 3));
+
+            for ($h = 1; $h <= $eHrs; $h++) {
+                $practicalHourTopics[] = [
+                    'topic' => "{$eCode}: {$eTitle} (Hour {$h}/{$eHrs})",
+                    'co_id' => $coId,
+                ];
+            }
+        }
+
+        $existingPracticalPlans = LessonPlan::where('batch_subject_id', $subjectId)
+            ->where('mode', 'P')
+            ->orderBy('day_no', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $newHoursCount = count($practicalHourTopics);
+        $existingHoursCount = $existingPracticalPlans->count();
+
+        // Update existing practical rows 1-to-1
+        for ($i = 0; $i < min($newHoursCount, $existingHoursCount); $i++) {
+            $plan = $existingPracticalPlans[$i];
+            $top = $practicalHourTopics[$i];
+
+            $plan->topic_content = $top['topic'];
+            $plan->co_id = $top['co_id'];
+            $plan->save();
+        }
+
+        // If new roster has more hours than existing practical rows, append new practical rows
+        if ($newHoursCount > $existingHoursCount) {
+            $maxDay = LessonPlan::where('batch_subject_id', $subjectId)->max('day_no') ?? 0;
+            $startDate = now()->startOfWeek();
+
+            for ($i = $existingHoursCount; $i < $newHoursCount; $i++) {
+                $top = $practicalHourTopics[$i];
+                $maxDay++;
+                $proposedDate = $startDate->copy()->addDays(floor(($maxDay - 1) * 1.2))->format('Y-m-d');
+
+                LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no' => $maxDay,
+                    'mode' => 'P',
+                    'pedagogy' => 'Practical Lab (P)',
+                    'proposed_date' => $proposedDate,
+                    'actual_date' => null,
+                    'topic_content' => $top['topic'],
+                    'co_id' => $top['co_id'],
+                    'sub_batch' => 'Batch A & B',
+                    'allocated_hours' => 1,
+                    'actual_hours' => null,
+                    'status' => 'Pending',
+                    'remarks' => 'Practical Lab Session'
+                ]);
+            }
+        } elseif ($existingHoursCount > $newHoursCount) {
+            // Buffer/reinforcement for any remaining unassigned practical hours that are pending
+            for ($i = $newHoursCount; $i < $existingHoursCount; $i++) {
+                $plan = $existingPracticalPlans[$i];
+                if ($plan->status !== 'Completed') {
+                    $plan->topic_content = "Practical Skill Practice & Reinforcement (Lab Hour " . ($i - $newHoursCount + 1) . ")";
+                    $plan->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * Retrieve practical experiments attendance logs with attended students and absentee roll numbers
+     */
+    public function getPracticumExperimentsLogs($subjectId)
+    {
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderBy('roll_no', 'asc')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $totalEnrolled = $students->count();
+        $studentsByReg = $students->keyBy('reg_no');
+
+        // Fetch logs for this batch subject
+        $rawLogs = DB::table('class_logs_attendance')
+            ->leftJoin('lesson_plans', 'class_logs_attendance.lesson_plan_id', '=', 'lesson_plans.id')
+            ->where('class_logs_attendance.batch_subject_id', $subjectId)
+            ->select('class_logs_attendance.*', 'lesson_plans.mode as lp_mode')
+            ->orderBy('class_logs_attendance.date', 'asc')
+            ->orderBy('class_logs_attendance.period', 'asc')
+            ->orderBy('class_logs_attendance.id', 'asc')
+            ->get();
+
+        // Filter practical logs
+        $practicalLogs = $rawLogs->filter(function($l) {
+            return ($l->lp_mode === 'P' || $l->lp_mode === 'SP' ||
+                    stripos($l->topics_covered ?? '', 'EXP') !== false ||
+                    stripos($l->topics_covered ?? '', 'Lab') !== false ||
+                    stripos($l->topics_covered ?? '', 'Practical') !== false ||
+                    in_array($l->sub_batch, ['A', 'B', 'Batch A', 'Batch B']));
+        });
+
+        $logsToUse = $practicalLogs->isNotEmpty() ? $practicalLogs : $rawLogs;
+        $totalAttnPctSum = 0;
+
+        $logs = $logsToUse->values()->map(function($l, $idx) use ($totalEnrolled, $studentsByReg, &$totalAttnPctSum) {
+            $presArr = json_decode($l->present_students ?? '[]', true) ?: [];
+            $absArr = json_decode($l->absent_students ?? '[]', true) ?: [];
+
+            $presCount = count($presArr);
+            $absCount = count($absArr);
+            $effectiveTotal = ($presCount + $absCount) > 0 ? ($presCount + $absCount) : $totalEnrolled;
+
+            if ($absCount === 0 && $effectiveTotal > $presCount && $presCount > 0) {
+                $absCount = max(0, $effectiveTotal - $presCount);
+            }
+
+            $attPct = $effectiveTotal > 0 ? round(($presCount / $effectiveTotal) * 100, 1) : 0;
+            $totalAttnPctSum += $attPct;
+
+            $absentRolls = [];
+            foreach ($absArr as $rNo) {
+                if (isset($studentsByReg[$rNo]) && !empty($studentsByReg[$rNo]->roll_no)) {
+                    $absentRolls[] = $studentsByReg[$rNo]->roll_no;
+                } else {
+                    $absentRolls[] = $rNo;
+                }
+            }
+            sort($absentRolls, SORT_NATURAL);
+
+            $attendedRolls = [];
+            foreach ($presArr as $rNo) {
+                if (isset($studentsByReg[$rNo]) && !empty($studentsByReg[$rNo]->roll_no)) {
+                    $attendedRolls[] = $studentsByReg[$rNo]->roll_no;
+                }
+            }
+            sort($attendedRolls, SORT_NATURAL);
+
+            $formattedDate = $l->date;
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $l->date, $m)) {
+                $formattedDate = "{$m[3]}/{$m[2]}/{$m[1]}";
+            }
+
+            return (object)[
+                'sl_no' => $idx + 1,
+                'id' => $l->id,
+                'date' => $l->date,
+                'formatted_date' => $formattedDate,
+                'period' => $l->period,
+                'sub_batch' => $l->sub_batch ?: 'All',
+                'period_label' => 'Hour ' . $l->period,
+                'topics_covered' => $l->topics_covered ?: 'Practical Experiment Session',
+                'present_count' => $presCount,
+                'absent_count' => $absCount,
+                'total_students' => $effectiveTotal,
+                'attended_display' => $presCount . ' (' . $attPct . '%)',
+                'attended_rolls' => implode(', ', $attendedRolls),
+                'absent_display' => count($absentRolls) > 0 ? implode(', ', $absentRolls) : 'NIL',
+                'absent_rolls' => $absentRolls,
+                'attendance_pct' => $attPct,
+            ];
+        });
+
+        $avgAttnPct = $logs->count() > 0 ? round($totalAttnPctSum / $logs->count(), 1) : 0;
+
+        return [
+            'batchSubject' => $batchSubject,
+            'students' => $students,
+            'totalEnrolled' => $totalEnrolled,
+            'logs' => $logs,
+            'avgAttnPct' => $avgAttnPct
+        ];
+    }
+
+    /**
+     * Print Official Practical Experiments List (A4 Portrait)
+     * Route: GET /r26/classroom/practicum/{subjectId}/print-experiment-list
+     */
+    public function printExperimentList($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $lecturerName = $meta['lecturerName'];
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation', 'mobile_no')
+            ->first();
+
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        $experiments = $practicumCourseFile->parsed_experiments ?? [];
+        if (is_string($experiments)) {
+            $experiments = json_decode($experiments, true) ?: [];
+        }
+
+        $totalPracticalHours = 0;
+        foreach ($experiments as $exp) {
+            $totalPracticalHours += floatval($exp['hours'] ?? 3);
+        }
+
+        return view('r26_practicum.experiment_list_print', compact(
+            'batchSubject',
+            'classroom',
+            'departmentName',
+            'batchName',
+            'lecturerName',
+            'hod',
+            'practicumCourseFile',
+            'experiments',
+            'totalPracticalHours'
+        ));
+    }
+
+    /**
+     * Print Practical Experiments Conducted & Attendance Log Register (A4 Portrait)
+     * Route: GET /r26/classroom/practicum/{subjectId}/print-experiments-log
+     */
+    public function printExperimentsLog($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $logData = $this->getPracticumExperimentsLogs($subjectId);
+        $batchSubject = $logData['batchSubject'];
+        $logs = $logData['logs'];
+        $totalEnrolled = $logData['totalEnrolled'];
+        $avgAttnPct = $logData['avgAttnPct'];
+
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $lecturerName = $meta['lecturerName'];
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation', 'mobile_no')
+            ->first();
+
+        return view('r26_practicum.experiments_log_print', compact(
+            'batchSubject',
+            'classroom',
+            'departmentName',
+            'batchName',
+            'lecturerName',
+            'hod',
+            'logs',
+            'totalEnrolled',
+            'avgAttnPct'
+        ));
+    }
+
+    /**
+     * Export Practical Experiments Conducted & Attendance Log as CSV
+     * Route: GET /r26/classroom/practicum/{subjectId}/export-experiments-log-csv
+     */
+    public function exportExperimentsLogCsv($subjectId)
+    {
+        $logData = $this->getPracticumExperimentsLogs($subjectId);
+        $batchSubject = $logData['batchSubject'];
+        $logs = $logData['logs'];
+        $totalEnrolled = $logData['totalEnrolled'];
+
+        $filename = 'Experiments_Log_' . ($batchSubject->subject_code ?: $subjectId) . '_' . date('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function() use ($logs, $totalEnrolled) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, [
+                'Sl No',
+                'Date',
+                'Period / Hour',
+                'Sub-Batch',
+                'Experiment / Topic Covered',
+                'Total Enrolled',
+                'Students Attended',
+                'Absent Count',
+                'Absentees Roll Nos',
+                'Attendance %'
+            ]);
+
+            foreach ($logs as $log) {
+                fputcsv($file, [
+                    $log->sl_no,
+                    $log->formatted_date,
+                    $log->period_label,
+                    $log->sub_batch,
+                    $log->topics_covered,
+                    $log->total_students ?: $totalEnrolled,
+                    $log->present_count,
+                    $log->absent_count,
+                    $log->absent_display,
+                    $log->attendance_pct . '%'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
 

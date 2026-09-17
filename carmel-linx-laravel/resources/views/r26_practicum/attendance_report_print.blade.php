@@ -93,7 +93,7 @@ function goBackToClassroom() {
   <div><div class="meta-label">Faculty In-Charge</div><div class="meta-val">{{ $assignedStaff->count() ? $assignedStaff->pluck('name')->implode(', ') : '—' }}</div></div>
   <div><div class="meta-label">Academic Year</div><div class="meta-val">{{ date('Y') . '–' . (date('Y') + 1) }}</div></div>
   <div><div class="meta-label">Total Students</div><div class="meta-val">{{ $students->count() }}</div></div>
-  <div><div class="meta-label">Report Generated</div><div class="meta-val">{{ date('d M Y, h:i A') }}</div></div>
+  <div><div class="meta-label">Report Generated</div><div class="meta-val">{{ date('d/m/Y, h:i A') }}</div></div>
 </div>
 
 <div class="legend">

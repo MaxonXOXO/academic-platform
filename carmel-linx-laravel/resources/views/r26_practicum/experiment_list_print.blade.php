@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Teaching & Attendance Log Register - {{ $batchSubject->subject_code }}</title>
+    <title>Practical Experiments List - {{ $batchSubject->subject_code }}</title>
     <style>
         @page {
             size: A4 portrait;
-            margin: 10mm 8mm 10mm 8mm;
+            margin: 12mm 10mm 12mm 10mm;
         }
 
         * {
@@ -52,7 +52,7 @@
         }
 
         .btn-print {
-            background: #1e3a8a;
+            background: #047857;
             color: #fff;
         }
 
@@ -68,7 +68,7 @@
 
         .header {
             text-align: center;
-            border-bottom: 2px solid #1e3a8a;
+            border-bottom: 2px solid #047857;
             padding-bottom: 6px;
             margin-bottom: 8px;
         }
@@ -92,11 +92,11 @@
             display: inline-block;
             font-size: 10.5px;
             font-weight: 800;
-            color: #0f172a;
+            color: #047857;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
             padding: 2px 14px;
             border-radius: 4px;
             margin-top: 4px;
@@ -105,7 +105,7 @@
         .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 9.5px;
         }
 
@@ -118,47 +118,47 @@
             background: #f8fafc;
             font-weight: 700;
             color: #334155;
-            width: 14%;
+            width: 15%;
         }
 
         .meta-table .val {
             color: #0f172a;
             font-weight: 600;
-            width: 36%;
+            width: 35%;
         }
 
-        .log-table {
+        .exp-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 9px;
+            margin-bottom: 12px;
+            font-size: 9.5px;
         }
 
-        .log-table th,
-        .log-table td {
+        .exp-table th,
+        .exp-table td {
             border: 1px solid #64748b;
-            padding: 4px 5px;
+            padding: 5px 6px;
             vertical-align: middle;
         }
 
-        .log-table thead {
+        .exp-table thead {
             display: table-header-group;
         }
 
-        .log-table tr {
+        .exp-table tr {
             page-break-inside: avoid;
         }
 
-        .log-table th {
+        .exp-table th {
             background-color: #f1f5f9;
             color: #0f172a;
             font-weight: 800;
-            font-size: 8.5px;
+            font-size: 9px;
             text-transform: uppercase;
             text-align: center;
         }
 
-        .log-table tr:nth-child(even) td {
+        .exp-table tr:nth-child(even) td {
             background-color: #f8fafc;
         }
 
@@ -171,70 +171,30 @@
             font-weight: 600;
         }
 
-        .summary-card {
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            padding: 6px 10px;
-            margin-bottom: 12px;
-            border-radius: 4px;
-            page-break-inside: avoid;
-        }
-
-        .summary-title {
-            font-size: 9.5px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #1e3a8a;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 2px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            font-size: 8.5px;
-        }
-
-        .stat-box {
-            background: #fff;
-            padding: 4px 6px;
-            border: 1px solid #e2e8f0;
+        .co-badge {
+            display: inline-block;
+            padding: 1px 6px;
             border-radius: 3px;
-            text-align: center;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 700;
+            font-size: 9px;
+            border: 1px solid #bae6fd;
         }
 
-        .stat-box .val {
-            font-size: 11px;
-            font-weight: 800;
-            color: #1e3a8a;
-        }
-
-        .stat-box .desc {
-            color: #64748b;
-            font-size: 7.5px;
-            text-transform: uppercase;
-        }
-
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 24px;
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
             padding-top: 10px;
             page-break-inside: avoid;
         }
 
-        .sig-block {
+        .sig-box {
             text-align: center;
-            width: 28%;
-            font-size: 9px;
-        }
-
-        .sig-line {
-            border-top: 1px dashed #334155;
-            margin-bottom: 4px;
-            height: 1px;
+            border-top: 1px solid #475569;
+            padding-top: 6px;
         }
 
         .sig-name {
@@ -243,9 +203,20 @@
         }
 
         .sig-title {
-            font-size: 8px;
+            font-size: 8.5px;
             color: #64748b;
             text-transform: uppercase;
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 8.5px;
+            color: #475569;
+            line-height: 1.4;
         }
 
         @media print {
@@ -264,7 +235,7 @@
         } else if (document.referrer && document.referrer.length > 0) {
             window.location.href = document.referrer;
         } else {
-            window.location.href = "{{ url('/r26/classroom/practicum/' . $batchSubject->id) }}";
+            window.location.href = "{{ url('/r26/classroom/practicum/' . $batchSubject->id . '?mode=lab&tab=roster') }}";
         }
     }
     </script>
@@ -276,7 +247,7 @@
         <button onclick="goBackToClassroom()" class="btn btn-back">&#8592; Back to Classroom</button>
         <button onclick="window.print()" class="btn btn-print">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print A4 Log Register
+            Print Experiment List (A4)
         </button>
         <button onclick="window.close()" class="btn btn-close">Close</button>
     </div>
@@ -285,7 +256,7 @@
     <div class="header">
         <div class="college-name">Carmel Polytechnic College, Alappuzha</div>
         <div class="college-sub">Government Aided Polytechnic College • Approved by AICTE • Affiliated to SBTE Kerala</div>
-        <div class="report-badge">Official Teaching &amp; Attendance Log Register — Revision 2026 Practicum</div>
+        <div class="report-badge">List of Practical Experiments &amp; Lab Sessions — Revision 2026 Practicum</div>
     </div>
 
     <!-- Meta Details Grid -->
@@ -303,10 +274,10 @@
             <td class="val">{{ $lecturerName }}</td>
         </tr>
         <tr>
-            <td class="lbl">Sessions Recorded:</td>
-            <td class="val"><strong>{{ $logs->count() }}</strong> Logs ({{ $totalHours }} Conducted Hours)</td>
-            <td class="lbl">Enrolled Students:</td>
-            <td class="val"><strong>{{ $totalEnrolled }}</strong> Students</td>
+            <td class="lbl">Total Experiments:</td>
+            <td class="val"><strong>{{ count($experiments) }}</strong> Experiments Configured</td>
+            <td class="lbl">Practical Hours:</td>
+            <td class="val"><strong>{{ $totalPracticalHours }}</strong> Allocated Lab Hours</td>
         </tr>
         <tr>
             <td class="lbl">Date Generated:</td>
@@ -316,87 +287,75 @@
         </tr>
     </table>
 
-    <!-- Log Table -->
-    <table class="log-table">
+    <!-- Experiments Table -->
+    <table class="exp-table">
         <thead>
             <tr>
-                <th style="width: 25px;">Sl</th>
-                <th style="width: 58px;">Date</th>
-                <th style="width: 44px;">Period</th>
-                <th style="width: 44px;">Batch</th>
-                <th>Syllabus Topic Covered / Log Entry</th>
-                <th style="width: 32px;">Pres</th>
-                <th style="width: 32px;">Abs</th>
-                <th style="width: 90px;">Absent Roll(s)</th>
-                <th style="width: 42px;">Attn %</th>
-                <th style="width: 35px;">Sign</th>
+                <th style="width: 30px;">Sl</th>
+                <th style="width: 75px;">Session Code</th>
+                <th style="width: 75px;">Code</th>
+                <th>Experiment Title / Description</th>
+                <th style="width: 65px;">Mapped CO</th>
+                <th style="width: 75px;">Duration</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($logs as $idx => $log)
+            @forelse($experiments as $idx => $exp)
             <tr>
                 <td class="text-center" style="font-weight: 700;">{{ $idx + 1 }}</td>
-                <td class="text-center font-mono">{{ $log->formatted_date }}</td>
-                <td class="text-center font-mono" style="color: #475569;">{{ $log->period_label }}</td>
-                <td class="text-center font-mono" style="font-size: 8px;">{{ $log->sub_batch ?: 'All' }}</td>
-                <td>{{ $log->topics_covered ?: 'Practicum curriculum session' }}</td>
-                <td class="text-center" style="font-weight: 700; color: #047857;">{{ $log->present_count }}</td>
-                <td class="text-center" style="color: #b91c1c;">{{ $log->absent_count }}</td>
-                <td class="text-center font-mono" style="font-size: 8px; color: #b91c1c;">{{ $log->absent_display ?: '—' }}</td>
-                <td class="text-center" style="font-weight: 700; color: {{ $log->attendance_pct < 75 ? '#b91c1c' : '#047857' }};">
-                    {{ number_format($log->attendance_pct, 1) }}%
+                <td class="text-center font-mono" style="color: #047857; font-weight: 700;">
+                    {{ $exp['session_code'] ?? ('Sess ' . ($idx + 1)) }}
                 </td>
-                <td class="text-center" style="color: #64748b; font-size: 8px;">✓</td>
+                <td class="text-center font-mono" style="color: #0284c7; font-weight: 700;">
+                    {{ $exp['code'] ?? ($exp['experiment_no'] ?? ('EXP-' . sprintf('%02d', $idx + 1))) }}
+                </td>
+                <td style="font-weight: 600; color: #1e293b;">
+                    {{ $exp['title'] ?? 'Experiment' }}
+                </td>
+                <td class="text-center">
+                    <span class="co-badge">{{ $exp['co_id'] ?? 'CO1' }}</span>
+                </td>
+                <td class="text-center font-mono" style="font-weight: 700;">
+                    {{ $exp['hours'] ?? 3 }} Hours
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="10" class="text-center" style="padding: 16px; color: #64748b;">
-                    No class logs recorded yet for this practicum course.
+                <td colspan="6" class="text-center" style="padding: 16px; color: #64748b;">
+                    No experiments configured for this practicum course yet.
                 </td>
             </tr>
             @endforelse
         </tbody>
+        @if(count($experiments) > 0)
+        <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: 800;">
+                <td colspan="3" class="text-center">TOTAL SUMMARY</td>
+                <td>{{ count($experiments) }} Lab Experiments / Practicum Modules</td>
+                <td class="text-center">CO1 - CO4</td>
+                <td class="text-center font-mono">{{ $totalPracticalHours }} Hours</td>
+            </tr>
+        </tfoot>
+        @endif
     </table>
 
-    <!-- Summary Statistics Card -->
-    <div class="summary-card">
-        <div class="summary-title">Class Log &amp; Coverage Summary</div>
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="val">{{ $logs->count() }}</div>
-                <div class="desc">Sessions Recorded</div>
-            </div>
-            <div class="stat-box">
-                <div class="val">{{ $totalHours }}</div>
-                <div class="desc">Total Hours Conducted</div>
-            </div>
-            <div class="stat-box">
-                <div class="val">{{ number_format($overallAvgAttn, 1) }}%</div>
-                <div class="desc">Cumulative Attendance</div>
-            </div>
-            <div class="stat-box">
-                <div class="val">{{ $completedTopicsCount }} / {{ $totalPlannedTopics }}</div>
-                <div class="desc">Syllabus Progress</div>
-            </div>
-        </div>
+    <div class="footer-note">
+        <strong>Curricular Compliance:</strong> Practical experiments are structured into modular lab sessions under SBTE Revision 2026 guidelines. Continuous evaluation (CE) marks out of 10 marks are mapped from rubric evaluations across these experiments.
     </div>
 
-    <!-- Official Signatures Row -->
-    <div class="signatures">
-        <div class="sig-block">
-            <div class="sig-line"></div>
+    <!-- Signatures Grid -->
+    <div class="sig-grid">
+        <div class="sig-box">
             <div class="sig-name">{{ $lecturerName }}</div>
             <div class="sig-title">Faculty In-Charge</div>
         </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">Head of Department</div>
-            <div class="sig-title">{{ $departmentName }}</div>
+        <div class="sig-box">
+            <div class="sig-name">&nbsp;</div>
+            <div class="sig-title">Lab / Workshop Superintendent</div>
         </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">Principal</div>
-            <div class="sig-title">Carmel Polytechnic College</div>
+        <div class="sig-box">
+            <div class="sig-name">{{ $hod->name ?? 'Head of Department' }}</div>
+            <div class="sig-title">Head of Department (HOD)</div>
         </div>
     </div>
 

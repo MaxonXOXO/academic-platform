@@ -110,9 +110,12 @@
               <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Class & Session Log</h2>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Bulk Import previous attendance & topics from official SBTE PDF">
-                <span class="material-symbols-rounded text-sm">cloud_upload</span>
-                <span>SBTE Bulk Import</span>
+              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="upload class attendance pdf from teams">
+                <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
+                <span class="flex flex-col text-left leading-tight">
+                  <span>Upload TEAMS Attendance</span>
+                  <span class="text-[9px] font-normal text-indigo-200/90 leading-none">(upload class attendance pdf from teams)</span>
+                </span>
               </button>
               <!-- Avoid next entry label in green as requested (kept hidden for script safety) -->
               <span id="logNextSlNoPointer" class="hidden"></span>
@@ -366,8 +369,12 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-md" title="Bulk Import from official SBTE PDF">
-            <span class="material-symbols-rounded text-sm">cloud_upload</span> SBTE Bulk Import
+          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg flex items-center gap-2 transition cursor-pointer shadow-md" title="upload class attendance pdf from teams">
+            <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
+            <span class="flex flex-col text-left leading-tight">
+              <span>Upload TEAMS Attendance</span>
+              <span class="text-[9px] font-normal text-indigo-200/90 leading-none">(upload class attendance pdf from teams)</span>
+            </span>
           </button>
           <button type="button" onclick="syncSubjectLogsFromLessonPlan()" class="px-3 py-1.5 text-xs font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Auto-fill any pending class logs from available Lesson Plans in chronological order">
             <span class="material-symbols-rounded text-sm">auto_stories</span> Sync from Lesson Plan

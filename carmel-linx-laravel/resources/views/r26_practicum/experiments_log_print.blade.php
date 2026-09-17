@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Teaching & Attendance Log Register - {{ $batchSubject->subject_code }}</title>
+    <title>Practical Experiments &amp; Attendance Log - {{ $batchSubject->subject_code }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -56,6 +56,11 @@
             color: #fff;
         }
 
+        .btn-csv {
+            background: #047857;
+            color: #fff;
+        }
+
         .btn-back {
             background: #0284c7;
             color: #fff;
@@ -92,11 +97,11 @@
             display: inline-block;
             font-size: 10.5px;
             font-weight: 800;
-            color: #0f172a;
+            color: #1e3a8a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
             padding: 2px 14px;
             border-radius: 4px;
             margin-top: 4px;
@@ -118,13 +123,13 @@
             background: #f8fafc;
             font-weight: 700;
             color: #334155;
-            width: 14%;
+            width: 15%;
         }
 
         .meta-table .val {
             color: #0f172a;
             font-weight: 600;
-            width: 36%;
+            width: 35%;
         }
 
         .log-table {
@@ -192,49 +197,44 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
             font-size: 8.5px;
         }
 
         .stat-box {
             background: #fff;
-            padding: 4px 6px;
             border: 1px solid #e2e8f0;
-            border-radius: 3px;
+            padding: 4px 8px;
+            border-radius: 4px;
             text-align: center;
         }
 
         .stat-box .val {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 800;
             color: #1e3a8a;
         }
 
         .stat-box .desc {
             color: #64748b;
-            font-size: 7.5px;
+            font-size: 8px;
             text-transform: uppercase;
         }
 
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 24px;
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 25px;
             padding-top: 10px;
             page-break-inside: avoid;
         }
 
-        .sig-block {
+        .sig-box {
             text-align: center;
-            width: 28%;
-            font-size: 9px;
-        }
-
-        .sig-line {
-            border-top: 1px dashed #334155;
-            margin-bottom: 4px;
-            height: 1px;
+            border-top: 1px solid #475569;
+            padding-top: 6px;
         }
 
         .sig-name {
@@ -264,7 +264,7 @@
         } else if (document.referrer && document.referrer.length > 0) {
             window.location.href = document.referrer;
         } else {
-            window.location.href = "{{ url('/r26/classroom/practicum/' . $batchSubject->id) }}";
+            window.location.href = "{{ url('/r26/classroom/practicum/' . $batchSubject->id . '?mode=lab&tab=roster') }}";
         }
     }
     </script>
@@ -274,9 +274,13 @@
     <!-- Print Controls -->
     <div class="no-print">
         <button onclick="goBackToClassroom()" class="btn btn-back">&#8592; Back to Classroom</button>
+        <a href="{{ url('/r26/classroom/practicum/' . $batchSubject->id . '/export-experiments-log-csv') }}" class="btn btn-csv">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export CSV
+        </a>
         <button onclick="window.print()" class="btn btn-print">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print A4 Log Register
+            Print Experiments Log (A4)
         </button>
         <button onclick="window.close()" class="btn btn-close">Close</button>
     </div>
@@ -285,7 +289,7 @@
     <div class="header">
         <div class="college-name">Carmel Polytechnic College, Alappuzha</div>
         <div class="college-sub">Government Aided Polytechnic College • Approved by AICTE • Affiliated to SBTE Kerala</div>
-        <div class="report-badge">Official Teaching &amp; Attendance Log Register — Revision 2026 Practicum</div>
+        <div class="report-badge">Practical Experiments Conducted &amp; Attendance Log Register — Revision 2026</div>
     </div>
 
     <!-- Meta Details Grid -->
@@ -303,8 +307,8 @@
             <td class="val">{{ $lecturerName }}</td>
         </tr>
         <tr>
-            <td class="lbl">Sessions Recorded:</td>
-            <td class="val"><strong>{{ $logs->count() }}</strong> Logs ({{ $totalHours }} Conducted Hours)</td>
+            <td class="lbl">Practical Logs:</td>
+            <td class="val"><strong>{{ $logs->count() }}</strong> Sessions Conducted</td>
             <td class="lbl">Enrolled Students:</td>
             <td class="val"><strong>{{ $totalEnrolled }}</strong> Students</td>
         </tr>
@@ -321,15 +325,14 @@
         <thead>
             <tr>
                 <th style="width: 25px;">Sl</th>
-                <th style="width: 58px;">Date</th>
-                <th style="width: 44px;">Period</th>
-                <th style="width: 44px;">Batch</th>
-                <th>Syllabus Topic Covered / Log Entry</th>
-                <th style="width: 32px;">Pres</th>
-                <th style="width: 32px;">Abs</th>
-                <th style="width: 90px;">Absent Roll(s)</th>
-                <th style="width: 42px;">Attn %</th>
-                <th style="width: 35px;">Sign</th>
+                <th style="width: 65px;">Date</th>
+                <th style="width: 48px;">Period</th>
+                <th style="width: 48px;">Batch</th>
+                <th>Experiment / Practical Topic Covered</th>
+                <th style="width: 65px;">Students Attended</th>
+                <th style="width: 35px;">Absent</th>
+                <th style="width: 110px;">Absentees Roll Nos</th>
+                <th style="width: 38px;">Sign</th>
             </tr>
         </thead>
         <tbody>
@@ -339,19 +342,22 @@
                 <td class="text-center font-mono">{{ $log->formatted_date }}</td>
                 <td class="text-center font-mono" style="color: #475569;">{{ $log->period_label }}</td>
                 <td class="text-center font-mono" style="font-size: 8px;">{{ $log->sub_batch ?: 'All' }}</td>
-                <td>{{ $log->topics_covered ?: 'Practicum curriculum session' }}</td>
-                <td class="text-center" style="font-weight: 700; color: #047857;">{{ $log->present_count }}</td>
-                <td class="text-center" style="color: #b91c1c;">{{ $log->absent_count }}</td>
-                <td class="text-center font-mono" style="font-size: 8px; color: #b91c1c;">{{ $log->absent_display ?: '—' }}</td>
-                <td class="text-center" style="font-weight: 700; color: {{ $log->attendance_pct < 75 ? '#b91c1c' : '#047857' }};">
-                    {{ number_format($log->attendance_pct, 1) }}%
+                <td style="font-weight: 600; color: #1e293b;">{{ $log->topics_covered }}</td>
+                <td class="text-center" style="font-weight: 700; color: #047857;">
+                    {{ $log->present_count }} ({{ number_format($log->attendance_pct, 0) }}%)
+                </td>
+                <td class="text-center" style="font-weight: 700; color: {{ $log->absent_count > 0 ? '#b91c1c' : '#047857' }};">
+                    {{ $log->absent_count }}
+                </td>
+                <td class="text-center font-mono" style="font-size: 8.5px; color: {{ $log->absent_display !== 'NIL' ? '#b91c1c' : '#047857' }}; font-weight: 700;">
+                    {{ $log->absent_display }}
                 </td>
                 <td class="text-center" style="color: #64748b; font-size: 8px;">✓</td>
             </tr>
             @empty
             <tr>
-                <td colspan="10" class="text-center" style="padding: 16px; color: #64748b;">
-                    No class logs recorded yet for this practicum course.
+                <td colspan="9" class="text-center" style="padding: 16px; color: #64748b;">
+                    No practical experiment logs recorded yet for this course.
                 </td>
             </tr>
             @endforelse
@@ -360,43 +366,32 @@
 
     <!-- Summary Statistics Card -->
     <div class="summary-card">
-        <div class="summary-title">Class Log &amp; Coverage Summary</div>
+        <div class="summary-title">Practical Sessions &amp; Attendance Summary</div>
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="val">{{ $logs->count() }}</div>
-                <div class="desc">Sessions Recorded</div>
+                <div class="desc">Sessions Conducted</div>
             </div>
             <div class="stat-box">
-                <div class="val">{{ $totalHours }}</div>
-                <div class="desc">Total Hours Conducted</div>
+                <div class="val">{{ $totalEnrolled }}</div>
+                <div class="desc">Enrolled Students</div>
             </div>
             <div class="stat-box">
-                <div class="val">{{ number_format($overallAvgAttn, 1) }}%</div>
-                <div class="desc">Cumulative Attendance</div>
-            </div>
-            <div class="stat-box">
-                <div class="val">{{ $completedTopicsCount }} / {{ $totalPlannedTopics }}</div>
-                <div class="desc">Syllabus Progress</div>
+                <div class="val" style="color: {{ $avgAttnPct >= 75 ? '#047857' : '#b91c1c' }};">{{ $avgAttnPct }}%</div>
+                <div class="desc">Overall Practical Attendance %</div>
             </div>
         </div>
     </div>
 
-    <!-- Official Signatures Row -->
-    <div class="signatures">
-        <div class="sig-block">
-            <div class="sig-line"></div>
+    <!-- Signatures Grid -->
+    <div class="sig-grid">
+        <div class="sig-box">
             <div class="sig-name">{{ $lecturerName }}</div>
             <div class="sig-title">Faculty In-Charge</div>
         </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">Head of Department</div>
-            <div class="sig-title">{{ $departmentName }}</div>
-        </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">Principal</div>
-            <div class="sig-title">Carmel Polytechnic College</div>
+        <div class="sig-box">
+            <div class="sig-name">{{ $hod->name ?? 'Head of Department' }}</div>
+            <div class="sig-title">Head of Department (HOD)</div>
         </div>
     </div>
 

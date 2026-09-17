@@ -2408,23 +2408,55 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- 1. Attendance -->
                     <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-                        <div class="text-sky-400 font-bold text-xs uppercase tracking-wider">1. Continuous Lab Evaluation (CE)</div>
+                        <div class="text-cyan-400 font-bold text-xs uppercase tracking-wider">1. Attendance (CA)</div>
+                        <div class="text-2xl font-black text-white font-mono">5 Marks <span class="text-xs text-slate-500 font-normal">/ 5 CIA</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Continuous attendance evaluation based on overall student presence across theory lectures and 3-hour practical lab sessions.
+                        </p>
+                    </div>
+
+                    <!-- 2. Self Learning Activities -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-purple-400 font-bold text-xs uppercase tracking-wider">2. Self-Learning Activities (SLA / CA1)</div>
+                        <div class="text-2xl font-black text-white font-mono">5 Marks <span class="text-xs text-slate-500 font-normal">/ 5 CIA</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Average of self-learning assessments across each module including microprojects, case studies, assignments, and quizzes.
+                        </p>
+                    </div>
+
+                    <!-- 3. Theory Series Examinations -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-indigo-400 font-bold text-xs uppercase tracking-wider">3. Theory Series Exams (CA4 &amp; CA5)</div>
+                        <div class="text-2xl font-black text-white font-mono">10 Marks <span class="text-xs text-slate-500 font-normal">/ 20 Scaled</span></div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Two centralized 1.5-hour written series tests (Series 1: Modules 1 &amp; 2, Series 2: Modules 3 &amp; 4); average converted to 10 CIA marks.
+                        </p>
+                    </div>
+
+                    <!-- 4. Continuous Lab Evaluation -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                        <div class="text-sky-400 font-bold text-xs uppercase tracking-wider">4. Continuous Lab Evaluation (CE)</div>
                         <div class="text-2xl font-black text-white font-mono">10 Marks <span class="text-xs text-slate-500 font-normal">/ 50 Scaled</span></div>
                         <p class="text-slate-400 text-xs leading-relaxed">
-                            Continuous evaluation of day-to-day experiments based on Table 2.2 rubrics (Preparation, Setup, Observation, Analysis, Viva, Discipline).
+                            Continuous day-to-day experiment evaluation based on Table 2.2 rubrics (Preparation, Setup, Observation, Analysis, Viva, Discipline).
                         </p>
                     </div>
+
+                    <!-- 5. Practical Tests -->
                     <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-                        <div class="text-amber-400 font-bold text-xs uppercase tracking-wider">2. Practical Tests (CA2 &amp; CA3)</div>
+                        <div class="text-amber-400 font-bold text-xs uppercase tracking-wider">5. Practical Tests (CA2 &amp; CA3)</div>
                         <div class="text-2xl font-black text-white font-mono">10 Marks <span class="text-xs text-slate-500 font-normal">/ 40 Scaled</span></div>
                         <p class="text-slate-400 text-xs leading-relaxed">
-                            Two 3-hour practical tests: Test 1 (first half of experiments) and Test 2 (second half of experiments) as evaluated in Table 3.1.
+                            Two 3-hour practical examinations: Test 1 (first half of experiments) and Test 2 (second half of experiments) as evaluated in Table 3.1.
                         </p>
                     </div>
+
+                    <!-- 6. Theory Written ESE -->
                     <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-                        <div class="text-emerald-400 font-bold text-xs uppercase tracking-wider">3. Theory Written ESE (Board Exam)</div>
+                        <div class="text-emerald-400 font-bold text-xs uppercase tracking-wider">6. Theory Written ESE (Board Exam)</div>
                         <div class="text-2xl font-black text-white font-mono">60 Marks <span class="text-xs text-slate-500 font-normal">Pass: 24/60</span></div>
                         <p class="text-slate-400 text-xs leading-relaxed">
                             External written board examination of 2.5 hours duration covering all 4 modules. Grades S, A, B, C, D, E, F awarded by SBTE.
@@ -2435,7 +2467,7 @@
                 <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-center justify-between flex-wrap gap-2">
                     <div class="flex items-center space-x-2">
                         <span class="text-base">📌</span>
-                        <span>Total Course Marks = <strong>40 CIA</strong> (Attendance 5 + SL 5 + CE 10 + Practical Tests 10 + Theory Series 10) + <strong>60 ESE</strong> (Written Theory) = <strong class="text-emerald-400">100 Marks</strong></span>
+                        <span>Total Course Marks = <strong>40 CIA</strong> (Attendance 5 + SLA 5 + Theory Series 10 + Continuous Lab CE 10 + Practical Tests 10) + <strong>60 ESE</strong> (Written Theory) = <strong class="text-emerald-400">100 Marks</strong></span>
                     </div>
                     <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 font-mono text-sky-300 font-bold">Min Passing: 40/100 Combined</span>
                 </div>

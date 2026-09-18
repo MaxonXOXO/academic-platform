@@ -527,6 +527,8 @@ class R26ClassroomController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.'], 404);
         }
 
+        $this->ensureSyllabusRegistryExists($batchSubject);
+
         $rows = $request->input('rows', []);
         $updated = 0;
 
@@ -546,6 +548,7 @@ class R26ClassroomController extends Controller
                 ],
                 [
                     'subject_code' => $batchSubject->subject_code,
+                    'co_tag' => 'ALL',
                     'max_marks' => 15,
                     'marks_obtained' => $selfLearningVal,
                     'entered_by' => $userId,
@@ -562,6 +565,7 @@ class R26ClassroomController extends Controller
                 ],
                 [
                     'subject_code' => $batchSubject->subject_code,
+                    'co_tag' => 'ALL',
                     'max_marks' => 20,
                     'marks_obtained' => $seriesExamVal,
                     'entered_by' => $userId,
@@ -586,6 +590,8 @@ class R26ClassroomController extends Controller
         if (!$batchSubject) {
             return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.'], 404);
         }
+
+        $this->ensureSyllabusRegistryExists($batchSubject);
 
         // Save Configurations
         $configs = $request->input('configs');
@@ -1091,6 +1097,8 @@ class R26ClassroomController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.'], 404);
         }
 
+        $this->ensureSyllabusRegistryExists($batchSubject);
+
         $rows = $request->input('rows', []);
         $updated = 0;
 
@@ -1110,6 +1118,17 @@ class R26ClassroomController extends Controller
                 $totalMarksObtained += $val;
                 $totalMaxMarks += $exam->max_marks;
 
+                $coTag = 'CO1';
+                if (!empty($exam->co_tags)) {
+                    $tags = is_array($exam->co_tags) ? $exam->co_tags : json_decode($exam->co_tags, true);
+                    if (is_array($tags) && count($tags) > 0) {
+                        $coTag = implode(',', $tags);
+                    } elseif (is_string($exam->co_tags)) {
+                        $coTag = $exam->co_tags;
+                    }
+                }
+                $coTag = substr($coTag, 0, 10);
+
                 // Save individual exam mark
                 \DB::table('academic_marks')->updateOrInsert(
                     [
@@ -1119,6 +1138,7 @@ class R26ClassroomController extends Controller
                     ],
                     [
                         'subject_code' => $batchSubject->subject_code,
+                        'co_tag' => $coTag,
                         'max_marks' => $exam->max_marks,
                         'marks_obtained' => $val,
                         'entered_by' => $userId,
@@ -1149,6 +1169,7 @@ class R26ClassroomController extends Controller
                 ],
                 [
                     'subject_code' => $batchSubject->subject_code,
+                    'co_tag' => 'ALL',
                     'max_marks' => 20,
                     'marks_obtained' => $scaledMark,
                     'entered_by' => $userId,
@@ -1287,6 +1308,8 @@ class R26ClassroomController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.']);
         }
 
+        $this->ensureSyllabusRegistryExists($batchSubject);
+
         $entryMode = $request->input('entry_mode', 'marks');
         $maxMarks = (float)$request->input('max_marks', 60);
         $eseThresholdGrade = $request->input('ese_threshold_grade', 'D');
@@ -1370,6 +1393,7 @@ class R26ClassroomController extends Controller
                 ],
                 [
                     'subject_code' => $batchSubject->subject_code,
+                    'co_tag' => 'ALL',
                     'max_marks' => $maxMarks,
                     'marks_obtained' => $numericVal,
                     'entered_by' => $userId,
@@ -2422,4 +2446,30 @@ class R26ClassroomController extends Controller
             return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Ensure syllabus_registry entry exists for foreign key constraint in academic_marks
+     */
+    protected function ensureSyllabusRegistryExists($batchSubject)
+    {
+        if (!$batchSubject || empty($batchSubject->subject_code)) {
+            return;
+        }
+
+        $exists = \DB::table('syllabus_registry')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->exists();
+
+        if (!$exists) {
+            \DB::table('syllabus_registry')->insert([
+                'subject_code' => $batchSubject->subject_code,
+                'revision_year' => 2026,
+                'subject_name' => $batchSubject->subject_name ?? $batchSubject->subject_code,
+                'co_count' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
 }
+

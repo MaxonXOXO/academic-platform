@@ -142,7 +142,7 @@
         
         <div class="header">
             <h1>Carmel College of Engineering</h1>
-            <h2>Department of {{ getFullBranchName($classroom->branch ?? '') }}</h2>
+            <h2>Department of {{ function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? '') }}</h2>
             <h2>Revision 2026 Scheme - Theory Examination</h2>
             <h2 style="font-weight: bold; margin-top: 8px;">{{ $exam->exam_name }}</h2>
             <h2 style="font-weight: bold; color: #475569;">EVALUATION SCHEME & ANSWER KEY</h2>
@@ -157,7 +157,7 @@
             </tr>
             <tr>
                 <td>Batch ID / Classroom:</td>
-                <td style="font-weight: normal;">{{ $batchSubject->classroom_id }}</td>
+                <td style="font-weight: normal;">{{ $classroom->classroom_name ?? ($batchSubject->classroom_id ?? 'N/A') }}</td>
                 <td>Max Marks:</td>
                 <td style="font-weight: normal;">{{ $exam->max_marks }} Marks</td>
             </tr>

@@ -175,7 +175,7 @@
         
         <div class="header">
             <h1>Carmel College of Engineering</h1>
-            <h2>Department of {{ getFullBranchName($classroom->branch ?? '') }}</h2>
+            <h2>Department of {{ function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? '') }}</h2>
             <h3>Revision 2026 Scheme - Internal Assessment Examination</h3>
             <h2 style="font-size: 15px; margin-top: 4px; letter-spacing: 0.5px;">{{ $exam->exam_name }}</h2>
         </div>
@@ -248,10 +248,6 @@
                                 <td class="text-center" style="font-weight: bold; vertical-align: top;">{{ $q['marks'] ?? $defaultMarks }}M</td>
                             </tr>
                         @endforeach
-                    </tbody>
-                </table>
-            @endif
-        @endforeach
                     </tbody>
                 </table>
             @endif

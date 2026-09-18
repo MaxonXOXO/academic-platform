@@ -345,40 +345,48 @@
       </div>
     </div>
 
+    @php
+      $activeTab = request()->query('tab', 'outline');
+      if ($activeTab === 'internals') $activeTab = 'reports';
+      if (!in_array($activeTab, ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'])) {
+        $activeTab = 'outline';
+      }
+    @endphp
+
     <!-- ROW 3: PROFESSIONAL BORDER-STYLE TAB NAVIGATION BAR (SPACE SAVING) -->
     <div class="w-full flex items-center border-b border-slate-700/80 dark:border-slate-800 overflow-x-auto no-scrollbar gap-0.5 pt-0.5 -mb-px">
       <div class="flex items-center gap-0.5 shrink-0 -mb-px">
-        <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'outline' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">import_contacts</span>
           Course Outline
         </button>
         
-        <button onclick="switchTab('planner')" id="btn-planner" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('planner')" id="btn-planner" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'planner' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">calendar_month</span>
           Lesson Planner
         </button>
         
-        <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'cia' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">fact_check</span>
           Continuous Assessment
         </button>
 
-        <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'series' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">quiz</span>
           Series Exams
         </button>
 
-        <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'attainment' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">equalizer</span>
           Course Attainment & Surveys
         </button>
 
-        <button onclick="switchTab('materials')" id="btn-materials" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('materials')" id="btn-materials" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'materials' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">folder_special</span>
           Study Materials Hub
         </button>
 
-        <button onclick="switchTab('reports')" id="btn-reports" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('reports')" id="btn-reports" class="tab-btn px-2.5 py-1.5 text-[11.5px] {{ $activeTab === 'reports' ? 'font-bold border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40' }} flex items-center gap-1.5 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">description</span>
           Reports
         </button>
@@ -396,7 +404,7 @@
       <div id="details-panel-column" class="w-full transition-all duration-300">
         
         <!-- TAB: COURSE OUTLINE -->
-        <div id="tab-outline" class="tab-panel bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-5 shadow-md space-y-5">
+        <div id="tab-outline" class="tab-panel bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-5 shadow-md space-y-5 {{ $activeTab === 'outline' ? '' : 'hidden' }}">
           <!-- Top Header Strip -->
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3.5 gap-3">
             <div>
@@ -818,7 +826,7 @@
         </div>
 
         <!-- TAB: LESSON PLANNER -->
-        <div id="tab-planner" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
+        <div id="tab-planner" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'planner' ? '' : 'hidden' }}">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
             <div>
               <h3 class="text-sm font-bold text-title flex items-center gap-2">
@@ -934,7 +942,7 @@
         </div>
 
         <!-- TAB: CONTINUOUS INTERNAL ASSESSMENT -->
-        <div id="tab-cia" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
+        <div id="tab-cia" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'cia' ? '' : 'hidden' }}">
           
           <!-- SUB-VIEW 1: THREE CARDS VIEW (DEFAULT) -->
           <div id="cia-cards-view" class="space-y-4">
@@ -1014,16 +1022,19 @@
                 </p>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="toggleCiaView('cards')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <span class="material-symbols-rounded text-sm">arrow_back</span>
+                <button onclick="toggleCiaView('cards')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                  <span class="material-symbols-rounded text-xs">arrow_back</span>
                   Back to Categories
                 </button>
-                <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <span class="material-symbols-rounded text-sm">print</span>
+                <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline">
+                  <span class="material-symbols-rounded text-xs">print</span>
                   Print Report
                 </a>
-                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <span class="material-symbols-rounded text-sm">save</span>
+                <span id="slAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
+                </span>
+                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                  <span class="material-symbols-rounded text-xs">save</span>
                   Save Self-Learning
                 </button>
               </div>
@@ -1160,19 +1171,19 @@
                               <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" title="Assignment Submitted - Grade Now"></span>
                             </div>
                           @endif
-                          <input type="number" step="0.5" min="0" data-field="assignment" value="{{ $sc['co_details'][$coTag]['assignment'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border {{ ($sc['co_details'][$coTag]['submission_status'] ?? '') === 'Submitted' ? 'border-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'border-slate-800' }} rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}')">
+                          <input type="number" step="0.5" min="0" data-field="assignment" value="{{ $sc['co_details'][$coTag]['assignment'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border {{ ($sc['co_details'][$coTag]['submission_status'] ?? '') === 'Submitted' ? 'border-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'border-slate-800' }} rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
                         </td>
                         <td class="p-2.5 text-center">
-                          <input type="number" step="0.5" min="0" data-field="mcq" value="{{ $sc['co_details'][$coTag]['mcq'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}')">
+                          <input type="number" step="0.5" min="0" data-field="mcq" value="{{ $sc['co_details'][$coTag]['mcq'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
                         </td>
                         <td class="p-2.5 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act3" value="{{ $sc['co_details'][$coTag]['act3'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}')">
+                          <input type="number" step="0.5" min="0" data-field="act3" value="{{ $sc['co_details'][$coTag]['act3'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
                         </td>
                         <td class="p-2.5 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act4" value="{{ $sc['co_details'][$coTag]['act4'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}')">
+                          <input type="number" step="0.5" min="0" data-field="act4" value="{{ $sc['co_details'][$coTag]['act4'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
                         </td>
                         <td class="p-2.5 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act5" value="{{ $sc['co_details'][$coTag]['act5'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}')">
+                          <input type="number" step="0.5" min="0" data-field="act5" value="{{ $sc['co_details'][$coTag]['act5'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
                         </td>
                         <td class="p-2.5 text-center font-mono text-emerald-400 font-bold text-base" data-field="co_total">
                           {{ $sc['co_details'][$coTag]['total'] ?? 0.0 }}
@@ -1237,12 +1248,15 @@
                   Attendance is fetched from class logs. Marks are mapped out of 5 based on Table 2.1 (90%+ = 5M, 80%-90% = 4M, 75%-80% = 3M, 70%-75% = 2M, 65%-70% = 1M, &lt;65% = 0M).
                 </p>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="toggleCiaView('cards')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-all border border-slate-750 cursor-pointer flex items-center gap-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="toggleCiaView('cards')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-[11px] font-semibold transition-all border border-slate-750 cursor-pointer flex items-center gap-1 shadow-xs">
                   <span class="material-symbols-rounded text-xs">arrow_back</span>
                   Back to Categories
                 </button>
-                <button id="btnSaveCia" onclick="saveCiaMarks()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm">
+                <span id="ciaAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
+                </span>
+                <button id="btnSaveCia" onclick="saveCiaMarks()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition-all cursor-pointer shadow-xs">
                   Save CIA Marks
                 </button>
               </div>
@@ -1279,10 +1293,10 @@
                         </span>
                       </td>
                       <td class="p-2.5 text-center">
-                        <input type="number" step="0.5" min="0" max="15" data-field="self_learning" value="{{ $sc['self_learning_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal" oninput="calculateRowCia(this)">
+                        <input type="number" step="0.5" min="0" max="15" data-field="self_learning" value="{{ $sc['self_learning_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateRowCia(this); triggerCiaAutosave();">
                       </td>
                       <td class="p-2.5 text-center">
-                        <input type="number" step="0.5" min="0" max="20" data-field="series_exam" value="{{ $sc['series_exam_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal" oninput="calculateRowCia(this)">
+                        <input type="number" step="0.5" min="0" max="20" data-field="series_exam" value="{{ $sc['series_exam_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs" oninput="calculateRowCia(this); triggerCiaAutosave();">
                       </td>
                       <td class="p-2.5 text-center font-mono text-indigo-400 font-bold text-base" data-field="total_cia">
                         {{ $sc['total_cia'] }}
@@ -1353,7 +1367,7 @@
         </div>
 
         <!-- SERIES EXAMS TAB PANEL -->
-        <div id="tab-series" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
+        <div id="tab-series" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'series' ? '' : 'hidden' }}">
           <div class="border-b border-slate-800/30 pb-3 flex justify-between items-center">
             <h3 class="text-base font-bold text-title flex items-center gap-2">
               <span class="material-symbols-rounded text-sky-400">quiz</span>
@@ -1442,29 +1456,29 @@
                       </div>
 
                       <!-- Right: Status and Actions -->
-                      <div class="flex flex-wrap items-center gap-3">
+                      <div class="flex flex-wrap items-center gap-2">
                         @if($exam->locked)
-                          <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
+                          <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs" title="Exam is locked and published to students">
                             <span class="material-symbols-rounded text-xs">lock</span> Locked & Published
                           </span>
                         @else
-                          <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                            <span class="material-symbols-rounded text-xs">edit_note</span> Drafting Mode
-                          </span>
+                          <button type="button" onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-all cursor-pointer" title="Drafting Mode: Click to open Question Paper Builder and draft/edit questions">
+                            <span class="material-symbols-rounded text-xs">edit_note</span> Drafting Mode (Click to Draft QP)
+                          </button>
                         @endif
 
-                        <div class="flex gap-2">
-                          <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
+                        <div class="flex gap-1.5">
+                          <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
                             <span class="material-symbols-rounded text-xs">edit_document</span> Build QP
                           </button>
-                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-qp" target="_blank" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-qp" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
                             <span class="material-symbols-rounded text-xs">print</span> Print QP
                           </a>
-                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-scheme" target="_blank" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-scheme" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
                             <span class="material-symbols-rounded text-xs">description</span> Print Scheme
                           </a>
                           @if(!$exam->locked)
-                            <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-750 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
+                            <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
                               <span class="material-symbols-rounded text-xs">publish</span> Lock & Notify
                             </button>
                           @endif
@@ -1478,13 +1492,19 @@
 
               <!-- Marks Entry Panel -->
               <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                  <h4 class="font-bold text-title text-xs uppercase tracking-wider">Series Exam detailed marksheet</h4>
-                  <div class="flex items-center gap-2">
-                    <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                  <div>
+                    <h4 class="font-bold text-title text-xs uppercase tracking-wider">Series Exam Detailed Marksheet</h4>
+                    <p class="text-[11px] text-muted">Enter exam marks below. Scores scale automatically to 20 marks and autosave continuously.</p>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
                       <span class="material-symbols-rounded text-xs">print</span> Print Marks Report
                     </a>
-                    <button id="btnSaveSeriesMarks" onclick="saveSeriesExamMarks()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1">
+                    <span id="seriesMarksAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
+                    </span>
+                    <button id="btnSaveSeriesMarks" onclick="saveSeriesExamMarks()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-semibold transition cursor-pointer shadow-xs flex items-center gap-1">
                       <span class="material-symbols-rounded text-xs font-bold">save</span> Save Series Marks
                     </button>
                   </div>
@@ -1493,32 +1513,32 @@
                 <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
                   <table class="w-full text-left border-collapse min-w-[700px]">
                     <thead>
-                      <tr class="bg-slate-900/30 text-xs font-bold text-muted uppercase tracking-wider border-b border-card">
-                        <th class="p-3 w-[6%] text-center">Roll No</th>
-                        <th class="p-3 w-[15%]">Register No</th>
-                        <th class="p-3">Student Name</th>
+                      <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
+                        <th class="p-2.5 w-[6%] text-center">Roll No</th>
+                        <th class="p-2.5 w-[15%]">Register No</th>
+                        <th class="p-2.5">Student Name</th>
                         @foreach($seriesExams as $exam)
-                          <th class="p-3 text-center w-[15%]">{{ $exam->exam_name }} ({{ $exam->max_marks }}M)</th>
+                          <th class="p-2.5 text-center w-[15%]">{{ $exam->exam_name }} ({{ $exam->max_marks }}M)</th>
                         @endforeach
-                        <th class="p-3 text-center w-[12%]">Scaled Score (20M)</th>
+                        <th class="p-2.5 text-center w-[12%]">Scaled Score (20M)</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-card text-xs" id="seriesMarksTableBody">
                       @foreach($studentCiaData as $sc)
                         <tr class="bg-card-hover transition-all" data-reg-no="{{ $sc['reg_no'] }}">
-                          <td class="p-3 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
-                          <td class="p-3 font-mono text-title">{{ $sc['reg_no'] }}</td>
-                          <td class="p-3 text-title font-bold">{{ $sc['name'] }}</td>
+                          <td class="p-2 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
+                          <td class="p-2 font-mono text-title">{{ $sc['reg_no'] }}</td>
+                          <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
                           @foreach($seriesExams as $exam)
-                            <td class="p-3 text-center">
+                            <td class="p-2 text-center">
                               <input type="number" step="0.5" min="0" max="{{ $exam->max_marks }}" 
                                      data-exam-id="{{ $exam->id }}" 
                                      value="{{ $sc['exam_marks'][$exam->id] ?? 0.0 }}" 
-                                     class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs series-mark-input"
-                                     oninput="recalculateSeriesRow(this)">
+                                     class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs series-mark-input"
+                                     oninput="recalculateSeriesRow(this); triggerSeriesMarksAutosave();">
                             </td>
                           @endforeach
-                          <td class="p-3 text-center font-mono text-emerald-400 font-bold text-base" data-field="series-scaled-total">
+                          <td class="p-2 text-center font-mono text-emerald-400 font-bold text-sm" data-field="series-scaled-total">
                             {{ $sc['series_exam_marks'] }}
                           </td>
                         </tr>
@@ -1535,7 +1555,7 @@
 
 
         <!-- TAB: COURSE ATTAINMENT & SURVEYS (NEW) -->
-        <div id="tab-attainment" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
+        <div id="tab-attainment" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'attainment' ? '' : 'hidden' }}">
           <div class="border-b border-slate-800/30 pb-3 flex justify-between items-center">
             <div>
               <h3 class="text-base font-bold text-title flex items-center gap-2">
@@ -1744,12 +1764,12 @@
           </div>
         </div>
 
-        <div id="tab-materials" class="tab-panel hidden space-y-4">
+        <div id="tab-materials" class="tab-panel {{ $activeTab === 'materials' ? '' : 'hidden' }} space-y-4">
           @include('partials.virtual_learning_hub_tab', ['roomType' => 'Theory'])
         </div>
 
         <!-- TAB: REPORTS & CONSOLIDATED MARKS REGISTER -->
-        <div id="tab-reports" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5 hidden">
+        <div id="tab-reports" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5 {{ $activeTab === 'reports' ? '' : 'hidden' }}">
           <!-- Top Header -->
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3.5 gap-3">
             <div>
@@ -1956,10 +1976,13 @@
                   <h4 class="font-bold text-title text-xs uppercase tracking-wider">End Semester Exam (ESE) Marks Entry & Final Grades</h4>
                   <p class="text-xs text-muted mt-0.5">Enter ESE marks (out of 60) below to view consolidated final scores (CIA 40M + ESE 60M = 100M total).</p>
                 </div>
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <a href="/r26/classroom/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
                     <span class="material-symbols-rounded text-xs">print</span> Print Final Marksheet
                   </a>
+                  <span id="eseAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
+                  </span>
                   <button onclick="saveEseMarks()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs">
                     <span class="material-symbols-rounded text-xs font-bold">save</span> Save ESE Marks
                   </button>
@@ -1988,7 +2011,7 @@
                         <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
                         <td class="p-2 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ $sc['total_cia'] }}">{{ $sc['total_cia'] }}</td>
                         <td class="p-2 text-center">
-                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRow(this)">
+                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRow(this); triggerEseAutosave();">
                         </td>
                         <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
                         <td class="p-2 text-center font-bold" data-field="grade_display">-</td>
@@ -2017,10 +2040,24 @@
     function checkTabScrollOverflow() {}
 
     document.addEventListener('DOMContentLoaded', function() {
-      let savedTab = localStorage.getItem('activeClassroomTab');
-      if (savedTab === 'internals') savedTab = 'reports';
-      if (savedTab && ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'].includes(savedTab)) {
-        switchTab(savedTab);
+      const urlParams = new URLSearchParams(window.location.search);
+      let tabFromUrl = urlParams.get('tab');
+      if (tabFromUrl === 'internals') tabFromUrl = 'reports';
+      const validTabs = ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'];
+      
+      let targetTab = null;
+      if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+        targetTab = tabFromUrl;
+      } else {
+        const savedTab = localStorage.getItem('activeClassroomTab');
+        if (savedTab === 'internals') savedTab = 'reports';
+        if (savedTab && validTabs.includes(savedTab)) {
+          targetTab = savedTab;
+        }
+      }
+
+      if (targetTab) {
+        switchTab(targetTab);
       } else {
         switchTab('outline');
       }
@@ -2030,13 +2067,20 @@
       if (tabId === 'roster') tabId = 'outline';
       if (tabId === 'internals') tabId = 'reports';
       localStorage.setItem('activeClassroomTab', tabId);
+
+      // Keep browser address bar in sync with active tab without reloading
+      if (window.history && window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tabId);
+        window.history.replaceState({}, '', url);
+      }
+
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.add('hidden');
       });
       const targetPanel = document.getElementById('tab-' + tabId);
       if (targetPanel) {
         targetPanel.classList.remove('hidden');
-        targetPanel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
       }
 
       const tabs = ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'];
@@ -2104,7 +2148,8 @@
         btnText.innerHTML = originalText;
         if (data.status === 'SUCCESS') {
           alert('Syllabus uploaded and parsed successfully!');
-          window.location.reload();
+          localStorage.setItem('activeClassroomTab', 'outline');
+          window.location.href = window.location.pathname + '?tab=outline';
         } else {
           alert('Upload failed: ' + data.message);
         }
@@ -2386,15 +2431,28 @@
       tr.querySelector('[data-field="total_cia"]').innerText = total.toFixed(1);
     }
 
-    function saveCiaMarks() {
+    let ciaAutosaveTimer = null;
+    function triggerCiaAutosave() {
+      const badge = document.getElementById('ciaAutosaveBadge');
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
+        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      }
+      clearTimeout(ciaAutosaveTimer);
+      ciaAutosaveTimer = setTimeout(() => {
+        saveCiaMarks(true);
+      }, 1200);
+    }
+
+    function saveCiaMarks(isAutoSave = false) {
       const rows = [];
       const trs = document.querySelectorAll('#ciaTableBody tr');
       trs.forEach(tr => {
         const regNo = tr.getAttribute('data-reg-no');
         if (!regNo) return;
         
-        const selfLearning = tr.querySelector('[data-field="self_learning"]').value;
-        const seriesExam = tr.querySelector('[data-field="series_exam"]').value;
+        const selfLearning = tr.querySelector('[data-field="self_learning"]')?.value || 0;
+        const seriesExam = tr.querySelector('[data-field="series_exam"]')?.value || 0;
         
         rows.push({
           reg_no: regNo,
@@ -2403,10 +2461,21 @@
         });
       });
 
+      const badge = document.getElementById('ciaAutosaveBadge');
       const btn = document.getElementById('btnSaveCia');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = 'Saving...';
+      const originalText = btn ? btn.innerText : 'Save CIA Marks';
+
+      if (isAutoSave) {
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
+          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+      } else {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = 'Saving...';
+        }
+      }
 
       fetch('/api/r26/classroom/{{ $batchSubject->id }}/cia-marks/bulk-update', {
         method: 'POST',
@@ -2418,19 +2487,41 @@
       })
       .then(res => res.json())
       .then(data => {
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
         if (data.status === 'SUCCESS') {
-          alert('Continuous Internal Assessment (CIA) marks saved successfully!');
-          window.location.reload();
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave && btn) {
+            btn.innerText = 'Saved!';
+            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
+          }
         } else {
-          alert('Failed to save CIA marks: ' + data.message);
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
+            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave) {
+            alert('Failed to save CIA marks: ' + data.message);
+          }
         }
       })
       .catch(err => {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert('Error saving CIA marks: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
+          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+        if (!isAutoSave) {
+          alert('Error saving CIA marks: ' + err.message);
+        }
       });
     }
 
@@ -2576,7 +2667,20 @@
       }
     }
 
-    function saveSelfLearningMarks() {
+    let slAutosaveTimer = null;
+    function triggerSelfLearningAutosave() {
+      const badge = document.getElementById('slAutosaveBadge');
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
+        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      }
+      clearTimeout(slAutosaveTimer);
+      slAutosaveTimer = setTimeout(() => {
+        saveSelfLearningMarks(true);
+      }, 1200);
+    }
+
+    function saveSelfLearningMarks(isAutoSave = false) {
       // Validate all CO config sums are exactly 15 first
       let allValid = true;
       ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
@@ -2585,8 +2689,18 @@
         }
       });
       
+      const badge = document.getElementById('slAutosaveBadge');
+      const btn = document.getElementById('btnSaveSelfLearning');
+      const originalText = btn ? btn.innerText : 'Save Self-Learning';
+
       if (!allValid) {
-        alert("Please correct the Max Marks configurations. The sum of max marks for each CO must equal exactly 15.");
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Check 15M Config Sum';
+          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+        if (!isAutoSave) {
+          alert("Please correct the Max Marks configurations. The sum of max marks for each CO must equal exactly 15.");
+        }
         return;
       }
 
@@ -2632,10 +2746,17 @@
         });
       });
 
-      const btn = document.getElementById('btnSaveSelfLearning');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = 'Saving...';
+      if (isAutoSave) {
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
+          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+      } else {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = 'Saving...';
+        }
+      }
 
       fetch('/api/r26/classroom/{{ $batchSubject->id }}/self-learning/bulk-update', {
         method: 'POST',
@@ -2647,25 +2768,46 @@
       })
       .then(res => res.json())
       .then(data => {
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
         if (data.status === 'SUCCESS') {
-          alert('Self-learning detailed activities evaluation logs saved successfully!');
-          window.location.reload();
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave && btn) {
+            btn.innerText = 'Saved!';
+            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
+          }
         } else {
-          alert('Failed to save self-learning: ' + data.message);
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
+            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave) {
+            alert('Failed to save self-learning: ' + data.message);
+          }
         }
       })
       .catch(err => {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert('Error saving marks: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
+          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+        if (!isAutoSave) {
+          alert('Error saving marks: ' + err.message);
+        }
       });
     }
 
     // Initialize default tabs & labels on page load
     document.addEventListener("DOMContentLoaded", function() {
-      switchTab('outline');
       toggleCiaView('cards');
       switchSelfLearningTab('CO1');
 
@@ -3048,7 +3190,8 @@
         btn.innerText = originalText;
         if (data.status === 'SUCCESS') {
           alert('Assignment locked and notification successfully published to student dashboards!');
-          window.location.reload();
+          localStorage.setItem('activeClassroomTab', 'cia');
+          window.location.href = window.location.pathname + '?tab=cia';
         } else {
           alert('Failed to publish notifications: ' + data.message);
         }
@@ -3426,7 +3569,8 @@
       .then(data => {
         if (data.status === 'SUCCESS') {
           alert('Series exam pattern configured successfully!');
-          window.location.reload();
+          localStorage.setItem('activeClassroomTab', 'series');
+          window.location.href = window.location.pathname + '?tab=series';
         } else {
           alert('Failed to configure pattern: ' + data.message);
         }
@@ -3444,7 +3588,8 @@
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS') {
-            window.location.reload();
+            localStorage.setItem('activeClassroomTab', 'series');
+            window.location.href = window.location.pathname + '?tab=series';
           } else {
             alert('Failed to reset configuration: ' + data.message);
           }
@@ -3849,7 +3994,8 @@
       .then(data => {
         if (data.status === 'SUCCESS') {
           alert('Series exam locked and notification successfully published to student dashboards!');
-          window.location.reload();
+          localStorage.setItem('activeClassroomTab', 'series');
+          window.location.href = window.location.pathname + '?tab=series';
         } else {
           alert('Failed to lock exam: ' + data.message);
         }
@@ -3887,7 +4033,20 @@
       }
     }
 
-    function saveSeriesExamMarks() {
+    let seriesMarksAutosaveTimer = null;
+    function triggerSeriesMarksAutosave() {
+      const badge = document.getElementById('seriesMarksAutosaveBadge');
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
+        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      }
+      clearTimeout(seriesMarksAutosaveTimer);
+      seriesMarksAutosaveTimer = setTimeout(() => {
+        saveSeriesExamMarks(true);
+      }, 1200);
+    }
+
+    function saveSeriesExamMarks(isAutoSave = false) {
       const rows = [];
       document.querySelectorAll('#seriesMarksTableBody tr').forEach(tr => {
         const regNo = tr.getAttribute('data-reg-no');
@@ -3904,10 +4063,21 @@
         });
       });
 
+      const badge = document.getElementById('seriesMarksAutosaveBadge');
       const btn = document.getElementById('btnSaveSeriesMarks');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = 'Saving...';
+      const originalText = btn ? btn.innerText : 'Save Marks';
+
+      if (isAutoSave) {
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
+          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+      } else {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = 'Saving...';
+        }
+      }
 
       fetch(`/api/r26/classroom/{{ $batchSubject->id }}/series-exams/marks/bulk-update`, {
         method: 'POST',
@@ -3919,19 +4089,41 @@
       })
       .then(res => res.json())
       .then(data => {
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
         if (data.status === 'SUCCESS') {
-          alert('Series examinations scores saved successfully!');
-          window.location.reload();
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave && btn) {
+            btn.innerText = 'Saved!';
+            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
+          }
         } else {
-          alert('Failed to save marks: ' + data.message);
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
+            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave) {
+            alert('Failed to save marks: ' + data.message);
+          }
         }
       })
       .catch(err => {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert('Error: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
+          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+        if (!isAutoSave) {
+          alert('Error: ' + err.message);
+        }
       });
     }
 
@@ -3996,13 +4188,32 @@
       }
     }
 
-    function saveEseMarks() {
+    let eseAutosaveTimer = null;
+    function triggerEseAutosave() {
+      const badge = document.getElementById('eseAutosaveBadge');
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
+        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      }
+      clearTimeout(eseAutosaveTimer);
+      eseAutosaveTimer = setTimeout(() => {
+        saveEseMarks(true);
+      }, 1200);
+    }
+
+    function saveEseMarks(isAutoSave = false) {
       const marks = {};
       document.querySelectorAll('.student-ese-row').forEach(row => {
         const regNo = row.getAttribute('data-reg-no');
         const val = parseFloat(row.querySelector('.ese-mark-input').value) || 0;
         marks[regNo] = val;
       });
+
+      const badge = document.getElementById('eseAutosaveBadge');
+      if (isAutoSave && badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
+        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      }
 
       fetch(`/api/r26/classroom/{{ $batchSubject->id }}/ese-marks/bulk-update`, {
         method: 'POST',
@@ -4015,9 +4226,30 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
-          alert("ESE Marks saved successfully!");
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave) {
+            alert("ESE Marks saved successfully!");
+          }
         } else {
-          alert("Error saving ESE Marks: " + data.message);
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
+            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAutoSave) {
+            alert("Error saving ESE Marks: " + data.message);
+          }
+        }
+      })
+      .catch(err => {
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
+          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+        }
+        if (!isAutoSave) {
+          alert("Error saving ESE Marks: " + err.message);
         }
       });
     }

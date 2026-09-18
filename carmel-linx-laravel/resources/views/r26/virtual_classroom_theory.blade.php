@@ -341,12 +341,6 @@
           <span class="material-symbols-rounded text-base">fact_check</span>
           Continuous Assessment
         </button>
-        
-        <button onclick="switchTab('roster')" id="btn-roster" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">group</span>
-          Student Roster
-          <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700/60">{{ $students->count() }}</span>
-        </button>
 
         <button onclick="switchTab('series')" id="btn-series" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
           <span class="material-symbols-rounded text-base">quiz</span>
@@ -942,8 +936,9 @@
                   <span class="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded font-mono font-bold">5M Max</span>
                 </div>
                 <p class="text-xs text-muted leading-relaxed">Automatically evaluated from Table 2.1 continuous attendance log percentages.</p>
-                <button onclick="switchTab('roster')" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition-all cursor-pointer shadow-xs">
-                  View Student Roster & Logs
+                <button onclick="openRosterModal()" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-rounded text-sm">group</span>
+                  View Student Directory ({{ $students->count() }})
                 </button>
               </div>
 
@@ -1277,42 +1272,56 @@
           </div>
         </div>
 
-        <!-- TAB: STUDENT ROSTER -->
-        <div id="tab-roster" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
-          <div class="border-b border-slate-800/30 pb-3">
-            <h3 class="text-base font-bold text-title flex items-center gap-2">
-              <span class="material-symbols-rounded text-sky-400">group</span>
-              Student Enrollment Directory
-            </h3>
-          </div>
+        <!-- MODAL: STUDENT ROSTER DIRECTORY -->
+        <div id="modal-student-roster" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+          <div class="bg-panel border border-slate-700/80 rounded-2xl max-w-3xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-title flex items-center gap-2">
+                  <span class="material-symbols-rounded text-sky-400 text-base">group</span>
+                  Student Enrollment Directory ({{ $students->count() }})
+                </h3>
+                <p class="text-xs text-muted mt-0.5">Enrolled students for {{ $batchSubject->subject_name }} ({{ $batchSubject->classroom_id }})</p>
+              </div>
+              <button type="button" onclick="closeRosterModal()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer text-xs font-bold">
+                ✕ Close
+              </button>
+            </div>
 
-          <div class="border border-card rounded-xl overflow-hidden bg-slate-950/10">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-900/30 text-xs font-bold text-muted uppercase tracking-wider border-b border-card">
-                  <th class="p-3">Roll No</th>
-                  <th class="p-3">SBTE Reg No</th>
-                  <th class="p-3">Student Name</th>
-                  <th class="p-3 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-card text-xs">
-                @forelse($students as $student)
-                  <tr class="bg-card-hover transition-all">
-                    <td class="p-3 font-mono font-bold text-muted">{{ $student->roll_no ?? '-' }}</td>
-                    <td class="p-3 font-mono font-bold text-title">{{ $student->sbte_reg_no ?: $student->reg_no }}</td>
-                    <td class="p-3 font-bold text-title">{{ $student->name }}</td>
-                    <td class="p-3 text-right">
-                      <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-550 border border-emerald-500/20 rounded-md text-xs font-bold select-none">{{ $student->academic_status }}</span>
-                    </td>
+            <div class="border border-slate-800 rounded-xl overflow-y-auto bg-slate-950/30 flex-1 custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="sticky top-0 bg-slate-900 z-10">
+                  <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                    <th class="p-3 w-[10%] text-center">Roll No</th>
+                    <th class="p-3 w-[25%]">SBTE Reg No</th>
+                    <th class="p-3">Student Name</th>
+                    <th class="p-3 w-[20%] text-right">Academic Status</th>
                   </tr>
-                @empty
-                  <tr>
-                    <td colspan="5" class="p-6 text-center text-muted italic">No students assigned to this classroom yet.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-800/70">
+                  @forelse($students as $student)
+                    <tr class="hover:bg-slate-800/30 transition-all">
+                      <td class="p-2.5 font-mono text-center font-bold text-muted">{{ $student->roll_no ?? '-' }}</td>
+                      <td class="p-2.5 font-mono font-bold text-title">{{ $student->sbte_reg_no ?: $student->reg_no }}</td>
+                      <td class="p-2.5 font-bold text-title">{{ $student->name }}</td>
+                      <td class="p-2.5 text-right">
+                        <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-xs font-bold select-none">{{ $student->academic_status }}</span>
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="4" class="p-6 text-center text-muted italic">No students assigned to this classroom yet.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+              <button type="button" onclick="closeRosterModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-all cursor-pointer">
+                Close
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1919,12 +1928,15 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       const savedTab = localStorage.getItem('activeClassroomTab');
-      if (savedTab && ['outline', 'planner', 'cia', 'roster', 'series', 'internals', 'attainment', 'materials'].includes(savedTab)) {
+      if (savedTab && ['outline', 'planner', 'cia', 'series', 'internals', 'attainment', 'materials'].includes(savedTab)) {
         switchTab(savedTab);
+      } else {
+        switchTab('outline');
       }
     });
 
     function switchTab(tabId) {
+      if (tabId === 'roster') tabId = 'outline';
       localStorage.setItem('activeClassroomTab', tabId);
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.add('hidden');
@@ -1935,7 +1947,7 @@
         targetPanel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
       }
 
-      const tabs = ['outline', 'planner', 'cia', 'roster', 'series', 'internals', 'attainment', 'materials'];
+      const tabs = ['outline', 'planner', 'cia', 'series', 'internals', 'attainment', 'materials'];
       tabs.forEach(id => {
         const btn = document.getElementById('btn-' + id);
         if (!btn) return;
@@ -1945,6 +1957,16 @@
           btn.className = "px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer";
         }
       });
+    }
+
+    function openRosterModal() {
+      const m = document.getElementById('modal-student-roster');
+      if (m) m.classList.remove('hidden');
+    }
+
+    function closeRosterModal() {
+      const m = document.getElementById('modal-student-roster');
+      if (m) m.classList.add('hidden');
     }
 
     function toggleTheme() {

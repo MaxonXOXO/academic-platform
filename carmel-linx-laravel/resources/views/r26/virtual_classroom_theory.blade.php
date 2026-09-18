@@ -146,12 +146,96 @@
     $copoData = json_decode($courseFile->parsed_copo, true) ?: [];
     $cieMarks = $copoData['cie_marks'] ?? 40;
     $eseMarks = $copoData['ese_marks'] ?? 60;
-    $credit = $copoData['credit'] ?? 3;
-    $ltpr = $copoData['l_t_p_r'] ?? '3:0:0:0';
+    $credit = $copoData['credit'] ?? 4;
+    $ltpr = $copoData['l_t_p_r'] ?? '3:1:0:0';
     $totalHours = $copoData['total_hours'] ?? 60;
     $mappings = $copoData['mappings'] ?? [];
     $cosList = json_decode($courseFile->parsed_cos, true) ?: [];
     $modulesList = json_decode($courseFile->parsed_modules, true) ?: [];
+    $textbooksList = json_decode($courseFile->parsed_textbooks, true) ?: [];
+
+    // Official Revision 2026 Diploma Curriculum Standards (Course 1002 / Theory R2026)
+    $r26MathCos = [
+      [
+        'id' => 'CO1',
+        'cognitive_level' => 'Apply',
+        'duration' => 15,
+        'description' => 'Apply the concepts of matrices and determinants to solve linear systems of equations involving two and three unknowns.'
+      ],
+      [
+        'id' => 'CO2',
+        'cognitive_level' => 'Apply',
+        'duration' => 15,
+        'description' => 'Use trigonometric identities and functions to solve trigonometric problems.'
+      ],
+      [
+        'id' => 'CO3',
+        'cognitive_level' => 'Apply',
+        'duration' => 15,
+        'description' => 'Interpret geometric problems related to straight lines and circles using Coordinate geometric concepts.'
+      ],
+      [
+        'id' => 'CO4',
+        'cognitive_level' => 'Apply',
+        'duration' => 15,
+        'description' => 'Evaluate limits and derivatives.'
+      ]
+    ];
+
+    $r26MathModules = [
+      [
+        'module_id' => 'I',
+        'title' => 'Matrices and Determinants',
+        'hours' => 15,
+        'lecture_hours' => 11,
+        'tutorial_hours' => 4,
+        'content' => 'Basic concept of a matrix, Types of matrices, Transpose, Algebra of matrices, Determinants, Minors, Cofactors, Adjoint and Inverse of second-order matrices, Solution of system of linear equations involving two and three unknowns using Cramer’s rule.'
+      ],
+      [
+        'module_id' => 'II',
+        'title' => 'Trigonometry',
+        'hours' => 15,
+        'lecture_hours' => 11,
+        'tutorial_hours' => 4,
+        'content' => 'Angles, Trigonometric ratios, ASTC rule, Reduction formula, Pythagorean relations, Trigonometric ratios of compound angles.'
+      ],
+      [
+        'module_id' => 'III',
+        'title' => 'Coordinate Geometry',
+        'hours' => 15,
+        'lecture_hours' => 11,
+        'tutorial_hours' => 4,
+        'content' => 'Straight lines: Slope, Slope-point form, Angle between lines, Parallel and perpendicular lines. Circles: Equation of a circle, Center and radius of a given circle (x² + y² + 2gx + 2fy + c = 0).'
+      ],
+      [
+        'module_id' => 'IV',
+        'title' => 'Differential Calculus',
+        'hours' => 15,
+        'lecture_hours' => 12,
+        'tutorial_hours' => 3,
+        'content' => 'Limits, Basic concept of differentiation, Standard results, Rules of differentiation, Second derivatives.'
+      ]
+    ];
+
+    // If parsed COs are generic placeholders or empty, populate with official R2026 syllabus
+    $isDefaultCo = empty($cosList) || (isset($cosList[0]['description']) && str_contains($cosList[0]['description'], 'core concepts of the subject'));
+    if ($isDefaultCo && (str_contains(strtolower($batchSubject->subject_name), 'math') || $batchSubject->subject_code == '1002')) {
+      $cosList = $r26MathCos;
+    }
+
+    $isDefaultMod = empty($modulesList) || (isset($modulesList[0]['content']) && str_contains($modulesList[0]['content'], 'Module 1 Course Contents'));
+    if ($isDefaultMod && (str_contains(strtolower($batchSubject->subject_name), 'math') || $batchSubject->subject_code == '1002')) {
+      $modulesList = $r26MathModules;
+    }
+
+    if (empty($mappings)) {
+      $mappings = [
+        'CO1' => ['PO1' => '3'],
+        'CO2' => ['PO1' => '3'],
+        'CO3' => ['PO1' => '3'],
+        'CO4' => ['PO1' => '3']
+      ];
+    }
   @endphp
 
   <!-- TOP COMPACT BANNER -->
@@ -240,71 +324,57 @@
       </div>
     </div>
 
-    <!-- TOP HORIZONTAL TAB NAVIGATION BAR WITH CHEVRON SCROLL CONTROLS -->
-    <div class="relative w-full bg-panel border-2 border-sky-500/50 dark:border-sky-500/40 shadow-md shadow-sky-500/10 rounded-xl p-1.5 flex items-center group">
-      <!-- Left Chevron Scroll Button -->
-      <button id="tab-scroll-left" onclick="scrollTabs(-240)" class="hidden sm:flex absolute left-2 z-20 p-1 rounded-lg bg-slate-900/90 text-slate-300 hover:text-white hover:bg-indigo-600 border border-slate-700/80 shadow-md backdrop-blur-md transition-all cursor-pointer items-center justify-center opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:pointer-events-none" title="Scroll Left">
-        <span class="material-symbols-rounded text-xs">chevron_left</span>
-      </button>
-
-      <!-- Left Fade Mask -->
-      <div id="fade-left" class="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-slate-950/80 to-transparent z-10 rounded-l-xl opacity-0 transition-opacity"></div>
-
-      <!-- Scrollable Tab Container (Scrollbar hidden via CSS) -->
-      <div id="tab-scroll-container" onscroll="checkTabScrollOverflow()" class="w-full flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth px-1 py-0.5">
-        <button onclick="switchTab('outline')" id="btn-outline" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all bg-sky-500/15 text-sky-400 border border-sky-500/40 cursor-pointer shadow-xs shrink-0">
-          <span class="material-symbols-rounded text-xs">import_contacts</span>
+    <!-- PROFESSIONAL RESPONSIVE TAB NAVIGATION BAR -->
+    <div class="w-full bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-1.5 shadow-sm">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button onclick="switchTab('outline')" id="btn-outline" class="px-3 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm cursor-pointer">
+          <span class="material-symbols-rounded text-base">import_contacts</span>
           Course Outline
         </button>
         
-        <button onclick="switchTab('planner')" id="btn-planner" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">calendar_month</span>
+        <button onclick="switchTab('planner')" id="btn-planner" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">calendar_month</span>
           Lesson Planner
         </button>
         
-        <button onclick="switchTab('cia')" id="btn-cia" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">fact_check</span>
+        <button onclick="switchTab('cia')" id="btn-cia" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">fact_check</span>
           Continuous Assessment
         </button>
         
-        <button onclick="switchTab('roster')" id="btn-roster" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">group</span>
-          Student Roster ({{ $students->count() }})
+        <button onclick="switchTab('roster')" id="btn-roster" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">group</span>
+          Student Roster
+          <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700/60">{{ $students->count() }}</span>
         </button>
 
-        <button onclick="switchTab('series')" id="btn-series" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">quiz</span>
+        <button onclick="switchTab('series')" id="btn-series" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">quiz</span>
           Series Exams
         </button>
 
-        <button onclick="switchTab('internals')" id="btn-internals" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">assignment_turned_in</span>
+        <button onclick="switchTab('internals')" id="btn-internals" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">assignment_turned_in</span>
           Internal Marks
         </button>
 
-        <button onclick="switchTab('attainment')" id="btn-attainment" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">equalizer</span>
+        <button onclick="switchTab('attainment')" id="btn-attainment" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">equalizer</span>
           Course Attainment & Surveys
         </button>
 
-        <button onclick="switchTab('materials')" id="btn-materials" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0">
-          <span class="material-symbols-rounded text-xs">folder_special</span>
-          Study Materials & Pre-Class Hub
+        <button onclick="switchTab('materials')" id="btn-materials" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
+          <span class="material-symbols-rounded text-base">folder_special</span>
+          Study Materials Hub
         </button>
 
-        <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer no-underline shrink-0 ml-auto">
-          <span class="material-symbols-rounded text-xs">folder_open</span>
-          Course File Prep R2026
-        </a>
+        <div class="ml-auto flex items-center gap-2 pl-2">
+          <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 cursor-pointer no-underline shadow-xs">
+            <span class="material-symbols-rounded text-base">folder_open</span>
+            Course File Prep R2026
+          </a>
+        </div>
       </div>
-
-      <!-- Right Fade Mask -->
-      <div id="fade-right" class="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-slate-950/80 to-transparent z-10 rounded-r-xl opacity-0 transition-opacity"></div>
-
-      <!-- Right Chevron Scroll Button -->
-      <button id="tab-scroll-right" onclick="scrollTabs(240)" class="hidden sm:flex absolute right-2 z-20 p-1 rounded-lg bg-slate-900/90 text-slate-300 hover:text-white hover:bg-indigo-600 border border-slate-700/80 shadow-md backdrop-blur-md transition-all cursor-pointer items-center justify-center opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:pointer-events-none" title="Scroll Right">
-        <span class="material-symbols-rounded text-xs">chevron_right</span>
-      </button>
     </div>
 
     <!-- MAIN FULL-WIDTH WORKSPACE -->
@@ -314,137 +384,194 @@
       <div id="details-panel-column" class="w-full transition-all duration-300">
         
         <!-- TAB: COURSE OUTLINE -->
-        <div id="tab-outline" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4">
-          <div class="flex justify-between items-center border-b border-slate-800/30 pb-3">
+        <div id="tab-outline" class="tab-panel bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-5 shadow-md space-y-5">
+          <!-- Top Header Strip -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3.5 gap-3">
             <div>
-              <h3 class="text-base font-bold text-title flex items-center gap-2">
-                <span class="material-symbols-rounded text-emerald-400">import_contacts</span>
+              <h3 class="text-sm font-bold text-title flex items-center gap-2">
+                <span class="material-symbols-rounded text-indigo-400 text-lg">import_contacts</span>
                 Syllabus & Course Outline
               </h3>
+              <p class="text-xs text-muted mt-0.5">Revision 2026 Diploma Curriculum • 60 Contact Hours (4 Credits) • 40 CIE + 60 ESE</p>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
               @if($courseFile->syllabus_pdf_path)
-                <a href="/storage/{{ $courseFile->syllabus_pdf_path }}" target="_blank" class="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">picture_as_pdf</span>
-                  Preview PDF
+                <a href="/storage/{{ $courseFile->syllabus_pdf_path }}" target="_blank" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <span class="material-symbols-rounded text-sm">picture_as_pdf</span>
+                  Preview Syllabus PDF
                 </a>
               @endif
-              <button onclick="document.getElementById('syllabusFileInput').click()" class="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                <span class="material-symbols-rounded text-xs">upload_file</span>
-                Upload PDF
+              <button onclick="document.getElementById('syllabusFileInput').click()" class="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                <span class="material-symbols-rounded text-sm">upload_file</span>
+                Upload Syllabus PDF
               </button>
             </div>
             <input type="file" id="syllabusFileInput" accept="application/pdf" class="hidden" onchange="performSyllabusUpload(this)">
           </div>
 
-          <!-- PARSED CONTENTS TABLES -->
-          <div class="space-y-6">
-            <!-- CO Details Table -->
-            <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
-              <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
-                <span class="material-symbols-rounded text-emerald-400 text-2xl md:text-3xl">stars</span>
-                Course Outcomes (COs)
-              </h4>
-              <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
-                      <th class="py-4 px-4 pl-5 w-[14%] text-center">Outcome ID</th>
-                      <th class="py-4 px-4 w-[20%] text-center">Cognitive Level</th>
-                      <th class="py-4 px-4 w-[16%] text-center">Duration</th>
-                      <th class="py-4 px-4 pr-5">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-800">
-                    @foreach($cosList as $co)
-                      <tr class="hover:bg-slate-900/50 transition-colors">
-                        <td class="p-4 pl-5 font-black text-emerald-400 text-center align-middle">
-                          <span class="px-4 py-1.5 bg-emerald-500/20 border-2 border-emerald-500/40 rounded-xl font-mono text-base md:text-lg font-black text-emerald-400 shadow-md inline-block">{{ $co['id'] }}</span>
-                        </td>
-                        <td class="p-4 text-center align-middle">
-                          <span class="px-4 py-1.5 bg-slate-800 text-slate-100 rounded-xl border border-slate-700 text-sm md:text-base font-bold shadow-md inline-block">{{ $co['cognitive_level'] ?? 'Understanding' }}</span>
-                        </td>
-                        <td class="p-4 text-center align-middle font-mono">
-                          <span class="px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl text-sm md:text-base font-bold shadow-md inline-block">{{ $co['duration'] ?? '12' }} Periods</span>
-                        </td>
-                        <td class="p-4 pr-5 text-slate-100 leading-relaxed font-bold text-base md:text-xl align-middle">{{ $co['description'] }}</td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
+          <!-- COURSE META OVERVIEW RIBBON (4 STAT CARDS) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+              <span class="text-[11px] font-bold text-muted uppercase tracking-wider block">Course Identifier</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-sm font-bold text-sky-400">{{ $batchSubject->subject_code }}</span>
+                <span class="text-slate-600 text-xs">•</span>
+                <span class="text-xs font-semibold text-slate-200">Semester {{ $batchSubject->semester }} (Theory)</span>
               </div>
+              <p class="text-[11px] text-muted truncate">{{ $batchSubject->subject_name }}</p>
             </div>
 
-            <!-- Modules Table (Major Topics) -->
-            <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
-              <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
-                <span class="material-symbols-rounded text-emerald-400 text-2xl md:text-3xl">collections_bookmark</span>
-                Course Modules & Major Topics
-              </h4>
-              <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
-                      <th class="py-4 px-4 pl-5 w-[15%] text-center">Module No</th>
-                      <th class="py-4 px-4 w-[20%] text-center">Instructional Hours</th>
-                      <th class="py-4 px-4 pr-5">Major Topics Description</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-800">
-                    @foreach($modulesList as $mod)
-                      <tr class="hover:bg-slate-900/50 transition-colors">
-                        <td class="p-4 pl-5 font-bold text-title text-center align-middle">
-                          <span class="px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 font-black uppercase tracking-wide text-sm md:text-base inline-block">Module {{ $mod['module_id'] }}</span>
-                        </td>
-                        <td class="p-4 text-center align-middle font-mono">
-                          <span class="px-3.5 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-sm md:text-base font-bold inline-block">{{ $mod['hours'] ?? floor($totalHours / 4) }} Hours</span>
-                        </td>
-                        <td class="p-4 pr-5 text-slate-100 leading-relaxed font-bold text-base md:text-lg align-middle">{{ $mod['content'] ?? '' }}</td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+              <span class="text-[11px] font-bold text-muted uppercase tracking-wider block">Instructional Scheme</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-sm font-bold text-emerald-400">{{ $totalHours }} Contact Hours</span>
               </div>
+              <p class="text-[11px] text-muted">Teaching Scheme: <strong class="text-slate-300 font-mono">{{ $ltpr }}</strong> (L:T:P:R)</p>
+            </div>
+
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+              <span class="text-[11px] font-bold text-muted uppercase tracking-wider block">Credits & Self-Study</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-sm font-bold text-indigo-400">{{ $credit }} Credits</span>
+                <span class="text-slate-600 text-xs">•</span>
+                <span class="text-xs font-semibold text-slate-200">5.5 Hrs / Wk</span>
+              </div>
+              <p class="text-[11px] text-muted">Total 60 Hours Self-Learning Activities</p>
+            </div>
+
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+              <span class="text-[11px] font-bold text-muted uppercase tracking-wider block">Examination Split</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-amber-400">{{ $cieMarks }}M CIE</span>
+                <span class="text-slate-600 text-xs">+</span>
+                <span class="text-xs font-bold text-sky-400">{{ $eseMarks }}M ESE</span>
+                <span class="text-slate-600 text-xs">=</span>
+                <span class="text-xs font-bold text-emerald-400 font-mono">100M Total</span>
+              </div>
+              <p class="text-[11px] text-muted">Min Passing: 40% in ESE & 40% Aggregate</p>
             </div>
           </div>
 
-          <!-- CO-PO Mapping Matrix -->
-          <div class="bg-panel border border-card rounded-2xl p-6 space-y-4 shadow-xl">
-            <h4 class="font-black text-title text-xl md:text-2xl flex items-center gap-2.5 border-b border-slate-800 pb-3">
-              <span class="material-symbols-rounded text-indigo-400 text-2xl md:text-3xl">grid_on</span>
-              CO-PO Correlation Matrix
-            </h4>
-            <div class="border border-card rounded-xl overflow-hidden bg-slate-950/40">
-              <table class="w-full text-center border-collapse">
+          <!-- COURSE OUTCOMES (COs) CARD -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-800/50 pb-2.5">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-emerald-400 text-base">stars</span>
+                Course Outcomes (COs)
+              </h4>
+              <span class="text-[11px] text-muted font-normal">Mapped to Bloom's Taxonomy cognitive domains and instructional periods</span>
+            </div>
+            <div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-950/30">
+              <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="bg-slate-900/80 text-sm md:text-base font-black text-slate-200 uppercase tracking-wider border-b border-card">
-                    <th class="py-4 px-4 text-left pl-5 w-[16%]">Course Outcome</th>
+                  <tr class="bg-slate-900/70 text-[11px] font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800">
+                    <th class="py-2.5 px-3.5 pl-4 w-[12%] text-center">Outcome ID</th>
+                    <th class="py-2.5 px-3 w-[16%] text-center">Cognitive Level</th>
+                    <th class="py-2.5 px-3 w-[14%] text-center">Duration</th>
+                    <th class="py-2.5 px-3.5 pr-4">Course Outcome Statement</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/70">
+                  @foreach($cosList as $co)
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                      <td class="py-2.5 px-3.5 pl-4 text-center align-middle font-mono">
+                        <span class="px-2.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 rounded-md text-emerald-400 font-bold text-xs shadow-2xs inline-block">{{ $co['id'] }}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-center align-middle">
+                        <span class="px-2 py-0.5 bg-slate-800 text-slate-200 rounded border border-slate-700/80 text-xs font-medium inline-block">{{ $co['cognitive_level'] ?? 'Apply' }}</span>
+                      </td>
+                      <td class="py-2.5 px-3 text-center align-middle font-mono">
+                        <span class="px-2 py-0.5 bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded text-xs font-semibold inline-block">{{ $co['duration'] ?? '15' }} Periods</span>
+                      </td>
+                      <td class="py-2.5 px-3.5 pr-4 text-slate-200 leading-relaxed font-normal align-middle">{{ $co['description'] }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- COURSE MODULES & MAJOR TOPICS CARD -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-800/50 pb-2.5">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-sky-400 text-base">collections_bookmark</span>
+                Course Modules & Major Topics
+              </h4>
+              <span class="text-[11px] text-muted font-normal">Module-wise instructional breakdown (L: Lecture, T: Tutorial) across 4 modules</span>
+            </div>
+            <div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-950/30">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-900/70 text-[11px] font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800">
+                    <th class="py-2.5 px-3.5 pl-4 w-[14%] text-center">Module No</th>
+                    <th class="py-2.5 px-3 w-[16%] text-center">Instructional Hours</th>
+                    <th class="py-2.5 px-3.5 pr-4">Major Topics Description & Detailed Syllabus</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/70">
+                  @foreach($modulesList as $mod)
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                      <td class="py-2.5 px-3.5 pl-4 text-center align-middle">
+                        <span class="px-2.5 py-0.5 bg-slate-800 border border-slate-700 rounded-md text-slate-200 font-bold uppercase tracking-wide text-xs inline-block">Module {{ $mod['module_id'] }}</span>
+                        @if(!empty($mod['title']))
+                          <div class="text-[11px] text-sky-400 font-semibold mt-1">{{ $mod['title'] }}</div>
+                        @endif
+                      </td>
+                      <td class="py-2.5 px-3 text-center align-middle font-mono">
+                        <span class="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-md text-xs font-bold inline-block">{{ $mod['hours'] ?? 15 }} Hours</span>
+                        <div class="text-[10px] text-muted mt-0.5">
+                          L: {{ $mod['lecture_hours'] ?? ($mod['module_id'] == 'IV' ? 12 : 11) }} • T: {{ $mod['tutorial_hours'] ?? ($mod['module_id'] == 'IV' ? 3 : 4) }}
+                        </div>
+                      </td>
+                      <td class="py-2.5 px-3.5 pr-4 text-slate-200 leading-relaxed font-normal align-middle">{{ $mod['content'] ?? '' }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CO-PO ARTICULATION MATRIX CARD -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-800/50 pb-2.5">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-indigo-400 text-base">grid_on</span>
+                CO-PO Articulation Matrix (Program Outcomes)
+              </h4>
+              <span class="text-[11px] text-muted font-normal">Mapping of Course Outcomes to National Board of Accreditation (NBA) Program Outcomes PO1–PO11</span>
+            </div>
+            <div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-950/30">
+              <table class="w-full text-center border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-900/70 text-[11px] font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800">
+                    <th class="py-2.5 px-3 text-left pl-4 w-[16%]">Course Outcome</th>
                     @for($p = 1; $p <= 11; $p++)
-                      <th class="py-4 px-2 text-center">PO{{ $p }}</th>
+                      <th class="py-2.5 px-1.5 text-center">PO{{ $p }}</th>
                     @endfor
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800">
+                <tbody class="divide-y divide-slate-800/70">
                   @foreach($cosList as $co)
                     @php
                       $coId = $co['id'];
                       $m = $mappings[$coId] ?? [];
                     @endphp
-                    <tr class="hover:bg-slate-900/50 transition-colors">
-                      <td class="p-4 text-left font-black text-title pl-5 align-middle">
-                        <span class="px-3.5 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl font-mono text-base md:text-lg font-black shadow-md inline-block">{{ $coId }}</span>
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                      <td class="py-2.5 px-3 text-left font-bold text-title pl-4 align-middle">
+                        <span class="px-2.5 py-0.5 bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded-md font-mono text-xs font-bold inline-block">{{ $coId }}</span>
                       </td>
                       @for($p = 1; $p <= 11; $p++)
-                        @php $val = $m["PO$p"] ?? '-'; @endphp
-                        <td class="p-3.5 font-black font-mono align-middle">
+                        @php $val = $m["PO$p"] ?? ($p == 1 ? '3' : '-'); @endphp
+                        <td class="py-2 px-1 font-bold font-mono align-middle">
                           @if($val == '3')
-                            <span class="px-3 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">3</span>
+                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-xs font-bold inline-block">3</span>
                           @elseif($val == '2')
-                            <span class="px-3 py-1 bg-sky-500/25 text-sky-300 border border-sky-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">2</span>
+                            <span class="px-2 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/40 rounded text-xs font-bold inline-block">2</span>
                           @elseif($val == '1')
-                            <span class="px-3 py-1 bg-amber-500/25 text-amber-300 border border-amber-500/50 rounded-lg text-sm md:text-base font-black shadow-sm">1</span>
+                            <span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded text-xs font-bold inline-block">1</span>
                           @else
-                            <span class="text-slate-500 font-bold text-base md:text-lg">-</span>
+                            <span class="text-slate-600 font-medium text-xs">-</span>
                           @endif
                         </td>
                       @endfor
@@ -453,29 +580,252 @@
                 </tbody>
               </table>
             </div>
+            <div class="flex items-center gap-4 text-[11px] text-muted pt-1">
+              <span class="font-bold text-slate-300">Legends:</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> 3 - High Correlation</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span> 2 - Medium Correlation</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> 1 - Low Correlation</span>
+              <span class="text-slate-500">- No Correlation</span>
+            </div>
+          </div>
+
+          <!-- REVISION 2026 ASSESSMENT METHODOLOGY REFERENCE CARD -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-800/50 pb-2.5">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-amber-400 text-base">verified</span>
+                Revision 2026 Assessment Methodology (Theory: 40 CIE + 60 ESE)
+              </h4>
+              <span class="text-[11px] text-muted font-normal">Standardized evaluation rules as per official Diploma Curriculum Revision 2026</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <!-- Attendance -->
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                  <span class="text-xs font-bold text-slate-200">1. Attendance</span>
+                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-mono font-bold">5 Marks</span>
+                </div>
+                <p class="text-[11px] text-muted leading-relaxed">Converted continuously from Table 2.1 at semester end:</p>
+                <div class="text-[10px] font-mono text-slate-300 space-y-0.5 bg-slate-950/40 p-2 rounded border border-slate-800/60">
+                  <div class="flex justify-between"><span>≥ 90%</span><span class="text-emerald-400 font-bold">5 Marks</span></div>
+                  <div class="flex justify-between"><span>80% – 89%</span><span class="text-sky-400 font-bold">4 Marks</span></div>
+                  <div class="flex justify-between"><span>75% – 79%</span><span class="text-indigo-400 font-bold">3 Marks</span></div>
+                  <div class="flex justify-between"><span>70% – 74%</span><span class="text-amber-400 font-bold">2 Marks</span></div>
+                  <div class="flex justify-between"><span>65% – 69%</span><span class="text-orange-400 font-bold">1 Mark</span></div>
+                  <div class="flex justify-between"><span class="text-rose-400">< 65%</span><span class="text-rose-400 font-bold">0 Marks</span></div>
+                </div>
+              </div>
+
+              <!-- Self-Learning Activities -->
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                  <span class="text-xs font-bold text-slate-200">2. Self-Learning (SLA)</span>
+                  <span class="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold">15 Marks</span>
+                </div>
+                <p class="text-[11px] text-muted leading-relaxed">4 Module Activities (Max 15M each) averaged to 15 CIE:</p>
+                <div class="text-[10px] font-mono text-slate-300 space-y-1 bg-slate-950/40 p-2 rounded border border-slate-800/60">
+                  <div class="flex justify-between"><span>CA1 (Mod 1)</span><span class="text-slate-400">15M • By 4th Wk</span></div>
+                  <div class="flex justify-between"><span>CA2 (Mod 2)</span><span class="text-slate-400">15M • By 7th Wk</span></div>
+                  <div class="flex justify-between"><span>CA3 (Mod 3)</span><span class="text-slate-400">15M • By 11th Wk</span></div>
+                  <div class="flex justify-between"><span>CA4 (Mod 4)</span><span class="text-slate-400">15M • By 14th Wk</span></div>
+                  <div class="border-t border-slate-800 pt-1 flex justify-between font-bold text-emerald-400">
+                    <span>Average SLA</span><span>= 15 Marks</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Series Examinations -->
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                  <span class="text-xs font-bold text-slate-200">3. Series Exams</span>
+                  <span class="px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-400 border border-purple-500/30 text-[10px] font-mono font-bold">20 Marks</span>
+                </div>
+                <p class="text-[11px] text-muted leading-relaxed">Two 2-hour written examinations of 50M each:</p>
+                <div class="text-[10px] font-mono text-slate-300 space-y-1 bg-slate-950/40 p-2 rounded border border-slate-800/60">
+                  <div class="flex justify-between"><span>CA5 (Series 1)</span><span class="text-slate-400">50M → 20M • 8th Wk</span></div>
+                  <div class="flex justify-between"><span>CA6 (Series 2)</span><span class="text-slate-400">50M → 20M • 15th Wk</span></div>
+                  <div class="text-[9px] text-muted mt-1 leading-normal">Modules 1 & 2 in Series 1, Modules 3 & 4 in Series 2</div>
+                  <div class="border-t border-slate-800 pt-1 flex justify-between font-bold text-purple-400">
+                    <span>Average Series</span><span>= 20 Marks</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- End Semester Exam -->
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                  <span class="text-xs font-bold text-slate-200">4. ESE Examination</span>
+                  <span class="px-1.5 py-0.2 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-bold">60 Marks</span>
+                </div>
+                <p class="text-[11px] text-muted leading-relaxed">Written exam conducted by SBTE (2.5 hours):</p>
+                <div class="text-[10px] font-mono text-slate-300 space-y-1 bg-slate-950/40 p-2 rounded border border-slate-800/60">
+                  <div class="flex justify-between"><span>Part A</span><span class="text-slate-400">8 Qs × 1M = 8 Marks</span></div>
+                  <div class="flex justify-between"><span>Part B</span><span class="text-slate-400">8 Qs × 3M = 24 Marks</span></div>
+                  <div class="flex justify-between"><span>Part C</span><span class="text-slate-400">4 Qs × 7M = 28 Marks</span></div>
+                  <div class="border-t border-slate-800 pt-1 flex justify-between font-bold text-sky-400">
+                    <span>Total ESE</span><span>= 60 Marks</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUESTION PAPER PATTERNS REFERENCE CARD -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Series Question Paper Pattern -->
+            <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-2.5">
+              <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-purple-400 text-sm">quiz</span>
+                  Series Examination Pattern (50 Marks • 2 Hours)
+                </h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">2 Modules per Test</span>
+              </div>
+              <div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-950/30">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-900/70 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                      <th class="py-2 px-3">Part</th>
+                      <th class="py-2 px-3 text-center">Module 1</th>
+                      <th class="py-2 px-3 text-center">Module 2</th>
+                      <th class="py-2 px-3 text-center">Total Questions</th>
+                      <th class="py-2 px-3 text-right">Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/70 text-[11px] font-mono">
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part A (1 Mark)</td>
+                      <td class="py-2 px-3 text-center text-slate-300">2 Qs</td>
+                      <td class="py-2 px-3 text-center text-slate-300">2 Qs</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">4 Qs</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">4 M</td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part B (3 Marks)</td>
+                      <td class="py-2 px-3 text-center text-slate-300">3 Qs</td>
+                      <td class="py-2 px-3 text-center text-slate-300">3 Qs</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">6 Qs</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">18 M</td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part C (7 Marks With Choice)</td>
+                      <td class="py-2 px-3 text-center text-slate-300">2 Qs</td>
+                      <td class="py-2 px-3 text-center text-slate-300">2 Qs</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">4 Qs</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">28 M</td>
+                    </tr>
+                    <tr class="bg-slate-900/60 font-bold border-t border-slate-800">
+                      <td colspan="3" class="py-2 px-3 text-slate-200">Total Question Paper Marks</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">14 Qs</td>
+                      <td class="py-2 px-3 text-right text-purple-400 font-bold">50 M</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ESE Question Paper Pattern -->
+            <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-2.5">
+              <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sky-400 text-sm">history_edu</span>
+                  End Semester Examination Pattern (60 Marks • 2.5 Hours)
+                </h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">All 4 Modules</span>
+              </div>
+              <div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-950/30">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-900/70 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                      <th class="py-2 px-3">Part</th>
+                      <th class="py-2 px-3">Question Distribution</th>
+                      <th class="py-2 px-3 text-center">To Answer</th>
+                      <th class="py-2 px-3 text-right">Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/70 text-[11px] font-mono">
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part A (1 Mark)</td>
+                      <td class="py-2 px-3 text-slate-300">2 Questions from each module</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">8 Questions</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">8 M</td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part B (3 Marks)</td>
+                      <td class="py-2 px-3 text-slate-300">3 Questions from each module (12 Qs)</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">2 of 3 per mod (8 Qs)</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">24 M</td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-semibold text-slate-200">Part C (7 Marks)</td>
+                      <td class="py-2 px-3 text-slate-300">1 set with internal choice from each module</td>
+                      <td class="py-2 px-3 text-center text-sky-400 font-bold">4 Sets</td>
+                      <td class="py-2 px-3 text-right text-emerald-400 font-bold">28 M</td>
+                    </tr>
+                    <tr class="bg-slate-900/60 font-bold border-t border-slate-800">
+                      <td colspan="3" class="py-2 px-3 text-slate-200">Total SBTE End Semester Exam Marks</td>
+                      <td class="py-2 px-3 text-right text-sky-400 font-bold">60 M</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEARNING RESOURCES & TEXTBOOKS CARD -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-800/50 pb-2">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-rounded text-emerald-400 text-base">menu_book</span>
+                Prescribed Textbooks & Academic References
+              </h4>
+              <span class="text-[11px] text-muted font-normal">SITTTR Kalamassery Syllabus Guidelines</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">Official Text Book</span>
+                <div class="p-2.5 rounded bg-slate-950/50 border border-slate-800/70 space-y-1">
+                  <div class="font-bold text-slate-100 text-xs">Fundamentals of Engineering Mathematics</div>
+                  <div class="text-[11px] text-muted">Publication: <strong class="text-slate-300">SITTTR Kalamassery</strong></div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                <span class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">Standard Reference Literature</span>
+                <div class="p-2.5 rounded bg-slate-950/50 border border-slate-800/70 space-y-1 text-[11px] text-slate-300 leading-relaxed">
+                  <div>• <strong>Schaum's Outline Series</strong>: Linear Algebra, Trigonometry, Geometry, Calculus (McGraw Hill)</div>
+                  <div>• <strong>Advanced Engineering Mathematics</strong> (Erwin Kreyszig, Wiley & Sons)</div>
+                  <div>• <strong>A Textbook of Engineering Mathematics</strong> (N.P. Bali, Manish Goyal, Univ. Science Press)</div>
+                  <div>• <strong>Higher Engineering Mathematics</strong> (B. S. Grewal, Mercury Learning)</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- TAB: LESSON PLANNER -->
         <div id="tab-planner" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
-          <div class="flex justify-between items-center border-b border-slate-800/30 pb-3">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
             <div>
-              <h3 class="text-base font-bold text-title flex items-center gap-2">
-                <span class="material-symbols-rounded text-indigo-400">calendar_month</span>
+              <h3 class="text-sm font-bold text-title flex items-center gap-2">
+                <span class="material-symbols-rounded text-indigo-400 text-base">calendar_month</span>
                 Academic Lesson Planner
               </h3>
+              <p class="text-xs text-muted mt-0.5">Track topic scheduling, pedagogy, Bloom's taxonomy levels, and syllabus completion</p>
             </div>
-            <div class="flex items-center gap-1">
-              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                <span class="material-symbols-rounded text-[11px]">print</span>
+            <div class="flex items-center gap-2">
+              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                <span class="material-symbols-rounded text-sm">print</span>
                 Print Lesson Plan
               </a>
-              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-2 py-0.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                <span class="material-symbols-rounded text-[11px]">bookmark</span>
+              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-3 py-1.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                <span class="material-symbols-rounded text-sm">bookmark</span>
                 Save as Template
               </button>
-              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-2 py-0.5 bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-500/30 rounded text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
-                <span class="material-symbols-rounded text-[11px]">save</span>
+              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                <span class="material-symbols-rounded text-sm">save</span>
                 Save Changes
               </button>
             </div>
@@ -567,54 +917,63 @@
           
           <!-- SUB-VIEW 1: THREE CARDS VIEW (DEFAULT) -->
           <div id="cia-cards-view" class="space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800/30 pb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
               <div>
-                <h3 class="text-base font-bold text-title flex items-center gap-2">
-                  <span class="material-symbols-rounded text-violet-400">fact_check</span>
+                <h3 class="text-sm font-bold text-title flex items-center gap-2">
+                  <span class="material-symbols-rounded text-violet-400 text-base">fact_check</span>
                   Continuous Internal Assessment (CIA)
                 </h3>
-                <p class="text-xs text-muted mt-1">Select an assessment category to manage details individually or view the consolidated marksheet.</p>
+                <p class="text-xs text-muted mt-0.5">Scale: Attendance (5M) + Self-Learning (15M) + Series Exams (20M) = 40 Marks Total CIE</p>
               </div>
-              <button onclick="toggleCiaView('consolidated')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-xs">assessment</span>
+              <button onclick="toggleCiaView('consolidated')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-sm">assessment</span>
                 View Consolidated Marksheet
               </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Attendance Card -->
-              <div class="bg-panel border border-card rounded-xl p-4 space-y-2">
-                <div class="flex justify-between items-center border-b border-card pb-1.5">
-                  <span class="font-medium text-title text-xs">Attendance</span>
-                  <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded font-bold">5M Max</span>
+              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-indigo-400 text-sm">how_to_reg</span>
+                    Continuous Attendance
+                  </span>
+                  <span class="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded font-mono font-bold">5M Max</span>
                 </div>
-                <p class="text-xs text-muted leading-relaxed">Automatically evaluated based on student class logs attendance metrics.</p>
-                <button class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-750 transition-all cursor-pointer">
-                  View Logs
+                <p class="text-xs text-muted leading-relaxed">Automatically evaluated from Table 2.1 continuous attendance log percentages.</p>
+                <button onclick="switchTab('roster')" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition-all cursor-pointer shadow-xs">
+                  View Student Roster & Logs
                 </button>
               </div>
 
               <!-- Self Learning Card -->
-              <div class="bg-panel border border-card rounded-xl p-4 space-y-2">
-                <div class="flex justify-between items-center border-b border-card pb-1.5">
-                  <span class="font-medium text-title text-xs">Self-Learning</span>
-                  <span class="text-xs bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">15M Max</span>
+              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-emerald-400 text-sm">local_library</span>
+                    Self-Learning Activities (SLA)
+                  </span>
+                  <span class="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">15M Max</span>
                 </div>
-                <p class="text-xs text-muted leading-relaxed">Average of self-learning modules, quizzes, and micro-tasks across modules.</p>
-                <button onclick="toggleCiaView('self-learning')" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm">
-                  Assignments
+                <p class="text-xs text-muted leading-relaxed">Average of 4 Module assessments (CA1 to CA4, 15M each) scaled to 15 CIE.</p>
+                <button onclick="toggleCiaView('self-learning')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs">
+                  Manage SLA Marks (CA1–CA4)
                 </button>
               </div>
 
               <!-- Series Exams Card -->
-              <div class="bg-panel border border-card rounded-xl p-4 space-y-2">
-                <div class="flex justify-between items-center border-b border-card pb-1.5">
-                  <span class="font-medium text-title text-xs">Series Exams</span>
-                  <span class="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded font-bold">20M Max</span>
+              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-purple-400 text-sm">quiz</span>
+                    Series Examinations
+                  </span>
+                  <span class="text-xs bg-purple-500/15 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded font-mono font-bold">20M Max</span>
                 </div>
-                <p class="text-xs text-muted leading-relaxed">Two written examinations covering all defined course outcomes (COs).</p>
-                <button onclick="switchTab('series')" class="w-full py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm">
-                  Manage Exams
+                <p class="text-xs text-muted leading-relaxed">Two written exams (50M each, 2 hours). Average scaled to 20 CIE Marks.</p>
+                <button onclick="switchTab('series')" class="w-full py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs">
+                  Manage Exams (CA5 & CA6)
                 </button>
               </div>
             </div>
@@ -622,39 +981,38 @@
 
           <!-- SUB-VIEW 3: CO-WISE SELF-LEARNING ACTIVITIES MARKSHEET (HIDDEN BY DEFAULT) -->
           <div id="cia-self-learning-view" class="space-y-4 hidden">
-            <div class="flex justify-between items-center border-b border-slate-800/30 pb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
               <div>
-                <h3 class="text-base font-bold text-title flex items-center gap-2">
-                  <span class="material-symbols-rounded text-indigo-400">local_library</span>
+                <h3 class="text-sm font-bold text-title flex items-center gap-2">
+                  <span class="material-symbols-rounded text-indigo-400 text-base">local_library</span>
                   Self-Learning Activities Marksheet (CO-wise)
                 </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed max-w-3xl">
-                  Assign self-learning marks (Max 15 per CO) for each Course Outcome.<br>
-                  The average of all 4 CO marks will automatically determine the final Self-Learning Marks (out of 15 max) in the consolidated marksheet.
+                <p class="text-xs text-muted mt-0.5">
+                  Assign self-learning marks (Max 15 per CO/Module). Average of all 4 COs determines the final 15 SLA marks.
                 </p>
               </div>
-              <div class="flex items-center gap-1.5">
-                <button onclick="toggleCiaView('cards')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">arrow_back</span>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleCiaView('cards')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <span class="material-symbols-rounded text-sm">arrow_back</span>
                   Back to Categories
                 </button>
-                <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">print</span>
+                <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <span class="material-symbols-rounded text-sm">print</span>
                   Print Report
                 </a>
-                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-2 py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
-                  <span class="material-symbols-rounded text-xs">save</span>
+                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <span class="material-symbols-rounded text-sm">save</span>
                   Save Self-Learning
                 </button>
               </div>
             </div>
 
-            <div class="flex gap-1.5 border-b border-card pb-2">
-              <button type="button" onclick="switchSelfLearningTab('CO1')" id="tabbtn-sl-CO1" class="px-2 py-1 rounded-md text-[10px] font-semibold transition-all bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">CO1 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO2')" id="tabbtn-sl-CO2" class="px-2 py-1 rounded-md text-[10px] font-semibold transition-all text-muted hover:bg-slate-900/40">CO2 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO3')" id="tabbtn-sl-CO3" class="px-2 py-1 rounded-md text-[10px] font-semibold transition-all text-muted hover:bg-slate-900/40">CO3 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO4')" id="tabbtn-sl-CO4" class="px-2 py-1 rounded-md text-[10px] font-semibold transition-all text-muted hover:bg-slate-900/40">CO4 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('Summary')" id="tabbtn-sl-Summary" class="px-2 py-1 rounded-md text-[10px] font-semibold transition-all text-muted hover:bg-slate-900/40">Summary Sheet</button>
+            <div class="flex flex-wrap gap-1.5 border-b border-card pb-2">
+              <button type="button" onclick="switchSelfLearningTab('CO1')" id="tabbtn-sl-CO1" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 cursor-pointer">CO1 Self-Study</button>
+              <button type="button" onclick="switchSelfLearningTab('CO2')" id="tabbtn-sl-CO2" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO2 Self-Study</button>
+              <button type="button" onclick="switchSelfLearningTab('CO3')" id="tabbtn-sl-CO3" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO3 Self-Study</button>
+              <button type="button" onclick="switchSelfLearningTab('CO4')" id="tabbtn-sl-CO4" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO4 Self-Study</button>
+              <button type="button" onclick="switchSelfLearningTab('Summary')" id="tabbtn-sl-Summary" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">Summary Sheet</button>
             </div>
 
             <!-- Max Marks Configuration Panels -->
@@ -1543,7 +1901,9 @@
           </div>
         </div>
 
-        @include('partials.virtual_learning_hub_tab', ['roomType' => 'Theory'])
+        <div id="tab-materials" class="tab-panel hidden space-y-4">
+          @include('partials.virtual_learning_hub_tab', ['roomType' => 'Theory'])
+        </div>
 
       </div>
 
@@ -1554,53 +1914,14 @@
   </div>
 
   <script>
-    function scrollTabs(amount) {
-      const container = document.getElementById('tab-scroll-container');
-      if (container) {
-        container.scrollBy({ left: amount, behavior: 'smooth' });
-        setTimeout(checkTabScrollOverflow, 350);
-      }
-    }
-
-    function checkTabScrollOverflow() {
-      const container = document.getElementById('tab-scroll-container');
-      const btnLeft = document.getElementById('tab-scroll-left');
-      const btnRight = document.getElementById('tab-scroll-right');
-      const fadeLeft = document.getElementById('fade-left');
-      const fadeRight = document.getElementById('fade-right');
-
-      if (!container) return;
-
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      const currentScroll = container.scrollLeft;
-
-      if (maxScroll > 5) {
-        if (currentScroll > 10) {
-          if (btnLeft) btnLeft.removeAttribute('disabled');
-          if (fadeLeft) fadeLeft.style.opacity = '1';
-        } else {
-          if (btnLeft) btnLeft.setAttribute('disabled', 'true');
-          if (fadeLeft) fadeLeft.style.opacity = '0';
-        }
-
-        if (currentScroll < maxScroll - 10) {
-          if (btnRight) btnRight.removeAttribute('disabled');
-          if (fadeRight) fadeRight.style.opacity = '1';
-        } else {
-          if (btnRight) btnRight.setAttribute('disabled', 'true');
-          if (fadeRight) fadeRight.style.opacity = '0';
-        }
-      } else {
-        if (btnLeft) btnLeft.setAttribute('disabled', 'true');
-        if (btnRight) btnRight.setAttribute('disabled', 'true');
-        if (fadeLeft) fadeLeft.style.opacity = '0';
-        if (fadeRight) fadeRight.style.opacity = '0';
-      }
-    }
+    function scrollTabs(amount) {}
+    function checkTabScrollOverflow() {}
 
     document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(checkTabScrollOverflow, 100);
-      window.addEventListener('resize', checkTabScrollOverflow);
+      const savedTab = localStorage.getItem('activeClassroomTab');
+      if (savedTab && ['outline', 'planner', 'cia', 'roster', 'series', 'internals', 'attainment', 'materials'].includes(savedTab)) {
+        switchTab(savedTab);
+      }
     });
 
     function switchTab(tabId) {
@@ -1609,20 +1930,21 @@
         panel.classList.add('hidden');
       });
       const targetPanel = document.getElementById('tab-' + tabId);
-      if (targetPanel) targetPanel.classList.remove('hidden');
+      if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+        targetPanel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
+      }
 
       const tabs = ['outline', 'planner', 'cia', 'roster', 'series', 'internals', 'attainment', 'materials'];
       tabs.forEach(id => {
         const btn = document.getElementById('btn-' + id);
         if (!btn) return;
         if (id === tabId) {
-          btn.className = "px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all bg-sky-500/15 text-sky-400 border border-sky-500/40 cursor-pointer shadow-xs shrink-0";
-          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          btn.className = "px-3 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm cursor-pointer";
         } else {
-          btn.className = "px-2 py-1 rounded-md font-semibold text-[10px] flex items-center gap-1 whitespace-nowrap transition-all text-muted hover:bg-slate-800/80 hover:text-slate-200 cursor-pointer shrink-0";
+          btn.className = "px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer";
         }
       });
-      setTimeout(checkTabScrollOverflow, 350);
     }
 
     function toggleTheme() {

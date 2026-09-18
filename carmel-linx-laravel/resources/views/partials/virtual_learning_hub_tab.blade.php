@@ -54,9 +54,10 @@
         <!-- Material Type -->
         <div>
           <label class="block text-xs font-bold text-muted mb-1">Material Type <span class="text-rose-500">*</span></label>
-          <select name="material_type" id="vlm_material_type" onchange="toggleMaterialInputFields()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none font-medium">
+          <select name="material_type" id="vlm_material_type" onchange="toggleMaterialInputFields(this)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none font-medium">
             <option value="pdf">PDF Document (Notes / Manual)</option>
-            <option value="video">Video Clip (YouTube / Vimeo Link)</option>
+            <option value="video_clip">🎬 Video Clip — Direct Upload (MP4, max 25 MB)</option>
+            <option value="video">▶ Video Link (YouTube / Vimeo)</option>
             <option value="image">Diagram / Image (PNG / JPG)</option>
             <option value="document">Word Doc / Presentation</option>
             <option value="link">External Web Reference Link</option>
@@ -80,14 +81,14 @@
 
       <!-- File Attachment Field -->
       <div id="vlm_file_input_container">
-        <label class="block text-xs font-bold text-muted mb-1">Upload File (PDF / Image / Doc up to 25MB)</label>
+        <label id="vlm_file_label" class="block text-xs font-bold text-muted mb-1">Upload File (PDF / Image / Doc — up to 25 MB)</label>
         <input type="file" name="file" id="vlm_file_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-title focus:border-blue-500 outline-none">
       </div>
 
       <!-- Video / Link URL Field -->
       <div id="vlm_url_input_container" class="hidden">
-        <label class="block text-xs font-bold text-muted mb-1">Video Link or URL</label>
-        <input type="url" name="video_url" id="vlm_url_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="https://www.youtube.com/watch?v=... or Drive link">
+        <label class="block text-xs font-bold text-muted mb-1">YouTube / Vimeo Link</label>
+        <input type="url" name="video_url" id="vlm_url_input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-title focus:border-blue-500 outline-none" placeholder="https://www.youtube.com/watch?v=... or Vimeo link">
       </div>
 
       <!-- Submit Button -->
@@ -138,8 +139,10 @@
                   @endif
                 </td>
                 <td class="p-3 text-center">
-                  @if($m->material_type === 'video')
-                    <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>
+                  @if($m->material_type === 'video_clip')
+                    <span class="px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded font-bold text-xs">🎬 Clip</span>
+                  @elseif($m->material_type === 'video')
+                    <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">▶ Video</span>
                   @elseif($m->material_type === 'image')
                     <span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-bold text-xs">Image</span>
                   @elseif($m->material_type === 'link')
@@ -157,13 +160,18 @@
                   @endif
                 </td>
                 <td class="p-3 pr-4 text-right flex justify-end gap-1.5 items-center">
-                  @if($m->file_path)
+                  @if($m->material_type === 'video_clip' && $m->file_path)
+                    <button onclick="openVlmVideoModal('{{ addslashes($m->title) }}', '{{ $m->file_path }}', 'clip')" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1">
+                      <span class="material-symbols-rounded text-xs">play_circle</span>
+                      <span>Play</span>
+                    </button>
+                  @elseif($m->file_path)
                     <a href="{{ $m->file_path }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all no-underline flex items-center gap-1">
                       <span class="material-symbols-rounded text-xs">visibility</span>
                       <span>Preview</span>
                     </a>
                   @elseif($m->video_url)
-                    <button onclick="openVlmVideoModal('{{ addslashes($m->title) }}', '{{ $m->video_url }}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1">
+                    <button onclick="openVlmVideoModal('{{ addslashes($m->title) }}', '{{ $m->video_url }}', 'embed')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1">
                       <span class="material-symbols-rounded text-xs">play_circle</span>
                       <span>Watch</span>
                     </button>
@@ -186,7 +194,7 @@
 
 </div>
 
-<!-- INLINE MODAL FOR PREVIEWING VIDEOS -->
+<!-- INLINE MODAL FOR PREVIEWING VIDEOS (iframe embed OR HTML5 clip) -->
 <div id="vlmVideoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
   <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-4 space-y-3 shadow-2xl">
     <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -194,7 +202,13 @@
       <button onclick="closeVlmVideoModal()" class="text-slate-400 hover:text-white text-sm cursor-pointer">✕ Close</button>
     </div>
     <div class="aspect-video w-full rounded-xl overflow-hidden bg-black">
+      <!-- YouTube / Vimeo embed -->
       <iframe id="vlmModalIframe" class="w-full h-full border-0" allowfullscreen></iframe>
+      <!-- Uploaded MP4 / WebM clip -->
+      <video id="vlmModalVideo" class="w-full h-full hidden" controls controlsList="nodownload">
+        <source id="vlmModalVideoSrc" src="" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
     </div>
   </div>
 </div>
@@ -213,16 +227,28 @@
 
   function toggleMaterialInputFields(el) {
     const parent = el ? el.closest('form') : document;
-    const type = parent.querySelector('[name="material_type"]')?.value || 'pdf';
-    const fileContainer = parent.querySelector('#vlm_file_input_container') || document.getElementById('vlm_file_input_container');
-    const urlContainer = parent.querySelector('#vlm_url_input_container') || document.getElementById('vlm_url_input_container');
-    
+    const type = parent ? parent.querySelector('[name="material_type"]')?.value : document.getElementById('vlm_material_type')?.value || 'pdf';
+    const fileContainer = (parent && parent.querySelector('#vlm_file_input_container')) || document.getElementById('vlm_file_input_container');
+    const urlContainer = (parent && parent.querySelector('#vlm_url_input_container')) || document.getElementById('vlm_url_input_container');
+    const fileInput = document.getElementById('vlm_file_input');
+    const fileLabel = document.getElementById('vlm_file_label');
+
     if (type === 'video' || type === 'link') {
+      // YouTube / Vimeo link or generic URL
       if (fileContainer) fileContainer.classList.add('hidden');
       if (urlContainer) urlContainer.classList.remove('hidden');
-    } else {
+    } else if (type === 'video_clip') {
+      // Direct MP4 / WebM upload
       if (fileContainer) fileContainer.classList.remove('hidden');
       if (urlContainer) urlContainer.classList.add('hidden');
+      if (fileInput) fileInput.setAttribute('accept', 'video/mp4,video/webm,video/ogg');
+      if (fileLabel) fileLabel.textContent = 'Upload Video Clip (MP4 / WebM — max 25 MB)';
+    } else {
+      // pdf / image / document
+      if (fileContainer) fileContainer.classList.remove('hidden');
+      if (urlContainer) urlContainer.classList.add('hidden');
+      if (fileInput) fileInput.setAttribute('accept', '');
+      if (fileLabel) fileLabel.textContent = 'Upload File (PDF / Image / Doc — up to 25 MB)';
     }
   }
 
@@ -232,7 +258,7 @@
     const btn = form.querySelector('button[type="submit"]') || document.getElementById('btnSubmitMaterial');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Publishing...';
+      btn.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Publishing...';
     }
 
     const formData = new FormData(form);
@@ -277,18 +303,26 @@
       let html = '';
       if (res.status === 'SUCCESS' && res.materials && res.materials.length > 0) {
         res.materials.forEach(m => {
+          // Type badge
           let typeBadge = '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded font-bold text-xs">PDF</span>';
-          if (m.material_type === 'video') typeBadge = '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>';
-          else if (m.material_type === 'image') typeBadge = '<span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-bold text-xs">Image</span>';
-          else if (m.material_type === 'link') typeBadge = '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold text-xs">Link</span>';
+          if (m.material_type === 'video_clip') typeBadge = '<span class="px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded font-bold text-xs">🎬 Clip</span>';
+          else if (m.material_type === 'video')  typeBadge = '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">▶ Video</span>';
+          else if (m.material_type === 'image')  typeBadge = '<span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-bold text-xs">Image</span>';
+          else if (m.material_type === 'link')   typeBadge = '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold text-xs">Link</span>';
 
-          let alertBadge = m.is_pre_class_notice ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded font-bold text-[10px]">⚡ Urgent Alert</span>' : '<span class="text-slate-400 text-xs">Standard</span>';
+          const alertBadge = m.is_pre_class_notice
+            ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded font-bold text-[10px]">⚡ Urgent Alert</span>'
+            : '<span class="text-slate-400 text-xs">Standard</span>';
 
+          // Action button: play clip, watch embed, or preview file
           let actionBtn = '';
-          if (m.file_path) {
+          const safeTitle = m.title.replace(/'/g, "\\'");
+          if (m.material_type === 'video_clip' && m.file_path) {
+            actionBtn = `<button onclick="openVlmVideoModal('${safeTitle}', '${m.file_path}', 'clip')" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">play_circle</span> Play</button>`;
+          } else if (m.file_path) {
             actionBtn = `<a href="${m.file_path}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all no-underline flex items-center gap-1"><span class="material-symbols-rounded text-xs">visibility</span> Preview</a>`;
           } else if (m.video_url) {
-            actionBtn = `<button onclick="openVlmVideoModal('${m.title.replace(/'/g, "\\'")}', '${m.video_url}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">play_circle</span> Watch</button>`;
+            actionBtn = `<button onclick="openVlmVideoModal('${safeTitle}', '${m.video_url}', 'embed')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">play_circle</span> Watch</button>`;
           }
 
           html += `
@@ -319,21 +353,43 @@
     }
   }
 
-  function openVlmVideoModal(title, url) {
+  // Opens either an HTML5 <video> player (clip) or an iframe (embed)
+  function openVlmVideoModal(title, url, mode) {
     const modalTitle = document.getElementById('vlmModalVideoTitle');
     const modalIframe = document.getElementById('vlmModalIframe');
+    const modalVideo  = document.getElementById('vlmModalVideo');
+    const modalVideoSrc = document.getElementById('vlmModalVideoSrc');
     const modal = document.getElementById('vlmVideoModal');
+
     if (modalTitle) modalTitle.innerText = title;
-    if (modalIframe) modalIframe.src = url;
+
+    if (mode === 'clip') {
+      // Uploaded MP4 / WebM
+      if (modalIframe) { modalIframe.src = ''; modalIframe.classList.add('hidden'); }
+      if (modalVideoSrc) modalVideoSrc.src = url;
+      if (modalVideo)  { modalVideo.load(); modalVideo.classList.remove('hidden'); }
+    } else {
+      // YouTube / Vimeo embed
+      if (modalVideo)  { modalVideo.pause(); modalVideo.classList.add('hidden'); }
+      if (modalVideoSrc) modalVideoSrc.src = '';
+      if (modalIframe) { modalIframe.src = url; modalIframe.classList.remove('hidden'); }
+    }
+
     if (modal) modal.classList.remove('hidden');
   }
 
   function closeVlmVideoModal() {
-    const modalIframe = document.getElementById('vlmModalIframe');
+    const modalIframe   = document.getElementById('vlmModalIframe');
+    const modalVideo    = document.getElementById('vlmModalVideo');
+    const modalVideoSrc = document.getElementById('vlmModalVideoSrc');
     const modal = document.getElementById('vlmVideoModal');
-    if (modalIframe) modalIframe.src = '';
+    if (modalIframe)   modalIframe.src = '';
+    if (modalVideo)    { modalVideo.pause(); modalVideo.classList.add('hidden'); }
+    if (modalVideoSrc) modalVideoSrc.src = '';
+    if (modalIframe)   modalIframe.classList.remove('hidden'); // reset for next open
     if (modal) modal.classList.add('hidden');
   }
+
 
   async function deleteSubjectMaterial(id) {
     if (!confirm('Are you sure you want to delete this material?')) return;

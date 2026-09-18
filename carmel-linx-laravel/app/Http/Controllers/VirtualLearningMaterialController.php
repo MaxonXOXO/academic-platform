@@ -28,7 +28,7 @@ class VirtualLearningMaterialController extends Controller
             'experiment_or_topic_no' => 'required|string|max:100',
             'title' => 'required|string|max:255',
             'pre_class_instruction' => 'nullable|string',
-            'material_type' => 'required|string|in:pdf,video,image,document,link',
+            'material_type' => 'required|string|in:pdf,video,video_clip,image,document,link',
             'target_date' => 'nullable|date',
             'is_pre_class_notice' => 'nullable|boolean',
         ]);
@@ -50,6 +50,17 @@ class VirtualLearningMaterialController extends Controller
             $file = $request->file('file');
             $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
             $filePath = '/storage/' . $file->storeAs('learning_materials', $fileName, 'public');
+        } elseif ($materialType === 'video_clip') {
+            // Direct video file upload (MP4 / WebM / OGG — max 25 MB)
+            if (!$request->hasFile('file')) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Please select a video file to upload.'], 422);
+            }
+            $request->validate([
+                'file' => 'required|file|mimes:mp4,webm,ogg|max:25600',
+            ]);
+            $file = $request->file('file');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+            $filePath = '/storage/' . $file->storeAs('learning_materials/videos', $fileName, 'public');
         } elseif (in_array($materialType, ['video', 'link'])) {
             $rawUrl = trim($request->input('video_url', ''));
             if (empty($rawUrl)) {

@@ -199,9 +199,15 @@
     </div>
 
     <div class="a4-page">
+        @php
+            $deptDisplay = $departmentName ?? $branchName ?? '';
+            if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+                $deptDisplay = 'Automobile Engineering';
+            }
+        @endphp
         <div class="header">
             <h1>Carmel Polytechnic College</h1>
-            <h2>Department of {{ $branchName }}</h2>
+            <h2>Department of {{ $deptDisplay }}</h2>
             <h3>Syllabus Lesson Planner &amp; Execution Report (REV-2026)</h3>
         </div>
 

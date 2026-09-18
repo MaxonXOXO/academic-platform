@@ -274,9 +274,15 @@
 
     <div class="a4-page">
         
+        @php
+            $deptDisplay = $departmentName ?? (function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? $classroom->department ?? '') : ($classroom->branch ?? ''));
+            if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+                $deptDisplay = 'Automobile Engineering';
+            }
+        @endphp
         <div class="header">
-            <h1>Carmel College of Engineering & Technology</h1>
-            <h2>Department of {{ strtoupper(getFullBranchName($classroom->branch ?? $classroom->department ?? '')) }}</h2>
+            <h1>Carmel Polytechnic College</h1>
+            <h2>Department of {{ strtoupper($deptDisplay) }}</h2>
             <h3>Revision 2026 Scheme - Theory Series Examinations Mark Register</h3>
         </div>
 
@@ -364,7 +370,7 @@
                     <tr>
                         <td class="text-center">{{ $slNo++ }}</td>
                         <td class="text-center font-mono font-bold">{{ $sc['roll_no'] ?: '—' }}</td>
-                        <td class="font-mono text-center font-bold">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
+                        <td class="font-mono text-center font-bold">{{ !empty($sc['sbte_reg_no']) ? $sc['sbte_reg_no'] : ($sc['reg_no'] ?? '') }}</td>
                         <td class="font-bold">{{ $sc['name'] }}</td>
                         @foreach($seriesExams as $exam)
                             <td class="text-center font-mono">

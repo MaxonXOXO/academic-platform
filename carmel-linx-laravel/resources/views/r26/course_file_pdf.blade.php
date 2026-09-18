@@ -81,9 +81,16 @@
 </head>
 <body>
 
+    @php
+        $deptDisplay = $departmentName ?? (function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? ''));
+        if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+            $deptDisplay = 'Automobile Engineering';
+        }
+    @endphp
     <div class="header">
-        <h1>Carmel College of Engineering & Technology</h1>
-        <h2>Course File Index & Attainment Checklist (REV-2026)</h2>
+        <h1>Carmel Polytechnic College</h1>
+        <h2>Department of {{ $deptDisplay }}</h2>
+        <h3>Course File Index & Attainment Checklist (REV-2026)</h3>
         <div style="font-size: 10px; color: #777;">Academic Year: {{ $courseFile->academic_year }} | Status: {{ $courseFile->status }}</div>
     </div>
 

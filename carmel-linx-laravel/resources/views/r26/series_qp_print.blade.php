@@ -173,9 +173,15 @@
 
     <div class="a4-page">
         
+        @php
+            $deptDisplay = $departmentName ?? (function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? ''));
+            if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+                $deptDisplay = 'Automobile Engineering';
+            }
+        @endphp
         <div class="header">
-            <h1>Carmel College of Engineering</h1>
-            <h2>Department of {{ function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? '') }}</h2>
+            <h1>Carmel Polytechnic College</h1>
+            <h2>Department of {{ $deptDisplay }}</h2>
             <h3>Revision 2026 Scheme - Internal Assessment Examination</h3>
             <h2 style="font-size: 15px; margin-top: 4px; letter-spacing: 0.5px;">{{ $exam->exam_name }}</h2>
         </div>

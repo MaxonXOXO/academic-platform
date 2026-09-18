@@ -167,9 +167,15 @@
     </div>
 
     <div class="a4-page">
+        @php
+            $deptDisplay = $departmentName ?? (function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? ''));
+            if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+                $deptDisplay = 'Automobile Engineering';
+            }
+        @endphp
         <div class="header">
             <h1>Carmel Polytechnic College, Alappuzha</h1>
-            <h2>Department of {{ function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? '') }}</h2>
+            <h2>Department of {{ $deptDisplay }}</h2>
             <h3>Assignment Question Paper ({{ $coTag }})</h3>
         </div>
 

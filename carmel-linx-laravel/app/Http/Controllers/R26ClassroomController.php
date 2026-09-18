@@ -429,19 +429,14 @@ class R26ClassroomController extends Controller
             ->orderBy('day_no', 'asc')
             ->get();
 
-        $branchMapping = [
-            'CS' => 'Computer Engineering',
-            'EL' => 'Electronics Engineering',
-            'EE' => 'Electrical & Electronics Engineering',
-            'ME' => 'Mechanical Engineering',
-            'CE' => 'Civil Engineering'
-        ];
-        
-        $branchCode = strtoupper(Session::get('userBranch', ''));
-        $branchName = $branchMapping[$branchCode] ?? 'Engineering';
+        $classroom = R26ClassManagement::where('classroom_id', $subject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $subject->classroom_id)->first();
+
+        $branchName = $this->getDepartmentName($subject, $classroom);
+        $departmentName = $branchName;
         $lecturerName = Session::get('userName', 'Assigned Faculty');
 
-        return view('r26.lesson_plan_print', compact('subject', 'plans', 'branchName', 'lecturerName'));
+        return view('r26.lesson_plan_print', compact('subject', 'plans', 'branchName', 'departmentName', 'lecturerName', 'classroom'));
     }
 
     /**
@@ -668,10 +663,9 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        if (!$classroom) {
-            $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        }
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
         
         $students = Student::where('classroom_id', $batchSubject->classroom_id)
             ->orderByRaw('CAST(roll_no AS UNSIGNED) ASC')
@@ -773,7 +767,7 @@ class R26ClassroomController extends Controller
             ];
         });
 
-        return view('r26.self_learning_print', compact('batchSubject', 'classroom', 'students', 'studentCiaData', 'selfLearningConfigs'));
+        return view('r26.self_learning_print', compact('batchSubject', 'classroom', 'students', 'studentCiaData', 'selfLearningConfigs', 'departmentName'));
     }
 
     /**
@@ -905,15 +899,14 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        if (!$classroom) {
-            $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        }
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
         
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
         $questions = $courseFile ? ($courseFile->assignment_questions[$coTag] ?? []) : [];
 
-        return view('r26.assignment_qp_print', compact('batchSubject', 'classroom', 'questions', 'coTag', 'courseFile'));
+        return view('r26.assignment_qp_print', compact('batchSubject', 'classroom', 'questions', 'coTag', 'courseFile', 'departmentName'));
     }
 
     /**
@@ -926,15 +919,14 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        if (!$classroom) {
-            $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        }
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
         
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
         $questions = $courseFile ? ($courseFile->assignment_questions[$coTag] ?? []) : [];
 
-        return view('r26.assignment_scheme_print', compact('batchSubject', 'classroom', 'questions', 'coTag', 'courseFile'));
+        return view('r26.assignment_scheme_print', compact('batchSubject', 'classroom', 'questions', 'coTag', 'courseFile', 'departmentName'));
     }
 
     /**
@@ -1628,10 +1620,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($exam->batch_subject_id);
         if (!$batchSubject) abort(404);
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
-        return view('r26.series_qp_print', compact('batchSubject', 'classroom', 'exam'));
+        return view('r26.series_qp_print', compact('batchSubject', 'classroom', 'exam', 'departmentName'));
     }
 
     /**
@@ -1645,10 +1638,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($exam->batch_subject_id);
         if (!$batchSubject) abort(404);
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
-        return view('r26.series_scheme_print', compact('batchSubject', 'classroom', 'exam'));
+        return view('r26.series_scheme_print', compact('batchSubject', 'classroom', 'exam', 'departmentName'));
     }
 
     /**
@@ -1671,12 +1665,13 @@ class R26ClassroomController extends Controller
             return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printSeriesReport($subjectId);
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
 
         if (!$classroom) {
             abort(404, 'Classroom association not found.');
         }
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderBy('roll_no', 'asc')
@@ -1711,7 +1706,7 @@ class R26ClassroomController extends Controller
             ];
         });
 
-        return view('r26.series_marks_print', compact('batchSubject', 'classroom', 'students', 'studentCiaData', 'seriesExams'));
+        return view('r26.series_marks_print', compact('batchSubject', 'classroom', 'students', 'studentCiaData', 'seriesExams', 'departmentName'));
     }
 
     /**
@@ -1732,9 +1727,10 @@ class R26ClassroomController extends Controller
             return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printReport($subjectId);
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) abort(404);
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderBy('roll_no', 'asc')
@@ -1885,7 +1881,7 @@ class R26ClassroomController extends Controller
             ];
         });
 
-        return view('r26.internals_cie_print', compact('batchSubject', 'classroom', 'studentCiaData'));
+        return view('r26.internals_cie_print', compact('batchSubject', 'classroom', 'studentCiaData', 'departmentName'));
     }
 
     /**
@@ -1906,9 +1902,10 @@ class R26ClassroomController extends Controller
             return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printFinalResults($subjectId);
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) abort(404);
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderBy('roll_no', 'asc')
@@ -2061,7 +2058,7 @@ class R26ClassroomController extends Controller
             ];
         });
 
-        return view('r26.student_final_results_print', compact('batchSubject', 'classroom', 'studentCiaData'));
+        return view('r26.student_final_results_print', compact('batchSubject', 'classroom', 'studentCiaData', 'departmentName'));
     }
 
     /**
@@ -2077,14 +2074,15 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) abort(404);
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
-            ?: R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
         if (!$classroom) {
             $classroom = (object)[
                 'classroom_id' => $batchSubject->classroom_id,
                 'classroom_name' => $batchSubject->classroom_id,
-                'department' => 'Engineering',
-                'branch' => 'Engineering',
+                'department' => $departmentName,
+                'branch' => $departmentName,
                 'current_semester' => $batchSubject->semester ?? 1
             ];
         }
@@ -2267,7 +2265,7 @@ class R26ClassroomController extends Controller
             ];
         }
 
-        return view('r26.attainment_report_print', compact('batchSubject', 'classroom', 'directStats', 'indirectStats', 'combinedStats', 'poAttainments', 'mappings'));
+        return view('r26.attainment_report_print', compact('batchSubject', 'classroom', 'directStats', 'indirectStats', 'combinedStats', 'poAttainments', 'mappings', 'departmentName'));
     }
 
     public function viewCourseFile($subjectId)
@@ -2415,10 +2413,9 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
-        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        if (!$classroom) {
-            $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        }
+        $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $courseFile = R26CourseFile::where('batch_subject_id', $subjectId)->first();
         if (!$courseFile) {
@@ -2430,7 +2427,7 @@ class R26ClassroomController extends Controller
             ->get();
 
         try {
-            $pdf = \PDF::loadView('r26.course_file_pdf', compact('batchSubject', 'classroom', 'courseFile', 'documents'));
+            $pdf = \PDF::loadView('r26.course_file_pdf', compact('batchSubject', 'classroom', 'courseFile', 'documents', 'departmentName'));
             $pdf->setPaper('a4', 'portrait');
             
             $fileName = 'CourseFile_R2026_' . ($batchSubject->subject_code ?? 'Sub') . '.pdf';
@@ -2470,6 +2467,89 @@ class R26ClassroomController extends Controller
                 'updated_at' => now(),
             ]);
         }
+    }
+
+    /**
+     * Resolve exact full department name for a batchSubject and/or classroom.
+     */
+    protected function getDepartmentName($batchSubject, $classroom = null)
+    {
+        $code = null;
+        
+        // 1. Check classroom object
+        if ($classroom) {
+            $candidate = trim($classroom->branch ?? $classroom->department ?? '');
+            if (!empty($candidate) && strtoupper($candidate) !== 'ENGINEERING' && strtoupper($candidate) !== 'GENERAL') {
+                $code = $candidate;
+            }
+        }
+
+        // 2. Check batchSubject classroom_id (e.g., 'AU_2026_2029' -> 'AU')
+        if (empty($code) && $batchSubject && !empty($batchSubject->classroom_id)) {
+            $parts = explode('_', $batchSubject->classroom_id);
+            if (!empty($parts[0]) && strtoupper($parts[0]) !== 'ENGINEERING') {
+                $code = $parts[0];
+            }
+        }
+
+        // 3. Check batchSubject subject_code (e.g., 'AU-1002' -> 'AU')
+        if (empty($code) && $batchSubject && !empty($batchSubject->subject_code)) {
+            $parts = explode('-', $batchSubject->subject_code);
+            if (!empty($parts[0]) && preg_match('/[A-Za-z]+/', $parts[0], $matches)) {
+                $code = $matches[0];
+            }
+        }
+
+        // 4. Fallback to session userBranch if not generic
+        if (empty($code)) {
+            $sessBranch = Session::get('userBranch', '');
+            if (!empty($sessBranch) && strtoupper($sessBranch) !== 'ENGINEERING') {
+                $code = $sessBranch;
+            }
+        }
+
+        $branchMap = [
+            'AU' => 'Automobile Engineering',
+            'ME' => 'Mechanical Engineering',
+            'CE' => 'Civil Engineering',
+            'CT' => 'Computer Engineering',
+            'CS' => 'Computer Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
+            'EL' => 'Electronics Engineering',
+            'EC' => 'Electronics Engineering',
+            'CH' => 'Chemical Engineering',
+        ];
+
+        $upperCode = strtoupper(trim($code ?? ''));
+        if (isset($branchMap[$upperCode])) {
+            return $branchMap[$upperCode];
+        }
+
+        $fullName = null;
+        if (!empty($code) && function_exists('getFullBranchName')) {
+            $fullName = getFullBranchName($code);
+        }
+
+        // If it still evaluates to generic 'Engineering' or is empty, deduce from classroom_id or subject_code
+        if (empty($fullName) || strtoupper($fullName) === 'ENGINEERING' || strtoupper($fullName) === 'GENERAL') {
+            if ($batchSubject && !empty($batchSubject->classroom_id)) {
+                $p = explode('_', $batchSubject->classroom_id)[0] ?? '';
+                if (isset($branchMap[strtoupper($p)])) {
+                    return $branchMap[strtoupper($p)];
+                }
+            }
+            if ($batchSubject && !empty($batchSubject->subject_code)) {
+                $p = explode('-', $batchSubject->subject_code)[0] ?? '';
+                if (isset($branchMap[strtoupper($p)])) {
+                    return $branchMap[strtoupper($p)];
+                }
+            }
+            $fullName = 'Automobile Engineering';
+        }
+
+        // Strip leading "Department of " if already present in value
+        return preg_replace('/^Department\s+of\s+/i', '', trim($fullName));
     }
 }
 

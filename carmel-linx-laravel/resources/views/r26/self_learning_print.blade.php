@@ -173,10 +173,16 @@
     </div>
 
     <div class="a4-page">
+        @php
+            $deptDisplay = $departmentName ?? (function_exists('getFullBranchName') ? getFullBranchName($classroom->branch ?? '') : ($classroom->branch ?? ''));
+            if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
+                $deptDisplay = 'Automobile Engineering';
+            }
+        @endphp
         <div class="header">
             <h1>Carmel Polytechnic College, Alappuzha</h1>
-            <h2>Continuous Internal Assessment (CIE) Evaluation Report</h2>
-            <h3>Self-Learning Activities Marksheet (CO-wise)</h3>
+            <h2>Department of {{ $deptDisplay }}</h2>
+            <h3 style="font-size: 13px; font-weight: normal; margin-top: 2px;">Continuous Internal Assessment (CIE) Evaluation Report - Self-Learning Activities (CO-wise)</h3>
         </div>
 
         <div class="divider-double"></div>
@@ -184,7 +190,7 @@
         <table class="meta-table">
             <tr>
                 <td style="width: 15%;"><strong>Program:</strong></td>
-                <td style="width: 35%;">Diploma in Engineering</td>
+                <td style="width: 35%;">Diploma in {{ $deptDisplay }}</td>
                 <td style="width: 15%;"><strong>Academic Year:</strong></td>
                 <td style="width: 35%;">2026-2027</td>
             </tr>
@@ -192,7 +198,7 @@
                 <td><strong>Course Title:</strong></td>
                 <td>{{ $batchSubject->subject_name }} ({{ $batchSubject->subject_code }})</td>
                 <td><strong>Semester/Batch:</strong></td>
-                <td>Semester {{ $batchSubject->semester }} / {{ $classroom->name ?? '' }}</td>
+                <td>Semester {{ $batchSubject->semester }} / {{ $classroom->classroom_name ?? ($classroom->name ?? $batchSubject->classroom_id) }}</td>
             </tr>
         </table>
 

@@ -1479,19 +1479,25 @@
                       <!-- Right: Status and Actions -->
                       <div class="flex flex-wrap items-center gap-2">
                         @if($exam->locked)
-                          <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs" title="Exam is locked and published to students">
-                            <span class="material-symbols-rounded text-xs">lock</span> Locked & Published
+                          <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs select-none" title="Exam is locked and published to students">
+                            <span class="material-symbols-rounded text-xs">lock</span> Status: <strong class="font-bold">Locked</strong>
                           </span>
                         @else
-                          <button type="button" onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-all cursor-pointer" title="Drafting Mode: Click to open Question Paper Builder and draft/edit questions">
-                            <span class="material-symbols-rounded text-xs">edit_note</span> Drafting Mode (Click to Draft QP)
-                          </button>
+                          <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs select-none" title="Drafting Mode: Questions can be freely drafted and edited; hidden from students until published">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Status: <strong class="font-bold">Draft</strong>
+                          </span>
                         @endif
 
                         <div class="flex gap-1.5">
-                          <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
-                            <span class="material-symbols-rounded text-xs">edit_document</span> Build QP
-                          </button>
+                          @if($exam->locked)
+                            <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="View Question Paper">
+                              <span class="material-symbols-rounded text-xs">visibility</span> View QP
+                            </button>
+                          @else
+                            <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="Open Question Paper Builder to add or edit questions">
+                              <span class="material-symbols-rounded text-xs">edit_document</span> Build QP
+                            </button>
+                          @endif
                           <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-qp" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
                             <span class="material-symbols-rounded text-xs">print</span> Print QP
                           </a>
@@ -1499,8 +1505,8 @@
                             <span class="material-symbols-rounded text-xs">description</span> Print Scheme
                           </a>
                           @if(!$exam->locked)
-                            <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
-                              <span class="material-symbols-rounded text-xs">publish</span> Lock & Notify
+                            <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="Lock question paper and publish notifications to students">
+                              <span class="material-symbols-rounded text-xs">publish</span> Lock &amp; Notify
                             </button>
                           @endif
                         </div>

@@ -138,9 +138,36 @@
     #btn-fullscreen-toggle.bg-amber-600 {
       --pulse-color: rgba(245, 158, 11, 0.6);
     }
+
+    /* Static Header and Border Tab Navigation */
+    header.bg-static-header {
+      background-color: #0b0f19;
+      border-color: rgba(30, 41, 59, 0.8);
+    }
+    body.light header.bg-static-header {
+      background-color: #ffffff;
+      border-color: #e2e8f0;
+    }
+    .tab-btn {
+      position: relative;
+      white-space: nowrap;
+    }
+    body.light .tab-btn.border-indigo-500 {
+      color: #4f46e5 !important;
+      border-color: #6366f1 !important;
+      background-color: rgba(99, 102, 241, 0.08) !important;
+    }
+    body.light .tab-btn.border-transparent {
+      color: #64748b !important;
+    }
+    body.light .tab-btn.border-transparent:hover {
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+      background-color: rgba(241, 245, 249, 0.8) !important;
+    }
   </style>
 </head>
-<body class="dark min-h-screen p-4 custom-scrollbar">
+<body class="dark h-screen flex flex-col overflow-hidden bg-[#0b0f19] text-[#f1f5f9]">
 
   @php
     $copoData = json_decode($courseFile->parsed_copo, true) ?: [];
@@ -238,11 +265,11 @@
     }
   @endphp
 
-  <!-- TOP COMPACT BANNER -->
-  <div class="w-full max-w-none px-6 space-y-4">
+  <!-- TOP STATIC HEADER: FIXED/PINNED AT TOP -->
+  <header class="shrink-0 z-30 w-full bg-static-header border-b border-slate-700/60 dark:border-slate-800/80 px-4 sm:px-6 pt-2 pb-0 shadow-sm space-y-2">
     
     <!-- TOP LOGO & CONTROLS HEADER (COMPACT) -->
-    <div class="flex flex-wrap justify-between items-center bg-panel border rounded-xl px-3.5 py-2 gap-2.5 shadow-sm">
+    <div class="flex flex-wrap justify-between items-center bg-panel border rounded-xl px-3.5 py-1.5 gap-2 shadow-sm">
       <!-- Left: Logo & App Title -->
       <div class="flex items-center gap-2.5">
         <img src="/logo.jpg" class="w-8 h-8 rounded-lg object-cover shadow-sm">
@@ -301,13 +328,13 @@
     </div>
 
     <!-- SUBJECT META CARD / TITLE PANEL & EVALUATION STRIP (COMPACT & SIMPLE) -->
-    <div class="bg-panel border rounded-xl px-4 py-2 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+    <div class="bg-panel border rounded-xl px-4 py-1.5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
       <div class="flex flex-wrap items-center gap-2 text-xs">
         <h1 class="text-sm font-bold text-title flex items-center gap-1.5">
           <span>Virtual Classroom (Theory)</span>
         </h1>
         <span class="text-muted text-xs">•</span>
-        <span class="px-3 py-1 bg-slate-800/90 text-slate-100 font-bold text-sm sm:text-base rounded-md border border-slate-700/80 shadow-xs tracking-tight">{{ $batchSubject->subject_name }}</span>
+        <span class="px-3 py-0.5 bg-slate-800/90 text-slate-100 font-bold text-sm sm:text-base rounded-md border border-slate-700/80 shadow-xs tracking-tight">{{ $batchSubject->subject_name }}</span>
         <span class="px-1.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-mono text-[11px] font-semibold">{{ $batchSubject->subject_code }}</span>
         <span class="text-muted text-xs">•</span>
         <span class="font-bold text-slate-100 text-xs px-2 py-0.5 bg-slate-800/80 rounded border border-slate-700/60">Sem {{ $batchSubject->semester }}</span>
@@ -324,53 +351,57 @@
       </div>
     </div>
 
-    <!-- PROFESSIONAL RESPONSIVE TAB NAVIGATION BAR -->
-    <div class="w-full bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-1.5 shadow-sm">
-      <div class="flex flex-wrap items-center gap-1.5">
-        <button onclick="switchTab('outline')" id="btn-outline" class="px-3 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm cursor-pointer">
-          <span class="material-symbols-rounded text-base">import_contacts</span>
+    <!-- PROFESSIONAL BORDER-STYLE TAB NAVIGATION BAR -->
+    <div class="w-full flex items-center justify-between border-b border-slate-700/80 dark:border-slate-800 overflow-x-auto no-scrollbar gap-1 pt-0.5 -mb-px">
+      <div class="flex items-center gap-1 shrink-0 -mb-px">
+        <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">import_contacts</span>
           Course Outline
         </button>
         
-        <button onclick="switchTab('planner')" id="btn-planner" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">calendar_month</span>
+        <button onclick="switchTab('planner')" id="btn-planner" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">calendar_month</span>
           Lesson Planner
         </button>
         
-        <button onclick="switchTab('cia')" id="btn-cia" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">fact_check</span>
+        <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">fact_check</span>
           Continuous Assessment
         </button>
 
-        <button onclick="switchTab('series')" id="btn-series" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">quiz</span>
+        <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">quiz</span>
           Series Exams
         </button>
 
-        <button onclick="switchTab('internals')" id="btn-internals" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">assignment_turned_in</span>
+        <button onclick="switchTab('internals')" id="btn-internals" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">assignment_turned_in</span>
           Internal Marks
         </button>
 
-        <button onclick="switchTab('attainment')" id="btn-attainment" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">equalizer</span>
+        <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">equalizer</span>
           Course Attainment & Surveys
         </button>
 
-        <button onclick="switchTab('materials')" id="btn-materials" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer">
-          <span class="material-symbols-rounded text-base">folder_special</span>
+        <button onclick="switchTab('materials')" id="btn-materials" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">folder_special</span>
           Study Materials Hub
         </button>
+      </div>
 
-        <div class="ml-auto flex items-center gap-2 pl-2">
-          <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 cursor-pointer no-underline shadow-xs">
-            <span class="material-symbols-rounded text-base">folder_open</span>
-            Course File Prep R2026
-          </a>
-        </div>
+      <div class="shrink-0 pl-3 pb-1">
+        <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 cursor-pointer no-underline shadow-xs">
+          <span class="material-symbols-rounded text-sm">folder_open</span>
+          Course File Prep R2026
+        </a>
       </div>
     </div>
+  </header>
 
+  <!-- SCROLLABLE PAGE AREA (Vertical Scroll Only) -->
+  <main class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 py-4">
+    
     <!-- MAIN FULL-WIDTH WORKSPACE -->
     <div id="main-classroom-workspace" class="w-full space-y-4">
       
@@ -1918,9 +1949,7 @@
 
     </div>
 
-    </div>
-
-  </div>
+  </main>
 
   <script>
     function scrollTabs(amount) {}
@@ -1952,9 +1981,9 @@
         const btn = document.getElementById('btn-' + id);
         if (!btn) return;
         if (id === tabId) {
-          btn.className = "px-3 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm cursor-pointer";
+          btn.className = "tab-btn px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer";
         } else {
-          btn.className = "px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 cursor-pointer";
+          btn.className = "tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer";
         }
       });
     }

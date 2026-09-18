@@ -336,12 +336,16 @@
         <span class="px-1.5 py-0.2 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded font-mono text-[10.5px] font-bold shadow-xs">{{ $batchSubject->classroom_id }}</span>
       </div>
 
-      <!-- COMPACT EVALUATION METRICS -->
-      <div class="flex flex-wrap items-center gap-1 text-[10.5px] font-mono text-muted">
+      <!-- COMPACT EVALUATION METRICS & ATTENDANCE LINK -->
+      <div class="flex flex-wrap items-center gap-1.5 text-[10.5px] font-mono text-muted">
         <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">CIA: <strong class="text-title">{{ $cieMarks }}M</strong></span>
         <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">ESE: <strong class="text-title">{{ $eseMarks }}M</strong></span>
         <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">Credits: <strong class="text-title">{{ $credit }}</strong></span>
         <span class="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400"><strong>{{ $totalHours }} Hrs</strong></span>
+        <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 hover:text-white border border-indigo-500/40 rounded text-[10.5px] font-semibold transition flex items-center gap-1 no-underline shadow-2xs shrink-0" title="Open Common Attendance & Subject Log">
+          <span class="material-symbols-rounded text-xs text-indigo-400">co_present</span>
+          <span class="hidden sm:inline">Attendance &amp; Log</span>
+        </a>
       </div>
     </div>
 
@@ -620,20 +624,27 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <!-- Attendance -->
-              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                  <span class="text-xs font-bold text-slate-200">1. Attendance</span>
-                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-mono font-bold">5 Marks</span>
+              <!-- Attendance & Subject Log -->
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-lg p-3 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                    <span class="text-xs font-bold text-slate-200">1. Attendance &amp; Subject Log</span>
+                    <span class="px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-mono font-bold">5 Marks</span>
+                  </div>
+                  <p class="text-[11px] text-muted leading-relaxed mt-1.5">Converted continuously from Table 2.1 at semester end:</p>
+                  <div class="text-[10px] font-mono text-slate-300 space-y-0.5 bg-slate-950/40 p-2 rounded border border-slate-800/60 mt-1">
+                    <div class="flex justify-between"><span>≥ 90%</span><span class="text-emerald-400 font-bold">5 Marks</span></div>
+                    <div class="flex justify-between"><span>80% – 89%</span><span class="text-sky-400 font-bold">4 Marks</span></div>
+                    <div class="flex justify-between"><span>75% – 79%</span><span class="text-indigo-400 font-bold">3 Marks</span></div>
+                    <div class="flex justify-between"><span>70% – 74%</span><span class="text-amber-400 font-bold">2 Marks</span></div>
+                    <div class="flex justify-between"><span>65% – 69%</span><span class="text-orange-400 font-bold">1 Mark</span></div>
+                    <div class="flex justify-between"><span class="text-rose-400">&lt; 65%</span><span class="text-rose-400 font-bold">0 Marks</span></div>
+                  </div>
                 </div>
-                <p class="text-[11px] text-muted leading-relaxed">Converted continuously from Table 2.1 at semester end:</p>
-                <div class="text-[10px] font-mono text-slate-300 space-y-0.5 bg-slate-950/40 p-2 rounded border border-slate-800/60">
-                  <div class="flex justify-between"><span>≥ 90%</span><span class="text-emerald-400 font-bold">5 Marks</span></div>
-                  <div class="flex justify-between"><span>80% – 89%</span><span class="text-sky-400 font-bold">4 Marks</span></div>
-                  <div class="flex justify-between"><span>75% – 79%</span><span class="text-indigo-400 font-bold">3 Marks</span></div>
-                  <div class="flex justify-between"><span>70% – 74%</span><span class="text-amber-400 font-bold">2 Marks</span></div>
-                  <div class="flex justify-between"><span>65% – 69%</span><span class="text-orange-400 font-bold">1 Mark</span></div>
-                  <div class="flex justify-between"><span class="text-rose-400">< 65%</span><span class="text-rose-400 font-bold">0 Marks</span></div>
+                <div class="pt-1">
+                  <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=outline') }}" class="w-full py-1 px-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 hover:text-white border border-indigo-500/30 rounded text-[10px] font-bold flex items-center justify-center gap-1 transition no-underline shadow-2xs">
+                    <span class="material-symbols-rounded text-xs text-indigo-400">co_present</span> Open Attendance &amp; Log
+                  </a>
                 </div>
               </div>
 
@@ -961,20 +972,26 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Attendance Card -->
+              <!-- Attendance & Subject Log Card -->
               <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
                 <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
                   <span class="font-bold text-title text-xs flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-indigo-400 text-sm">how_to_reg</span>
-                    Continuous Attendance
+                    <span class="material-symbols-rounded text-indigo-400 text-sm">co_present</span>
+                    Attendance &amp; Subject Log
                   </span>
                   <span class="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded font-mono font-bold">5M Max</span>
                 </div>
-                <p class="text-xs text-muted leading-relaxed">Automatically evaluated from Table 2.1 continuous attendance log percentages.</p>
-                <button onclick="openRosterModal()" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5">
-                  <span class="material-symbols-rounded text-sm">group</span>
-                  View Student Directory ({{ $students->count() }})
-                </button>
+                <p class="text-xs text-muted leading-relaxed">Daily session attendance and syllabus topics covered. Auto-evaluates 5M CIE from Table 2.1 percentages.</p>
+                <div class="space-y-1.5">
+                  <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5 no-underline">
+                    <span class="material-symbols-rounded text-sm">co_present</span>
+                    Open Attendance &amp; Subject Log
+                  </a>
+                  <button type="button" onclick="openRosterModal()" class="w-full py-1 bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 rounded-md text-[10.5px] font-medium border border-slate-700/60 transition-all cursor-pointer flex items-center justify-center gap-1">
+                    <span class="material-symbols-rounded text-xs">group</span>
+                    View Student Directory ({{ $students->count() }})
+                  </button>
+                </div>
               </div>
 
               <!-- Self Learning Card -->
@@ -1249,6 +1266,10 @@
                 </p>
               </div>
               <div class="flex items-center gap-1.5 flex-wrap">
+                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline" title="Open Common Class Attendance & Subject Log">
+                  <span class="material-symbols-rounded text-xs text-indigo-400">co_present</span>
+                  Attendance &amp; Log
+                </a>
                 <button onclick="toggleCiaView('cards')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-[11px] font-semibold transition-all border border-slate-750 cursor-pointer flex items-center gap-1 shadow-xs">
                   <span class="material-symbols-rounded text-xs">arrow_back</span>
                   Back to Categories
@@ -1882,6 +1903,10 @@
               <span class="text-xs font-bold text-slate-300">Individual Academic Registers & Compliance Prints:</span>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
+              <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=reports') }}" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 shadow-xs no-underline" title="Open Class Attendance &amp; Subject Log">
+                <span class="material-symbols-rounded text-xs text-indigo-400">co_present</span>
+                <span>Attendance &amp; Subject Log</span>
+              </a>
               <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 shadow-xs no-underline">
                 <span class="material-symbols-rounded text-xs text-sky-400">calendar_month</span>
                 <span>Lesson Plan (60h)</span>

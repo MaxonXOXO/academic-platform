@@ -2116,12 +2116,20 @@
             <div id="lab-subcontent-series" class="glass-card p-5 rounded-xl border border-slate-800 hidden">
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
-                        <h3 class="text-base font-semibold text-slate-200">Practical Series Examinations</h3>
+                        <h3 class="text-base font-normal text-white">Practical Series Examinations</h3>
+                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 3.1 Rubrics (Criteria 1 to 5 out of 40 Marks) &bull; Scaled to 10 CIA marks &bull; Inline editable with auto-save</p>
                     </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openSeriesPracticalModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all">Enter Lab Series Test Marks</button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
+                            <label class="text-xs text-slate-400 font-semibold whitespace-nowrap">Series Test:</label>
+                            <select id="series-pr-table-test-select" onchange="onSeriesPrTableTestChange(this.value)" class="bg-transparent text-amber-400 font-bold text-xs outline-none cursor-pointer">
+                                <option value="Series 1" class="bg-slate-900 text-amber-300">🧪 Practical Test 1 (CO1+CO2)</option>
+                                <option value="Series 2" class="bg-slate-900 text-sky-300">🧪 Practical Test 2 (CO3+CO4)</option>
+                            </select>
                         </div>
+                        <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
+                        <button onclick="openSeriesPracticalModal()" class="px-3 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/35 text-sky-300 border border-sky-500/40 font-semibold text-xs shadow-sm transition-all">Enter Lab Series Test Marks</button>
+                    </div>
                 </div>
  
                 <!-- Practical QP Generator Panel -->
@@ -2195,49 +2203,80 @@
                 </div><!-- /Practical QP Generator Panel -->
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header">
+                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="series-pr-eval-table">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80">
-                                <th class="p-2.5 w-12 text-center">Roll</th>
-                                <th class="p-2.5">SBTE Reg No</th>
-                                <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Writeup (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs/Result (8M)</th>
-                                <th class="p-2.5 text-center">Viva (8M)</th>
-                                <th class="p-2.5 text-center">Record (4M)</th>
-                                <th class="p-2.5 text-center">Test 1 (/40)</th>
-                                <th class="p-2.5 text-center">Test 2 (/40)</th>
-                                <th class="p-2.5 text-center">Avg (/40)</th>
-                                <th class="p-2.5 text-center">Converted CIA (/10M)</th>
+                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80 text-[10px]">
+                                <th class="p-2 text-center w-8">Roll</th>
+                                <th class="p-2 w-28">SBTE Reg No</th>
+                                <th class="p-2 min-w-[130px]">Student Name</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-1">Writeup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-2">Setup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-3">Obs/Res (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-4">Viva (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-5">Record (4M)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 1 (/40)</th>
+                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 2 (/40)</th>
+                                <th class="p-2 text-center w-16 text-indigo-300 font-bold">Avg (/40)</th>
+                                <th class="p-2 text-center w-24 text-amber-300 font-bold">Converted CIA (/10M)</th>
+                                <th class="p-2 text-center w-12 no-print">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 font-normal text-xs">
+                        <tbody id="series-pr-eval-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
                             @foreach($studentResults as $res)
                             @php
                                 $spEvals = $seriesPracticalEvals->get($res['reg_no'], collect());
-                                $sp1 = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)'])->first();
-                                $sp2 = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)'])->first();
-                                $spCount = $spEvals->count();
-                                $spWriteup = $spCount > 0 ? $spEvals->avg('writeup_procedure') : 0;
-                                $spSetup = $spCount > 0 ? $spEvals->avg('setup_execution') : 0;
-                                $spObs = $spCount > 0 ? $spEvals->avg('observation_result') : 0;
-                                $spViva = $spCount > 0 ? $spEvals->avg('viva_voce') : 0;
-                                $spRecord = $spCount > 0 ? $spEvals->avg('record_completion') : 0;
+                                $sp1 = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+                                $sp2 = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+                                $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+                                $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+                                $avgScore = ($sp1Score + $sp2Score) / 2.0;
+                                $ciaScore = round((($avgScore / 40.0) * 10.0) * 2) / 2;
+
+                                // Initial active test is Series 1
+                                $activeW = $sp1 ? $sp1->writeup_procedure : 0;
+                                $activeS = $sp1 ? $sp1->setup_execution : 0;
+                                $activeO = $sp1 ? $sp1->observation_result : 0;
+                                $activeV = $sp1 ? $sp1->viva_voce : 0;
+                                $activeR = $sp1 ? $sp1->record_completion : 0;
                             @endphp
-                            <tr class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spWriteup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spSetup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spObs, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spViva, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($spRecord, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ $sp1 ? number_format($sp1->total_score_40, 2) : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ $sp2 ? number_format($sp2->total_score_40, 2) : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ number_format($res['series_practical_marks'] * 4, 2) }}</td>
-                                <td class="p-2.5 text-center text-blue-300">{{ number_format($res['series_practical_marks'], 1) }} / 10.0</td>
+                            <tr id="sp-row-{{ $res['reg_no'] }}" class="hover:bg-slate-800/30 transition-all">
+                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
+                                <td class="p-2 font-mono text-[11px] font-bold text-sky-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2 font-medium text-slate-200">
+                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-writeup_procedure" value="{{ number_format($activeW, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'writeup_procedure', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-setup_execution" value="{{ number_format($activeS, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'setup_execution', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-observation_result" value="{{ number_format($activeO, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'observation_result', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-viva_voce" value="{{ number_format($activeV, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'viva_voce', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="4" id="sp-input-{{ $res['reg_no'] }}-record_completion" value="{{ number_format($activeR, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'record_completion', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t1-{{ $res['reg_no'] }}" value="{{ number_format($sp1Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 1', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 1 Total (/40)">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t2-{{ $res['reg_no'] }}" value="{{ number_format($sp2Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 2', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 2 Total (/40)">
+                                </td>
+                                <td class="p-1.5 text-center font-mono font-bold text-indigo-300 text-xs">
+                                    <span id="sp-avg-{{ $res['reg_no'] }}">{{ number_format($avgScore, 1) }}</span>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="sp-cia-{{ $res['reg_no'] }}" value="{{ number_format($ciaScore, 1) }}" oninput="onSeriesPrCiaInput('{{ $res['reg_no'] }}', this.value)" class="w-14 bg-slate-950 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-black text-amber-300 text-xs outline-none transition-all" title="Direct Practical Series CIA mark (/10M)">
+                                </td>
+                                <td class="p-1.5 text-center no-print">
+                                    <button type="button" onclick="openSeriesPrModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-sky-600/30 hover:bg-sky-600/60 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                        ✏️
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -2253,7 +2292,7 @@
                             <span>🏆 Institutional Practical End Semester Exam (40 Marks)</span>
                         </h3>
                         <p class="text-slate-400 text-xs mt-0.5">
-                            Rubrics splitup: Procedure (10M) + Setup (10M) + Result (8M) + Viva (8M) + Record (4M) = 40 Marks
+                            Rubrics splitup: Procedure (10M) + Setup (10M) + Result (8M) + Viva (8M) + Record (4M) = 40 Marks &bull; Inline editable with auto-save
                         </p>
                     </div>
                     <div class="flex items-center space-x-2">
@@ -2266,26 +2305,27 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header">
+                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="ese-practical-eval-table">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80">
-                                <th class="p-2.5 w-12 text-center">Roll</th>
-                                <th class="p-2.5">SBTE Reg No</th>
-                                <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Writeup (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs/Result (8M)</th>
-                                <th class="p-2.5 text-center">Viva (8M)</th>
-                                <th class="p-2.5 text-center">Record (4M)</th>
-                                <th class="p-2.5 text-center">Practical ESE Total</th>
-                                <th class="p-2.5 text-center">Grade</th>
+                            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/80 text-[10px]">
+                                <th class="p-2 text-center w-8">Roll</th>
+                                <th class="p-2 w-28">SBTE Reg No</th>
+                                <th class="p-2 min-w-[130px]">Student Name</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold">Writeup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold">Setup (10M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold">Obs/Res (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold">Viva (8M)</th>
+                                <th class="p-2 text-center w-16 text-sky-400 font-bold">Record (4M)</th>
+                                <th class="p-2 text-center w-20 text-blue-400 font-bold">Practical ESE Total (/40)</th>
+                                <th class="p-2 text-center w-16 font-bold">Grade</th>
+                                <th class="p-2 text-center w-12 no-print">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60" id="ese-practical-table-body">
+                        <tbody class="divide-y divide-slate-800/60 font-normal text-xs" id="ese-practical-table-body">
                             @foreach($studentResults as $res)
                             @php
-                                $score = $res['ese_practical'] ?? 0;
-                                $pct = ($score / 40) * 100;
+                                $score = floatval($res['ese_practical'] ?? 0);
+                                $pct = ($score / 40.0) * 100.0;
                                 if ($pct >= 90) { $g = 'S'; $gc = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'; }
                                 elseif ($pct >= 80) { $g = 'A'; $gc = 'text-blue-400 bg-blue-500/10 border-blue-500/30'; }
                                 elseif ($pct >= 70) { $g = 'B'; $gc = 'text-sky-400 bg-blue-500/10 border-blue-500/30'; }
@@ -2294,24 +2334,43 @@
                                 elseif ($pct >= 40) { $g = 'E'; $gc = 'text-orange-400 bg-orange-500/10 border-orange-500/30'; }
                                 else { $g = 'F'; $gc = 'text-rose-400 bg-rose-500/10 border-rose-500/30'; }
                                 
-                                $wInit = number_format(($score / 40.0) * 10.0, 1);
-                                $sInit = number_format(($score / 40.0) * 10.0, 1);
-                                $rInit = number_format(($score / 40.0) * 8.0, 1);
-                                $vInit = number_format(($score / 40.0) * 8.0, 1);
-                                $recInit = number_format(($score / 40.0) * 4.0, 1);
+                                $wInit = round(($score / 40.0) * 10.0 * 2) / 2;
+                                $sInit = round(($score / 40.0) * 10.0 * 2) / 2;
+                                $rInit = round(($score / 40.0) * 8.0 * 2) / 2;
+                                $vInit = round(($score / 40.0) * 8.0 * 2) / 2;
+                                $recInit = max(0, round(($score - ($wInit + $sInit + $rInit + $vInit)) * 2) / 2);
                             @endphp
                             <tr class="hover:bg-slate-800/30 transition-all" id="ese-row-{{ $res['reg_no'] }}">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 font-bold text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-writeup">{{ $score > 0 ? $wInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-setup">{{ $score > 0 ? $sInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-result">{{ $score > 0 ? $rInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-viva">{{ $score > 0 ? $vInit : '-' }}</td>
-                                <td class="p-2.5 text-center text-slate-300 ese-val-record">{{ $score > 0 ? $recInit : '-' }}</td>
-                                <td class="p-2.5 text-center font-bold text-blue-400 ese-val-total">{{ round($score) }}</td>
-                                <td class="p-2.5 text-center ese-val-grade">
-                                    <span class="px-2.5 py-0.5 rounded-full border text-xs font-bold {{ $gc }}">{{ $g }}</span>
+                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
+                                <td class="p-2 font-mono text-[11px] font-bold text-sky-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2 font-medium text-slate-200">
+                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ese-input-{{ $res['reg_no'] }}-writeup" value="{{ number_format($wInit, 1) }}" oninput="onEseTableInput('{{ $res['reg_no'] }}', 'writeup', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="10" id="ese-input-{{ $res['reg_no'] }}-setup" value="{{ number_format($sInit, 1) }}" oninput="onEseTableInput('{{ $res['reg_no'] }}', 'setup', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="ese-input-{{ $res['reg_no'] }}-result" value="{{ number_format($rInit, 1) }}" oninput="onEseTableInput('{{ $res['reg_no'] }}', 'result', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="8" id="ese-input-{{ $res['reg_no'] }}-viva" value="{{ number_format($vInit, 1) }}" oninput="onEseTableInput('{{ $res['reg_no'] }}', 'viva', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="4" id="ese-input-{{ $res['reg_no'] }}-record" value="{{ number_format($recInit, 1) }}" oninput="onEseTableInput('{{ $res['reg_no'] }}', 'record', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                </td>
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.5" min="0" max="40" id="ese-total-input-{{ $res['reg_no'] }}" value="{{ number_format($score, 1) }}" oninput="onEseTableTotalInput('{{ $res['reg_no'] }}', this.value)" class="w-16 bg-slate-950 border border-blue-500/40 hover:border-blue-400 focus:border-blue-400 rounded px-1 py-0.5 text-center font-mono font-black text-blue-300 text-xs outline-none transition-all" title="Direct Total (/40)">
+                                </td>
+                                <td class="p-1.5 text-center ese-val-grade">
+                                    <span id="ese-grade-badge-{{ $res['reg_no'] }}" class="px-2.5 py-0.5 rounded-full border text-xs font-bold {{ $gc }}">{{ $g }}</span>
+                                </td>
+                                <td class="p-1.5 text-center no-print">
+                                    <button type="button" onclick="openEseModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-blue-600/30 hover:bg-blue-600/60 text-sky-300 border border-blue-500/30 text-[10px] font-bold transition-all cursor-pointer">
+                                        ✏️
+                                    </button>
                                 </td>
                             </tr>
                             @endforeach
@@ -2536,60 +2595,57 @@
 
     <!-- Practical ESE Evaluator Modal (Blue Theme Sliders) -->
     <div id="ese-practical-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-3xl w-full p-5 rounded-2xl border border-blue-500/40 shadow-2xl space-y-4 max-h-[92vh] flex flex-col bg-slate-950">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-blue-500/40 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-xl font-bold text-blue-300 flex items-center space-x-2">
-                        <span>🏆 Institutional Practical ESE Evaluator</span>
-                    </h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Adjust rubrics sliders or steppers for procedure, setup, result, viva, and record.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🏆</span>
+                    <div>
+                        <h3 class="text-base font-bold text-blue-300 leading-tight">Institutional Practical ESE Evaluator (40 Marks)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Adjust rubrics sliders or numeric inputs for 5 criteria &bull; Auto-saved &bull; SBTE grading norms</p>
+                    </div>
                 </div>
-                <button onclick="closeEsePracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button type="button" onclick="closeEsePracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
             <!-- Student Selection & Stepper Bar -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-shrink-0">
-                <button type="button" onclick="prevEseStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>◀ Prev</span>
-                </button>
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-shrink-0">
+                <button type="button" onclick="prevEseStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
 
                 <div class="flex-1 max-w-md">
-                    <select id="ese-student-select" onchange="loadEseStudent(this.value)" class="w-full bg-slate-950 border border-blue-500/40 rounded-lg px-3 py-1.5 font-bold text-sm text-blue-200 outline-none focus:border-blue-400">
+                    <select id="ese-student-select" onchange="loadEseStudent(this.value)" class="w-full bg-slate-950 border border-blue-500/40 rounded-lg px-2.5 py-1 font-bold text-xs text-blue-200 outline-none focus:border-blue-400 cursor-pointer">
                         @foreach($studentResults as $idx => $res)
                         <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }} (SBTE: {{ $res['sbte_reg_no'] ?: $res['reg_no'] }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <button type="button" onclick="nextEseStudent()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1">
-                    <span>Next ▶</span>
-                </button>
+                <button type="button" onclick="nextEseStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
             </div>
 
             <!-- Live Score Summary Card -->
-            <div class="bg-gradient-to-r from-slate-900 via-blue-950/40 to-slate-900 p-3 rounded-xl border border-blue-500/40 flex items-center justify-between text-xs flex-shrink-0">
+            <div class="bg-gradient-to-r from-slate-900 via-blue-950/40 to-slate-900 p-2.5 rounded-xl border border-blue-500/40 flex items-center justify-between text-xs flex-shrink-0">
                 <div>
                     <span class="text-slate-400 font-medium">Practical ESE Score:</span>
-                    <span id="ese-student-total-raw" class="font-extrabold text-blue-400 text-base ml-1.5">0.00 / 40.00 Marks</span>
+                    <span id="ese-student-total-raw" class="font-bold text-blue-400 text-sm font-mono ml-1.5">0.00 / 40.00 Marks</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="text-slate-400 font-medium">Evaluated Grade:</span>
-                    <span id="ese-student-grade-badge" class="font-black text-blue-300 text-base px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30">S</span>
+                    <span id="ese-student-grade-badge" class="font-black text-sm px-3 py-0.5 rounded-full border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">S</span>
                 </div>
             </div>
 
-            <!-- Scrollable Rubric Sliders Container -->
-            <div id="ese-sliders-container" class="overflow-y-auto space-y-3.5 flex-1 pr-1">
+            <!-- Rubrics Sliders Container (Single Page 3-Col Grid on Desktop) -->
+            <div id="ese-sliders-container" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0">
                 <!-- Dynamically populated by JS loadEseStudent() -->
             </div>
 
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeEsePracticalModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeEsePracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextEseStudent()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700">Next Student ▶</button>
-                    <button type="button" onclick="saveAllEseMarks()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm">Save All ESE Marks</button>
+                    <button type="button" onclick="saveAndNextEseStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllEseMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All ESE Marks</button>
                 </div>
             </div>
         </div>
@@ -4727,69 +4783,64 @@
     <!-- ================================================================
          Practical Series Exam Evaluation Modal
     ================================================================= -->
-    <div id="series-practical-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-2xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+    <div id="series-practical-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center hidden p-2 sm:p-4 md:p-6">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-sky-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-lg font-bold text-white">Practical Series Test Marks Evaluator (Table 3.1)</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Grade the student on 5 practical criteria. Total is out of 40, automatically scaled to 10 CIA marks.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🧪</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Practical Series Test Marks Evaluator (Table 3.1)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 5 practical criteria (40 Marks) &bull; Scaled to 10 CIA marks &bull; Auto-saved</p>
+                    </div>
                 </div>
-                <button onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
- 
+
             <!-- Series and Student Selection -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-3 flex-shrink-0">
-                <div class="flex items-center justify-between gap-3">
-                    <label class="text-slate-300 text-xs font-semibold">Select Series Test:</label>
-                    <select id="series-pr-test-select" onchange="onSeriesPrTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-amber-400 font-bold outline-none focus:border-amber-500">
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2 w-full sm:w-1/2">
+                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Series Test:</label>
+                    <select id="series-pr-test-select" onchange="onSeriesPrTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-semibold outline-none w-full focus:border-amber-500 cursor-pointer">
                         <option value="Series 1">Practical Test 1 (CO1+CO2)</option>
                         <option value="Series 2">Practical Test 2 (CO3+CO4)</option>
                     </select>
                 </div>
- 
-                <div class="flex items-center justify-between gap-2">
-                    <button type="button" onclick="prevSeriesPrStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>◀ Prev</span>
-                    </button>
- 
-                    <div class="flex-1">
-                        <select id="series-pr-student-select" onchange="loadSeriesPrStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500">
-                            @foreach($studentResults as $idx => $res)
-                            <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
- 
-                    <button type="button" onclick="nextSeriesPrStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>Next ▶</span>
-                    </button>
+
+                <div class="flex items-center gap-1.5 w-full sm:w-1/2">
+                    <button type="button" onclick="prevSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
+                    <select id="series-pr-student-select" onchange="loadSeriesPrStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-bold text-xs text-white outline-none focus:border-sky-500 cursor-pointer">
+                        @foreach($studentResults as $idx => $res)
+                        <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" onclick="nextSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
                 </div>
             </div>
- 
-            <!-- Rubrics Form Card -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex-1 overflow-y-auto" id="series-pr-rubrics-container">
-                <!-- Javascript will populate sliders here -->
+
+            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="series-pr-rubrics-container">
+                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
             </div>
- 
+
             <!-- Live Converted Result Display -->
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
-                <div>
-                    <span class="text-slate-400 font-semibold block">Total Exam Score:</span>
-                    <span id="series-pr-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 40.00 M</span>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-semibold text-xs">Total Series Score:</span>
+                    <span id="series-pr-live-total" class="font-bold text-sky-400 text-sm font-mono">0.00 / 40.00 M</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-slate-400 font-semibold block">CIA Marks:</span>
-                    <span id="series-pr-live-cia" class="font-bold text-blue-400 text-sm">0.00 / 10.00 M</span>
+                <div class="flex items-center gap-2 text-right">
+                    <span class="text-slate-400 font-semibold text-xs">Practical Series CIA:</span>
+                    <span id="series-pr-live-cia" class="font-bold text-amber-300 text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">0.00 / 10.00 M</span>
                 </div>
             </div>
- 
+
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeSeriesPracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeSeriesPracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextSeriesPrStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm">Next Student ▶</button>
-                    <button type="button" onclick="saveAllSeriesPrMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextSeriesPrStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllSeriesPrMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -5051,39 +5102,46 @@
     }
  
     // =====================================================================
-    // Practical Series Exams Evaluation System
+    // Practical Series Exams Evaluation System (Table 3.1 Rubrics)
     // =====================================================================
     const seriesPracticalEvalsDb = @json($seriesPracticalEvals);
     const seriesPracticalEvalsState = {};
- 
+    let seriesPrAutoSaveTimers = {};
+
     studentsList.forEach(s => {
         const regNo = s.reg_no;
         seriesPracticalEvalsState[regNo] = {
             'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
             'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
         };
- 
+
         const dbList = seriesPracticalEvalsDb[regNo] || [];
         dbList.forEach(rec => {
             const sNo = rec.series_no;
             let mapped = sNo;
-            if (sNo === 'Test 1 (CO1+CO2)') mapped = 'Series 1';
-            if (sNo === 'Test 2 (CO3+CO4)') mapped = 'Series 2';
- 
+            if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'Test 1' || sNo === 'CA2') mapped = 'Series 1';
+            if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'Test 2' || sNo === 'CA3') mapped = 'Series 2';
+
             if (seriesPracticalEvalsState[regNo][mapped]) {
+                const w = parseFloat(rec.writeup_procedure) || 0;
+                const set = parseFloat(rec.setup_execution) || 0;
+                const o = parseFloat(rec.observation_result) || 0;
+                const v = parseFloat(rec.viva_voce) || 0;
+                const r = parseFloat(rec.record_completion) || 0;
+                const tot = parseFloat(rec.total_score_40) || (w + set + o + v + r);
                 seriesPracticalEvalsState[regNo][mapped] = {
-                    writeup_procedure: parseFloat(rec.writeup_procedure) || 0,
-                    setup_execution: parseFloat(rec.setup_execution) || 0,
-                    observation_result: parseFloat(rec.observation_result) || 0,
-                    viva_voce: parseFloat(rec.viva_voce) || 0,
-                    record_completion: parseFloat(rec.record_completion) || 0,
-                    total_score_40: parseFloat(rec.total_score_40) || 0,
+                    writeup_procedure: w,
+                    setup_execution: set,
+                    observation_result: o,
+                    viva_voce: v,
+                    record_completion: r,
+                    total_score_40: rec.is_absent ? 0 : tot,
                     is_absent: !!rec.is_absent
                 };
             }
         });
     });
- 
+
     function openSeriesPracticalModal() {
         document.getElementById('series-practical-modal').classList.remove('hidden');
         const selectStudent = document.getElementById('series-pr-student-select');
@@ -5091,127 +5149,462 @@
             loadSeriesPrStudent(selectStudent.value);
         }
     }
- 
+
     function closeSeriesPracticalModal() {
         document.getElementById('series-practical-modal').classList.add('hidden');
     }
- 
+
+    function openSeriesPrModalForStudent(regNo) {
+        const tableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        const testSel = document.getElementById('series-pr-test-select');
+        if (testSel) testSel.value = tableTest;
+
+        const stSel = document.getElementById('series-pr-student-select');
+        if (stSel) stSel.value = regNo;
+
+        openSeriesPracticalModal();
+    }
+
     function onSeriesPrTestChange(test) {
+        const tableSel = document.getElementById('series-pr-table-test-select');
+        if (tableSel && tableSel.value !== test) {
+            tableSel.value = test;
+            onSeriesPrTableTestChange(test, false);
+        }
         const selectStudent = document.getElementById('series-pr-student-select');
         if (selectStudent && selectStudent.value) {
             loadSeriesPrStudent(selectStudent.value);
         }
     }
- 
+
+    function onSeriesPrTableTestChange(test, syncModal = true) {
+        if (syncModal) {
+            const modalTestSel = document.getElementById('series-pr-test-select');
+            if (modalTestSel && modalTestSel.value !== test) {
+                modalTestSel.value = test;
+            }
+        }
+
+        studentsList.forEach(s => {
+            const regNo = s.reg_no;
+            const state = seriesPracticalEvalsState[regNo]?.[test] || {
+                writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false
+            };
+            const w = state.writeup_procedure || 0;
+            const set = state.setup_execution || 0;
+            const o = state.observation_result || 0;
+            const v = state.viva_voce || 0;
+            const r = state.record_completion || 0;
+
+            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
+            if (elW) elW.value = w.toFixed(1);
+            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
+            if (elS) elS.value = set.toFixed(1);
+            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
+            if (elO) elO.value = o.toFixed(1);
+            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
+            if (elV) elV.value = v.toFixed(1);
+            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
+            if (elR) elR.value = r.toFixed(1);
+
+            const t1 = seriesPracticalEvalsState[regNo]?.['Series 1']?.total_score_40 || 0;
+            const t2 = seriesPracticalEvalsState[regNo]?.['Series 2']?.total_score_40 || 0;
+            const avg = (t1 + t2) / 2.0;
+            const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
+
+            const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
+            if (elT1) elT1.value = t1.toFixed(1);
+            const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
+            if (elT2) elT2.value = t2.toFixed(1);
+            const elAvg = document.getElementById(`sp-avg-${regNo}`);
+            if (elAvg) elAvg.innerText = avg.toFixed(1);
+            const elCia = document.getElementById(`sp-cia-${regNo}`);
+            if (elCia) elCia.value = cia.toFixed(1);
+        });
+    }
+
     function loadSeriesPrStudent(regNo) {
         const student = studentsList.find(s => s.reg_no === regNo);
         if (!student) return;
- 
+
         const test = document.getElementById('series-pr-test-select').value;
         if (!test) return;
- 
+
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
         const state = seriesPracticalEvalsState[regNo][test];
         const container = document.getElementById('series-pr-rubrics-container');
- 
+
         const criteria = [
-            { label: '1. Write-up / Procedure (Aim, Circuit/Flowchart, Stepwise procedure)', key: 'writeup_procedure', max: 10, step: 0.5 },
-            { label: '2. Experiment Setup & Execution (Connections, Handling, Accuracy)', key: 'setup_execution', max: 10, step: 0.5 },
-            { label: '3. Observation & Result / Output (Tabulation, Calculations, Outcome)', key: 'observation_result', max: 8, step: 0.5 },
-            { label: '4. Viva Voce (Conceptual understanding, Theory knowledge)', key: 'viva_voce', max: 8, step: 0.5 },
-            { label: '5. Record (Completion & neatness, Faculty certification)', key: 'record_completion', max: 4, step: 0.5 }
+            { label: '1. Write-up / Procedure', key: 'writeup_procedure', max: 10, step: 0.5 },
+            { label: '2. Setup & Execution', key: 'setup_execution', max: 10, step: 0.5 },
+            { label: '3. Observation & Result', key: 'observation_result', max: 8, step: 0.5 },
+            { label: '4. Viva Voce', key: 'viva_voce', max: 8, step: 0.5 },
+            { label: '5. Record Completion', key: 'record_completion', max: 4, step: 0.5 }
         ];
- 
+
+        const testTitle = test === 'Series 1' ? 'Practical Test 1 (CO1+CO2)' : 'Practical Test 2 (CO3+CO4)';
+
         let html = `
-            <div class="mb-2 text-xs text-slate-400 font-semibold uppercase">Grading criteria for: ${student.name}</div>
+            <div class="flex items-center justify-between px-1 mb-1">
+                <div class="text-[11px] text-slate-300 font-semibold truncate">
+                    Candidate: <span class="text-white font-bold">#${student.roll_no} - ${student.name}</span> <span class="text-sky-400 font-mono text-[10px]">(${student.sbte_reg_no || student.reg_no})</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Test: <span class="text-amber-300 font-bold">${testTitle}</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         `;
- 
+
         criteria.forEach(c => {
             const val = state[c.key] || 0;
             html += `
-                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-semibold">
-                        <span class="text-slate-350">${c.label} (Max ${c.max})</span>
-                        <span class="text-sky-400 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded" id="series-pr-val-badge-${c.key}">${val.toFixed(1)}</span>
+                <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 space-y-1.5 hover:border-slate-700 transition-all">
+                    <div class="flex justify-between items-center text-[11px] font-semibold">
+                        <span class="text-slate-300 truncate" title="${c.label}">${c.label}</span>
+                        <span class="text-slate-500 text-[10px] ml-1 flex-shrink-0">Max ${c.max}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', -${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-750 font-black text-white flex items-center justify-center transition-all">-</button>
-                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="series-pr-slider-${c.key}" oninput="syncSeriesPrSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-blue-500 bg-slate-900 border border-slate-750 rounded-lg h-2 outline-none">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', ${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-black text-white flex items-center justify-center transition-all">+</button>
+                    <div class="flex items-center gap-1.5">
+                        <input type="number" min="0" max="${c.max}" step="${c.step}" value="${val.toFixed(1)}" id="series-pr-num-${c.key}" oninput="syncSeriesPrInput('${c.key}', this.value, ${c.max})" class="w-14 px-1 py-0.5 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-xs text-sky-400 text-center focus:border-sky-500 outline-none transition-all flex-shrink-0">
+                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', -${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">-</button>
+                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="series-pr-slider-${c.key}" oninput="syncSeriesPrSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-sky-500 bg-slate-900 border border-slate-800 rounded h-1.5 outline-none cursor-pointer">
+                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', ${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">+</button>
                     </div>
                 </div>
             `;
         });
- 
+
+        // 6th Card: Status / Absent toggle
+        html += `
+            <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
+                <div class="flex justify-between items-center text-[11px] font-semibold">
+                    <span class="text-slate-300">Candidate Exam Status</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full ${state.is_absent ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'}">${state.is_absent ? 'ABSENT' : 'PRESENT'}</span>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="series-pr-absent-check" ${state.is_absent ? 'checked' : ''} onchange="toggleSeriesPrAbsent(this.checked)" class="w-4 h-4 rounded border-slate-700 text-rose-600 focus:ring-rose-500">
+                        <span class="text-xs text-rose-300 font-semibold">Mark Absent (0/40)</span>
+                    </label>
+                    <span class="text-[10px] text-slate-500">Table 3.1 Rubric</span>
+                </div>
+            </div>
+        `;
+
+        html += `</div>`;
+
         container.innerHTML = html;
         updateSeriesPrLiveDisplay(regNo, test);
     }
- 
+
     function syncSeriesPrSlider(key, val, max) {
         const num = parseFloat(val) || 0;
         const regNo = document.getElementById('series-pr-student-select').value;
         const test = document.getElementById('series-pr-test-select').value;
         if (!regNo || !test) return;
- 
+
         seriesPracticalEvalsState[regNo][test][key] = num;
- 
-        const badge = document.getElementById(`series-pr-val-badge-${key}`);
-        if (badge) badge.innerText = num.toFixed(1);
- 
+        seriesPracticalEvalsState[regNo][test].is_absent = false;
+
+        const numInput = document.getElementById(`series-pr-num-${key}`);
+        if (numInput) numInput.value = num.toFixed(1);
+
+        const absCheck = document.getElementById('series-pr-absent-check');
+        if (absCheck) absCheck.checked = false;
+
         updateSeriesPrLiveDisplay(regNo, test);
+        syncToSeriesPrTable(regNo, test, key, num);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
     }
- 
+
+    function syncSeriesPrInput(key, val, max) {
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        const regNo = document.getElementById('series-pr-student-select').value;
+        const test = document.getElementById('series-pr-test-select').value;
+        if (!regNo || !test) return;
+
+        seriesPracticalEvalsState[regNo][test][key] = num;
+        seriesPracticalEvalsState[regNo][test].is_absent = false;
+
+        const slider = document.getElementById(`series-pr-slider-${key}`);
+        if (slider) slider.value = num;
+
+        const absCheck = document.getElementById('series-pr-absent-check');
+        if (absCheck) absCheck.checked = false;
+
+        updateSeriesPrLiveDisplay(regNo, test);
+        syncToSeriesPrTable(regNo, test, key, num);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
     function adjustSeriesPrVal(key, delta, max) {
         const slider = document.getElementById(`series-pr-slider-${key}`);
         if (!slider) return;
- 
+
         let current = parseFloat(slider.value) || 0;
-        let next = Math.max(0, Math.min(max, current + delta));
+        let next = Math.max(0, Math.min(max, Math.round((current + delta) * 2) / 2));
         slider.value = next;
         syncSeriesPrSlider(key, next, max);
     }
- 
-    function updateSeriesPrLiveDisplay(regNo, test) {
-        const state = seriesPracticalEvalsState[regNo][test];
-        if (!state) return;
- 
-        const total = (state.writeup_procedure || 0) +
-                      (state.setup_execution || 0) +
-                      (state.observation_result || 0) +
-                      (state.viva_voce || 0) +
-                      (state.record_completion || 0);
- 
-        state.total_score_40 = total;
- 
-        const cia = Math.round(((total / 40.0) * 10.0) * 2) / 2;
- 
-        document.getElementById('series-pr-live-total').innerText = `${total.toFixed(1)} / 40.0 M`;
-        document.getElementById('series-pr-live-cia').innerText = `${cia.toFixed(1)} / 10.0 M`;
-    }
- 
-    function prevSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        if (!sel || sel.selectedIndex <= 0) return;
-        sel.selectedIndex--;
-        loadSeriesPrStudent(sel.value);
-    }
- 
-    function nextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
-        sel.selectedIndex++;
-        loadSeriesPrStudent(sel.value);
-    }
- 
-    function saveAndNextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        const regNo = sel.value;
+
+    function toggleSeriesPrAbsent(checked) {
+        const regNo = document.getElementById('series-pr-student-select').value;
         const test = document.getElementById('series-pr-test-select').value;
         if (!regNo || !test) return;
- 
+
         const state = seriesPracticalEvalsState[regNo][test];
+        state.is_absent = !!checked;
+
+        if (checked) {
+            state.writeup_procedure = 0;
+            state.setup_execution = 0;
+            state.observation_result = 0;
+            state.viva_voce = 0;
+            state.record_completion = 0;
+            state.total_score_40 = 0;
+        } else {
+            state.total_score_40 = (state.writeup_procedure || 0) +
+                                   (state.setup_execution || 0) +
+                                   (state.observation_result || 0) +
+                                   (state.viva_voce || 0) +
+                                   (state.record_completion || 0);
+        }
+
+        loadSeriesPrStudent(regNo);
+        syncAllToSeriesPrTableRow(regNo);
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function updateSeriesPrLiveDisplay(regNo, test) {
+        const state = seriesPracticalEvalsState[regNo]?.[test];
+        if (!state) return;
+
+        const total = state.is_absent ? 0 : (
+            (state.writeup_procedure || 0) +
+            (state.setup_execution || 0) +
+            (state.observation_result || 0) +
+            (state.viva_voce || 0) +
+            (state.record_completion || 0)
+        );
+
+        state.total_score_40 = total;
+
+        const cia = Math.round(((total / 40.0) * 10.0) * 2) / 2;
+
+        const liveTotal = document.getElementById('series-pr-live-total');
+        if (liveTotal) liveTotal.innerText = `${total.toFixed(1)} / 40.0 M`;
+        const liveCia = document.getElementById('series-pr-live-cia');
+        if (liveCia) liveCia.innerText = `${cia.toFixed(1)} / 10.0 M`;
+    }
+
+    function syncToSeriesPrTable(regNo, test, key, val) {
+        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (currentTableTest === test) {
+            const tableInput = document.getElementById(`sp-input-${regNo}-${key}`);
+            if (tableInput) tableInput.value = parseFloat(val).toFixed(1);
+        }
+
+        syncAllToSeriesPrTableRow(regNo);
+    }
+
+    function syncAllToSeriesPrTableRow(regNo) {
+        const state1 = seriesPracticalEvalsState[regNo]?.['Series 1'] || { total_score_40: 0 };
+        const state2 = seriesPracticalEvalsState[regNo]?.['Series 2'] || { total_score_40: 0 };
+
+        const t1 = state1.is_absent ? 0 : (state1.total_score_40 || 0);
+        const t2 = state2.is_absent ? 0 : (state2.total_score_40 || 0);
+        const avg = (t1 + t2) / 2.0;
+        const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
+
+        const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
+        if (elT1) elT1.value = t1.toFixed(1);
+        const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
+        if (elT2) elT2.value = t2.toFixed(1);
+        const elAvg = document.getElementById(`sp-avg-${regNo}`);
+        if (elAvg) elAvg.innerText = avg.toFixed(1);
+        const elCia = document.getElementById(`sp-cia-${regNo}`);
+        if (elCia) elCia.value = cia.toFixed(1);
+    }
+
+    function onSeriesPrTableInput(regNo, key, val) {
+        const test = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        const maxMap = {
+            writeup_procedure: 10,
+            setup_execution: 10,
+            observation_result: 8,
+            viva_voce: 8,
+            record_completion: 4
+        };
+        const max = maxMap[key] || 10;
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > max) num = max;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        state[key] = num;
+        state.is_absent = false;
+        state.total_score_40 = (state.writeup_procedure || 0) +
+                               (state.setup_execution || 0) +
+                               (state.observation_result || 0) +
+                               (state.viva_voce || 0) +
+                               (state.record_completion || 0);
+
+        syncAllToSeriesPrTableRow(regNo);
+
+        // Sync modal if open on same student and test
+        const modalStudent = document.getElementById('series-pr-student-select')?.value;
+        const modalTest = document.getElementById('series-pr-test-select')?.value;
+        if (modalStudent === regNo && modalTest === test) {
+            const numEl = document.getElementById(`series-pr-num-${key}`);
+            if (numEl) numEl.value = num.toFixed(1);
+            const sliderEl = document.getElementById(`series-pr-slider-${key}`);
+            if (sliderEl) sliderEl.value = num;
+            updateSeriesPrLiveDisplay(regNo, test);
+        }
+
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function onSeriesPrTotalInput(regNo, test, val) {
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > 40) num = 40;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        state.is_absent = false;
+        state.total_score_40 = num;
+
+        // Scale 5 criteria proportionately:
+        // writeup: 25% (10/40), setup: 25% (10/40), obs: 20% (8/40), viva: 20% (8/40), record: remainder (4/40)
+        const w = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const set = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const o = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const v = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const r = Math.min(4, Math.max(0, Math.round((num - (w + set + o + v)) * 2) / 2));
+
+        state.writeup_procedure = w;
+        state.setup_execution = set;
+        state.observation_result = o;
+        state.viva_voce = v;
+        state.record_completion = r;
+
+        // If currently displayed in table criteria columns, update them
+        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
+        if (currentTableTest === test) {
+            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
+            if (elW) elW.value = w.toFixed(1);
+            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
+            if (elS) elS.value = set.toFixed(1);
+            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
+            if (elO) elO.value = o.toFixed(1);
+            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
+            if (elV) elV.value = v.toFixed(1);
+            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
+            if (elR) elR.value = r.toFixed(1);
+        }
+
+        syncAllToSeriesPrTableRow(regNo);
+
+        // Sync modal if open on same student
+        const modalStudent = document.getElementById('series-pr-student-select')?.value;
+        const modalTest = document.getElementById('series-pr-test-select')?.value;
+        if (modalStudent === regNo && modalTest === test) {
+            loadSeriesPrStudent(regNo);
+        }
+
+        triggerDebouncedSeriesPrAutoSave(regNo, test);
+    }
+
+    function onSeriesPrCiaInput(regNo, val) {
+        if (!seriesPracticalEvalsState[regNo]) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
+                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            };
+        }
+
+        let cia = parseFloat(val);
+        if (isNaN(cia)) cia = 0;
+        if (cia < 0) cia = 0;
+        if (cia > 10) cia = 10;
+
+        const targetAvg40 = cia * 4.0;
+
+        onSeriesPrTotalInput(regNo, 'Series 1', targetAvg40);
+        onSeriesPrTotalInput(regNo, 'Series 2', targetAvg40);
+    }
+
+    function triggerDebouncedSeriesPrAutoSave(regNo, test) {
+        const timerKey = `${regNo}_${test}`;
+        if (seriesPrAutoSaveTimers[timerKey]) {
+            clearTimeout(seriesPrAutoSaveTimers[timerKey]);
+        }
+        showSeriesPrAutoSaveIndicator('saving');
+        seriesPrAutoSaveTimers[timerKey] = setTimeout(() => {
+            saveSingleSeriesPrStudentMarks(regNo, test);
+        }, 750);
+    }
+
+    function showSeriesPrAutoSaveIndicator(status) {
+        let indicator = document.getElementById('series-pr-autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'series-pr-autosave-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        if (status === 'saving') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
+            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving practical series marks...';
+        } else if (status === 'saved') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-sky-400 border border-sky-500/40 opacity-100';
+            indicator.innerHTML = '<span>✓</span> Practical Series Auto-saved';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        } else if (status === 'error') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
+            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+    }
+
+    function saveSingleSeriesPrStudentMarks(regNo, test) {
+        const state = seriesPracticalEvalsState[regNo]?.[test];
+        if (!state) return;
+
         const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
         const bsId = {{ $batchSubject->id }};
- 
+
         fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
             method: 'POST',
             headers: {
@@ -5234,20 +5627,77 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'SUCCESS') {
+                showSeriesPrAutoSaveIndicator('saved');
+            } else {
+                showSeriesPrAutoSaveIndicator('error');
+            }
+        })
+        .catch(err => {
+            showSeriesPrAutoSaveIndicator('error');
+        });
+    }
+
+    function prevSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        if (!sel || sel.selectedIndex <= 0) return;
+        sel.selectedIndex--;
+        loadSeriesPrStudent(sel.value);
+    }
+
+    function nextSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
+        sel.selectedIndex++;
+        loadSeriesPrStudent(sel.value);
+    }
+
+    function saveAndNextSeriesPrStudent() {
+        const sel = document.getElementById('series-pr-student-select');
+        const regNo = sel.value;
+        const test = document.getElementById('series-pr-test-select').value;
+        if (!regNo || !test) return;
+
+        const state = seriesPracticalEvalsState[regNo][test];
+        const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
+        const bsId = {{ $batchSubject->id }};
+
+        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({
+                series_no: dbSeriesName,
+                marks_data: [{
+                    reg_no: regNo,
+                    writeup_procedure: state.writeup_procedure,
+                    setup_execution: state.setup_execution,
+                    observation_result: state.observation_result,
+                    viva_voce: state.viva_voce,
+                    record_completion: state.record_completion,
+                    is_absent: state.is_absent
+                }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                showSeriesPrAutoSaveIndicator('saved');
                 nextSeriesPrStudent();
             } else {
                 alert('Auto-save error: ' + data.message);
             }
         });
     }
- 
+
     function saveAllSeriesPrMarks() {
         const marksData = [];
         const test = document.getElementById('series-pr-test-select').value;
         if (!test) return;
- 
+
         const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
- 
+
         Object.keys(seriesPracticalEvalsState).forEach(regNo => {
             const state = seriesPracticalEvalsState[regNo][test];
             if (state) {
@@ -5262,14 +5712,14 @@
                 });
             }
         });
- 
+
         Swal.fire({
             title: 'Saving Series Test Marks...',
             text: `Saving scores for ${dbSeriesName}`,
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
- 
+
         fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/series-practical', {
             method: 'POST',
             headers: {
@@ -5297,262 +5747,557 @@
             Swal.fire('Error', err.message, 'error');
         });
     }
-        const eseSplitupState = {};
-        
-        studentsList.forEach(st => {
-            const currentTotal = parseFloat(st.ese_practical || 0);
-            if (currentTotal > 0) {
-                const factor = currentTotal / 40.0;
-                eseSplitupState[st.reg_no] = {
-                    writeup: Math.round(10 * factor * 2) / 2,
-                    setup: Math.round(10 * factor * 2) / 2,
-                    result: Math.round(8 * factor * 2) / 2,
-                    viva: Math.round(8 * factor * 2) / 2,
-                    record: Math.round(4 * factor * 2) / 2
-                };
+
+    // =====================================================================
+    // Institutional Practical End Semester Exam (ESE - 40 Marks) System
+    // =====================================================================
+    const eseSplitupState = {};
+    let eseAutoSaveTimers = {};
+
+    studentsList.forEach(st => {
+        const currentTotal = parseFloat(st.ese_practical || 0);
+        if (currentTotal > 0) {
+            const w = Math.round((currentTotal * 0.25) * 2) / 2;
+            const set = Math.round((currentTotal * 0.25) * 2) / 2;
+            const r = Math.round((currentTotal * 0.20) * 2) / 2;
+            const v = Math.round((currentTotal * 0.20) * 2) / 2;
+            const rec = Math.max(0, Math.round((currentTotal - (w + set + r + v)) * 2) / 2);
+            eseSplitupState[st.reg_no] = {
+                writeup: Math.min(10, w),
+                setup: Math.min(10, set),
+                result: Math.min(8, r),
+                viva: Math.min(8, v),
+                record: Math.min(4, rec),
+                total_score: currentTotal,
+                is_absent: false
+            };
+        } else {
+            eseSplitupState[st.reg_no] = {
+                writeup: 0, setup: 0, result: 0, viva: 0, record: 0,
+                total_score: 0, is_absent: false
+            };
+        }
+    });
+
+    function openEsePracticalModal() {
+        document.getElementById('ese-practical-modal').classList.remove('hidden');
+        const sel = document.getElementById('ese-student-select');
+        if (sel && sel.value) {
+            loadEseStudent(sel.value);
+        }
+    }
+
+    function closeEsePracticalModal() {
+        document.getElementById('ese-practical-modal').classList.add('hidden');
+    }
+
+    function openEseModalForStudent(regNo) {
+        const sel = document.getElementById('ese-student-select');
+        if (sel) sel.value = regNo;
+        openEsePracticalModal();
+    }
+
+    const eseRubrics = [
+        { key: 'writeup', label: '1. Procedure & Writeup', max: 10, step: 0.5 },
+        { key: 'setup', label: '2. Setup & Circuit Execution', max: 10, step: 0.5 },
+        { key: 'result', label: '3. Observation & Result', max: 8, step: 0.5 },
+        { key: 'viva', label: '4. Viva-Voce Examination', max: 8, step: 0.5 },
+        { key: 'record', label: '5. Record & Logbook', max: 4, step: 0.5 }
+    ];
+
+    function loadEseStudent(regNo) {
+        const student = studentsList.find(s => s.reg_no === regNo);
+        if (!student) return;
+
+        const container = document.getElementById('ese-sliders-container');
+        if (!container) return;
+
+        if (!eseSplitupState[regNo]) {
+            eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, total_score: 0, is_absent: false };
+        }
+
+        const state = eseSplitupState[regNo];
+
+        let html = `
+            <div class="flex items-center justify-between px-1 mb-1">
+                <div class="text-[11px] text-slate-300 font-semibold truncate">
+                    Candidate: <span class="text-white font-bold">#${student.roll_no} - ${student.name}</span> <span class="text-blue-400 font-mono text-[10px]">(${student.sbte_reg_no || student.reg_no})</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Component: <span class="text-blue-300 font-bold">Practical ESE (40M)</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        `;
+
+        eseRubrics.forEach(rub => {
+            const currentVal = state[rub.key] || 0;
+            html += `
+                <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 space-y-1.5 hover:border-slate-700 transition-all">
+                    <div class="flex justify-between items-center text-[11px] font-semibold">
+                        <span class="text-slate-300 truncate" title="${rub.label}">${rub.label}</span>
+                        <span class="text-slate-500 text-[10px] ml-1 flex-shrink-0">Max ${rub.max}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <input type="number" min="0" max="${rub.max}" step="${rub.step}" value="${parseFloat(currentVal).toFixed(1)}" id="ese-num-${rub.key}" oninput="syncEseInput('${regNo}', '${rub.key}', this.value, ${rub.max})" class="w-14 px-1 py-0.5 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-xs text-blue-400 text-center focus:border-blue-500 outline-none transition-all flex-shrink-0">
+                        <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', -${rub.step}, ${rub.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">-</button>
+                        <input type="range" id="ese-slider-${rub.key}" min="0" max="${rub.max}" step="${rub.step}" value="${currentVal}" oninput="syncEseSlider('${regNo}', '${rub.key}', this.value, ${rub.max})" class="flex-1 accent-blue-500 bg-slate-900 border border-slate-800 rounded h-1.5 outline-none cursor-pointer">
+                        <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', ${rub.step}, ${rub.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">+</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        // 6th card: Candidate Exam Status
+        html += `
+            <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
+                <div class="flex justify-between items-center text-[11px] font-semibold">
+                    <span class="text-slate-300">Candidate Exam Status</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full ${state.is_absent ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'}">${state.is_absent ? 'ABSENT' : 'PRESENT'}</span>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="ese-absent-check" ${state.is_absent ? 'checked' : ''} onchange="toggleEseAbsent('${regNo}', this.checked)" class="w-4 h-4 rounded border-slate-700 text-rose-600 focus:ring-rose-500">
+                        <span class="text-xs text-rose-300 font-semibold">Mark Absent (0/40)</span>
+                    </label>
+                    <span class="text-[10px] text-slate-500">SBTE Norms</span>
+                </div>
+            </div>
+        `;
+
+        html += `</div>`;
+        container.innerHTML = html;
+        calculateEseLiveTotal(regNo);
+    }
+
+    function syncEseSlider(regNo, key, val, maxVal) {
+        const num = Math.min(maxVal, Math.max(0, parseFloat(val) || 0));
+        if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+        eseSplitupState[regNo][key] = num;
+        eseSplitupState[regNo].is_absent = false;
+
+        const numInput = document.getElementById(`ese-num-${key}`);
+        if (numInput) numInput.value = num.toFixed(1);
+
+        const absCheck = document.getElementById('ese-absent-check');
+        if (absCheck) absCheck.checked = false;
+
+        calculateEseLiveTotal(regNo);
+        syncToEseTable(regNo, key, num);
+        triggerDebouncedEseAutoSave(regNo);
+    }
+
+    function syncEseInput(regNo, key, val, maxVal) {
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > maxVal) num = maxVal;
+
+        if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+        eseSplitupState[regNo][key] = num;
+        eseSplitupState[regNo].is_absent = false;
+
+        const slider = document.getElementById(`ese-slider-${key}`);
+        if (slider) slider.value = num;
+
+        const absCheck = document.getElementById('ese-absent-check');
+        if (absCheck) absCheck.checked = false;
+
+        calculateEseLiveTotal(regNo);
+        syncToEseTable(regNo, key, num);
+        triggerDebouncedEseAutoSave(regNo);
+    }
+
+    function stepEseSlider(regNo, key, delta, maxVal) {
+        const slider = document.getElementById(`ese-slider-${key}`);
+        if (!slider) return;
+
+        let current = parseFloat(slider.value) || 0;
+        let next = Math.max(0, Math.min(maxVal, Math.round((current + delta) * 2) / 2));
+        slider.value = next;
+        syncEseSlider(regNo, key, next, maxVal);
+    }
+
+    function toggleEseAbsent(regNo, checked) {
+        if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
+        const state = eseSplitupState[regNo];
+        state.is_absent = !!checked;
+
+        if (checked) {
+            state.writeup = 0;
+            state.setup = 0;
+            state.result = 0;
+            state.viva = 0;
+            state.record = 0;
+            state.total_score = 0;
+        } else {
+            state.total_score = (state.writeup || 0) +
+                                (state.setup || 0) +
+                                (state.result || 0) +
+                                (state.viva || 0) +
+                                (state.record || 0);
+        }
+
+        loadEseStudent(regNo);
+        syncAllToEseTableRow(regNo);
+        triggerDebouncedEseAutoSave(regNo);
+    }
+
+    function calculateEseLiveTotal(regNo) {
+        const data = eseSplitupState[regNo] || {};
+        const total = data.is_absent ? 0 : ((data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0));
+        data.total_score = total;
+
+        const rawElem = document.getElementById('ese-student-total-raw');
+        const gradeBadge = document.getElementById('ese-student-grade-badge');
+
+        if (rawElem) rawElem.innerText = `${total.toFixed(1)} / 40.00 Marks`;
+
+        const pct = (total / 40.0) * 100.0;
+        let grade = 'F';
+        let gClass = 'text-rose-400 bg-rose-500/20 border-rose-500/30';
+        if (pct >= 90) { grade = 'S'; gClass = 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30'; }
+        else if (pct >= 80) { grade = 'A'; gClass = 'text-blue-400 bg-blue-500/20 border-blue-500/30'; }
+        else if (pct >= 70) { grade = 'B'; gClass = 'text-sky-400 bg-blue-500/15 border-blue-500/30'; }
+        else if (pct >= 60) { grade = 'C'; gClass = 'text-sky-400 bg-sky-500/15 border-sky-500/30'; }
+        else if (pct >= 50) { grade = 'D'; gClass = 'text-amber-400 bg-amber-500/20 border-amber-500/30'; }
+        else if (pct >= 40) { grade = 'E'; gClass = 'text-orange-400 bg-orange-500/20 border-orange-500/30'; }
+
+        if (gradeBadge) {
+            gradeBadge.innerText = grade;
+            gradeBadge.className = `font-black text-sm px-3 py-0.5 rounded-full border ${gClass}`;
+        }
+
+        syncAllToEseTableRow(regNo);
+    }
+
+    function syncToEseTable(regNo, key, val) {
+        const tableInput = document.getElementById(`ese-input-${regNo}-${key}`);
+        if (tableInput) tableInput.value = parseFloat(val).toFixed(1);
+        syncAllToEseTableRow(regNo);
+    }
+
+    function syncAllToEseTableRow(regNo) {
+        const data = eseSplitupState[regNo] || {};
+        const total = data.is_absent ? 0 : ((data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0));
+
+        const elW = document.getElementById(`ese-input-${regNo}-writeup`);
+        if (elW) elW.value = (data.writeup || 0).toFixed(1);
+        const elS = document.getElementById(`ese-input-${regNo}-setup`);
+        if (elS) elS.value = (data.setup || 0).toFixed(1);
+        const elR = document.getElementById(`ese-input-${regNo}-result`);
+        if (elR) elR.value = (data.result || 0).toFixed(1);
+        const elV = document.getElementById(`ese-input-${regNo}-viva`);
+        if (elV) elV.value = (data.viva || 0).toFixed(1);
+        const elRec = document.getElementById(`ese-input-${regNo}-record`);
+        if (elRec) elRec.value = (data.record || 0).toFixed(1);
+
+        const elTot = document.getElementById(`ese-total-input-${regNo}`);
+        if (elTot) elTot.value = total.toFixed(1);
+
+        const pct = (total / 40.0) * 100.0;
+        let grade = 'F';
+        let gClass = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+        if (pct >= 90) { grade = 'S'; gClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'; }
+        else if (pct >= 80) { grade = 'A'; gClass = 'text-blue-400 bg-blue-500/10 border-blue-500/30'; }
+        else if (pct >= 70) { grade = 'B'; gClass = 'text-sky-400 bg-blue-500/10 border-blue-500/30'; }
+        else if (pct >= 60) { grade = 'C'; gClass = 'text-sky-400 bg-sky-500/10 border-sky-500/30'; }
+        else if (pct >= 50) { grade = 'D'; gClass = 'text-amber-400 bg-amber-500/10 border-amber-500/30'; }
+        else if (pct >= 40) { grade = 'E'; gClass = 'text-orange-400 bg-orange-500/10 border-orange-500/30'; }
+
+        const grEl = document.getElementById(`ese-grade-badge-${regNo}`);
+        if (grEl) {
+            grEl.innerText = grade;
+            grEl.className = `px-2.5 py-0.5 rounded-full border text-xs font-bold ${gClass}`;
+        }
+    }
+
+    function onEseTableInput(regNo, key, val) {
+        if (!eseSplitupState[regNo]) {
+            eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, total_score: 0, is_absent: false };
+        }
+
+        const maxMap = { writeup: 10, setup: 10, result: 8, viva: 8, record: 4 };
+        const maxVal = maxMap[key] || 10;
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > maxVal) num = maxVal;
+
+        const state = eseSplitupState[regNo];
+        state[key] = num;
+        state.is_absent = false;
+        state.total_score = (state.writeup || 0) + (state.setup || 0) + (state.result || 0) + (state.viva || 0) + (state.record || 0);
+
+        syncAllToEseTableRow(regNo);
+
+        // Sync modal if currently open for same student
+        const modalStudent = document.getElementById('ese-student-select')?.value;
+        if (modalStudent === regNo) {
+            const inputEl = document.getElementById(`ese-num-${key}`);
+            if (inputEl) inputEl.value = num.toFixed(1);
+            const sliderEl = document.getElementById(`ese-slider-${key}`);
+            if (sliderEl) sliderEl.value = num;
+            calculateEseLiveTotal(regNo);
+        }
+
+        triggerDebouncedEseAutoSave(regNo);
+    }
+
+    function onEseTableTotalInput(regNo, val) {
+        if (!eseSplitupState[regNo]) {
+            eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, total_score: 0, is_absent: false };
+        }
+
+        let num = parseFloat(val);
+        if (isNaN(num)) num = 0;
+        if (num < 0) num = 0;
+        if (num > 40) num = 40;
+
+        const state = eseSplitupState[regNo];
+        state.is_absent = false;
+        state.total_score = num;
+
+        // Scale proportionately: writeup: 25%, setup: 25%, result: 20%, viva: 20%, record: remainder
+        const w = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const set = Math.min(10, Math.round((num * 0.25) * 2) / 2);
+        const r = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const v = Math.min(8, Math.round((num * 0.20) * 2) / 2);
+        const rec = Math.min(4, Math.max(0, Math.round((num - (w + set + r + v)) * 2) / 2));
+
+        state.writeup = w;
+        state.setup = set;
+        state.result = r;
+        state.viva = v;
+        state.record = rec;
+
+        syncAllToEseTableRow(regNo);
+
+        // Sync modal if currently open for same student
+        const modalStudent = document.getElementById('ese-student-select')?.value;
+        if (modalStudent === regNo) {
+            loadEseStudent(regNo);
+        }
+
+        triggerDebouncedEseAutoSave(regNo);
+    }
+
+    function triggerDebouncedEseAutoSave(regNo) {
+        if (eseAutoSaveTimers[regNo]) {
+            clearTimeout(eseAutoSaveTimers[regNo]);
+        }
+        showEseAutoSaveIndicator('saving');
+        eseAutoSaveTimers[regNo] = setTimeout(() => {
+            saveSingleEseStudentMarks(regNo);
+        }, 750);
+    }
+
+    function showEseAutoSaveIndicator(status) {
+        let indicator = document.getElementById('ese-autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'ese-autosave-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        if (status === 'saving') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
+            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving practical ESE marks...';
+        } else if (status === 'saved') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-blue-400 border border-blue-500/40 opacity-100';
+            indicator.innerHTML = '<span>✓</span> Practical ESE Auto-saved';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        } else if (status === 'error') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
+            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+    }
+
+    function saveSingleEseStudentMarks(regNo) {
+        const state = eseSplitupState[regNo];
+        if (!state) return;
+
+        const totalScore = state.is_absent ? 0 : ((state.writeup || 0) + (state.setup || 0) + (state.result || 0) + (state.viva || 0) + (state.record || 0));
+        const bsId = {{ $batchSubject->id }};
+
+        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/ese`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({
+                marks_data: [{
+                    reg_no: regNo,
+                    ese_practical_marks: totalScore,
+                    practical_absent: state.is_absent
+                }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                showEseAutoSaveIndicator('saved');
             } else {
-                eseSplitupState[st.reg_no] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
+                showEseAutoSaveIndicator('error');
+            }
+        })
+        .catch(err => {
+            showEseAutoSaveIndicator('error');
+        });
+    }
+
+    function prevEseStudent() {
+        const sel = document.getElementById('ese-student-select');
+        if (!sel || sel.selectedIndex <= 0) return;
+        sel.selectedIndex--;
+        loadEseStudent(sel.value);
+    }
+
+    function nextEseStudent() {
+        const sel = document.getElementById('ese-student-select');
+        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
+        sel.selectedIndex++;
+        loadEseStudent(sel.value);
+    }
+
+    function saveAndNextEseStudent() {
+        const sel = document.getElementById('ese-student-select');
+        if (!sel) return;
+        const regNo = sel.value;
+        if (!regNo) return;
+
+        saveSingleEseStudentMarks(regNo);
+
+        if (sel.selectedIndex < sel.options.length - 1) {
+            sel.selectedIndex++;
+            loadEseStudent(sel.value);
+        } else {
+            Swal.fire('End of List', 'Reached last student in list.', 'info');
+        }
+    }
+
+    function saveAllEseMarks() {
+        const marksData = studentsList.map(st => {
+            const splitup = eseSplitupState[st.reg_no] || { writeup: 0, setup: 0, result: 0, viva: 0, record: 0, is_absent: false };
+            const totalScore = splitup.is_absent ? 0 : ((splitup.writeup || 0) + (splitup.setup || 0) + (splitup.result || 0) + (splitup.viva || 0) + (splitup.record || 0));
+            return {
+                reg_no: st.reg_no,
+                ese_practical_marks: totalScore,
+                practical_absent: splitup.is_absent
+            };
+        });
+
+        Swal.fire({
+            title: 'Saving Practical ESE Marks...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/ese', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({ marks_data: marksData })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                closeEsePracticalModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Saved Successfully!',
+                    text: 'Practical ESE marks and grades saved!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', data.message || 'Failed to save ESE marks', 'error');
+            }
+        })
+        .catch(err => Swal.fire('Error', err.message, 'error'));
+    }
+
+    function openEseTheoryModal() {
+        const modal = document.getElementById('ese-theory-modal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeEseTheoryModal() {
+        const modal = document.getElementById('ese-theory-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function saveAllEseTheoryGrades() {
+        const marksData = studentsList.map(st => {
+            const elem = document.getElementById('ese-theory-grade-' + st.reg_no);
+            return {
+                reg_no: st.reg_no,
+                ese_theory_grade: elem ? elem.value : ''
+            };
+        });
+
+        Swal.fire({
+            title: 'Saving Theory ESE Grades...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/ese', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({ marks_data: marksData })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                closeEseTheoryModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Saved Successfully!',
+                    text: 'Board Theory ESE grades saved!',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => window.location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Failed to save ESE grades', 'error');
+            }
+        })
+        .catch(err => Swal.fire('Error', err.message, 'error'));
+    }
+
+    function printSubtabReport(reportTitle, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const clone = container.cloneNode(true);
+        
+        // Replace input fields with readable text spans containing active values
+        const origInputs = container.querySelectorAll('input');
+        const cloneInputs = clone.querySelectorAll('input');
+        origInputs.forEach((orig, idx) => {
+            const cloneInput = cloneInputs[idx];
+            if (cloneInput) {
+                const span = document.createElement('span');
+                span.className = 'font-mono text-xs font-semibold text-black';
+                span.innerText = orig.value !== undefined ? orig.value : '';
+                cloneInput.parentNode.replaceChild(span, cloneInput);
             }
         });
 
-        function openEsePracticalModal() {
-            document.getElementById('ese-practical-modal').classList.remove('hidden');
-            const sel = document.getElementById('ese-student-select');
-            if (sel && sel.value) {
-                loadEseStudent(sel.value);
-            }
-        }
-
-        function closeEsePracticalModal() {
-            document.getElementById('ese-practical-modal').classList.add('hidden');
-        }
-
-        const eseRubrics = [
-            { key: 'writeup', label: 'Procedure & Writeup', max: 10 },
-            { key: 'setup', label: 'Setup & Circuit Execution', max: 10 },
-            { key: 'result', label: 'Observation & Result', max: 8 },
-            { key: 'viva', label: 'Viva-Voce Examination', max: 8 },
-            { key: 'record', label: 'Record & Logbook', max: 4 }
-        ];
-
-        function loadEseStudent(regNo) {
-            const container = document.getElementById('ese-sliders-container');
-            if (!container) return;
-
-            if (!eseSplitupState[regNo]) {
-                eseSplitupState[regNo] = { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
-            }
-
-            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
-
-            eseRubrics.forEach(rub => {
-                const currentVal = eseSplitupState[regNo][rub.key] || 0;
-                html += `
-                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-200 text-xs">${rub.label}</span>
-                            <span id="ese-badge-${rub.key}" class="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/20">
-                                ${parseFloat(currentVal).toFixed(1)} / ${rub.max}.0
-                            </span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', -0.5, ${rub.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">-</button>
-                            <input type="range" id="ese-slider-${rub.key}" min="0" max="${rub.max}" step="0.5" value="${currentVal}" oninput="syncEseSlider('${regNo}', '${rub.key}', this.value, ${rub.max})" class="flex-1 accent-emerald-400 h-2 bg-slate-800 rounded-lg cursor-pointer">
-                            <button type="button" onclick="stepEseSlider('${regNo}', '${rub.key}', 0.5, ${rub.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-extrabold text-white text-base shadow flex items-center justify-center">+</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += '</div>';
-            container.innerHTML = html;
-            calculateEseLiveTotal(regNo);
-        }
-
-        function syncEseSlider(regNo, key, val, maxVal) {
-            const num = Math.min(maxVal, Math.max(0, parseFloat(val) || 0));
-            if (!eseSplitupState[regNo]) eseSplitupState[regNo] = {};
-            eseSplitupState[regNo][key] = num;
-
-            const badge = document.getElementById(`ese-badge-${key}`);
-            if (badge) badge.innerText = `${num.toFixed(1)} / ${maxVal}.0`;
-
-            calculateEseLiveTotal(regNo);
-        }
-
-        function stepEseSlider(regNo, key, delta, maxVal) {
-            const slider = document.getElementById(`ese-slider-${key}`);
-            if (!slider) return;
-
-            let current = parseFloat(slider.value) || 0;
-            let next = Math.max(0, Math.min(maxVal, current + delta));
-            slider.value = next;
-            syncEseSlider(regNo, key, next, maxVal);
-        }
-
-        function calculateEseLiveTotal(regNo) {
-            const data = eseSplitupState[regNo] || {};
-            const total = (data.writeup || 0) + (data.setup || 0) + (data.result || 0) + (data.viva || 0) + (data.record || 0);
-
-            const rawElem = document.getElementById('ese-student-total-raw');
-            const gradeBadge = document.getElementById('ese-student-grade-badge');
-
-            if (rawElem) rawElem.innerText = `${Math.round(total)} / 40 Marks`;
-
-            const pct = (total / 40) * 100;
-            let grade = 'F';
-            let gClass = 'text-rose-400 bg-rose-500/20 border-rose-500/30';
-            if (pct >= 90) { grade = 'S'; gClass = 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30'; }
-            else if (pct >= 80) { grade = 'A'; gClass = 'text-blue-400 bg-blue-500/20 border-blue-500/30'; }
-            else if (pct >= 70) { grade = 'B'; gClass = 'text-sky-400 bg-blue-500/15 border-blue-500/30'; }
-            else if (pct >= 60) { grade = 'C'; gClass = 'text-sky-400 bg-sky-500/15 border-sky-500/30'; }
-            else if (pct >= 50) { grade = 'D'; gClass = 'text-amber-400 bg-amber-500/20 border-amber-500/30'; }
-            else if (pct >= 40) { grade = 'E'; gClass = 'text-orange-400 bg-orange-500/20 border-orange-500/30'; }
-
-            if (gradeBadge) {
-                gradeBadge.innerText = grade;
-                gradeBadge.className = `font-black text-base px-3 py-0.5 rounded-full border ${gClass}`;
-            }
-
-            const row = document.getElementById(`ese-row-${regNo}`);
-            if (row) {
-                const w = row.querySelector('.ese-val-writeup'); if (w) w.innerText = (data.writeup || 0).toFixed(1);
-                const s = row.querySelector('.ese-val-setup'); if (s) s.innerText = (data.setup || 0).toFixed(1);
-                const r = row.querySelector('.ese-val-result'); if (r) r.innerText = (data.result || 0).toFixed(1);
-                const v = row.querySelector('.ese-val-viva'); if (v) v.innerText = (data.viva || 0).toFixed(1);
-                const rec = row.querySelector('.ese-val-record'); if (rec) rec.innerText = (data.record || 0).toFixed(1);
-                const tot = row.querySelector('.ese-val-total'); if (tot) tot.innerText = Math.round(total);
-                const gr = row.querySelector('.ese-val-grade');
-                if (gr) gr.innerHTML = `<span class="px-2.5 py-0.5 rounded-full border text-xs font-bold ${gClass}">${grade}</span>`;
-            }
-        }
-
-        function prevEseStudent() {
-            const sel = document.getElementById('ese-student-select');
-            if (!sel || sel.selectedIndex <= 0) return;
-            sel.selectedIndex--;
-            loadEseStudent(sel.value);
-        }
-
-        function nextEseStudent() {
-            const sel = document.getElementById('ese-student-select');
-            if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
-            sel.selectedIndex++;
-            loadEseStudent(sel.value);
-        }
-
-        function saveAndNextEseStudent() {
-            const sel = document.getElementById('ese-student-select');
-            if (!sel) return;
-            if (sel.selectedIndex < sel.options.length - 1) {
-                sel.selectedIndex++;
-                loadEseStudent(sel.value);
-            } else {
-                Swal.fire('End of List', 'Reached last student in list.', 'info');
-            }
-        }
-
-        function saveAllEseMarks() {
-            const marksData = studentsList.map(st => {
-                const splitup = eseSplitupState[st.reg_no] || { writeup: 0, setup: 0, result: 0, viva: 0, record: 0 };
-                const totalScore = (splitup.writeup || 0) + (splitup.setup || 0) + (splitup.result || 0) + (splitup.viva || 0) + (splitup.record || 0);
-                return {
-                    reg_no: st.reg_no,
-                    ese_practical_marks: totalScore
-                };
-            });
-
-            Swal.fire({
-                title: 'Saving Practical ESE Marks...',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/ese', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ marks_data: marksData })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'SUCCESS') {
-                    closeEsePracticalModal();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Saved Successfully!',
-                        text: 'Practical ESE marks and grades saved!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to save ESE marks', 'error');
-                }
-            })
-            .catch(err => Swal.fire('Error', err.message, 'error'));
-        }
-
-        function openEseTheoryModal() {
-            const modal = document.getElementById('ese-theory-modal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeEseTheoryModal() {
-            const modal = document.getElementById('ese-theory-modal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function saveAllEseTheoryGrades() {
-            const marksData = studentsList.map(st => {
-                const elem = document.getElementById('ese-theory-grade-' + st.reg_no);
-                return {
-                    reg_no: st.reg_no,
-                    ese_theory_grade: elem ? elem.value : ''
-                };
-            });
-
-            Swal.fire({
-                title: 'Saving Theory ESE Grades...',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/ese', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ marks_data: marksData })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'SUCCESS') {
-                    closeEseTheoryModal();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Saved Successfully!',
-                        text: 'Board Theory ESE grades saved!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => window.location.reload());
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to save ESE grades', 'error');
-                }
-            })
-            .catch(err => Swal.fire('Error', err.message, 'error'));
-        }
-
-        function printSubtabReport(reportTitle, containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            const clone = container.cloneNode(true);
-            
-            // Remove non-printable elements, buttons, inputs, dropdowns, QP generator cards
-            clone.querySelectorAll('button, select, input, .no-print, #qp-gen-status').forEach(el => el.remove());
+        // Remove non-printable elements, buttons, inputs, dropdowns, QP generator cards
+        clone.querySelectorAll('button, select, input, .no-print, #qp-gen-status').forEach(el => el.remove());
 
             const collegeName = "CARMEL COLLEGE OF ENGINEERING & TECHNOLOGY, ALAPPUZHA";
             const branchName = @json(function_exists('getFullBranchName') ? getFullBranchName($classroom->department ?? $classroom->branch ?? '') : ($classroom->department ?? $classroom->branch));

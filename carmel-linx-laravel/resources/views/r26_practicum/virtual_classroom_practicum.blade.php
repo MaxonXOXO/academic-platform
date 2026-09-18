@@ -2055,12 +2055,44 @@
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
                         <h3 class="text-base font-normal text-white">Continuous Practical Evaluation (CE - 10 CIA Marks)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 2.2 Rubrics (Criteria 1 to 6 out of 50 Marks) converted to 10 CIA marks</p>
+                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 2.2 Rubrics (Criteria 1 to 6 out of 50 Marks) converted to 10 CIA marks &bull; Inline editable with auto-save</p>
                     </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openExperimentEvalModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 font-semibold text-xs shadow-sm transition-all">Evaluate Experiment</button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
+                            <label class="text-xs text-emerald-400 font-semibold whitespace-nowrap">🔬 Select Experiment:</label>
+                            <select id="eval-table-exp-select" onchange="onEvalTableExpChange(this.value)" class="bg-transparent text-emerald-300 font-bold text-xs outline-none cursor-pointer">
+                                @php
+                                    $evalExps = $practicumCourseFile->parsed_experiments ?? [];
+                                    if (is_string($evalExps)) $evalExps = json_decode($evalExps, true) ?: [];
+                                    if (empty($evalExps)) {
+                                        for ($i = 1; $i <= 10; $i++) {
+                                            $evalExps[] = ['code' => 'EXP-'.str_pad($i, 2, '0', STR_PAD_LEFT), 'title' => 'Lab Experiment '.$i];
+                                        }
+                                    }
+                                @endphp
+                                @foreach($evalExps as $eIdx => $e)
+                                @php
+                                    $eCode = $e['code'] ?? ($e['experiment_no'] ?? ('EXP-' . sprintf('%02d', $eIdx + 1)));
+                                    $eTitle = $e['title'] ?? ('Experiment ' . ($eIdx + 1));
+                                @endphp
+                                <option value="{{ $eCode }}" class="bg-slate-900 text-emerald-300">{{ $eCode }} - {{ \Illuminate\Support\Str::limit($eTitle, 35) }}</option>
+                                @endforeach
+                            </select>
                         </div>
+                        <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
+                        <button onclick="openExperimentEvalModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 font-semibold text-xs shadow-sm transition-all">Evaluate Experiment</button>
+                    </div>
+                </div>
+
+                <!-- Table 2.2 Rubrics Breakdown Info Banner -->
+                <div class="glass-card p-3 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-2 mb-4 text-xs">
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <span class="text-base">📋</span>
+                        <span><strong>Table 2.2 Rubric Weights:</strong> Prep (10M) + Setup (10M) + Observation (5M) + Analysis (10M) + Viva (10M) + Workmanship (5M) = <strong>50 Marks</strong> &rarr; Scaled to <strong>10 CIA Marks</strong></span>
+                    </div>
+                    <div class="text-[11px] text-emerald-400 font-mono">
+                        ⚡ Real-time debounced auto-save active
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -2070,41 +2102,110 @@
                                 <th class="p-2.5 w-12 text-center">Roll</th>
                                 <th class="p-2.5">SBTE Reg No</th>
                                 <th class="p-2.5">Student Name</th>
-                                <th class="p-2.5 text-center">Prep (10M)</th>
-                                <th class="p-2.5 text-center">Setup (10M)</th>
-                                <th class="p-2.5 text-center">Obs (5M)</th>
-                                <th class="p-2.5 text-center">Analysis (10M)</th>
-                                <th class="p-2.5 text-center">Viva (10M)</th>
-                                <th class="p-2.5 text-center">Work (5M)</th>
-                                <th class="p-2.5 text-center">Total Avg (/50)</th>
-                                <th class="p-2.5 text-center">Converted CIA (/10M)</th>
+                                <th class="p-2 text-center">Prep (10M)</th>
+                                <th class="p-2 text-center">Setup (10M)</th>
+                                <th class="p-2 text-center">Obs (5M)</th>
+                                <th class="p-2 text-center">Analysis (10M)</th>
+                                <th class="p-2 text-center">Viva (10M)</th>
+                                <th class="p-2 text-center">Work (5M)</th>
+                                <th class="p-2 text-center">Total (/50)</th>
+                                <th class="p-2 text-center">Converted CIA (/10M)</th>
+                                <th class="p-2 text-center w-12 no-print">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 font-normal text-xs">
+                        <tbody id="eval-table-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
+                            @php
+                                $firstExp = $evalExps[0] ?? null;
+                                $firstExpCode = $firstExp ? ($firstExp['code'] ?? ($firstExp['experiment_no'] ?? 'EXP-01')) : 'EXP-01';
+                            @endphp
                             @foreach($studentResults as $res)
                             @php
                                 $stExps = $experimentEvals->get($res['reg_no'], collect());
-                                $count = $stExps->count();
-                                $avgPrep = $count > 0 ? $stExps->avg('prep_punctuality') : 0;
-                                $avgSetup = $count > 0 ? $stExps->avg('setup_procedure') : 0;
-                                $avgObs = $count > 0 ? $stExps->avg('observation_recording') : 0;
-                                $avgAnalysis = $count > 0 ? $stExps->avg('analysis_interpretation') : 0;
-                                $avgViva = $count > 0 ? $stExps->avg('viva_voce') : 0;
-                                $avgWorkmanship = $count > 0 ? $stExps->avg('workmanship_discipline') : 0;
-                                $totalAvg50 = $avgPrep + $avgSetup + $avgObs + $avgAnalysis + $avgViva + $avgWorkmanship;
+                                $stExp = $stExps->where('experiment_no', $firstExpCode)->first();
+                                $prep = $stExp ? floatval($stExp->prep_punctuality) : 0;
+                                $setup = $stExp ? floatval($stExp->setup_procedure) : 0;
+                                $obs = $stExp ? floatval($stExp->observation_recording) : 0;
+                                $analysis = $stExp ? floatval($stExp->analysis_interpretation) : 0;
+                                $viva = $stExp ? floatval($stExp->viva_voce) : 0;
+                                $work = $stExp ? floatval($stExp->workmanship_discipline) : 0;
+                                $total50 = $stExp ? floatval($stExp->total_score_50) : ($prep + $setup + $obs + $analysis + $viva + $work);
+                                $cia = round((($total50 / 50.0) * 10.0) * 2) / 2;
                             @endphp
                             <tr class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2.5 text-center text-slate-300">{{ $res['roll_no'] }}</td>
-                                <td class="p-2.5 font-mono text-slate-300 font-bold">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 text-white">{{ $res['name'] }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgPrep, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgSetup, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgObs, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgAnalysis, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgViva, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-300">{{ number_format($avgWorkmanship, 1) }}</td>
-                                <td class="p-2.5 text-center text-slate-200">{{ number_format($totalAvg50, 2) }}</td>
-                                <td class="p-2.5 text-center text-amber-300">{{ number_format($res['continuous_eval_marks'], 1) }} / 10.0</td>
+                                <td class="p-2.5 text-center text-slate-300 font-mono">{{ $res['roll_no'] }}</td>
+                                <td class="p-2.5 font-mono text-slate-300 font-bold whitespace-nowrap">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2.5 text-white font-medium whitespace-nowrap">{{ $res['name'] }}</td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="10" step="0.5"
+                                           id="eval-cell-prep-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="prep_punctuality"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $prep > 0 ? number_format($prep, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="10" step="0.5"
+                                           id="eval-cell-setup-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="setup_procedure"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $setup > 0 ? number_format($setup, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="5" step="0.5"
+                                           id="eval-cell-obs-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="observation_recording"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $obs > 0 ? number_format($obs, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="10" step="0.5"
+                                           id="eval-cell-analysis-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="analysis_interpretation"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $analysis > 0 ? number_format($analysis, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="10" step="0.5"
+                                           id="eval-cell-viva-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="viva_voce"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $viva > 0 ? number_format($viva, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="5" step="0.5"
+                                           id="eval-cell-work-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}" data-field="workmanship_discipline"
+                                           oninput="onEvalTableInput(this)"
+                                           value="{{ $work > 0 ? number_format($work, 1) : 0 }}"
+                                           class="w-14 bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded px-1 py-1 text-center font-mono font-bold text-xs text-white outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="50" step="0.5"
+                                           id="eval-cell-total-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}"
+                                           oninput="onEvalTableTotalInput(this)"
+                                           value="{{ $total50 > 0 ? number_format($total50, 1) : 0 }}"
+                                           class="w-16 bg-slate-900 border border-emerald-500/40 focus:border-emerald-400 rounded px-1.5 py-1 text-center font-mono font-bold text-xs text-emerald-400 outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <input type="number" min="0" max="10" step="0.5"
+                                           id="eval-cell-cia-{{ $res['reg_no'] }}"
+                                           data-reg="{{ $res['reg_no'] }}"
+                                           oninput="onEvalTableCiaInput(this)"
+                                           value="{{ $cia > 0 ? number_format($cia, 1) : 0 }}"
+                                           class="w-16 bg-slate-900 border border-amber-500/40 focus:border-amber-400 rounded px-1.5 py-1 text-center font-mono font-bold text-xs text-amber-300 outline-none">
+                                </td>
+                                <td class="p-2 text-center no-print">
+                                    <button type="button" onclick="openExperimentEvalModalForStudent('{{ $res['reg_no'] }}')"
+                                            title="Open Evaluation Card (Modal)"
+                                            class="px-2 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all cursor-pointer">
+                                        ✏️
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -4704,77 +4805,78 @@
     <!-- ================================================================
          Continuous Lab Experiment Evaluation Modal
     ================================================================= -->
-    <div id="experiment-eval-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-2xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+    <div id="experiment-eval-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center hidden p-2 sm:p-4 md:p-6">
+        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-emerald-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-lg font-bold text-white">Continuous Lab Work Evaluator (Table 2.2)</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Grade the student on 6 criteria. Total is out of 50, automatically scaled to 10 CIA marks.</p>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🔬</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white leading-tight">Continuous Lab Work Evaluator (Table 2.2)</h3>
+                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 6 criteria (50 Marks) &bull; Automatically scaled to 10 CIA marks &bull; Auto-saved</p>
+                    </div>
                 </div>
-                <button onclick="closeExperimentEvalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="closeExperimentEvalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
  
             <!-- Selectors and Steppers -->
-            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-3 flex-shrink-0">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Select Experiment:</label>
-                    <select id="eval-exp-select" onchange="onEvalExpChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-normal text-xs text-emerald-400 outline-none w-full sm:max-w-xs focus:border-emerald-500">
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2 w-full sm:w-1/2">
+                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Experiment:</label>
+                    <select id="eval-exp-select" onchange="onEvalExpChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-emerald-400 font-semibold outline-none w-full focus:border-emerald-500 cursor-pointer">
                         @php
                             $evalExps = $practicumCourseFile->parsed_experiments ?? [];
                             if (is_string($evalExps)) $evalExps = json_decode($evalExps, true) ?: [];
+                            if (empty($evalExps)) {
+                                for ($i = 1; $i <= 10; $i++) {
+                                    $evalExps[] = ['code' => 'EXP-'.str_pad($i, 2, '0', STR_PAD_LEFT), 'title' => 'Lab Experiment '.$i];
+                                }
+                            }
                         @endphp
-                        @foreach($evalExps as $exp)
+                        @foreach($evalExps as $eIdx => $exp)
                         @php
-                            $expCodeVal = $exp['code'] ?? ($exp['experiment_no'] ?? '');
+                            $expCodeVal = $exp['code'] ?? ($exp['experiment_no'] ?? ('EXP-' . sprintf('%02d', $eIdx + 1)));
+                            $expTitleVal = $exp['title'] ?? ('Experiment ' . ($eIdx + 1));
                         @endphp
-                        <option value="{{ $expCodeVal }}">{{ $expCodeVal }} - {{ $exp['title'] ?? '' }}</option>
+                        <option value="{{ $expCodeVal }}">{{ $expCodeVal }} - {{ \Illuminate\Support\Str::limit($expTitleVal, 40) }}</option>
                         @endforeach
                     </select>
                 </div>
  
-                <div class="flex items-center justify-between gap-2">
-                    <button type="button" onclick="prevExpStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>◀ Prev</span>
-                    </button>
- 
-                    <div class="flex-1">
-                        <select id="eval-student-select" onchange="loadExpStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500">
-                            @foreach($studentResults as $idx => $res)
-                            <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
- 
-                    <button type="button" onclick="nextExpStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
-                        <span>Next ▶</span>
-                    </button>
+                <div class="flex items-center gap-1.5 w-full sm:w-1/2">
+                    <button type="button" onclick="prevExpStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
+                    <select id="eval-student-select" onchange="loadExpStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-bold text-xs text-white outline-none focus:border-emerald-500 cursor-pointer">
+                        @foreach($studentResults as $idx => $res)
+                        <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" onclick="nextExpStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
                 </div>
             </div>
  
-            <!-- Rubrics Form Card -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex-1 overflow-y-auto" id="exp-rubrics-container">
-                <!-- Javascript will populate sliders here -->
+            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="exp-rubrics-container">
+                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
             </div>
  
             <!-- Live Converted Result Display -->
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
-                <div>
-                    <span class="text-slate-400 font-semibold block">Total Evaluation Score:</span>
-                    <span id="exp-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 50.00 M</span>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-semibold text-xs">Total Evaluation Score:</span>
+                    <span id="exp-live-total" class="font-bold text-emerald-400 text-sm font-mono">0.00 / 50.00 M</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-slate-400 font-semibold block">CIA Marks:</span>
-                    <span id="exp-live-cia" class="font-bold text-amber-400 text-sm">0.00 / 10.00 M</span>
+                <div class="flex items-center gap-2 text-right">
+                    <span class="text-slate-400 font-semibold text-xs">Continuous Lab CIA:</span>
+                    <span id="exp-live-cia" class="font-bold text-amber-300 text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">0.00 / 10.00 M</span>
                 </div>
             </div>
  
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
-                <button type="button" onclick="closeExperimentEvalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700">Close</button>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+                <button type="button" onclick="closeExperimentEvalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextExpStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm">Next Student ▶</button>
-                    <button type="button" onclick="saveAllExpMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextExpStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
+                    <button type="button" onclick="saveAllExpMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -4848,11 +4950,30 @@
  
     <script>
     // =====================================================================
-    // Continuous Lab Experiment Evaluation System
+    // Continuous Lab Experiment Evaluation System (Table 2.2 Rubrics)
     // =====================================================================
     const experimentEvalsDb = @json($experimentEvals);
     const experimentEvalsState = {};
- 
+    let expAutoSaveTimers = {};
+
+    function getExpState(regNo, expNo) {
+        if (!experimentEvalsState[regNo]) {
+            experimentEvalsState[regNo] = {};
+        }
+        if (!experimentEvalsState[regNo][expNo]) {
+            experimentEvalsState[regNo][expNo] = {
+                prep_punctuality: 0,
+                setup_procedure: 0,
+                observation_recording: 0,
+                analysis_interpretation: 0,
+                viva_voce: 0,
+                workmanship_discipline: 0,
+                total_score_50: 0
+            };
+        }
+        return experimentEvalsState[regNo][expNo];
+    }
+
     // Initialize state
     studentsList.forEach(s => {
         const regNo = s.reg_no;
@@ -4872,149 +4993,391 @@
             };
         });
     });
- 
+
     function openExperimentEvalModal() {
         document.getElementById('experiment-eval-modal').classList.remove('hidden');
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        const modalExpSel = document.getElementById('eval-exp-select');
+        if (tableExpSel && modalExpSel && tableExpSel.value) {
+            modalExpSel.value = tableExpSel.value;
+        }
         const selectStudent = document.getElementById('eval-student-select');
         if (selectStudent && selectStudent.value) {
             loadExpStudent(selectStudent.value);
         }
     }
- 
+
+    function openExperimentEvalModalForStudent(regNo) {
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        const modalExpSel = document.getElementById('eval-exp-select');
+        if (tableExpSel && modalExpSel && tableExpSel.value) {
+            modalExpSel.value = tableExpSel.value;
+        }
+        const selectStudent = document.getElementById('eval-student-select');
+        if (selectStudent) {
+            selectStudent.value = regNo;
+        }
+        document.getElementById('experiment-eval-modal').classList.remove('hidden');
+        loadExpStudent(regNo);
+    }
+
     function closeExperimentEvalModal() {
         document.getElementById('experiment-eval-modal').classList.add('hidden');
     }
- 
+
     function onEvalExpChange(expNo) {
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        if (tableExpSel && tableExpSel.value !== expNo) {
+            tableExpSel.value = expNo;
+            onEvalTableExpChange(expNo);
+        }
         const selectStudent = document.getElementById('eval-student-select');
         if (selectStudent && selectStudent.value) {
             loadExpStudent(selectStudent.value);
         }
     }
- 
+
+    function onEvalTableExpChange(expNo) {
+        const modalExpSel = document.getElementById('eval-exp-select');
+        if (modalExpSel && modalExpSel.value !== expNo) {
+            modalExpSel.value = expNo;
+        }
+
+        studentsList.forEach(s => {
+            const regNo = s.reg_no;
+            const state = getExpState(regNo, expNo);
+
+            const prepInput = document.getElementById('eval-cell-prep-' + regNo);
+            const setupInput = document.getElementById('eval-cell-setup-' + regNo);
+            const obsInput = document.getElementById('eval-cell-obs-' + regNo);
+            const analysisInput = document.getElementById('eval-cell-analysis-' + regNo);
+            const vivaInput = document.getElementById('eval-cell-viva-' + regNo);
+            const workInput = document.getElementById('eval-cell-work-' + regNo);
+            const totalInput = document.getElementById('eval-cell-total-' + regNo);
+            const ciaInput = document.getElementById('eval-cell-cia-' + regNo);
+
+            const prep = parseFloat(state.prep_punctuality) || 0;
+            const setup = parseFloat(state.setup_procedure) || 0;
+            const obs = parseFloat(state.observation_recording) || 0;
+            const analysis = parseFloat(state.analysis_interpretation) || 0;
+            const viva = parseFloat(state.viva_voce) || 0;
+            const work = parseFloat(state.workmanship_discipline) || 0;
+            const total = parseFloat(state.total_score_50) || (prep + setup + obs + analysis + viva + work);
+            const cia = Math.round(((total / 50.0) * 10.0) * 2) / 2;
+
+            if (prepInput) prepInput.value = prep > 0 ? prep.toFixed(1) : '0';
+            if (setupInput) setupInput.value = setup > 0 ? setup.toFixed(1) : '0';
+            if (obsInput) obsInput.value = obs > 0 ? obs.toFixed(1) : '0';
+            if (analysisInput) analysisInput.value = analysis > 0 ? analysis.toFixed(1) : '0';
+            if (vivaInput) vivaInput.value = viva > 0 ? viva.toFixed(1) : '0';
+            if (workInput) workInput.value = work > 0 ? work.toFixed(1) : '0';
+            if (totalInput) totalInput.value = total > 0 ? total.toFixed(1) : '0';
+            if (ciaInput) ciaInput.value = cia > 0 ? cia.toFixed(1) : '0';
+        });
+
+        const modal = document.getElementById('experiment-eval-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            const selectStudent = document.getElementById('eval-student-select');
+            if (selectStudent && selectStudent.value) {
+                loadExpStudent(selectStudent.value);
+            }
+        }
+    }
+
     function loadExpStudent(regNo) {
         const student = studentsList.find(s => s.reg_no === regNo);
         if (!student) return;
- 
-        const expNo = document.getElementById('eval-exp-select').value;
+
+        const expSelect = document.getElementById('eval-exp-select');
+        const expNo = expSelect ? expSelect.value : 'EXP-01';
         if (!expNo) return;
- 
-        // Ensure state exists for this student/experiment
-        if (!experimentEvalsState[regNo][expNo]) {
-            experimentEvalsState[regNo][expNo] = {
-                prep_punctuality: 0,
-                setup_procedure: 0,
-                observation_recording: 0,
-                analysis_interpretation: 0,
-                viva_voce: 0,
-                workmanship_discipline: 0,
-                total_score_50: 0
-            };
-        }
- 
-        const state = experimentEvalsState[regNo][expNo];
+
+        const state = getExpState(regNo, expNo);
         const container = document.getElementById('exp-rubrics-container');
- 
+
         const criteria = [
             { label: '1. Prep & Punctuality', key: 'prep_punctuality', max: 10, step: 0.5 },
             { label: '2. Setup & Procedure', key: 'setup_procedure', max: 10, step: 0.5 },
-            { label: '3. Observation & Recording', key: 'observation_recording', max: 5, step: 0.5 },
+            { label: '3. Obs & Recording', key: 'observation_recording', max: 5, step: 0.5 },
             { label: '4. Analysis & Interpretation', key: 'analysis_interpretation', max: 10, step: 0.5 },
-            { label: '5. Viva Voce', key: 'viva_voce', max: 10, step: 0.5 },
+            { label: '5. Viva-Voce', key: 'viva_voce', max: 10, step: 0.5 },
             { label: '6. Workmanship & Discipline', key: 'workmanship_discipline', max: 5, step: 0.5 }
         ];
- 
+
         let html = `
-            <div class="mb-2 text-xs text-slate-400 font-semibold uppercase">Grading criteria for: ${student.name}</div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-1 px-1">
+                <span class="font-bold text-slate-300">Grading criteria for: <span class="text-white">${student.name}</span> (#${student.roll_no})</span>
+                <span class="text-[11px] text-emerald-400 font-mono font-semibold">Experiment: ${expNo}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         `;
- 
+
         criteria.forEach(c => {
-            const val = state[c.key] || 0;
+            const val = parseFloat(state[c.key]) || 0;
             html += `
-                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="flex justify-between items-center text-xs font-semibold">
-                        <span class="text-slate-350">${c.label} (Max ${c.max})</span>
-                        <span class="text-emerald-400 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded" id="exp-val-badge-${c.key}">${val.toFixed(1)}</span>
+                <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 flex flex-col justify-between gap-1.5 shadow-sm">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-semibold text-[11px] truncate" title="${c.label}">${c.label}</span>
+                        <span class="text-[10px] text-slate-500 font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">Max ${c.max}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="adjustExpVal('${c.key}', -${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-750 font-black text-white flex items-center justify-center transition-all">-</button>
-                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="exp-slider-${c.key}" oninput="syncExpSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-emerald-500 bg-slate-900 border border-slate-750 rounded-lg h-2 outline-none">
-                        <button type="button" onclick="adjustExpVal('${c.key}', ${c.step}, ${c.max})" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 font-black text-white flex items-center justify-center transition-all">+</button>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="adjustExpVal('${c.key}', -${c.step}, ${c.max})" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 font-bold text-slate-200 flex items-center justify-center transition-all cursor-pointer text-sm">-</button>
+                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="exp-slider-${c.key}" oninput="syncExpSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-emerald-500 bg-slate-900 border border-slate-750 rounded-lg h-1.5 outline-none cursor-pointer">
+                        <button type="button" onclick="adjustExpVal('${c.key}', ${c.step}, ${c.max})" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 font-bold text-slate-200 flex items-center justify-center transition-all cursor-pointer text-sm">+</button>
+                        <input type="number" min="0" max="${c.max}" step="${c.step}" value="${val.toFixed(1)}" id="exp-num-${c.key}" oninput="syncExpNumberInput('${c.key}', this.value, ${c.max})" class="w-14 bg-slate-900 border border-emerald-500/40 rounded px-1 py-0.5 text-center font-mono font-bold text-xs text-emerald-400 focus:border-emerald-400 outline-none">
                     </div>
                 </div>
             `;
         });
- 
+
+        html += `</div>`;
         container.innerHTML = html;
         updateExpLiveDisplay(regNo, expNo);
     }
- 
+
     function syncExpSlider(key, val, max) {
-        const num = parseFloat(val) || 0;
-        const regNo = document.getElementById('eval-student-select').value;
-        const expNo = document.getElementById('eval-exp-select').value;
+        const num = Math.max(0, Math.min(max, parseFloat(val) || 0));
+        const sel = document.getElementById('eval-student-select');
+        const regNo = sel ? sel.value : null;
+        const expSelect = document.getElementById('eval-exp-select');
+        const expNo = expSelect ? expSelect.value : null;
         if (!regNo || !expNo) return;
- 
-        experimentEvalsState[regNo][expNo][key] = num;
- 
-        const badge = document.getElementById(`exp-val-badge-${key}`);
-        if (badge) badge.innerText = num.toFixed(1);
- 
+
+        const state = getExpState(regNo, expNo);
+        state[key] = num;
+
+        const numInput = document.getElementById(`exp-num-${key}`);
+        if (numInput) numInput.value = num.toFixed(1);
+
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        if (tableExpSel && tableExpSel.value === expNo) {
+            const tableField = (key === 'prep_punctuality') ? 'prep' :
+                               (key === 'setup_procedure') ? 'setup' :
+                               (key === 'observation_recording') ? 'obs' :
+                               (key === 'analysis_interpretation') ? 'analysis' :
+                               (key === 'viva_voce') ? 'viva' : 'work';
+            const cell = document.getElementById(`eval-cell-${tableField}-${regNo}`);
+            if (cell) cell.value = num.toFixed(1);
+        }
+
         updateExpLiveDisplay(regNo, expNo);
+        triggerDebouncedExpAutoSave(regNo, expNo);
     }
- 
+
+    function syncExpNumberInput(key, val, max) {
+        const num = Math.max(0, Math.min(max, parseFloat(val) || 0));
+        const sel = document.getElementById('eval-student-select');
+        const regNo = sel ? sel.value : null;
+        const expSelect = document.getElementById('eval-exp-select');
+        const expNo = expSelect ? expSelect.value : null;
+        if (!regNo || !expNo) return;
+
+        const state = getExpState(regNo, expNo);
+        state[key] = num;
+
+        const slider = document.getElementById(`exp-slider-${key}`);
+        if (slider) slider.value = num;
+
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        if (tableExpSel && tableExpSel.value === expNo) {
+            const tableField = (key === 'prep_punctuality') ? 'prep' :
+                               (key === 'setup_procedure') ? 'setup' :
+                               (key === 'observation_recording') ? 'obs' :
+                               (key === 'analysis_interpretation') ? 'analysis' :
+                               (key === 'viva_voce') ? 'viva' : 'work';
+            const cell = document.getElementById(`eval-cell-${tableField}-${regNo}`);
+            if (cell) cell.value = num.toFixed(1);
+        }
+
+        updateExpLiveDisplay(regNo, expNo);
+        triggerDebouncedExpAutoSave(regNo, expNo);
+    }
+
     function adjustExpVal(key, delta, max) {
         const slider = document.getElementById(`exp-slider-${key}`);
         if (!slider) return;
- 
+
         let current = parseFloat(slider.value) || 0;
         let next = Math.max(0, Math.min(max, current + delta));
         slider.value = next;
         syncExpSlider(key, next, max);
     }
- 
+
     function updateExpLiveDisplay(regNo, expNo) {
-        const state = experimentEvalsState[regNo][expNo];
-        if (!state) return;
- 
-        const total = (state.prep_punctuality || 0) +
-                      (state.setup_procedure || 0) +
-                      (state.observation_recording || 0) +
-                      (state.analysis_interpretation || 0) +
-                      (state.viva_voce || 0) +
-                      (state.workmanship_discipline || 0);
- 
+        const state = getExpState(regNo, expNo);
+
+        const total = (parseFloat(state.prep_punctuality) || 0) +
+                      (parseFloat(state.setup_procedure) || 0) +
+                      (parseFloat(state.observation_recording) || 0) +
+                      (parseFloat(state.analysis_interpretation) || 0) +
+                      (parseFloat(state.viva_voce) || 0) +
+                      (parseFloat(state.workmanship_discipline) || 0);
+
         state.total_score_50 = total;
- 
         const cia = Math.round(((total / 50.0) * 10.0) * 2) / 2;
- 
-        document.getElementById('exp-live-total').innerText = `${total.toFixed(1)} / 50.0 M`;
-        document.getElementById('exp-live-cia').innerText = `${cia.toFixed(1)} / 10.0 M`;
+
+        const totalEl = document.getElementById('exp-live-total');
+        const ciaEl = document.getElementById('exp-live-cia');
+        if (totalEl) totalEl.innerText = `${total.toFixed(1)} / 50.00 M`;
+        if (ciaEl) ciaEl.innerText = `${cia.toFixed(1)} / 10.00 M`;
+
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        if (tableExpSel && tableExpSel.value === expNo) {
+            const rowTotal = document.getElementById('eval-cell-total-' + regNo);
+            const rowCia = document.getElementById('eval-cell-cia-' + regNo);
+            if (rowTotal) rowTotal.value = total.toFixed(1);
+            if (rowCia) rowCia.value = cia.toFixed(1);
+        }
     }
- 
-    function prevExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        if (!sel || sel.selectedIndex <= 0) return;
-        sel.selectedIndex--;
-        loadExpStudent(sel.value);
+
+    function onEvalTableInput(input) {
+        const regNo = input.dataset.reg;
+        const field = input.dataset.field;
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        const expNo = tableExpSel ? tableExpSel.value : 'EXP-01';
+
+        const state = getExpState(regNo, expNo);
+        let max = (field === 'observation_recording' || field === 'workmanship_discipline') ? 5 : 10;
+        let val = Math.max(0, Math.min(max, parseFloat(input.value) || 0));
+        state[field] = val;
+
+        const total = (parseFloat(state.prep_punctuality) || 0) +
+                      (parseFloat(state.setup_procedure) || 0) +
+                      (parseFloat(state.observation_recording) || 0) +
+                      (parseFloat(state.analysis_interpretation) || 0) +
+                      (parseFloat(state.viva_voce) || 0) +
+                      (parseFloat(state.workmanship_discipline) || 0);
+        state.total_score_50 = total;
+        const cia = Math.round(((total / 50.0) * 10.0) * 2) / 2;
+
+        const totalInput = document.getElementById('eval-cell-total-' + regNo);
+        const ciaInput = document.getElementById('eval-cell-cia-' + regNo);
+        if (totalInput) totalInput.value = total.toFixed(1);
+        if (ciaInput) ciaInput.value = cia.toFixed(1);
+
+        const modal = document.getElementById('experiment-eval-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            const selStudent = document.getElementById('eval-student-select');
+            const modalExp = document.getElementById('eval-exp-select');
+            if (selStudent && selStudent.value === regNo && modalExp && modalExp.value === expNo) {
+                const slider = document.getElementById('exp-slider-' + field);
+                const numInput = document.getElementById('exp-num-' + field);
+                if (slider) slider.value = val;
+                if (numInput) numInput.value = val.toFixed(1);
+                updateExpLiveDisplay(regNo, expNo);
+            }
+        }
+
+        triggerDebouncedExpAutoSave(regNo, expNo);
     }
- 
-    function nextExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
-        sel.selectedIndex++;
-        loadExpStudent(sel.value);
+
+    function onEvalTableTotalInput(input) {
+        const regNo = input.dataset.reg;
+        const tableExpSel = document.getElementById('eval-table-exp-select');
+        const expNo = tableExpSel ? tableExpSel.value : 'EXP-01';
+
+        let total = Math.max(0, Math.min(50, parseFloat(input.value) || 0));
+        const state = getExpState(regNo, expNo);
+        state.total_score_50 = total;
+
+        const p1 = Math.round((total * 0.20) * 2) / 2; // prep (max 10)
+        const p2 = Math.round((total * 0.20) * 2) / 2; // setup (max 10)
+        const p3 = Math.round((total * 0.10) * 2) / 2; // obs (max 5)
+        const p4 = Math.round((total * 0.20) * 2) / 2; // analysis (max 10)
+        const p5 = Math.round((total * 0.20) * 2) / 2; // viva (max 10)
+        let p6 = Math.max(0, Math.round((total - (p1 + p2 + p3 + p4 + p5)) * 2) / 2); // work (max 5)
+        if (p6 > 5) p6 = 5;
+
+        state.prep_punctuality = p1;
+        state.setup_procedure = p2;
+        state.observation_recording = p3;
+        state.analysis_interpretation = p4;
+        state.viva_voce = p5;
+        state.workmanship_discipline = p6;
+
+        const prepInput = document.getElementById('eval-cell-prep-' + regNo);
+        const setupInput = document.getElementById('eval-cell-setup-' + regNo);
+        const obsInput = document.getElementById('eval-cell-obs-' + regNo);
+        const analysisInput = document.getElementById('eval-cell-analysis-' + regNo);
+        const vivaInput = document.getElementById('eval-cell-viva-' + regNo);
+        const workInput = document.getElementById('eval-cell-work-' + regNo);
+        const ciaInput = document.getElementById('eval-cell-cia-' + regNo);
+
+        if (prepInput) prepInput.value = p1.toFixed(1);
+        if (setupInput) setupInput.value = p2.toFixed(1);
+        if (obsInput) obsInput.value = p3.toFixed(1);
+        if (analysisInput) analysisInput.value = p4.toFixed(1);
+        if (vivaInput) vivaInput.value = p5.toFixed(1);
+        if (workInput) workInput.value = p6.toFixed(1);
+
+        const cia = Math.round(((total / 50.0) * 10.0) * 2) / 2;
+        if (ciaInput) ciaInput.value = cia.toFixed(1);
+
+        const modal = document.getElementById('experiment-eval-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            const selStudent = document.getElementById('eval-student-select');
+            const modalExp = document.getElementById('eval-exp-select');
+            if (selStudent && selStudent.value === regNo && modalExp && modalExp.value === expNo) {
+                loadExpStudent(regNo);
+            }
+        }
+
+        triggerDebouncedExpAutoSave(regNo, expNo);
     }
- 
-    function saveAndNextExpStudent() {
-        const sel = document.getElementById('eval-student-select');
-        const regNo = sel.value;
-        const expNo = document.getElementById('eval-exp-select').value;
-        if (!regNo || !expNo) return;
- 
-        const state = experimentEvalsState[regNo][expNo];
+
+    function onEvalTableCiaInput(input) {
+        const regNo = input.dataset.reg;
+        let cia = Math.max(0, Math.min(10, parseFloat(input.value) || 0));
+        let total = Math.min(50, cia * 5.0);
+
+        const totalInput = document.getElementById('eval-cell-total-' + regNo);
+        if (totalInput) totalInput.value = total.toFixed(1);
+
+        onEvalTableTotalInput({ dataset: { reg: regNo }, value: total });
+    }
+
+    function triggerDebouncedExpAutoSave(regNo, expNo) {
+        const timerKey = `${regNo}_${expNo}`;
+        if (expAutoSaveTimers[timerKey]) {
+            clearTimeout(expAutoSaveTimers[timerKey]);
+        }
+        showExpAutoSaveIndicator('saving');
+
+        expAutoSaveTimers[timerKey] = setTimeout(() => {
+            saveSingleExpStudentMarks(regNo, expNo);
+        }, 750);
+    }
+
+    function showExpAutoSaveIndicator(status) {
+        let indicator = document.getElementById('exp-autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'exp-autosave-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        if (status === 'saving') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
+            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving Continuous Lab marks...';
+        } else if (status === 'saved') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-emerald-400 border border-emerald-500/40 opacity-100';
+            indicator.innerHTML = '<span>✓</span> Continuous Lab Auto-saved';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        } else if (status === 'error') {
+            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
+            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
+            setTimeout(() => {
+                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+    }
+
+    function saveSingleExpStudentMarks(regNo, expNo) {
+        const state = getExpState(regNo, expNo);
         const bsId = {{ $batchSubject->id }};
- 
+
         fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/experiment`, {
             method: 'POST',
             headers: {
@@ -5038,11 +5401,39 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'SUCCESS') {
-                nextExpStudent();
+                showExpAutoSaveIndicator('saved');
             } else {
-                alert('Auto-save error: ' + data.message);
+                showExpAutoSaveIndicator('error');
             }
+        })
+        .catch(err => {
+            showExpAutoSaveIndicator('error');
         });
+    }
+
+    function prevExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        if (!sel || sel.selectedIndex <= 0) return;
+        sel.selectedIndex--;
+        loadExpStudent(sel.value);
+    }
+
+    function nextExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
+        sel.selectedIndex++;
+        loadExpStudent(sel.value);
+    }
+
+    function saveAndNextExpStudent() {
+        const sel = document.getElementById('eval-student-select');
+        const regNo = sel ? sel.value : null;
+        const expSelect = document.getElementById('eval-exp-select');
+        const expNo = expSelect ? expSelect.value : null;
+        if (!regNo || !expNo) return;
+
+        saveSingleExpStudentMarks(regNo, expNo);
+        nextExpStudent();
     }
  
     function saveAllExpMarks() {

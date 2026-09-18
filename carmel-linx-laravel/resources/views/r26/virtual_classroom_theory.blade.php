@@ -8,6 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- Google Icons & Fonts -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -2160,6 +2162,9 @@
 
       if (tabId === 'reports') {
         document.querySelectorAll('.student-ese-row').forEach(row => updateEseRowTotals(row));
+      }
+      if (tabId === 'materials' && typeof loadSubjectMaterials === 'function') {
+        loadSubjectMaterials();
       }
     }
 

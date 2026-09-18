@@ -1310,7 +1310,9 @@
                 </div>
             </div>
 
-            @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practical'])
+            <div id="tab-materials" class="tab-content hidden space-y-4">
+                @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practical'])
+            </div>
 
         </section>
 

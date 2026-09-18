@@ -1,18 +1,18 @@
 <!-- TAB: STUDY MATERIALS & PRE-CLASS HUB -->
-<div class="tab-panel tab-content bg-panel border border-slate-800/80 rounded-xl p-5 shadow-md space-y-5">
+<div class="bg-panel border border-slate-800/80 rounded-xl p-5 shadow-md space-y-5">
   
   <!-- Header Bar -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/50 pb-3 gap-3">
     <div>
       <h3 class="text-base font-bold text-title flex items-center gap-2">
-        <i class="fa-solid fa-folder-open text-amber-400"></i>
-        Study Materials & Pre-Class / Pre-Lab Hub
+        <span class="material-symbols-rounded text-amber-400 text-xl">folder_open</span>
+        <span>Study Materials & Pre-Class / Pre-Lab Hub</span>
       </h3>
       <p class="text-xs text-muted mt-1">Publish lecture notes, PDFs, diagram images, and video clips for students with evening pre-class notifications.</p>
     </div>
     <button onclick="toggleMaterialUploadForm(this)" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer">
-      <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
-      Publish New Material
+      <span class="material-symbols-rounded text-sm">cloud_upload</span>
+      <span>Publish New Material</span>
     </button>
   </div>
 
@@ -20,8 +20,8 @@
   <div id="materialUploadFormPanel" class="materialUploadFormPanel bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-4 hidden">
     <div class="flex justify-between items-center border-b border-slate-800 pb-2">
       <h4 class="font-bold text-title text-xs uppercase tracking-wider flex items-center gap-1.5">
-        <i class="fa-solid fa-circle-plus text-sky-400 text-sm"></i>
-        Publish Resource / Pre-Class Guidelines
+        <span class="material-symbols-rounded text-sky-400 text-sm">add_circle</span>
+        <span>Publish Resource / Pre-Class Guidelines</span>
       </h4>
       <button onclick="toggleMaterialUploadForm()" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Close</button>
     </div>
@@ -94,8 +94,8 @@
       <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
         <button type="button" onclick="toggleMaterialUploadForm()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold cursor-pointer">Cancel</button>
         <button type="submit" id="btnSubmitMaterial" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5">
-          <i class="fa-solid fa-paper-plane text-xs"></i>
-          Publish Now
+          <span class="material-symbols-rounded text-xs">send</span>
+          <span>Publish Now</span>
         </button>
       </div>
     </form>
@@ -105,11 +105,12 @@
   <div class="bg-panel border border-card rounded-xl p-4 space-y-3">
     <div class="flex justify-between items-center border-b border-card pb-2">
       <h4 class="font-bold text-title text-sm flex items-center gap-1.5">
-        <i class="fa-solid fa-list-check text-emerald-400 text-base"></i>
-        Published Learning Resources & Pre-Class Log
+        <span class="material-symbols-rounded text-emerald-400 text-base">checklist</span>
+        <span>Published Learning Resources & Pre-Class Log</span>
       </h4>
       <button onclick="loadSubjectMaterials()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer">
-        <i class="fa-solid fa-rotate-right text-xs"></i> Reload
+        <span class="material-symbols-rounded text-xs">refresh</span>
+        <span>Reload</span>
       </button>
     </div>
 
@@ -126,9 +127,58 @@
           </tr>
         </thead>
         <tbody id="materialsTableBody" class="vlm-table-body divide-y divide-card text-sm font-normal">
-          <tr>
-            <td colspan="6" class="p-6 text-center text-muted italic">Loading materials...</td>
-          </tr>
+          @if(isset($studyMaterials) && count($studyMaterials) > 0)
+            @foreach($studyMaterials as $m)
+              <tr class="hover:bg-slate-900/30 transition-all">
+                <td class="p-3 pl-4 font-bold text-emerald-400 text-xs">{{ $m->experiment_or_topic_no }}</td>
+                <td class="p-3">
+                  <p class="font-bold text-title text-xs">{{ $m->title }}</p>
+                  @if($m->pre_class_instruction)
+                    <p class="text-[11px] text-muted mt-0.5">{{ $m->pre_class_instruction }}</p>
+                  @endif
+                </td>
+                <td class="p-3 text-center">
+                  @if($m->material_type === 'video')
+                    <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>
+                  @elseif($m->material_type === 'image')
+                    <span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-bold text-xs">Image</span>
+                  @elseif($m->material_type === 'link')
+                    <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold text-xs">Link</span>
+                  @else
+                    <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded font-bold text-xs">PDF</span>
+                  @endif
+                </td>
+                <td class="p-3 text-center font-mono text-xs text-title">{{ $m->target_date ? substr($m->target_date, 0, 10) : '—' }}</td>
+                <td class="p-3 text-center">
+                  @if($m->is_pre_class_notice)
+                    <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded font-bold text-[10px]">⚡ Urgent Alert</span>
+                  @else
+                    <span class="text-slate-400 text-xs">Standard</span>
+                  @endif
+                </td>
+                <td class="p-3 pr-4 text-right flex justify-end gap-1.5 items-center">
+                  @if($m->file_path)
+                    <a href="{{ $m->file_path }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all no-underline flex items-center gap-1">
+                      <span class="material-symbols-rounded text-xs">visibility</span>
+                      <span>Preview</span>
+                    </a>
+                  @elseif($m->video_url)
+                    <button onclick="openVlmVideoModal('{{ addslashes($m->title) }}', '{{ $m->video_url }}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1">
+                      <span class="material-symbols-rounded text-xs">play_circle</span>
+                      <span>Watch</span>
+                    </button>
+                  @endif
+                  <button onclick="deleteSubjectMaterial({{ $m->id }})" class="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded cursor-pointer" title="Delete Material">
+                    <span class="material-symbols-rounded text-sm">delete</span>
+                  </button>
+                </td>
+              </tr>
+            @endforeach
+          @else
+            <tr>
+              <td colspan="6" class="p-6 text-center text-muted italic">No study materials published yet. Click "Publish New Material" above to upload lecture notes or videos.</td>
+            </tr>
+          @endif
         </tbody>
       </table>
     </div>
@@ -210,7 +260,7 @@
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i> Publish Now';
+        btn.innerHTML = '<span class="material-symbols-rounded text-xs">send</span> Publish Now';
       }
     }
   }
@@ -225,7 +275,7 @@
       const res = await resp.json();
 
       let html = '';
-      if (res.status === 'SUCCESS' && res.materials.length > 0) {
+      if (res.status === 'SUCCESS' && res.materials && res.materials.length > 0) {
         res.materials.forEach(m => {
           let typeBadge = '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded font-bold text-xs">PDF</span>';
           if (m.material_type === 'video') typeBadge = '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-bold text-xs">Video</span>';
@@ -236,9 +286,9 @@
 
           let actionBtn = '';
           if (m.file_path) {
-            actionBtn = `<a href="${m.file_path}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all">Preview File</a>`;
+            actionBtn = `<a href="${m.file_path}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-bold border border-slate-700 transition-all no-underline flex items-center gap-1"><span class="material-symbols-rounded text-xs">visibility</span> Preview</a>`;
           } else if (m.video_url) {
-            actionBtn = `<button onclick="openVlmVideoModal('${m.title.replace(/'/g, "\\'")}', '${m.video_url}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm">Watch Video</button>`;
+            actionBtn = `<button onclick="openVlmVideoModal('${m.title.replace(/'/g, "\\'")}', '${m.video_url}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1"><span class="material-symbols-rounded text-xs">play_circle</span> Watch</button>`;
           }
 
           html += `
@@ -254,7 +304,7 @@
               <td class="p-3 pr-4 text-right flex justify-end gap-1.5 items-center">
                 ${actionBtn}
                 <button onclick="deleteSubjectMaterial(${m.id})" class="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded cursor-pointer" title="Delete Material">
-                  <i class="fa-solid fa-trash-can text-sm"></i>
+                  <span class="material-symbols-rounded text-sm">delete</span>
                 </button>
               </td>
             </tr>

@@ -283,7 +283,11 @@ class R26ClassroomController extends Controller
             ];
         });
 
-        return view('r26.virtual_classroom_theory', compact('batchSubject', 'classroom', 'students', 'courseFile', 'lessonPlans', 'studentCiaData', 'selfLearningConfigs', 'seriesExams'));
+        $studyMaterials = \App\Models\VirtualLearningMaterial::where('batch_subject_id', $subjectId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('r26.virtual_classroom_theory', compact('batchSubject', 'classroom', 'students', 'courseFile', 'lessonPlans', 'studentCiaData', 'selfLearningConfigs', 'seriesExams', 'studyMaterials'));
     }
 
     /**

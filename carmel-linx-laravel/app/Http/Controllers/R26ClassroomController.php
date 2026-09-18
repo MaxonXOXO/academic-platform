@@ -454,14 +454,22 @@ class R26ClassroomController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
         }
 
+        $deletedIds = $request->input('deleted_ids', []);
+        if (!empty($deletedIds)) {
+            LessonPlan::whereIn('id', $deletedIds)
+                ->where('batch_subject_id', $subjectId)
+                ->delete();
+        }
+
         $rows = $request->input('rows', []);
         $updated = 0;
+        $createdMappings = [];
         foreach ($rows as $row) {
             $id = $row['id'] ?? null;
             if (!$id) continue;
 
             if (str_starts_with((string)$id, 'new_')) {
-                LessonPlan::create([
+                $newPlan = LessonPlan::create([
                     'batch_subject_id' => $subjectId,
                     'day_no'           => $row['day_no'] ?? 1,
                     'co_id'            => $row['co_id'] ?? 'CO1',
@@ -473,6 +481,7 @@ class R26ClassroomController extends Controller
                     'actual_date'      => $row['actual_date'] ?? null,
                     'status'           => $row['status'] ?? 'Pending'
                 ]);
+                $createdMappings[$id] = $newPlan->id;
                 $updated++;
                 continue;
             }
@@ -496,7 +505,11 @@ class R26ClassroomController extends Controller
             $updated++;
         }
 
-        return response()->json(['status' => 'SUCCESS', 'message' => "{$updated} lesson plan rows saved successfully."]);
+        return response()->json([
+            'status' => 'SUCCESS', 
+            'message' => "{$updated} lesson plan rows saved successfully.",
+            'created_mappings' => $createdMappings
+        ]);
     }
 
     /**

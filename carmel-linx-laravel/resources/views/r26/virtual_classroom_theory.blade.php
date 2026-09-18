@@ -268,48 +268,46 @@
   <!-- TOP STATIC HEADER: FIXED/PINNED AT TOP -->
   <header class="shrink-0 z-30 w-full bg-static-header border-b border-slate-700/60 dark:border-slate-800/80 px-4 sm:px-6 pt-2 pb-0 shadow-sm space-y-2">
     
-    <!-- TOP LOGO & CONTROLS HEADER (COMPACT) -->
-    <div class="flex flex-wrap justify-between items-center bg-panel border rounded-xl px-3.5 py-1.5 gap-2 shadow-sm">
-      <!-- Left: Logo & App Title -->
+    <!-- TOP LOGO & CONTROLS HEADER BAR -->
+    <div class="flex flex-wrap justify-between items-center bg-panel border rounded-xl px-3 py-1.5 gap-2 shadow-sm">
+      <!-- Left: Logo & Virtual Theory Classroom - R 2026 -->
       <div class="flex items-center gap-2.5">
-        <img src="/logo.jpg" class="w-8 h-8 rounded-lg object-cover shadow-sm">
+        <img src="/logo.jpg" class="w-7 h-7 rounded-lg object-cover shadow-sm">
         <div>
-          <div class="text-sm font-bold tracking-tight text-title flex items-center gap-1.5">
-            <span>Carmel Linx</span>
-            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-sky-500/15 text-sky-400 border border-sky-500/30 rounded">{{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}</span>
+          <div class="text-sm font-bold tracking-tight text-title flex items-center gap-1.5 flex-wrap">
+            <span>Virtual Theory Classroom - R 2026</span>
             @php $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled(); @endphp
             @if($isAiActive)
-              <span class="px-2 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 rounded-md text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI Active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span> AI Active</span>
+              <span class="px-1.5 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 rounded text-[9.5px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI Active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span> AI Active</span>
             @else
-              <span class="px-2 py-0.5 bg-amber-950/40 text-amber-400 border border-amber-900/60 rounded-md text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI is deactivated to save API credits. Lesson plans, descriptive questions, and MCQs are generated from local databases and question banks."><span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span> AI Offline (Local DB)</span>
+              <span class="px-1.5 py-0.5 bg-amber-950/40 text-amber-400 border border-amber-900/60 rounded text-[9.5px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI is deactivated to save API credits. Lesson plans, descriptive questions, and MCQs are generated from local databases and question banks."><span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span> AI Offline</span>
             @endif
           </div>
-          <p class="text-[10px] text-muted font-bold uppercase tracking-wider leading-none">Lecturer Console</p>
+          <p class="text-[9.5px] text-muted font-bold uppercase tracking-wider leading-none">Carmel Linx • Lecturer Console</p>
         </div>
       </div>
 
       <!-- Right: Mode Toggle, Lecturer Profile & Back Button -->
       <div class="flex items-center gap-1.5">
         <!-- Dark/Light Mode Toggle -->
-        <button onclick="toggleTheme()" class="p-0.5 px-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer border border-slate-700/50" title="Toggle Dark/Light Mode">
-          <span id="theme-icon" class="material-symbols-rounded text-[11px] block">light_mode</span>
+        <button onclick="toggleTheme()" class="p-1 px-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer border border-slate-700/50" title="Toggle Dark/Light Mode">
+          <span id="theme-icon" class="material-symbols-rounded text-xs block">light_mode</span>
         </button>
 
         <!-- Lecturer Profile -->
         <div class="flex items-center gap-1.5 border-l border-slate-700/60 pl-1.5">
           @if(Session::get('userPhoto'))
-            <img src="{{ Session::get('userPhoto') }}" class="w-6 h-6 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
+            <img src="{{ Session::get('userPhoto') }}" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
           @else
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="w-6 h-6 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
           @endif
           <div class="hidden sm:block text-left">
             <p class="text-[10px] font-bold text-title leading-tight">{{ Session::get('userName', 'Antony Varghese') }}</p>
-            <p class="text-[9px] text-muted leading-none">Subject Staff</p>
           </div>
         </div>
 
         <button onclick="toggleSidebarWideMode()" id="btn-fullscreen-toggle" class="p-1 px-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60 cursor-pointer flex items-center justify-center" title="Fullscreen">
-          <span class="material-symbols-rounded text-[12px]">fullscreen</span>
+          <span class="material-symbols-rounded text-xs">fullscreen</span>
         </button>
         @php
           $role = Session::get('userRole');
@@ -322,79 +320,68 @@
           elseif ($role === 'Gen_Dept_Coordinator_Self_Finance') $backUrl = '/dashboard/general-coordinator-sf';
         @endphp
         <a href="{{ $backUrl }}" onclick="localStorage.removeItem('classroomFullscreen'); window.close(); setTimeout(function(){ window.location.href = '{{ $backUrl }}'; }, 100); return false;" class="p-1 px-1.5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-all border border-rose-500/30 cursor-pointer flex items-center justify-center no-underline" title="Go Back">
-          <span class="material-symbols-rounded text-[12px] text-rose-400">arrow_back</span>
+          <span class="material-symbols-rounded text-xs text-rose-400">arrow_back</span>
         </a>
       </div>
     </div>
 
-    <!-- SUBJECT META CARD / TITLE PANEL & EVALUATION STRIP (COMPACT & SIMPLE) -->
-    <div class="bg-panel border rounded-xl px-4 py-1.5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-      <div class="flex flex-wrap items-center gap-2 text-xs">
-        <h1 class="text-sm font-bold text-title flex items-center gap-1.5">
-          <span>Virtual Classroom (Theory)</span>
-        </h1>
+    <!-- ROW 2: SUBJECT META CARD & EVALUATION STRIP (COMPACT) -->
+    <div class="bg-panel border rounded-xl px-3 py-1 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-1.5">
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
+        <span class="px-2.5 py-0.5 bg-slate-800/90 text-slate-100 font-bold text-xs sm:text-sm rounded border border-slate-700/80 shadow-xs tracking-tight">{{ $batchSubject->subject_name }}</span>
+        <span class="px-1.5 py-0.2 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-mono text-[10px] font-semibold">{{ $batchSubject->subject_code }}</span>
         <span class="text-muted text-xs">•</span>
-        <span class="px-3 py-0.5 bg-slate-800/90 text-slate-100 font-bold text-sm sm:text-base rounded-md border border-slate-700/80 shadow-xs tracking-tight">{{ $batchSubject->subject_name }}</span>
-        <span class="px-1.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-mono text-[11px] font-semibold">{{ $batchSubject->subject_code }}</span>
+        <span class="font-bold text-slate-100 text-[11px] px-1.5 py-0.2 bg-slate-800/80 rounded border border-slate-700/60">Sem {{ $batchSubject->semester }}</span>
         <span class="text-muted text-xs">•</span>
-        <span class="font-bold text-slate-100 text-xs px-2 py-0.5 bg-slate-800/80 rounded border border-slate-700/60">Sem {{ $batchSubject->semester }}</span>
-        <span class="text-muted text-xs">•</span>
-        <span class="px-2 py-0.5 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded font-mono text-[11px] font-bold shadow-xs">{{ $batchSubject->classroom_id }}</span>
+        <span class="px-1.5 py-0.2 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded font-mono text-[10.5px] font-bold shadow-xs">{{ $batchSubject->classroom_id }}</span>
       </div>
 
       <!-- COMPACT EVALUATION METRICS -->
-      <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-muted">
-        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded text-slate-300">CIA: <strong class="text-title">{{ $cieMarks }}M</strong></span>
-        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded text-slate-300">ESE: <strong class="text-title">{{ $eseMarks }}M</strong></span>
-        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded text-slate-300">Credits: <strong class="text-title">{{ $credit }}</strong></span>
-        <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400"><strong>{{ $totalHours }} Hrs</strong></span>
+      <div class="flex flex-wrap items-center gap-1 text-[10.5px] font-mono text-muted">
+        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">CIA: <strong class="text-title">{{ $cieMarks }}M</strong></span>
+        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">ESE: <strong class="text-title">{{ $eseMarks }}M</strong></span>
+        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">Credits: <strong class="text-title">{{ $credit }}</strong></span>
+        <span class="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400"><strong>{{ $totalHours }} Hrs</strong></span>
       </div>
     </div>
 
-    <!-- PROFESSIONAL BORDER-STYLE TAB NAVIGATION BAR -->
-    <div class="w-full flex items-center justify-between border-b border-slate-700/80 dark:border-slate-800 overflow-x-auto no-scrollbar gap-1 pt-0.5 -mb-px">
-      <div class="flex items-center gap-1 shrink-0 -mb-px">
-        <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer">
+    <!-- ROW 3: PROFESSIONAL BORDER-STYLE TAB NAVIGATION BAR (SPACE SAVING) -->
+    <div class="w-full flex items-center border-b border-slate-700/80 dark:border-slate-800 overflow-x-auto no-scrollbar gap-0.5 pt-0.5 -mb-px">
+      <div class="flex items-center gap-0.5 shrink-0 -mb-px">
+        <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">import_contacts</span>
           Course Outline
         </button>
         
-        <button onclick="switchTab('planner')" id="btn-planner" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('planner')" id="btn-planner" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">calendar_month</span>
           Lesson Planner
         </button>
         
-        <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">fact_check</span>
           Continuous Assessment
         </button>
 
-        <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">quiz</span>
           Series Exams
         </button>
 
-        <button onclick="switchTab('internals')" id="btn-internals" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
-          <span class="material-symbols-rounded text-sm">assignment_turned_in</span>
-          Internal Marks
-        </button>
-
-        <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">equalizer</span>
           Course Attainment & Surveys
         </button>
 
-        <button onclick="switchTab('materials')" id="btn-materials" class="tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+        <button onclick="switchTab('materials')" id="btn-materials" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
           <span class="material-symbols-rounded text-sm">folder_special</span>
           Study Materials Hub
         </button>
-      </div>
 
-      <div class="shrink-0 pl-3 pb-1">
-        <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 cursor-pointer no-underline shadow-xs">
-          <span class="material-symbols-rounded text-sm">folder_open</span>
-          Course File Prep R2026
-        </a>
+        <button onclick="switchTab('reports')" id="btn-reports" class="tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer">
+          <span class="material-symbols-rounded text-sm">description</span>
+          Reports
+        </button>
       </div>
     </div>
   </header>
@@ -840,17 +827,20 @@
               </h3>
               <p class="text-xs text-muted mt-0.5">Track topic scheduling, pedagogy, Bloom's taxonomy levels, and syllabus completion</p>
             </div>
-            <div class="flex items-center gap-2">
-              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                <span class="material-symbols-rounded text-sm">print</span>
-                Print Lesson Plan
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline">
+                <span class="material-symbols-rounded text-xs">print</span>
+                Print
               </a>
-              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-3 py-1.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                <span class="material-symbols-rounded text-sm">bookmark</span>
-                Save as Template
+              <button id="btnSaveTemplate" onclick="saveAsTemplate()" class="px-2.5 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-rounded text-xs">bookmark</span>
+                Template
               </button>
-              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs">
-                <span class="material-symbols-rounded text-sm">save</span>
+              <span id="plannerAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Changes Saved
+              </span>
+              <button id="btnSavePlanner" onclick="saveLessonPlanEdits()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-rounded text-xs">save</span>
                 Save Changes
               </button>
             </div>
@@ -861,23 +851,24 @@
             <table class="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
-                  <th class="py-1.5 px-2 w-[5%] text-center">Period</th>
+                  <th class="py-1.5 px-2 w-[4%] text-center">Period</th>
                   <th class="py-1.5 px-2 w-[7%] text-center">CO Tag</th>
-                  <th class="py-1.5 px-2 w-[28%]">Topic / Content Scheduled (Full Preview)</th>
+                  <th class="py-1.5 px-2 w-[27%]">Topic / Content Scheduled (Full Preview)</th>
                   <th class="py-1.5 px-2 w-[9%]">Pedagogy</th>
                   <th class="py-1.5 px-2 w-[9%]">Taxonomy</th>
                   <th class="py-1.5 px-2 w-[12%]">Proposed Date</th>
                   <th class="py-1.5 px-2 w-[12%]">Actual Date</th>
                   <th class="py-1.5 px-2 w-[5%] text-center">Hours</th>
-                  <th class="py-1.5 px-2 w-[13%]">Status</th>
+                  <th class="py-1.5 px-2 w-[11%]">Status</th>
+                  <th class="py-1.5 px-2 w-[4%] text-center">Action</th>
                 </tr>
               </thead>
               <tbody id="plannerTableBody" class="divide-y divide-card text-sm font-normal">
                 @forelse($lessonPlans as $lp)
                   <tr data-lp-id="{{ $lp->id }}" class="bg-card-hover transition-all font-normal">
-                    <td class="p-2 font-mono text-center text-title period-no-display">{{ $lp->day_no }}</td>
-                    <td class="p-2 text-center">
-                      <select data-field="co_id" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs text-center">
+                    <td class="p-1.5 font-mono text-center text-title period-no-display text-xs">{{ $lp->day_no }}</td>
+                    <td class="p-1.5 text-center">
+                      <select data-field="co_id" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs text-center">
                         <option value="CO1" {{ $lp->co_id == 'CO1' ? 'selected' : '' }}>CO1</option>
                         <option value="CO2" {{ $lp->co_id == 'CO2' ? 'selected' : '' }}>CO2</option>
                         <option value="CO3" {{ $lp->co_id == 'CO3' ? 'selected' : '' }}>CO3</option>
@@ -888,39 +879,44 @@
                         @endif
                       </select>
                     </td>
-                    <td class="p-2">
-                      <textarea data-field="topic_content" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs resize-y">{{ $lp->topic_content }}</textarea>
+                    <td class="p-1.5">
+                      <textarea data-field="topic_content" oninput="triggerPlannerAutosave()" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs resize-y">{{ $lp->topic_content }}</textarea>
                     </td>
-                    <td class="p-2">
-                      <select data-field="pedagogy" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs">
+                    <td class="p-1.5">
+                      <select data-field="pedagogy" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs">
                         <option value="Lecture" {{ $lp->pedagogy == 'Lecture' ? 'selected' : '' }}>Lecture</option>
                         <option value="Tutorial" {{ $lp->pedagogy == 'Tutorial' ? 'selected' : '' }}>Tutorial</option>
                         <option value="Practical" {{ $lp->pedagogy == 'Practical' ? 'selected' : '' }}>Practical</option>
                         <option value="Exam" {{ $lp->pedagogy == 'Exam' ? 'selected' : '' }}>Exam</option>
                       </select>
                     </td>
-                    <td class="p-2">
-                      <input type="text" data-field="taxonomy" value="{{ $lp->taxonomy }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs" placeholder="Taxonomy Level...">
+                    <td class="p-1.5">
+                      <input type="text" data-field="taxonomy" oninput="triggerPlannerAutosave()" value="{{ $lp->taxonomy }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs" placeholder="Taxonomy Level...">
                     </td>
-                    <td class="p-2">
-                      <input type="date" data-field="proposed_date" value="{{ $lp->proposed_date }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
+                    <td class="p-1.5">
+                      <input type="date" data-field="proposed_date" onchange="triggerPlannerAutosave()" value="{{ $lp->proposed_date }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
                     </td>
-                    <td class="p-2">
-                      <input type="date" data-field="actual_date" value="{{ $lp->actual_date }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
+                    <td class="p-1.5">
+                      <input type="date" data-field="actual_date" onchange="triggerPlannerAutosave()" value="{{ $lp->actual_date }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
                     </td>
-                    <td class="p-2">
-                      <input type="number" data-field="allocated_hours" value="{{ $lp->allocated_hours ?: 1 }}" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-center text-xs">
+                    <td class="p-1.5">
+                      <input type="number" data-field="allocated_hours" oninput="triggerPlannerAutosave()" value="{{ $lp->allocated_hours ?: 1 }}" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-center text-xs">
                     </td>
-                    <td class="p-2">
-                      <select data-field="status" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs min-w-[75px]">
+                    <td class="p-1.5">
+                      <select data-field="status" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs min-w-[75px]">
                         <option value="Pending" {{ $lp->status == 'Pending' ? 'selected' : '' }}>Pending</option>
                         <option value="Completed" {{ $lp->status == 'Completed' ? 'selected' : '' }}>Completed</option>
                       </select>
                     </td>
+                    <td class="p-1.5 text-center">
+                      <button type="button" onclick="deleteLessonPlanRow(this)" class="p-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/20 transition cursor-pointer" title="Delete Period / Row">
+                        <span class="material-symbols-rounded text-xs block">delete</span>
+                      </button>
+                    </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="9" class="p-6 text-center text-muted italic font-normal">No lesson plan topics registered yet.</td>
+                    <td colspan="10" class="p-6 text-center text-muted italic font-normal">No lesson plan topics registered yet.</td>
                   </tr>
                 @endforelse
               </tbody>
@@ -928,12 +924,12 @@
           </div>
 
           <!-- BOTTOM ACTION BAR FOR PLANNER TABLE -->
-          <div class="flex justify-between items-center pt-2">
-            <button type="button" onclick="addLessonPlanRow()" class="px-2.5 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+          <div class="flex justify-between items-center pt-1.5">
+            <button type="button" onclick="addLessonPlanRow()" class="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-[10.5px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
               <span class="material-symbols-rounded text-xs">add_circle</span>
               Add Period / Row
             </button>
-            <span class="text-[10px] text-muted font-mono italic">Click 'Save Changes' to commit new rows</span>
+            <span class="text-[10px] text-muted font-mono italic">Changes autosave continuously as you type</span>
           </div>
         </div>
 
@@ -1537,199 +1533,6 @@
           @endif
         </div>
 
-        <!-- TAB: CONSOLIDATED INTERNAL MARKS (NEW) -->
-        <div id="tab-internals" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
-          
-          <!-- Sub-Tab Navigation Header -->
-          <div class="flex border-b border-slate-800 pb-2 mb-4 gap-4">
-            <button onclick="switchInternalsSubtab('cie_marks')" id="subbtn-cie_marks" class="text-sm font-bold text-emerald-400 border-b-2 border-emerald-500 pb-1 cursor-pointer transition-all">
-              1. CIA Marks (40M)
-            </button>
-            <button onclick="switchInternalsSubtab('ese_results')" id="subbtn-ese_results" class="text-sm font-bold text-slate-400 hover:text-slate-200 pb-1 cursor-pointer transition-all">
-              2. ESE Marks & Final Results (100M)
-            </button>
-            <button onclick="switchInternalsSubtab('nba_attainment')" id="subbtn-nba_attainment" class="text-sm font-bold text-slate-400 hover:text-slate-200 pb-1 cursor-pointer transition-all">
-              3. NBA Attainment (Surveys & CO-PO)
-            </button>
-          </div>
-
-          <!-- SUBTAB 1: CIE MARKS -->
-          <div id="subtab-cie_marks" class="space-y-4">
-            <div class="flex justify-between items-center">
-              <div>
-                <h4 class="font-bold text-title text-xs uppercase tracking-wider">CIA Consolidated Marksheet</h4>
-                <p class="text-xs text-muted mt-0.5">Scale: Attendance (5M), Self Learning (15M), Series Exam (20M). Total out of 40M.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
-                  <span class="material-symbols-rounded text-xs">print</span> Print Series Report
-                </a>
-                <a href="/r26/classroom/{{ $batchSubject->id }}/internals/print-cie" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                  <span class="material-symbols-rounded text-xs">print</span> Print CIA Marksheet
-                </a>
-              </div>
-            </div>
-
-            <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
-              <table class="w-full text-left border-collapse min-w-[900px]">
-                <thead>
-                  <tr class="bg-slate-900/30 text-xs font-bold text-muted uppercase tracking-wider border-b border-card">
-                    <th class="p-3 w-[6%] text-center">Roll No</th>
-                    <th class="p-3 w-[15%]">Register No</th>
-                    <th class="p-3">Student Name</th>
-                    <th class="p-3 w-[12%] text-center">Attendance %</th>
-                    <th class="p-3 w-[12%] text-center">Attendance (5M)</th>
-                    <th class="p-3 w-[15%] text-center">Self Learning / Assignment (15M)</th>
-                    <th class="p-3 w-[15%] text-center">Series Exam (20M)</th>
-                    <th class="p-3 w-[12%] text-center">Total CIA (40M)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-card text-sm font-normal">
-                  @forelse($studentCiaData as $sc)
-                    <tr class="bg-card-hover transition-all font-normal">
-                      <td class="p-2.5 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
-                      <td class="p-2.5 font-mono text-title">{{ $sc['reg_no'] }}</td>
-                      <td class="p-2.5 text-title font-medium">{{ $sc['name'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-title">{{ $sc['attendance_percent'] }}%</td>
-                      <td class="p-2.5 text-center font-mono text-emerald-500 font-bold">{{ $sc['attendance_marks'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-title">{{ $sc['self_learning_marks'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-title">{{ $sc['series_exam_marks'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-indigo-400 font-bold text-base">{{ $sc['total_cia'] }}</td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SUBTAB 2: ESE MARKS & FINAL RESULTS -->
-          <div id="subtab-ese_results" class="space-y-4 hidden">
-            <div class="flex justify-between items-center">
-              <div>
-                <h4 class="font-bold text-title text-xs uppercase tracking-wider">End Semester Exam (ESE) Marks entry & Grades</h4>
-                <p class="text-xs text-muted mt-0.5">Enter ESE marks (out of 60) below to view consolidated final scores (CIA 40M + ESE 60M = 100M total).</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <a href="/r26/classroom/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                  <span class="material-symbols-rounded text-xs">print</span> Print Final Marksheet
-                </a>
-                <button onclick="saveEseMarks()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                  <span class="material-symbols-rounded text-xs font-bold">save</span> Save ESE Marks
-                </button>
-              </div>
-            </div>
-
-            <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
-              <table class="w-full text-left border-collapse min-w-[900px]">
-                <thead>
-                  <tr class="bg-slate-900/30 text-xs font-bold text-muted uppercase tracking-wider border-b border-card">
-                    <th class="p-3 w-[6%] text-center">Roll No</th>
-                    <th class="p-3 w-[15%]">Register No</th>
-                    <th class="p-3">Student Name</th>
-                    <th class="p-3 w-[12%] text-center">CIA Marks (40M)</th>
-                    <th class="p-3 w-[15%] text-center">ESE Marks (60M)</th>
-                    <th class="p-3 w-[12%] text-center">Total (100M)</th>
-                    <th class="p-3 w-[12%] text-center">Grade</th>
-                    <th class="p-3 w-[12%] text-center">Remark</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-card text-sm font-normal">
-                  @forelse($studentCiaData as $sc)
-                    <tr class="bg-card-hover transition-all font-normal student-ese-row" data-reg-no="{{ $sc['reg_no'] }}">
-                      <td class="p-2.5 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
-                      <td class="p-2.5 font-mono text-title">{{ $sc['reg_no'] }}</td>
-                      <td class="p-2.5 text-title font-medium">{{ $sc['name'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ $sc['total_cia'] }}">{{ $sc['total_cia'] }}</td>
-                      <td class="p-2.5 text-center">
-                        <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-24 bg-slate-950/50 border border-slate-800 rounded px-2 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRow(this)">
-                      </td>
-                      <td class="p-2.5 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
-                      <td class="p-2.5 text-center font-bold" data-field="grade_display">-</td>
-                      <td class="p-2.5 text-center font-bold" data-field="remark_display">-</td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SUBTAB 3: NBA ATTAINMENT -->
-          <div id="subtab-nba_attainment" class="space-y-4 hidden">
-             <!-- Surveys Control Panel -->
-            <div class="flex flex-col gap-6">
-              <div class="bg-slate-900/30 border border-slate-800 rounded-2xl p-7 space-y-4">
-                <div class="flex justify-between items-start md:items-center flex-wrap gap-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center flex-shrink-0">
-                      <span class="material-symbols-rounded text-lg">rate_review</span>
-                    </div>
-                    <div>
-                      <h4 class="font-bold text-title text-base">Mid-Semester Online Survey</h4>
-                      <p class="text-xs text-muted mt-0.5">SAR Criterion 2 Evaluation</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3 flex-wrap">
-                    <button id="btn-initiate-midsem" onclick="document.getElementById('modal-midsem-survey-init').classList.remove('hidden')" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer shadow-sm">Open Survey</button>
-                    <button id="btn-close-midsem" onclick="controlSurvey('midsem', 'close')" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer hidden shadow-sm">Close & Lock</button>
-                    <span id="status-midsem" class="text-sm font-bold text-muted bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center">Checking status...</span>
-                  </div>
-                </div>
-                <p class="text-sm text-slate-300 leading-relaxed border-t border-slate-800/40 pt-3">
-                  Allows students to submit feedback online. Captures direct feedback on course delivery, syllabus coverage, and early corrective action points.
-                </p>
-              </div>
-
-              <div class="bg-slate-900/30 border border-slate-800 rounded-2xl p-7 space-y-4">
-                <div class="flex justify-between items-start md:items-center flex-wrap gap-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center flex-shrink-0">
-                      <span class="material-symbols-rounded text-lg">assignment_turned_in</span>
-                    </div>
-                    <div>
-                      <h4 class="font-bold text-title text-base">Course Exit Survey (Indirect CO)</h4>
-                      <p class="text-xs text-muted mt-0.5">Indirect Attainment Assessment</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3 flex-wrap">
-                    <button id="btn-initiate-exit" onclick="document.getElementById('modal-exit-survey-init').classList.remove('hidden')" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer shadow-sm">Open Survey</button>
-                    <button id="btn-close-exit" onclick="controlSurvey('exit', 'close')" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-bold transition-all cursor-pointer hidden shadow-sm">Close & Lock</button>
-                    <span id="status-exit" class="text-sm font-bold text-muted bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center">Checking status...</span>
-                  </div>
-                </div>
-                <p class="text-sm text-slate-300 leading-relaxed border-t border-slate-800/40 pt-3">
-                  Evaluates indirect Course Outcome (CO) attainment parameters at semester-end. Necessary for final PO mapping calculations.
-                </p>
-              </div>
-            </div>
-
-            <!-- NBA Attainment Reports -->
-            <div class="bg-slate-900/10 border border-slate-800 rounded-xl p-4 space-y-3">
-              <div class="flex justify-between items-center">
-                <div>
-                  <h4 class="font-bold text-title text-sm flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-indigo-400">equalizer</span>
-                    NBA 2026 Direct/Indirect CO-PO Attainment Calculation (11 POs)
-                  </h4>
-                  <p class="text-xs text-muted mt-0.5">Calculated using 80% Direct Attainment (CIA & ESE) + 20% Indirect Attainment (Course Exit Survey).</p>
-                </div>
-                <a href="/r26/classroom/{{ $batchSubject->id }}/nba/attainment-report" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
-                  <span class="material-symbols-rounded text-sm">print</span>
-                  Print Final NBA Attainment Report
-                </a>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
 
         <!-- TAB: COURSE ATTAINMENT & SURVEYS (NEW) -->
         <div id="tab-attainment" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 hidden">
@@ -1945,6 +1748,264 @@
           @include('partials.virtual_learning_hub_tab', ['roomType' => 'Theory'])
         </div>
 
+        <!-- TAB: REPORTS & CONSOLIDATED MARKS REGISTER -->
+        <div id="tab-reports" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-5 hidden">
+          <!-- Top Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3.5 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <span class="material-symbols-rounded text-lg block">description</span>
+                </span>
+                <h3 class="text-sm font-bold text-title">Academic Reports & Consolidated Marks Register</h3>
+              </div>
+              <p class="text-xs text-muted mt-1">Official printable reports, Continuous Assessment (40M), End Semester Examination (60M), and Revision 2026 course dossiers.</p>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300">
+                <strong class="text-sky-400">{{ count($students) }}</strong> Enrolled Students
+              </span>
+            </div>
+          </div>
+
+          <!-- PRIMARY REPORT CARDS GRID (Top 4 Cards) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- Card 1: CIA Marksheet 40M -->
+            <div class="bg-slate-900/40 border border-slate-800 hover:border-indigo-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-3 transition group">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="p-1.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                    <span class="material-symbols-rounded text-base block">fact_check</span>
+                  </span>
+                  <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">40 Marks</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-200 group-hover:text-indigo-300 transition">CIA Consolidated Marksheet</h4>
+                <p class="text-[11px] text-muted leading-relaxed">Official 40M mark register combining Attendance (5M), SLA (15M), and Series Tests (20M).</p>
+              </div>
+              <div class="pt-2 border-t border-slate-800/60">
+                <a href="/r26/classroom/{{ $batchSubject->id }}/internals/print-cie" target="_blank" class="w-full px-2.5 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 hover:text-indigo-200 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1.5 shadow-xs no-underline">
+                  <span class="material-symbols-rounded text-xs">print</span>
+                  <span>Print CIA Marksheet</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Card 2: Series Exams Report 20M -->
+            <div class="bg-slate-900/40 border border-slate-800 hover:border-purple-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-3 transition group">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="p-1.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                    <span class="material-symbols-rounded text-base block">quiz</span>
+                  </span>
+                  <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">20 Marks</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-200 group-hover:text-purple-300 transition">Series Examination Report</h4>
+                <p class="text-[11px] text-muted leading-relaxed">Continuous test cycles record (CA5 & CA6, 50M each) scaled to 20 internal marks.</p>
+              </div>
+              <div class="pt-2 border-t border-slate-800/60">
+                <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="w-full px-2.5 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-purple-200 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1.5 shadow-xs no-underline">
+                  <span class="material-symbols-rounded text-xs">print</span>
+                  <span>Print Series Report</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Card 3: Final ESE Marksheet 100M -->
+            <div class="bg-slate-900/40 border border-slate-800 hover:border-emerald-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-3 transition group">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="p-1.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <span class="material-symbols-rounded text-base block">school</span>
+                  </span>
+                  <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">100 Marks</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-200 group-hover:text-emerald-300 transition">Final Results & Grade Sheet</h4>
+                <p class="text-[11px] text-muted leading-relaxed">Consolidated transcript: CIA (40M) + ESE (60M) = 100M total with SBTE letter grades & remarks.</p>
+              </div>
+              <div class="pt-2 border-t border-slate-800/60">
+                <a href="/r26/classroom/{{ $batchSubject->id }}/final-results/print" target="_blank" class="w-full px-2.5 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 hover:text-emerald-200 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1.5 shadow-xs no-underline">
+                  <span class="material-symbols-rounded text-xs">print</span>
+                  <span>Print Final Grade Sheet</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Card 4: Course File Dossier R2026 -->
+            <div class="bg-slate-900/40 border border-slate-800 hover:border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-3 transition group">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="p-1.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <span class="material-symbols-rounded text-base block">folder_zip</span>
+                  </span>
+                  <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Audit Ready</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-200 group-hover:text-amber-300 transition">Course File Dossier R2026</h4>
+                <p class="text-[11px] text-muted leading-relaxed">Complete course portfolio, syllabus, CO-PO, lesson plan, assessments & NBA compliance records.</p>
+              </div>
+              <div class="pt-2 border-t border-slate-800/60 flex items-center gap-1.5">
+                <a href="/r26/classroom/course-file/{{ $batchSubject->id }}" target="_blank" class="flex-1 px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-md text-[10.5px] font-semibold transition flex items-center justify-center gap-1 shadow-xs no-underline" title="Prepare & Edit Course File">
+                  <span class="material-symbols-rounded text-xs">edit_note</span>
+                  <span>Prepare</span>
+                </a>
+                <a href="/r26/classroom/course-file/{{ $batchSubject->id }}/print-pdf" target="_blank" class="flex-1 px-2 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 rounded-md text-[10.5px] font-semibold transition flex items-center justify-center gap-1 shadow-xs no-underline" title="Print Complete Course File PDF">
+                  <span class="material-symbols-rounded text-xs">print</span>
+                  <span>Print Dossier</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECONDARY REGISTERS QUICK TOOLBAR -->
+          <div class="bg-slate-900/30 border border-slate-800/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded text-slate-400 text-sm">print_connect</span>
+              <span class="text-xs font-bold text-slate-300">Individual Academic Registers & Compliance Prints:</span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="/r26/classroom/lesson-plan/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 shadow-xs no-underline">
+                <span class="material-symbols-rounded text-xs text-sky-400">calendar_month</span>
+                <span>Lesson Plan (60h)</span>
+              </a>
+              <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 shadow-xs no-underline">
+                <span class="material-symbols-rounded text-xs text-emerald-400">assignment</span>
+                <span>Self-Learning (15M)</span>
+              </a>
+              <a href="/r26/classroom/{{ $batchSubject->id }}/nba/attainment-report" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 shadow-xs no-underline">
+                <span class="material-symbols-rounded text-xs text-indigo-400">equalizer</span>
+                <span>NBA CO-PO Attainment</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- CONSOLIDATED MARKS ENTRY & LEDGER SECTION -->
+          <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-4">
+            <!-- Subtab Navigation -->
+            <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-2 gap-3">
+              <div class="flex items-center gap-2">
+                <button onclick="switchReportsSubtab('cie_marks')" id="reportsubbtn-cie_marks" class="px-3 py-1.5 text-xs font-bold border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 rounded-t-md transition-all cursor-pointer flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sm">fact_check</span>
+                  <span>1. CIA Marks Register (40M)</span>
+                </button>
+                <button onclick="switchReportsSubtab('ese_results')" id="reportsubbtn-ese_results" class="px-3 py-1.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 rounded-t-md transition-all cursor-pointer flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sm">school</span>
+                  <span>2. ESE Marks Entry & Final Scores (100M)</span>
+                </button>
+              </div>
+              <div class="text-[11px] text-muted">
+                Continuous sync with student gradebooks
+              </div>
+            </div>
+
+            <!-- SUBTAB 1: CIE MARKS REGISTER -->
+            <div id="subtab-cie_marks" class="space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 class="font-bold text-title text-xs uppercase tracking-wider">Continuous Internal Assessment (CIA) Master Register</h4>
+                  <p class="text-xs text-muted mt-0.5">Scale: Attendance (5M) + Self-Learning (15M) + Series Exams (20M) = 40 Marks Total</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
+                    <span class="material-symbols-rounded text-xs">print</span> Print Series Report
+                  </a>
+                  <a href="/r26/classroom/{{ $batchSubject->id }}/internals/print-cie" target="_blank" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
+                    <span class="material-symbols-rounded text-xs">print</span> Print CIA Marksheet
+                  </a>
+                </div>
+              </div>
+
+              <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                  <thead>
+                    <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
+                      <th class="p-2.5 w-[6%] text-center">Roll No</th>
+                      <th class="p-2.5 w-[15%]">Register No</th>
+                      <th class="p-2.5">Student Name</th>
+                      <th class="p-2.5 w-[12%] text-center">Attendance %</th>
+                      <th class="p-2.5 w-[12%] text-center">Attendance (5M)</th>
+                      <th class="p-2.5 w-[15%] text-center">Self Learning / SLA (15M)</th>
+                      <th class="p-2.5 w-[15%] text-center">Series Exam (20M)</th>
+                      <th class="p-2.5 w-[12%] text-center">Total CIA (40M)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-card text-xs font-normal">
+                    @forelse($studentCiaData as $sc)
+                      <tr class="bg-card-hover transition-all font-normal">
+                        <td class="p-2 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
+                        <td class="p-2 font-mono text-title">{{ $sc['reg_no'] }}</td>
+                        <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
+                        <td class="p-2 text-center font-mono text-title">{{ $sc['attendance_percent'] }}%</td>
+                        <td class="p-2 text-center font-mono text-emerald-500 font-bold">{{ $sc['attendance_marks'] }}</td>
+                        <td class="p-2 text-center font-mono text-title">{{ $sc['self_learning_marks'] }}</td>
+                        <td class="p-2 text-center font-mono text-title">{{ $sc['series_exam_marks'] }}</td>
+                        <td class="p-2 text-center font-mono text-indigo-400 font-bold text-sm">{{ $sc['total_cia'] }}</td>
+                      </tr>
+                    @empty
+                      <tr>
+                        <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
+                      </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUBTAB 2: ESE MARKS & FINAL RESULTS -->
+            <div id="subtab-ese_results" class="space-y-3 hidden">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 class="font-bold text-title text-xs uppercase tracking-wider">End Semester Exam (ESE) Marks Entry & Final Grades</h4>
+                  <p class="text-xs text-muted mt-0.5">Enter ESE marks (out of 60) below to view consolidated final scores (CIA 40M + ESE 60M = 100M total).</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <a href="/r26/classroom/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
+                    <span class="material-symbols-rounded text-xs">print</span> Print Final Marksheet
+                  </a>
+                  <button onclick="saveEseMarks()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs">
+                    <span class="material-symbols-rounded text-xs font-bold">save</span> Save ESE Marks
+                  </button>
+                </div>
+              </div>
+
+              <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                  <thead>
+                    <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
+                      <th class="p-2.5 w-[6%] text-center">Roll No</th>
+                      <th class="p-2.5 w-[15%]">Register No</th>
+                      <th class="p-2.5">Student Name</th>
+                      <th class="p-2.5 w-[12%] text-center">CIA Marks (40M)</th>
+                      <th class="p-2.5 w-[15%] text-center">ESE Marks (60M)</th>
+                      <th class="p-2.5 w-[12%] text-center">Total (100M)</th>
+                      <th class="p-2.5 w-[12%] text-center">Grade</th>
+                      <th class="p-2.5 w-[12%] text-center">Remark</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-card text-xs font-normal">
+                    @forelse($studentCiaData as $sc)
+                      <tr class="bg-card-hover transition-all font-normal student-ese-row" data-reg-no="{{ $sc['reg_no'] }}">
+                        <td class="p-2 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
+                        <td class="p-2 font-mono text-title">{{ $sc['reg_no'] }}</td>
+                        <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
+                        <td class="p-2 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ $sc['total_cia'] }}">{{ $sc['total_cia'] }}</td>
+                        <td class="p-2 text-center">
+                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRow(this)">
+                        </td>
+                        <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
+                        <td class="p-2 text-center font-bold" data-field="grade_display">-</td>
+                        <td class="p-2 text-center font-bold" data-field="remark_display">-</td>
+                      </tr>
+                    @empty
+                      <tr>
+                        <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
+                      </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -1956,8 +2017,9 @@
     function checkTabScrollOverflow() {}
 
     document.addEventListener('DOMContentLoaded', function() {
-      const savedTab = localStorage.getItem('activeClassroomTab');
-      if (savedTab && ['outline', 'planner', 'cia', 'series', 'internals', 'attainment', 'materials'].includes(savedTab)) {
+      let savedTab = localStorage.getItem('activeClassroomTab');
+      if (savedTab === 'internals') savedTab = 'reports';
+      if (savedTab && ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'].includes(savedTab)) {
         switchTab(savedTab);
       } else {
         switchTab('outline');
@@ -1966,6 +2028,7 @@
 
     function switchTab(tabId) {
       if (tabId === 'roster') tabId = 'outline';
+      if (tabId === 'internals') tabId = 'reports';
       localStorage.setItem('activeClassroomTab', tabId);
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.add('hidden');
@@ -1976,16 +2039,20 @@
         targetPanel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
       }
 
-      const tabs = ['outline', 'planner', 'cia', 'series', 'internals', 'attainment', 'materials'];
+      const tabs = ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'];
       tabs.forEach(id => {
         const btn = document.getElementById('btn-' + id);
         if (!btn) return;
         if (id === tabId) {
-          btn.className = "tab-btn px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer";
+          btn.className = "tab-btn px-2.5 py-1.5 text-[11.5px] font-bold flex items-center gap-1.5 border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-md transition-all cursor-pointer";
         } else {
-          btn.className = "tab-btn px-3.5 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer";
+          btn.className = "tab-btn px-2.5 py-1.5 text-[11.5px] font-medium flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/40 rounded-t-md transition-all cursor-pointer";
         }
       });
+
+      if (tabId === 'reports') {
+        document.querySelectorAll('.ese-mark-input').forEach(input => calculateEseRow(input));
+      }
     }
 
     function openRosterModal() {
@@ -2050,80 +2117,119 @@
     }
 
     let newRowCounter = 1;
+    let deletedLessonPlanIds = [];
+    let plannerAutosaveTimer = null;
+
+    function triggerPlannerAutosave() {
+      const badge = document.getElementById('plannerAutosaveBadge');
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved Changes';
+        badge.className = "text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs";
+      }
+      clearTimeout(plannerAutosaveTimer);
+      plannerAutosaveTimer = setTimeout(() => {
+        saveLessonPlanEdits(true);
+      }, 1000);
+    }
+
+    function deleteLessonPlanRow(btn) {
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const periodEl = tr.querySelector('.period-no-display');
+      const periodInput = tr.querySelector('[data-field="day_no"]');
+      const periodText = periodInput ? periodInput.value : (periodEl ? periodEl.innerText.trim() : '');
+
+      if (!confirm(`Are you sure you want to delete period ${periodText || 'this row'}? This action cannot be undone.`)) {
+        return;
+      }
+
+      const lpId = tr.getAttribute('data-lp-id');
+      if (lpId && !lpId.startsWith('new_')) {
+        deletedLessonPlanIds.push(parseInt(lpId, 10));
+      }
+      tr.remove();
+
+      renumberLessonPlanPeriods();
+      triggerPlannerAutosave();
+    }
+
+    function renumberLessonPlanPeriods() {
+      const trs = document.querySelectorAll('#plannerTableBody tr[data-lp-id]');
+      trs.forEach((tr, index) => {
+        const periodDisplay = tr.querySelector('.period-no-display');
+        const periodInput = tr.querySelector('[data-field="day_no"]');
+        if (periodDisplay) periodDisplay.innerText = index + 1;
+        if (periodInput) periodInput.value = index + 1;
+      });
+    }
+
     function addLessonPlanRow() {
       const tbody = document.getElementById('plannerTableBody');
       const trs = tbody.querySelectorAll('tr[data-lp-id]');
-      let nextPeriod = 1;
-      trs.forEach(tr => {
-        const periodEl = tr.querySelector('.period-no-display');
-        const periodInput = tr.querySelector('[data-field="day_no"]');
-        const pStr = periodInput ? periodInput.value : (periodEl ? periodEl.innerText : '0');
-        const pNum = parseInt(pStr, 10);
-        if (!isNaN(pNum) && pNum >= nextPeriod) {
-          nextPeriod = pNum + 1;
-        }
-      });
+      const nextPeriod = trs.length + 1;
 
       const newId = 'new_' + Date.now() + '_' + (newRowCounter++);
       const tr = document.createElement('tr');
       tr.setAttribute('data-lp-id', newId);
       tr.className = "bg-sky-500/5 hover:bg-sky-500/10 transition-all font-normal";
       tr.innerHTML = `
-        <td class="p-2 text-center">
-          <input type="number" data-field="day_no" value="${nextPeriod}" min="1" max="200" class="w-12 bg-slate-950/50 border border-sky-500/40 rounded px-1 py-0.5 text-center text-sky-400 focus:border-sky-500 outline-none font-bold text-xs">
-        </td>
-        <td class="p-2 text-center">
-          <select data-field="co_id" class="bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs">
+        <td class="p-1.5 font-mono text-center text-title period-no-display text-xs">${nextPeriod}</td>
+        <td class="p-1.5 text-center">
+          <select data-field="co_id" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs text-center">
             <option value="CO1">CO1</option>
             <option value="CO2">CO2</option>
             <option value="CO3">CO3</option>
             <option value="CO4">CO4</option>
+            <option value="CO5">CO5</option>
           </select>
         </td>
-        <td class="p-2">
-          <textarea data-field="topic_content" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs resize-y" placeholder="Enter topic content..."></textarea>
+        <td class="p-1.5">
+          <textarea data-field="topic_content" oninput="triggerPlannerAutosave()" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs resize-y" placeholder="Enter topic content..."></textarea>
         </td>
-        <td class="p-2">
-          <select data-field="pedagogy" class="w-full bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs">
+        <td class="p-1.5">
+          <select data-field="pedagogy" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs">
             <option value="Lecture" selected>Lecture</option>
             <option value="Tutorial">Tutorial</option>
             <option value="Practical">Practical</option>
             <option value="Exam">Exam</option>
           </select>
         </td>
-        <td class="p-2">
-          <input type="text" data-field="taxonomy" value="Understand" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs" placeholder="Taxonomy Level...">
+        <td class="p-1.5">
+          <input type="text" data-field="taxonomy" oninput="triggerPlannerAutosave()" value="Understand" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs" placeholder="Taxonomy Level...">
         </td>
-        <td class="p-2">
-          <input type="date" data-field="proposed_date" value="" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
+        <td class="p-1.5">
+          <input type="date" data-field="proposed_date" onchange="triggerPlannerAutosave()" value="" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
         </td>
-        <td class="p-2">
-          <input type="date" data-field="actual_date" value="" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
+        <td class="p-1.5">
+          <input type="date" data-field="actual_date" onchange="triggerPlannerAutosave()" value="" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
         </td>
-        <td class="p-2">
-          <input type="number" data-field="allocated_hours" value="1" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-xs">
+        <td class="p-1.5">
+          <input type="number" data-field="allocated_hours" oninput="triggerPlannerAutosave()" value="1" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-indigo-500 outline-none font-normal text-center text-xs">
         </td>
-        <td class="p-2 flex items-center gap-1">
-          <select data-field="status" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs">
+        <td class="p-1.5">
+          <select data-field="status" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-indigo-500 outline-none font-normal text-xs min-w-[75px]">
             <option value="Pending" selected>Pending</option>
             <option value="Completed">Completed</option>
           </select>
-          <button type="button" onclick="this.closest('tr').remove()" class="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-all" title="Remove Row">
-            <span class="material-symbols-rounded text-xs">delete</span>
+        </td>
+        <td class="p-1.5 text-center">
+          <button type="button" onclick="deleteLessonPlanRow(this)" class="p-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/20 transition cursor-pointer" title="Delete Period / Row">
+            <span class="material-symbols-rounded text-xs block">delete</span>
           </button>
         </td>
       `;
 
-      const emptyTd = tbody.querySelector('td[colspan="9"]');
+      const emptyTd = tbody.querySelector('td[colspan="9"], td[colspan="10"]');
       if (emptyTd) {
         emptyTd.closest('tr').remove();
       }
 
       tbody.appendChild(tr);
       tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      triggerPlannerAutosave();
     }
 
-    function saveLessonPlanEdits() {
+    function saveLessonPlanEdits(isAutoSave = false) {
       const rows = [];
       const trs = document.querySelectorAll('#plannerTableBody tr[data-lp-id]');
       trs.forEach(tr => {
@@ -2138,13 +2244,20 @@
         const coInput = tr.querySelector('[data-field="co_id"]');
         const coId = coInput ? coInput.value : (coEl ? coEl.innerText.trim() : 'CO1');
         
-        const topic = tr.querySelector('[data-field="topic_content"]').value;
-        const pedagogy = tr.querySelector('[data-field="pedagogy"]').value;
-        const taxonomy = tr.querySelector('[data-field="taxonomy"]').value;
-        const proposed = tr.querySelector('[data-field="proposed_date"]').value || null;
-        const actual = tr.querySelector('[data-field="actual_date"]').value || null;
-        const hours = tr.querySelector('[data-field="allocated_hours"]').value || 1;
-        const status = tr.querySelector('[data-field="status"]').value;
+        const topicEl = tr.querySelector('[data-field="topic_content"]');
+        const topic = topicEl ? topicEl.value : '';
+        const pedagogyEl = tr.querySelector('[data-field="pedagogy"]');
+        const pedagogy = pedagogyEl ? pedagogyEl.value : 'Lecture';
+        const taxonomyEl = tr.querySelector('[data-field="taxonomy"]');
+        const taxonomy = taxonomyEl ? taxonomyEl.value : 'Understand';
+        const proposedEl = tr.querySelector('[data-field="proposed_date"]');
+        const proposed = proposedEl ? (proposedEl.value || null) : null;
+        const actualEl = tr.querySelector('[data-field="actual_date"]');
+        const actual = actualEl ? (actualEl.value || null) : null;
+        const hoursEl = tr.querySelector('[data-field="allocated_hours"]');
+        const hours = hoursEl ? (hoursEl.value || 1) : 1;
+        const statusEl = tr.querySelector('[data-field="status"]');
+        const status = statusEl ? statusEl.value : 'Pending';
         
         rows.push({
           id,
@@ -2161,9 +2274,21 @@
       });
 
       const btn = document.getElementById('btnSavePlanner');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = 'Saving...';
+      const badge = document.getElementById('plannerAutosaveBadge');
+      const originalText = btn ? btn.innerText : 'Save Changes';
+      if (!isAutoSave && btn) {
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+      }
+      if (badge) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span> Saving...';
+        badge.className = "text-[10px] font-mono text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs";
+      }
+
+      const payload = {
+        rows: rows,
+        deleted_ids: deletedLessonPlanIds
+      };
 
       fetch('/api/r26/classroom/{{ $batchSubject->id }}/lesson-plans/bulk-update', {
         method: 'POST',
@@ -2171,23 +2296,53 @@
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ rows })
+        body: JSON.stringify(payload)
       })
       .then(res => res.json())
       .then(data => {
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (!isAutoSave && btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
         if (data.status === 'SUCCESS') {
-          alert('Lesson planner updated successfully!');
-          window.location.reload();
+          deletedLessonPlanIds = [];
+          if (data.created_mappings) {
+            Object.keys(data.created_mappings).forEach(tempId => {
+              const matchedTr = document.querySelector(`#plannerTableBody tr[data-lp-id="${tempId}"]`);
+              if (matchedTr) {
+                matchedTr.setAttribute('data-lp-id', data.created_mappings[tempId]);
+              }
+            });
+          }
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Changes Saved';
+            badge.className = "text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs";
+          }
+          if (!isAutoSave) {
+            alert('Lesson planner updated successfully!');
+          }
         } else {
-          alert('Failed to save changes: ' + data.message);
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
+            badge.className = "text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs";
+          }
+          if (!isAutoSave) {
+            alert('Failed to save changes: ' + data.message);
+          }
         }
       })
       .catch(err => {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert('Error saving planner: ' + err.message);
+        if (!isAutoSave && btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Error';
+          badge.className = "text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs";
+        }
+        if (!isAutoSave) {
+          alert('Error saving planner: ' + err.message);
+        }
       });
     }
 
@@ -3780,23 +3935,26 @@
       });
     }
 
-    // Consolidated Internals Tab Sub-navigation
-    function switchInternalsSubtab(subTabId) {
-      const subTabs = ['cie_marks', 'ese_results', 'nba_attainment'];
+    // Consolidated Reports Tab Sub-navigation (CIA vs ESE)
+    function switchReportsSubtab(subTabId) {
+      const subTabs = ['cie_marks', 'ese_results'];
       subTabs.forEach(id => {
-        const btn = document.getElementById('subbtn-' + id);
+        const btn = document.getElementById('reportsubbtn-' + id) || document.getElementById('subbtn-' + id);
         const pane = document.getElementById('subtab-' + id);
         if (id === subTabId) {
-          btn.className = "text-sm font-bold text-emerald-400 border-b-2 border-emerald-500 pb-1 cursor-pointer transition-all";
-          pane.classList.remove('hidden');
+          if (btn) btn.className = "px-3 py-1.5 text-xs font-bold border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 rounded-t-md transition-all cursor-pointer flex items-center gap-1.5";
+          if (pane) pane.classList.remove('hidden');
         } else {
-          btn.className = "text-sm font-bold text-slate-400 hover:text-slate-200 pb-1 cursor-pointer transition-all";
-          pane.classList.add('hidden');
+          if (btn) btn.className = "px-3 py-1.5 text-xs font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 rounded-t-md transition-all cursor-pointer flex items-center gap-1.5";
+          if (pane) pane.classList.add('hidden');
         }
       });
       if (subTabId === 'ese_results') {
         document.querySelectorAll('.ese-mark-input').forEach(input => calculateEseRow(input));
       }
+    }
+    function switchInternalsSubtab(subTabId) {
+      switchReportsSubtab(subTabId);
     }
 
     function calculateEseRow(input) {

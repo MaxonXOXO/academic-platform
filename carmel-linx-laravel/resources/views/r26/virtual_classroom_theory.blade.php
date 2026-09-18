@@ -2005,7 +2005,7 @@
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h4 class="font-bold text-title text-xs uppercase tracking-wider">End Semester Exam (ESE) Marks Entry & Final Grades</h4>
-                  <p class="text-xs text-muted mt-0.5">Enter ESE marks (out of 60) below to view consolidated final scores (CIA 40M + ESE 60M = 100M total).</p>
+                  <p class="text-xs text-muted mt-0.5">Official SBTE Results Norms: Enter SBTE Grade (S, A, B, C, D, E, F) or ESE Marks (out of 60) with automatic synchronization and real-time autosave.</p>
                 </div>
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <a href="/r26/classroom/{{ $batchSubject->id }}/final-results/print" target="_blank" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
@@ -2020,29 +2020,60 @@
                 </div>
               </div>
 
+              <!-- SBTE Grade Legend Banner -->
+              <div class="bg-indigo-950/20 border border-indigo-500/30 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-rounded text-indigo-400 text-base">info</span>
+                  <span class="text-slate-300 text-[11px]"><strong>SBTE Grading Norms:</strong> Select the Grade from the official SBTE Result sheet. The system computes scaled ESE marks (60M) and consolidated 100M final grade automatically. All entries autosave continuously.</span>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] font-mono flex-wrap">
+                  <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30">S: ≥90% (57M)</span>
+                  <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30">A: 80-89% (51M)</span>
+                  <span class="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">B: 70-79% (45M)</span>
+                  <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-300 rounded border border-yellow-500/30">C: 60-69% (39M)</span>
+                  <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">D: 50-59% (33M)</span>
+                  <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded border border-orange-500/30">E: 40-49% (27M)</span>
+                  <span class="px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30">F: &lt;40% (0M)</span>
+                </div>
+              </div>
+
               <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[900px]">
+                <table class="w-full text-left border-collapse min-w-[960px]">
                   <thead>
                     <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
-                      <th class="p-2.5 w-[6%] text-center">Roll No</th>
-                      <th class="p-2.5 w-[15%]">Register No</th>
+                      <th class="p-2.5 w-[5%] text-center">Roll</th>
+                      <th class="p-2.5 w-[14%]">Register No</th>
                       <th class="p-2.5">Student Name</th>
-                      <th class="p-2.5 w-[12%] text-center">CIA Marks (40M)</th>
-                      <th class="p-2.5 w-[15%] text-center">ESE Marks (60M)</th>
-                      <th class="p-2.5 w-[12%] text-center">Total (100M)</th>
-                      <th class="p-2.5 w-[12%] text-center">Grade</th>
-                      <th class="p-2.5 w-[12%] text-center">Remark</th>
+                      <th class="p-2.5 w-[10%] text-center">CIA (40M)</th>
+                      <th class="p-2.5 w-[16%] text-center">SBTE Grade</th>
+                      <th class="p-2.5 w-[11%] text-center">ESE Marks (60M)</th>
+                      <th class="p-2.5 w-[10%] text-center">Total (100M)</th>
+                      <th class="p-2.5 w-[9%] text-center">Final Grade</th>
+                      <th class="p-2.5 w-[12%] text-center">Result Status</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-card text-xs font-normal">
                     @forelse($studentCiaData as $sc)
                       <tr class="bg-card-hover transition-all font-normal student-ese-row" data-reg-no="{{ $sc['reg_no'] }}">
                         <td class="p-2 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
-                        <td class="p-2 font-mono text-title">{{ $sc['reg_no'] }}</td>
+                        <td class="p-2 font-mono text-title text-[11px]">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
                         <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
                         <td class="p-2 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ $sc['total_cia'] }}">{{ $sc['total_cia'] }}</td>
                         <td class="p-2 text-center">
-                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRow(this); triggerEseAutosave();">
+                          <select class="w-36 bg-slate-950/70 border border-slate-700 hover:border-slate-500 rounded px-2 py-1 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none ese-grade-select cursor-pointer transition-colors" onchange="calculateEseRowFromGrade(this); triggerEseAutosave();">
+                            <option value="" class="bg-slate-900 text-slate-400">-- Select Grade --</option>
+                            <option value="S" {{ ($sc['ese_grade'] ?? '') === 'S' ? 'selected' : '' }} class="bg-slate-900 text-emerald-400 font-bold">S (≥90% | Outstanding)</option>
+                            <option value="A" {{ ($sc['ese_grade'] ?? '') === 'A' ? 'selected' : '' }} class="bg-slate-900 text-blue-400 font-bold">A (80-89% | Excellent)</option>
+                            <option value="B" {{ ($sc['ese_grade'] ?? '') === 'B' ? 'selected' : '' }} class="bg-slate-900 text-cyan-400 font-bold">B (70-79% | Very Good)</option>
+                            <option value="C" {{ ($sc['ese_grade'] ?? '') === 'C' ? 'selected' : '' }} class="bg-slate-900 text-yellow-400 font-bold">C (60-69% | Good)</option>
+                            <option value="D" {{ ($sc['ese_grade'] ?? '') === 'D' ? 'selected' : '' }} class="bg-slate-900 text-amber-400 font-bold">D (50-59% | Average)</option>
+                            <option value="E" {{ ($sc['ese_grade'] ?? '') === 'E' ? 'selected' : '' }} class="bg-slate-900 text-orange-400 font-bold">E (40-49% | Pass)</option>
+                            <option value="F" {{ ($sc['ese_grade'] ?? '') === 'F' ? 'selected' : '' }} class="bg-slate-900 text-rose-400 font-bold">F (&lt;40% | Reappearance)</option>
+                            <option value="FE" {{ ($sc['ese_grade'] ?? '') === 'FE' ? 'selected' : '' }} class="bg-slate-900 text-rose-500 font-bold">FE (Absent / Withheld)</option>
+                          </select>
+                        </td>
+                        <td class="p-2 text-center">
+                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 text-center focus:border-indigo-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRowFromMarks(this); triggerEseAutosave();">
                         </td>
                         <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
                         <td class="p-2 text-center font-bold" data-field="grade_display">-</td>
@@ -2050,7 +2081,7 @@
                       </tr>
                     @empty
                       <tr>
-                        <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
+                        <td colspan="9" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
                       </tr>
                     @endforelse
                   </tbody>
@@ -2092,6 +2123,8 @@
       } else {
         switchTab('outline');
       }
+
+      document.querySelectorAll('.student-ese-row').forEach(row => updateEseRowTotals(row));
     });
 
     function switchTab(tabId) {
@@ -2126,7 +2159,7 @@
       });
 
       if (tabId === 'reports') {
-        document.querySelectorAll('.ese-mark-input').forEach(input => calculateEseRow(input));
+        document.querySelectorAll('.student-ese-row').forEach(row => updateEseRowTotals(row));
       }
     }
 
@@ -4173,49 +4206,121 @@
         }
       });
       if (subTabId === 'ese_results') {
-        document.querySelectorAll('.ese-mark-input').forEach(input => calculateEseRow(input));
+        document.querySelectorAll('.student-ese-row').forEach(row => updateEseRowTotals(row));
       }
     }
     function switchInternalsSubtab(subTabId) {
       switchReportsSubtab(subTabId);
     }
 
-    function calculateEseRow(input) {
-      const row = input.closest('tr');
-      const cie = parseFloat(row.querySelector('[data-val-cie]').innerText) || 0;
-      const ese = parseFloat(input.value) || 0;
-      const total = cie + ese;
-      row.querySelector('[data-field="total_score"]').innerText = total.toFixed(1);
+    const SBTE_GRADE_SCALE = {
+      'S': 57.0, // 95% of 60
+      'A': 51.0, // 85% of 60
+      'B': 45.0, // 75% of 60
+      'C': 39.0, // 65% of 60
+      'D': 33.0, // 55% of 60
+      'E': 27.0, // 45% of 60
+      'F': 0.0,
+      'FE': 0.0
+    };
 
-      let grade = 'F';
-      if (total >= 90) grade = 'S';
-      else if (total >= 80) grade = 'A';
-      else if (total >= 70) grade = 'B';
-      else if (total >= 60) grade = 'C';
-      else if (total >= 50) grade = 'D';
-      else if (total >= 40) grade = 'E';
-      
-      let remark = 'FAIL';
-      if (total >= 40 && ese >= 24) {
-        remark = 'PASS';
+    function calculateEseRowFromGrade(gradeSelect) {
+      const row = gradeSelect.closest('tr');
+      const selectedGrade = gradeSelect.value.trim().toUpperCase();
+      const markInput = row.querySelector('.ese-mark-input');
+
+      if (selectedGrade in SBTE_GRADE_SCALE) {
+        markInput.value = SBTE_GRADE_SCALE[selectedGrade].toFixed(1);
+      }
+      updateEseRowTotals(row);
+    }
+
+    function calculateEseRowFromMarks(markInput) {
+      const row = markInput.closest('tr');
+      const val = parseFloat(markInput.value);
+      const gradeSelect = row.querySelector('.ese-grade-select');
+
+      if (!isNaN(val) && markInput.value.trim() !== '') {
+        const pct = (val / 60.0) * 100.0;
+        let matchedGrade = 'F';
+        if (pct >= 90) matchedGrade = 'S';
+        else if (pct >= 80) matchedGrade = 'A';
+        else if (pct >= 70) matchedGrade = 'B';
+        else if (pct >= 60) matchedGrade = 'C';
+        else if (pct >= 50) matchedGrade = 'D';
+        else if (pct >= 40) matchedGrade = 'E';
+        else matchedGrade = 'F';
+
+        if (gradeSelect) gradeSelect.value = matchedGrade;
+      }
+      updateEseRowTotals(row);
+    }
+
+    function updateEseRowTotals(row) {
+      if (!row) return;
+      const cieElem = row.querySelector('[data-val-cie]');
+      const cie = cieElem ? (parseFloat(cieElem.innerText) || 0) : 0;
+      const markInput = row.querySelector('.ese-mark-input');
+      const gradeSelect = row.querySelector('.ese-grade-select');
+      const ese = markInput ? (parseFloat(markInput.value) || 0) : 0;
+      const total = cie + ese;
+
+      const totalElem = row.querySelector('[data-field="total_score"]');
+      if (totalElem) totalElem.innerText = total.toFixed(1);
+
+      const selectedGrade = gradeSelect ? gradeSelect.value.trim().toUpperCase() : '';
+
+      // Revision 2026 Passing Norms:
+      // Minimum 40% in ESE (>= 24/60) and Total >= 40/100
+      let remark = 'REAPPEARANCE';
+      let courseGrade = 'F';
+
+      const isEsePass = (selectedGrade !== 'F' && selectedGrade !== 'FE' && ese >= 24);
+
+      if (isEsePass && total >= 40) {
+        remark = 'PASSED';
+        if (total >= 90) courseGrade = 'S';
+        else if (total >= 80) courseGrade = 'A';
+        else if (total >= 70) courseGrade = 'B';
+        else if (total >= 60) courseGrade = 'C';
+        else if (total >= 50) courseGrade = 'D';
+        else courseGrade = 'E';
       } else {
-        grade = 'F';
+        remark = (selectedGrade === 'FE') ? 'ABSENT' : 'REAPPEARANCE';
+        courseGrade = 'F';
       }
 
       const gDisp = row.querySelector('[data-field="grade_display"]');
-      gDisp.innerText = grade;
-      if (grade === 'F') {
-        gDisp.className = "p-2.5 text-center font-bold text-rose-500";
-      } else {
-        gDisp.className = "p-2.5 text-center font-bold text-emerald-400";
+      if (gDisp) {
+        gDisp.innerText = courseGrade;
+        if (courseGrade === 'F') {
+          gDisp.className = "p-2 text-center font-bold text-rose-400 font-mono text-xs";
+        } else {
+          gDisp.className = "p-2 text-center font-bold text-emerald-400 font-mono text-xs";
+        }
       }
 
       const rDisp = row.querySelector('[data-field="remark_display"]');
-      rDisp.innerText = remark;
-      if (remark === 'PASS') {
-        rDisp.className = "p-2.5 text-center font-bold text-emerald-400";
+      if (rDisp) {
+        if (remark === 'PASSED') {
+          rDisp.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASSED</span>';
+        } else {
+          rDisp.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">' + remark + '</span>';
+        }
+      }
+    }
+
+    function calculateEseRow(elem) {
+      if (!elem) return;
+      if (elem.classList.contains('ese-grade-select')) {
+        calculateEseRowFromGrade(elem);
+      } else if (elem.classList.contains('ese-mark-input')) {
+        calculateEseRowFromMarks(elem);
+      } else if (elem.classList.contains('student-ese-row')) {
+        updateEseRowTotals(elem);
       } else {
-        rDisp.className = "p-2.5 text-center font-bold text-rose-500";
+        const row = elem.closest('tr');
+        if (row) updateEseRowTotals(row);
       }
     }
 
@@ -4229,21 +4334,29 @@
       clearTimeout(eseAutosaveTimer);
       eseAutosaveTimer = setTimeout(() => {
         saveEseMarks(true);
-      }, 1200);
+      }, 800);
     }
 
     function saveEseMarks(isAutoSave = false) {
       const marks = {};
+      const grades = {};
+
       document.querySelectorAll('.student-ese-row').forEach(row => {
         const regNo = row.getAttribute('data-reg-no');
-        const val = parseFloat(row.querySelector('.ese-mark-input').value) || 0;
-        marks[regNo] = val;
+        const markInput = row.querySelector('.ese-mark-input');
+        const gradeSelect = row.querySelector('.ese-grade-select');
+
+        const markVal = markInput ? (parseFloat(markInput.value) || 0) : 0;
+        const gradeVal = gradeSelect ? gradeSelect.value.trim().toUpperCase() : '';
+
+        marks[regNo] = markVal;
+        grades[regNo] = gradeVal;
       });
 
       const badge = document.getElementById('eseAutosaveBadge');
-      if (isAutoSave && badge) {
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
-        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+      if (badge) {
+        badge.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">progress_activity</span> Saving...';
+        badge.className = 'text-[10px] font-mono text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
       }
 
       fetch(`/api/r26/classroom/{{ $batchSubject->id }}/ese-marks/bulk-update`, {
@@ -4252,7 +4365,11 @@
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ marks: marks })
+        body: JSON.stringify({
+          marks: marks,
+          grades: grades,
+          entry_mode: 'grades'
+        })
       })
       .then(res => res.json())
       .then(data => {
@@ -4262,7 +4379,7 @@
             badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
           }
           if (!isAutoSave) {
-            alert("ESE Marks saved successfully!");
+            alert("ESE Marks & SBTE Grades saved successfully!");
           }
         } else {
           if (badge) {

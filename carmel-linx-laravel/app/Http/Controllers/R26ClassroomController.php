@@ -117,7 +117,12 @@ class R26ClassroomController extends Controller
 
         $seriesExams = \App\Models\SeriesExam::where('batch_subject_id', $subjectId)->get();
 
-        $studentCiaData = $students->map(function ($student) use ($attendanceData, $academicMarks, $subjectId, $batchSubject, $selfLearningConfigs, $testConfigs, $testAttempts, $submissions, $seriesExams) {
+        $boardGrades = \DB::table('student_board_grades')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->keyBy('reg_no');
+
+        $studentCiaData = $students->map(function ($student) use ($attendanceData, $academicMarks, $subjectId, $batchSubject, $selfLearningConfigs, $testConfigs, $testAttempts, $submissions, $seriesExams, $boardGrades) {
             $studentSubmissions = $submissions->get($student->reg_no, collect());
             $studentAttendance = $attendanceData->get($student->reg_no, collect());
             $totalAttendance = $studentAttendance->count();
@@ -226,7 +231,37 @@ class R26ClassroomController extends Controller
             }
 
             $eseRecord = $studentMarks->where('category', 'ESE')->first();
-            $eseMarks = $eseRecord ? (float)$eseRecord->marks_obtained : 0.0;
+            $gradeRecord = $boardGrades->get($student->reg_no) ?: $boardGrades->get($student->sbte_reg_no);
+            
+            $eseMarks = $eseRecord ? (float)$eseRecord->marks_obtained : null;
+            $eseGrade = $gradeRecord ? trim($gradeRecord->grade) : null;
+            
+            // Standard SBTE conversion mapping
+            $gradeToMarkScale = [
+                'S' => 57.0, // 95% of 60
+                'A' => 51.0, // 85% of 60
+                'B' => 45.0, // 75% of 60
+                'C' => 39.0, // 65% of 60
+                'D' => 33.0, // 55% of 60
+                'E' => 27.0, // 45% of 60
+                'F' => 0.0,
+                'FE' => 0.0,
+            ];
+
+            if (empty($eseGrade) && $eseMarks !== null && $eseMarks > 0) {
+                $pct = ($eseMarks / 60.0) * 100.0;
+                if ($pct >= 90) $eseGrade = 'S';
+                elseif ($pct >= 80) $eseGrade = 'A';
+                elseif ($pct >= 70) $eseGrade = 'B';
+                elseif ($pct >= 60) $eseGrade = 'C';
+                elseif ($pct >= 50) $eseGrade = 'D';
+                elseif ($pct >= 40) $eseGrade = 'E';
+                else $eseGrade = 'F';
+            } elseif (!empty($eseGrade) && ($eseMarks === null || $eseMarks == 0)) {
+                $eseMarks = $gradeToMarkScale[strtoupper($eseGrade)] ?? 0.0;
+            }
+
+            $finalEseMarks = $eseMarks !== null ? (float)$eseMarks : 0.0;
 
             return [
                 'reg_no' => $student->reg_no,
@@ -240,8 +275,9 @@ class R26ClassroomController extends Controller
                 'self_learning_marks' => $selfLearningMarks,
                 'series_exam_marks' => $seriesExamMarks,
                 'total_cia' => $attMarks + $selfLearningMarks + $seriesExamMarks,
-                'ese_marks' => $eseMarks,
-                'grand_total' => $attMarks + $selfLearningMarks + $seriesExamMarks + $eseMarks,
+                'ese_marks' => $finalEseMarks,
+                'ese_grade' => $eseGrade ?: '',
+                'grand_total' => $attMarks + $selfLearningMarks + $seriesExamMarks + $finalEseMarks,
                 'co_details' => $coDetails,
                 'exam_marks' => $examMarks
             ];
@@ -1352,21 +1388,29 @@ class R26ClassroomController extends Controller
         ];
 
         $marks = $request->input('marks', []);
+        $grades = $request->input('grades', []);
+        $allRegNos = array_unique(array_merge(array_keys($marks), array_keys($grades)));
         $updated = 0;
 
-        foreach ($marks as $regNo => $inputVal) {
-            $inputStr = trim((string)$inputVal);
-            if ($inputStr === '') continue;
+        foreach ($allRegNos as $regNo) {
+            $rawMark = isset($marks[$regNo]) ? trim((string)$marks[$regNo]) : '';
+            $rawGrade = isset($grades[$regNo]) ? strtoupper(trim((string)$grades[$regNo])) : '';
+
+            if ($rawMark === '' && $rawGrade === '') continue;
 
             $numericVal = 0.0;
             $gradeLetter = null;
 
-            if ($entryMode === 'grades' || (is_string($inputVal) && isset($gradeToMarkScale[strtoupper($inputStr)]))) {
-                $gradeLetter = strtoupper($inputStr);
-                $ratio = $gradeToMarkScale[$gradeLetter] ?? 0.45;
-                $numericVal = round($ratio * $maxMarks, 2);
-            } else {
-                $numericVal = (float)$inputVal;
+            if ($rawGrade !== '' && isset($gradeToMarkScale[$rawGrade])) {
+                $gradeLetter = $rawGrade;
+                if ($rawMark !== '' && is_numeric($rawMark)) {
+                    $numericVal = (float)$rawMark;
+                } else {
+                    $ratio = $gradeToMarkScale[$gradeLetter];
+                    $numericVal = round($ratio * $maxMarks, 2);
+                }
+            } elseif ($rawMark !== '' && is_numeric($rawMark)) {
+                $numericVal = (float)$rawMark;
                 $pct = $maxMarks > 0 ? ($numericVal / $maxMarks) * 100 : 0;
                 if ($pct >= 90) $gradeLetter = 'S';
                 elseif ($pct >= 80) $gradeLetter = 'A';
@@ -1375,7 +1419,13 @@ class R26ClassroomController extends Controller
                 elseif ($pct >= 50) $gradeLetter = 'D';
                 elseif ($pct >= 40) $gradeLetter = 'E';
                 else $gradeLetter = 'F';
+            } elseif (isset($gradeToMarkScale[strtoupper($rawMark)])) {
+                $gradeLetter = strtoupper($rawMark);
+                $ratio = $gradeToMarkScale[$gradeLetter];
+                $numericVal = round($ratio * $maxMarks, 2);
             }
+
+            if ($gradeLetter === null) continue;
 
             \DB::table('academic_marks')->updateOrInsert(
                 [
@@ -1393,17 +1443,24 @@ class R26ClassroomController extends Controller
                 ]
             );
 
-            \DB::table('student_board_grades')->updateOrInsert(
-                [
-                    'reg_no' => $regNo,
-                    'subject_code' => $batchSubject->subject_code,
-                    'semester' => $batchSubject->semester ?: 1,
-                ],
-                [
-                    'grade' => $gradeLetter,
-                    'updated_at' => now(),
-                ]
-            );
+            // Safe update into student_board_grades with foreign key check
+            $studentExists = \DB::table('students')->where('reg_no', $regNo)->exists();
+            if ($studentExists) {
+                $isPassed = ($gradeLetter !== 'F' && $gradeLetter !== 'FE' && $numericVal >= 24);
+                \DB::table('student_board_grades')->updateOrInsert(
+                    [
+                        'reg_no' => $regNo,
+                        'subject_code' => $batchSubject->subject_code,
+                        'semester' => $batchSubject->semester ?: 1,
+                    ],
+                    [
+                        'grade' => $gradeLetter,
+                        'external_marks' => $numericVal,
+                        'passed' => $isPassed,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
 
             $updated++;
         }
@@ -1953,7 +2010,12 @@ class R26ClassroomController extends Controller
 
         $seriesExams = \App\Models\SeriesExam::where('batch_subject_id', $subjectId)->get();
 
-        $studentCiaData = $students->map(function ($student) use ($attendanceData, $academicMarks, $subjectId, $batchSubject, $selfLearningConfigs, $testConfigs, $testAttempts, $submissions, $seriesExams) {
+        $boardGrades = \DB::table('student_board_grades')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->keyBy('reg_no');
+
+        $studentCiaData = $students->map(function ($student) use ($attendanceData, $academicMarks, $subjectId, $batchSubject, $selfLearningConfigs, $testConfigs, $testAttempts, $submissions, $seriesExams, $boardGrades) {
             $studentSubmissions = $submissions->get($student->reg_no, collect());
             $studentAttendance = $attendanceData->get($student->reg_no, collect());
             $totalAttendance = $studentAttendance->count();
@@ -2040,7 +2102,36 @@ class R26ClassroomController extends Controller
             $seriesExamMarks = $seriesExamRecord ? (float)$seriesExamRecord->marks_obtained : 0.0;
 
             $eseRecord = $studentMarks->where('category', 'ESE')->first();
-            $eseMarks = $eseRecord ? (float)$eseRecord->marks_obtained : 0.0;
+            $gradeRecord = $boardGrades->get($student->reg_no) ?: $boardGrades->get($student->sbte_reg_no);
+            
+            $eseMarks = $eseRecord ? (float)$eseRecord->marks_obtained : null;
+            $eseGrade = $gradeRecord ? trim($gradeRecord->grade) : null;
+            
+            $gradeToMarkScale = [
+                'S' => 57.0, // 95% of 60
+                'A' => 51.0, // 85% of 60
+                'B' => 45.0, // 75% of 60
+                'C' => 39.0, // 65% of 60
+                'D' => 33.0, // 55% of 60
+                'E' => 27.0, // 45% of 60
+                'F' => 0.0,
+                'FE' => 0.0,
+            ];
+
+            if (empty($eseGrade) && $eseMarks !== null && $eseMarks > 0) {
+                $pct = ($eseMarks / 60.0) * 100.0;
+                if ($pct >= 90) $eseGrade = 'S';
+                elseif ($pct >= 80) $eseGrade = 'A';
+                elseif ($pct >= 70) $eseGrade = 'B';
+                elseif ($pct >= 60) $eseGrade = 'C';
+                elseif ($pct >= 50) $eseGrade = 'D';
+                elseif ($pct >= 40) $eseGrade = 'E';
+                else $eseGrade = 'F';
+            } elseif (!empty($eseGrade) && ($eseMarks === null || $eseMarks == 0)) {
+                $eseMarks = $gradeToMarkScale[strtoupper($eseGrade)] ?? 0.0;
+            }
+
+            $finalEseMarks = $eseMarks !== null ? (float)$eseMarks : 0.0;
 
             return [
                 'reg_no' => $student->reg_no,
@@ -2054,7 +2145,8 @@ class R26ClassroomController extends Controller
                 'self_learning_marks' => $selfLearningMarks,
                 'series_exam_marks' => $seriesExamMarks,
                 'total_cia' => $attMarks + $selfLearningMarks + $seriesExamMarks,
-                'ese_marks' => $eseMarks
+                'ese_marks' => $finalEseMarks,
+                'ese_grade' => $eseGrade ?: ''
             ];
         });
 

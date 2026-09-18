@@ -410,7 +410,7 @@
                     <th>Student Name</th>
                     <th class="text-center" style="width: 11%;">Attendance %</th>
                     <th class="text-center" style="width: 10%;">CIA<br>(40M Max)</th>
-                    <th class="text-center" style="width: 10%;">Theory ESE<br>(60M Max)</th>
+                    <th class="text-center" style="width: 12%;">Theory ESE<br>(60M / Grade)</th>
                     <th class="text-center" style="width: 10%;">Grand Total<br>(100M Max)</th>
                     <th class="text-center" style="width: 9%;">Grade</th>
                     <th class="text-center" style="width: 13%;">Result Status</th>
@@ -454,7 +454,12 @@
                         <td class="font-bold">{{ $sc['name'] }}</td>
                         <td class="text-center font-mono">{{ $sc['attendance_percent'] }}%</td>
                         <td class="text-center font-mono">{{ number_format($sc['total_cia'], 1) }}</td>
-                        <td class="text-center font-mono">{{ number_format($sc['ese_marks'], 1) }}</td>
+                        <td class="text-center font-mono">
+                            {{ number_format($sc['ese_marks'], 1) }}
+                            @if(!empty($sc['ese_grade']))
+                                <span style="font-weight: bold; color: #1e293b;">({{ $sc['ese_grade'] }})</span>
+                            @endif
+                        </td>
                         <td class="text-center font-mono font-bold">{{ number_format($tot, 1) }}</td>
                         <td class="text-center font-bold">{{ $grade }}</td>
                         <td class="text-center font-bold {{ $remark === 'PASSED' ? 'text-emerald-700' : 'text-rose-700' }}" style="color: {{ $remark === 'PASSED' ? '#047857' : '#b91c1c' }};">

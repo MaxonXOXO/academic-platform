@@ -883,7 +883,154 @@ $$\text{Total Lab CIA (75M)} = \underbrace{37.5\text{M}}_{\text{Lab Work (5 Rubr
 
 <hr>
 
-<h3>4.4 Revision 2026 Virtual Classrooms Overview (R-2026)</h3>
+<h3>4.4 Revision 2021 Major Project Virtual Classroom Operations (R-2021)</h3>
+<p>The <strong>Revision 2021 Major Project Classroom</strong> (<code>/r21/classroom/project/{id}</code>) is a specialized, statutory workspace engineered in strict compliance with the <strong>State Board of Technical Education (SBTE) Keralam Diploma Regulations</strong> (Clauses 11.2.5 and 11.3.4). In Revision 2021, Major Project evaluation is structured as <strong>CIA 75 Marks</strong> and <strong>End Semester Evaluation (ESE) 50 Marks</strong>, leading to an official grand total of <strong>125 Marks</strong>.</p>
+
+<h4>4.4.1 Project Groups & Guide Setup (Tab 1: <code>tab-groups</code>)</h4>
+<ul>
+    <li><strong>Project Group Creation</strong>: Form student project teams (typically 3 to 5 students per group) with unique Group IDs and Titles.</li>
+    <li><strong>Internal Guide Assignment</strong>: Assign an internal departmental faculty member as the project mentor/guide for each group.</li>
+    <li><strong>Project Title &amp; Synopsis Management</strong>: Define approved project titles, problem statements, and scope.</li>
+    <li><strong>Roster Allocation</strong>: Add or transfer enrolled students into their designated project groups with automatic roll number and SBTE registration verification.</li>
+</ul>
+
+<h4>4.4.2 Continuous Internal Assessment (CIA) Architecture (Tab 2: <code>tab-cia</code>)</h4>
+<p>The <strong>75-Mark CIA</strong> is calculated automatically in Carmel-Linx based on the statutory SBTE split-up:</p>
+<table>
+    <tr><th>Assessment Component</th><th>Weightage</th><th>Max Marks</th><th>Evaluation Criteria &amp; Mechanism</th></tr>
+    <tr><td><strong>Formative Assessment</strong></td><td>40%</td><td><strong>30.0</strong></td><td>Continuous mentor assessment based on the <strong>Weekly Activity Diary</strong>, milestone adherence, engineering ethics, and regular progress reviews.</td></tr>
+    <tr><td><strong>Summative Assessment</strong></td><td>40%</td><td><strong>30.0</strong></td><td>Formal presentation and viva conducted by the <strong>Department Project Review Committee</strong> evaluating technical depth, presentation, and team coordination.</td></tr>
+    <tr><td><strong>Attendance</strong></td><td>20%</td><td><strong>15.0</strong></td><td>Continuous attendance percentage slabs: &ge; 90%: 15M; 80–89%: 12M; 75–79%: 9M; 70–74%: 6M; 65–69%: 3M; &lt; 65%: 0M. Automatically synced or manually fine-tuned.</td></tr>
+    <tr><td><strong>Total CIA</strong></td><td>100%</td><td><strong>75.0</strong></td><td><strong>Passing Benchmark: Minimum 40% (30.0 Marks out of 75)</strong>. Students securing &lt; 30M fail CIA and are ineligible for ESE.</td></tr>
+</table>
+<ul>
+    <li><strong>1-Click Group Common CIA</strong>: Click <code>[Group Common CIA (60M)]</code> to award common Formative (30M) and Summative (30M) scores across all members of a group instantly, while preserving each student's individualized attendance score (15M).</li>
+    <li><strong>Individual Student Fine-Tuning</strong>: Click <code>[Evaluate CIA]</code> on any student row to open an interactive modal with real-time mark sliders, input fields, and live SBTE CIA grade generation (<code>S</code>, <code>A</code>, <code>B</code>, <code>C</code>, <code>D</code>, <code>E</code>, <code>F</code>).</li>
+</ul>
+
+<h4>4.4.3 End Semester Evaluation (ESE) Architecture (Tab 3: <code>tab-ese</code>)</h4>
+<p>Under SBTE Clause 11.3.4, ESE is conducted internally at the institution by a joint assessment panel of <strong>two examiners: 1 Internal Examiner and 1 External Examiner</strong>. Both examiners jointly assess each group and each student across <strong>8 statutory rubrics</strong> (Max 50 Marks):</p>
+<table>
+    <tr><th>No</th><th>Evaluation Rubric / Criterion</th><th>Weightage (%)</th><th>Max Marks</th><th>Scope &amp; Nature of Evaluation</th></tr>
+    <tr><td>1</td><td><strong>Prototype / Working Model</strong></td><td>20%</td><td><strong>10.0</strong></td><td>Functional validation, craftsmanship, engineering implementation (Group/Individual).</td></tr>
+    <tr><td>2</td><td><strong>Usage of Modern Tools</strong></td><td>10%</td><td><strong>5.0</strong></td><td>CAD, simulation, IDEs, specialized hardware/software tools (Group/Individual).</td></tr>
+    <tr><td>3</td><td><strong>Presentation</strong></td><td>15%</td><td><strong>7.5</strong></td><td>Clarity, structure, technical communication, and visual aid quality (Individual).</td></tr>
+    <tr><td>4</td><td><strong>Innovativeness</strong></td><td>5%</td><td><strong>2.5</strong></td><td>Originality, societal relevance, novel application or design (Group).</td></tr>
+    <tr><td>5</td><td><strong>Viva Voce</strong></td><td>15%</td><td><strong>7.5</strong></td><td>Defense of methodology, domain concepts, and troubleshooting (Individual).</td></tr>
+    <tr><td>6</td><td><strong>Individual Contribution</strong></td><td>15%</td><td><strong>7.5</strong></td><td>Specific responsibilities handled by the student within the project (Individual).</td></tr>
+    <tr><td>7</td><td><strong>Group Activity</strong></td><td>10%</td><td><strong>5.0</strong></td><td>Team dynamics, task division, collaboration, and collective synergy (Group).</td></tr>
+    <tr><td>8</td><td><strong>Project Report</strong></td><td>10%</td><td><strong>5.0</strong></td><td>Adherence to SBTE formatting guidelines, literature review, conclusions (Group).</td></tr>
+    <tr><th colspan="2">Total ESE Marks</th><th>100%</th><th><strong>50.0</strong></th><th><strong>Passing Benchmark: Minimum 40% (20.0 Marks out of 50)</strong></th></tr>
+</table>
+<ul>
+    <li><strong>Grand Total Project Score</strong>: Combined <strong>125 Marks</strong> (75 CIA + 50 ESE). Passing requirement is minimum 30M in CIA, 20M in ESE, and 50M overall.</li>
+    <li><strong>Dual Examiner Names &amp; Sign-offs</strong>: Enter the official names and designations of both the <strong>Internal Examiner</strong> and <strong>External Examiner</strong>. Both names are rendered on all statutory broadsheets and score sheets.</li>
+    <li><strong>1-Click Group Common ESE</strong>: Fast-track the 5 group-level rubrics (Prototype 10M, Modern Tools 5M, Innovativeness 2.5M, Group Activity 5M, Report 5M = 27.5M) across all members in one submission.</li>
+</ul>
+
+<h4>4.4.4 Statutory Reports Hub (Tab 4: <code>tab-reports</code>)</h4>
+<p>The Reports Hub centralizes all SBTE-mandated project documentation for auditing and filing:</p>
+<ol>
+    <li><strong>Group-Wise Evaluation Breakdown (Separate Filing)</strong>: Generates an official, dedicated single-page evaluation dossier for each project group. Contains Project Title, Guide, member roster, individual rubric marks, and joint signature blocks for Internal Guide, Internal Examiner, External Examiner, and HOD. Supports printing a specific group or all groups sequentially.</li>
+    <li><strong>Continuous Internal Assessment (CIA) Register (75M)</strong>: Official roll-wise register listing Formative (30M), Summative (30M), Attendance (15M), Total CIA (75M), CIA in words, SBTE grade, grade points, and PASS/FAILED status.</li>
+    <li><strong>Clause 11.3.4 ESE 8-Rubric Score Sheet (50M)</strong>: Detailed statutory mark list showing all 8 rubric columns, total 50M, ESE grade, and joint examiner sign-offs.</li>
+    <li><strong>SBTE Official Final Mark Entry Statement (125M)</strong>: Standardized statement matching the Controller of Examinations (CoE) SBTE web portal format with CIA (75M) and ESE (50M) columns.</li>
+    <li><strong>Consolidated Master Broad Register (125M)</strong>: Comprehensive institutional broadsheet combining full CIA breakdown, ESE breakdown, grand total (125M), final letter grade, and grade points for academic archives.</li>
+    <li><strong>Course Exit Survey &amp; Attainment Statement</strong>: Direct vs Indirect CO-PO attainment analysis.</li>
+</ol>
+
+<hr>
+
+<h3>4.5 Revision 2021 Seminar Virtual Classroom Operations (R-2021)</h3>
+<p>The <strong>Revision 2021 Seminar Classroom</strong> (<code>/r21/classroom/seminar/{id}</code>) is a dedicated virtual workspace designed for diploma seminar courses. Under SBTE Revision 2021 regulations, Seminar is an <strong>Internal-Only Subject evaluated out of 75 CIA Marks</strong> (no university ESE examination).</p>
+
+<h4>4.5.1 Seminar Operational Architecture &amp; Evaluation Pipeline</h4>
+<ul>
+    <li><strong>Two-Faculty Evaluation Panel</strong>: Seminar assessment is conducted by two faculty members: the assigned <strong>Seminar Guide / Supervisor</strong> and an <strong>Independent Evaluator / Department Review Committee Member</strong>.</li>
+    <li><strong>Guide &amp; Batch Setup</strong>: Allocate faculty supervisors and seminar presentation slots to students.</li>
+    <li><strong>Standardized Assessment Rubrics (75 Marks)</strong>:
+        <ul>
+            <li><strong>Relevance &amp; Depth of Topic</strong>: Technical relevance to diploma engineering and contemporary industrial advancements.</li>
+            <li><strong>Literature Survey &amp; Data Collection</strong>: Quality of referenced papers, manuals, and journals.</li>
+            <li><strong>Seminar Presentation &amp; Communication</strong>: Slide quality, presentation clarity, and time management.</li>
+            <li><strong>Viva Voce &amp; Technical Defense</strong>: Ability to field questions from faculty and peers.</li>
+            <li><strong>Seminar Report Quality</strong>: Adherence to SBTE technical writing standards, formatting, and references.</li>
+            <li><strong>Continuous Attendance &amp; Punctuality</strong>: Attendance integrated directly into the continuous evaluation.</li>
+        </ul>
+    </li>
+    <li><strong>Responsive, User-Friendly Evaluation Cards</strong>: Compact, responsive card layout with color-coded score sliders, numeric quick-inputs, and automatic SBTE grade calculations (<code>S</code> through <code>F</code>).</li>
+    <li><strong>Consolidated Seminar Reports</strong>: Generates the official <strong>Consolidated Seminar Evaluation Report</strong> detailing individual rubric split-ups, attendance, final CIA (75M), grade, and faculty sign-offs for direct entry into the SBTE portal.</li>
+</ul>
+
+<hr>
+
+<h3>4.6 Revision 2021 Virtual Drawing Classroom Operations (R-2021)</h3>
+<p>The <strong>Revision 2021 Virtual Drawing Classroom</strong> caters to Engineering Graphics, Civil Drawing, Electrical Drawing, and Mechanical Machine Drawing subjects. Under SBTE Keralam regulations, drawing subjects are governed under <strong>Practical / Laboratory subject criteria</strong> due to their hands-on drafting, manual instrument handling, and CAD workstation requirements.</p>
+
+<h4>4.6.1 Drawing Subject Workflow &amp; Continuous Evaluation</h4>
+<ul>
+    <li><strong>Continuous Sheet / Plate Assessment</strong>: Every drawing sheet assigned in the semester is evaluated continuously as a practical exercise.</li>
+    <li><strong>Drafting Evaluation Rubrics</strong>:
+        <ul>
+            <li><strong>Drafting Accuracy &amp; Projection Principles</strong> (Orthographic, Isometric, Sections, Interpenetration).</li>
+            <li><strong>Dimensioning, Lettering &amp; Line Work Standards</strong> (Adherence to BIS/ISO conventions).</li>
+            <li><strong>Neatness, Cleanliness &amp; Layout</strong>.</li>
+            <li><strong>Completion within Stipulated Hall Hours</strong>.</li>
+            <li><strong>Drawing Viva Voce</strong> (Understanding of drafting standards, scales, and symbols).</li>
+        </ul>
+    </li>
+    <li><strong>Drawing Lab Tests &amp; Series Exams</strong>: Conducted under examination conditions in the drawing hall to award summative test marks.</li>
+    <li><strong>Continuous Attendance Integration</strong>: Hourly attendance logged via the universal attendance console directly feeds into the drawing attendance marks.</li>
+    <li><strong>Statutory Drawing Reports</strong>:
+        <ul>
+            <li><strong>Drawing Sheet Continuous Assessment Ledger</strong>: Record of every plate completed by each student with individual date stamps and rubric scores.</li>
+            <li><strong>Drawing CIA Register</strong>: Consolidated continuous assessment register with sheet marks, test marks, and attendance.</li>
+            <li><strong>Broadsheet for SBTE Mark Entry</strong>: Official mark sheet signed by the Drawing Instructor and HOD.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h3>4.7 Universal Course &amp; Program Exit Survey and Attainment Calculation</h3>
+<p>Carmel-Linx features a unified <strong>Outcome-Based Education (OBE) Attainment Engine</strong> integrated universally across <strong>all virtual classrooms</strong> (Theory, Practical / Lab, Seminar, Major Project, and Drawing).</p>
+
+<h4>4.7.1 Direct vs. Indirect Attainment Pipeline</h4>
+<p>In alignment with <strong>National Board of Accreditation (NBA) Criterion 3</strong> and SBTE OBE frameworks, overall Course Outcome (CO) attainment is calculated through a weighted combination of direct academic performance and student indirect feedback:</p>
+<pre>
+Overall CO Attainment = (80% &times; Direct Attainment) + (20% &times; Indirect Survey Attainment)
+</pre>
+<ul>
+    <li><strong>Direct Attainment (80% Weightage)</strong>:
+        <ul>
+            <li>Calculated from continuous assessments (Assignments, Series Exams, Class Quizzes, Lab Rubrics, Seminar Presentations, Project Milestones) and End Semester Examinations (ESE).</li>
+            <li>Carmel-Linx tracks attainment levels based on target benchmarks: Level 3 (&ge; 70% students attain benchmark), Level 2 (&ge; 60% students attain benchmark), Level 1 (&ge; 50% students attain benchmark).</li>
+        </ul>
+    </li>
+    <li><strong>Indirect Attainment (20% Weightage - Online Student Exit Surveys)</strong>:
+        <ul>
+            <li><strong>Course Exit Survey</strong>: Administered online to enrolled students at the conclusion of each course. Students rate their attainment of each specific Course Outcome (CO1 through CO5) on a 1–5 or 1–3 Likert scale.</li>
+            <li><strong>Program Exit Survey</strong>: Conducted by the <strong>Class Tutor or HOD</strong> for graduating batches to evaluate overall Program Outcomes (PO1–PO11) and Program Specific Outcomes (PSO1–PSO3).</li>
+        </ul>
+    </li>
+</ul>
+
+<h4>4.7.2 Role of HOD and Class Tutor in Attainment Generation</h4>
+<ul>
+    <li><strong>Triggering the Online Survey</strong>: The Class Tutor or HOD activates the digital exit survey from their console with one click. Enrolled students receive instant notifications on their Student Portal dashboard.</li>
+    <li><strong>Automated Aggregation</strong>: As students submit their surveys online, Carmel-Linx compiles survey response averages in real time.</li>
+    <li><strong>Generation of Program Attainment &amp; NBA Statements</strong>: Once surveys are locked, the system automatically computes:
+        <ul>
+            <li><strong>Course CO-PO Mapping Attainment Table</strong>.</li>
+            <li><strong>Consolidated Department Program Attainment Matrix</strong> (aggregating Theory, Lab, Seminar, Drawing, and Project attainment across all semesters).</li>
+            <li><strong>NBA Criterion 3 Compliance Dossier</strong> with graphical spider/radar charts and action plans for continuous improvement.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h3>4.8 Revision 2026 Virtual Classrooms Overview (R-2026)</h3>
 <p>For batches admitted in 2026 and subsequent years, Carmel-linx launches dedicated Revision 2026 virtual classrooms tailored to newer SBTE curriculum formats:</p>
 <ul>
     <li><strong>Theory Classroom (<code>/r26/classroom/theory/{id}</code>)</strong>: CIE 40 Marks + ESE 60 Marks; interactive CO-PO Articulation Matrix with live arrow-key autosave; Table 2.1 Attendance marks (5M) &amp; Table 2.2 Self-Learning marks (15M).</li>
@@ -895,7 +1042,7 @@ $$\text{Total Lab CIA (75M)} = \underbrace{37.5\text{M}}_{\text{Lab Work (5 Rubr
 
 <hr>
 
-<h3>4.5 Universal Class Attendance & Subject Log Console (<code>/staff/attendance-log</code>)</h3>
+<h3>4.9 Universal Class Attendance &amp; Subject Log Console (<code>/staff/attendance-log</code>)</h3>
 
 <p>The <strong>Class Attendance & Subject Log</strong> is a unified, high-efficiency operational link integrated across <strong>all staff dashboards</strong> (Lecturer, Demonstrator, Trade Instructor, Workshop Superintendent, HOD, and Class Tutor). It serves as the primary system of record for session-by-session student presence and simultaneous subject syllabus coverage.</p>
 
@@ -1026,7 +1173,7 @@ flowchart LR
 
 <hr>
 
-<h3>4.6 Course Files (<code>/course-files</code>) &amp; Remedial Coaching (<code>/remedial-sessions</code>)</h3>
+<h3>4.10 Course Files (<code>/course-files</code>) &amp; Remedial Coaching (<code>/remedial-sessions</code>)</h3>
 <ul>
     <li><strong>Course Files (<code>/course-files</code>)</strong>: Auto-compiles all syllabus documents, lesson plans, attendance records, question papers, marksheets, and CO-PO attainment matrices into standardized SBTE/NBA 16-item course file compliance dossiers.</li>
     <li><strong>Remedial Sessions (<code>/remedial-sessions</code>)</strong>: Schedule remedial coaching classes for slow learners identified via internal series tests, record remedial attendance, and track re-evaluation mark improvements for NBA Criterion 2 compliance.</li>

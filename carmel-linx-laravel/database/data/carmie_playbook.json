@@ -1,709 +1,1581 @@
 {
-  "system_info": {
-    "platform_name": "Carmel-linx",
-    "institution": "Carmel Polytechnic College",
-    "assistant_name": "Carmie",
-    "version": "Academic Operating System 2026"
-  },
-  "topics": [
-    {
-      "id": "carmel_linx_platform_overview",
-      "title": "Carmel-linx Platform Architecture & User Workspaces (SBTE Keralam)",
-      "keywords": ["carmel-linx", "about", "sbte keralam", "polytechnic", "obe", "outcome based", "architecture", "roles", "agentic ai", "carmie", "workspaces"],
-      "revisions": ["2021", "2026"],
-      "role": ["All", "Superadmin", "Principal", "HOD", "Lecturer", "Student", "Parent"],
-      "summary": "Automated academic management platform developed specifically for SBTE Keralam Polytechnic System with curricular & OBE evaluation, intelligent networked modules, and Agentic AI support.",
-      "steps": [
-        "**SBTE Keralam Polytechnic Focus:** Designed specifically for Kerala polytechnic curriculum standards, outcome-based education (OBE), and continuous assessment.",
-        "**Networked Ecosystem:** Seamlessly interconnects Administration (Superadmin, Principal, System Admin, Office Staff), Department Leadership (HODs), Instructional Faculty (Lecturers, Demonstrators, Trade Instructors, Workshop Superintendents, Tradesmen), Students, and Parents.",
-        "**Dedicated Workspaces:** Every user role operates within their own tailored workspace with customized options, operations, and permissions.",
-        "**Cross-Platform Access:** Operates seamlessly across Desktop web portals and Mobile app versions.",
-        "**Agentic AI Support (Carmie):** Inbuilt real-life support assistant helping all users with error-free workflows, studies, lesson planning, documentation, evaluations, and compliance reporting."
-      ],
-      "action_label": "Explore Platform Manual",
-      "action_route": "/docs/carmel_linx_user_manual.html"
+    "system_info": {
+        "platform_name": "Carmel-linx",
+        "institution": "Carmel Polytechnic College",
+        "assistant_name": "Carmie",
+        "version": "Academic Operating System 2026"
     },
-    {
-      "id": "dual_syllabus_architecture_r21_r26",
-      "title": "Dual Syllabus Revision Architecture: Rev 2021 vs Rev 2026",
-      "keywords": ["syllabus revision", "revision 2021", "revision 2026", "r21", "r26", "admission 2025", "admission 2026", "subject types", "curriculum isolation", "virtual classrooms", "cie criteria", "cia criteria"],
-      "revisions": ["2021", "2026"],
-      "role": ["All", "HOD", "Lecturer", "Tutor"],
-      "summary": "Carmel-linx operates as a virtual institution strictly isolating Revision 2021 (up to Admission 2025) and Revision 2026 (Admission 2026 onwards) rules, subject types, and CIA/CIE criteria.",
-      "steps": [
-        "**1. Virtual Institution Framework:** Carmel-linx runs concurrent virtual classrooms tailored to curriculum revisions with zero crossover errors.",
-        "**2. Revision 2021 (R2021 - Up to Admission 2025):** Applies to all batches admitted up to 2025. Subject types include: **Theory**, **Practical / Lab**, **Seminar**, **Project**, **Drawing**, **Minor Project**, **Workshop**, and **Internship**. Each type has its own distinct Continuous Internal Assessment (CIA) scheme.",
-        "**3. Revision 2026 (R2026 - Admission 2026 Onwards):** Applies to Admission 2026 and subsequent batches. Subject types include: **Theory** (CIE 40M + ESE 60M, Table 2.1 Attendance, Table 2.2 Self-Learning, CO-PO Matrix), **Practicum Basic Science**, **Practicum Program Core**, **Laboratory / Practical**, **Drawing**, **Project**, **Seminar**, and **Internship**.",
-        "**4. Assessment & NBA Attainment:** Revision 2026 heavily implements automated Course File generation (16-item audit checklist), Direct & Indirect NBA attainment calculations, and Student Feedback/Surveys (Mid-Sem & Course Exit).",
-        "**5. Automatic Classroom Routing:** Selecting a subject card on your dashboard automatically routes you to the exact specialized virtual classroom based on its revision and subject type."
-      ],
-      "action_label": "View Syllabus Guidelines",
-      "action_route": "/docs/carmel_linx_user_manual.html"
-    },
-    {
-      "id": "superadmin_org_setup",
-      "title": "Organization & Institution Setup (Superadmin Level)",
-      "keywords": ["organization setup", "superadmin", "institution details", "program setting", "branch setting", "principal assignment", "setup institution"],
-      "revisions": ["2021", "2026"],
-      "role": ["Superadmin"],
-      "summary": "Initial organizational configuration carried out at the Superadmin level to initialize the institution, branches, and Principal.",
-      "steps": [
-        "**1. Organization Setup:** Superadmin logs into the central system console to initialize the polytechnic organization.",
-        "**2. Institution Details Setting:** Configure institution profile, institutional code, affiliation to SBTE Keralam, contact information, and academic calendar parameters.",
-        "**3. Program & Branch Setting:** Set up diploma engineering departments/branches (e.g. Civil, Mechanical, Electrical & Electronics, Electronics & Communication, Computer Engineering, Automobile, etc.).",
-        "**4. Principal Assignment:** Assign and provision the Principal account with executive administrative authority.",
-        "**5. Operational Handover:** After this baseline setup, day-to-day institution management is handed over to the Principal."
-      ],
-      "action_label": "Open System Admin Desk",
-      "action_route": "/dashboard/admin"
-    },
-    {
-      "id": "login_card_operations",
-      "title": "Login Card & Role Selection (http://app.carmelpoly.in)",
-      "keywords": ["login", "login card", "app.carmelpoly.in", "student login", "staff login", "sign in", "portal access", "mobile login", "desktop login", "forgot password", "reset password"],
-      "revisions": ["2021", "2026"],
-      "role": ["All", "Staff", "Student"],
-      "summary": "Universal login and access card for Carmel-linx accessible via mobile and desktop at http://app.carmelpoly.in.",
-      "steps": [
-        "**1. Portal Access:** Navigate to **http://app.carmelpoly.in** from any mobile phone browser, mobile app, or desktop browser.",
-        "**2. Login Card:** A central login card appears prompting you to select **Login as Student** or **Login as Staff**.",
-        "**3. Staff Login:** Use your registered **Mobile Phone Number** as your login ID, along with your chosen password.",
-        "**4. Student Login:** Use your student credentials and personal password.",
-        "**5. New User Registration:** If you are a new user, click the registration links below the login card: **Register as Student** or **Register as Staff**.",
-        "**6. Password Recovery:** If you forget your password, click **Forgot Password?**. A recovery link/token is dispatched to your registered working email ID."
-      ],
-      "action_label": "Go to Login Portal",
-      "action_route": "/"
-    },
-    {
-      "id": "student_registration_workflow",
-      "title": "Student Registration & Tutor/HOD Approval Workflow",
-      "keywords": ["student registration", "register student", "admission year", "branch", "let", "lateral entry", "regular entry", "student approval", "tutor approval", "hod approval", "new student"],
-      "revisions": ["2021", "2026"],
-      "role": ["Student", "Tutor", "HOD"],
-      "summary": "Step-by-step registration for students with admission details and required Tutor/HOD approval.",
-      "steps": [
-        "**1. Open Registration:** Go to **http://app.carmelpoly.in** and click **Register as Student** below the login card.",
-        "**2. Admission Details:** Enter your **Admission Year** (e.g. 2024, 2025, 2026) and select your diploma **Branch / Program**.",
-        "**3. Entry Mode:** Specify whether your admission is **Regular Entry** (joined in Semester 1) or **LET (Lateral Entry)** (joined directly into Semester 3).",
-        "**4. Working Email ID:** Enter a valid, active Email ID for password recovery and college notifications.",
-        "**5. Password:** Create your own secure password.",
-        "**6. Approval Gate:** Once submitted, student login is held in pending status until the **Department HOD or assigned Class Tutor reviews and approves** the account.",
-        "**7. Profile Activation:** Following approval, the student can log in to view their attendance, internal assessment scores, and assignments."
-      ],
-      "action_label": "Student Register",
-      "action_route": "/"
-    },
-    {
-      "id": "staff_profile_and_birthday_popup",
-      "title": "Profile Customization, Photos & Automated Staff Birthday Wishes",
-      "keywords": ["profile photo", "date of birth", "dob", "birthday wish", "birthday popup", "staff profile", "student profile", "modify profile", "celebrate"],
-      "revisions": ["2021", "2026"],
-      "role": ["Staff", "Student"],
-      "summary": "Profile personalization with photos and the campus-wide automated birthday wish popup on first login.",
-      "steps": [
-        "**1. Profile Management:** After logging in on mobile or desktop, access your Profile settings to enhance and update your details.",
-        "**2. Profile Photo:** Upload a clear passport-style profile photo to personalize your dashboard, class rosters, and academic records.",
-        "**3. Date of Birth (DOB) Entry:** Enter your accurate Date of Birth in your profile settings.",
-        "**4. Automated Staff Birthday Popup:** When a staff member has their DOB entered, on their birthday, Carmel-linx automatically triggers a celebratory **Birthday Wish Popup** across all users' screens upon their first login of that day! 🎂🎉",
-        "**5. Student Birthday Status:** Birthday wish automation is currently fully active for faculty/staff; student birthday wish automation will be initialized in an upcoming release."
-      ],
-      "action_label": "Update Profile",
-      "action_route": "/profile"
-    },
-    {
-      "id": "hod_registration_and_approval",
-      "title": "HOD Onboarding, Registration & Principal Authorization Flow",
-      "keywords": ["hod registration", "principal approval", "hod login", "staff registration id", "phone number", "working email", "password recovery", "mobile app registration", "desktop login", "register", "approval", "approved", "authorize", "onboarding", "register hod", "approve hod"],
-      "revisions": ["2021", "2026"],
-      "role": ["Principal", "HOD"],
-      "summary": "Step-by-step onboarding for Heads of Departments (HODs) via phone number, mandatory email, and Principal approval.",
-      "steps": [
-        "**1. Principal Invitation:** Principal requests all Department HODs to register on the platform via the Mobile App or Desktop web portal.",
-        "**2. Mobile or Desktop Registration:** HOD opens the registration page on their phone or computer.",
-        "**3. Staff Registration ID:** The HOD's Staff Registration ID **must be their working Phone Number**.",
-        "**4. Mandatory Working Email ID:** A valid, active Email ID is strictly required during registration for account verification, administrative alerts, and password recovery.",
-        "**5. Password Creation:** HOD sets their own secure personal password.",
-        "**6. Principal Authorization & Approval:** Upon submission, the HOD account is held in pending status. The **Principal must review and grant official authorization** from the Principal console before the HOD can log in.",
-        "**7. Departmental Administrative Authority:** Once approved by the Principal, the HOD receives full administrative command of their department (managing departmental staff, assigning subjects, creating batches, and monitoring students).",
-        "**8. Mobile vs. Desktop Capabilities:** Both mobile and desktop share common login credentials, but certain high-density administrative configurations and bulk operations are restricted to the Desktop version for optimal precision."
-      ],
-      "action_label": "View HOD Dashboard",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "r21_virtual_theory_classroom_overview",
-      "title": "Revision 2021 Virtual Theory Classroom & SITTTR Syllabus Upload",
-      "keywords": ["r2021 theory", "virtual theory classroom", "revision 2021", "sitttr", "syllabus upload", "course structure", "batch card", "my batches", "r-2021"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "Tutor", "HOD", "Principal"],
-      "summary": "Accessing Revision 2021 Virtual Theory Classrooms via allotted batch cards, downloading syllabus from SITTTR, and confirming course metadata.",
-      "steps": [
-        "**1. Access Classroom:** From your **Lecturer Dashboard** (or via **My Batches** for Tutor, HOD, or Principal), locate the allotted batch card displaying assigned subjects and student count.",
-        "**2. Open R-2021 Theory Classroom:** For batches prior to 2026 admission (Admissions 2021–2025), clicking a Theory subject opens the **Virtual Theory Classroom R-2021**.",
-        "**3. Download Syllabus from SITTTR:** Download the official course syllabus PDF from the **SITTTR** website (State Institute of Technical Teachers' Training and Research, Kerala).",
-        "**4. Upload Syllabus PDF:** In the **Course Structure** tab, click **Upload Syllabus PDF**. Carmel-linx automatically extracts Course Outcomes (CO1–CO4), the CO-PO Matrix, modules, and reference textbooks.",
-        "**5. Verify Metadata Banner:** Below the titles, inspect the metadata banner displaying **Proposed Hours (e.g. 45 or 60 hrs)**, **Revision: R-2021**, **Credits**, **CIA (50M)**, **ESE Marks (100M/75M)**, Semester, Batch, and Branch Code. Confirm or edit if adjustments are required."
-      ],
-      "action_label": "Open Virtual Classroom",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_theory_lesson_planner",
-      "title": "Lesson Planner & Sync Dates from Log Data - Revision 2021 Theory",
-      "keywords": ["lesson planner", "sync dates", "sync dates from log data", "proposed date", "actual date", "60 hours", "62 sessions", "r2021 lesson plan"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Managing the 60-hour lesson plan with 1-hour session divisions, proposed dates, and one-click sync of actual completion dates from recorded class logs.",
-      "steps": [
-        "**1. Auto-Generated Plan:** Switching to the **Lesson Planner** tab displays an auto-generated schedule with 1-hour session divisions, module topics, and CO mapping derived from the uploaded syllabus.",
-        "**2. Session Breakdown (60+2 Hours):** For a standard 60-hour course, the planner typically displays ~62 total sessions (60 instructional hours + 2 to 4 one-hour sessions allocated for internal series exams and assessments).",
-        "**3. Inline Editing & Row Management:** Every row is fully editable inline. Use the **Add Row** button to insert additional topics or the delete icon to remove redundant sessions.",
-        "**4. Proposed Dates:** Input scheduled calendar dates for each session. Live autosave is active, complemented by a manual **Save Lesson Plan** button.",
-        "**5. Sync Dates from Log Data:** Once class attendance and subject logs are recorded (either daily or in bulk via MS Teams PDF import), click the **Sync Dates from Log Data** button. Carmel-linx automatically populates the actual completion dates into the lesson plan matching recorded teaching dates."
-      ],
-      "action_label": "View Lesson Planner",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "rev2021_formative_assessment",
-      "title": "Formative Assessment (Assignments, Lock & Amber Hardcopy Indicator) - Revision 2021",
-      "keywords": ["assignment", "formative", "question paper", "5041", "embedded systems", "2021", "generate questions", "cognitive", "bloom", "lock assignment", "amber shade", "hardcopy submission", "to-do list", "cia 50 marks"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Configuring 4 CO assignments under Revision 2021 50-mark CIA (20+20+10), dispatching To-Do notifications via Lock button, and tracking physical hardcopy submissions with amber alerts.",
-      "steps": [
-        "**1. Understand Revision 2021 CIA Scheme:** Total Continuous Internal Assessment is **50 Marks**: 40% Summative (20 Marks) + 40% Formative (20 Marks) + 20% Attendance (10 Marks). The formula is: **20 + 20 + 10 = 50 Marks**.",
-        "**2. Formative Assignments (20 Marks):** Formative assessment comprises 4 assignments—one for each Course Outcome (**CO1, CO2, CO3, CO4**)—consolidated into 20 marks.",
-        "**3. Generate Questions:** Under the **Formative Assessment** tab, select a CO and click **Generate Questions**. Options include: **AI Generation (Gemini)**, **Manual Entry**, or **Pull from Question Bank** (for previously archived questions). Tag cognitive levels (Remember, Understand, Apply, Analyze), insert diagrams/images, and set Start Date and Due Date.",
-        "**4. Lock Button & Student To-Do Notification:** Once questions and due dates are confirmed, click the **LOCK icon** on the CO card. This locks the assignment against accidental edits and instantly dispatches an automated notification to enrolled students, placing the assignment with questions and deadline directly on their **Student Portal To-Do List**.",
-        "**5. Physical Hardcopy Submission (Amber Indicator):** When a student physically submits their handwritten assignment copy at the lecturer's desk, the student marks submission status in their Carmel-linx app. In response, an **amber shade / pulsing indicator** immediately highlights that student's row in the lecturer's mark entry grid.",
-        "**6. Mark Entry & Autosave:** The lecturer inspects the physical hardcopy, inputs the verified score into the mark field, and Carmel-linx autosaves the score while automatically clearing the amber submission alert."
-      ],
-      "action_label": "Open Formative Assessment",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_theory_summative_and_mcq",
-      "title": "Summative Assessment, Scheme of Valuation & MCQ Tests - Revision 2021",
-      "keywords": ["summative", "series exam", "scheme of evaluation", "answer key", "mcq test", "test setting", "r2021 summative", "written test"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Configuring internal series tests, auto-generating question papers with schemes and answer keys, and conducting automated MCQ tests.",
-      "steps": [
-        "**1. Summative Assessment Tab:** Open **Summative Assessment** to configure internal series tests for each Course Outcome (CO1–CO4).",
-        "**2. Test Question Generation:** Generate test question papers using **AI Auto-Generation** or **Manual Entry**. Tag marks per question and cognitive levels.",
-        "**3. Scheme of Evaluation & Answer Key:** Carmel-linx automatically compiles the official **Scheme of Valuation** and **Answer Key** matching the question breakdown, ready for high-resolution A4 printing.",
-        "**4. Automated MCQ Test Setup:** Set up online multiple-choice question assessments. Carmel-linx automatically notifies students, runs timed tests on their portal, and grades submissions automatically.",
-        "**5. Mark Entry & Autosave:** Enter written test scores in the student roster table with debounced autosave and live class average computation."
-      ],
-      "action_label": "Open Summative Assessment",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_theory_surveys_attainment_reports",
-      "title": "Surveys, NBA Attainment & Course File Reports - Revision 2021",
-      "keywords": ["question bank", "surveys", "mid sem survey", "course exit survey", "indirect attainment", "course attainment", "nba attainment", "reports tab", "r2021 reports"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Conducting student surveys, setting NBA attainment thresholds, calculating direct/indirect attainment, and exporting full course files.",
-      "steps": [
-        "**1. Question Bank Tab:** Upload and archive questions and previous year question papers for seamless retrieval and examination reuse.",
-        "**2. Surveys Tab (Indirect Attainment):** Initiate online **Mid-Semester Surveys** and **Course Exit Surveys**. Questions are customizable by faculty. Student survey submissions are aggregated automatically for indirect attainment.",
-        "**3. Course Attainment Tab:** Configure student pass thresholds (e.g. 60% benchmark). The system computes **Direct Attainment (80% weight from CIE + ESE)** and **Indirect Attainment (20% weight from surveys)** for all COs and POs.",
-        "**4. Reports Tab:** Generate one-click official PDF reports: **NBA Course File (16 items)**, **Subject Delivery Log**, **Period-wise Attendance Register**, **Attainment Summary**, and **Final CIA Marksheet (20+20+10)**."
-      ],
-      "action_label": "View Attainment & Reports",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_virtual_lab_classroom_overview",
-      "title": "Revision 2021 Virtual Lab Classroom & Shared Multi-Staff Setup",
-      "keywords": ["r2021 lab", "virtual lab", "revision 2021 lab", "practical classroom", "demonstrator lab", "trade instructor lab", "setup experiments", "experiments list", "75 marks cia", "shared workload", "r-2021 lab"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "Demonstrator", "Trade_Instructor", "Workshop_Superintendent", "HOD"],
-      "summary": "Shared multi-staff collaborative practical workspace for Revision 2021 laboratory subjects, mandatory experiments setup, and 75M CIA scheme.",
-      "steps": [
-        "**1. Shared Multi-Staff Access:** The primary Lecturer, assigned Demonstrator, Trade Instructor, or Workshop Instructor mapped to the course all receive real-time access to the **Virtual Lab R-2021** directly in their respective dashboards (`/dashboard/lecturer`, `/dashboard/demonstrator`, `/dashboard/tradeinstructor`, etc.).",
-        "**2. Course Structure & Syllabus Upload:** Download the practical syllabus PDF from SITTTR and upload it in the **Course Structure** tab. The system extracts Course Outcomes (COs), required equipment, and standard practical experiments.",
-        "**3. Verify Metadata Banner:** Below the titles, confirm: **Revision: R-2021**, **Proposed Hours (60 or 75 hrs)**, **Credits**, **CIA: 75M**, **ESE: 75M**, Semester, Batch, and Branch Code.",
-        "**4. Setup Experiments List First (Critical Rule):** Before conducting evaluations or daily logs, faculty must navigate to **Setup Experiments** to configure the approved laboratory experiments list with CO mapping. If omitted, the system will auto-populate a default list from the uploaded syllabus into the lesson plan.",
-        "**5. Practical Lesson Planner:** Auto-generates practical experiment sessions as per the syllabus and configured experiments list, supporting proposed dates and the **Sync Dates from Log Data** action."
-      ],
-      "action_label": "Open Virtual Lab",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_lab_formative_evaluation_rubrics",
-      "title": "Continuous Lab Work Evaluation (37.5M & 7.5M Open-Ended) - Revision 2021",
-      "keywords": ["lab work", "37.5 marks", "5 components", "rough record", "fair record", "observation", "procedure", "viva", "open ended", "7.5 marks", "batch split", "lab log", "continuous eval"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "Demonstrator", "Trade_Instructor", "HOD"],
-      "summary": "Day-to-day continuous evaluation of regular lab experiments across 5 rubrics (37.5M), Open-Ended Experiments (7.5M), Batch 1 & 2 splitting, and student lab logs.",
-      "steps": [
-        "**1. Formative Assessment Tab:** Open **Formative Assessment** (Continuous Lab Work Evaluation) to manage daily student experiment scores.",
-        "**2. Lab Batch Split (Batch 1 & 2):** For concurrent or split-batch laboratory execution, use the batch filter buttons to view **All**, **Batch 1**, or **Batch 2**. Click **Batch Split Setup** to adjust roll number cutoffs.",
-        "**3. Grade Regular Experiments (37.5 Marks across 5 Components):** Evaluate each experiment based on official SBTE 5-rubric criteria:",
-        "   • **Rough Record:** Max 5 Marks",
-        "   • **Fair Record:** Max 7.5 Marks",
-        "   • **Observation & Recording:** Max 7.5 Marks",
-        "   • **Procedure & Punctuality:** Max 7.5 Marks",
-        "   • **Viva Voce:** Max 10 Marks",
-        "   • *Raw Total = 37.5 Marks* (converts directly to 37.5 CIA marks).",
-        "**4. Open-Ended Experiments (OEE - 7.5 Marks):** Under the **Open-Ended** sub-tab, record problem-solving and student design project scores out of **7.5 Marks**.",
-        "**5. Student Lab Analytics:** Review real-time student experiment progress: Total Experiments, Completed Count, individual student experiment history logs, and session attendance."
-      ],
-      "action_label": "View Lab Evaluation",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "r21_lab_summative_test_and_cia",
-      "title": "Lab Test (15M), Attendance (15M) & 75M CIA Consolidation - Revision 2021",
-      "keywords": ["lab test", "setup lab test", "practical test", "15 marks", "lab attendance", "75 marks", "total cia 75", "cia 75 marks", "lab register", "practical calculation"],
-      "revisions": ["2021"],
-      "role": ["Lecturer", "Demonstrator", "Trade_Instructor", "HOD"],
-      "summary": "Setting up internal series practical tests (15M), attendance scaling (15M), and calculating the consolidated 75-mark CIA.",
-      "steps": [
-        "**1. Summative Assessment Tab (Lab Tests):** Click the **Setup Lab Test** button to configure the internal series practical examination / model lab test.",
-        "**2. Enter Lab Test Marks (15 Marks):** Enter student performance in Test 1 and Test 2 (if conducted). The system computes the consolidated **Test Average out of 15 Marks**.",
-        "**3. Attendance Component (15 Marks):** Carmel-linx automatically computes the **Lab Attendance score (Max 15 Marks)** directly from recorded session logs in `/staff/attendance-log`.",
-        "**4. Statutory 75-Mark CIA Formula:** Total Continuous Internal Assessment is consolidated as:",
-        "   $$\\text{Total CIA (75M)} = 37.5\\text{ (Lab Work)} + 7.5\\text{ (Open-Ended)} + 15\\text{ (Lab Test)} + 15\\text{ (Attendance)}$$",
-        "**5. Surveys, Attainment & Reports:** Student lab surveys feed indirect attainment. In the **Reports** tab, generate printable A4 registers: **Final Practical Report Calculation Register (12-column ledger)**, **Experiments Log**, and **NBA Practical Course File** with faculty, Demonstrator, and HOD signature blocks."
-      ],
-      "action_label": "View Lab Reports & CIA",
-      "action_route": "/dashboard/lecturer"
-    },
-    {
-      "id": "rev2026_theory_copo_matrix",
-      "title": "CO-PO Articulation Matrix (Program Outcomes) - Revision 2026 Theory",
-      "keywords": ["copo", "co po", "articulation", "matrix", "autosave", "program outcomes", "po1", "po11", "correlation", "theory 2026", "po"],
-      "revisions": ["2026"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "How to map Course Outcomes to Program Outcomes (PO1–PO11) with live autosave in Revision 2026 Theory.",
-      "steps": [
-        "Open the **Revision 2026 Virtual Classroom** for your theory subject.",
-        "In the **Syllabus & Course Outline** tab, scroll down to the **CO-PO Articulation Matrix (Program Outcomes)** card.",
-        "All 44 cells (CO1–CO4 across PO1–PO11) are fully editable inputs.",
-        "Enter correlation values: **3** for High, **2** for Medium, **1** for Low, or **- / blank** for No Correlation.",
-        "Typing **1**, **2**, or **3** will automatically apply high-contrast correlation colors (Emerald, Sky, Amber) and automatically advance focus to the next cell.",
-        "You can use the **Arrow keys** (←, →, ↑, ↓), **Enter**, or **Backspace** for swift keyboard navigation.",
-        "Changes **autosave continuously** in the background with a live status badge (`Saved`, `Saving...`). You can also click the **Save Matrix** button anytime.",
-        "Column averages at the bottom recalculate in real-time."
-      ],
-      "action_label": "Go to CO-PO Matrix",
-      "action_route": "/r26/classroom/theory"
-    },
-    {
-      "id": "rev2026_theory_cie_structure",
-      "title": "Revision 2026 Theory CIE Breakdown (40 CIE + 60 ESE)",
-      "keywords": ["cie", "theory 2026", "self learning", "attendance", "table 2.1", "table 2.2", "series exam", "40 marks", "marks calculation"],
-      "revisions": ["2026"],
-      "role": ["Lecturer", "HOD", "Tutor"],
-      "summary": "Official Revision 2026 CIE 40-mark evaluation rules as per Diploma Curriculum.",
-      "steps": [
-        "**1. Attendance & Subject Log (5 Marks):** Automatically converted from Table 2.1 based on semester attendance: ≥90% = 5M, 80–89% = 4M, 75–79% = 3M, 70–74% = 2M, <70% = 0M (Condonation required).",
-        "**2. Self-Learning & Continuous Assessment (15 Marks):** Configured via Table 2.2 across CO1–CO4. Consists of 3 mandatory activities per CO (e.g., Assignment, MCQ Quiz, Case Study/Seminar) scaled to 15 marks.",
-        "**3. Series Examinations (20 Marks):** 2 Series Exams conducted for 50 marks each. Marks are scaled down to 20 marks based on curriculum guidelines.",
-        "**4. End Semester Exam (ESE - 60 Marks):** SBTE Kerala official board grade (S, A, B, C, D, E, F) automatically converted to scaled 60M with real-time autosave."
-      ],
-      "action_label": "View CIE Marksheet",
-      "action_route": "/r26/classroom/theory"
-    },
-    {
-      "id": "rev2026_self_learning_config",
-      "title": "Configure Table 2.2 Self-Learning Activities (Rev 2026)",
-      "keywords": ["self learning", "table 2.2", "co1", "co2", "co3", "co4", "mcq", "case study", "15 marks"],
-      "revisions": ["2026"],
-      "role": ["Lecturer"],
-      "summary": "Setting up student continuous self-learning marks for Revision 2026.",
-      "steps": [
-        "In your Revision 2026 Virtual Classroom, switch to the **Continuous Internal Assessment (CIA)** tab.",
-        "Locate the **Table 2.2 Self-Learning Evaluation Workspace**.",
-        "Select the Course Outcome tab (**CO1 to CO4**).",
-        "Enter marks for each component: **Assignment** (5M), **MCQ Quiz** (5M), and **Activity 3 / Case Study** (5M).",
-        "Scores automatically compute each student's average and scale into the **15-Mark Self-Learning** CIA component with live autosave."
-      ],
-      "action_label": "Open CIA Workspace",
-      "action_route": "/r26/classroom/theory"
-    },
-    {
-      "id": "rev2026_lesson_planner",
-      "title": "Interactive 60-Hour Lesson Planner - Revision 2026 Theory",
-      "keywords": ["lesson plan", "planner", "60 hours", "lecture", "tutorial", "proposed date", "actual date", "pedagogy"],
-      "revisions": ["2026"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Managing period-by-period lesson plans with dates, taxonomy, pedagogy, and autosave.",
-      "steps": [
-        "In your Revision 2026 Theory classroom, switch to the **Lesson Planner** tab.",
-        "The planner displays all 60 instructional periods categorized by Module (I, II, III, IV) and Course Outcome (CO1–CO4).",
-        "For each period, select the **Proposed Date** and **Actual Date** using the calendar pickers.",
-        "Select the **Pedagogy** (e.g., Lecture, Demonstration, Flipped Classroom, Tutorial) and **Bloom's Taxonomy** level.",
-        "Update the **Status** (Pending, Completed, Rescheduled).",
-        "All edits trigger continuous background autosave (`plannerAutosaveBadge`).",
-        "Click **Print Lesson Plan** at the top right to generate the formal SBTE approval document."
-      ],
-      "action_label": "Open Lesson Planner",
-      "action_route": "/r26/classroom/theory"
-    },
-    {
-      "id": "attendance_logging",
-      "title": "Class Attendance & Subject Log Console (Common Link)",
-      "keywords": ["attendance", "subject log", "absent", "present", "grid view", "easy access grid", "easy-access grid", "grid", "list view", "period", "daily attendance", "lesson plan sync", "cia calculation", "attendance percentage", "common link", "attendance log"],
-      "revisions": ["2021", "2026"],
-      "role": ["Lecturer", "Demonstrator", "Trade_Instructor", "Workshop_Superintendent", "HOD", "Tutor"],
-      "summary": "Universal common console across all staff dashboards to record period-by-period class attendance, auto-sync subject logs with lesson plans, and compute CIA marks.",
-      "steps": [
-        "**1. Access the Common Link:** Click **Class Log & Attendance** or navigate to `/staff/attendance-log` from any staff dashboard (Lecturer, Demonstrator, Trade Instructor, Workshop Superintendent, HOD, Tutor). The top-left back button automatically routes you back to your specific dashboard.",
-        "**2. Select Course & Sub-Batch:** Choose your assigned subject from the dropdown. For practical/drawing subjects, pick the target group: **Whole Class**, **Batch 1 (First Half)**, or **Batch 2 (Second Half)**.",
-        "**3. Select Date & Timetable Periods:** Set the date and toggle period checkboxes (**P1 to P7**). For continuous lab or practicum blocks, use quick preset buttons (**P1–P3**, **P4–P6**, **P1–P2**). Multiple topics on a single day or across consecutive periods are supported.",
-        "**4. Auto-Sync or Edit Subject Log:** Topics are automatically pulled from your previously prepared **Course Lesson Plan** or Lab Experiments list in syllabus order. You can also edit the **Topics Covered (Editable)** text area to reflect actual delivery or click **Sync from Lesson Plan** to auto-fill pending logs.",
-        "**5. Take Attendance (List vs. Easy-Access Grid):** Choose your preferred view mode:",
-        "   • **List View:** Table displaying Roll Number, Student Name, and individual Present/Absent checkboxes with **Mark All Absent / Present** toggle.",
-        "   • **Grid View:** High-speed roll-number touch tile matrix. Single tap toggles status between Emerald (**Present**) and Red (**Absent**).",
-        "**6. Save & Calculate CIA Marks:** Click **Save Log & Attendance**. Student course attendance percentages and Continuous Internal Assessment (CIA/CIE Table 2.1) marks recalculate in real time.",
-        "**7. Verification, Editing & Printing:** Scroll to the desktop **Recorded Class Attendance Logs** table below to inspect past entries, click **Edit** to modify absentees/topics, **Delete** erroneous logs, or click **Print Class Log (A4)** and **Print Class Roster (A4)**."
-      ],
-      "action_label": "Open Attendance & Subject Log",
-      "action_route": "/staff/attendance-log"
-    },
-    {
-      "id": "teams_attendance_pdf_upload",
-      "title": "Upload MS Teams Attendance PDF (Bulk Class Log Import)",
-      "keywords": ["teams attendance", "upload teams", "teams pdf", "microsoft teams", "bulk attendance", "import attendance", "teams portal", "pdf attendance"],
-      "revisions": ["2021", "2026"],
-      "role": ["Lecturer", "Demonstrator", "Trade_Instructor", "Workshop_Superintendent", "HOD", "Tutor"],
-      "summary": "Importing class attendance in bulk by uploading official Microsoft Teams attendance PDF files with automated hour calculation and lesson plan synchronization.",
-      "steps": [
-        "**1. Download PDF from Teams:** Log into the official Microsoft Teams website/portal for your class session and download the official attendance report as a **PDF document**.",
-        "**2. Launch Teams Import:** Open the **Attendance & Subject Log** console (`/staff/attendance-log`), select your Course/Subject, and click the blue **Upload TEAMS Attendance** button (at header or above past logs table).",
-        "**3. Target Group Allocation:** Select the batch division: **Whole Class**, **Lab Batch 1**, or **Lab Batch 2**.",
-        "**4. Upload PDF File:** Drag & drop or browse for your official Teams attendance PDF.",
-        "**5. Auto-Fill Lesson Plan Option:** Keep **Auto-fill blank topics from Lesson Plan / Lab Experiments** checked so unlogged sessions automatically map to the next pending syllabus topic and mark it completed.",
-        "**6. Exact Hour Calculation:** Carmel-linx parses multi-period sessions (e.g., `Hours: 4,6`) and creates discrete period records so student conducted hours and attendance percentages are mathematically 100% exact.",
-        "**7. Submit & Review:** Click **Upload TEAMS Attendance**. Carmel-linx imports sessions, marks absentees, links lesson plan topics, and refreshes the past logs table where entries can be edited or printed."
-      ],
-      "action_label": "Upload Teams PDF",
-      "action_route": "/staff/attendance-log"
-    },
-    {
-      "id": "course_file_preparation",
-      "title": "Course File Preparation & 16-Item Checklist",
-      "keywords": ["course file", "nba checklist", "audit", "index", "hod signoff", "16 items", "pdf"],
-      "revisions": ["2021", "2026"],
-      "role": ["Lecturer", "HOD"],
-      "summary": "Compiling and printing the NBA Course File with 16 mandatory compliance documents.",
-      "steps": [
-        "Go to **Course Files** in the dashboard navigation.",
-        "Select your designated subject and semester.",
-        "The **Index of Documents** lists all 16 items: Syllabus, Academic Calendar, Timetable, Lesson Plan, CO-PO Matrix, Question Papers, Scheme of Valuation, Marksheets, Remedial records, and Attainment reports.",
-        "Check off completed documents and attach digital file uploads or remarks.",
-        "Click **Generate Course File PDF** for formal digital signing by Faculty and HOD."
-      ],
-      "action_label": "Open Course File Hub",
-      "action_route": "/course-files"
-    },
-    {
-      "id": "nba_attainment_calculation",
-      "title": "NBA Criterion 3 Attainment Calculation & Reports",
-      "keywords": ["attainment", "nba", "criterion 3", "po attainment", "direct", "indirect", "survey", "report"],
-      "revisions": ["2021", "2026"],
-      "role": ["Lecturer", "HOD", "Academic Coordinator"],
-      "summary": "Generating direct (80%) + indirect exit survey (20%) PO1–PO11 attainment calculations.",
-      "steps": [
-        "In your classroom, navigate to the **NBA Attainment** tab.",
-        "**Direct Assessment (80%):** Computed from Continuous Internal Evaluation (CIE) and Board End Semester Exam (ESE) pass percentages against target benchmark (e.g. 60%).",
-        "**Indirect Assessment (20%):** Generated from the Course Exit Survey completed by students.",
-        "The system automatically computes the consolidated CO attainment: `(0.80 × Direct) + (0.20 × Indirect)`.",
-        "The **PO Attainment Matrix** maps each CO's attainment through the CO-PO Articulation Matrix weights across PO1–PO11.",
-        "Click **Print NBA Attainment Report** to download the official audit sheet."
-      ],
-      "action_label": "View Attainment Summary",
-      "action_route": "/r26/classroom/theory"
-    },
-    {
-      "id": "hod_user_directory_staff_approval",
-      "title": "HOD User Directory & Staff Approval Operations",
-      "keywords": ["user directory", "approve staff", "approve registered staff", "edit staff", "delete user", "password reset", "hod user directory", "department users", "hod staff approval"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "How HODs view department members in the User Directory, approve newly registered faculty, edit details, and reset passwords.",
-      "steps": [
-        "**1. Access User Directory:** In the HOD left sidebar, click on **User Directory** to view all registered department members (teaching staff, technical staff, and students).",
-        "**2. Approve Registered Staff (Mandatory First Action):** Immediately after login, review newly registered faculty and click **Approve** in the table.",
-        "**3. Unlocking Dashboards:** Once approved by the HOD, faculty members can immediately log in on desktop or mobile and see their active academic consoles.",
-        "**4. Directory Management:** Use the table options to edit user profiles in editable fields, reset forgotten user passwords, or delete erroneous/inactive user records."
-      ],
-      "action_label": "Open User Directory",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_create_batch_and_tutor_mentor",
-      "title": "Create Admission Batch & Tutor/Mentor Allocation (HOD)",
-      "keywords": ["create batch", "batch management", "admission year", "tutor allocation", "mentor allocation", "new class", "batch card", "create new batch", "admission 2026"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "Creating a new admission batch/class for the department and allocating the Class Tutor and Mentor.",
-      "steps": [
-        "**1. Batch Management Navigation:** From the HOD sidebar, click **Batch Management** or look at the top-left of the main HOD panel.",
-        "**2. Click Create Batch:** Click the **Create Batch** button on the top-left.",
-        "**3. Select Admission Year:** Choose the target admission year (e.g., **Admission 2026** for Semester 1).",
-        "**4. Allocate Tutor & Mentor:** Select the assigned **Class Tutor** and **Mentor** from the department faculty dropdowns.",
-        "**5. Formation of Class:** Click to create. A new class/batch card (e.g. *Admission 2026 - S1*) will appear prominently on your HOD dashboard, ready for subject allocation."
-      ],
-      "action_label": "Create New Batch",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_subject_allocation_and_staff_mapping",
-      "title": "Subject Allocation & Teaching Staff Mapping Workflow (HOD)",
-      "keywords": ["subject allocation", "add subject", "assign staff", "teaching staff", "theory lecturer", "lab staff", "demonstrator", "workshop instructor", "syllabus revision 2021 2026", "inter-department"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "Adding curriculum subjects to a batch and mapping single or multi-staff (Lecturer, Demonstrator, Workshop Instructor, inter-department).",
-      "steps": [
-        "**1. Subject Allocation Page:** Click **Subject Allocation** in the HOD left sidebar.",
-        "**2. Select Batch & Semester:** In the header dropdowns, select your **Target Batch** and the current **Semester**.",
-        "**3. Click Add Subject:** Click the **Add Subject** button to launch the *Add Curriculum Subject* card.",
-        "**4. Enter Subject Details:** Specify the **Subject Code**, select **Subject Type** (`Theory`, `Practical / Lab`, `Practicum`, `Drawing`, `Seminar`, etc.), type the **Subject Name**, and confirm **Syllabus Revision** (`Revision 2021` or `Revision 2026`).",
-        "**5. Save Subject:** Click **Add Subject**. The new course appears in the subjects table.",
-        "**6. Assign Teaching Staff (Crucial Rules):** In the table row, click **Add Staff** / **Assign Teaching Staff**:",
-        "   • **Theory Subjects:** Always assign **only the designated Lecturer**.",
-        "   • **Lab / Practical Subjects:** If multiple faculty are involved, select **all assigned personnel** (Lecturer, Demonstrator, Workshop Instructor, Tradesman).",
-        "   • **Inter-Departmental Staff:** If faculty from other departments teach the course (e.g. Basic Science, Math, Humanities, Central Workshop), choose their department from the dropdown and check their names.",
-        "**7. Faculty Activation:** Once saved, assigned faculty instantly see the subject in their desktop/mobile classrooms and can begin academic entries."
-      ],
-      "action_label": "Go to Subject Allocation",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_manage_batch_modal_and_tabs",
-      "title": "Manage Batch Console: The 5 Configuration Tabs (HOD)",
-      "keywords": ["manage batch", "batch card", "tutor mentor tab", "allocated subjects tab", "enrolled students tab", "time table tab", "semester history tab", "manage class"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "Overview of the 5 tabs in the Manage Batch modal popup on the HOD dashboard.",
-      "steps": [
-        "**1. Open Manage Batch:** Locate the batch card on your HOD dashboard or Batch Management page (e.g., *Admission 2026*) and click **Manage Batch**.",
-        "**2. Five Configuration Tabs:**",
-        "   • **Tab 1: Tutor & Mentor:** View current advisors and reset/reassign the Class Tutor or Mentor if faculty responsibilities change.",
-        "   • **Tab 2: Allocated Subjects:** Review all curriculum subjects mapped to this batch and verify their assigned teaching staff.",
-        "   • **Tab 3: Enrolled Students:** View the roster of approved and enrolled students for this class.",
-        "   • **Tab 4: Time Table:** Build and manage the weekly class timetable schedule (detailed rules in Timetable topic).",
-        "   • **Tab 5: Semester History:** Review academic history and past semester progression for this batch (blank for new S1 batches)."
-      ],
-      "action_label": "Manage Batches",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_timetable_split_labs_and_workload",
-      "title": "Master Timetable, Split Labs & Automated Workload Balancing (HOD)",
-      "keywords": ["timetable", "time table", "staff workload", "workload report", "split batch", "split lab", "practicum workload", "lab load", "theory load", "timetable setup"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "Setting up class timetables, managing concurrent split lab batches, and automatic workload calculations for Practicum.",
-      "steps": [
-        "**1. Open Time Table Tab:** Inside the **Manage Batch** card, switch to the **Time Table** tab.",
-        "**2. Mandatory Staff Timetable Rules:**",
-        "   • In **Theory periods**: Add only the primary Lecturer.",
-        "   • In **Lab & Workshop periods**: You **must add all assigned staff members** (Lecturers, Demonstrators, Instructors).",
-        "   • In **Practicum periods**: You **must include the lab staff** alongside the theory lecturer.",
-        "   • *Why this is mandatory:* Carmel-linx uses this exact mapping to generate the official **Staff Workload Report** (both for home department staff and visiting faculty from other departments).",
-        "**3. Split Batch Management for Labs:** If a class is split into two batches (Batch A & Batch B) running two different labs concurrently in the same period, Carmel-linx fully supports dual concurrent lab slot scheduling.",
-        "**4. Practicum Workload Balancing Rule:** If a Practicum course is scheduled across a multi-hour block (e.g. 2 or 3 continuous hours), the system automatically treats it as **Lab load**; if scheduled as a single-hour period, it calculates as **Theory load**, automatically balancing faculty workload calculations!"
-      ],
-      "action_label": "Configure Timetable",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_print_credentials_and_delete_policy",
-      "title": "Print Student Credentials vs. Destructive Batch Deletion Policy (HOD)",
-      "keywords": ["print credentials", "bulk upload credentials", "temporary id", "common password", "delete batch", "delete batch confirmation", "accidental creation", "batch credentials"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD", "Tutor"],
-      "summary": "Generating bulk student credential printouts vs the permanent data loss rules of the Delete Batch button.",
-      "steps": [
-        "**1. Print Credentials Button (Top of Card):** Used when student lists are bulk-uploaded by the Tutor or HOD rather than individual self-registration. Clicking this generates a printable credential slip sheet with temporary IDs and initial common passwords to distribute to students. Upon first login, students must change their password and their permanent ID defaults to their SBTE registration/admission number.",
-        "**2. Delete Batch Button (Bottom of Card):** Located at the bottom of the *Manage Batch* card. Clicking this triggers a strict confirmation warning dialog.",
-        "**3. Irretrievable Data Loss Warning:** If confirmed, **ALL batch data, student enrollments, subject mappings, timetable records, and continuous assessment data are permanently erased forever**. It cannot be restored.",
-        "**4. Policy Rule:** The Delete Batch option is provided **strictly for correcting accidental batch creation errors** during initial semester setup. Never use this on active or ongoing academic batches."
-      ],
-      "action_label": "Review Batch Controls",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_my_batches_lecturer_role",
-      "title": "HOD Teaching Role: 'My Batches' Virtual Classrooms",
-      "keywords": ["my batches", "hod teaching", "hod classes", "hod virtual classroom", "hod lecturer role", "my batches link", "hod class documentation"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD"],
-      "summary": "How HODs switch into teaching faculty mode to manage their own classes and virtual classrooms via the 'My Batches' link.",
-      "steps": [
-        "**1. Access 'My Batches':** If the Head of Department is directly engaged in teaching subjects, click on the **My Batches** link in the HOD left sidebar.",
-        "**2. Dual-Role Capability:** This view seamlessly shifts the HOD into an instructional faculty / lecturer role for their allocated courses.",
-        "**3. Launch Virtual Classrooms:** Click on any assigned subject card to open the specialized virtual classroom (Theory, Lab, Practicum, Drawing, etc.) according to its revision (R2021 or R2026).",
-        "**4. Classroom Documentation:** Manage day-to-day lesson plans, hourly attendance logs, formative assessment tasks, series exam mark entries, and course file generation just like a lecturer."
-      ],
-      "action_label": "Open My Batches",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "hod_report_centre_and_audits",
-      "title": "HOD Report Centre: SBTE, NBA & Principal Office Audits",
-      "keywords": ["report centre", "reports", "sbte audit", "nba audit", "principal audit", "attendance log report", "remedial coaching", "workload report", "course files status", "mentoring diary", "program attainment", "academic calendar", "staff leave management", "activity points"],
-      "revisions": ["2021", "2026"],
-      "role": ["HOD", "Principal", "Academic Coordinator"],
-      "summary": "Accessing the wide spectrum of departmental compliance, accreditation, attendance, workload, and audit reports in the HOD Report Centre.",
-      "steps": [
-        "**1. Access Report Centre:** Click **Report Centre** on the HOD left sidebar to open the comprehensive audit and documentation dashboard.",
-        "**2. Institutional & SBTE Compliance Reports:**",
-        "   • **Attendance Log:** Hourly, subject-wise, and consolidated attendance percentage sheets with low-attendance & condonation lists.",
-        "   • **Remedial Coaching:** Slow-learner tracking, extra coaching session logs, and re-evaluation mark improvement logs.",
-        "   • **Timetable & Workload Reports:** Consolidated department timetable grids and faculty workload reports (covering home department and visiting faculty).",
-        "   • **Academic Calendar & Term Logs:** Milestone audit tracking against official SBTE term dates.",
-        "**3. NBA & Academic Quality Audits:**",
-        "   • **Course Files Status:** Real-time compliance audit of the 16 mandatory course file checklist items across all faculty subjects.",
-        "   • **Program Attainment:** Detailed CO, PO (PO1–PO11), and PSO attainment reports combining direct CIE/ESE results with indirect surveys.",
-        "   • **Mentoring Diary:** Batch mentoring records, student SWOT analyses, and advisor recommendations.",
-        "   • **Extracurricular & Activity Points:** Student activity point records and non-academic milestone participation.",
-        "**4. Administrative & Faculty Operations:**",
-        "   • **Staff Leave Management:** Department faculty leave applications, balance tracking, and HOD approvals.",
-        "   • **Student & Staff Leave Logs:** Daily absent/leave ledgers and professional activity logs."
-      ],
-      "action_label": "Open Report Centre",
-      "action_route": "/dashboard/hod"
-    },
-    {
-      "id": "tutor_role_and_student_onboarding",
-      "title": "Tutor Role & Student Onboarding (Individual vs. Bulk Excel)",
-      "keywords": ["tutor", "tutor role", "after hod", "hod batch setup", "final class setup", "student registration", "bulk upload", "excel template", "credential report", "print credentials", "temporary id", "class setup", "onboarding", "tutor responsibilities"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor", "HOD", "Admin"],
-      "summary": "How the Tutor activates a newly setup class, manages student onboarding via individual registration or bulk Excel upload, and prints credential distribution sheets.",
-      "steps": [
-        "**1. Specially Assigned Faculty Role:** The Tutor is appointed by the HOD during batch creation and is responsible for finalizing class setup, student rosters, and student activation.",
-        "**2. Virtual Classroom Prerequisite:** Only after the Tutor verifies and activates the student roster do other subject faculty members receive full operational access to their virtual classrooms.",
-        "**3. Onboarding Method 1 (Recommended): Individual Student Self-Registration:** Students go to **http://app.carmelpoly.in**, click *Register as Student*, enter admission year, branch, LET or Regular entry, working email, and password. This instills personal accountability.",
-        "**4. Onboarding Method 2: Bulk Excel Upload:** Download the Excel roster template from the portal, populate admission numbers, student names, and emails, and upload via Admin or Tutor panel.",
-        "**5. Print Credentials:** Generates a printable credential report with temporary login IDs and common passwords for distribution. On first login, students must change their password, and their permanent ID updates to their SBTE / admission number."
-      ],
-      "action_label": "Open Tutor Dashboard",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_console_roster_management",
-      "title": "Tutor Console: Supervised Class Roster Management",
-      "keywords": ["tutor console", "supervised class roster", "approve student", "suspend student", "edit student", "delete student", "reset password", "audit log", "sbte number", "semester promotion"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor"],
-      "summary": "Operations within the Tutor Console: student approvals, suspensions, edits, SBTE numbers, password resets, audit logs, and semester promotions.",
-      "steps": [
-        "**1. Access Tutor Console:** Click **Tutor Console** in the sidebar to view the interactive **Supervised Class Roster** table.",
-        "**2. Approve Registered Students:** Review pending student registrations and click **Approve** to authorize their accounts for login.",
-        "**3. Suspend / Reactivate:** Temporarily suspend a student's access for disciplinary reasons and restore when cleared.",
-        "**4. Edit Profile & SBTE Registration:** Update student personal data, contact numbers, parent details, and enter official SBTE Board Registration Numbers.",
-        "**5. Reset Password:** Instantly trigger a password reset for students locked out of their accounts.",
-        "**6. Audit Log:** Inspect login timestamps, IP logs, and profile modification histories.",
-        "**7. Semester Promotion:** At term conclusion, execute the batch roll-over to promote the class to the next semester (e.g. S1 → S2 → ... → S6)."
-      ],
-      "action_label": "Open Tutor Console",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_roll_numbers_and_removal",
-      "title": "Roll Number Assignment & Student Removal with Audit Log (Tutor)",
-      "keywords": ["roll number", "assign roll number", "remove student", "student drop out", "removal comment", "audit log", "tutor roll"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor"],
-      "summary": "How Tutors flexibly assign student roll numbers and safely remove students with mandatory audit justification.",
-      "steps": [
-        "**1. Access Roll Numbers:** In the Tutor Console sidebar, select the **Roll Numbers** tool.",
-        "**2. Assign & Reorder:** Flexibly sort and assign alphabetical or admission-based roll numbers (1 to N) for the class.",
-        "**3. Removing a Student from the Roll:** If a student drops out, transfers, or is discontinued, the Tutor can remove them from the active class roll.",
-        "**4. Mandatory Audit Justification:** A formal reason and explanatory comment must be entered before removal can proceed. The system permanently logs this justification in the institutional audit ledger."
-      ],
-      "action_label": "Manage Roll Numbers",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_semester_attendance_and_condonation",
-      "title": "Semester Attendance Grid & Condonation Eligibility Reports (Tutor)",
-      "keywords": ["semester attendance", "condonation report", "attendance status", "condonation", "below 75", "medical condonation", "individual attendance printout", "tutor attendance"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor"],
-      "summary": "Monitoring multi-subject semester attendance, generating official SBTE condonation lists, and printing individual attendance slips.",
-      "steps": [
-        "**1. Access Semester Attendance:** Open **Class Attendance** or **Semester Attendance** from the Tutor sidebar.",
-        "**2. Multi-Subject Attendance Grid:** Displays a master table of student attendance percentages across all theory, practical, drawing, and workshop subjects.",
-        "**3. Condonation Analysis (< 75%):** Carmel-linx automatically flags all students with attendance below the mandatory 75% threshold.",
-        "**4. Condonation Eligibility Report (65%–74%):** Generates official SBTE condonation summary sheets for students with medical certificates or approved institutional exemptions.",
-        "**5. Print Reports:** Export printable consolidated batch attendance sheets and individual student attendance slips for parent verification."
-      ],
-      "action_label": "View Attendance & Condonation",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_pta_progress_reports",
-      "title": "Student Progress Reports & PTA Meeting Progress Cards (Tutor)",
-      "keywords": ["progress report", "progress card", "pta meeting", "parent teacher meeting", "co wise marks", "student progress", "print progress card"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor"],
-      "summary": "Generating multi-subject CO-wise assessment and attendance progress cards for Parent-Teacher Association (PTA) meetings.",
-      "steps": [
-        "**1. Open Progress Reports:** Open **Progress Reports** in the Tutor Console.",
-        "**2. Multi-Subject Aggregation:** Compiles academic standing for every student: subject-wise Course Outcome (CO) marks, Series Exams, Formative Assessment scores, cumulative attendance, and mentor observations.",
-        "**3. Print Progress Cards:** Click **Print Progress Cards** to export individual personalized report cards ready for distribution during Parent-Teacher Association (PTA) meetings."
-      ],
-      "action_label": "Generate Progress Cards",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_mentoring_split_and_parent_sms",
-      "title": "Mentoring Split Batch (50/50), Mentoring Diary & Parent SMS (Tutor)",
-      "keywords": ["mentoring batch", "mentor split", "second mentor", "mentoring diary", "sms to parent", "parent sms", "50 percent mentor", "mentoring printout"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor", "Mentor"],
-      "summary": "Splitting the batch 50/50 between Tutor and Second Mentor, maintaining the digital Mentoring Diary, and sending parent notifications.",
-      "steps": [
-        "**1. Mentoring Batch Division:** A class batch is divided equally: **50% of the students are mentored by the Class Tutor**, and the remaining 50% are assigned to a designated **Second Mentor**.",
-        "**2. Mentor Split Setup:** Use the mentoring tool to map and balance student allotments between both mentors.",
-        "**3. Digital Mentoring Diary:**",
-        "   • **Student Sections:** Students log in to enter family background, personal interests, career aspirations, and semester goals.",
-        "   • **Mentor Sections:** Mentors record 1-on-1 counseling notes, academic SWOT analyses, progress feedback, and disciplinary advice.",
-        "**4. Parent SMS Notifications:** Dispatch automated or customized SMS updates and direct passwordless portal links to registered parent mobile numbers.",
-        "**5. Print Mentoring Record:** Export full official Mentoring Diary printouts for SBTE / NBA quality inspections."
-      ],
-      "action_label": "Open Mentoring Console",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "tutor_student_leave_and_activity_points",
-      "title": "Student Digital Leave & SBTE Activity Point Approvals (Tutor)",
-      "keywords": ["student leave approval", "activity points approval", "activity points", "nss", "sports", "arts", "tutor leave log"],
-      "revisions": ["2021", "2026"],
-      "role": ["Tutor"],
-      "summary": "Approving student digital leave applications and verifying extracurricular activity point claims.",
-      "steps": [
-        "**1. Student Leave Approval:** Open **Leave Log** to inspect digital leave requests submitted by students (sick leave, duty leave, personal leave). Review supporting documents and click **Approve** or **Reject**; attendance meters update automatically.",
-        "**2. SBTE Activity Point Verification:** Open **Activity Points** to review certificates uploaded by students (NSS, NCC, sports, technical symposiums, arts festivals).",
-        "**3. Award Verified Points:** Verify authenticity and award verified SBTE activity point credits toward the mandatory 75-point diploma graduation requirement."
-      ],
-      "action_label": "Approve Leaves & Points",
-      "action_route": "/dashboard/tutor"
-    },
-    {
-      "id": "general_where_am_i",
-      "title": "Page Context & Capabilities Guide",
-      "keywords": ["where am i", "help here", "what can i do", "guide", "overview", "what page is this"],
-      "revisions": ["2021", "2026"],
-      "role": ["All"],
-      "summary": "Contextual guide explaining what features are available on the current screen.",
-      "steps": [
-        "Click the **Where Am I?** chip in Carmie's chat window anytime you feel lost.",
-        "Carmie will detect your current screen and outline all actions you can take right here."
-      ],
-      "action_label": "Ask Carmie",
-      "action_route": "#"
-    }
-  ]
+    "topics": [
+        {
+            "id": "carmel_linx_platform_overview",
+            "title": "Carmel-linx Platform Architecture & User Workspaces (SBTE Keralam)",
+            "keywords": [
+                "carmel-linx",
+                "about",
+                "sbte keralam",
+                "polytechnic",
+                "obe",
+                "outcome based",
+                "architecture",
+                "roles",
+                "agentic ai",
+                "carmie",
+                "workspaces"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "All",
+                "Superadmin",
+                "Principal",
+                "HOD",
+                "Lecturer",
+                "Student",
+                "Parent"
+            ],
+            "summary": "Automated academic management platform developed specifically for SBTE Keralam Polytechnic System with curricular & OBE evaluation, intelligent networked modules, and Agentic AI support.",
+            "steps": [
+                "**SBTE Keralam Polytechnic Focus:** Designed specifically for Kerala polytechnic curriculum standards, outcome-based education (OBE), and continuous assessment.",
+                "**Networked Ecosystem:** Seamlessly interconnects Administration (Superadmin, Principal, System Admin, Office Staff), Department Leadership (HODs), Instructional Faculty (Lecturers, Demonstrators, Trade Instructors, Workshop Superintendents, Tradesmen), Students, and Parents.",
+                "**Dedicated Workspaces:** Every user role operates within their own tailored workspace with customized options, operations, and permissions.",
+                "**Cross-Platform Access:** Operates seamlessly across Desktop web portals and Mobile app versions.",
+                "**Agentic AI Support (Carmie):** Inbuilt real-life support assistant helping all users with error-free workflows, studies, lesson planning, documentation, evaluations, and compliance reporting."
+            ],
+            "action_label": "Explore Platform Manual",
+            "action_route": "/docs/carmel_linx_user_manual.html",
+            "manual_reference": "Chapter 1: Platform Architecture, Organization Setup & Onboarding Hierarchy — Section 1.1 (SBTE Keralam Operating Framework)"
+        },
+        {
+            "id": "dual_syllabus_architecture_r21_r26",
+            "title": "Dual Syllabus Revision Architecture: Rev 2021 vs Rev 2026",
+            "keywords": [
+                "syllabus revision",
+                "revision 2021",
+                "revision 2026",
+                "r21",
+                "r26",
+                "admission 2025",
+                "admission 2026",
+                "subject types",
+                "curriculum isolation",
+                "virtual classrooms",
+                "cie criteria",
+                "cia criteria"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "All",
+                "HOD",
+                "Lecturer",
+                "Tutor"
+            ],
+            "summary": "Carmel-linx operates as a virtual institution strictly isolating Revision 2021 (up to Admission 2025) and Revision 2026 (Admission 2026 onwards) rules, subject types, and CIA/CIE criteria.",
+            "steps": [
+                "**1. Virtual Institution Framework:** Carmel-linx runs concurrent virtual classrooms tailored to curriculum revisions with zero crossover errors.",
+                "**2. Revision 2021 (R2021 - Up to Admission 2025):** Applies to all batches admitted up to 2025. Subject types include: **Theory**, **Practical / Lab**, **Seminar**, **Project**, **Drawing**, **Minor Project**, **Workshop**, and **Internship**. Each type has its own distinct Continuous Internal Assessment (CIA) scheme.",
+                "**3. Revision 2026 (R2026 - Admission 2026 Onwards):** Applies to Admission 2026 and subsequent batches. Subject types include: **Theory** (CIE 40M + ESE 60M, Table 2.1 Attendance, Table 2.2 Self-Learning, CO-PO Matrix), **Practicum Basic Science**, **Practicum Program Core**, **Laboratory / Practical**, **Drawing**, **Project**, **Seminar**, and **Internship**.",
+                "**4. Assessment & NBA Attainment:** Revision 2026 heavily implements automated Course File generation (16-item audit checklist), Direct & Indirect NBA attainment calculations, and Student Feedback/Surveys (Mid-Sem & Course Exit).",
+                "**5. Automatic Classroom Routing:** Selecting a subject card on your dashboard automatically routes you to the exact specialized virtual classroom based on its revision and subject type."
+            ],
+            "action_label": "View Syllabus Guidelines",
+            "action_route": "/docs/carmel_linx_user_manual.html",
+            "manual_reference": "Chapter 1: Platform Architecture — Section 1.5 (Dual Syllabus Isolation: Revision 2021 vs. Revision 2026)"
+        },
+        {
+            "id": "superadmin_org_setup",
+            "title": "Organization & Institution Setup (Superadmin Level)",
+            "keywords": [
+                "organization setup",
+                "superadmin",
+                "institution details",
+                "program setting",
+                "branch setting",
+                "principal assignment",
+                "setup institution"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Superadmin"
+            ],
+            "summary": "Initial organizational configuration carried out at the Superadmin level to initialize the institution, branches, and Principal.",
+            "steps": [
+                "**1. Organization Setup:** Superadmin logs into the central system console to initialize the polytechnic organization.",
+                "**2. Institution Details Setting:** Configure institution profile, institutional code, affiliation to SBTE Keralam, contact information, and academic calendar parameters.",
+                "**3. Program & Branch Setting:** Set up diploma engineering departments/branches (e.g. Civil, Mechanical, Electrical & Electronics, Electronics & Communication, Computer Engineering, Automobile, etc.).",
+                "**4. Principal Assignment:** Assign and provision the Principal account with executive administrative authority.",
+                "**5. Operational Handover:** After this baseline setup, day-to-day institution management is handed over to the Principal."
+            ],
+            "action_label": "Open System Admin Desk",
+            "action_route": "/dashboard/admin",
+            "manual_reference": "Chapter 1: Platform Architecture — Section 1.2 (Organizational Setup Flow: Superadmin Level)"
+        },
+        {
+            "id": "login_card_operations",
+            "title": "Login Card & Role Selection (http://app.carmelpoly.in)",
+            "keywords": [
+                "login",
+                "login card",
+                "app.carmelpoly.in",
+                "student login",
+                "staff login",
+                "sign in",
+                "portal access",
+                "mobile login",
+                "desktop login",
+                "forgot password",
+                "reset password"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "All",
+                "Staff",
+                "Student"
+            ],
+            "summary": "Universal login and access card for Carmel-linx accessible via mobile and desktop at http://app.carmelpoly.in.",
+            "steps": [
+                "**1. Portal Access:** Navigate to **http://app.carmelpoly.in** from any mobile phone browser, mobile app, or desktop browser.",
+                "**2. Login Card:** A central login card appears prompting you to select **Login as Student** or **Login as Staff**.",
+                "**3. Staff Login:** Use your registered **Mobile Phone Number** as your login ID, along with your chosen password.",
+                "**4. Student Login:** Use your student credentials and personal password.",
+                "**5. New User Registration:** If you are a new user, click the registration links below the login card: **Register as Student** or **Register as Staff**.",
+                "**6. Password Recovery:** If you forget your password, click **Forgot Password?**. A recovery link/token is dispatched to your registered working email ID."
+            ],
+            "action_label": "Go to Login Portal",
+            "action_route": "/",
+            "manual_reference": "Chapter 1: Platform Architecture — Section 1.4 (Common Login & Registration Card Operations: app.carmelpoly.in)"
+        },
+        {
+            "id": "student_registration_workflow",
+            "title": "Student Registration & Tutor/HOD Approval Workflow",
+            "keywords": [
+                "student registration",
+                "register student",
+                "admission year",
+                "branch",
+                "let",
+                "lateral entry",
+                "regular entry",
+                "student approval",
+                "tutor approval",
+                "hod approval",
+                "new student"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Student",
+                "Tutor",
+                "HOD"
+            ],
+            "summary": "Step-by-step registration for students with admission details and required Tutor/HOD approval.",
+            "steps": [
+                "**1. Open Registration:** Go to **http://app.carmelpoly.in** and click **Register as Student** below the login card.",
+                "**2. Admission Details:** Enter your **Admission Year** (e.g. 2024, 2025, 2026) and select your diploma **Branch / Program**.",
+                "**3. Entry Mode:** Specify whether your admission is **Regular Entry** (joined in Semester 1) or **LET (Lateral Entry)** (joined directly into Semester 3).",
+                "**4. Working Email ID:** Enter a valid, active Email ID for password recovery and college notifications.",
+                "**5. Password:** Create your own secure password.",
+                "**6. Approval Gate:** Once submitted, student login is held in pending status until the **Department HOD or assigned Class Tutor reviews and approves** the account.",
+                "**7. Profile Activation:** Following approval, the student can log in to view their attendance, internal assessment scores, and assignments."
+            ],
+            "action_label": "Student Register",
+            "action_route": "/",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.2 (Student Onboarding Workflows)"
+        },
+        {
+            "id": "staff_profile_and_birthday_popup",
+            "title": "Profile Customization, Photos & Automated Staff Birthday Wishes",
+            "keywords": [
+                "profile photo",
+                "date of birth",
+                "dob",
+                "birthday wish",
+                "birthday popup",
+                "staff profile",
+                "student profile",
+                "modify profile",
+                "celebrate"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Staff",
+                "Student"
+            ],
+            "summary": "Profile personalization with photos and the campus-wide automated birthday wish popup on first login.",
+            "steps": [
+                "**1. Profile Management:** After logging in on mobile or desktop, access your Profile settings to enhance and update your details.",
+                "**2. Profile Photo:** Upload a clear passport-style profile photo to personalize your dashboard, class rosters, and academic records.",
+                "**3. Date of Birth (DOB) Entry:** Enter your accurate Date of Birth in your profile settings.",
+                "**4. Automated Staff Birthday Popup:** When a staff member has their DOB entered, on their birthday, Carmel-linx automatically triggers a celebratory **Birthday Wish Popup** across all users' screens upon their first login of that day! 🎂🎉",
+                "**5. Student Birthday Status:** Birthday wish automation is currently fully active for faculty/staff; student birthday wish automation will be initialized in an upcoming release."
+            ],
+            "action_label": "Update Profile",
+            "action_route": "/profile",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.2 (User Directory & Staff Approval Operations)"
+        },
+        {
+            "id": "hod_registration_and_approval",
+            "title": "HOD Onboarding, Registration & Principal Authorization Flow",
+            "keywords": [
+                "hod registration",
+                "principal approval",
+                "hod login",
+                "staff registration id",
+                "phone number",
+                "working email",
+                "password recovery",
+                "mobile app registration",
+                "desktop login",
+                "register",
+                "approval",
+                "approved",
+                "authorize",
+                "onboarding",
+                "register hod",
+                "approve hod"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Principal",
+                "HOD"
+            ],
+            "summary": "Step-by-step onboarding for Heads of Departments (HODs) via phone number, mandatory email, and Principal approval.",
+            "steps": [
+                "**1. Principal Invitation:** Principal requests all Department HODs to register on the platform via the Mobile App or Desktop web portal.",
+                "**2. Mobile or Desktop Registration:** HOD opens the registration page on their phone or computer.",
+                "**3. Staff Registration ID:** The HOD's Staff Registration ID **must be their working Phone Number**.",
+                "**4. Mandatory Working Email ID:** A valid, active Email ID is strictly required during registration for account verification, administrative alerts, and password recovery.",
+                "**5. Password Creation:** HOD sets their own secure personal password.",
+                "**6. Principal Authorization & Approval:** Upon submission, the HOD account is held in pending status. The **Principal must review and grant official authorization** from the Principal console before the HOD can log in.",
+                "**7. Departmental Administrative Authority:** Once approved by the Principal, the HOD receives full administrative command of their department (managing departmental staff, assigning subjects, creating batches, and monitoring students).",
+                "**8. Mobile vs. Desktop Capabilities:** Both mobile and desktop share common login credentials, but certain high-density administrative configurations and bulk operations are restricted to the Desktop version for optimal precision."
+            ],
+            "action_label": "View HOD Dashboard",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 1: Platform Architecture — Section 1.3 (HOD Onboarding & Principal Approval Workflow)"
+        },
+        {
+            "id": "r21_virtual_theory_classroom_overview",
+            "title": "Revision 2021 Virtual Theory Classroom & SITTTR Syllabus Upload",
+            "keywords": [
+                "r2021 theory",
+                "virtual theory classroom",
+                "revision 2021",
+                "sitttr",
+                "syllabus upload",
+                "course structure",
+                "batch card",
+                "my batches",
+                "r-2021"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "Tutor",
+                "HOD",
+                "Principal"
+            ],
+            "summary": "Accessing Revision 2021 Virtual Theory Classrooms via allotted batch cards, downloading syllabus from SITTTR, and confirming course metadata.",
+            "steps": [
+                "**1. Access Classroom:** From your **Lecturer Dashboard** (or via **My Batches** for Tutor, HOD, or Principal), locate the allotted batch card displaying assigned subjects and student count.",
+                "**2. Open R-2021 Theory Classroom:** For batches prior to 2026 admission (Admissions 2021–2025), clicking a Theory subject opens the **Virtual Theory Classroom R-2021**.",
+                "**3. Download Syllabus from SITTTR:** Download the official course syllabus PDF from the **SITTTR** website (State Institute of Technical Teachers' Training and Research, Kerala).",
+                "**4. Upload Syllabus PDF:** In the **Course Structure** tab, click **Upload Syllabus PDF**. Carmel-linx automatically extracts Course Outcomes (CO1–CO4), the CO-PO Matrix, modules, and reference textbooks.",
+                "**5. Verify Metadata Banner:** Below the titles, inspect the metadata banner displaying **Proposed Hours (e.g. 45 or 60 hrs)**, **Revision: R-2021**, **Credits**, **CIA (50M)**, **ESE Marks (100M/75M)**, Semester, Batch, and Branch Code. Confirm or edit if adjustments are required."
+            ],
+            "action_label": "Open Virtual Classroom",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.2 (Revision 2021 Virtual Theory Classroom Operations)"
+        },
+        {
+            "id": "r21_theory_lesson_planner",
+            "title": "Lesson Planner & Sync Dates from Log Data - Revision 2021 Theory",
+            "keywords": [
+                "lesson planner",
+                "sync dates",
+                "sync dates from log data",
+                "proposed date",
+                "actual date",
+                "60 hours",
+                "62 sessions",
+                "r2021 lesson plan"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Managing the 60-hour lesson plan with 1-hour session divisions, proposed dates, and one-click sync of actual completion dates from recorded class logs.",
+            "steps": [
+                "**1. Auto-Generated Plan:** Switching to the **Lesson Planner** tab displays an auto-generated schedule with 1-hour session divisions, module topics, and CO mapping derived from the uploaded syllabus.",
+                "**2. Session Breakdown (60+2 Hours):** For a standard 60-hour course, the planner typically displays ~62 total sessions (60 instructional hours + 2 to 4 one-hour sessions allocated for internal series exams and assessments).",
+                "**3. Inline Editing & Row Management:** Every row is fully editable inline. Use the **Add Row** button to insert additional topics or the delete icon to remove redundant sessions.",
+                "**4. Proposed Dates:** Input scheduled calendar dates for each session. Live autosave is active, complemented by a manual **Save Lesson Plan** button.",
+                "**5. Sync Dates from Log Data:** Once class attendance and subject logs are recorded (either daily or in bulk via MS Teams PDF import), click the **Sync Dates from Log Data** button. Carmel-linx automatically populates the actual completion dates into the lesson plan matching recorded teaching dates."
+            ],
+            "action_label": "View Lesson Planner",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.2.3 (Lesson Planner & 60-Hour Syllabus Tracker)"
+        },
+        {
+            "id": "rev2021_formative_assessment",
+            "title": "Formative Assessment (Assignments, Lock & Amber Hardcopy Indicator) - Revision 2021",
+            "keywords": [
+                "assignment",
+                "formative",
+                "question paper",
+                "5041",
+                "embedded systems",
+                "2021",
+                "generate questions",
+                "cognitive",
+                "bloom",
+                "lock assignment",
+                "amber shade",
+                "hardcopy submission",
+                "to-do list",
+                "cia 50 marks"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Configuring 4 CO assignments under Revision 2021 50-mark CIA (20+20+10), dispatching To-Do notifications via Lock button, and tracking physical hardcopy submissions with amber alerts.",
+            "steps": [
+                "**1. Understand Revision 2021 CIA Scheme:** Total Continuous Internal Assessment is **50 Marks**: 40% Summative (20 Marks) + 40% Formative (20 Marks) + 20% Attendance (10 Marks). The formula is: **20 + 20 + 10 = 50 Marks**.",
+                "**2. Formative Assignments (20 Marks):** Formative assessment comprises 4 assignments—one for each Course Outcome (**CO1, CO2, CO3, CO4**)—consolidated into 20 marks.",
+                "**3. Generate Questions:** Under the **Formative Assessment** tab, select a CO and click **Generate Questions**. Options include: **AI Generation (Gemini)**, **Manual Entry**, or **Pull from Question Bank** (for previously archived questions). Tag cognitive levels (Remember, Understand, Apply, Analyze), insert diagrams/images, and set Start Date and Due Date.",
+                "**4. Lock Button & Student To-Do Notification:** Once questions and due dates are confirmed, click the **LOCK icon** on the CO card. This locks the assignment against accidental edits and instantly dispatches an automated notification to enrolled students, placing the assignment with questions and deadline directly on their **Student Portal To-Do List**.",
+                "**5. Physical Hardcopy Submission (Amber Indicator):** When a student physically submits their handwritten assignment copy at the lecturer's desk, the student marks submission status in their Carmel-linx app. In response, an **amber shade / pulsing indicator** immediately highlights that student's row in the lecturer's mark entry grid.",
+                "**6. Mark Entry & Autosave:** The lecturer inspects the physical hardcopy, inputs the verified score into the mark field, and Carmel-linx autosaves the score while automatically clearing the amber submission alert."
+            ],
+            "action_label": "Open Formative Assessment",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.2.4 (Formative Assessment & Hardcopy Assignment Locking)"
+        },
+        {
+            "id": "r21_theory_summative_and_mcq",
+            "title": "Summative Assessment, Scheme of Valuation & MCQ Tests - Revision 2021",
+            "keywords": [
+                "summative",
+                "series exam",
+                "scheme of evaluation",
+                "answer key",
+                "mcq test",
+                "test setting",
+                "r2021 summative",
+                "written test"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Configuring internal series tests, auto-generating question papers with schemes and answer keys, and conducting automated MCQ tests.",
+            "steps": [
+                "**1. Summative Assessment Tab:** Open **Summative Assessment** to configure internal series tests for each Course Outcome (CO1–CO4).",
+                "**2. Test Question Generation:** Generate test question papers using **AI Auto-Generation** or **Manual Entry**. Tag marks per question and cognitive levels.",
+                "**3. Scheme of Evaluation & Answer Key:** Carmel-linx automatically compiles the official **Scheme of Valuation** and **Answer Key** matching the question breakdown, ready for high-resolution A4 printing.",
+                "**4. Automated MCQ Test Setup:** Set up online multiple-choice question assessments. Carmel-linx automatically notifies students, runs timed tests on their portal, and grades submissions automatically.",
+                "**5. Mark Entry & Autosave:** Enter written test scores in the student roster table with debounced autosave and live class average computation."
+            ],
+            "action_label": "Open Summative Assessment",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.2.5 (Summative Series Exams, Schemes & MCQ Tests)"
+        },
+        {
+            "id": "r21_theory_surveys_attainment_reports",
+            "title": "Surveys, NBA Attainment & Course File Reports - Revision 2021",
+            "keywords": [
+                "question bank",
+                "surveys",
+                "mid sem survey",
+                "course exit survey",
+                "indirect attainment",
+                "course attainment",
+                "nba attainment",
+                "reports tab",
+                "r2021 reports"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Conducting student surveys, setting NBA attainment thresholds, calculating direct/indirect attainment, and exporting full course files.",
+            "steps": [
+                "**1. Question Bank Tab:** Upload and archive questions and previous year question papers for seamless retrieval and examination reuse.",
+                "**2. Surveys Tab (Indirect Attainment):** Initiate online **Mid-Semester Surveys** and **Course Exit Surveys**. Questions are customizable by faculty. Student survey submissions are aggregated automatically for indirect attainment.",
+                "**3. Course Attainment Tab:** Configure student pass thresholds (e.g. 60% benchmark). The system computes **Direct Attainment (80% weight from CIE + ESE)** and **Indirect Attainment (20% weight from surveys)** for all COs and POs.",
+                "**4. Reports Tab:** Generate one-click official PDF reports: **NBA Course File (16 items)**, **Subject Delivery Log**, **Period-wise Attendance Register**, **Attainment Summary**, and **Final CIA Marksheet (20+20+10)**."
+            ],
+            "action_label": "View Attainment & Reports",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.7 (Universal Course & Program Exit Survey and Attainment)"
+        },
+        {
+            "id": "r21_virtual_lab_classroom_overview",
+            "title": "Revision 2021 Virtual Lab Classroom & Shared Multi-Staff Setup",
+            "keywords": [
+                "r2021 lab",
+                "virtual lab",
+                "revision 2021 lab",
+                "practical classroom",
+                "demonstrator lab",
+                "trade instructor lab",
+                "setup experiments",
+                "experiments list",
+                "75 marks cia",
+                "shared workload",
+                "r-2021 lab"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "Demonstrator",
+                "Trade_Instructor",
+                "Workshop_Superintendent",
+                "HOD"
+            ],
+            "summary": "Shared multi-staff collaborative practical workspace for Revision 2021 laboratory subjects, mandatory experiments setup, and 75M CIA scheme.",
+            "steps": [
+                "**1. Shared Multi-Staff Access:** The primary Lecturer, assigned Demonstrator, Trade Instructor, or Workshop Instructor mapped to the course all receive real-time access to the **Virtual Lab R-2021** directly in their respective dashboards (`/dashboard/lecturer`, `/dashboard/demonstrator`, `/dashboard/tradeinstructor`, etc.).",
+                "**2. Course Structure & Syllabus Upload:** Download the practical syllabus PDF from SITTTR and upload it in the **Course Structure** tab. The system extracts Course Outcomes (COs), required equipment, and standard practical experiments.",
+                "**3. Verify Metadata Banner:** Below the titles, confirm: **Revision: R-2021**, **Proposed Hours (60 or 75 hrs)**, **Credits**, **CIA: 75M**, **ESE: 75M**, Semester, Batch, and Branch Code.",
+                "**4. Setup Experiments List First (Critical Rule):** Before conducting evaluations or daily logs, faculty must navigate to **Setup Experiments** to configure the approved laboratory experiments list with CO mapping. If omitted, the system will auto-populate a default list from the uploaded syllabus into the lesson plan.",
+                "**5. Practical Lesson Planner:** Auto-generates practical experiment sessions as per the syllabus and configured experiments list, supporting proposed dates and the **Sync Dates from Log Data** action."
+            ],
+            "action_label": "Open Virtual Lab",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.3 (Revision 2021 Virtual Lab / Practical Classroom Operations)"
+        },
+        {
+            "id": "r21_lab_formative_evaluation_rubrics",
+            "title": "Continuous Lab Work Evaluation (37.5M & 7.5M Open-Ended) - Revision 2021",
+            "keywords": [
+                "lab work",
+                "37.5 marks",
+                "5 components",
+                "rough record",
+                "fair record",
+                "observation",
+                "procedure",
+                "viva",
+                "open ended",
+                "7.5 marks",
+                "batch split",
+                "lab log",
+                "continuous eval"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "Demonstrator",
+                "Trade_Instructor",
+                "HOD"
+            ],
+            "summary": "Day-to-day continuous evaluation of regular lab experiments across 5 rubrics (37.5M), Open-Ended Experiments (7.5M), Batch 1 & 2 splitting, and student lab logs.",
+            "steps": [
+                "**1. Formative Assessment Tab:** Open **Formative Assessment** (Continuous Lab Work Evaluation) to manage daily student experiment scores.",
+                "**2. Lab Batch Split (Batch 1 & 2):** For concurrent or split-batch laboratory execution, use the batch filter buttons to view **All**, **Batch 1**, or **Batch 2**. Click **Batch Split Setup** to adjust roll number cutoffs.",
+                "**3. Grade Regular Experiments (37.5 Marks across 5 Components):** Evaluate each experiment based on official SBTE 5-rubric criteria:",
+                "   • **Rough Record:** Max 5 Marks",
+                "   • **Fair Record:** Max 7.5 Marks",
+                "   • **Observation & Recording:** Max 7.5 Marks",
+                "   • **Procedure & Punctuality:** Max 7.5 Marks",
+                "   • **Viva Voce:** Max 10 Marks",
+                "   • *Raw Total = 37.5 Marks* (converts directly to 37.5 CIA marks).",
+                "**4. Open-Ended Experiments (OEE - 7.5 Marks):** Under the **Open-Ended** sub-tab, record problem-solving and student design project scores out of **7.5 Marks**.",
+                "**5. Student Lab Analytics:** Review real-time student experiment progress: Total Experiments, Completed Count, individual student experiment history logs, and session attendance."
+            ],
+            "action_label": "View Lab Evaluation",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.3.4 (Formative Continuous Evaluation: 5 Statutory Rubrics)"
+        },
+        {
+            "id": "r21_lab_summative_test_and_cia",
+            "title": "Lab Test (15M), Attendance (15M) & 75M CIA Consolidation - Revision 2021",
+            "keywords": [
+                "lab test",
+                "setup lab test",
+                "practical test",
+                "15 marks",
+                "lab attendance",
+                "75 marks",
+                "total cia 75",
+                "cia 75 marks",
+                "lab register",
+                "practical calculation"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "Lecturer",
+                "Demonstrator",
+                "Trade_Instructor",
+                "HOD"
+            ],
+            "summary": "Setting up internal series practical tests (15M), attendance scaling (15M), and calculating the consolidated 75-mark CIA.",
+            "steps": [
+                "**1. Summative Assessment Tab (Lab Tests):** Click the **Setup Lab Test** button to configure the internal series practical examination / model lab test.",
+                "**2. Enter Lab Test Marks (15 Marks):** Enter student performance in Test 1 and Test 2 (if conducted). The system computes the consolidated **Test Average out of 15 Marks**.",
+                "**3. Attendance Component (15 Marks):** Carmel-linx automatically computes the **Lab Attendance score (Max 15 Marks)** directly from recorded session logs in `/staff/attendance-log`.",
+                "**4. Statutory 75-Mark CIA Formula:** Total Continuous Internal Assessment is consolidated as:",
+                "   $$\\text{Total CIA (75M)} = 37.5\\text{ (Lab Work)} + 7.5\\text{ (Open-Ended)} + 15\\text{ (Lab Test)} + 15\\text{ (Attendance)}$$",
+                "**5. Surveys, Attainment & Reports:** Student lab surveys feed indirect attainment. In the **Reports** tab, generate printable A4 registers: **Final Practical Report Calculation Register (12-column ledger)**, **Experiments Log**, and **NBA Practical Course File** with faculty, Demonstrator, and HOD signature blocks."
+            ],
+            "action_label": "View Lab Reports & CIA",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.3.5 (Summative Series Practical Tests & 75-Mark CIA)"
+        },
+        {
+            "id": "rev2026_theory_copo_matrix",
+            "title": "CO-PO Articulation Matrix (Program Outcomes) - Revision 2026 Theory",
+            "keywords": [
+                "copo",
+                "co po",
+                "articulation",
+                "matrix",
+                "autosave",
+                "program outcomes",
+                "po1",
+                "po11",
+                "correlation",
+                "theory 2026",
+                "po"
+            ],
+            "revisions": [
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "How to map Course Outcomes to Program Outcomes (PO1–PO11) with live autosave in Revision 2026 Theory.",
+            "steps": [
+                "Open the **Revision 2026 Virtual Classroom** for your theory subject.",
+                "In the **Syllabus & Course Outline** tab, scroll down to the **CO-PO Articulation Matrix (Program Outcomes)** card.",
+                "All 44 cells (CO1–CO4 across PO1–PO11) are fully editable inputs.",
+                "Enter correlation values: **3** for High, **2** for Medium, **1** for Low, or **- / blank** for No Correlation.",
+                "Typing **1**, **2**, or **3** will automatically apply high-contrast correlation colors (Emerald, Sky, Amber) and automatically advance focus to the next cell.",
+                "You can use the **Arrow keys** (←, →, ↑, ↓), **Enter**, or **Backspace** for swift keyboard navigation.",
+                "Changes **autosave continuously** in the background with a live status badge (`Saved`, `Saving...`). You can also click the **Save Matrix** button anytime.",
+                "Column averages at the bottom recalculate in real-time."
+            ],
+            "action_label": "Go to CO-PO Matrix",
+            "action_route": "/r26/classroom/theory",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.8 (Revision 2026 Theory Classroom: CO-PO Matrix Autosave)"
+        },
+        {
+            "id": "rev2026_theory_cie_structure",
+            "title": "Revision 2026 Theory CIE Breakdown (40 CIE + 60 ESE)",
+            "keywords": [
+                "cie",
+                "theory 2026",
+                "self learning",
+                "attendance",
+                "table 2.1",
+                "table 2.2",
+                "series exam",
+                "40 marks",
+                "marks calculation"
+            ],
+            "revisions": [
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD",
+                "Tutor"
+            ],
+            "summary": "Official Revision 2026 CIE 40-mark evaluation rules as per Diploma Curriculum.",
+            "steps": [
+                "**1. Attendance & Subject Log (5 Marks):** Automatically converted from Table 2.1 based on semester attendance: ≥90% = 5M, 80–89% = 4M, 75–79% = 3M, 70–74% = 2M, <70% = 0M (Condonation required).",
+                "**2. Self-Learning & Continuous Assessment (15 Marks):** Configured via Table 2.2 across CO1–CO4. Consists of 3 mandatory activities per CO (e.g., Assignment, MCQ Quiz, Case Study/Seminar) scaled to 15 marks.",
+                "**3. Series Examinations (20 Marks):** 2 Series Exams conducted for 50 marks each. Marks are scaled down to 20 marks based on curriculum guidelines.",
+                "**4. End Semester Exam (ESE - 60 Marks):** SBTE Kerala official board grade (S, A, B, C, D, E, F) automatically converted to scaled 60M with real-time autosave."
+            ],
+            "action_label": "View CIE Marksheet",
+            "action_route": "/r26/classroom/theory",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.8 & Chapter 1, Section 1.5 (Revision 2026 Theory CIE 40-Mark Structure)"
+        },
+        {
+            "id": "rev2026_self_learning_config",
+            "title": "Configure Table 2.2 Self-Learning Activities (Rev 2026)",
+            "keywords": [
+                "self learning",
+                "table 2.2",
+                "co1",
+                "co2",
+                "co3",
+                "co4",
+                "mcq",
+                "case study",
+                "15 marks"
+            ],
+            "revisions": [
+                "2026"
+            ],
+            "role": [
+                "Lecturer"
+            ],
+            "summary": "Setting up student continuous self-learning marks for Revision 2026.",
+            "steps": [
+                "In your Revision 2026 Virtual Classroom, switch to the **Continuous Internal Assessment (CIA)** tab.",
+                "Locate the **Table 2.2 Self-Learning Evaluation Workspace**.",
+                "Select the Course Outcome tab (**CO1 to CO4**).",
+                "Enter marks for each component: **Assignment** (5M), **MCQ Quiz** (5M), and **Activity 3 / Case Study** (5M).",
+                "Scores automatically compute each student's average and scale into the **15-Mark Self-Learning** CIA component with live autosave."
+            ],
+            "action_label": "Open CIA Workspace",
+            "action_route": "/r26/classroom/theory",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.8 (Revision 2026 Theory: Table 2.2 Self-Learning Marks)"
+        },
+        {
+            "id": "rev2026_lesson_planner",
+            "title": "Interactive 60-Hour Lesson Planner - Revision 2026 Theory",
+            "keywords": [
+                "lesson plan",
+                "planner",
+                "60 hours",
+                "lecture",
+                "tutorial",
+                "proposed date",
+                "actual date",
+                "pedagogy"
+            ],
+            "revisions": [
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Managing period-by-period lesson plans with dates, taxonomy, pedagogy, and autosave.",
+            "steps": [
+                "In your Revision 2026 Theory classroom, switch to the **Lesson Planner** tab.",
+                "The planner displays all 60 instructional periods categorized by Module (I, II, III, IV) and Course Outcome (CO1–CO4).",
+                "For each period, select the **Proposed Date** and **Actual Date** using the calendar pickers.",
+                "Select the **Pedagogy** (e.g., Lecture, Demonstration, Flipped Classroom, Tutorial) and **Bloom's Taxonomy** level.",
+                "Update the **Status** (Pending, Completed, Rescheduled).",
+                "All edits trigger continuous background autosave (`plannerAutosaveBadge`).",
+                "Click **Print Lesson Plan** at the top right to generate the formal SBTE approval document."
+            ],
+            "action_label": "Open Lesson Planner",
+            "action_route": "/r26/classroom/theory",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.8 (Revision 2026 Theory: 60-Hour Outcome-Based Lesson Planner)"
+        },
+        {
+            "id": "attendance_logging",
+            "title": "Class Attendance & Subject Log Console (Common Link)",
+            "keywords": [
+                "attendance",
+                "subject log",
+                "absent",
+                "present",
+                "grid view",
+                "easy access grid",
+                "easy-access grid",
+                "grid",
+                "list view",
+                "period",
+                "daily attendance",
+                "lesson plan sync",
+                "cia calculation",
+                "attendance percentage",
+                "common link",
+                "attendance log"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "Demonstrator",
+                "Trade_Instructor",
+                "Workshop_Superintendent",
+                "HOD",
+                "Tutor"
+            ],
+            "summary": "Universal common console across all staff dashboards to record period-by-period class attendance, auto-sync subject logs with lesson plans, and compute CIA marks.",
+            "steps": [
+                "**1. Access the Common Link:** Click **Class Log & Attendance** or navigate to `/staff/attendance-log` from any staff dashboard (Lecturer, Demonstrator, Trade Instructor, Workshop Superintendent, HOD, Tutor). The top-left back button automatically routes you back to your specific dashboard.",
+                "**2. Select Course & Sub-Batch:** Choose your assigned subject from the dropdown. For practical/drawing subjects, pick the target group: **Whole Class**, **Batch 1 (First Half)**, or **Batch 2 (Second Half)**.",
+                "**3. Select Date & Timetable Periods:** Set the date and toggle period checkboxes (**P1 to P7**). For continuous lab or practicum blocks, use quick preset buttons (**P1–P3**, **P4–P6**, **P1–P2**). Multiple topics on a single day or across consecutive periods are supported.",
+                "**4. Auto-Sync or Edit Subject Log:** Topics are automatically pulled from your previously prepared **Course Lesson Plan** or Lab Experiments list in syllabus order. You can also edit the **Topics Covered (Editable)** text area to reflect actual delivery or click **Sync from Lesson Plan** to auto-fill pending logs.",
+                "**5. Take Attendance (List vs. Easy-Access Grid):** Choose your preferred view mode:",
+                "   • **List View:** Table displaying Roll Number, Student Name, and individual Present/Absent checkboxes with **Mark All Absent / Present** toggle.",
+                "   • **Grid View:** High-speed roll-number touch tile matrix. Single tap toggles status between Emerald (**Present**) and Red (**Absent**).",
+                "**6. Save & Calculate CIA Marks:** Click **Save Log & Attendance**. Student course attendance percentages and Continuous Internal Assessment (CIA/CIE Table 2.1) marks recalculate in real time.",
+                "**7. Verification, Editing & Printing:** Scroll to the desktop **Recorded Class Attendance Logs** table below to inspect past entries, click **Edit** to modify absentees/topics, **Delete** erroneous logs, or click **Print Class Log (A4)** and **Print Class Roster (A4)**."
+            ],
+            "action_label": "Open Attendance & Subject Log",
+            "action_route": "/staff/attendance-log",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.9 (Universal Class Attendance & Subject Log Console: /staff/attendance-log)"
+        },
+        {
+            "id": "teams_attendance_pdf_upload",
+            "title": "Upload MS Teams Attendance PDF (Bulk Class Log Import)",
+            "keywords": [
+                "teams attendance",
+                "upload teams",
+                "teams pdf",
+                "microsoft teams",
+                "bulk attendance",
+                "import attendance",
+                "teams portal",
+                "pdf attendance"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "Demonstrator",
+                "Trade_Instructor",
+                "Workshop_Superintendent",
+                "HOD",
+                "Tutor"
+            ],
+            "summary": "Importing class attendance in bulk by uploading official Microsoft Teams attendance PDF files with automated hour calculation and lesson plan synchronization.",
+            "steps": [
+                "**1. Download PDF from Teams:** Log into the official Microsoft Teams website/portal for your class session and download the official attendance report as a **PDF document**.",
+                "**2. Launch Teams Import:** Open the **Attendance & Subject Log** console (`/staff/attendance-log`), select your Course/Subject, and click the blue **Upload TEAMS Attendance** button (at header or above past logs table).",
+                "**3. Target Group Allocation:** Select the batch division: **Whole Class**, **Lab Batch 1**, or **Lab Batch 2**.",
+                "**4. Upload PDF File:** Drag & drop or browse for your official Teams attendance PDF.",
+                "**5. Auto-Fill Lesson Plan Option:** Keep **Auto-fill blank topics from Lesson Plan / Lab Experiments** checked so unlogged sessions automatically map to the next pending syllabus topic and mark it completed.",
+                "**6. Exact Hour Calculation:** Carmel-linx parses multi-period sessions (e.g., `Hours: 4,6`) and creates discrete period records so student conducted hours and attendance percentages are mathematically 100% exact.",
+                "**7. Submit & Review:** Click **Upload TEAMS Attendance**. Carmel-linx imports sessions, marks absentees, links lesson plan topics, and refreshes the past logs table where entries can be edited or printed."
+            ],
+            "action_label": "Upload Teams PDF",
+            "action_route": "/staff/attendance-log",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.9.4 (Online Classes: Microsoft Teams Attendance Report Import)"
+        },
+        {
+            "id": "course_file_preparation",
+            "title": "Course File Preparation & 16-Item Checklist",
+            "keywords": [
+                "course file",
+                "nba checklist",
+                "audit",
+                "index",
+                "hod signoff",
+                "16 items",
+                "pdf"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD"
+            ],
+            "summary": "Compiling and printing the NBA Course File with 16 mandatory compliance documents.",
+            "steps": [
+                "Go to **Course Files** in the dashboard navigation.",
+                "Select your designated subject and semester.",
+                "The **Index of Documents** lists all 16 items: Syllabus, Academic Calendar, Timetable, Lesson Plan, CO-PO Matrix, Question Papers, Scheme of Valuation, Marksheets, Remedial records, and Attainment reports.",
+                "Check off completed documents and attach digital file uploads or remarks.",
+                "Click **Generate Course File PDF** for formal digital signing by Faculty and HOD."
+            ],
+            "action_label": "Open Course File Hub",
+            "action_route": "/course-files",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.10 (Course Files: /course-files & NBA Compliance)"
+        },
+        {
+            "id": "nba_attainment_calculation",
+            "title": "NBA Criterion 3 Attainment Calculation & Reports",
+            "keywords": [
+                "attainment",
+                "nba",
+                "criterion 3",
+                "po attainment",
+                "direct",
+                "indirect",
+                "survey",
+                "report"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Lecturer",
+                "HOD",
+                "Academic Coordinator"
+            ],
+            "summary": "Generating direct (80%) + indirect exit survey (20%) PO1–PO11 attainment calculations.",
+            "steps": [
+                "In your classroom, navigate to the **NBA Attainment** tab.",
+                "**Direct Assessment (80%):** Computed from Continuous Internal Evaluation (CIE) and Board End Semester Exam (ESE) pass percentages against target benchmark (e.g. 60%).",
+                "**Indirect Assessment (20%):** Generated from the Course Exit Survey completed by students.",
+                "The system automatically computes the consolidated CO attainment: `(0.80 × Direct) + (0.20 × Indirect)`.",
+                "The **PO Attainment Matrix** maps each CO's attainment through the CO-PO Articulation Matrix weights across PO1–PO11.",
+                "Click **Print NBA Attainment Report** to download the official audit sheet."
+            ],
+            "action_label": "View Attainment Summary",
+            "action_route": "/r26/classroom/theory",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.7 (Universal Course & Program Exit Survey and Attainment Calculation)"
+        },
+        {
+            "id": "hod_user_directory_staff_approval",
+            "title": "HOD User Directory & Staff Approval Operations",
+            "keywords": [
+                "user directory",
+                "approve staff",
+                "approve registered staff",
+                "edit staff",
+                "delete user",
+                "password reset",
+                "hod user directory",
+                "department users",
+                "hod staff approval"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "How HODs view department members in the User Directory, approve newly registered faculty, edit details, and reset passwords.",
+            "steps": [
+                "**1. Access User Directory:** In the HOD left sidebar, click on **User Directory** to view all registered department members (teaching staff, technical staff, and students).",
+                "**2. Approve Registered Staff (Mandatory First Action):** Immediately after login, review newly registered faculty and click **Approve** in the table.",
+                "**3. Unlocking Dashboards:** Once approved by the HOD, faculty members can immediately log in on desktop or mobile and see their active academic consoles.",
+                "**4. Directory Management:** Use the table options to edit user profiles in editable fields, reset forgotten user passwords, or delete erroneous/inactive user records."
+            ],
+            "action_label": "Open User Directory",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.2 (User Directory & Staff Approval Operations)"
+        },
+        {
+            "id": "hod_create_batch_and_tutor_mentor",
+            "title": "Create Admission Batch & Tutor/Mentor Allocation (HOD)",
+            "keywords": [
+                "create batch",
+                "batch management",
+                "admission year",
+                "tutor allocation",
+                "mentor allocation",
+                "new class",
+                "batch card",
+                "create new batch",
+                "admission 2026",
+                "crate batch",
+                "crate a new batch",
+                "create a batch",
+                "how to create a batch",
+                "how to crate a batch",
+                "how to crate a new batch in hod",
+                "new batch in hod",
+                "add batch",
+                "batch creation",
+                "setup batch"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "Creating a new admission batch/class for the department and allocating the Class Tutor and Mentor.",
+            "steps": [
+                "**1. Batch Management Navigation:** From the HOD sidebar, click **Batch Management** or look at the top-left of the main HOD panel.",
+                "**2. Click Create Batch:** Click the **Create Batch** button on the top-left.",
+                "**3. Select Admission Year:** Choose the target admission year (e.g., **Admission 2026** for Semester 1).",
+                "**4. Allocate Tutor & Mentor:** Select the assigned **Class Tutor** and **Mentor** from the department faculty dropdowns.",
+                "**5. Formation of Class:** Click to create. A new class/batch card (e.g. *Admission 2026 - S1*) will appear prominently on your HOD dashboard, ready for subject allocation."
+            ],
+            "action_label": "Create New Batch",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.3 (Batch Creation & Tutor/Mentor Allocation)"
+        },
+        {
+            "id": "hod_subject_allocation_and_staff_mapping",
+            "title": "Subject Allocation & Teaching Staff Mapping Workflow (HOD)",
+            "keywords": [
+                "subject allocation",
+                "add subject",
+                "assign staff",
+                "teaching staff",
+                "theory lecturer",
+                "lab staff",
+                "demonstrator",
+                "workshop instructor",
+                "syllabus revision 2021 2026",
+                "inter-department"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "Adding curriculum subjects to a batch and mapping single or multi-staff (Lecturer, Demonstrator, Workshop Instructor, inter-department).",
+            "steps": [
+                "**1. Subject Allocation Page:** Click **Subject Allocation** in the HOD left sidebar.",
+                "**2. Select Batch & Semester:** In the header dropdowns, select your **Target Batch** and the current **Semester**.",
+                "**3. Click Add Subject:** Click the **Add Subject** button to launch the *Add Curriculum Subject* card.",
+                "**4. Enter Subject Details:** Specify the **Subject Code**, select **Subject Type** (`Theory`, `Practical / Lab`, `Practicum`, `Drawing`, `Seminar`, etc.), type the **Subject Name**, and confirm **Syllabus Revision** (`Revision 2021` or `Revision 2026`).",
+                "**5. Save Subject:** Click **Add Subject**. The new course appears in the subjects table.",
+                "**6. Assign Teaching Staff (Crucial Rules):** In the table row, click **Add Staff** / **Assign Teaching Staff**:",
+                "   • **Theory Subjects:** Always assign **only the designated Lecturer**.",
+                "   • **Lab / Practical Subjects:** If multiple faculty are involved, select **all assigned personnel** (Lecturer, Demonstrator, Workshop Instructor, Tradesman).",
+                "   • **Inter-Departmental Staff:** If faculty from other departments teach the course (e.g. Basic Science, Math, Humanities, Central Workshop), choose their department from the dropdown and check their names.",
+                "**7. Faculty Activation:** Once saved, assigned faculty instantly see the subject in their desktop/mobile classrooms and can begin academic entries."
+            ],
+            "action_label": "Go to Subject Allocation",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.4 (Subject Allocation & Multi-Staff Mapping Workflow)"
+        },
+        {
+            "id": "hod_manage_batch_modal_and_tabs",
+            "title": "Manage Batch Console: The 5 Configuration Tabs (HOD)",
+            "keywords": [
+                "manage batch",
+                "batch card",
+                "tutor mentor tab",
+                "allocated subjects tab",
+                "enrolled students tab",
+                "time table tab",
+                "semester history tab",
+                "manage class"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "Overview of the 5 tabs in the Manage Batch modal popup on the HOD dashboard.",
+            "steps": [
+                "**1. Open Manage Batch:** Locate the batch card on your HOD dashboard or Batch Management page (e.g., *Admission 2026*) and click **Manage Batch**.",
+                "**2. Five Configuration Tabs:**",
+                "   • **Tab 1: Tutor & Mentor:** View current advisors and reset/reassign the Class Tutor or Mentor if faculty responsibilities change.",
+                "   • **Tab 2: Allocated Subjects:** Review all curriculum subjects mapped to this batch and verify their assigned teaching staff.",
+                "   • **Tab 3: Enrolled Students:** View the roster of approved and enrolled students for this class.",
+                "   • **Tab 4: Time Table:** Build and manage the weekly class timetable schedule (detailed rules in Timetable topic).",
+                "   • **Tab 5: Semester History:** Review academic history and past semester progression for this batch (blank for new S1 batches)."
+            ],
+            "action_label": "Manage Batches",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.5 (The Manage Batch Console: The 5 Configuration Tabs)"
+        },
+        {
+            "id": "hod_timetable_split_labs_and_workload",
+            "title": "Master Timetable, Split Labs & Automated Workload Balancing (HOD)",
+            "keywords": [
+                "timetable",
+                "time table",
+                "staff workload",
+                "workload report",
+                "split batch",
+                "split lab",
+                "practicum workload",
+                "lab load",
+                "theory load",
+                "timetable setup"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "Setting up class timetables, managing concurrent split lab batches, and automatic workload calculations for Practicum.",
+            "steps": [
+                "**1. Open Time Table Tab:** Inside the **Manage Batch** card, switch to the **Time Table** tab.",
+                "**2. Mandatory Staff Timetable Rules:**",
+                "   • In **Theory periods**: Add only the primary Lecturer.",
+                "   • In **Lab & Workshop periods**: You **must add all assigned staff members** (Lecturers, Demonstrators, Instructors).",
+                "   • In **Practicum periods**: You **must include the lab staff** alongside the theory lecturer.",
+                "   • *Why this is mandatory:* Carmel-linx uses this exact mapping to generate the official **Staff Workload Report** (both for home department staff and visiting faculty from other departments).",
+                "**3. Split Batch Management for Labs:** If a class is split into two batches (Batch A & Batch B) running two different labs concurrently in the same period, Carmel-linx fully supports dual concurrent lab slot scheduling.",
+                "**4. Practicum Workload Balancing Rule:** If a Practicum course is scheduled across a multi-hour block (e.g. 2 or 3 continuous hours), the system automatically treats it as **Lab load**; if scheduled as a single-hour period, it calculates as **Theory load**, automatically balancing faculty workload calculations!"
+            ],
+            "action_label": "Configure Timetable",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.6 (Master Timetable, Split Labs & Automated Workload Balancing)"
+        },
+        {
+            "id": "hod_print_credentials_and_delete_policy",
+            "title": "Print Student Credentials vs. Destructive Batch Deletion Policy (HOD)",
+            "keywords": [
+                "print credentials",
+                "bulk upload credentials",
+                "temporary id",
+                "common password",
+                "delete batch",
+                "delete batch confirmation",
+                "accidental creation",
+                "batch credentials"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD",
+                "Tutor"
+            ],
+            "summary": "Generating bulk student credential printouts vs the permanent data loss rules of the Delete Batch button.",
+            "steps": [
+                "**1. Print Credentials Button (Top of Card):** Used when student lists are bulk-uploaded by the Tutor or HOD rather than individual self-registration. Clicking this generates a printable credential slip sheet with temporary IDs and initial common passwords to distribute to students. Upon first login, students must change their password and their permanent ID defaults to their SBTE registration/admission number.",
+                "**2. Delete Batch Button (Bottom of Card):** Located at the bottom of the *Manage Batch* card. Clicking this triggers a strict confirmation warning dialog.",
+                "**3. Irretrievable Data Loss Warning:** If confirmed, **ALL batch data, student enrollments, subject mappings, timetable records, and continuous assessment data are permanently erased forever**. It cannot be restored.",
+                "**4. Policy Rule:** The Delete Batch option is provided **strictly for correcting accidental batch creation errors** during initial semester setup. Never use this on active or ongoing academic batches."
+            ],
+            "action_label": "Review Batch Controls",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.7 (Student Credential Printing & Destructive Batch Deletion Policy)"
+        },
+        {
+            "id": "hod_my_batches_lecturer_role",
+            "title": "HOD Teaching Role: 'My Batches' Virtual Classrooms",
+            "keywords": [
+                "my batches",
+                "hod teaching",
+                "hod classes",
+                "hod virtual classroom",
+                "hod lecturer role",
+                "my batches link",
+                "hod class documentation"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD"
+            ],
+            "summary": "How HODs switch into teaching faculty mode to manage their own classes and virtual classrooms via the 'My Batches' link.",
+            "steps": [
+                "**1. Access 'My Batches':** If the Head of Department is directly engaged in teaching subjects, click on the **My Batches** link in the HOD left sidebar.",
+                "**2. Dual-Role Capability:** This view seamlessly shifts the HOD into an instructional faculty / lecturer role for their allocated courses.",
+                "**3. Launch Virtual Classrooms:** Click on any assigned subject card to open the specialized virtual classroom (Theory, Lab, Practicum, Drawing, etc.) according to its revision (R2021 or R2026).",
+                "**4. Classroom Documentation:** Manage day-to-day lesson plans, hourly attendance logs, formative assessment tasks, series exam mark entries, and course file generation just like a lecturer."
+            ],
+            "action_label": "Open My Batches",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.8 (HOD Instructional Role: \"My Batches\" Virtual Classrooms for Teaching)"
+        },
+        {
+            "id": "hod_report_centre_and_audits",
+            "title": "HOD Report Centre: SBTE, NBA & Principal Office Audits",
+            "keywords": [
+                "report centre",
+                "reports",
+                "sbte audit",
+                "nba audit",
+                "principal audit",
+                "attendance log report",
+                "remedial coaching",
+                "workload report",
+                "course files status",
+                "mentoring diary",
+                "program attainment",
+                "academic calendar",
+                "staff leave management",
+                "activity points"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "HOD",
+                "Principal",
+                "Academic Coordinator"
+            ],
+            "summary": "Accessing the wide spectrum of departmental compliance, accreditation, attendance, workload, and audit reports in the HOD Report Centre.",
+            "steps": [
+                "**1. Access Report Centre:** Click **Report Centre** on the HOD left sidebar to open the comprehensive audit and documentation dashboard.",
+                "**2. Institutional & SBTE Compliance Reports:**",
+                "   • **Attendance Log:** Hourly, subject-wise, and consolidated attendance percentage sheets with low-attendance & condonation lists.",
+                "   • **Remedial Coaching:** Slow-learner tracking, extra coaching session logs, and re-evaluation mark improvement logs.",
+                "   • **Timetable & Workload Reports:** Consolidated department timetable grids and faculty workload reports (covering home department and visiting faculty).",
+                "   • **Academic Calendar & Term Logs:** Milestone audit tracking against official SBTE term dates.",
+                "**3. NBA & Academic Quality Audits:**",
+                "   • **Course Files Status:** Real-time compliance audit of the 16 mandatory course file checklist items across all faculty subjects.",
+                "   • **Program Attainment:** Detailed CO, PO (PO1–PO11), and PSO attainment reports combining direct CIE/ESE results with indirect surveys.",
+                "   • **Mentoring Diary:** Batch mentoring records, student SWOT analyses, and advisor recommendations.",
+                "   • **Extracurricular & Activity Points:** Student activity point records and non-academic milestone participation.",
+                "**4. Administrative & Faculty Operations:**",
+                "   • **Staff Leave Management:** Department faculty leave applications, balance tracking, and HOD approvals.",
+                "   • **Student & Staff Leave Logs:** Daily absent/leave ledgers and professional activity logs."
+            ],
+            "action_label": "Open Report Centre",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 2: HOD Operations — Section 2.9 (HOD Report Centre: SBTE, NBA & Institutional Audit Modules)"
+        },
+        {
+            "id": "tutor_role_and_student_onboarding",
+            "title": "Tutor Role & Student Onboarding (Individual vs. Bulk Excel)",
+            "keywords": [
+                "tutor",
+                "tutor role",
+                "after hod",
+                "hod batch setup",
+                "final class setup",
+                "student registration",
+                "bulk upload",
+                "excel template",
+                "credential report",
+                "print credentials",
+                "temporary id",
+                "class setup",
+                "onboarding",
+                "tutor responsibilities"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor",
+                "HOD",
+                "Admin"
+            ],
+            "summary": "How the Tutor activates a newly setup class, manages student onboarding via individual registration or bulk Excel upload, and prints credential distribution sheets.",
+            "steps": [
+                "**1. Specially Assigned Faculty Role:** The Tutor is appointed by the HOD during batch creation and is responsible for finalizing class setup, student rosters, and student activation.",
+                "**2. Virtual Classroom Prerequisite:** Only after the Tutor verifies and activates the student roster do other subject faculty members receive full operational access to their virtual classrooms.",
+                "**3. Onboarding Method 1 (Recommended): Individual Student Self-Registration:** Students go to **http://app.carmelpoly.in**, click *Register as Student*, enter admission year, branch, LET or Regular entry, working email, and password. This instills personal accountability.",
+                "**4. Onboarding Method 2: Bulk Excel Upload:** Download the Excel roster template from the portal, populate admission numbers, student names, and emails, and upload via Admin or Tutor panel.",
+                "**5. Print Credentials:** Generates a printable credential report with temporary login IDs and common passwords for distribution. On first login, students must change their password, and their permanent ID updates to their SBTE / admission number."
+            ],
+            "action_label": "Open Tutor Dashboard",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.1 & 3.2 (Student Onboarding Workflows)"
+        },
+        {
+            "id": "tutor_console_roster_management",
+            "title": "Tutor Console: Supervised Class Roster Management",
+            "keywords": [
+                "tutor console",
+                "supervised class roster",
+                "approve student",
+                "suspend student",
+                "edit student",
+                "delete student",
+                "reset password",
+                "audit log",
+                "sbte number",
+                "semester promotion"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor"
+            ],
+            "summary": "Operations within the Tutor Console: student approvals, suspensions, edits, SBTE numbers, password resets, audit logs, and semester promotions.",
+            "steps": [
+                "**1. Access Tutor Console:** Click **Tutor Console** in the sidebar to view the interactive **Supervised Class Roster** table.",
+                "**2. Approve Registered Students:** Review pending student registrations and click **Approve** to authorize their accounts for login.",
+                "**3. Suspend / Reactivate:** Temporarily suspend a student's access for disciplinary reasons and restore when cleared.",
+                "**4. Edit Profile & SBTE Registration:** Update student personal data, contact numbers, parent details, and enter official SBTE Board Registration Numbers.",
+                "**5. Reset Password:** Instantly trigger a password reset for students locked out of their accounts.",
+                "**6. Audit Log:** Inspect login timestamps, IP logs, and profile modification histories.",
+                "**7. Semester Promotion:** At term conclusion, execute the batch roll-over to promote the class to the next semester (e.g. S1 → S2 → ... → S6)."
+            ],
+            "action_label": "Open Tutor Console",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.3 (Supervised Class Roster & Account Management)"
+        },
+        {
+            "id": "tutor_roll_numbers_and_removal",
+            "title": "Roll Number Assignment & Student Removal with Audit Log (Tutor)",
+            "keywords": [
+                "roll number",
+                "assign roll number",
+                "remove student",
+                "student drop out",
+                "removal comment",
+                "audit log",
+                "tutor roll"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor"
+            ],
+            "summary": "How Tutors flexibly assign student roll numbers and safely remove students with mandatory audit justification.",
+            "steps": [
+                "**1. Access Roll Numbers:** In the Tutor Console sidebar, select the **Roll Numbers** tool.",
+                "**2. Assign & Reorder:** Flexibly sort and assign alphabetical or admission-based roll numbers (1 to N) for the class.",
+                "**3. Removing a Student from the Roll:** If a student drops out, transfers, or is discontinued, the Tutor can remove them from the active class roll.",
+                "**4. Mandatory Audit Justification:** A formal reason and explanatory comment must be entered before removal can proceed. The system permanently logs this justification in the institutional audit ledger."
+            ],
+            "action_label": "Manage Roll Numbers",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.4 (Flexible Roll Number Assignment & Removal Policy)"
+        },
+        {
+            "id": "tutor_semester_attendance_and_condonation",
+            "title": "Semester Attendance Grid & Condonation Eligibility Reports (Tutor)",
+            "keywords": [
+                "semester attendance",
+                "condonation report",
+                "attendance status",
+                "condonation",
+                "below 75",
+                "medical condonation",
+                "individual attendance printout",
+                "tutor attendance"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor"
+            ],
+            "summary": "Monitoring multi-subject semester attendance, generating official SBTE condonation lists, and printing individual attendance slips.",
+            "steps": [
+                "**1. Access Semester Attendance:** Open **Class Attendance** or **Semester Attendance** from the Tutor sidebar.",
+                "**2. Multi-Subject Attendance Grid:** Displays a master table of student attendance percentages across all theory, practical, drawing, and workshop subjects.",
+                "**3. Condonation Analysis (< 75%):** Carmel-linx automatically flags all students with attendance below the mandatory 75% threshold.",
+                "**4. Condonation Eligibility Report (65%–74%):** Generates official SBTE condonation summary sheets for students with medical certificates or approved institutional exemptions.",
+                "**5. Print Reports:** Export printable consolidated batch attendance sheets and individual student attendance slips for parent verification."
+            ],
+            "action_label": "View Attendance & Condonation",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.6 (Consolidated Attendance, Low Attendance & SBTE Condonation)"
+        },
+        {
+            "id": "tutor_pta_progress_reports",
+            "title": "Student Progress Reports & PTA Meeting Progress Cards (Tutor)",
+            "keywords": [
+                "progress report",
+                "progress card",
+                "pta meeting",
+                "parent teacher meeting",
+                "co wise marks",
+                "student progress",
+                "print progress card"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor"
+            ],
+            "summary": "Generating multi-subject CO-wise assessment and attendance progress cards for Parent-Teacher Association (PTA) meetings.",
+            "steps": [
+                "**1. Open Progress Reports:** Open **Progress Reports** in the Tutor Console.",
+                "**2. Multi-Subject Aggregation:** Compiles academic standing for every student: subject-wise Course Outcome (CO) marks, Series Exams, Formative Assessment scores, cumulative attendance, and mentor observations.",
+                "**3. Print Progress Cards:** Click **Print Progress Cards** to export individual personalized report cards ready for distribution during Parent-Teacher Association (PTA) meetings."
+            ],
+            "action_label": "Generate Progress Cards",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.7 (Parent-Teacher Association Progress Reports)"
+        },
+        {
+            "id": "tutor_mentoring_split_and_parent_sms",
+            "title": "Mentoring Split Batch (50/50), Mentoring Diary & Parent SMS (Tutor)",
+            "keywords": [
+                "mentoring batch",
+                "mentor split",
+                "second mentor",
+                "mentoring diary",
+                "sms to parent",
+                "parent sms",
+                "50 percent mentor",
+                "mentoring printout"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor",
+                "Mentor"
+            ],
+            "summary": "Splitting the batch 50/50 between Tutor and Second Mentor, maintaining the digital Mentoring Diary, and sending parent notifications.",
+            "steps": [
+                "**1. Mentoring Batch Division:** A class batch is divided equally: **50% of the students are mentored by the Class Tutor**, and the remaining 50% are assigned to a designated **Second Mentor**.",
+                "**2. Mentor Split Setup:** Use the mentoring tool to map and balance student allotments between both mentors.",
+                "**3. Digital Mentoring Diary:**",
+                "   • **Student Sections:** Students log in to enter family background, personal interests, career aspirations, and semester goals.",
+                "   • **Mentor Sections:** Mentors record 1-on-1 counseling notes, academic SWOT analyses, progress feedback, and disciplinary advice.",
+                "**4. Parent SMS Notifications:** Dispatch automated or customized SMS updates and direct passwordless portal links to registered parent mobile numbers.",
+                "**5. Print Mentoring Record:** Export full official Mentoring Diary printouts for SBTE / NBA quality inspections."
+            ],
+            "action_label": "Open Mentoring Console",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.5 (50/50 Dual Mentoring System & Parent SMS Activation)"
+        },
+        {
+            "id": "tutor_student_leave_and_activity_points",
+            "title": "Student Digital Leave & SBTE Activity Point Approvals (Tutor)",
+            "keywords": [
+                "student leave approval",
+                "activity points approval",
+                "activity points",
+                "nss",
+                "sports",
+                "arts",
+                "tutor leave log"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "Tutor"
+            ],
+            "summary": "Approving student digital leave applications and verifying extracurricular activity point claims.",
+            "steps": [
+                "**1. Student Leave Approval:** Open **Leave Log** to inspect digital leave requests submitted by students (sick leave, duty leave, personal leave). Review supporting documents and click **Approve** or **Reject**; attendance meters update automatically.",
+                "**2. SBTE Activity Point Verification:** Open **Activity Points** to review certificates uploaded by students (NSS, NCC, sports, technical symposiums, arts festivals).",
+                "**3. Award Verified Points:** Verify authenticity and award verified SBTE activity point credits toward the mandatory 75-point diploma graduation requirement."
+            ],
+            "action_label": "Approve Leaves & Points",
+            "action_route": "/dashboard/tutor",
+            "manual_reference": "Chapter 3: Class Tutor & Mentor Operations Manual — Section 3.8 (Digital Approvals: Student Leave & SBTE 75-Point Activity Points)"
+        },
+        {
+            "id": "r21_major_project_workflow",
+            "title": "Revision 2021 Major Project: 75 CIA, 50 ESE, Groups & Statutory Reports",
+            "keywords": [
+                "project",
+                "major project",
+                "2021 project",
+                "r21 project",
+                "project 2021",
+                "project marks",
+                "cia 75",
+                "ese 50",
+                "125 marks",
+                "project groups",
+                "guide setup",
+                "formative diary",
+                "summative dept",
+                "8 rubrics",
+                "ese rubrics",
+                "internal examiner",
+                "external examiner",
+                "group breakdown",
+                "separate filing",
+                "project report",
+                "dossier",
+                "project cia",
+                "project ese",
+                "clause 11.2.5",
+                "clause 11.3.4"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "All",
+                "HOD",
+                "Lecturer",
+                "Tutor"
+            ],
+            "summary": "State Board of Technical Education (SBTE) Revision 2021 Major Project evaluation operates on a 125-Mark scheme: 75 CIA (40% Formative + 40% Summative + 20% Attendance), 50 ESE (joint Internal & External Examiners across 8 statutory rubrics), 1-click group scoring, and 6 statutory report printouts.",
+            "steps": [
+                "**1. Total Mark Scheme (125 Marks):** Major Project in Revision 2021 consists of **75 CIA Marks** and **50 ESE Marks** (Grand Total: 125 Marks). Passing requirement is minimum 40% in CIA (30.0/75), 40% in ESE (20.0/50), and 50.0/125 overall.",
+                "**2. Project Groups & Guide Setup (Tab 1):** Create project groups (3–5 members), assign approved Project Titles, assign an Internal Faculty Guide/Supervisor, and allocate students to their groups.",
+                "**3. Continuous Internal Assessment (CIA - 75 Marks, Tab 2):**\n  • **40% Formative Assessment (30 Marks):** Based on continuous Weekly Activity Diary monitoring, milestone adherence, and mentor reviews.\n  • **40% Summative Assessment (30 Marks):** Department Project Review Committee progress presentation and seminar.\n  • **20% Attendance (15 Marks):** Calculated automatically from SBTE percentage slabs (≥90%: 15M, ≥80%: 12M, ≥75%: 9M, ≥70%: 6M, ≥65%: 3M, <65%: 0M).\n  • Use **`[Group Common CIA (60M)]`** to award 30M Formative + 30M Summative across the group in 1 click, or click **`[Evaluate CIA]`** on any student to fine-tune marks and view live CIA grade (`S`–`F`).",
+                "**4. End Semester Evaluation (ESE - 50 Marks, Tab 3):** Conducted internally by TWO faculties: **1 Internal Examiner** and **1 External Examiner**. Assessed jointly across **8 Statutory Rubrics**:\n  1. Prototype / Model (10M - 20%)\n  2. Modern Tools (5M - 10%)\n  3. Presentation (7.5M - 15%)\n  4. Innovativeness (2.5M - 5%)\n  5. Viva Voce (7.5M - 15%)\n  6. Individual Contribution (7.5M - 15%)\n  7. Group Activity (5M - 10%)\n  8. Project Report (5M - 10%)\n  • Use **`[Group Common ESE (27.5M)]`** to fast-track project-level rubrics across all members.",
+                "**5. Reports Hub (Tab 4):** Print official statutory documents:\n  1. **Group-Wise Breakdown (Separate Filing):** Single-page evaluation dossier per group with project title, guide, member scores, and examiner sign-offs.\n  2. **CIA Register (75M):** Official roll-wise CIA ledger with split-up, attendance, and grades.\n  3. **ESE 8-Rubric Score Sheet (50M):** Joint Internal & External Examiner broadsheet.\n  4. **SBTE Final Mark Entry Statement (125M):** Portal mark entry format.\n  5. **Consolidated Master Broad Register (125M):** Full academic archive.\n  6. **Course Exit Survey & Attainment Statement:** Direct + Indirect attainment."
+            ],
+            "action_label": "Open Major Project Classroom",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.4 (Revision 2021 Major Project: 75 CIA, 50 ESE, Groups & Reports Hub)"
+        },
+        {
+            "id": "r21_seminar_workflow",
+            "title": "Revision 2021 Seminar: 75 CIA Only, Two-Faculty Evaluation & Reports",
+            "keywords": [
+                "seminar",
+                "2021 seminar",
+                "r21 seminar",
+                "seminar 2021",
+                "seminar marks",
+                "seminar evaluation",
+                "75 marks",
+                "two faculty",
+                "guide setup",
+                "seminar rubrics",
+                "seminar report",
+                "seminar cia"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "All",
+                "HOD",
+                "Lecturer",
+                "Tutor"
+            ],
+            "summary": "SBTE Revision 2021 Seminar is an internal-only subject evaluated out of 75 CIA Marks (no university ESE). Evaluation is carried out jointly by two faculties: the Seminar Guide and an Evaluator / Review Committee member.",
+            "steps": [
+                "**1. Total Mark Scheme (75 Marks CIA Only):** Under SBTE Revision 2021 rules, Seminar has no university End Semester Examination (ESE). It is evaluated 100% internally for **75 Continuous Internal Assessment (CIA) Marks**.",
+                "**2. Two-Faculty Evaluation Panel:** Every student's seminar presentation and technical defense is evaluated jointly by two faculty members: the assigned **Seminar Guide / Supervisor** and an **Independent Evaluator / Department Review Committee Member**.",
+                "**3. Guide & Slot Setup:** Allocate faculty guides, topics, and scheduled seminar presentation slots for all enrolled students.",
+                "**4. Statutory Assessment Rubrics (75 Marks):** Evaluated across 6 criteria:\n  • Relevance & Depth of Topic\n  • Literature Survey & Data Collection\n  • Seminar Presentation & Communication\n  • Viva Voce & Technical Defense\n  • Seminar Report Quality (SBTE formatting standards)\n  • Continuous Attendance & Punctuality.",
+                "**5. Responsive Evaluation Cards:** Faculty can evaluate using compact, responsive cards with score sliders, numeric quick-inputs, and automatic SBTE grade calculation (`S` through `F`).",
+                "**6. Official Reports:** Export the **Consolidated Seminar Evaluation Report** detailing individual rubric split-ups, attendance, final CIA (75M), grade, and faculty sign-offs for direct submission to SBTE."
+            ],
+            "action_label": "Open Seminar Classroom",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.5 (Revision 2021 Seminar: 75 CIA Only, Two-Faculty Evaluation & Reports)"
+        },
+        {
+            "id": "r21_drawing_classroom_workflow",
+            "title": "Revision 2021 Virtual Drawing Classroom (Practical / Lab Criteria)",
+            "keywords": [
+                "drawing",
+                "2021 drawing",
+                "r21 drawing",
+                "drawing 2021",
+                "engineering graphics",
+                "civil drawing",
+                "electrical drawing",
+                "machine drawing",
+                "drawing plates",
+                "drawing sheets",
+                "drawing rubrics",
+                "drawing marks"
+            ],
+            "revisions": [
+                "2021"
+            ],
+            "role": [
+                "All",
+                "HOD",
+                "Lecturer",
+                "Demonstrator",
+                "Trade Instructor"
+            ],
+            "summary": "In SBTE Revision 2021, Drawing courses (Engineering Graphics, Machine Drawing, Civil/Electrical Drawing) are governed under Practical / Laboratory subject criteria with continuous drawing sheet assessments and drawing hall tests.",
+            "steps": [
+                "**1. Practical / Lab Framework:** Under SBTE Keralam guidelines, drawing courses require continuous studio drafting and instrument handling, and are therefore treated under the **Practical / Laboratory evaluation framework**.",
+                "**2. Continuous Sheet / Plate Assessment:** Each drawing plate assigned during the semester is continuously assessed across 5 statutory rubrics:\n  • Drafting Accuracy & Projection Principles (Orthographic, Isometric, Sections)\n  • Dimensioning, Lettering & Line Work Standards (BIS/ISO)\n  • Neatness, Cleanliness & Layout\n  • Completion within Stipulated Drawing Hall Hours\n  • Drawing Viva Voce (understanding scales, conventions, symbols).",
+                "**3. Drawing Lab Tests:** Mid-semester and model drawing tests are conducted under strict hall conditions to award summative test marks.",
+                "**4. Attendance Integration:** Hourly attendance captured via the universal attendance console directly feeds into the continuous drawing attendance marks.",
+                "**5. Statutory Drawing Reports:** Generate the **Drawing Sheet Continuous Assessment Ledger**, **Drawing CIA Register**, and **SBTE Mark Entry Broadsheet** signed by the Drawing Instructor and HOD."
+            ],
+            "action_label": "Explore Drawing Classroom",
+            "action_route": "/dashboard/lecturer",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.6 (Revision 2021 Virtual Drawing Classroom: Practical / Lab Criteria)"
+        },
+        {
+            "id": "universal_exit_survey_and_attainment",
+            "title": "Universal Exit Surveys & Program Attainment (All Virtual Classrooms)",
+            "keywords": [
+                "exit survey",
+                "program exit survey",
+                "course exit survey",
+                "attainment",
+                "program attainment",
+                "co-po attainment",
+                "indirect attainment",
+                "direct attainment",
+                "80 20",
+                "hod exit survey",
+                "tutor exit survey",
+                "run survey online",
+                "survey attainment"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "All",
+                "HOD",
+                "Tutor",
+                "Lecturer"
+            ],
+            "summary": "Universal Outcome-Based Education (OBE) survey and attainment engine active across all virtual classrooms (Theory, Lab, Seminar, Project, Drawing) combining 80% Direct Academic Attainment with 20% Indirect Student Survey Attainment.",
+            "steps": [
+                "**1. Universal Availability:** The **Surveys & Attainment** module is integrated across all 5 virtual classroom types in Carmel-Linx: **Theory**, **Practical / Lab**, **Seminar**, **Major Project**, and **Drawing**.",
+                "**2. The 80/20 Attainment Formula (NBA Criterion 3):**\n  • **Direct Attainment (80% Weightage):** Computed from continuous internal assessments (Assignments, Series Exams, Lab Rubrics, Seminar Presentations, Project Milestones) and End Semester Examinations.\n  • **Indirect Attainment (20% Weightage):** Computed from online student feedback submitted through digital **Course Exit Surveys** and **Program Exit Surveys**.",
+                "**3. Triggering the Online Exit Survey:** The Class Tutor or HOD launches the digital survey online with 1 click. Enrolled students receive instant prompts on their Student Portal dashboards to rate their attainment of Course Outcomes (CO1–CO5) on a Likert scale.",
+                "**4. Automated Attainment Calculation:** As students submit surveys, Carmel-Linx aggregates responses in real-time and computes the combined Direct (80%) + Indirect (20%) attainment scores against target benchmark levels (Level 1, 2, or 3).",
+                "**5. Generating Program Attainment Reports:** HODs and Tutors can export:\n  • **Course CO-PO Mapping Attainment Table**\n  • **Consolidated Department Program Attainment Matrix** (aggregating all subjects across all semesters)\n  • **NBA Criterion 3 Compliance Dossier** complete with continuous improvement action plans and radar charts."
+            ],
+            "action_label": "View Attainment Reports",
+            "action_route": "/dashboard/hod",
+            "manual_reference": "Chapter 4: Lecturer Operations — Section 4.7 (Universal Course & Program Exit Survey and Attainment Calculation)"
+        },
+        {
+            "id": "general_where_am_i",
+            "title": "Page Context & Capabilities Guide",
+            "keywords": [
+                "where am i",
+                "help here",
+                "what can i do",
+                "guide",
+                "overview",
+                "what page is this"
+            ],
+            "revisions": [
+                "2021",
+                "2026"
+            ],
+            "role": [
+                "All"
+            ],
+            "summary": "Contextual guide explaining what features are available on the current screen.",
+            "steps": [
+                "Click the **Where Am I?** chip in Carmie's chat window anytime you feel lost.",
+                "Carmie will detect your current screen and outline all actions you can take right here."
+            ],
+            "action_label": "Ask Carmie",
+            "action_route": "#",
+            "manual_reference": "Chapter 10: Quick Reference Operational Workflow Matrix"
+        }
+    ]
 }

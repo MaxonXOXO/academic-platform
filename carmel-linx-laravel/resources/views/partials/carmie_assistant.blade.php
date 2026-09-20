@@ -130,23 +130,25 @@
       </div>
     </div>
 
-    <!-- QUICK STARTER SUGGESTION CHIPS -->
+    <!-- MAIN CATEGORY / REVISION TABS -->
+    <div class="px-3 pt-2 pb-1.5 bg-slate-950/80 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0" id="carmieCategoryTabs">
+      <button type="button" onclick="setCarmieCategory('all')" id="carmieTab_all" class="carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-white bg-rose-600 shadow-xs flex items-center gap-1 cursor-pointer shrink-0">
+        <span>⚡</span><span>Quick Help</span>
+      </button>
+      <button type="button" onclick="setCarmieCategory('2021')" id="carmieTab_2021" class="carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 flex items-center gap-1 cursor-pointer shrink-0">
+        <span>📘</span><span>Rev 2021</span>
+      </button>
+      <button type="button" onclick="setCarmieCategory('2026')" id="carmieTab_2026" class="carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 flex items-center gap-1 cursor-pointer shrink-0">
+        <span>📙</span><span>Rev 2026</span>
+      </button>
+      <button type="button" onclick="setCarmieCategory('attainment')" id="carmieTab_attainment" class="carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 flex items-center gap-1 cursor-pointer shrink-0">
+        <span>📊</span><span>Attainment</span>
+      </button>
+    </div>
+
+    <!-- QUICK STARTER SUGGESTION CHIPS (DYNAMIC) -->
     <div class="px-3.5 py-2 bg-slate-950/40 border-b border-slate-800/60 overflow-x-auto flex items-center gap-1.5 no-scrollbar shrink-0" id="carmieChipsContainer">
-      <button type="button" onclick="sendCarmieQuickPrompt('What can I do on this page?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
-        💡 What can I do here?
-      </button>
-      <button type="button" onclick="sendCarmieQuickPrompt('How do I set an assignment in 5041 Embedded Systems?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-sky-300 border border-blue-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
-        📝 Set Assignment in 5041
-      </button>
-      <button type="button" onclick="sendCarmieQuickPrompt('How does CO-PO matrix autosave work in Revision 2026 theory?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
-        🎯 CO-PO Autosave in Rev 2026
-      </button>
-      <button type="button" onclick="sendCarmieQuickPrompt('How to log daily attendance and subject log?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition-all cursor-pointer">
-        📅 Attendance Log
-      </button>
-      <button type="button" onclick="sendCarmieQuickPrompt('How to complete the Course File checklist?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition-all cursor-pointer">
-        📁 Course File Checklist
-      </button>
+      <!-- Populated via renderCarmieChips() -->
     </div>
 
     <!-- CHAT MESSAGES SCROLL AREA -->
@@ -378,6 +380,84 @@
     return t;
   }
 
+  let activeCarmieCategory = 'all';
+
+  const CARMIE_CHIP_SETS = {
+    'all': [
+      { label: '🚀 Project 2021 (75 CIA + 50 ESE)', query: 'How is Revision 2021 Major Project evaluated with 75 CIA and 50 ESE?', color: 'blue' },
+      { label: '🎤 Seminar 2021 (75 CIA Only)', query: 'How does Revision 2021 Seminar two-faculty evaluation work for 75 CIA?', color: 'blue' },
+      { label: '📐 Drawing 2021 (Lab Criteria)', query: 'How does Revision 2021 Drawing class practical evaluation work?', color: 'blue' },
+      { label: '📊 Online Exit Survey & Attainment', query: 'How do HOD and Tutor run online exit surveys and generate program attainment?', color: 'purple' },
+      { label: '🎯 CO-PO Autosave in Rev 2026', query: 'How does CO-PO matrix autosave work in Revision 2026 theory?', color: 'emerald' },
+      { label: '📅 Attendance & Subject Log', query: 'How do I submit hourly attendance and subject log?', color: 'slate' },
+      { label: '💡 What can I do here?', query: 'Where am I and what can I do on this page?', color: 'rose' }
+    ],
+    '2021': [
+      { label: '🚀 Project 2021 (75 CIA & 50 ESE)', query: 'How is Revision 2021 Major Project evaluated with 75 CIA and 50 ESE?', color: 'blue' },
+      { label: '🎤 Seminar 2021 (75 CIA Only)', query: 'How does Revision 2021 Seminar two-faculty evaluation work for 75 CIA?', color: 'blue' },
+      { label: '📐 Drawing 2021 (Lab Criteria)', query: 'How does Revision 2021 Drawing class practical evaluation work?', color: 'blue' },
+      { label: '📑 Print Group-Wise Breakdown', query: 'How do I print the Group-Wise Breakdown for separate filing in Major Project?', color: 'blue' },
+      { label: '👥 Group Common CIA & ESE (60M / 27.5M)', query: 'How to use 1-click group common scoring in Major Project 2021?', color: 'blue' },
+      { label: '🔬 Lab 2021 (37.5 Formative + Tests)', query: 'Explain Revision 2021 Lab 75 CIA split-up with rough record and fair record', color: 'blue' }
+    ],
+    '2026': [
+      { label: '🎯 CO-PO Autosave in Rev 2026', query: 'How does CO-PO matrix autosave work in Revision 2026 theory?', color: 'emerald' },
+      { label: '📝 Theory 40 CIE Breakdown', query: 'Explain the Revision 2026 theory 40 CIE marks breakdown', color: 'emerald' },
+      { label: '📚 Table 2.2 Self-Learning', query: 'How to configure Table 2.2 self-learning marks in Rev 2026?', color: 'emerald' },
+      { label: '🔬 Practicum 90-Hour Workspace', query: 'How does Revision 2026 Practicum 90-Hour combined workspace operate?', color: 'emerald' },
+      { label: '📁 Course File 16-Item Checklist', query: 'How do I prepare the course file checklist for HOD approval?', color: 'slate' }
+    ],
+    'attainment': [
+      { label: '📊 Run Online Exit Survey & Attainment', query: 'How do HOD and Tutor run online exit surveys and generate program attainment?', color: 'purple' },
+      { label: '📈 80% Direct + 20% Indirect Formula', query: 'How is the 80% Direct + 20% Indirect Attainment formula calculated in Carmel-Linx?', color: 'purple' },
+      { label: '📁 NBA Criterion 3 Compliance Dossier', query: 'How to export the NBA Criterion 3 attainment reports for department audit?', color: 'purple' },
+      { label: '🎯 Universal 5-Classroom Attainment', query: 'How does attainment work across Theory, Lab, Seminar, Project, and Drawing?', color: 'purple' }
+    ]
+  };
+
+  function setCarmieCategory(cat) {
+    activeCarmieCategory = cat;
+    const tabs = ['all', '2021', '2026', 'attainment'];
+    tabs.forEach(t => {
+      const btn = document.getElementById('carmieTab_' + t);
+      if (!btn) return;
+      if (t === cat) {
+        btn.className = "carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-white bg-rose-600 shadow-xs flex items-center gap-1 cursor-pointer shrink-0";
+      } else {
+        btn.className = "carmie-cat-tab px-2.5 py-1 text-[10.5px] font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 flex items-center gap-1 cursor-pointer shrink-0";
+      }
+    });
+
+    renderCarmieChips(cat);
+  }
+
+  function renderCarmieChips(cat) {
+    const container = document.getElementById('carmieChipsContainer');
+    if (!container) return;
+
+    const chips = CARMIE_CHIP_SETS[cat] || CARMIE_CHIP_SETS['all'];
+    let html = '';
+
+    chips.forEach(chip => {
+      let colorClass = "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700";
+      if (chip.color === 'rose') {
+        colorClass = "bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30";
+      } else if (chip.color === 'blue') {
+        colorClass = "bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border-sky-500/30";
+      } else if (chip.color === 'emerald') {
+        colorClass = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+      } else if (chip.color === 'purple') {
+        colorClass = "bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border-purple-500/30";
+      }
+
+      const escapedLabel = escapeHtml(chip.label);
+      const escapedQuery = chip.query.replace(/'/g, "\\'");
+      html += `<button type="button" onclick="sendCarmieQuickPrompt('${escapedQuery}')" class="carmie-chip whitespace-nowrap text-[10.5px] font-semibold ${colorClass} border px-2.5 py-1 rounded-full transition-all cursor-pointer shrink-0">${escapedLabel}</button>`;
+    });
+
+    container.innerHTML = html;
+  }
+
   function escapeHtml(string) {
     const el = document.createElement('div');
     el.innerText = string || '';
@@ -415,7 +495,8 @@
       body: JSON.stringify({
         query: query,
         current_url: currentUrl,
-        subject_code: subjectCode
+        subject_code: subjectCode,
+        category: activeCarmieCategory
       })
     })
     .then(res => res.json())
@@ -437,6 +518,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    renderCarmieChips('all');
+
     // Check if greeting was already dismissed previously
     if (localStorage.getItem('carmie_greeting_dismissed') === 'true') {
       const g = document.getElementById('carmieGreetingBubble');

@@ -1,0 +1,15 @@
+[
+    {
+        "timestamp": "2026-09-20T21:19:59+05:30",
+        "raw_query": "how to crate a new batch in hod",
+        "normalized_query": "how to create a new batch in hod",
+        "user_role": "HOD",
+        "current_url": "",
+        "subject_code": "",
+        "matched_topic_id": "hod_create_batch_and_tutor_mentor",
+        "matched_title": "Create Admission Batch & Tutor/Mentor Allocation (HOD)",
+        "manual_reference": "Chapter 2: HOD Operations \u2014 Section 2.3 (Batch Creation & Tutor/Mentor Allocation)",
+        "source": "local_playbook",
+        "reply_snippet": "\ud83c\udf93 **[Universal Academic Workflow - SBTE Keralam]**\n\n### Create Admission Batch & Tutor/Mentor Allocation (HOD)\n\n\ud83d\udcd6 **Manual Reference:** Chapter 2: HOD Operations \u2014 Section "
+    }
+]

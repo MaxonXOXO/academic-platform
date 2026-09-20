@@ -75,7 +75,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">Class Log & Attendance</h1>
-            <span class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wide">Staff Desktop</span>
+            <span class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wide">Staff Desktop</span>
           </div>
           <p class="text-[11px] text-slate-400 font-medium leading-none mt-1">Record class syllabus topics covered and student attendance.</p>
         </div>
@@ -85,7 +85,7 @@
           <span class="text-xs font-bold text-slate-200 leading-none">{{ session('userName', 'Faculty Staff') }}</span>
           <span class="text-[10px] text-slate-400 font-medium leading-none mt-1">{{ session('userRole', 'Staff') }}</span>
         </div>
-        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black rounded-lg w-8 h-8 flex items-center justify-center shadow text-xs">CL</div>
+        <div class="bg-gradient-to-br from-blue-600 to-sky-500 text-white font-black rounded-lg w-8 h-8 flex items-center justify-center shadow text-xs">CL</div>
       </div>
     </div>
   </header>
@@ -106,15 +106,15 @@
           <!-- Card Header -->
           <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
             <div class="flex items-center gap-1.5">
-              <span class="material-symbols-rounded text-indigo-400 text-base">school</span>
+              <span class="material-symbols-rounded text-blue-400 text-base">school</span>
               <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Class & Session Log</h2>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="upload class attendance pdf from teams">
+              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="upload class attendance pdf from teams">
                 <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
                 <span class="flex flex-col text-left leading-tight">
                   <span>Upload TEAMS Attendance</span>
-                  <span class="text-[9px] font-normal text-indigo-200/90 leading-none">(upload class attendance pdf from teams)</span>
+                  <span class="text-[9px] font-normal text-blue-200/90 leading-none">(upload class attendance pdf from teams)</span>
                 </span>
               </button>
               <!-- Avoid next entry label in green as requested (kept hidden for script safety) -->
@@ -145,7 +145,7 @@
           <!-- Subject Selector -->
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">Class Subject / Batch</label>
-            <select id="subjectSelect" onchange="onSubjectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer transition">
+            <select id="subjectSelect" onchange="onSubjectChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 cursor-pointer transition">
               <option value="" disabled selected>-- Choose Subject --</option>
             </select>
           </div>
@@ -187,16 +187,16 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-slate-400 mb-1">Date</label>
-                <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 transition" value="{{ date('Y-m-d') }}">
+                <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500 transition" value="{{ date('Y-m-d') }}">
               </div>
               <div>
                 <label class="block text-[11px] font-bold text-slate-400 mb-1">Period / Hour</label>
                 <!-- Lab Timetable Continuous Presets -->
                 <div id="labPeriodPresets" class="hidden flex flex-wrap items-center gap-1 mb-1">
-                  <button type="button" onclick="selectPeriodPreset([1,2,3])" class="px-1.5 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded text-[10px] font-bold cursor-pointer transition">
+                  <button type="button" onclick="selectPeriodPreset([1,2,3])" class="px-1.5 py-0.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded text-[10px] font-bold cursor-pointer transition">
                     P1–P3
                   </button>
-                  <button type="button" onclick="selectPeriodPreset([4,5,6])" class="px-1.5 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded text-[10px] font-bold cursor-pointer transition">
+                  <button type="button" onclick="selectPeriodPreset([4,5,6])" class="px-1.5 py-0.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded text-[10px] font-bold cursor-pointer transition">
                     P4–P6
                   </button>
                   <button type="button" onclick="selectPeriodPreset([1,2])" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded text-[10px] font-bold cursor-pointer transition">
@@ -207,7 +207,7 @@
                   @for ($p = 1; $p <= 7; $p++)
                     <label class="cursor-pointer">
                       <input type="checkbox" name="logPeriods" value="{{ $p }}" onchange="checkExistingAttendance()" class="sr-only peer">
-                      <div class="px-2 py-1 rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 hover:bg-slate-800 transition-all select-none">
+                      <div class="px-2 py-1 rounded-md border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 hover:bg-slate-800 transition-all select-none">
                         P{{ $p }}
                       </div>
                     </label>
@@ -228,11 +228,11 @@
             <div class="relative">
               <div class="flex items-center justify-between mb-1">
                 <label class="block text-[11px] font-bold text-slate-400">Subject Log</label>
-                <span id="selectedExpDesktopCount" class="text-[10px] font-mono font-bold text-indigo-400">0 Selected</span>
+                <span id="selectedExpDesktopCount" class="text-[10px] font-mono font-bold text-blue-400">0 Selected</span>
               </div>
               
               <!-- Dropdown Trigger Button -->
-              <button type="button" id="expDropdownToggleBtn" onclick="toggleExpDropdown()" class="w-full flex items-center justify-between bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer transition">
+              <button type="button" id="expDropdownToggleBtn" onclick="toggleExpDropdown()" class="w-full flex items-center justify-between bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2.5 py-2 text-xs text-slate-200 outline-none focus:border-blue-500 cursor-pointer transition">
                 <span id="expDropdownToggleText" class="truncate text-slate-400">-- Choose Topic / Experiment (or Manual Entry below) --</span>
                 <span class="material-symbols-rounded text-base text-slate-400 shrink-0 ml-1 transition-transform" id="expDropdownArrow">expand_more</span>
               </button>
@@ -240,21 +240,21 @@
               <!-- Dropdown Menu / Checkbox List -->
               <div id="expDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-slate-950 border border-slate-700/90 rounded-xl shadow-2xl p-2 space-y-1.5 backdrop-blur-md">
                 <div class="px-1 pt-0.5">
-                  <input type="text" id="expSearchDesktopInput" oninput="filterDesktopExpList()" placeholder="Search topic or experiment..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500">
+                  <input type="text" id="expSearchDesktopInput" oninput="filterDesktopExpList()" placeholder="Search topic or experiment..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500">
                 </div>
                 <div id="desktopExpCheckboxContainer" class="max-h-56 overflow-y-auto custom-scrollbar space-y-1 p-0.5">
                   <div class="text-center py-3 text-slate-500 text-xs font-mono">Select a class subject first</div>
                 </div>
                 <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between px-1">
                   <button type="button" onclick="clearSelectedExperiments()" class="text-[10px] font-bold text-slate-400 hover:text-rose-400 transition cursor-pointer">Clear All</button>
-                  <button type="button" onclick="closeExpDropdown()" class="text-[10px] font-bold px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded cursor-pointer transition">Done</button>
+                  <button type="button" onclick="closeExpDropdown()" class="text-[10px] font-bold px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded cursor-pointer transition">Done</button>
                 </div>
               </div>
             </div>
 
             <div>
               <label class="block text-[11px] font-bold text-slate-400 mb-1">Topics Covered (Editable)</label>
-              <textarea id="topicsCovered" rows="2" placeholder="Describe the topics covered in class today..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 resize-none transition"></textarea>
+              <textarea id="topicsCovered" rows="2" placeholder="Describe the topics covered in class today..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500 resize-none transition"></textarea>
             </div>
 
           </div>
@@ -272,7 +272,7 @@
           <!-- Attendance Header -->
           <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800/60">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-rounded text-indigo-400 text-lg">fact_check</span>
+              <span class="material-symbols-rounded text-blue-400 text-lg">fact_check</span>
               <div>
                 <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Attendance Panel</h2>
                 <div id="studentCountLabel" class="text-[11px] text-slate-400 font-medium">Select subject to load students</div>
@@ -282,15 +282,15 @@
             <div class="flex items-center gap-2">
               <!-- View Mode Switch -->
               <div class="flex bg-slate-900 border border-slate-800 rounded-lg p-0.5">
-                <button type="button" onclick="switchMode('list')" id="btnModeList" class="px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer">List</button>
+                <button type="button" onclick="switchMode('list')" id="btnModeList" class="px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white transition-all cursor-pointer">List</button>
                 <button type="button" onclick="switchMode('grid')" id="btnModeGrid" class="px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer">Grid</button>
               </div>
 
               <!-- Mark All Toggle -->
-              <button type="button" onclick="toggleAllCheckboxes()" id="btnCheckAll" class="px-2.5 py-1 text-xs font-bold rounded-md bg-slate-900 border border-slate-700 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 transition-all cursor-pointer">Mark All Absent</button>
+              <button type="button" onclick="toggleAllCheckboxes()" id="btnCheckAll" class="px-2.5 py-1 text-xs font-bold rounded-md bg-slate-900 border border-slate-700 text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition-all cursor-pointer">Mark All Absent</button>
 
               <!-- Quick Save Button for Desktop in Header -->
-              <button type="button" id="btnQuickSave" onclick="saveAttendanceAndLog()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
+              <button type="button" id="btnQuickSave" onclick="saveAttendanceAndLog()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
                 <span class="material-symbols-rounded text-sm">save</span> Save
               </button>
             </div>
@@ -312,7 +312,7 @@
                   <tr>
                     <td colspan="3" class="py-12 text-center text-slate-400 font-medium">
                       <div class="flex flex-col items-center justify-center gap-2">
-                        <span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span>
+                        <span class="material-symbols-rounded text-3xl text-blue-400/60">touch_app</span>
                         <span class="text-xs font-bold text-slate-300">No Subject Selected</span>
                         <span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span>
                       </div>
@@ -327,14 +327,14 @@
           <div id="attendanceModeGrid" class="hidden space-y-2">
             <div class="flex justify-between items-center px-1">
               <p class="text-[11px] text-slate-400">Tap to toggle <strong class="text-rose-400">Absent</strong> / <strong class="text-emerald-400">Present</strong>.</p>
-              <button type="button" onclick="toggleAllGrid(true)" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer">Reset All Present</button>
+              <button type="button" onclick="toggleAllGrid(true)" class="text-xs font-bold text-blue-400 hover:text-blue-300 cursor-pointer">Reset All Present</button>
             </div>
 
             <!-- Responsive Grid: 5 cols on mobile, 6-8 cols on desktop for zero-scroll matrix -->
             <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 p-1 max-h-[380px] xl:max-h-[440px] overflow-y-auto custom-scrollbar" id="studentGridContainer">
               <div class="col-span-full py-12 text-center text-slate-400 font-medium">
                 <div class="flex flex-col items-center justify-center gap-2">
-                  <span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span>
+                  <span class="material-symbols-rounded text-3xl text-blue-400/60">touch_app</span>
                   <span class="text-xs font-bold text-slate-300">No Subject Selected</span>
                   <span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span>
                 </div>
@@ -344,7 +344,7 @@
 
           <!-- BOTTOM ACTION BAR -->
           <div class="pt-2 border-t border-slate-800/60">
-            <button type="button" id="btnBottomSave" onclick="saveAttendanceAndLog()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
+            <button type="button" id="btnBottomSave" onclick="saveAttendanceAndLog()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
               <span class="material-symbols-rounded text-base">check_circle</span> Save Log & Attendance
             </button>
           </div>
@@ -359,24 +359,24 @@
     <div id="desktopPastLogsSection" class="mt-6 bg-slate-950 border border-slate-800 rounded-xl p-4 shadow-lg hidden">
       <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800/80 mb-3">
         <div class="flex items-center gap-2.5">
-          <span class="material-symbols-rounded text-indigo-400 text-xl">history_edu</span>
+          <span class="material-symbols-rounded text-blue-400 text-xl">history_edu</span>
           <div>
             <div class="flex items-center gap-2">
               <h3 class="font-bold text-xs sm:text-sm text-slate-200 uppercase tracking-wider">Recorded Class Attendance Logs</h3>
-              <span id="pastLogsCountBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">0 Records</span>
+              <span id="pastLogsCountBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">0 Records</span>
             </div>
             <p class="text-[11px] text-slate-400 mt-0.5">Verify, edit, or delete previously recorded attendance logs directly without switching back and forth to Reports.</p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg flex items-center gap-2 transition cursor-pointer shadow-md" title="upload class attendance pdf from teams">
+          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center gap-2 transition cursor-pointer shadow-md" title="upload class attendance pdf from teams">
             <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
             <span class="flex flex-col text-left leading-tight">
               <span>Upload TEAMS Attendance</span>
-              <span class="text-[9px] font-normal text-indigo-200/90 leading-none">(upload class attendance pdf from teams)</span>
+              <span class="text-[9px] font-normal text-blue-200/90 leading-none">(upload class attendance pdf from teams)</span>
             </span>
           </button>
-          <button type="button" onclick="syncSubjectLogsFromLessonPlan()" class="px-3 py-1.5 text-xs font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Auto-fill any pending class logs from available Lesson Plans in chronological order">
+          <button type="button" onclick="syncSubjectLogsFromLessonPlan()" class="px-3 py-1.5 text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Auto-fill any pending class logs from available Lesson Plans in chronological order">
             <span class="material-symbols-rounded text-sm">auto_stories</span> Sync from Lesson Plan
           </button>
           <button type="button" onclick="printCurrentClassLog()" class="px-3 py-1.5 text-xs font-bold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Print official A4 classroom teaching & attendance log">
@@ -483,9 +483,9 @@
         window.attPastLogsCache = [];
         cancelDesktopEditingLog();
         const container = document.getElementById('studentListContainer');
-        if (container) container.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></td></tr>';
+        if (container) container.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-blue-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></td></tr>';
         const gridContainer = document.getElementById('studentGridContainer');
-        if (gridContainer) gridContainer.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-indigo-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></div>';
+        if (gridContainer) gridContainer.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 font-medium"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-rounded text-3xl text-blue-400/60">touch_app</span><span class="text-xs font-bold text-slate-300">No Subject Selected</span><span class="text-[11px] text-slate-500">Choose a class subject from the left panel to load students.</span></div></div>';
         const countLabel = document.getElementById('studentCountLabel');
         if (countLabel) countLabel.innerText = 'Select subject to load students';
         return;
@@ -669,11 +669,11 @@
         const searchTerms = `${expNo} ${exp.title} ${exp.co_tag || ''}`.toLowerCase();
 
         html += `
-        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-indigo-950/40 border-indigo-500/50' : ''}" data-search="${searchTerms}">
-          <input type="checkbox" value="${exp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopExpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-blue-950/40 border-blue-500/50' : ''}" data-search="${searchTerms}">
+          <input type="checkbox" value="${exp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopExpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer">
           <div class="flex-1 min-w-0 leading-tight">
             <div class="flex items-center justify-between gap-1 mb-0.5">
-              <span class="text-[10px] font-mono font-black text-indigo-300">Exp ${expNo}</span>
+              <span class="text-[10px] font-mono font-black text-blue-300">Exp ${expNo}</span>
               ${exp.co_tag ? `<span class="text-[9px] font-mono text-slate-400 bg-slate-800 px-1 py-0.2 rounded">${exp.co_tag}</span>` : ''}
             </div>
             <div class="text-[11px] font-medium text-slate-200 truncate" title="${fullTopic}">${exp.title}</div>
@@ -700,9 +700,9 @@
       const label = checkbox.closest('label');
       if (label) {
         if (checkbox.checked) {
-          label.classList.add('bg-indigo-950/40', 'border-indigo-500/50');
+          label.classList.add('bg-blue-950/40', 'border-blue-500/50');
         } else {
-          label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+          label.classList.remove('bg-blue-950/40', 'border-blue-500/50');
         }
       }
 
@@ -723,14 +723,14 @@
         } else if (selected.length === 1) {
           const exp = (window.desktopSubjectExperiments || []).find(e => e.id === selected[0]);
           btnText.innerText = exp ? `Exp ${exp.experiment_no}: ${exp.title}` : `1 Experiment Selected`;
-          btnText.className = 'truncate text-indigo-300 font-bold';
+          btnText.className = 'truncate text-blue-300 font-bold';
         } else {
           const expNos = selected.map(id => {
             const exp = (window.desktopSubjectExperiments || []).find(e => e.id === id);
             return exp ? `Exp ${exp.experiment_no}` : '';
           }).filter(Boolean);
           btnText.innerText = `${selected.length} Experiments (${expNos.join(', ')})`;
-          btnText.className = 'truncate text-indigo-300 font-bold';
+          btnText.className = 'truncate text-blue-300 font-bold';
         }
       }
     }
@@ -777,19 +777,19 @@
         } else if (modeStr.includes('theory') || modeStr.includes('lecture') || modeStr === 'l') {
           modeBadge = '<span class="text-[9px] font-mono font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-1 py-0.2 rounded">Theory (L)</span>';
         } else if (lp.mode) {
-          modeBadge = `<span class="text-[9px] font-mono font-bold text-purple-300 bg-purple-950/70 border border-purple-800/60 px-1 py-0.2 rounded">${lp.mode}</span>`;
+          modeBadge = `<span class="text-[9px] font-mono font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-1 py-0.2 rounded">${lp.mode}</span>`;
         }
 
         const searchTerms = `${lpNo} ${lp.topic_content || ''} ${lp.co_id || ''} ${lp.status || ''} ${lp.mode || ''}`.toLowerCase();
         const cleanTopic = (lp.topic_content || '').replace(/"/g, '&quot;');
 
         html += `
-        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-indigo-950/40 border-indigo-500/50' : ''}" data-search="${searchTerms}">
-          <input type="checkbox" value="${lp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopLpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+        <label class="desktop-exp-row flex items-start gap-2 p-1.5 rounded-lg border border-slate-800/80 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 cursor-pointer select-none transition ${isChecked ? 'bg-blue-950/40 border-blue-500/50' : ''}" data-search="${searchTerms}">
+          <input type="checkbox" value="${lp.id}" ${isChecked ? 'checked' : ''} onchange="onDesktopLpCheckboxChange(this)" class="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer">
           <div class="flex-1 min-w-0 leading-tight">
             <div class="flex items-center justify-between gap-1 mb-0.5">
               <div class="flex items-center gap-1.5">
-                <span class="text-[10px] font-mono font-black text-indigo-300">Hour #${lpNo}</span>
+                <span class="text-[10px] font-mono font-black text-blue-300">Hour #${lpNo}</span>
                 ${modeBadge}
               </div>
               <div class="flex items-center gap-1">
@@ -821,9 +821,9 @@
       const label = checkbox.closest('label');
       if (label) {
         if (checkbox.checked) {
-          label.classList.add('bg-indigo-950/40', 'border-indigo-500/50');
+          label.classList.add('bg-blue-950/40', 'border-blue-500/50');
         } else {
-          label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+          label.classList.remove('bg-blue-950/40', 'border-blue-500/50');
         }
       }
 
@@ -849,10 +849,10 @@
           const lp = lps[idx];
           const noStr = lp ? `Hour #${lp.day_no || (idx + 1)}: ` : (idx >= 0 ? `#${idx + 1}. ` : '');
           btnText.innerText = lp ? `${noStr}${lp.topic_content}` : '1 Topic Selected';
-          btnText.className = 'truncate text-indigo-300 font-bold';
+          btnText.className = 'truncate text-blue-300 font-bold';
         } else {
           btnText.innerText = `${selected.length} Lesson Topics Selected`;
-          btnText.className = 'truncate text-indigo-300 font-bold';
+          btnText.className = 'truncate text-blue-300 font-bold';
         }
       }
     }
@@ -884,7 +884,7 @@
         checkboxes.forEach(cb => {
           cb.checked = false;
           const label = cb.closest('label');
-          if (label) label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+          if (label) label.classList.remove('bg-blue-950/40', 'border-blue-500/50');
         });
         updateDesktopExpSelectedDisplay();
         syncDesktopSelectedExpsToTopics();
@@ -894,7 +894,7 @@
         checkboxes.forEach(cb => {
           cb.checked = false;
           const label = cb.closest('label');
-          if (label) label.classList.remove('bg-indigo-950/40', 'border-indigo-500/50');
+          if (label) label.classList.remove('bg-blue-950/40', 'border-blue-500/50');
         });
         updateDesktopLpSelectedDisplay();
         syncDesktopSelectedLpsToTopics();
@@ -922,13 +922,13 @@
       const divGrid = document.getElementById('attendanceModeGrid');
 
       if (mode === 'list') {
-        btnList.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer";
+        btnList.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white transition-all cursor-pointer";
         btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer";
         divList.classList.remove('hidden');
         divGrid.classList.add('hidden');
         renderList();
       } else {
-        btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-indigo-600 text-white transition-all cursor-pointer";
+        btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white transition-all cursor-pointer";
         btnList.className = "px-2.5 py-1 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all cursor-pointer";
         divGrid.classList.remove('hidden');
         divList.classList.add('hidden');
@@ -1075,7 +1075,7 @@
         tr.className = "hover:bg-slate-900/50 transition-colors cursor-pointer select-none";
         const isPres = !!student.present;
         tr.innerHTML = `
-          <td class="py-2 px-2 text-center font-bold font-mono text-xs ${isPres ? 'text-indigo-400' : 'text-rose-400'}">${student.roll_no || index + 1}</td>
+          <td class="py-2 px-2 text-center font-bold font-mono text-xs ${isPres ? 'text-blue-400' : 'text-rose-400'}">${student.roll_no || index + 1}</td>
           <td class="py-2 px-2 font-semibold text-slate-200 text-xs">
             <div class="flex items-center justify-between">
               <span>${student.name}</span>
@@ -1083,7 +1083,7 @@
             </div>
           </td>
           <td class="py-2 px-2 text-center" onclick="event.stopPropagation()">
-            <input type="checkbox" onchange="toggleStudentPresent('${student.reg_no}', this.checked)" ${isPres ? 'checked' : ''} class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-indigo-600 cursor-pointer">
+            <input type="checkbox" onchange="toggleStudentPresent('${student.reg_no}', this.checked)" ${isPres ? 'checked' : ''} class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-blue-500 focus:ring-blue-600 cursor-pointer">
           </td>
         `;
         tr.onclick = (e) => {
@@ -1094,7 +1094,7 @@
               toggleStudentPresent(student.reg_no, cb.checked);
               const rollTd = tr.querySelector('td:first-child');
               if (rollTd) {
-                rollTd.className = `py-2 px-2 text-center font-bold font-mono text-xs ${cb.checked ? 'text-indigo-400' : 'text-rose-400'}`;
+                rollTd.className = `py-2 px-2 text-center font-bold font-mono text-xs ${cb.checked ? 'text-blue-400' : 'text-rose-400'}`;
               }
             }
           }
@@ -1333,7 +1333,7 @@
 
       container.innerHTML = `
         <div class="text-center py-8 text-slate-400 text-xs font-mono">
-          <span class="material-symbols-rounded text-2xl mb-1 block animate-spin text-indigo-400">progress_activity</span>
+          <span class="material-symbols-rounded text-2xl mb-1 block animate-spin text-blue-400">progress_activity</span>
           Loading recorded class logs...
         </div>
       `;
@@ -1616,12 +1616,12 @@
       const quickSave = document.getElementById('btnQuickSave');
       if (quickSave) {
         quickSave.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save';
-        quickSave.className = "px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition";
+        quickSave.className = "px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-md font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition";
       }
       const bottomSave = document.getElementById('btnBottomSave');
       if (bottomSave) {
         bottomSave.innerHTML = '<span class="material-symbols-rounded text-base">check_circle</span> Save Log & Attendance';
-        bottomSave.className = "w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer";
+        bottomSave.className = "w-full py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer";
       }
 
       // Re-render past logs table to clear highlight

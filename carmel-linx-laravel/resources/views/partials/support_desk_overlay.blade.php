@@ -355,3 +355,5 @@ window.addEventListener('pagehide', () => {
   }
 });
 </script>
+
+@include('partials.carmie_assistant')

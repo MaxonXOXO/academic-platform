@@ -451,6 +451,53 @@ class R26ClassroomController extends Controller
     }
 
     /**
+     * Save CO-PO Articulation Matrix for Revision 2026 Theory Course File & Syllabus Registry
+     */
+    public function saveCoPoMatrix(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+        }
+
+        $batchSubject = BatchSubject::find($subjectId);
+        if (!$batchSubject) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.'], 404);
+        }
+
+        $courseFile = CourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+
+        $mappings = $request->input('mappings', []);
+
+        $copoPayload = is_array($courseFile->parsed_copo)
+            ? $courseFile->parsed_copo
+            : (json_decode($courseFile->parsed_copo, true) ?: []);
+
+        $copoPayload['mappings'] = $mappings;
+        $courseFile->parsed_copo = $copoPayload;
+        $courseFile->save();
+
+        // Sync globally to syllabus_registry if subject_code is present
+        if (!empty($batchSubject->subject_code)) {
+            try {
+                \DB::table('syllabus_registry')->updateOrInsert(
+                    ['subject_code' => $batchSubject->subject_code],
+                    ['co_po_mapping' => json_encode($mappings), 'updated_at' => now()]
+                );
+            } catch (\Exception $e) {
+                \Log::warning("Could not sync CO-PO matrix to syllabus_registry: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'success' => true,
+            'message' => 'CO-PO Articulation Matrix saved successfully!',
+            'mappings' => $mappings
+        ]);
+    }
+
+    /**
      * Print lesson plan for Revision 2026.
      */
     public function printLessonPlan($subjectId)
@@ -477,6 +524,34 @@ class R26ClassroomController extends Controller
         $lecturerName = Session::get('userName', 'Assigned Faculty');
 
         return view('r26.lesson_plan_print', compact('subject', 'plans', 'branchName', 'departmentName', 'lecturerName', 'classroom'));
+    }
+
+    /**
+     * Parse date string into Y-m-d format for database storage.
+     * Supports dd/mm/yyyy, dd-mm-yyyy, and YYYY-MM-DD.
+     */
+    protected function parseDateForStorage($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+        $value = trim((string)$value);
+        if ($value === '' || $value === '-' || $value === '—' || strtolower($value) === 'null') {
+            return null;
+        }
+        // Check dd/mm/yyyy or dd-mm-yyyy
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $value, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        }
+        // Check YYYY-MM-DD
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return $value;
+        }
+        try {
+            return \Carbon\Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -512,8 +587,8 @@ class R26ClassroomController extends Controller
                     'allocated_hours'  => $row['allocated_hours'] ?? 1,
                     'pedagogy'         => $row['pedagogy'] ?? 'Lecture',
                     'taxonomy'         => $row['taxonomy'] ?? null,
-                    'proposed_date'    => $row['proposed_date'] ?? null,
-                    'actual_date'      => $row['actual_date'] ?? null,
+                    'proposed_date'    => $this->parseDateForStorage($row['proposed_date'] ?? null),
+                    'actual_date'      => $this->parseDateForStorage($row['actual_date'] ?? null),
                     'status'           => $row['status'] ?? 'Pending'
                 ]);
                 $createdMappings[$id] = $newPlan->id;
@@ -530,8 +605,12 @@ class R26ClassroomController extends Controller
             if (isset($row['co_id'])) $plan->co_id = $row['co_id'];
             if (isset($row['day_no'])) $plan->day_no = $row['day_no'];
             $plan->topic_content   = $row['topic_content']   ?? $plan->topic_content;
-            $plan->proposed_date   = $row['proposed_date']   ?? $plan->proposed_date;
-            $plan->actual_date     = $row['actual_date']     ?? $plan->actual_date;
+            if (array_key_exists('proposed_date', $row)) {
+                $plan->proposed_date = $this->parseDateForStorage($row['proposed_date']);
+            }
+            if (array_key_exists('actual_date', $row)) {
+                $plan->actual_date = $this->parseDateForStorage($row['actual_date']);
+            }
             $plan->allocated_hours = $row['allocated_hours'] ?? $plan->allocated_hours;
             $plan->pedagogy        = $row['pedagogy']        ?? $plan->pedagogy;
             $plan->taxonomy        = $row['taxonomy']        ?? $plan->taxonomy;
@@ -828,7 +907,7 @@ class R26ClassroomController extends Controller
         $courseFile->assignment_questions = $savedQuestions;
 
         // Save due date
-        $dueDate = $request->input('due_date');
+        $dueDate = $this->parseDateForStorage($request->input('due_date'));
         $deadlines = $courseFile->assignment_deadlines ?? [];
         $deadlines[$coTag] = [
             'deadline' => $dueDate,
@@ -1368,15 +1447,14 @@ class R26ClassroomController extends Controller
         ];
 
         $courseFile = CourseFile::firstOrCreate(
-            ['batch_subject_id' => $subjectId],
-            ['academic_year' => '2026-2027', 'status' => 'Draft']
+            ['batch_subject_id' => $subjectId]
         );
-        $existingSettings = is_string($courseFile->attainment_settings)
-            ? json_decode($courseFile->attainment_settings, true) ?: []
-            : ($courseFile->attainment_settings ?: []);
+        $existingSettings = is_array($courseFile->attainment_settings)
+            ? $courseFile->attainment_settings
+            : (json_decode($courseFile->attainment_settings ?? '', true) ?: []);
         
         $existingSettings['ese_config'] = $eseConfig;
-        $courseFile->attainment_settings = json_encode($existingSettings);
+        $courseFile->attainment_settings = $existingSettings;
         $courseFile->save();
 
         // Official SBTE Kerala Diploma Grading Scale
@@ -1469,9 +1547,14 @@ class R26ClassroomController extends Controller
             $updated++;
         }
 
+        $msg = $updated > 0
+            ? "Successfully saved threshold settings and updated {$updated} student ESE records."
+            : "Attainment threshold settings saved successfully.";
+
         return response()->json([
             'status' => 'SUCCESS',
-            'message' => "{$updated} students ESE evaluation record updated successfully."
+            'message' => $msg,
+            'updated_count' => $updated
         ]);
     }
 
@@ -2194,7 +2277,8 @@ class R26ClassroomController extends Controller
         $copoData = [];
         $settings = [];
         if ($courseFile) {
-            $copoData = is_string($courseFile->parsed_copo_data) ? json_decode($courseFile->parsed_copo_data, true) : ($courseFile->parsed_copo_data ?: []);
+            $rawCopo = $courseFile->parsed_copo ?? $courseFile->parsed_copo_data ?? [];
+            $copoData = is_string($rawCopo) ? json_decode($rawCopo, true) : ($rawCopo ?: []);
             $settings = is_string($courseFile->attainment_settings) ? json_decode($courseFile->attainment_settings, true) : ($courseFile->attainment_settings ?: []);
         }
         $mappings = $copoData['mappings'] ?? [];
@@ -2361,7 +2445,7 @@ class R26ClassroomController extends Controller
             ];
         }
 
-        return view('r26.attainment_report_print', compact('batchSubject', 'classroom', 'directStats', 'indirectStats', 'combinedStats', 'poAttainments', 'mappings', 'departmentName'));
+        return view('r26.attainment_report_print', compact('batchSubject', 'classroom', 'directStats', 'indirectStats', 'combinedStats', 'poAttainments', 'mappings', 'departmentName', 'eseConfig'));
     }
 
     public function viewCourseFile($subjectId)

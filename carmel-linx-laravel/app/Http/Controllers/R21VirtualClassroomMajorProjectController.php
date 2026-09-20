@@ -165,6 +165,8 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 'summative_dept_marks' => $summative,
                 'attendance_marks' => $attendance,
                 'total_cia_75' => $totalCia,
+                'cia_grade' => self::calculateCiaGrade($totalCia)['grade'],
+                'cia_points' => self::calculateCiaGrade($totalCia)['point'],
                 'ese_prototype' => $esePrototype,
                 'ese_modern_tools' => $eseModernTools,
                 'ese_presentation' => $esePresentation,
@@ -174,8 +176,10 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 'ese_group_activity' => $eseGroup,
                 'ese_project_report' => $eseReport,
                 'total_ese_50' => $totalEse,
-                'ese_grade' => $eseGrade,
+                'ese_grade' => $eseGrade ?: '—',
                 'grand_total_125' => $grandTotal,
+                'final_grade' => self::calculateProjectGrade($grandTotal, $hasEval)['grade'],
+                'final_points' => self::calculateProjectGrade($grandTotal, $hasEval)['point'],
                 'passed' => $passed,
                 'has_eval' => $hasEval,
             ];
@@ -188,6 +192,17 @@ class R21VirtualClassroomMajorProjectController extends Controller
         $passedCount = $studentResults->where('passed', true)->count();
         $avgCia = $evaluatedCount > 0 ? round($studentResults->where('has_eval', true)->avg('total_cia_75'), 2) : 0.0;
         $avgEse = $evaluatedCount > 0 ? round($studentResults->where('has_eval', true)->avg('total_ese_50'), 2) : 0.0;
+
+        $settings = is_array($courseFile->attainment_settings) ? $courseFile->attainment_settings : (json_decode($courseFile->attainment_settings ?? '[]', true) ?: []);
+        $examiners = $settings['examiners'] ?? [
+            'internal_name' => '',
+            'internal_designation' => '',
+            'internal_college' => 'Carmel Polytechnic College, Alappuzha',
+            'external_name' => '',
+            'external_designation' => '',
+            'external_college' => '',
+            'exam_date' => date('Y-m-d')
+        ];
 
         return view('r21_project.virtual_classroom_project', compact(
             'batchSubject',
@@ -202,7 +217,8 @@ class R21VirtualClassroomMajorProjectController extends Controller
             'pendingCount',
             'passedCount',
             'avgCia',
-            'avgEse'
+            'avgEse',
+            'examiners'
         ));
     }
 
@@ -306,32 +322,45 @@ class R21VirtualClassroomMajorProjectController extends Controller
         ]);
 
         $regNo = $request->input('reg_no');
-        $formative = round((float)$request->input('formative_diary_marks', 0), 2);
-        $summative = round((float)$request->input('summative_dept_marks', 0), 2);
-        $attendance = round((float)$request->input('attendance_marks', 0), 2);
+        $existing = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->first();
+
+        $formative = $request->has('formative_diary_marks')
+            ? round((float)$request->input('formative_diary_marks', 0), 2)
+            : (float)($existing->formative_diary_marks ?? 0);
+        $summative = $request->has('summative_dept_marks')
+            ? round((float)$request->input('summative_dept_marks', 0), 2)
+            : (float)($existing->summative_dept_marks ?? 0);
+        $attendance = $request->has('attendance_marks')
+            ? round((float)$request->input('attendance_marks', 0), 2)
+            : (float)($existing->attendance_marks ?? 0);
+
         $totalCia = min(75.0, round($formative + $summative + $attendance, 2));
 
         // ESE Rubrics
-        $proto = (float)$request->input('ese_prototype', 0);
-        $tools = (float)$request->input('ese_modern_tools', 0);
-        $pres = (float)$request->input('ese_presentation', 0);
-        $innov = (float)$request->input('ese_innovativeness', 0);
-        $viva = (float)$request->input('ese_viva', 0);
-        $indiv = (float)$request->input('ese_individual_contrib', 0);
-        $grpAct = (float)$request->input('ese_group_activity', 0);
-        $rep = (float)$request->input('ese_project_report', 0);
+        $proto = $request->has('ese_prototype') ? (float)$request->input('ese_prototype', 0) : (float)($existing->ese_prototype ?? 0);
+        $tools = $request->has('ese_modern_tools') ? (float)$request->input('ese_modern_tools', 0) : (float)($existing->ese_modern_tools ?? 0);
+        $pres = $request->has('ese_presentation') ? (float)$request->input('ese_presentation', 0) : (float)($existing->ese_presentation ?? 0);
+        $innov = $request->has('ese_innovativeness') ? (float)$request->input('ese_innovativeness', 0) : (float)($existing->ese_innovativeness ?? 0);
+        $viva = $request->has('ese_viva') ? (float)$request->input('ese_viva', 0) : (float)($existing->ese_viva ?? 0);
+        $indiv = $request->has('ese_individual_contrib') ? (float)$request->input('ese_individual_contrib', 0) : (float)($existing->ese_individual_contrib ?? 0);
+        $grpAct = $request->has('ese_group_activity') ? (float)$request->input('ese_group_activity', 0) : (float)($existing->ese_group_activity ?? 0);
+        $rep = $request->has('ese_project_report') ? (float)$request->input('ese_project_report', 0) : (float)($existing->ese_project_report ?? 0);
 
         $rubricSum = round($proto + $tools + $pres + $innov + $viva + $indiv + $grpAct + $rep, 2);
 
-        $totalEse = $request->filled('total_ese_50') ? (float)$request->input('total_ese_50') : $rubricSum;
+        $totalEse = $request->filled('total_ese_50') 
+            ? (float)$request->input('total_ese_50') 
+            : ($rubricSum > 0 ? $rubricSum : (float)($existing->total_ese_50 ?? 0));
         $totalEse = min(50.0, max(0.0, $totalEse));
 
         // Two-way Grade calculation
         $eseGrade = $request->input('ese_grade');
         if (!empty($eseGrade) && !$request->filled('total_ese_50') && $rubricSum == 0) {
             $totalEse = AttainmentService::convertGradeToMarks(strtoupper(trim($eseGrade)), 50.0);
-        } else {
+        } elseif ($totalEse > 0) {
             $eseGrade = AttainmentService::convertMarksToGrade($totalEse, 50.0);
+        } else {
+            $eseGrade = $existing->ese_grade ?? '—';
         }
 
         $grandTotal = round($totalCia + $totalEse, 2);
@@ -340,8 +369,8 @@ class R21VirtualClassroomMajorProjectController extends Controller
         $eval = R21MajorProjectEvaluation::updateOrCreate(
             ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
             [
-                'group_id' => $request->input('group_id'),
-                'project_title' => $request->input('project_title'),
+                'group_id' => $request->input('group_id', $existing->group_id ?? null),
+                'project_title' => $request->input('project_title', $existing->project_title ?? null),
                 'formative_diary_marks' => $formative,
                 'summative_dept_marks' => $summative,
                 'attendance_marks' => $attendance,
@@ -419,6 +448,339 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 'passed' => $passed
             ]
         ]);
+    }
+
+    /**
+     * Save / Update Internal and External Examiners
+     */
+    public function saveExaminers(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 401);
+        }
+
+        $courseFile = R21MajorProjectCourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+        $settings = is_array($courseFile->attainment_settings) ? $courseFile->attainment_settings : (json_decode($courseFile->attainment_settings ?? '[]', true) ?: []);
+
+        $settings['examiners'] = [
+            'internal_name' => trim($request->input('internal_name', '')),
+            'internal_designation' => trim($request->input('internal_designation', '')),
+            'internal_college' => trim($request->input('internal_college', 'Carmel Polytechnic College, Alappuzha')),
+            'external_name' => trim($request->input('external_name', '')),
+            'external_designation' => trim($request->input('external_designation', '')),
+            'external_college' => trim($request->input('external_college', '')),
+            'exam_date' => $request->input('exam_date', date('Y-m-d'))
+        ];
+
+        $courseFile->attainment_settings = $settings;
+        $courseFile->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Internal & External Examiner details saved successfully.',
+            'examiners' => $settings['examiners']
+        ]);
+    }
+
+    /**
+     * Group-wide ESE Common Rubrics Assessment (Prototype 10M, Modern Tools 5M, Innovativeness 2.5M, Group Activity 5M, Report 5M)
+     */
+    public function saveGroupEse(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 401);
+        }
+
+        $groupId = $request->input('group_id');
+        $regNos = $request->input('reg_nos', []);
+        if (empty($regNos) && $groupId) {
+            $courseFile = R21CourseFile::where('batch_subject_id', $subjectId)->first();
+            if ($courseFile) {
+                $pGroups = is_array($courseFile->project_groups) ? $courseFile->project_groups : (json_decode($courseFile->project_groups ?? '[]', true) ?: []);
+                foreach ($pGroups as $pg) {
+                    if (($pg['id'] ?? '') == $groupId || ($pg['name'] ?? '') == $groupId) {
+                        $regNos = $pg['members'] ?? [];
+                        break;
+                    }
+                }
+            }
+            if (empty($regNos)) {
+                $regNos = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)
+                    ->where('group_id', $groupId)
+                    ->pluck('reg_no')
+                    ->toArray();
+            }
+        }
+        if (empty($regNos)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No students found in this group.'], 422);
+        }
+
+        $proto = min(10.0, max(0.0, (float)$request->input('ese_prototype', 0)));
+        $tools = min(5.0, max(0.0, (float)$request->input('ese_modern_tools', 0)));
+        $innov = min(2.5, max(0.0, (float)$request->input('ese_innovativeness', 0)));
+        $grpAct = min(5.0, max(0.0, (float)$request->input('ese_group_activity', 0)));
+        $rep = min(5.0, max(0.0, (float)$request->input('ese_project_report', 0)));
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+
+        foreach ($regNos as $regNo) {
+            $ev = R21MajorProjectEvaluation::firstOrNew(['batch_subject_id' => $subjectId, 'reg_no' => $regNo]);
+            $ev->group_id = $groupId;
+            $ev->ese_prototype = $proto;
+            $ev->ese_modern_tools = $tools;
+            $ev->ese_innovativeness = $innov;
+            $ev->ese_group_activity = $grpAct;
+            $ev->ese_project_report = $rep;
+
+            $pres = (float)($ev->ese_presentation ?? 0);
+            $viva = (float)($ev->ese_viva ?? 0);
+            $indiv = (float)($ev->ese_individual_contrib ?? 0);
+
+            $totalEse = round($proto + $tools + $pres + $innov + $viva + $indiv + $grpAct + $rep, 2);
+            $ev->total_ese_50 = min(50.0, max(0.0, $totalEse));
+            $ev->ese_grade = self::calculateEseGrade($ev->total_ese_50)['grade'];
+
+            $totalCia = (float)($ev->total_cia_75 ?? 0);
+            $ev->grand_total_125 = round($totalCia + $ev->total_ese_50, 2);
+            $ev->passed = ($totalCia >= 30.0 && $ev->total_ese_50 >= 20.0 && $ev->grand_total_125 >= 50.0);
+            $ev->save();
+
+            // Academic Mark sync
+            AcademicMark::updateOrCreate(
+                [
+                    'reg_no' => $regNo,
+                    'subject_code' => $batchSubject->subject_code,
+                    'category' => 'ESE',
+                ],
+                [
+                    'batch_subject_id' => $subjectId,
+                    'max_marks' => 50,
+                    'marks_obtained' => $ev->total_ese_50,
+                    'co_tag' => 'CO1',
+                    'entered_by' => $userId
+                ]
+            );
+
+            if ($ev->ese_grade && $ev->ese_grade !== '—') {
+                DB::table('student_board_grades')->updateOrInsert(
+                    [
+                        'reg_no' => $regNo,
+                        'subject_code' => $batchSubject->subject_code,
+                    ],
+                    [
+                        'grade' => $ev->ese_grade,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]
+                );
+            }
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'updated_students' => count($regNos),
+            'message' => 'Group common ESE rubrics saved successfully for all ' . count($regNos) . ' members.'
+        ]);
+    }
+
+    /**
+     * Group-wide CIA Assessment (Formative Diary Max 30M, Summative Dept Max 30M, optional Attendance Max 15M)
+     */
+    public function saveGroupCia(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 401);
+        }
+
+        $groupId = $request->input('group_id');
+        $regNos = $request->input('reg_nos', []);
+        if (empty($regNos) && $groupId) {
+            $courseFile = R21CourseFile::where('batch_subject_id', $subjectId)->first();
+            if ($courseFile) {
+                $pGroups = is_array($courseFile->project_groups) ? $courseFile->project_groups : (json_decode($courseFile->project_groups ?? '[]', true) ?: []);
+                foreach ($pGroups as $pg) {
+                    if (($pg['id'] ?? '') == $groupId || ($pg['name'] ?? '') == $groupId) {
+                        $regNos = $pg['members'] ?? [];
+                        break;
+                    }
+                }
+            }
+            if (empty($regNos)) {
+                $regNos = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)
+                    ->where('group_id', $groupId)
+                    ->pluck('reg_no')
+                    ->toArray();
+            }
+        }
+        if (empty($regNos)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No students found in this group.'], 422);
+        }
+
+        $formative = min(30.0, max(0.0, (float)$request->input('formative_diary_marks', 0)));
+        $summative = min(30.0, max(0.0, (float)$request->input('summative_dept_marks', 0)));
+        $overrideAtt = ($request->has('attendance_marks') && $request->input('attendance_marks') !== '' && $request->input('attendance_marks') !== null)
+            ? min(15.0, max(0.0, (float)$request->input('attendance_marks')))
+            : null;
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+
+        foreach ($regNos as $regNo) {
+            $ev = R21MajorProjectEvaluation::firstOrNew(['batch_subject_id' => $subjectId, 'reg_no' => $regNo]);
+            $ev->group_id = $groupId;
+            $ev->formative_diary_marks = $formative;
+            $ev->summative_dept_marks = $summative;
+            if ($overrideAtt !== null) {
+                $ev->attendance_marks = $overrideAtt;
+            } elseif (!$ev->attendance_marks) {
+                $ev->attendance_marks = 15.0; // default full attendance if not yet recorded
+            }
+
+            $totalCia = min(75.0, round($ev->formative_diary_marks + $ev->summative_dept_marks + $ev->attendance_marks, 2));
+            $ev->total_cia_75 = $totalCia;
+
+            $totalEse = (float)($ev->total_ese_50 ?? 0);
+            $ev->grand_total_125 = round($totalCia + $totalEse, 2);
+            $ev->passed = ($totalCia >= 30.0 && $totalEse >= 20.0 && $ev->grand_total_125 >= 50.0);
+            $ev->save();
+
+            // Academic Mark sync
+            AcademicMark::updateOrCreate(
+                [
+                    'reg_no' => $regNo,
+                    'subject_code' => $batchSubject->subject_code,
+                    'category' => 'CIA',
+                ],
+                [
+                    'batch_subject_id' => $subjectId,
+                    'max_marks' => 75,
+                    'marks_obtained' => $ev->total_cia_75,
+                    'co_tag' => 'CO1',
+                    'entered_by' => $userId
+                ]
+            );
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Group CIA marks saved successfully for all ' . count($regNos) . ' members.',
+            'updated_students' => count($regNos)
+        ]);
+    }
+
+    /**
+     * SBTE Kerala Polytechnic Grading Scale (Max 125 Marks - Combined CIA 75M + ESE 50M)
+     */
+    public static function calculateProjectGrade($score, $hasEvaluations = true)
+    {
+        if (!$hasEvaluations || $score === null || $score === '') {
+            return ['grade' => '—', 'point' => 0, 'result' => 'Pending'];
+        }
+
+        $s = (float)$score;
+        $pct = ($s / 125.0) * 100.0;
+
+        if ($pct >= 90.0) return ['grade' => 'S', 'point' => 10, 'result' => 'Pass'];
+        elseif ($pct >= 80.0) return ['grade' => 'A', 'point' => 9, 'result' => 'Pass'];
+        elseif ($pct >= 70.0) return ['grade' => 'B', 'point' => 8, 'result' => 'Pass'];
+        elseif ($pct >= 60.0) return ['grade' => 'C', 'point' => 7, 'result' => 'Pass'];
+        elseif ($pct >= 50.0) return ['grade' => 'D', 'point' => 6, 'result' => 'Pass'];
+        elseif ($pct >= 40.0) return ['grade' => 'E', 'point' => 5, 'result' => 'Pass'];
+        else return ['grade' => 'F', 'point' => 0, 'result' => 'Failed'];
+    }
+
+    /**
+     * SBTE ESE Grade (Max 50 Marks)
+     */
+    public static function calculateEseGrade($score)
+    {
+        if ($score === null || $score === '' || (float)$score == 0) {
+            return ['grade' => '—', 'point' => 0];
+        }
+
+        $s = (float)$score;
+        $pct = ($s / 50.0) * 100.0;
+
+        if ($pct >= 90.0) return ['grade' => 'S', 'point' => 10];
+        elseif ($pct >= 80.0) return ['grade' => 'A', 'point' => 9];
+        elseif ($pct >= 70.0) return ['grade' => 'B', 'point' => 8];
+        elseif ($pct >= 60.0) return ['grade' => 'C', 'point' => 7];
+        elseif ($pct >= 50.0) return ['grade' => 'D', 'point' => 6];
+        elseif ($pct >= 40.0) return ['grade' => 'E', 'point' => 5];
+        else return ['grade' => 'F', 'point' => 0];
+    }
+
+    /**
+     * SBTE CIA Grade (Max 75 Marks)
+     */
+    public static function calculateCiaGrade($score)
+    {
+        if ($score === null || $score === '' || (float)$score == 0) {
+            return ['grade' => '—', 'point' => 0];
+        }
+
+        $s = (float)$score;
+        $pct = ($s / 75.0) * 100.0;
+
+        if ($pct >= 90.0) return ['grade' => 'S', 'point' => 10];
+        elseif ($pct >= 80.0) return ['grade' => 'A', 'point' => 9];
+        elseif ($pct >= 70.0) return ['grade' => 'B', 'point' => 8];
+        elseif ($pct >= 60.0) return ['grade' => 'C', 'point' => 7];
+        elseif ($pct >= 50.0) return ['grade' => 'D', 'point' => 6];
+        elseif ($pct >= 40.0) return ['grade' => 'E', 'point' => 5];
+        else return ['grade' => 'F', 'point' => 0];
+    }
+
+    /**
+     * Convert numeric marks to words (e.g. 102.5 -> "One Hundred Two Point Five")
+     */
+    public static function numberToWords($num)
+    {
+        if ($num === null || $num === '' || !is_numeric($num)) return '—';
+        $num = round((float)$num, 2);
+        
+        $ones = [
+            0 => 'Zero', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',
+            5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine',
+            10 => 'Ten', 11 => 'Eleven', 12 => 'Twelve', 13 => 'Thirteen', 14 => 'Fourteen',
+            15 => 'Fifteen', 16 => 'Sixteen', 17 => 'Seventeen', 18 => 'Eighteen', 19 => 'Nineteen'
+        ];
+        $tens = [
+            2 => 'Twenty', 3 => 'Thirty', 4 => 'Forty', 5 => 'Fifty',
+            6 => 'Sixty', 7 => 'Seventy', 8 => 'Eighty', 9 => 'Ninety'
+        ];
+
+        $parts = explode('.', (string)$num);
+        $whole = (int)$parts[0];
+        $decimal = isset($parts[1]) ? (string)$parts[1] : null;
+
+        $convertBelowHundred = function($n) use ($ones, $tens) {
+            if ($n < 20) return $ones[$n];
+            $t = (int)($n / 10);
+            $rem = $n % 10;
+            return $tens[$t] . ($rem > 0 ? ' ' . $ones[$rem] : '');
+        };
+
+        $words = '';
+        if ($whole >= 100) {
+            $h = (int)($whole / 100);
+            $rem = $whole % 100;
+            $words = $ones[$h] . ' Hundred' . ($rem > 0 ? ' ' . $convertBelowHundred($rem) : '');
+        } else {
+            $words = $convertBelowHundred($whole);
+        }
+
+        if ($decimal !== null && $decimal !== '' && (int)$decimal > 0) {
+            $decWords = [];
+            foreach (str_split($decimal) as $d) {
+                $decWords[] = $ones[(int)$d] ?? $d;
+            }
+            $words .= ' Point ' . implode(' ', $decWords);
+        }
+
+        return $words;
     }
 
     /**
@@ -788,13 +1150,19 @@ class R21VirtualClassroomMajorProjectController extends Controller
     }
 
     /**
-     * Print Consolidated Major Project Evaluation Register
-     */
-    /**
      * Print Consolidated & Group-Wise Major Project Evaluation Register (Clauses 11.2.5 & 11.3.4)
      */
-    public function printReport($subjectId)
+    public function printReport(Request $request, $subjectId)
     {
+        $reportType = $request->query('type', 'group_breakdown');
+        if ($reportType === 'group_dossier') {
+            $reportType = 'group_breakdown';
+        }
+        if (!in_array($reportType, ['group_breakdown', 'consolidated', 'sbte_submission', 'ese_rubrics', 'cia_register'])) {
+            $reportType = 'group_breakdown';
+        }
+        $selectedGroupId = $request->query('group_id', 'all');
+
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {
@@ -802,6 +1170,17 @@ class R21VirtualClassroomMajorProjectController extends Controller
         }
 
         $courseFile = R21MajorProjectCourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+        $settings = is_array($courseFile->attainment_settings) ? $courseFile->attainment_settings : (json_decode($courseFile->attainment_settings ?? '[]', true) ?: []);
+        $examiners = $settings['examiners'] ?? [
+            'internal_name' => 'Internal Examiner',
+            'internal_designation' => 'Faculty in Department',
+            'internal_college' => 'Carmel Polytechnic College, Alappuzha',
+            'external_name' => 'External Examiner',
+            'external_designation' => 'Appointed by CTE',
+            'external_college' => 'Govt / Aided Polytechnic College',
+            'exam_date' => date('d-m-Y')
+        ];
+
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
             ->orderBy('name', 'asc')
@@ -882,13 +1261,14 @@ class R21VirtualClassroomMajorProjectController extends Controller
             $totalEse = $ev ? (float)$ev->total_ese_50 : 0.0;
             $eseGrade = $ev ? $ev->ese_grade : null;
             if (!$eseGrade && $totalEse > 0) {
-                $eseGrade = AttainmentService::convertMarksToGrade($totalEse, 50.0);
+                $eseGrade = self::calculateEseGrade($totalEse)['grade'];
             }
 
             $hasEse = ($totalEse > 0 || !empty($eseGrade));
             $grandTotal = round($totalCia + $totalEse, 2);
             $hasEval = ($diaryMark > 0 || $deptMark > 0 || $totalEse > 0);
             $passed = ($totalCia >= 30.0 && $totalEse >= 20.0 && $grandTotal >= 50.0);
+            $finalGradeData = self::calculateProjectGrade($grandTotal, $hasEval);
 
             return [
                 'roll_no' => $student->roll_no,
@@ -904,7 +1284,9 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 'att_percentage' => $attPercentage,
                 'attendance_marks' => $attendanceMark,
                 'formative_diary' => $diaryMark,
+                'formative_diary_marks' => $diaryMark,
                 'summative_dept' => $deptMark,
+                'summative_dept_marks' => $deptMark,
                 'total_cia_75' => $totalCia,
                 'has_ese' => $hasEse,
                 'ese_prototype' => $proto,
@@ -916,8 +1298,15 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 'ese_group_activity' => $grpAct,
                 'ese_project_report' => $rep,
                 'total_ese_50' => $totalEse,
-                'ese_grade' => $eseGrade ?: '-',
+                'ese_grade' => $eseGrade ?: '—',
                 'grand_total_125' => $grandTotal,
+                'cia_grade' => self::calculateCiaGrade($totalCia)['grade'],
+                'cia_points' => self::calculateCiaGrade($totalCia)['point'],
+                'cia_in_words' => ($diaryMark > 0 || $deptMark > 0 || $attendanceMark > 0) ? self::numberToWords($totalCia) : '—',
+                'ese_in_words' => $totalEse > 0 ? self::numberToWords($totalEse) : '—',
+                'score_in_words' => $hasEval ? self::numberToWords($grandTotal) : '—',
+                'final_grade' => $finalGradeData['grade'],
+                'final_points' => $finalGradeData['point'],
                 'has_eval' => $hasEval,
                 'passed' => $passed,
                 'result' => $hasEval ? ($passed ? 'Passed' : 'Failed') : 'Pending'
@@ -981,19 +1370,64 @@ class R21VirtualClassroomMajorProjectController extends Controller
             ];
         }
 
+        // Summary stats
+        $completedStudents = $processedStudents->where('has_eval', true);
+        $completedCount = $completedStudents->count();
+        $passedCount = $processedStudents->where('passed', true)->count();
+        $failedCount = $completedStudents->where('passed', false)->count();
+        $passRate = $completedCount > 0 ? round(($passedCount / $completedCount) * 100, 1) : 0.0;
+        $avgCiaOverall = $completedCount > 0 ? round($completedStudents->avg('total_cia_75'), 2) : 0.0;
+        $avgEseOverall = $completedCount > 0 ? round($completedStudents->avg('total_ese_50'), 2) : 0.0;
+        $avgGrandOverall = $completedCount > 0 ? round($completedStudents->avg('grand_total_125'), 2) : 0.0;
+
+        $gradeStats = [
+            'S' => $completedStudents->where('final_grade', 'S')->count(),
+            'A' => $completedStudents->where('final_grade', 'A')->count(),
+            'B' => $completedStudents->where('final_grade', 'B')->count(),
+            'C' => $completedStudents->where('final_grade', 'C')->count(),
+            'D' => $completedStudents->where('final_grade', 'D')->count(),
+            'E' => $completedStudents->where('final_grade', 'E')->count(),
+            'F' => $completedStudents->where('final_grade', 'F')->count(),
+        ];
+
         // Attainment Summary Data for Report
         $attainmentResponse = $this->getAttainmentSummary($subjectId);
         $attainmentData = $attainmentResponse->getData(true)['data'] ?? [];
 
         $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $branchMap = [
+            'EL' => 'Electronics Engineering',
+            'CE' => 'Civil Engineering',
+            'ME' => 'Mechanical Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'CH' => 'Chemical Engineering',
+            'CS' => 'Computer Engineering',
+            'CT' => 'Computer Engineering',
+            'AU' => 'Automobile Engineering',
+        ];
+        $fullDepartment = $branchMap[strtoupper($deptCode)] ?? $deptCode;
+
         return view('r21_project.project_report_print', [
             'subject' => $batchSubject,
             'classroom' => $classroom,
             'department' => $deptCode,
+            'fullDepartment' => $fullDepartment,
             'groupedProjects' => $groupedProjects,
             'students' => $processedStudents,
             'attainmentSummary' => $attainmentData,
             'totalStudents' => $processedStudents->count(),
+            'completedCount' => $completedCount,
+            'passedCount' => $passedCount,
+            'failedCount' => $failedCount,
+            'passRate' => $passRate,
+            'avgCiaOverall' => $avgCiaOverall,
+            'avgEseOverall' => $avgEseOverall,
+            'avgGrandOverall' => $avgGrandOverall,
+            'gradeStats' => $gradeStats,
+            'examiners' => $examiners,
+            'reportType' => $reportType,
+            'selectedGroupId' => $selectedGroupId,
             'currentYear' => date('Y')
         ]);
     }

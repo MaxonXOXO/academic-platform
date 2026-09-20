@@ -120,83 +120,919 @@
 <h2>System Architecture & Interlinked Operational Flow</h2>
 <pre>
 flowchart TD
-    HOD[HOD Console] --&gt;|1. Setup Batches & Allocate Subjects| StaffAssign[Staff Subject Assignments]
-    StaffAssign --&gt; Lecturers[Lecturer Console]
+    HOD[HOD Console] --&gt;|1. Create Batch &amp; Appoint Tutor / Mentors| TutorConsole[Class Tutor &amp; Mentor Console]
+    TutorConsole --&gt;|2. Student Onboarding, Roster Approval &amp; Roll Numbers| ClassReady["Class Activated &amp; Roster Locked"]
+    HOD --&gt;|3. Allocate Subject Faculties| StaffAssign[Staff Subject Assignments]
+    ClassReady &amp; StaffAssign --&gt; Lecturers[Lecturer Virtual Classrooms]
     StaffAssign --&gt; Demos[Demonstrator Console]
     StaffAssign --&gt; Trade[Trade Instructor Console]
     StaffAssign --&gt; Shop[Workshop Superintendent Console]
     
-    Lecturers --&gt;|2. Upload Syllabus PDF & Auto-Parse| R26Classrooms[R26 Virtual Classrooms]
-    Demos --&gt;|Shared Access| R26Classrooms
-    Trade --&gt;|Shared Access| R26Classrooms
-    Shop --&gt;|Shared Access| R26Classrooms
+    Lecturers --&gt;|4. Teaching Delivery &amp; Mark Entry| Database[(Carmel Linx Core DB)]
+    Demos --&gt;|Shared Lab Access| Database
+    Trade --&gt;|Shared Workshop Access| Database
+    Shop --&gt;|Workshop Oversight| Database
     
-    R26Classrooms --&gt;|3. Mark Entry & Attendance| Database[(Carmel Linx Core DB)]
-    Database --&gt;|4. Real-time Progress & Marks| StudentPortal[Student Portal]
-    Database --&gt;|5. Attendance & Performance| TutorConsole[Tutor & Mentor Console]
-    TutorConsole --&gt;|6. Onboarding SMS & Direct Web Access| ParentDashboard[Parent Dashboard]
-    Database --&gt;|7. Audit, NBA/SBTE Reports| HODReports[HOD Report Centre & Audits]
+    Database --&gt;|5. Real-time Progress &amp; Assessments| StudentPortal[Student Portal]
+    Database --&gt;|6. Consolidated Attendance, PTA &amp; Condonation| TutorConsole
+    TutorConsole --&gt;|7. Onboarding SMS &amp; Direct Portal Access| ParentDashboard[Parent Dashboard]
+    Database --&gt;|8. Department Audits &amp; NBA/SBTE Reports| HODReports[HOD Report Centre &amp; Audits]
 </pre>
 <hr>
-<h2>1. Head of Department (HOD) Manual</h2>
-<h3>Overview & Operational Entry Point</h3>
-<p>The HOD Console is the administrative command post for department setup, batch creation, subject allocation, timetable generation, and quality audit verification.</p>
-<h3>Start Point</h3>
-<p>Navigate to <code>/dashboard/hod</code> via sidebar or top navigation.</p>
-<h3>Menu List & Operations</h3>
-<h4>A. Batch Management</h4>
-<ul><li><strong>Create Admission Batch</strong>: Select admission year (e.g. 2026), select Tutor & Mentor from department staff dropdown, and initialize class.</li></ul>
-<ul><li><strong>Roll Over Batch</strong>: Move batch to the next semester (S1 → S2 → ... → S6) when term completes. Auto-promotes active students.</li></ul>
-<ul><li><strong>Graduate Batch</strong>: Archive S6 batches upon graduation. Marks students as *Graduated*.</li></ul>
-<h4>B. Subject & Staff Allocation</h4>
-<ul><li><strong>Add Subject</strong>: Enter subject code, subject title, semester, syllabus revision (<code>REV2021</code> or <code>REV2026</code>), and subject type (<code>Theory</code>, <code>Practical/Lab</code>, <code>Practicum</code>, <code>Drawing</code>, <code>Health & Physical</code>).</li></ul>
-<ul><li><strong>Assign Staff</strong>: Map primary lecturer(s), demonstrators, or trade instructors to each subject. Supports inter-department staff allocation.</li></ul>
-<h4>C. Academic Calendar & Timetable</h4>
-<ul><li><strong>Timetable Generator</strong>: Define daily period schedules, master timetable grid, and assign hall locations.</li></ul>
-<ul><li><strong>Academic Calendar</strong>: Upload term start/end dates, series exam schedules, and institutional holidays.</li></ul>
-<h4>D. Compliance & Audits</h4>
-<ul><li><strong>SBTE & NBA Audit Desks</strong>: View real-time CO-PO attainment levels, syllabus completion metrics, and missing course file logs.</li></ul>
-<ul><li><strong>Remedial & Attendance Summaries</strong>: Review condonation eligibility (< 75% attendance) and department remedial intervention performance.</li></ul>
+
+<h2>Chapter 1: Platform Architecture, Organization Setup & Onboarding Hierarchy</h2>
+
+<h3>1.1 SBTE Keralam Polytechnic Operating Framework</h3>
+<p><strong>Carmel-linx (clinx)</strong> is an automated, outcome-based academic management platform engineered specifically for the <strong>State Board of Technical Education (SBTE) Keralam</strong> polytechnic system. It provides an intelligent, networked academic ecosystem that interconnects administration, departmental leadership, instructional faculty, students, and parents into unified, role-specific digital workspaces.</p>
+
+<p>Integrated with in-house <strong>Agentic AI solutions</strong> (led by <strong>Carmie</strong>, your virtual campus mentor), Carmel-linx eliminates operational bottlenecks, automates continuous assessment scaling, manages course files, and provides real-life step-by-step guidance across desktop and mobile devices.</p>
+
+<h3>1.2 Organizational Setup Flow (Superadmin Level)</h3>
+<p>Every polytechnic organization begins at the <strong>Superadmin</strong> level. The setup process is strictly sequential:</p>
+<table>
+    <tr>
+        <th style="width: 25%;">Phase</th>
+        <th style="width: 35%;">Action Items</th>
+        <th style="width: 40%;">Operational Impact</th>
+    </tr>
+    <tr>
+        <td><strong>Phase 1: Institution Details</strong></td>
+        <td>Configure Polytechnic Name, Institutional Code, Affiliation details (SBTE Kerala & DTE), Campus contact information.</td>
+        <td>Establishes the central institutional entity and letterhead templates for all official certificates and NBA reports.</td>
+    </tr>
+    <tr>
+        <td><strong>Phase 2: Programs & Branches</strong></td>
+        <td>Create Diploma engineering branches (e.g. Civil, Mechanical, Electrical, Electronics, Computer, Automobile).</td>
+        <td>Enables department isolation and initializes departmental academic registries.</td>
+    </tr>
+    <tr>
+        <td><strong>Phase 3: Principal Assignment</strong></td>
+        <td>Provision and assign the executive Principal user account.</td>
+        <td>Transfers operational administrative authority to the Principal for day-to-day college management.</td>
+    </tr>
+</table>
+
+<h3>1.3 HOD Onboarding & Principal Approval Workflow</h3>
+<p>Following institution initialization, the Principal onboards all Heads of Departments (HODs) into the platform. This flow is illustrated below:</p>
+
+<pre>
+flowchart TD
+    SA[Superadmin Console] --&gt;|1. Organization Setup: Institution, Branches, Principal| PR[Principal Dashboard]
+    PR --&gt;|2. Issue Registration Request to HODs| HOD_REG[HOD Registration: Phone or Desktop]
+    HOD_REG --&gt;|3. Enter Phone Number as Staff ID + Mandatory Working Email| PEND[Pending Authorization Queue]
+    PEND --&gt;|4. Principal Reviews & Grants Approval| AUTH[Authorized HOD Account]
+    AUTH --&gt;|5. Departmental Command Activated| HOD_DASH[HOD Department Console]
+    HOD_DASH --&gt;|Manage Staff, Subjects & Batches| DEPT_OPS[Lecturers, Demos, Tradesmen & Students]
+</pre>
+
+<h4>Key Rules for HOD Registration:</h4>
+<ul>
+    <li><strong>Registration Medium:</strong> HODs can register using their mobile phone via the mobile app version or through the desktop web browser.</li>
+    <li><strong>Staff Registration ID:</strong> The HOD's Staff Registration ID <strong>must be their working Phone Number</strong>.</li>
+    <li><strong>Mandatory Working Email ID:</strong> An active personal/institutional email address is mandatory for two-factor recovery, system alerts, and password resets.</li>
+    <li><strong>Password:</strong> HODs choose their own secure personal password.</li>
+    <li><strong>Principal Approval Gate:</strong> An HOD account remains <em>Inactive / Pending</em> immediately after registration. It <strong>requires explicit approval and authorization from the Principal</strong> before the HOD can log in.</li>
+    <li><strong>Departmental Authority:</strong> Upon Principal authorization, the HOD gains full administrative power over their department (staff workload assignments, batch creation, syllabus registry, and student rosters).</li>
+</ul>
+
+<h3>1.4 Common Login & Registration Card Operations (<code>http://app.carmelpoly.in</code>)</h3>
+<p>Whenever any user accesses the institution's web address at <strong>http://app.carmelpoly.in</strong> (via desktop browser or mobile phone), a unified, responsive <strong>Login Screen Card</strong> appears.</p>
+
+<pre>
+flowchart TD
+    URL["Access: http://app.carmelpoly.in (Mobile or Desktop)"] --&gt; CARD["Login Screen Card Displayed"]
+    CARD --&gt;|Existing User| LOGIN["Choose: Login as Student or Login as Staff"]
+    LOGIN --&gt;|Staff Login| STAFF_AUTH["ID = Mobile Number + Personal Password"]
+    LOGIN --&gt;|Student Login| STUD_AUTH["Student ID / Admission Credentials + Password"]
+    
+    CARD --&gt;|New User| REG_CHOICE["Select: Register as Student OR Register as Staff"]
+    REG_CHOICE --&gt;|Staff Registration| STAFF_FORM["Phone as Staff ID + Mandatory Working Email + Password"]
+    REG_CHOICE --&gt;|Student Registration| STUD_FORM["Admission Year + Branch + LET/Regular Entry + Working Email + Password"]
+    
+    STAFF_FORM --&gt;|Approval Gate| P_APPROV["Principal Panel Authorization"]
+    STUD_FORM --&gt;|Approval Gate| HOD_TUTOR["Department HOD or Class Tutor Authorization"]
+    
+    P_APPROV --&gt;|Active Account| STAFF_PORTAL["Staff Dashboard Activated"]
+    HOD_TUTOR --&gt;|Active Account| STUD_PORTAL["Student Dashboard Activated"]
+</pre>
+
+<h4>Comparative Registration Matrix:</h4>
+<table>
+    <tr>
+        <th style="width: 20%;">Attribute</th>
+        <th style="width: 40%;">Staff Registration</th>
+        <th style="width: 40%;">Student Registration</th>
+    </tr>
+    <tr>
+        <td><strong>Primary Login ID</strong></td>
+        <td><strong>Working Mobile Phone Number</strong></td>
+        <td>Student Registration / Admission Number</td>
+    </tr>
+    <tr>
+        <td><strong>Mandatory Academic Details</strong></td>
+        <td>Department / Designation mapping</td>
+        <td><strong>Admission Year</strong>, <strong>Branch/Program</strong>, and <strong>Entry Type</strong> (<code>Regular Entry</code> - S1 vs. <code>LET Entry</code> - S3 Lateral)</td>
+    </tr>
+    <tr>
+        <td><strong>Mandatory Working Email</strong></td>
+        <td>Required for administrative notices & password recovery</td>
+        <td>Required for academic notifications & password recovery</td>
+    </tr>
+    <tr>
+        <td><strong>Password</strong></td>
+        <td>User-defined secure personal password</td>
+        <td>User-defined secure personal password</td>
+    </tr>
+    <tr>
+        <td><strong>Approval Authority</strong></td>
+        <td><strong>Principal</strong> (Central Principal Panel)</td>
+        <td><strong>Department HOD</strong> or <strong>Class Tutor</strong></td>
+    </tr>
+</table>
+
+<h4>Post-Login Profile Personalization & Birthday Automation:</h4>
+<ul>
+    <li><strong>Profile Photo Upload:</strong> Once authorized and logged in, users can update their profiles from mobile or desktop, including uploading a high-resolution passport photograph for student IDs, class registers, and course files.</li>
+    <li><strong>Date of Birth (DOB) Entry:</strong> Entering an accurate DOB in the profile enables campus personalization.</li>
+    <li><strong>Automated Staff Birthday Wish Popup:</strong> For any faculty or staff member with their DOB entered, on the morning of their birthday, an automated <strong>Birthday Wish Celebration Popup (🎂🎉)</strong> is dynamically triggered on the screens of all colleagues upon their first login of the day!</li>
+    <li><strong>Student Birthday Automation Note:</strong> The automated birthday greetings engine is currently operational for staff/faculty and will be initialized for the student body in an upcoming release.</li>
+    <li><strong>Password Recovery:</strong> The mandatory working email address entered at registration allows immediate self-service password resets if a user clicks <em>"Forgot Password"</em>.</li>
+</ul>
+
+<h3>1.5 Virtual Institution: Dual Syllabus Isolation Architecture (Revision 2021 vs. Revision 2026)</h3>
+<p>Carmel-linx is engineered as a <strong>Virtual Institution with Virtual Classrooms</strong> operating two concurrent syllabus frameworks with strict digital isolation:</p>
+
+<table>
+    <tr>
+        <th style="width: 22%;">Curriculum Revision</th>
+        <th style="width: 28%;">Applicable Batches</th>
+        <th style="width: 50%;">Supported Subject Types & Evaluation Rules</th>
+    </tr>
+    <tr>
+        <td><strong>Revision 2021 (R2021)</strong></td>
+        <td>All batches up to <strong>Admission 2025</strong></td>
+        <td>
+            <ul>
+                <li><strong>Subject Types:</strong> <code>Theory</code>, <code>Practical / Lab</code>, <code>Seminar</code>, <code>Project</code>, <code>Drawing</code>, <code>Minor Project</code>, <code>Workshop</code>, <code>Internship</code>.</li>
+                <li><strong>CIA Policies:</strong> Individual Continuous Internal Assessment rules, traditional assignment schemes, and lab rubrics per 2021 syllabus specifications.</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td><strong>Revision 2026 (R2026)</strong></td>
+        <td><strong>Admission 2026 and subsequent batches</strong></td>
+        <td>
+            <ul>
+                <li><strong>Subject Types:</strong> <code>Theory</code> (40 CIE + 60 ESE), <code>Practicum Basic Science</code>, <code>Practicum Program Core</code>, <code>Laboratory / Practical</code>, <code>Drawing</code>, <code>Project</code>, <code>Seminar</code>, <code>Internship</code>.</li>
+                <li><strong>OBE & Attainment:</strong> Direct & Indirect NBA attainment models, dynamic Table 2.1 Attendance (5M) & Table 2.2 Self-Learning (15M) scaling, editable CO-PO Articulation Matrix with live autosave, student surveys, and the standardized 16-item automated Course File.</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
 <hr>
-<h2>2. Lecturer / Academic Staff Manual</h2>
-<h3>Overview & Operational Entry Point</h3>
-<p>The Lecturer Console manages teaching delivery, virtual classroom sessions, syllabus parsing, assignments, continuous evaluation, series examinations, and CO-PO attainment.</p>
-<h3>Start Point</h3>
-<p>Navigate to <code>/dashboard/lecturer</code> via sidebar or main menu.</p>
-<h3>Menu List & Operations</h3>
-<h4>A. My Batches & Virtual Classrooms</h4>
-<p>Select an assigned subject card. The system automatically launches the appropriate virtual classroom based on curriculum revision (<code>REV2026</code> vs <code>REV2021</code>) and subject type:</p>
-<p>1. <strong>Theory Virtual Classroom (<code>/r26/classroom/theory/{id}</code>)</strong>:</p>
-<p>   - <strong>Syllabus PDF Upload</strong>: Upload official SBTE syllabus PDF for auto-extraction of COs, Module topics, and proposed hours.</p>
-<p>   - <strong>Course Planner</strong>: Edit 45/60-hour topic schedule, track actual execution dates, and log teaching modes.</p>
-<p>   - <strong>Formative Assignments</strong>: Generate AI-assisted question papers per CO, record 10-mark assignment evaluations.</p>
-<p>   - <strong>Series Exams (Internal 1 & 2)</strong>: Create question paper schemes, enter student marks, generate marksheets.</p>
-<p>   - <strong>Surveys</strong>: Initiate and close Mid-Sem Survey & Course Exit Survey.</p>
-<p>2. <strong>Practical / Lab Virtual Classroom (<code>/r26/classroom/practical/{id}</code>)</strong>:</p>
-<p>   - <strong>Experiments List</strong>: Upload/Define practical experiments list with CO mapping.</p>
-<p>   - <strong>Batch Division</strong>: Assign Lab Batches (Batch A, Batch B).</p>
-<p>   - <strong>Daily Rubric Evaluation</strong>: Record experiment performance marks using dynamic rubric criteria (Preparation, Execution, Viva, Record).</p>
-<p>   - <strong>Open-Ended Experiments (OEE)</strong> & <strong>Series Practical Exam</strong>: Record internal practical marks.</p>
-<p>3. <strong>Practicum Virtual Classroom (<code>/r26/classroom/practicum/{id}</code>)</strong> *(Joint Theory + Lab)*:</p>
-<p>   - Unified management for courses having combined theory and practical components.</p>
-<p>   - Dual series exam evaluation (Series Theory + Series Practical).</p>
-<p>   - Self-Learning module split-ups and summary generation.</p>
-<p>4. <strong>Virtual Drawing Hall (<code>/r26/classroom/drawing/{id}</code>)</strong>:</p>
-<p>   - <strong>Slot Evaluations</strong>: Dynamic rubric mark entry for drawing sheet slots.</p>
-<p>   - <strong>Practical Test & ESE Marks</strong>: Evaluate drawing speed, precision, and final end-semester drawing exam scores.</p>
-<p>5. <strong>Health & Physical Education Virtual Classroom (<code>/r26/classroom/health-physical/{id}</code>)</strong>:</p>
-<p>   - <strong>PDF Rubric Extraction</strong>: Auto-extracts customized dynamic physical assessment headers from uploaded syllabus PDF.</p>
-<p>   - <strong>Continuous Activity Log</strong>: Record physical fitness, posture, warm-up, calisthenics, yogic asana, and sports performance scores.</p>
-<p>   - <strong>Fitness Tests (CA1 & CA2)</strong>: Record standardized 40-mark physical fitness assessments (scaled to 7.5 CIE each).</p>
-<p>   - <strong>ESE Evaluation</strong>: Enter End-Semester Examination split-up (Fitness Test: 10, Skill Demo: 15, Viva: 10, Logbook: 5).</p>
-<h4>B. Course Files (`/course-files`)</h4>
-<ul><li>Auto-compiles all syllabus documents, lesson plans, attendance records, question papers, marksheets, and CO-PO attainment matrices into standardized SBTE/NBA course file formats.</li></ul>
-<h4>C. Remedial Sessions (`/remedial-sessions`)</h4>
-<ul><li>Schedule remedial classes for slow learners, record remedial attendance, and track re-evaluation mark improvements.</li></ul>
-<h4>D. Attendance Log (`/staff/attendance-log`)</h4>
-<ul><li>Mark hour-by-hour student attendance for assigned lecture and lab slots.</li></ul>
+
+<h2>Chapter 2: Head of Department (HOD) Operations Manual</h2>
+
+<h3>2.1 Overview & Departmental Command Pipeline</h3>
+<p>The <strong>Head of Department (HOD) Console</strong> (<code>/dashboard/hod</code>) serves as the departmental command post. Once authorized by the Principal, the HOD exercises complete administrative governance over departmental staff, academic batches, curriculum allocations, timetable scheduling, and faculty workloads.</p>
+
+<pre>
+flowchart TD
+    HOD_LOGIN["1. HOD Login (app.carmelpoly.in)"] --&gt; DIR["2. User Directory: Approve Registered Staff"]
+    DIR --&gt;|Staff Activated| BATCH["3. Create Batch: Admission Year + Tutor & Mentor"]
+    BATCH --&gt;|Class Card Created| SUBJ["4. Subject Allocation: Add Subjects + Assign Staff"]
+    SUBJ --&gt;|Theory: Lecturer Only<br/>Lab: Lecturer + Demos + Instructors| M_BATCH["5. Manage Batch Console (5 Tabs)"]
+    M_BATCH --&gt; TT["6. Setup Master Timetable & Split Labs"]
+    TT --&gt; LOAD["7. Automatic Faculty Workload Balancing"]
+</pre>
+
+<h3>2.2 User Directory & Staff Approval Operations</h3>
+<p>The HOD's first operational duty immediately following login is staff verification and activation:</p>
+<ul>
+    <li><strong>Access User Directory:</strong> Click <strong>User Directory</strong> in the HOD left sidebar. This displays an interactive master table of all registered faculty, technical staff, and students belonging to the department.</li>
+    <li><strong>Mandatory Staff Approval:</strong> Locate newly registered staff members in the table and click <strong>Approve</strong>. Once approved, the staff member is immediately cleared to log in via mobile app or desktop to access their teaching dashboard.</li>
+    <li><strong>Directory Management Options:</strong> The table allows inline editing of staff profiles, resetting forgotten user passwords, and deleting erroneous or retired accounts.</li>
+</ul>
+
+<h3>2.3 Batch Creation & Tutor/Mentor Allocation</h3>
+<p>For each academic cycle and admission year, a new class batch must be initialized:</p>
+<ol>
+    <li>Navigate to <strong>Batch Management</strong> or locate the <strong>Create Batch</strong> button at the top-left of the HOD panel.</li>
+    <li>Select the target <strong>Admission Year</strong> (e.g. <em>Admission 2026</em> for newly admitted Semester 1 students).</li>
+    <li>Assign the official <strong>Class Tutor</strong> and <strong>Class Mentor</strong> from the department faculty dropdowns.</li>
+    <li>Confirm creation. A newly formed <strong>Class / Batch Card</strong> (e.g. <em>Admission 2026 - Semester 1</em>) appears on the HOD dashboard, ready for curriculum mapping.</li>
+</ol>
+
+<h3>2.4 Subject Allocation & Multi-Staff Mapping Workflow</h3>
+<p>Curriculum subjects must be mapped to the newly formed class:</p>
+<ol>
+    <li>Click <strong>Subject Allocation</strong> in the HOD left sidebar.</li>
+    <li>Select the <strong>Target Batch</strong> and <strong>Semester</strong> from the header dropdowns.</li>
+    <li>Click <strong>Add Subject</strong> to launch the <em>Add Curriculum Subject</em> modal.</li>
+    <li>Specify the <strong>Subject Code</strong>, select <strong>Subject Type</strong> (<code>Theory</code>, <code>Practical / Lab</code>, <code>Practicum</code>, <code>Drawing</code>, <code>Seminar</code>), enter the <strong>Subject Name</strong>, and select the <strong>Syllabus Revision</strong> (<code>REV2021</code> or <code>REV2026</code>).</li>
+    <li>Click <strong>Add Subject</strong> to record the course in the batch's curriculum matrix.</li>
+</ol>
+
+<h4>Crucial Teaching Staff Allocation Rules:</h4>
+<table>
+    <tr>
+        <th style="width: 25%;">Subject Type</th>
+        <th style="width: 35%;">Staff Assignment Rule</th>
+        <th style="width: 40%;">Operational Impact</th>
+    </tr>
+    <tr>
+        <td><strong>Theory Subjects</strong></td>
+        <td>Assign <strong>only the primary designated Lecturer</strong>.</td>
+        <td>Grants exclusive theory classroom control, attendance logging, and series marks entry to that lecturer.</td>
+    </tr>
+    <tr>
+        <td><strong>Lab & Practical Subjects</strong></td>
+        <td>Assign <strong>all involved faculty and technical staff</strong> (Lecturer, Demonstrator, Workshop Instructor, Tradesman).</td>
+        <td>Shares the virtual laboratory among all instructors for simultaneous experiment rubric evaluations and logbook tracking.</td>
+    </tr>
+    <tr>
+        <td><strong>Inter-Departmental Courses</strong></td>
+        <td>Select the concerned department from the dropdown (e.g. Basic Science, Humanities, Central Workshop) and check the assigned faculty member.</td>
+        <td>Enables visiting faculty from other departments to access this classroom and have their teaching hours reflected in inter-departmental workload reports.</td>
+    </tr>
+</table>
+
+<h3>2.5 The "Manage Batch" Console (The 5 Configuration Tabs)</h3>
+<p>Clicking the <strong>Manage Batch</strong> button on any batch card opens the primary administrative console containing 5 specialized tabs:</p>
+<ul>
+    <li><strong>Tab 1: Tutor & Mentor:</strong> Displays the current academic advisors. HOD can reassign or reset the Tutor and Mentor if departmental duties shift.</li>
+    <li><strong>Tab 2: Allocated Subjects:</strong> Lists all curriculum subjects mapped to the batch alongside their assigned lecturers, demonstrators, and instructors.</li>
+    <li><strong>Tab 3: Enrolled Students:</strong> Displays the verified student roster for the batch once student registration and HOD/Tutor approvals are complete.</li>
+    <li><strong>Tab 4: Time Table:</strong> The master weekly period scheduling grid (see Section 2.6 for timetable rules).</li>
+    <li><strong>Tab 5: Semester History:</strong> Archive displaying academic progression, CIE reports, and results from previous semesters (blank for new S1 batches).</li>
+</ul>
+
+<h3>2.6 Master Timetable, Split Labs & Automated Workload Balancing</h3>
+<p>The weekly timetable configured in <strong>Tab 4</strong> serves as the automated engine for the institutional <strong>Staff Workload Report</strong>:</p>
+<ul>
+    <li><strong>Timetable Staff Inclusions:</strong> When scheduling periods, the HOD must include only the lecturer for theory slots, but <strong>must include all assigned staff (Lecturers, Demonstrators, Instructors) for lab slots</strong>, and include lab staff for practicum slots. This directly drives workload accounting across departments.</li>
+    <li><strong>Split Batch Management for Labs:</strong> If a class is split into two halves (Batch A & Batch B) attending two different practical labs simultaneously in the same period, Carmel-linx supports concurrent dual-lab scheduling in that time slot.</li>
+    <li><strong>Automatic Practicum Workload Balancing:</strong> For courses designated as <code>Practicum</code> (combined theory and practical), Carmel-linx automatically balances faculty workload:
+        <ul>
+            <li>If scheduled as a <strong>multi-hour block</strong> (e.g. 2 or 3 continuous hours), the period is automatically calculated as <strong>Lab workload</strong>.</li>
+            <li>If scheduled as a <strong>single 1-hour slot</strong>, it is calculated as <strong>Theory workload</strong>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>2.7 Student Credential Printing & Destructive Batch Deletion Policy</h3>
+<p>Two critical action buttons exist on the <em>Manage Batch</em> card:</p>
+<ul>
+    <li><strong>"Print Credentials" Button (Top of Card):</strong> Used when a batch of students is bulk-uploaded into the platform by the Tutor or HOD rather than individual student self-registration. Clicking this generates a printable credential slipsheet containing temporary login IDs and default passwords for physical distribution. Students must change their password upon their first login, and their permanent ID updates to their SBTE / admission number.</li>
+    <li><strong>"Delete Batch" Button (Bottom of Card):</strong> A high-risk destructive control that prompts for explicit confirmation.
+        <blockquote>
+            <strong>CRITICAL WARNING:</strong> Confirming batch deletion permanently erases all batch records, student enrollments, subject mappings, timetable schedules, and continuous internal assessment (CIE) data forever. <em>It cannot be recovered.</em> This action is strictly reserved for correcting accidental batch creation errors during initial setup. Never delete an active batch.
+        </blockquote>
+    </li>
+</ul>
+
+<h3>2.8 HOD Instructional Role: "My Batches" Virtual Classrooms</h3>
+<p>If the Head of Department also handles teaching responsibilities, Carmel-linx eliminates the need to switch user accounts or log in under another role:</p>
+<ul>
+    <li><strong>Access "My Batches":</strong> Click the <strong>My Batches</strong> link in the HOD left sidebar.</li>
+    <li><strong>Dual-Role Capability:</strong> The HOD seamlessly transitions into an instructional faculty / lecturer persona for their assigned courses.</li>
+    <li><strong>Virtual Classroom Delivery:</strong> Clicking any allotted course card opens the specialized virtual classroom (Theory, Lab, Practicum, Drawing, etc.) according to the syllabus revision (R2021 or R2026).</li>
+    <li><strong>Documentation & Grading:</strong> HODs can log daily hourly attendance, record formative assignments, manage series examinations, and compile course files directly from this view.</li>
+</ul>
+
+<h3>2.9 HOD Report Centre: SBTE, NBA & Institutional Audit Modules</h3>
+<p>The <strong>Report Centre</strong> link in the HOD left sidebar provides an extensive reporting suite designed for SBTE Kerala monitoring, NBA accreditation visits, and Principal Office audits:</p>
+
+<table>
+    <tr>
+        <th style="width: 25%;">Report Category</th>
+        <th style="width: 35%;">Key Output Documents</th>
+        <th style="width: 40%;">Regulatory / Audit Purpose</th>
+    </tr>
+    <tr>
+        <td><strong>Attendance & Leave Logs</strong></td>
+        <td>Hourly session attendance logs, student condonation eligibility lists (&lt;75%), staff leave applications & balances, daily absent reports.</td>
+        <td>SBTE examination condonation filings, institutional attendance audits, and staff service register compliance.</td>
+    </tr>
+    <tr>
+        <td><strong>Academic Delivery & Remedial</strong></td>
+        <td>Consolidated department master timetable, faculty workload analysis (home & inter-departmental), remedial coaching logs with re-evaluation marks.</td>
+        <td>Curricular tracking, AICTE/DTE faculty workload norm verification, and slow-learner intervention records.</td>
+    </tr>
+    <tr>
+        <td><strong>NBA Quality & Attainment</strong></td>
+        <td>16-item Course File compliance status, CO-PO (PO1–PO11) & PSO direct attainment matrices, Mid-Sem & Course Exit survey analytics.</td>
+        <td>National Board of Accreditation (NBA) Criterion 3 accreditation audits and internal academic quality cell (IQAC) reviews.</td>
+    </tr>
+    <tr>
+        <td><strong>Student Welfare & Mentoring</strong></td>
+        <td>Tutor student mentoring diaries, student SWOT profiles, extracurricular participation & activity point records.</td>
+        <td>Diploma certification activity point clearance, holistic student development tracking, and parent-teacher conference reports.</td>
+    </tr>
+</table>
+
 <hr>
-<h2>3. Demonstrator Manual</h2>
+<h2>Chapter 3: Class Tutor & Mentor Operations Manual</h2>
+
+<h3>3.1 Role Overview, Mission & Sequential Positioning</h3>
+<p>In the SBTE Keralam polytechnic structure, the <strong>Class Tutor</strong> is a specially assigned instructional faculty member appointed by the Head of Department (HOD) to shepherd an entire class batch through their academic lifecycle. The Class Tutor acts as the central administrative and pastoral linchpin of the class.</p>
+
+<p><strong>Crucial Sequential Prerequisite:</strong> The Tutor's onboarding and roster finalization workflow sits directly between <em>HOD Batch Creation</em> and <em>Lecturer Virtual Classroom Operations</em>. Subject teachers, demonstrators, and trade instructors cannot effectively conduct virtual classrooms, record continuous assessments, or track attendance until the Class Tutor verifies student registrations, assigns roll numbers, and establishes the active class roll.</p>
+
+<pre>
+flowchart TD
+    HOD_BATCH[HOD: Batch Created &amp; Tutor Appointed] --&gt; TUTOR_ENTRY[Tutor Login: /dashboard/tutor]
+    TUTOR_ENTRY --&gt; REG_METHOD{Student Onboarding Method}
+    REG_METHOD --&gt;|Method A: Recommended| SELF_REG[Individual Student Self-Registration via app.carmelpoly.in]
+    REG_METHOD --&gt;|Method B: Bulk Roster| EXCEL_BULK[Admin/Tutor Excel Template Upload &amp; Credential Printout]
+    SELF_REG --&gt; ROSTER_GRID[Tutor Console: Supervised Class Roster]
+    EXCEL_BULK --&gt; ROSTER_GRID
+    ROSTER_GRID --&gt; VERIFY_STUD[Review Particulars: SBTE Reg No, DOB, Admission Type]
+    VERIFY_STUD --&gt; ROLL_ASSIGN[Assign Sequential / Custom Roll Numbers]
+    ROLL_ASSIGN --&gt; SPLIT_MENTOR[50/50 Mentoring Allocation: Tutor &amp; Second Mentor]
+    SPLIT_MENTOR --&gt; PARENT_SMS[Dispatch Parent Onboarding SMS with Direct Portal Links]
+    PARENT_SMS --&gt; CLASS_READY["Class Activated &amp; Ready for Subject Lecturers"]
+</pre>
+
+<h3>3.2 Student Onboarding Workflows: Self-Registration vs Bulk Upload</h3>
+<p>Carmel-linx supports two operational onboarding channels to populate a newly established class batch:</p>
+
+<table>
+    <tr>
+        <th style="width: 20%;">Attribute</th>
+        <th style="width: 40%;">Method A: Individual Self-Registration (Recommended)</th>
+        <th style="width: 40%;">Method B: Bulk Excel Template Upload</th>
+    </tr>
+    <tr>
+        <td><strong>Initiator</strong></td>
+        <td>Students independently via mobile or desktop browser (<code>http://app.carmelpoly.in</code>).</td>
+        <td>System Administrator, Principal, or Class Tutor via Tutor Console.</td>
+    </tr>
+    <tr>
+        <td><strong>Pedagogical Value</strong></td>
+        <td><strong>High (Institutional Best Practice)</strong>: Fosters student personal responsibility, digital involvement, and immediate data ownership.</td>
+        <td>Fast-track administrative fallback for rapid start-of-term batch seeding.</td>
+    </tr>
+    <tr>
+        <td><strong>Data Captured at Entry</strong></td>
+        <td>Admission Year, Department/Branch, Entry Mode (<code>Regular</code> vs <code>LET</code>), Personal Password, Working Email.</td>
+        <td>Excel template: Student Name, Admission Number, Temp Password, Gender, Phone, Parent Mobile, DOB.</td>
+    </tr>
+    <tr>
+        <td><strong>Credential Delivery</strong></td>
+        <td>Self-chosen password with instant email verification and recovery support.</td>
+        <td>Tutor downloads automated <strong>Credential Distribution Report (PDF/Print)</strong> with pre-generated login IDs and temporary passwords for physical handout.</td>
+    </tr>
+    <tr>
+        <td><strong>First-Login Requirement</strong></td>
+        <td>Student logs in immediately upon Tutor approval and enriches profile (DOB, profile picture, blood group, address).</td>
+        <td>Student is forced to update temporary credentials, set a secure personal password, and input missing biographical details on first login.</td>
+    </tr>
+    <tr>
+        <td><strong>Approval Dependency</strong></td>
+        <td>Accounts remain dormant in <em>Pending Approval</em> queue until the Class Tutor (or HOD) validates details.</td>
+        <td>Pre-approved upon bulk import; pending profile enrichment by student.</td>
+    </tr>
+</table>
+
+<h3>3.3 Supervised Class Roster & Student Account Management</h3>
+<p>From the Tutor Dashboard (<code>/dashboard/tutor</code>), navigate to <strong>My Batches &rarr; Class Roster</strong>. This interactive administrative table provides full-lifecycle supervision over every student enrolled in the batch:</p>
+
+<table>
+    <tr>
+        <th style="width: 20%;">Roster Control</th>
+        <th style="width: 35%;">Action &amp; Trigger</th>
+        <th style="width: 45%;">Institutional Rule &amp; Governance</th>
+    </tr>
+    <tr>
+        <td><code>Approve Student</code></td>
+        <td>Click green checkmark for pending self-registered applicants.</td>
+        <td>Validates student against institutional admission rolls; unlocks Student Portal access.</td>
+    </tr>
+    <tr>
+        <td><code>Suspend Student</code></td>
+        <td>Toggle account status to <em>Suspended</em>.</td>
+        <td>Freezes student login and submissions during disciplinary proceedings without destroying historical marks or attendance.</td>
+    </tr>
+    <tr>
+        <td><code>Edit SBTE Details</code></td>
+        <td>Modal editor for Register Number, Admission Number, Category, DOB, and Entry Type (Regular S1 vs LET S3).</td>
+        <td>Allows tutors to update provisional admission numbers with permanent SBTE University Register Numbers once issued by the Board.</td>
+    </tr>
+    <tr>
+        <td><code>Delete / Remove Student</code></td>
+        <td>Click red trash icon to remove student from active roll.</td>
+        <td><strong>Strict Governance Rule:</strong> Removal from active rolls cannot be performed silently. The system mandates an <strong>explanatory comment/justification</strong> (e.g. <em>Discontinued, Transferred, SBTE Readmission Cancelled</em>), which is permanently committed to the <strong>Institutional Audit Log</strong> along with the tutor's timestamp.</td>
+    </tr>
+    <tr>
+        <td><code>Password Reset</code></td>
+        <td>Trigger instant password reset from student row.</td>
+        <td>Issues a temporary password for students locked out or without accessible email recovery.</td>
+    </tr>
+    <tr>
+        <td><code>Semester Promotion</code></td>
+        <td>Click <em>Batch Promotion</em> at conclusion of semester.</td>
+        <td>Enforces SBTE credit eligibility rules to advance eligible students from S1 &rarr; S2, S2 &rarr; S3, etc., carrying forward historical records.</td>
+    </tr>
+</table>
+
+<h3>3.4 Flexible Roll Number Assignment</h3>
+<p>Roll numbers govern all classroom registers, practical lab experiment logs, exam seating plans, and attendance reporting. The Tutor Console provides flexible roll number sequencing:</p>
+<ul>
+    <li><strong>Automated Alphabetical Ordering</strong>: Automatically re-indexes student roll numbers from 1 to <em>N</em> ordered alphabetically by student full name.</li>
+    <li><strong>Admission Number Sequencing</strong>: Assigns roll numbers based on official polytechnic admission serial order.</li>
+    <li><strong>Custom Manual Ordering</strong>: Drag-and-drop or direct numerical entry allowing tutors to handle exceptional cases (e.g., late lateral entry admissions or readmitted students) without disturbing existing indices.</li>
+    <li><strong>Instant Roster Sync</strong>: Once confirmed, roll numbers instantly propagate across all virtual classrooms, teacher attendance registers, and marksheets.</li>
+</ul>
+
+<h3>3.5 50/50 Dual Mentoring System & Parent SMS Activation</h3>
+<p>To ensure deep student care and holistic progress monitoring under SBTE polytechnic guidelines, each class batch is split evenly between two designated mentors:</p>
+<ul>
+    <li><strong>50% Primary Mentorship (Class Tutor)</strong>: The Class Tutor directly mentors the first half of the class roster (Roll 1 to <em>N/2</em>).</li>
+    <li><strong>50% Secondary Mentorship (Assigned Mentor)</strong>: The HOD-allocated Second Mentor mentors the remaining half of the class roster (Roll <em>(N/2)+1</em> to <em>N</em>).</li>
+    <li><strong>Digital Mentoring Diary</strong>: An interlinked pastoral log where:
+        <ul>
+            <li><strong>Students Record</strong>: SWOT analysis, personal interests, family background, academic difficulties, career goals, and co-curricular achievements.</li>
+            <li><strong>Mentors Record</strong>: Date-stamped one-on-one counseling notes, academic observation summaries, behavioral interventions, and parent consultation logs.</li>
+        </ul>
+    </li>
+    <li><strong>Parent Onboarding & Automated SMS</strong>: The Tutor triggers the <em>Send Parent Welcome SMS</em> action. Carmel-linx dispatches personalized SMS notifications containing unique, passwordless direct web links. Parents gain instant, 24/7 mobile access to their ward's live attendance percentage, continuous marks, and tutor remarks without complicated registration steps.</li>
+</ul>
+
+<h3>3.6 Consolidated Attendance, Low Attendance Tracking & SBTE Condonation</h3>
+<p>While subject teachers log session-by-session attendance, the Class Tutor oversees the holistic attendance health of the batch:</p>
+<ul>
+    <li><strong>Live Master Attendance Grid</strong>: Consolidates hour-by-hour records across Theory, Practical, Practicum, Drawing, and Workshop subjects into a single comprehensive percentage meter.</li>
+    <li><strong>Automated Low Attendance Alerts (&lt; 75%)</strong>: Any student falling below the mandatory SBTE 75% threshold is automatically highlighted with red visual indicators and queued for parental SMS notification.</li>
+    <li><strong>SBTE Medical Condonation Processing (65% &ndash; 74%)</strong>:
+        <ul>
+            <li>Students with attendance between 65.0% and 74.9% qualify for condonation consideration on medical grounds or authorized institutional duty.</li>
+            <li>The Tutor Console compiles the official <strong>SBTE Condonation Report</strong>, attaches verified medical certificates, logs reason codes, and submits the dossier to the Principal for formal Board sanction.</li>
+        </ul>
+    </li>
+    <li><strong>Individual Attendance Slips</strong>: Tutor can generate and print individual attendance summaries and warnings prior to Series Exams and End-Semester Examinations.</li>
+</ul>
+
+<h3>3.7 Parent-Teacher Association (PTA) Progress Reports</h3>
+<p>Prior to class PTA conferences, the Tutor Console provides a one-click compilation tool to generate official <strong>Student PTA Progress Cards</strong>:</p>
+<ul>
+    <li><strong>Unified Academic Breakdown</strong>: Aggregates Course Outcome (CO) attainment, Series Exam 1 &amp; 2 marks, formative assignment grades, and laboratory continuous evaluation scores across all enrolled courses.</li>
+    <li><strong>Attendance Summary</strong>: Displays total working hours, hours attended, and percentage with condonation flags.</li>
+    <li><strong>Tutor Remarks &amp; Signature Blocks</strong>: Pre-formats qualitative mentor observations, strengths, areas for improvement, and formal signature lines for Tutor, HOD, and Parent.</li>
+    <li><strong>Export &amp; Print Options</strong>: High-resolution PDF batch download formatted for standard A4 printing.</li>
+</ul>
+
+<h3>3.8 Digital Approvals: Student Leave & SBTE 75-Point Activity Certificates</h3>
+<p>The Tutor Console serves as the primary verification checkpoint for external student submissions:</p>
+<ul>
+    <li><strong>Digital Leave Applications</strong>: Students submit leave requests through their portal specifying dates, duration, medical/personal grounds, and documentary proof. The Tutor reviews, adds remarks, and issues digital approvals that feed into condonation tracking.</li>
+    <li><strong>SBTE Activity Points (75-Point Requirement)</strong>: SBTE Keralam mandates 75 activity points for Diploma graduation (earned through NSS, NCC, Sports, Arts, Paper Presentations, Hackathons, Professional Bodies, Community Service, and MOOCs).
+        <ul>
+            <li>Students upload certificates and activity details via their portal.</li>
+            <li>The Class Tutor inspects uploaded certificate proofs, validates point eligibility against the SBTE Activity Point Guidebook, and sanctions verified points into the student's graduation ledger.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+<h2>Chapter 4: Lecturer / Academic Staff Operations Manual</h2>
+<h3>4.1 Overview & Dashboard Operational Entry Point</h3>
+<p>The <strong>Lecturer Console</strong> manages teaching delivery, virtual classroom sessions, syllabus parsing, lesson planning, assignments, continuous internal evaluation (CIA/CIE), series examinations, student surveys, and CO-PO attainment.</p>
+
+<p><strong>Operational Access:</strong> Navigate to <code>/dashboard/lecturer</code> via sidebar or main menu. If logged in as a <strong>Tutor</strong>, <strong>HOD</strong>, or <strong>Principal</strong>, access your instructional subjects from the <strong>"My Batches"</strong> sidebar link.</p>
+
+<p>Upon login, the console presents the <strong>Allotted Batch Cards</strong>. Each card displays the department, semester, class batch, assigned subjects, and enrolled student count. Clicking any subject card automatically launches the appropriate virtual classroom based on the batch admission year and subject type:</p>
+<ul>
+    <li><strong>Batches Prior to 2026 Admission (Admissions 2021–2025)</strong>: Governed by <strong>Revision 2021 (R-2021)</strong> rules and evaluation schemes. Clicking a Theory subject card opens the <strong>Virtual Theory Classroom R-2021</strong>.</li>
+    <li><strong>Batches from 2026 Admission Onwards (Admission 2026+)</strong>: Governed by <strong>Revision 2026 (R-2026)</strong> criteria (Theory, Practicum Basic Science, Practicum Program Core, Lab, Drawing, Physical Education).</li>
+</ul>
+
+<hr>
+
+<h3>4.2 Revision 2021 Virtual Theory Classroom Operations (The 8-Tab Operational Workflow)</h3>
+<p>The <strong>Virtual Theory Classroom R-2021</strong> is an all-in-one digital instructional and assessment suite structured across eight interconnected operational tabs:</p>
+
+<pre>
+flowchart TD
+    SITTTR[1. SITTTR Portal: Download Syllabus PDF] --&gt;|Upload PDF| TAB1[Tab 1: Course Structure &amp; Metadata Confirmation]
+    TAB1 --&gt;|Parse Topics &amp; COs| TAB2[Tab 2: Lesson Planner &amp; Sync Dates from Log Data]
+    TAB2 --&gt;|Teaching Schedule Ready| TAB3[Tab 3: Formative Assessment: 4 CO Assignments, Lock &amp; Amber Alerts]
+    TAB3 --&gt;|Continuous Assessment| TAB4[Tab 4: Summative Assessment: Series Tests, Schemes &amp; MCQs]
+    TAB4 --&gt; TAB5[Tab 5: Question Bank Archive]
+    TAB4 --&gt; TAB6[Tab 6: Mid-Sem &amp; Course Exit Surveys]
+    TAB3 &amp; TAB4 &amp; TAB6 --&gt; TAB7[Tab 7: Course Attainment: 80% Direct + 20% Indirect]
+    TAB7 --&gt; TAB8[Tab 8: Reports: Course Files, Logs &amp; 50M CIA Marksheets]
+</pre>
+
+<h4>4.2.1 Step 1: SITTTR Syllabus PDF Download &amp; Automated Extraction</h4>
+<p>The foundational step in initializing an R-2021 theory virtual classroom is uploading the official curriculum syllabus:</p>
+<ol>
+    <li>Download the official course syllabus PDF from the <strong>SITTTR</strong> website (State Institute of Technical Teachers' Training and Research, Kerala - <code>sitttr.ac.in</code>).</li>
+    <li>In the virtual classroom, click the blue <strong>"Upload Syllabus PDF"</strong> button.</li>
+    <li>Carmel-linx's syllabus parser automatically extracts the Course Outcomes (CO1, CO2, CO3, CO4), the Bloom's Taxonomy cognitive mappings, the module syllabus breakdown, and reference textbooks.</li>
+</ol>
+
+<h4>4.2.2 Tab 1: Course Structure &amp; Academic Metadata Confirmation</h4>
+<p>The <strong>Course Structure</strong> tab provides full visibility into the parsed curriculum framework:</p>
+<ul>
+    <li><strong>Academic Metadata Banner</strong>: Positioned immediately below the subject title card, this prominent status bar confirms:
+        <ul>
+            <li><code>Batch: [e.g. CE_2024_2027]</code> • <code>Sem: [e.g. S4]</code> • <code>Branch: [e.g. CE]</code></li>
+            <li><code>Revision: R-2021</code> • <code>Proposed Hours: 45 or 60 hrs</code> • <code>Credits: 3.0 / 4.0</code></li>
+            <li><code>CIA: 50M</code> • <code>ESE: 100M / 75M</code></li>
+        </ul>
+    </li>
+    <li><strong>Review &amp; Confirm</strong>: The instructor reviews the Course Outcomes, Module topics, and CO-PO Articulation Matrix. Inline correction controls allow instructors to refine any text prior to proceeding.</li>
+</ul>
+
+<h4>4.2.3 Tab 2: Lesson Planner &amp; "Sync Dates from Log Data"</h4>
+<p>The <strong>Lesson Planner</strong> tab provides a structured, hour-by-hour roadmap of instructional delivery:</p>
+<ul>
+    <li><strong>1-Hour Session Divisions</strong>: Each row corresponds to a standard 1-hour instructional period, pre-populated with module topics and CO mapping.</li>
+    <li><strong>60-Hour Course Framework (~62 Total Sessions)</strong>: For a standard 60-hour theory course, the planner generates approximately <strong>62 sessions</strong>—accounting for 60 lecture/tutorial hours plus 2 to 4 dedicated one-hour sessions for internal series examinations and continuous evaluation.</li>
+    <li><strong>Inline Editing &amp; Row Customization</strong>: Instructors can freely edit topic descriptions, delete rows, or click <strong>"Add Row"</strong> to insert custom tutorial or revision sessions.</li>
+    <li><strong>Proposed Dates &amp; Autosave</strong>: Set target calendar dates for each session. Changes are safeguarded with live autosave alongside a manual <strong>"Save Lesson Plan"</strong> button.</li>
+    <li><strong>"Sync Dates from Log Data" (Automated Execution Dates)</strong>: Rather than retyping completion dates, instructors simply click the <strong>"Sync Dates from Log Data"</strong> button. Carmel-linx queries recorded class attendance logs (entered daily or imported in bulk from MS Teams PDFs) and automatically fills the actual completion dates into the lesson plan matching the exact timetable dates taught.</li>
+</ul>
+
+<h4>4.2.4 Tab 3: Formative Assessment (Assignments, Lock &amp; Amber Submission Tracking)</h4>
+<p>In the SBTE Revision 2021 curriculum, continuous evaluation follows a strict statutory formula:</p>
+
+<table>
+    <tr>
+        <th style="width: 25%;">Evaluation Component</th>
+        <th style="width: 25%;">Percentage Weight</th>
+        <th style="width: 25%;">Allotted Marks</th>
+        <th style="width: 25%;">Assessment Mechanism</th>
+    </tr>
+    <tr>
+        <td><strong>Summative Assessment</strong></td>
+        <td>40%</td>
+        <td><strong>20 Marks</strong></td>
+        <td>Series Examinations / Written Tests</td>
+    </tr>
+    <tr>
+        <td><strong>Formative Assessment</strong></td>
+        <td>40%</td>
+        <td><strong>20 Marks</strong></td>
+        <td>4 CO-Wise Assignments (Consolidated)</td>
+    </tr>
+    <tr>
+        <td><strong>Attendance</strong></td>
+        <td>20%</td>
+        <td><strong>10 Marks</strong></td>
+        <td>Automated Attendance % Scale</td>
+    </tr>
+    <tr style="background-color: #f1f5f9; font-weight: bold;">
+        <td><strong>Total Continuous Internal Assessment (CIA)</strong></td>
+        <td>100%</td>
+        <td><strong>50 Marks</strong></td>
+        <td>Sum: 20 + 20 + 10 = 50 Marks</td>
+    </tr>
+</table>
+
+<p><strong>Formative Assessment Operational Workflow:</strong></p>
+<ul>
+    <li><strong>4 CO-Wise Assignments</strong>: The 20 formative marks are assessed across 4 separate assignments—one dedicated to each Course Outcome (<strong>CO1, CO2, CO3, and CO4</strong>).</li>
+    <li><strong>"Generate Questions" Engine</strong>:
+        <ul>
+            <li><strong>AI Generation (Gemini)</strong>: Automatically generates syllabus-aligned assignment questions based on Bloom's Cognitive Levels (Remember, Understand, Apply, Analyze).</li>
+            <li><strong>Manual Entry</strong>: Compose custom questions with rich formatting.</li>
+            <li><strong>Pull from Question Bank</strong>: Retrieve previously saved questions from the departmental repository.</li>
+            <li><strong>Image / Diagram Insertion</strong>: Attach circuit schematics, engineering drawings, or formula figures directly into question statements.</li>
+            <li><strong>Start &amp; Due Dates</strong>: Set submission deadlines and print official question papers.</li>
+        </ul>
+    </li>
+    <li><strong>LOCK Button &amp; Student To-Do List Dispatch</strong>:
+        <ul>
+            <li>Once questions, rubrics, and deadlines are finalized, the instructor clicks the <strong>LOCK icon</strong> on the CO card.</li>
+            <li>Locking freezes questions against accidental modification and <strong>instantly dispatches automated notifications</strong> to all enrolled students. The assignment, questions, and due date automatically appear in each student's portal <strong>To-Do List</strong>.</li>
+        </ul>
+    </li>
+    <li><strong>Physical Hardcopy Desk Submission Tracking (Amber Pulsing Indicator)</strong>:
+        <ul>
+            <li>When a student physically hands in their handwritten assignment hardcopy at the lecturer's desk, the student taps <em>"Mark Submitted"</em> in their mobile or desktop portal.</li>
+            <li>On the lecturer's mark entry roster, an <strong>amber border shade with a pulsing indicator dot</strong> (<code>border-amber-500/70 bg-amber-950/20</code>) immediately lights up on that student's mark field, signaling: <em>"Hardcopy handed in by student—pending physical verification."</em></li>
+            <li>The lecturer verifies the physical document, types the evaluated mark into the field, and Carmel-linx autosaves the score while automatically clearing the amber notification state.</li>
+            <li><strong>Pedagogical Impact</strong>: Completely eliminates missing assignments, resolves desk submission disputes, and enhances student ownership.</li>
+        </ul>
+    </li>
+</ul>
+
+<h4>4.2.5 Tab 4: Summative Assessment (CO Series Tests, Schemes &amp; Automated MCQs)</h4>
+<p>The <strong>Summative Assessment</strong> tab manages the 20-mark internal written test component:</p>
+<ul>
+    <li><strong>CO-Wise Test Setting</strong>: Configure internal written tests mapped to specific Course Outcomes.</li>
+    <li><strong>Auto-Generation &amp; Scheme of Valuation</strong>: Generate question papers with automated Bloom's level distribution, accompanied by official <strong>Schemes of Valuation</strong> and <strong>Answer Keys</strong> ready for A4 printing.</li>
+    <li><strong>Automated MCQ Assessments</strong>: Option to conduct online timed Multiple-Choice Question tests with automatic grading and direct student notifications.</li>
+    <li><strong>Autosave Mark Entry</strong>: Dedicated marksheet table with live class average, standard deviation, and debounced autosave.</li>
+</ul>
+
+<h4>4.2.6 Tab 5: Question Bank Archive</h4>
+<ul>
+    <li>Central departmental repository allowing faculty to upload, tag, and archive previous year SBTE question papers, model papers, and complex analytical problems for examination reuse.</li>
+</ul>
+
+<h4>4.2.7 Tab 6: Student Surveys (Mid-Semester &amp; Course Exit)</h4>
+<ul>
+    <li><strong>Indirect Attainment Mechanism</strong>: Conduct online <strong>Mid-Semester Surveys</strong> (formative feedback) and <strong>Course Exit Surveys</strong> (summative attainment).</li>
+    <li><strong>Customizable Questions</strong>: Faculty can edit survey questions to match specific curriculum delivery facets. Student responses are gathered digitally and converted into indirect attainment percentages.</li>
+</ul>
+
+<h4>4.2.8 Tab 7: Course Attainment Calculation (NBA Direct &amp; Indirect)</h4>
+<ul>
+    <li><strong>Target Threshold Configuration</strong>: Set benchmark pass percentages (e.g. 60% standard score threshold).</li>
+    <li><strong>Combined Attainment Engine</strong>:
+        $$\text{Overall Course Attainment} = 80\% \times \text{Direct Attainment (CIE + ESE)} + 20\% \times \text{Indirect Attainment (Surveys)}$$
+    </li>
+    <li>Generates comprehensive attainment matrices across CO1–CO4 and maps overall attainment to Program Outcomes (PO1–PO11).</li>
+</ul>
+
+<h4>4.2.9 Tab 8: Official Course File &amp; Marksheet Reports</h4>
+<ul>
+    <li>One-click compilation of complete A4 printable registers:
+        <ul>
+            <li><strong>NBA Course File (16-Item Compliance Dossier)</strong>: Complete with cover page, syllabus, lesson plan, question papers, schemes, and marks.</li>
+            <li><strong>Subject Delivery Logbook (Teaching Diary)</strong>.</li>
+            <li><strong>Consolidated Class Attendance Register</strong>.</li>
+            <li><strong>Final CIA Marksheet ($20 + 20 + 10 = 50\text{ Marks}$)</strong> formatted for official HOD and Principal endorsement.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h3>4.3 Revision 2021 Virtual Lab / Practical Classroom Operations (R-2021)</h3>
+<p>The <strong>Virtual Lab R-2021</strong> provides a specialized, interactive laboratory management and continuous assessment platform engineered specifically for SBTE Revision 2021 practical, workshop, and laboratory courses.</p>
+
+<h4>4.3.1 Multi-Staff Shared Workload & Role Collaboration</h4>
+<p>Unlike theory courses which are assigned to a single lecturer, SBTE polytechnic laboratory sessions frequently require shared instructional oversight. Carmel-linx implements synchronized multi-staff collaboration:</p>
+<ul>
+    <li><strong>Universal Multi-Staff Access</strong>: The primary <strong>Lecturer</strong>, assigned <strong>Demonstrator</strong>, <strong>Trade Instructor</strong>, or <strong>Workshop Instructor</strong> mapped to the laboratory batch by the HOD all receive synchronized access to the exact same <strong>Virtual Lab R-2021</strong> directly from their respective dashboards (<code>/dashboard/lecturer</code>, <code>/dashboard/demonstrator</code>, <code>/dashboard/tradeinstructor</code>, <code>/dashboard/workshop</code>).</li>
+    <li><strong>Collaborative Evaluation</strong>: Any assigned instructional staff member can record daily experiment rubric scores, verify rough/fair records, monitor batch attendance, and sign off on completed student experiment logs in real time.</li>
+</ul>
+
+<h4>4.3.2 Setup Experiments List First (Critical Operational Prerequisite)</h4>
+<p>Before initiating daily grading, lesson planning, or attendance logging, faculty must configure the course experiment catalogue:</p>
+<ol>
+    <li>Navigate to <strong>Setup Experiments</strong> within the laboratory workspace.</li>
+    <li>Input the official list of laboratory experiments prescribed by SBTE / SITTTR, specifying the Experiment Number, Title, and mapped Course Outcome (CO).</li>
+    <li><strong>Downstream Impact</strong>: This configured list automatically populates the Practical Lesson Planner, provides the headers for daily rubric grading, and enables student-wise experiment completion tracking. (If omitted, Carmel-linx will auto-populate a default experiment list parsed from the uploaded syllabus PDF).</li>
+</ol>
+
+<h4>4.3.3 Tab 1: Course Structure &amp; SITTTR Practical Syllabus Upload</h4>
+<ul>
+    <li><strong>Syllabus Upload</strong>: Upload the official SITTTR practical syllabus PDF to automatically extract practical Course Outcomes (COs), required laboratory equipment, safety protocols, and standard experiments.</li>
+    <li><strong>Academic Metadata Banner</strong>: Below the title card, confirm:
+        <ul>
+            <li><code>Batch: [e.g. ME_2024_2027]</code> • <code>Sem: [e.g. S3]</code> • <code>Branch: [e.g. ME]</code></li>
+            <li><code>Revision: R-2021</code> • <code>Subject Type: Practical / Lab</code></li>
+            <li><code>Proposed Hours: 60 or 75 hrs</code> • <code>Credits: 2.0 / 3.0</code></li>
+            <li><code>CIA: 75M</code> • <code>ESE: 75M</code> (Total Course: 150 Marks)</li>
+        </ul>
+    </li>
+</ul>
+
+<h4>4.3.4 Tab 2: Practical Lesson Planner &amp; Execution Tracking</h4>
+<ul>
+    <li>Auto-generates a practical session schedule aligning each lab slot with designated experiments and sub-batches.</li>
+    <li>Instructors can input proposed dates, adjust session hours, and click <strong>"Sync Dates from Log Data"</strong> to automatically pull actual conducted dates from the laboratory attendance register.</li>
+</ul>
+
+<h4>4.3.5 Tab 3: Formative Assessment (Continuous Lab Work, 5-Rubric Scheme &amp; OEE)</h4>
+<p>In SBTE Revision 2021, continuous laboratory evaluation carries <strong>45 Marks</strong>, divided into regular experiment rubrics and open-ended experimentation:</p>
+
+<table>
+    <tr>
+        <th style="width: 25%;">Component</th>
+        <th style="width: 20%;">Max Marks</th>
+        <th style="width: 55%;">Evaluation Criteria &amp; Description</th>
+    </tr>
+    <tr>
+        <td><strong>Rough Record</strong></td>
+        <td><strong>5.0 Marks</strong></td>
+        <td>Calculation sheets, circuit/wiring diagrams, circuit readiness, and pre-lab preparation.</td>
+    </tr>
+    <tr>
+        <td><strong>Fair Record</strong></td>
+        <td><strong>7.5 Marks</strong></td>
+        <td>Neatness, adherence to standard format, verified graphs, and timely report submission.</td>
+    </tr>
+    <tr>
+        <td><strong>Observation &amp; Recording</strong></td>
+        <td><strong>7.5 Marks</strong></td>
+        <td>Measurement accuracy, data recording skills, instrument handling, and experimental tabular data.</td>
+    </tr>
+    <tr>
+        <td><strong>Procedure &amp; Punctuality</strong></td>
+        <td><strong>7.5 Marks</strong></td>
+        <td>Safety compliance, procedural understanding, teamwork, and adherence to lab session timings.</td>
+    </tr>
+    <tr>
+        <td><strong>Viva Voce</strong></td>
+        <td><strong>10.0 Marks</strong></td>
+        <td>Oral understanding of theoretical fundamentals, troubleshooting skills, and experimental principles.</td>
+    </tr>
+    <tr style="background-color: #f1f5f9; font-weight: bold;">
+        <td><strong>Continuous Lab Work (Subtotal)</strong></td>
+        <td><strong>37.5 Marks</strong></td>
+        <td>Directly converts to 37.5 Continuous Internal Assessment (CIA) marks.</td>
+    </tr>
+    <tr style="background-color: #fef3c7; font-weight: bold;">
+        <td><strong>Open-Ended Experiments (OEE)</strong></td>
+        <td><strong>7.5 Marks</strong></td>
+        <td>Student-designed innovative experiments, design problem solutions, or specialized simulation tasks.</td>
+    </tr>
+    <tr style="background-color: #ecfdf5; font-weight: bold;">
+        <td><strong>Total Formative Lab Assessment</strong></td>
+        <td><strong>45.0 Marks</strong></td>
+        <td>Continuous Lab Work (37.5M) + Open-Ended Experimentation (7.5M) = 45 Marks.</td>
+    </tr>
+</table>
+
+<p><strong>Operational Tools inside Formative Assessment:</strong></p>
+<ul>
+    <li><strong>Lab Batch Split (Batch 1 vs. Batch 2)</strong>: Toggle student views between <code>Whole Class</code>, <code>Batch 1</code>, and <code>Batch 2</code>. Click <strong>Batch Split Setup</strong> to customize roll cutoffs for rotating laboratory groups.</li>
+    <li><strong>Student Lab Analytics</strong>: Real-time telemetry displaying total scheduled experiments, individual experiments completed, student attendance rate, and individual experiment history cards.</li>
+</ul>
+
+<h4>4.3.6 Tab 4: Summative Assessment ("Setup Lab Test" &amp; 15-Mark Series Practical Exam)</h4>
+<ul>
+    <li><strong>"Setup Lab Test" Button</strong>: Click to configure the internal series practical test / model lab examination.</li>
+    <li><strong>Test Mark Entry (15 Marks)</strong>: Record student scores for Test 1 and optional Test 2. The system consolidates performance into the official <strong>Test Average out of 15 Marks</strong>.</li>
+</ul>
+
+<h4>4.3.7 Lab Attendance Component (15 Marks) &amp; Statutory 75M CIA Formula</h4>
+<p>Student presence across all scheduled practical sessions is consolidated into a <strong>15-mark attendance score</strong>. Carmel-linx consolidates the final Continuous Internal Assessment score using the official statutory SBTE formula:</p>
+
+$$\text{Total Lab CIA (75M)} = \underbrace{37.5\text{M}}_{\text{Lab Work (5 Rubrics)}} + \underbrace{7.5\text{M}}_{\text{Open-Ended}} + \underbrace{15\text{M}}_{\text{Lab Test}} + \underbrace{15\text{M}}_{\text{Lab Attendance}} = \mathbf{75\text{ Marks}}$$
+
+<h4>4.3.8 Surveys, Attainment &amp; Official Reports</h4>
+<ul>
+    <li><strong>Surveys Tab</strong>: Gather digital student feedback on laboratory infrastructure, equipment availability, and practical skill development to compute indirect attainment.</li>
+    <li><strong>Attainment Tab</strong>: Computes Course Outcome (CO) attainment across practical outcomes and maps to NBA Program Outcomes (PO1–PO11).</li>
+    <li><strong>Reports Tab</strong>: One-click export of official A4 documents:
+        <ul>
+            <li><strong>Final Practical Report Calculation Register</strong>: Standardized 12-column ledger detailing student roll, name, completed experiments, all 5 rubric split-ups, OEE, attendance, test scores, and final 75M CIA total.</li>
+            <li><strong>Completed Practical Experiments &amp; Sessions Log</strong>.</li>
+            <li><strong>NBA Practical Course File</strong> complete with equipment lists, laboratory manuals, and HOD approval blocks.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h3>4.4 Revision 2026 Virtual Classrooms Overview (R-2026)</h3>
+<p>For batches admitted in 2026 and subsequent years, Carmel-linx launches dedicated Revision 2026 virtual classrooms tailored to newer SBTE curriculum formats:</p>
+<ul>
+    <li><strong>Theory Classroom (<code>/r26/classroom/theory/{id}</code>)</strong>: CIE 40 Marks + ESE 60 Marks; interactive CO-PO Articulation Matrix with live arrow-key autosave; Table 2.1 Attendance marks (5M) &amp; Table 2.2 Self-Learning marks (15M).</li>
+    <li><strong>Practical / Lab Classroom (<code>/r26/classroom/practical/{id}</code>)</strong>: Experiments list with CO mapping, Lab Batch division, daily continuous rubric evaluations (Preparation, Execution, Viva, Record), Open-Ended Experiments (OEE), and Series Practical Exams.</li>
+    <li><strong>Practicum Classroom (<code>/r26/classroom/practicum/{id}</code>)</strong>: Unified workspace for combined Theory + Practical subjects with dual series evaluations.</li>
+    <li><strong>Virtual Drawing Hall (<code>/r26/classroom/drawing/{id}</code>)</strong>: Dynamic rubric evaluations for drawing sheet slots and practical tests.</li>
+    <li><strong>Health &amp; Physical Education (<code>/r26/classroom/health-physical/{id}</code>)</strong>: Dynamic physical assessment rubrics, continuous activity logs, and CA1/CA2 standardized fitness tests.</li>
+</ul>
+
+<hr>
+
+<h3>4.5 Universal Class Attendance & Subject Log Console (<code>/staff/attendance-log</code>)</h3>
+
+<p>The <strong>Class Attendance & Subject Log</strong> is a unified, high-efficiency operational link integrated across <strong>all staff dashboards</strong> (Lecturer, Demonstrator, Trade Instructor, Workshop Superintendent, HOD, and Class Tutor). It serves as the primary system of record for session-by-session student presence and simultaneous subject syllabus coverage.</p>
+
+<h4>4.5.1 Universal Multi-Role Common Link & Role-Aware Navigation</h4>
+<ul>
+    <li><strong>Universal Availability</strong>: Accessible from the sidebar and top navigation of any academic staff dashboard via <code>/staff/attendance-log</code>.</li>
+    <li><strong>Smart Role-Aware Back Navigation</strong>: When launching the Attendance Log, the system dynamically registers the referring dashboard (e.g. <code>/dashboard/lecturer</code>, <code>/dashboard/demonstrator</code>, <code>/dashboard/tradeinstructor</code>, <code>/dashboard/workshop</code>, <code>/dashboard/hod</code>, or <code>/dashboard/tutor</code>) via URL parameters and session storage. Clicking the top-left return arrow seamlessly returns faculty to their respective command center without breaking workflow.</li>
+</ul>
+
+<h4>4.5.2 Attendance Capture Modes: List View vs. Easy-Access Grid</h4>
+<p>Faculty can switch between two dedicated in-class marking modes designed for both desktop workstations and mobile handheld devices:</p>
+<table>
+    <tr>
+        <th style="width: 25%;">Feature</th>
+        <th style="width: 37%;">Mode 1: List &amp; Checkbox View</th>
+        <th style="width: 38%;">Mode 2: Easy-Access Grid View</th>
+    </tr>
+    <tr>
+        <td><strong>Visual Layout</strong></td>
+        <td>Vertical roster table showing Roll Number, Full Student Name, and individual Present/Absent checkboxes.</td>
+        <td>Compact responsive tile matrix (Roll numbers only) with color-coded status badges (5 columns on mobile; 6–8 columns on desktop).</td>
+    </tr>
+    <tr>
+        <td><strong>Interaction Speed</strong></td>
+        <td>Standard row-by-row inspection with sticky header and scroll support.</td>
+        <td><strong>Ultra-Fast Single-Tap:</strong> Tapping any roll tile instantly flips status between <strong style="color: #10b981;">Present (Emerald)</strong> and <strong style="color: #f43f5e;">Absent (Rose Red)</strong>.</td>
+    </tr>
+    <tr>
+        <td><strong>Batch Actions</strong></td>
+        <td><strong>Mark All Absent / Mark All Present</strong> toggle button for rapid bulk status setting.</td>
+        <td><strong>Reset All Present</strong> shortcut for zero-friction roll calling.</td>
+    </tr>
+    <tr>
+        <td><strong>Best Used For</strong></td>
+        <td>Formal record verification, initial roll calls, and detailed student identification.</td>
+        <td>Physical classroom walk-arounds, rapid roll-calling, and quick smartphone marking.</td>
+    </tr>
+</table>
+
+<h4>4.5.3 Timetable Periods, Multi-Period Lab Blocks & Multiple Daily Topics</h4>
+<ul>
+    <li><strong>Period Selectors (P1 to P7)</strong>: Checkbox-based selection covering all standard daily timetable hours.</li>
+    <li><strong>Lab Timetable Continuous Presets</strong>: Single-click presets for multi-hour continuous blocks (<code>P1–P3</code>, <code>P4–P6</code>, <code>P1–P2</code>), preventing repetitive clicking during laboratory or workshop sessions.</li>
+    <li><strong>Lab Sub-Batch Division</strong>: Dynamic group filter allowing instructors to mark attendance for <code>Whole Class</code>, <code>Lab Batch 1 (First Half)</code>, or <code>Lab Batch 2 (Second Half)</code> with customizable student roll cutoffs.</li>
+    <li><strong>Multiple Topics & Consecutive Periods</strong>: Supports logging multiple distinct syllabus topics delivered across single or multiple timetable periods on the same day.</li>
+</ul>
+
+<h4>4.5.4 Automated Lesson Plan Synchronization & Editable Subject Log</h4>
+<p>Recording attendance simultaneously updates the official departmental <strong>Subject Delivery Log</strong> (Teacher's Academic Diary):</p>
+<ul>
+    <li><strong>Auto-Populated from Lesson Plan</strong>: The system pulls scheduled topics in chronological sequence directly from the previously approved <strong>Course Lesson Plan</strong> or Lab Experiments register.</li>
+    <li><strong>Fully Editable Topic Description</strong>: Instructors have full editorial freedom to modify the <em>Topics Covered (Editable)</em> text area to reflect actual pedagogical coverage, ICT tools utilized, interactive problem-solving sessions, or spontaneous remedial instruction.</li>
+    <li><strong>Sync from Lesson Plan Action</strong>: One-click background tool (<em>"Sync from Lesson Plan"</em>) to chronologically auto-fill pending class logs from available lesson plans for past conducted dates.</li>
+</ul>
+
+<h4>4.5.5 Official Microsoft Teams Attendance PDF Bulk Import</h4>
+<p>Carmel-linx provides a flexible automated bridge for hybrid and digital learning environments using Microsoft Teams:</p>
+<pre>
+flowchart LR
+    TEAMS[MS Teams Portal] --&gt;|1. Download Official Class Attendance PDF| PDF[Local PDF File]
+    PDF --&gt;|2. Click 'Upload TEAMS Attendance' Modal| CLINX[Carmel-linx Parser Engine]
+    CLINX --&gt;|3. Discrete Hour Extraction e.g. Hours 4, 6| CALC[Exact Hour &amp; Attendance Calculation]
+    CLINX --&gt;|4. Auto-Fill Syllabus Sequence| LP[Lesson Plan Topic Sync]
+    CALC &amp; LP --&gt;|5. Commit to Database| LOGS[Consolidated Class Logs &amp; Absentees Marked]
+</pre>
+<ul>
+    <li><strong>Requirement</strong>: Official class attendance report exported in <strong>PDF format</strong> directly from the Microsoft Teams website.</li>
+    <li><strong>Modal Workflow (<code>Upload TEAMS Attendance</code>)</strong>:
+        <ol>
+            <li>Select target Course / Subject and choose group allocation (<code>Whole Class</code>, <code>Lab Batch 1</code>, or <code>Lab Batch 2</code>).</li>
+            <li>Drag &amp; drop the downloaded Microsoft Teams attendance PDF.</li>
+            <li>Keep <em>"Auto-fill blank topics from Lesson Plan / Lab Experiments"</em> enabled to automatically assign and advance pending syllabus topics.</li>
+            <li><strong>Exact Hour Calculation</strong>: If the Teams session spanned multiple hours (e.g. <code>Hours: 4,6</code>), Carmel-linx creates separate, discrete period records for each hour so total conducted hours and student percentages remain 100% accurate.</li>
+            <li>Click <strong>Upload TEAMS Attendance</strong>: Sessions, absentees, and topics are imported and reconciled within seconds.</li>
+        </ol>
+    </li>
+</ul>
+
+<h4>4.5.6 Continuous Internal Assessment (CIA / CIE) & Course Attendance Calculation</h4>
+<ul>
+    <li><strong>Automated Real-Time Telemetry</strong>: Every saved session instantly updates cumulative student attendance percentages across the course.</li>
+    <li><strong>Direct CIA / CIE Grade Conversion</strong>: Attendance percentages directly calculate the continuous assessment attendance score (e.g., SBTE Revision 2026 Table 2.1: $\ge 90\% = 5$ Marks, $80\text{--}89\% = 4$ Marks, $75\text{--}79\% = 3$ Marks, $70\text{--}74\% = 2$ Marks, and $<70\% = 0$ Marks).</li>
+    <li><strong>Institutional Feedback Loop</strong>: Automatically alerts the Class Tutor console when a student's attendance drops below 75% for condonation tracking, and immediately updates the Parent Portal meter.</li>
+</ul>
+
+<h4>4.5.7 Historical Log Verification, Inline Editing, Deletion & A4 Printing</h4>
+<ul>
+    <li><strong>Recorded Class Attendance Logs Table</strong>: Desktop console features a comprehensive audit table listing all historical sessions with Date, Periods, Sub-Batch, Topics Covered, Absentees, and Actions.</li>
+    <li><strong>Inline Session Editing</strong>: Click the <strong>Edit</strong> button on any past session to load it back into the active panel. Instructors can rectify attendance marks (e.g. converting absence to excused duty leave) or amend topic descriptions with zero page reloads.</li>
+    <li><strong>Session Deletion</strong>: Erroneous or duplicate sessions can be deleted with confirmation, automatically rolling back conducted hours and recalculating CIA marks.</li>
+    <li><strong>Print Class Log (A4)</strong>: Generates an official, high-resolution printable A4 classroom teaching and attendance register complete with college letterhead, syllabus topic index, period distribution, and faculty/HOD signature blocks for SBTE accreditation files.</li>
+    <li><strong>Print Class Roster (A4)</strong>: Exports student-wise master attendance sheets with roll numbers, names, total attended hours, and percentage status.</li>
+</ul>
+
+<h4>4.5.8 Desktop vs. Mobile Feature Comparison</h4>
+<table>
+    <tr>
+        <th style="width: 25%;">Capability</th>
+        <th style="width: 37%;">Mobile Interface</th>
+        <th style="width: 38%;">Desktop Interface</th>
+    </tr>
+    <tr>
+        <td><strong>Workspace Layout</strong></td>
+        <td>Single-column stacked responsive cards.</td>
+        <td>Side-by-side dual-panel workspace (Left: Class Log &amp; Topics; Right: Attendance Roster/Grid).</td>
+    </tr>
+    <tr>
+        <td><strong>Quick-Tap Grid</strong></td>
+        <td>5-column high-density touch matrix optimized for thumb-tapping.</td>
+        <td>6 to 8-column zero-scroll matrix for entire 60-student batches.</td>
+    </tr>
+    <tr>
+        <td><strong>Teams PDF Bulk Upload</strong></td>
+        <td>Available via modal file picker.</td>
+        <td>Full drag-and-drop upload zone with preview metrics.</td>
+    </tr>
+    <tr>
+        <td><strong>Historical Log Table</strong></td>
+        <td>Compact summary list.</td>
+        <td>Full audit table with inline editing, deletion, and quick search.</td>
+    </tr>
+    <tr>
+        <td><strong>A4 Report Printing</strong></td>
+        <td>Print preview and PDF download.</td>
+        <td>Direct A4 print formatting with auto-pagination and signature lines.</td>
+    </tr>
+</table>
+
+<hr>
+
+<h3>4.6 Course Files (<code>/course-files</code>) &amp; Remedial Coaching (<code>/remedial-sessions</code>)</h3>
+<ul>
+    <li><strong>Course Files (<code>/course-files</code>)</strong>: Auto-compiles all syllabus documents, lesson plans, attendance records, question papers, marksheets, and CO-PO attainment matrices into standardized SBTE/NBA 16-item course file compliance dossiers.</li>
+    <li><strong>Remedial Sessions (<code>/remedial-sessions</code>)</strong>: Schedule remedial coaching classes for slow learners identified via internal series tests, record remedial attendance, and track re-evaluation mark improvements for NBA Criterion 2 compliance.</li>
+</ul>
+<hr>
+<h2>Chapter 5: Demonstrator Operations Manual</h2>
 <h3>Overview & Operational Entry Point</h3>
 <p>Demonstrators assist primary lecturers in managing laboratory workspaces, conducting practical experiment sessions, monitoring student attendance, and recording continuous lab rubric marks.</p>
 <h3>Start Point</h3>
@@ -204,14 +1040,15 @@ flowchart TD
 <h3>Menu List & Operations</h3>
 <h4>A. Lab Workspaces</h4>
 <ul><li>View assigned laboratory batches and subjects.</li></ul>
-<ul><li>Click any lab subject to enter the shared Practical Virtual Classroom (<code>/r26/classroom/practical/{id}</code> or <code>/r26/classroom/health-physical/{id}</code>).</li></ul>
+<ul><li>Click any lab subject to enter the shared Practical Virtual Classroom (Revision 2021: <code>/virtual-classroom/practical/{id}</code>, or Revision 2026: <code>/r26/classroom/practical/{id}</code> / <code>/r26/classroom/health-physical/{id}</code>). See Section 4.3 for complete Revision 2021 Virtual Lab operations, rubrics, and statutory 75-mark CIA workflows.</li></ul>
 <h4>B. Practical Session Execution</h4>
-<ul><li><strong>Daily Experiment Mark Entry</strong>: Enter continuous evaluation marks for student experiment sheets and practical performance.</li></ul>
-<ul><li><strong>Logbook Verification</strong>: Verify student practical record submissions and assign logbook completion signatures.</li></ul>
+<ul><li><strong>Setup Experiments &amp; Experiment List Verification</strong>: Verify experiments setup by the primary lecturer, experiment-to-CO mappings, and batch schedules (see Section 4.3.2).</li></ul>
+<ul><li><strong>Daily Experiment Mark Entry (5 Rubrics)</strong>: Enter continuous formative evaluation marks out of 37.5 Marks across the 5 statutory rubrics (Rough Record 5M, Fair Record 7.5M, Observation &amp; Recording 7.5M, Procedure &amp; Punctuality 7.5M, Viva Voce 10M) plus Open-Ended Experiments (7.5M) (see Section 4.3.4).</li></ul>
+<ul><li><strong>Logbook Verification &amp; Series Lab Tests</strong>: Verify student practical record submissions, assign logbook completion signatures, and assist in configuring/evaluating Series Lab Tests (15M) (see Section 4.3.5).</li></ul>
 <h4>C. Log & Attendance</h4>
-<ul><li>Access <code>/staff/attendance-log</code> to mark student attendance for assigned practical lab sessions.</li></ul>
+<ul><li>Access the universal common link <code>/staff/attendance-log</code> to mark student attendance for assigned practical lab sessions. Demonstrators can mark via List or Easy-Access Grid, use continuous lab presets (e.g. <code>P1–P3</code>, <code>P4–P6</code>), select Sub-Batches (Batch 1 / Batch 2), upload MS Teams attendance PDFs in bulk, and auto-sync experiment topics with the lesson plan (see Section 4.5 for full details).</li></ul>
 <hr>
-<h2>4. Trade Instructor Manual</h2>
+<h2>Chapter 6: Trade Instructor Operations Manual</h2>
 <h3>Overview & Operational Entry Point</h3>
 <p>Trade Instructors manage trade-specific practical workshops (Fitting, Wiring, Welding, Carpentry, Foundry, Machining) and track trade skill progression.</p>
 <h3>Start Point</h3>
@@ -219,14 +1056,14 @@ flowchart TD
 <h3>Menu List & Operations</h3>
 <h4>A. Trade Workshop Workspaces</h4>
 <ul><li>View assigned trade workshop sections and student batches.</li></ul>
-<ul><li>Access trade practical assessment rubrics.</li></ul>
+<ul><li>Access trade practical assessment rubrics and enter shared practical workshop spaces (Revision 2021: <code>/virtual-classroom/practical/{id}</code>; Revision 2026: <code>/r26/classroom/practical/{id}</code>). See Section 4.3 for complete practical classroom workflows.</li></ul>
 <h4>B. Job Sheet & Workpiece Evaluation</h4>
-<ul><li><strong>Workpiece Dimensions & Accuracy</strong>: Grade student job pieces based on tolerance, finish, and safety adherence.</li></ul>
-<ul><li><strong>Raw Material & Tool Handling</strong>: Record tool safety and workshop discipline marks.</li></ul>
+<ul><li><strong>Workpiece Dimensions & Accuracy</strong>: Grade student job pieces based on tolerance, finish, and safety adherence according to formative evaluation rubrics.</li></ul>
+<ul><li><strong>Raw Material & Tool Handling</strong>: Record tool safety, workmanship, and workshop discipline marks.</li></ul>
 <h4>C. Attendance & Practical Records</h4>
-<ul><li>Log daily workshop session attendance and verify trade workshop logbooks.</li></ul>
+<ul><li>Access the universal common link <code>/staff/attendance-log</code> to log daily trade workshop session attendance, record job sheet exercises completed, upload Teams attendance PDFs, and print official A4 workshop class logs (see Section 4.5).</li></ul>
 <hr>
-<h2>5. Workshop Superintendent Manual</h2>
+<h2>Chapter 7: Workshop Superintendent Operations Manual</h2>
 <h3>Overview & Operational Entry Point</h3>
 <p>The Workshop Superintendent oversees all engineering workshops, equipment availability, safety standards, trade instructor allocations, and central workshop course files.</p>
 <h3>Start Point</h3>
@@ -235,29 +1072,12 @@ flowchart TD
 <h4>A. Central Workshop Overview</h4>
 <ul><li>Monitor real-time status across all trade workshops (Fitting, Machine Shop, Smithy, Electrical Wiring, Carpentry).</li></ul>
 <ul><li>View student turnout, safety compliance, and trade completion rates.</li></ul>
-<h4>B. Trade Instructor Management</h4>
-<ul><li>Review work allocations and session logs submitted by Trade Instructors.</li></ul>
+<h4>B. Trade Instructor Management & Attendance Oversight</h4>
+<ul><li>Review work allocations, session logs, and daily attendance records submitted by Trade Instructors via <code>/staff/attendance-log</code>.</li></ul>
 <h4>C. Workshop Consumables & Audits</h4>
 <ul><li>Audit workshop practical records and verify workshop course file submissions for SBTE compliance.</li></ul>
 <hr>
-<h2>6. Tutor & Mentor Manual</h2>
-<h3>Overview & Operational Entry Point</h3>
-<p>Tutors manage overall student batch discipline, attendance condonation, academic progress tracking, and parent communication. Mentors conduct personalized 1-on-1 mentoring sessions and maintain mentoring records.</p>
-<h3>Start Point</h3>
-<p>Navigate to <code>/dashboard/tutor</code>.</p>
-<h3>Menu List & Operations</h3>
-<h4>A. Batch Master Management</h4>
-<ul><li>View complete student list for assigned batch with live attendance percentages, CIE totals, and backlogs.</li></ul>
-<ul><li><strong>Condonation Management</strong>: Generate condonation eligibility lists for students with 65%–74% attendance needing medical approval.</li></ul>
-<h4>B. Parent Onboarding & Communication</h4>
-<ul><li><strong>SMS Onboarding Trigger</strong>: Send passwordless parent portal access link via SMS to parent mobile numbers.</li></ul>
-<ul><li>View parent access logs to verify parent engagement.</li></ul>
-<h4>C. Mentoring Console (`My Mentoring`)</h4>
-<ul><li><strong>Mentoring Sessions</strong>: Conduct scheduled mentoring discussions (Academic, Personal, Career, Discipline).</li></ul>
-<ul><li><strong>Mentoring Diary</strong>: Fill electronic mentoring entries (Family background, SGPA/CGPA history, SWOT analysis, advisor remarks).</li></ul>
-<ul><li><strong>Print Mentoring Report</strong>: Export full PDF Mentoring Records for SBTE/NBA inspection.</li></ul>
-<hr>
-<h2>7. Student Portal Manual</h2>
+<h2>Chapter 8: Student Portal Operations Manual</h2>
 <h3>Overview & Operational Entry Point</h3>
 <p>Students access real-time academic standing, attendance logs, assignment submissions, series exam marks, timetable, and course exit surveys.</p>
 <h3>Start Point</h3>
@@ -274,7 +1094,7 @@ flowchart TD
 <h4>D. Student Mentoring Profile</h4>
 <ul><li>View personal mentoring records, advisor recommendations, and remedial support schedules.</li></ul>
 <hr>
-<h2>8. Parent Dashboard Manual</h2>
+<h2>Chapter 9: Parent Dashboard Operations Manual</h2>
 <h3>Overview & Operational Entry Point</h3>
 <p>Provides parents with transparent, passwordless, 24/7 mobile-optimized access to their ward's academic status.</p>
 <h3>Start Point</h3>
@@ -284,7 +1104,17 @@ flowchart TD
 <ul><li><strong>Internal Assessment Scores</strong>: View assignment marks, series exam results, and overall CIE progression.</li></ul>
 <ul><li><strong>Tutor Remarks & Notifications</strong>: Read direct remarks posted by the Class Tutor or Mentor.</li></ul>
 <hr>
-<h2>Quick Reference: Operational Workflow Matrix</h2>
-<table><tr><th>Role</th><th>Primary Starting Point</th><th>Key Initial Action</th><th>Output Generated</th></tr><tr><td><strong>HOD</strong></td><td><code>/dashboard/hod</code></td><td>Create Batch & Allocate Staff</td><td>Batch Structure & Staff Schedules</td></tr><tr><td><strong>Lecturer</strong></td><td><code>/dashboard/lecturer</code></td><td>Upload Syllabus PDF</td><td>Parsed Rubrics & Lesson Plans</td></tr><tr><td><strong>Demonstrator</strong></td><td><code>/dashboard/demonstrator</code></td><td>Select Lab Workspace</td><td>Lab Rubric Scores & Verification</td></tr><tr><td><strong>Trade Instructor</strong></td><td><code>/dashboard/tradeinstructor</code></td><td>Select Workshop Section</td><td>Job Sheet Marks & Tool Safety Logs</td></tr><tr><td><strong>Workshop Superintendent</strong></td><td><code>/dashboard/workshop</code></td><td>Central Workshop Audit</td><td>Workshop Compliance Reports</td></tr><tr><td><strong>Tutor / Mentor</strong></td><td><code>/dashboard/tutor</code></td><td>Send Parent SMS & Conduct Sessions</td><td>Mentoring Diaries & Condonation Reports</td></tr><tr><td><strong>Student</strong></td><td><code>/dashboard/student</code></td><td>View Attendance & Complete Quizzes</td><td>Survey Submissions & Quiz Results</td></tr><tr><td><strong>Parent</strong></td><td>SMS Portal Link</td><td>Enter Mobile Number</td><td>Real-Time Attendance & Performance View</td></tr></table>
+<h2>Chapter 10: Quick Reference Operational Workflow Matrix</h2>
+<table>
+    <tr><th>Role</th><th>Primary Starting Point</th><th>Key Initial Action</th><th>Output Generated</th></tr>
+    <tr><td><strong>HOD</strong></td><td><code>/dashboard/hod</code></td><td>Create Batch &amp; Allocate Staff</td><td>Batch Structure &amp; Staff Schedules</td></tr>
+    <tr><td><strong>Tutor / Mentor</strong></td><td><code>/dashboard/tutor</code></td><td>Onboard Students, Set Rolls, Send Parent SMS &amp; Mentoring</td><td>Active Roster, Mentoring Diaries &amp; Condonation Reports</td></tr>
+    <tr><td><strong>Lecturer</strong></td><td><code>/dashboard/lecturer</code></td><td>Upload Syllabus PDF &amp; Conduct Virtual Classrooms</td><td>Parsed Rubrics, Lesson Plans &amp; Marks</td></tr>
+    <tr><td><strong>Demonstrator</strong></td><td><code>/dashboard/demonstrator</code></td><td>Select Lab Workspace</td><td>Lab Rubric Scores &amp; Verification</td></tr>
+    <tr><td><strong>Trade Instructor</strong></td><td><code>/dashboard/tradeinstructor</code></td><td>Select Workshop Section</td><td>Job Sheet Marks &amp; Tool Safety Logs</td></tr>
+    <tr><td><strong>Workshop Superintendent</strong></td><td><code>/dashboard/workshop</code></td><td>Central Workshop Audit</td><td>Workshop Compliance Reports</td></tr>
+    <tr><td><strong>Student</strong></td><td><code>/dashboard/student</code></td><td>View Attendance &amp; Complete Quizzes</td><td>Survey Submissions &amp; Quiz Results</td></tr>
+    <tr><td><strong>Parent</strong></td><td>SMS Portal Link</td><td>Enter Mobile Number</td><td>Real-Time Attendance &amp; Performance View</td></tr>
+</table>
 </body>
 </html>

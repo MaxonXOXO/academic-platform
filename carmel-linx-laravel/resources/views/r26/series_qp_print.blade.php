@@ -161,12 +161,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false},{left: '\\(', right: '\\)', display: false},{left: '\\[', right: '\\]', display: true}]});"></script>
+    <!-- Flatpickr for dd/mm/yyyy Date Selection -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
 
     <div class="print-controls">
         <label style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #334155;">Select Exam Date:</label>
-        <input type="date" id="print-exam-date" onchange="document.getElementById('display-exam-date').innerText = this.value ? new Date(this.value).toLocaleDateString('en-GB') : 'N/A'" class="print-input" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-right: 15px; outline: none; font-family: Arial, sans-serif;">
+        <input type="text" id="print-exam-date" placeholder="dd/mm/yyyy" class="print-input" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-right: 15px; outline: none; font-family: Arial, sans-serif; width: 110px; text-align: center;">
         <button class="btn-print" onclick="window.print()">Print Paper</button>
         <button class="btn-print" onclick="window.close()" style="background:#dc2626;">Close Window</button>
     </div>
@@ -261,5 +264,18 @@
 
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr("#print-exam-date", {
+                    dateFormat: "d/m/Y",
+                    allowInput: true,
+                    onChange: function(selectedDates, dateStr) {
+                        document.getElementById('display-exam-date').innerText = dateStr ? dateStr : 'N/A';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

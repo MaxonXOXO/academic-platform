@@ -105,7 +105,7 @@
             <td class="meta-label">Classroom ID:</td>
             <td>{{ $batchSubject->classroom_id }}</td>
             <td class="meta-label">Date Generated:</td>
-            <td>{{ date('d-m-Y H:i A') }}</td>
+            <td>{{ date('d/m/Y h:i A') }}</td>
         </tr>
     </table>
 

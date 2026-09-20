@@ -202,10 +202,13 @@
             </tr>
             <tr>
                 <td class="meta-label">Date Created:</td>
-                <td>{{ $courseFile && $courseFile->updated_at ? $courseFile->updated_at->format('d-m-Y') : date('d-m-Y') }}</td>
+                <td>{{ $courseFile && $courseFile->updated_at ? $courseFile->updated_at->format('d/m/Y') : date('d/m/Y') }}</td>
                 <td class="meta-label">Due Date:</td>
                 <td style="font-weight: bold; color: #000;">
-                    {{ $courseFile && isset($courseFile->assignment_deadlines[$coTag]['deadline']) && $courseFile->assignment_deadlines[$coTag]['deadline'] ? date('d-m-Y', strtotime($courseFile->assignment_deadlines[$coTag]['deadline'])) : 'Not Specified' }}
+                    @php
+                        $dl = $courseFile->assignment_deadlines[$coTag]['deadline'] ?? null;
+                    @endphp
+                    {{ $dl ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $dl) ? $dl : \Carbon\Carbon::parse($dl)->format('d/m/Y')) : 'Not Specified' }}
                 </td>
             </tr>
         </table>

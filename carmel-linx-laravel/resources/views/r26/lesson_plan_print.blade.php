@@ -230,7 +230,7 @@
                 <td class="meta-label">Faculty:</td>
                 <td class="meta-value">{{ $lecturerName }}</td>
                 <td class="meta-label">Report Date:</td>
-                <td class="meta-value">{{ date('d-m-Y') }}</td>
+                <td class="meta-value">{{ date('d/m/Y') }}</td>
             </tr>
         </table>
 
@@ -263,10 +263,10 @@
                         <td class="text-center">{{ $plan->taxonomy ?: '—' }}</td>
                         <td>{{ $plan->topic_content }}</td>
                         <td class="text-center">
-                            {{ $plan->proposed_date ? date('d-m-Y', strtotime($plan->proposed_date)) : '—' }}
+                            {{ $plan->proposed_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $plan->proposed_date) ? $plan->proposed_date : \Carbon\Carbon::parse($plan->proposed_date)->format('d/m/Y')) : '—' }}
                         </td>
                         <td class="text-center">
-                            {{ $plan->actual_date ? date('d-m-Y', strtotime($plan->actual_date)) : '—' }}
+                            {{ $plan->actual_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $plan->actual_date) ? $plan->actual_date : \Carbon\Carbon::parse($plan->actual_date)->format('d/m/Y')) : '—' }}
                         </td>
                         <td class="text-center">{{ $plan->allocated_hours ?: 1 }}</td>
                         <td class="text-center">{{ $plan->status ?: 'Pending' }}</td>

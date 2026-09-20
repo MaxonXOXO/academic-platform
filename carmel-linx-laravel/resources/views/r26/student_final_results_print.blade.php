@@ -318,11 +318,21 @@
             if (empty($deptDisplay) || strtoupper($deptDisplay) === 'ENGINEERING') {
                 $deptDisplay = 'Automobile Engineering';
             }
+            $reportType = request('type', 'consolidated');
+            $headerSubtitle = 'Revision 2026 Scheme - Theory ESE & Consolidated Final Results';
+            $sheetTitle = 'CONSOLIDATED STUDENT RESULTS SHEET (CIA 40M + ESE 60M)';
+            if ($reportType === 'ese') {
+                $headerSubtitle = 'Revision 2026 Scheme - End Semester Examination (ESE 60M) Mark Sheet';
+                $sheetTitle = 'END SEMESTER EXAMINATION (ESE) FINAL MARKSHEET (60M)';
+            } elseif ($reportType === 'grade_sheet') {
+                $headerSubtitle = 'Revision 2026 Scheme - Final Grade Sheet & Academic Transcript';
+                $sheetTitle = 'CONSOLIDATED FINAL GRADE SHEET & ACADEMIC TRANSCRIPT (100M)';
+            }
         @endphp
         <div class="header">
             <h1>Carmel Polytechnic College</h1>
             <h2>Department of {{ strtoupper($deptDisplay) }}</h2>
-            <h3>Revision 2026 Scheme - Theory ESE & Consolidated Final Results</h3>
+            <h3>{{ $headerSubtitle }}</h3>
         </div>
 
         <table class="header-meta">
@@ -398,7 +408,7 @@
         </div>
 
         <div class="report-title">
-            CONSOLIDATED STUDENT RESULTS SHEET (CIA 40M + ESE 60M)
+            {{ $sheetTitle }}
         </div>
 
         <table class="marks-table">

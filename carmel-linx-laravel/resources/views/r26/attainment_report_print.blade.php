@@ -246,6 +246,31 @@
             </tr>
         </table>
 
+        <!-- NBA ASSESSMENT THRESHOLDS & BATCH TARGET CRITERIA -->
+        @php
+            $cfgGrade = $eseConfig['ese_threshold_grade'] ?? $eseConfig['target_grade'] ?? 'D';
+            $cfgCie = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+            $cfgTarget = (float)($eseConfig['target_student_percent'] ?? 70.0);
+            $cfgL3 = (float)($eseConfig['level3_percent'] ?? $cfgTarget);
+            $cfgL2 = (float)($eseConfig['level2_percent'] ?? max(0, $cfgTarget - 10));
+            $cfgL1 = (float)($eseConfig['level1_percent'] ?? max(0, $cfgTarget - 20));
+        @endphp
+        <table class="report-table" style="margin-top: 10px; margin-bottom: 14px; font-size: 10px;">
+            <thead>
+                <tr>
+                    <th colspan="4" style="text-align: left; background: #f1f5f9; font-size: 10.5px;">Assessment Thresholds & Target Criteria</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="width: 25%;"><strong>ESE Threshold Grade:</strong> {{ $cfgGrade }} Grade & Above (SBTE)</td>
+                    <td style="width: 25%;"><strong>Internal (CIE) Threshold:</strong> &ge; {{ $cfgCie }}%</td>
+                    <td style="width: 25%;"><strong>Batch Target (T):</strong> &ge; {{ $cfgTarget }}% Students</td>
+                    <td style="width: 25%;"><strong>Attainment Levels:</strong> L3 &ge; {{ $cfgL3 }}% | L2 &ge; {{ $cfgL2 }}% | L1 &ge; {{ $cfgL1 }}%</td>
+                </tr>
+            </tbody>
+        </table>
+
         <!-- SECTION 1: COURSE OUTCOME ATTAINMENT LEVELS -->
         <div class="report-section">
             <div class="section-title">1. Course Outcome (CO) Attainment Summary</div>

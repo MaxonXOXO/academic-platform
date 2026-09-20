@@ -5,7 +5,7 @@
     <!-- Modal Header -->
     <div class="px-5 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md">
           <span class="material-symbols-rounded text-lg">cloud_upload</span>
         </div>
         <div>
@@ -24,8 +24,8 @@
       <!-- Target Subject Info -->
       <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Target Course / Subject</label>
-        <div id="sbteTargetSubjectDisplay" class="text-xs font-semibold text-indigo-300 flex items-center gap-2">
-          <span class="material-symbols-rounded text-sm text-indigo-400">school</span>
+        <div id="sbteTargetSubjectDisplay" class="text-xs font-semibold text-blue-300 flex items-center gap-2">
+          <span class="material-symbols-rounded text-sm text-blue-400">school</span>
           <span id="sbteTargetSubjectName">Select a subject first</span>
         </div>
         <input type="hidden" id="sbteBatchSubjectId" name="batch_subject_id" value="">
@@ -34,7 +34,7 @@
       <!-- Sub-Batch Selector -->
       <div>
         <label class="block text-[11px] font-bold text-slate-400 mb-1">Batch / Group Allocation</label>
-        <select id="sbteSubBatch" name="sub_batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500">
+        <select id="sbteSubBatch" name="sub_batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
           <option value="Whole" selected>Whole Class (All Students)</option>
           <option value="1">Lab Batch 1 (First Half)</option>
           <option value="2">Lab Batch 2 (Second Half)</option>
@@ -44,19 +44,19 @@
       <!-- File Upload Zone -->
       <div>
         <label class="block text-[11px] font-bold text-slate-400 mb-1">Upload Class Attendance PDF from TEAMS</label>
-        <div id="sbteDropZone" onclick="document.getElementById('sbteFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2">
+        <div id="sbteDropZone" onclick="document.getElementById('sbteFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2">
           <input type="file" id="sbteFileInput" name="file" accept=".pdf" class="hidden" onchange="handleSbteFileSelect(this)">
-          <span class="material-symbols-rounded text-3xl text-indigo-400">picture_as_pdf</span>
+          <span class="material-symbols-rounded text-3xl text-blue-400">picture_as_pdf</span>
           <div class="text-xs font-bold text-slate-300" id="sbteFileLabel">Click or drag & drop class attendance PDF from TEAMS here</div>
           <div class="text-[10px] text-slate-500">Official "SUBJECT LOG FROM ... TO ..." exported from TEAMS portal</div>
-          <div id="sbteSelectedFileInfo" class="hidden mt-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-xs text-indigo-300 font-mono font-medium"></div>
+          <div id="sbteSelectedFileInfo" class="hidden mt-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-300 font-mono font-medium"></div>
         </div>
       </div>
 
       <!-- Smart Options -->
       <div class="space-y-2 pt-1">
         <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
-          <input type="checkbox" id="sbteAutoFillLp" name="auto_fill_lesson_plan" value="1" checked class="mt-0.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+          <input type="checkbox" id="sbteAutoFillLp" name="auto_fill_lesson_plan" value="1" checked class="mt-0.5 rounded border-slate-700 text-blue-600 focus:ring-blue-500">
           <div>
             <span class="font-bold text-white">Auto-fill blank topics from Lesson Plan / Lab Experiments</span>
             <p class="text-[11px] text-slate-400">When the PDF has blank content, automatically assigns the next pending topic in syllabus sequence and marks it completed.</p>
@@ -107,7 +107,7 @@
         <button type="button" onclick="closeSbteImportModal()" class="px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
           Close
         </button>
-        <button type="submit" id="sbteSubmitBtn" class="px-5 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer">
+        <button type="submit" id="sbteSubmitBtn" class="px-5 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer">
           <span class="material-symbols-rounded text-sm">cloud_upload</span>
           <span id="sbteSubmitText">Upload TEAMS Attendance</span>
         </button>
@@ -169,13 +169,13 @@
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-indigo-400', 'bg-indigo-500/10');
+        dropZone.classList.add('border-blue-400', 'bg-blue-500/10');
       }, false);
     });
     ['dragleave', 'drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/10');
+        dropZone.classList.remove('border-blue-400', 'bg-blue-500/10');
       }, false);
     });
     dropZone.addEventListener('drop', (e) => {

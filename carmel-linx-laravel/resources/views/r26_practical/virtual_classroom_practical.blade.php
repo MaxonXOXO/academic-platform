@@ -2475,5 +2475,6 @@
             }
         }
     </script>
+    @include('partials.carmie_assistant')
 </body>
 </html>

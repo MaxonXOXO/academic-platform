@@ -2823,5 +2823,6 @@
         });
     </script>
     @endif
+    @include('partials.carmie_assistant')
 </body>
 </html>

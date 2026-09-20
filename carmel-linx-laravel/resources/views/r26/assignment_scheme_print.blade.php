@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment Evaluation Scheme - {{ $coTag }}</title>
+    <title>Assignment Evaluation Scheme & Rubrics - {{ $coTag }}</title>
     <!-- KaTeX for Mathematical Expressions ($...$ and $$...$$) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -176,7 +176,7 @@
         <div class="header">
             <h1>Carmel Polytechnic College, Alappuzha</h1>
             <h2>Department of {{ $deptDisplay }}</h2>
-            <h3>Assignment Evaluation Scheme & Hints ({{ $coTag }})</h3>
+            <h3>Assignment Evaluation Scheme, Rubrics & Answer Hints ({{ $coTag }})</h3>
         </div>
 
         <div class="divider-double"></div>
@@ -202,10 +202,13 @@
             </tr>
             <tr>
                 <td class="meta-label">Date Created:</td>
-                <td>{{ $courseFile && $courseFile->updated_at ? $courseFile->updated_at->format('d-m-Y') : date('d-m-Y') }}</td>
+                <td>{{ $courseFile && $courseFile->updated_at ? $courseFile->updated_at->format('d/m/Y') : date('d/m/Y') }}</td>
                 <td class="meta-label">Due Date:</td>
                 <td style="font-weight: bold; color: #000;">
-                    {{ $courseFile && isset($courseFile->assignment_deadlines[$coTag]['deadline']) && $courseFile->assignment_deadlines[$coTag]['deadline'] ? date('d-m-Y', strtotime($courseFile->assignment_deadlines[$coTag]['deadline'])) : 'Not Specified' }}
+                    @php
+                        $dl = $courseFile->assignment_deadlines[$coTag]['deadline'] ?? null;
+                    @endphp
+                    {{ $dl ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $dl) ? $dl : \Carbon\Carbon::parse($dl)->format('d/m/Y')) : 'Not Specified' }}
                 </td>
             </tr>
         </table>
@@ -232,6 +235,41 @@
                         <td colspan="4" class="text-center" style="padding: 20px; font-style: italic;">No evaluation scheme defined for this assignment yet.</td>
                     </tr>
                 @endforelse
+            </tbody>
+        </table>
+
+        <!-- EVALUATION RUBRICS SECTION -->
+        <div style="margin-top: 24px; margin-bottom: 6px;">
+            <h4 style="font-size: 13px; font-weight: bold; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 3px; letter-spacing: 0.5px;">Assignment Evaluation Rubrics & Scoring Criteria</h4>
+        </div>
+        <table class="scheme-table" style="margin-top: 4px;">
+            <thead>
+                <tr>
+                    <th style="width: 22%; font-weight: bold;" class="text-left">Performance Criteria</th>
+                    <th style="width: 26%; font-weight: bold;" class="text-left">Excellent<br><span style="font-size: 11px; font-weight: normal;">(5 Marks)</span></th>
+                    <th style="width: 26%; font-weight: bold;" class="text-left">Good<br><span style="font-size: 11px; font-weight: normal;">(3.5 – 4 Marks)</span></th>
+                    <th style="width: 26%; font-weight: bold;" class="text-left">Satisfactory / Marginal<br><span style="font-size: 11px; font-weight: normal;">(&lt; 3.5 Marks)</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-left" style="font-weight: bold; background: #f8fafc;">1. Content & Concept Clarity</td>
+                    <td class="text-left">Comprehensive coverage of core technical concepts, accurate derivations/diagrams, and deep subject insights.</td>
+                    <td class="text-left">Essential concepts covered with minor omissions; diagrams/working steps generally accurate.</td>
+                    <td class="text-left">Superficial coverage, noticeable conceptual errors, or missing key technical explanations.</td>
+                </tr>
+                <tr>
+                    <td class="text-left" style="font-weight: bold; background: #f8fafc;">2. Organization & Structure</td>
+                    <td class="text-left">Logically structured with clear headings, neat layout, clean presentation, and relevant references.</td>
+                    <td class="text-left">Fairly structured with reasonable clarity and flow of arguments.</td>
+                    <td class="text-left">Disorganized presentation, haphazard sequence of answers, or poor readability.</td>
+                </tr>
+                <tr>
+                    <td class="text-left" style="font-weight: bold; background: #f8fafc;">3. Timely Submission & Authenticity</td>
+                    <td class="text-left">Submitted on or before the due date; demonstrates authentic personal effort with original analysis.</td>
+                    <td class="text-left">Submitted within 1–2 days of deadline; fair degree of original effort.</td>
+                    <td class="text-left">Substantially late submission or copied content without independent analysis.</td>
+                </tr>
             </tbody>
         </table>
 

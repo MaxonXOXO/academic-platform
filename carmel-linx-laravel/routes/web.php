@@ -523,6 +523,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/{subjectId}/lesson-plans/bulk-update', [R26ClassroomController::class, 'bulkUpdateLessonPlans']);
     Route::post('/api/r26/classroom/{subjectId}/cia-marks/bulk-update', [R26ClassroomController::class, 'bulkUpdateCiaMarks']);
     Route::post('/api/r26/classroom/{subjectId}/self-learning/bulk-update', [R26ClassroomController::class, 'bulkUpdateSelfLearningMarks']);
+    Route::post('/api/r26/classroom/{subjectId}/copo-matrix/save', [R26ClassroomController::class, 'saveCoPoMatrix']);
     Route::post('/api/r26/classroom/{subjectId}/assignment/{coTag}', [R26ClassroomController::class, 'saveAssignment']);
     Route::post('/api/r26/classroom/{subjectId}/assignment/{coTag}/notify', [R26ClassroomController::class, 'notifyAssignment']);
     Route::get('/r26/classroom/assignment/{subjectId}/print-qp/{coTag}', [R26ClassroomController::class, 'printAssignmentQp']);
@@ -599,6 +600,10 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/practicum/{subjectId}/print-experiments-log', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printExperimentsLog']);
     Route::get('/r26/classroom/practicum/{subjectId}/export-experiments-log-csv', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'exportExperimentsLogCsv']);
 
+    // Carmie - Carmel-linx Intelligent Platform Assistant
+    Route::post('/api/carmie/ask', [App\Http\Controllers\CarmieAssistantController::class, 'ask']);
+    Route::get('/api/carmie/suggestions', [App\Http\Controllers\CarmieAssistantController::class, 'getSuggestions']);
+
 
     // Revision 2026 Practicum Series QP / Scheme / Answer Key
     Route::post('/api/r26/classroom/practicum/{subjectId}/series-qp/generate/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'generateSeriesQp']);
@@ -652,6 +657,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r21/classroom/project/{subjectId}/ese-marks', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'getEseMarks']);
     Route::post('/r21/classroom/project/{subjectId}/ese-marks/bulk-update', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'bulkUpdateEseMarks']);
     Route::get('/r21/classroom/project/{subjectId}/attainment-summary', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'getAttainmentSummary']);
+    Route::post('/r21/classroom/project/{subjectId}/examiners', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveExaminers']);
+    Route::post('/r21/classroom/project/{subjectId}/group-ese', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveGroupEse']);
+    Route::post('/r21/classroom/project/{subjectId}/group-cia', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveGroupCia']);
     Route::get('/r21/classroom/project/{subjectId}/report/print', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'printReport']);
 
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)

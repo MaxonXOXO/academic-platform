@@ -368,10 +368,10 @@
                         if ($ciaScore >= 8.0) { $passedCount++; } // ≥40% of 20M
                     @endphp
                     <tr>
-                        <td class="text-center">{{ $slNo++ }}</td>
-                        <td class="text-center font-mono font-bold">{{ $sc['roll_no'] ?: '—' }}</td>
-                        <td class="font-mono text-center font-bold">{{ !empty($sc['sbte_reg_no']) ? $sc['sbte_reg_no'] : ($sc['reg_no'] ?? '') }}</td>
-                        <td class="font-bold">{{ $sc['name'] }}</td>
+                        <td class="text-center" style="white-space: nowrap;">{{ $slNo++ }}</td>
+                        <td class="text-center font-mono font-bold" style="white-space: nowrap;">{{ $sc['roll_no'] ?: '—' }}</td>
+                        <td class="font-mono text-center font-bold" style="white-space: nowrap;">{{ !empty($sc['sbte_reg_no']) ? $sc['sbte_reg_no'] : ($sc['reg_no'] ?? '') }}</td>
+                        <td class="font-bold" style="white-space: nowrap;">{{ $sc['name'] }}</td>
                         @foreach($seriesExams as $exam)
                             <td class="text-center font-mono">
                                 {{ isset($sc['exam_marks'][$exam->id]) ? number_format($sc['exam_marks'][$exam->id], 1) : '-' }}

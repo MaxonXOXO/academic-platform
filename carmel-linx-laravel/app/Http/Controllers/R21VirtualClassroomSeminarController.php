@@ -506,9 +506,18 @@ class R21VirtualClassroomSeminarController extends Controller
 
     /**
      * Print Consolidated Seminar Evaluation Sheet (Clause 11.2.6 - 75M)
+     * Supports:
+     * - 'consolidated': Full 6-Rubric Clause 11.2.6 Evaluation Register
+     * - 'cia_submission': Official SBTE Final CIA Mark Entry Statement (75M)
+     * - 'schedule': Seminar Presentation Schedule & Guide Allocation Log
      */
-    public function printReport($subjectId)
+    public function printReport(Request $request, $subjectId)
     {
+        $reportType = $request->query('type', 'consolidated');
+        if (!in_array($reportType, ['consolidated', 'cia_submission', 'schedule'])) {
+            $reportType = 'consolidated';
+        }
+
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {
@@ -523,12 +532,19 @@ class R21VirtualClassroomSeminarController extends Controller
         $allEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)->get();
         $seminarRegs = StudentSeminarRegistration::where('batch_subject_id', $subjectId)->with('guide')->get()->keyBy('reg_no');
 
-        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs) {
+        // Attendance data from student_attendance
+        $attendanceData = DB::table('student_attendance')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
+        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs, $attendanceData) {
             $regNo = $student->reg_no;
             $reg = $seminarRegs->get($regNo);
             $stAllEvals = $allEvaluations->where('reg_no', $regNo);
             $evalCount = $stAllEvals->count();
 
+            // Rubrics
             $avgRelevance = $evalCount > 0 ? round($stAllEvals->avg('relevance'), 2) : 0;
             $avgLiterature = $evalCount > 0 ? round($stAllEvals->avg('literature'), 2) : 0;
             $avgPresentation = $evalCount > 0 ? round($stAllEvals->avg('presentation'), 2) : 0;
@@ -537,28 +553,63 @@ class R21VirtualClassroomSeminarController extends Controller
             $avgAttendance = $evalCount > 0 ? round($stAllEvals->avg('attendance'), 2) : 0;
             $finalAvgScore = $evalCount > 0 ? round($stAllEvals->avg('total_score'), 2) : 0;
 
+            // Attendance from attendance log
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
+
+            // Splitup components: Seminar evaluation (67.5M) + Attendance (7.5M) = 75M
+            $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
+            $attendanceComponent = round($avgAttendance, 2);
+
             $gradeData = self::calculateSbteGrade($finalAvgScore, $evalCount > 0);
 
             return [
                 'roll_no' => $student->roll_no,
                 'sbte_reg_no' => $student->sbte_reg_no ?? $regNo,
                 'name' => $student->name,
-                'topic' => $reg ? $reg->topic : '-',
-                'presentation_date' => $reg && $reg->presentation_date ? date('d-m-Y', strtotime($reg->presentation_date)) : '-',
-                'guide_name' => $reg && $reg->guide ? $reg->guide->name : '-',
+                'topic' => $reg && !empty($reg->topic) ? $reg->topic : '—',
+                'presentation_date' => $reg && $reg->presentation_date ? date('d-m-Y', strtotime($reg->presentation_date)) : '—',
+                'guide_name' => $reg && $reg->guide ? $reg->guide->name : '—',
+                'att_percentage' => $attPercentage,
                 'relevance' => $avgRelevance,
                 'literature' => $avgLiterature,
                 'presentation' => $avgPresentation,
                 'interaction' => $avgInteraction,
                 'report' => $avgReport,
                 'attendance' => $avgAttendance,
+                'seminar_score' => $seminarComponent,
+                'attendance_score' => $attendanceComponent,
                 'total_score' => $finalAvgScore,
+                'score_in_words' => $evalCount > 0 ? self::numberToWords($finalAvgScore) : '—',
                 'letter_grade' => $gradeData['grade'],
                 'grade_point' => $gradeData['point'],
                 'result' => $gradeData['result'],
-                'eval_count' => $evalCount
+                'eval_count' => $evalCount,
+                'status' => $evalCount > 0 ? 'Completed' : ($reg && !empty($reg->presentation_date) ? 'Scheduled' : 'Pending')
             ];
         });
+
+        // Summary Statistics
+        $completedStudents = $reportData->where('eval_count', '>', 0);
+        $completedCount = $completedStudents->count();
+        $passedCount = $completedStudents->where('result', 'Pass')->count();
+        $failedCount = $completedStudents->where('result', 'Failed')->count();
+        $passRate = $completedCount > 0 ? round(($passedCount / $completedCount) * 100, 1) : 0.0;
+        $avgScoreOverall = $completedCount > 0 ? round($completedStudents->avg('total_score'), 2) : 0.0;
+        $highestScore = $completedCount > 0 ? round($completedStudents->max('total_score'), 2) : 0.0;
+        $lowestScore = $completedCount > 0 ? round($completedStudents->min('total_score'), 2) : 0.0;
+
+        $gradeStats = [
+            'S' => $completedStudents->where('letter_grade', 'S')->count(),
+            'A' => $completedStudents->where('letter_grade', 'A')->count(),
+            'B' => $completedStudents->where('letter_grade', 'B')->count(),
+            'C' => $completedStudents->where('letter_grade', 'C')->count(),
+            'D' => $completedStudents->where('letter_grade', 'D')->count(),
+            'E' => $completedStudents->where('letter_grade', 'E')->count(),
+            'F' => $completedStudents->where('letter_grade', 'F')->count(),
+        ];
 
         $deptCode = $classroom->department ?? $classroom->branch ?? '';
         $branchMap = [
@@ -580,6 +631,15 @@ class R21VirtualClassroomSeminarController extends Controller
             'fullDepartment' => $fullDepartment,
             'students' => $reportData,
             'totalStudents' => $reportData->count(),
+            'completedCount' => $completedCount,
+            'passedCount' => $passedCount,
+            'failedCount' => $failedCount,
+            'passRate' => $passRate,
+            'avgScoreOverall' => $avgScoreOverall,
+            'highestScore' => $highestScore,
+            'lowestScore' => $lowestScore,
+            'gradeStats' => $gradeStats,
+            'reportType' => $reportType,
             'currentYear' => date('Y')
         ]);
     }
@@ -611,6 +671,54 @@ class R21VirtualClassroomSeminarController extends Controller
         } else {
             return ['grade' => 'F', 'point' => 0, 'result' => 'Failed'];
         }
+    }
+
+    /**
+     * Convert numeric marks (0 - 75.0) to words for SBTE Mark Entry Register
+     */
+    public static function numberToWords($num)
+    {
+        if ($num === null || $num === '' || !is_numeric($num)) return '—';
+        $num = round((float)$num, 2);
+        
+        $ones = [
+            0 => 'Zero', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',
+            5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine',
+            10 => 'Ten', 11 => 'Eleven', 12 => 'Twelve', 13 => 'Thirteen', 14 => 'Fourteen',
+            15 => 'Fifteen', 16 => 'Sixteen', 17 => 'Seventeen', 18 => 'Eighteen', 19 => 'Nineteen'
+        ];
+        $tens = [
+            2 => 'Twenty', 3 => 'Thirty', 4 => 'Forty', 5 => 'Fifty',
+            6 => 'Sixty', 7 => 'Seventy', 8 => 'Eighty', 9 => 'Ninety'
+        ];
+
+        $parts = explode('.', (string)$num);
+        $whole = (int)$parts[0];
+        $decimal = isset($parts[1]) ? (string)$parts[1] : null;
+
+        $convertBelowHundred = function($n) use ($ones, $tens) {
+            if ($n < 20) return $ones[$n];
+            $t = (int)($n / 10);
+            $rem = $n % 10;
+            return $tens[$t] . ($rem > 0 ? ' ' . $ones[$rem] : '');
+        };
+
+        $words = '';
+        if ($whole < 100) {
+            $words = $convertBelowHundred($whole);
+        } else {
+            $words = (string)$whole;
+        }
+
+        if ($decimal !== null && $decimal !== '' && (int)$decimal > 0) {
+            $decWords = [];
+            foreach (str_split($decimal) as $d) {
+                $decWords[] = $ones[(int)$d] ?? $d;
+            }
+            $words .= ' Point ' . implode(' ', $decWords);
+        }
+
+        return $words;
     }
 
     /**
@@ -732,7 +840,16 @@ class R21VirtualClassroomSeminarController extends Controller
                 'average_direct' => $avgDirect,
                 'average_indirect' => $avgIndirect,
                 'average_overall' => $avgOverall,
-                'ese_config' => $eseConfig
+                'ese_config' => $eseConfig,
+                'survey' => [
+                    'id' => $exitSurvey->id ?? null,
+                    'status' => $exitSurvey->status ?? 'Not Initiated',
+                    'responded_count' => $exitResponses->groupBy('student_reg_no')->count(),
+                    'total_students' => count($students),
+                    'student_url' => $exitSurvey ? url("/student/course-exit/{$exitSurvey->id}") : null,
+                    'report_url' => url("/classroom/{$subjectId}/course-exit/report"),
+                    'has_responses' => $exitResponses->count() > 0
+                ]
             ]
         ]);
     }

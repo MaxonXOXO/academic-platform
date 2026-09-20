@@ -19,7 +19,8 @@ class CourseFile extends Model
         'assignment_deadlines',
         'assignment_questions',
         'summative_manual_tests',
-        'self_learning_configs'
+        'self_learning_configs',
+        'attainment_settings'
     ];
 
     protected $casts = [
@@ -30,7 +31,8 @@ class CourseFile extends Model
         'assignment_deadlines' => 'array',
         'assignment_questions' => 'array',
         'summative_manual_tests' => 'array',
-        'self_learning_configs' => 'array'
+        'self_learning_configs' => 'array',
+        'attainment_settings' => 'array'
     ];
 
     public function batchSubject()

@@ -30,7 +30,7 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             line-height: 1.25;
         }
 
@@ -39,9 +39,9 @@
             color: #94a3b8;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.67rem;
-            letter-spacing: 0.03em;
-            padding: 0.5rem 0.6rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.02em;
+            padding: 0.45rem 0.35rem;
             border-bottom: 1px solid #1e293b;
             white-space: nowrap;
         }
@@ -50,19 +50,36 @@
             background-color: #111a2e;
             border-bottom: 1px solid #1a2744;
             vertical-align: middle;
-            padding: 0.45rem 0.6rem;
+            padding: 0.35rem 0.4rem;
             font-weight: 500;
         }
 
         .table-custom tr:hover td {
-            background-color: #17233d;
+            background-color: #17233d !important;
+        }
+
+        /* Sticky Action Column pinned to right so Evaluate button is NEVER flooded out */
+        .sticky-col-action {
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            background-color: #111a2e;
+            border-left: 1px solid #1e2c47;
+            box-shadow: -5px 0 10px rgba(0, 0, 0, 0.45);
+        }
+        .table-custom th.sticky-col-action {
+            background-color: #0f172a;
+            z-index: 20;
+        }
+        .table-custom tr:hover td.sticky-col-action {
+            background-color: #17233d !important;
         }
 
         /* Compact, Ergonomic Flat Slider */
         input[type=range] {
             -webkit-appearance: none;
             appearance: none;
-            height: 7px;
+            height: 5px;
             border-radius: 4px;
             background: #1e293b;
             outline: none;
@@ -73,10 +90,10 @@
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            background: #2563eb;
+            background: #3b82f6;
             border: 2px solid #ffffff;
             cursor: pointer;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -85,15 +102,15 @@
 
         input[type=range]::-webkit-slider-thumb:hover,
         input[type=range]::-webkit-slider-thumb:active {
-            background: #1d4ed8;
+            background: #2563eb;
             transform: scale(1.15);
         }
 
         input[type=range]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            background: #2563eb;
+            background: #3b82f6;
             border: 2px solid #ffffff;
             cursor: pointer;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -112,6 +129,15 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #475569;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -143,15 +169,10 @@
     <!-- Sticky Top Navigation Header -->
     <header class="sticky top-0 z-50 bg-[#0e1628] border-b border-slate-800/90 shadow-md">
         <!-- Main Spacious Title Bar -->
-        <div class="px-4 py-3.5 sm:px-6 sm:py-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div class="px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5">
             
-            <!-- Left: Back Navigation, Title & Classroom Badges -->
-            <div class="flex items-start sm:items-center gap-3.5 sm:gap-4">
-                <button type="button" onclick="returnToParent()" class="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition shadow-sm shrink-0" title="Return to Caller / Dashboard">
-                    <span class="material-symbols-rounded text-lg">arrow_back</span>
-                    <span>Back</span>
-                </button>
-
+            <!-- Left: Title & Classroom Badges -->
+            <div class="flex items-start sm:items-center gap-3 sm:gap-4">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-950/80 border border-blue-800/70 text-blue-300 font-bold text-xs uppercase tracking-wider shadow-sm">
@@ -177,38 +198,73 @@
                 </div>
             </div>
 
-            <!-- Right: Action Buttons -->
-            <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
+            <!-- Right: Action Buttons & Back Button on Extreme Right Top -->
+            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
                 <!-- Class Attendance & Log Button -->
                 <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" 
-                   class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs sm:text-sm transition flex items-center gap-2 cursor-pointer no-underline shadow-sm" 
+                   class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-medium text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm" 
                    title="Open Class Attendance & Log (Returns here on exit)">
-                    <span class="material-symbols-rounded text-base text-emerald-400">calendar_month</span>
+                    <span class="material-symbols-rounded text-sm text-emerald-400">calendar_month</span>
                     <span>Attendance &amp; Log</span>
                 </a>
 
                 <!-- Syllabus Button -->
-                <div class="flex items-center rounded-xl border border-slate-700 bg-slate-900 overflow-hidden shadow-sm">
-                    <button type="button" onclick="openSyllabusModal()" class="px-3.5 py-2 text-slate-200 hover:bg-slate-800 font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
-                        <span class="material-symbols-rounded text-base text-blue-400">cloud_upload</span>
+                <div class="flex items-center rounded-lg border border-slate-700 bg-slate-900 overflow-hidden shadow-sm">
+                    <button type="button" onclick="openSyllabusModal()" class="px-3 py-1.5 text-slate-200 hover:bg-slate-800 font-medium text-xs transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
+                        <span class="material-symbols-rounded text-sm text-blue-400">cloud_upload</span>
                         <span>Syllabus</span>
                     </button>
                     @if(!empty($courseFile->syllabus_pdf_path))
-                        <a href="{{ $courseFile->syllabus_pdf_path }}" target="_blank" id="headerViewSyllabusBtn" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition flex items-center gap-1 cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
-                            <span class="material-symbols-rounded text-sm">visibility</span>
+                        <a href="{{ $courseFile->syllabus_pdf_path }}" target="_blank" id="headerViewSyllabusBtn" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition flex items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
+                            <span class="material-symbols-rounded text-xs">visibility</span>
                         </a>
                     @else
-                        <a href="#" target="_blank" id="headerViewSyllabusBtn" class="hidden px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition items-center gap-1 cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
-                            <span class="material-symbols-rounded text-sm">visibility</span>
+                        <a href="#" target="_blank" id="headerViewSyllabusBtn" class="hidden px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
+                            <span class="material-symbols-rounded text-xs">visibility</span>
                         </a>
                     @endif
                 </div>
 
-                <!-- Print Consolidated Report -->
-                <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs sm:text-sm transition flex items-center gap-2 cursor-pointer no-underline shadow-sm" title="Print Consolidated Seminar Report">
-                    <span class="material-symbols-rounded text-base text-slate-400">print</span>
-                    <span>Print 75M Sheet</span>
-                </a>
+                <!-- Print Reports Dropdown -->
+                <div class="relative" id="printReportsDropdownContainer">
+                    <button type="button" onclick="togglePrintDropdown(event)" class="px-3 py-1.5 rounded-lg bg-blue-950/70 hover:bg-blue-900/80 border border-blue-700/60 text-blue-200 hover:text-white font-medium text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" id="printReportsBtn" title="Print Statutory Reports">
+                        <span class="material-symbols-rounded text-sm text-blue-400">print</span>
+                        <span>Print Reports</span>
+                        <span class="material-symbols-rounded text-xs text-slate-400">expand_more</span>
+                    </button>
+                    <div id="printDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-[#0e1628] border border-slate-700 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
+                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                            Select Statutory Report
+                        </div>
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline">
+                            <span class="material-symbols-rounded text-base text-blue-400 shrink-0 mt-0.5">assignment</span>
+                            <div>
+                                <div class="font-bold text-slate-100">Consolidated Evaluation Register</div>
+                                <div class="text-[10px] text-slate-400 leading-tight">6-Rubric Clause 11.2.6 Splitup (75M) with Attendance &amp; Grades</div>
+                            </div>
+                        </a>
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=cia_submission" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline border-t border-slate-800/80">
+                            <span class="material-symbols-rounded text-base text-emerald-400 shrink-0 mt-0.5">verified</span>
+                            <div>
+                                <div class="font-bold text-slate-100">SBTE Final CIA Mark Entry Statement</div>
+                                <div class="text-[10px] text-slate-400 leading-tight">Official mark entry sheet for Controller of Exams / SBTE portal (75M)</div>
+                            </div>
+                        </a>
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=schedule" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline border-t border-slate-800/80">
+                            <span class="material-symbols-rounded text-base text-amber-400 shrink-0 mt-0.5">calendar_today</span>
+                            <div>
+                                <div class="font-bold text-slate-100">Presentation Schedule &amp; Topic Log</div>
+                                <div class="text-[10px] text-slate-400 leading-tight">Topics, guides, allotted presentation dates &amp; status</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Moderate Back Button on Extreme Right Top -->
+                <button type="button" onclick="returnToParent()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-all border border-slate-700/80 cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm shrink-0" title="Return to Caller / Dashboard">
+                    <span class="material-symbols-rounded text-sm text-rose-400">arrow_back</span>
+                    <span>Back</span>
+                </button>
             </div>
 
         </div>
@@ -270,8 +326,8 @@
     <!-- Sub-toolbar: Tabs, Batch Filter & Search -->
     <div class="bg-[#0f172a] border-b border-slate-800 px-4 py-2.5 sm:px-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
-        <!-- Tabs -->
-        <div class="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-auto shrink-0">
+        <!-- Tabs (No Horizontal Scrollbar, Responsive Wrap) -->
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-hidden no-scrollbar shrink-0">
             <button onclick="switchTab('evaluation')" id="tabBtn-evaluation" class="tab-btn px-3.5 py-2 rounded-lg font-bold text-xs transition flex items-center gap-1.5 cursor-pointer bg-blue-600 text-white shadow-sm">
                 <span class="material-symbols-rounded text-base">assignment</span>
                 <span>Evaluation Register (75M)</span>
@@ -283,6 +339,10 @@
             <button onclick="switchTab('grades')" id="tabBtn-grades" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
                 <span class="material-symbols-rounded text-base">grade</span>
                 <span>Consolidated CIA &amp; Grades</span>
+            </button>
+            <button onclick="switchTab('survey')" id="tabBtn-survey" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
+                <span class="material-symbols-rounded text-base text-purple-400">assignment_turned_in</span>
+                <span>Course Exit Survey &amp; Attainment</span>
             </button>
         </div>
 
@@ -306,6 +366,10 @@
                 <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold transition flex items-center gap-1 cursor-pointer shadow-sm" title="Configure Student Lab Batch Division">
                     <span class="material-symbols-rounded text-sm text-blue-400">tune</span>
                     <span>Batch split setup</span>
+                </button>
+                <button type="button" onclick="toggleRubricColumns()" id="btnToggleRubrics" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Toggle detailed 6 rubric breakdown columns">
+                    <span class="material-symbols-rounded text-sm text-blue-400">view_column</span>
+                    <span id="rubricToggleText">Full Rubrics</span>
                 </button>
             </div>
 
@@ -347,8 +411,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shrink-0">
-                    Current Assessor: <strong class="text-white">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong>
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-700/60 text-blue-300 hover:text-white font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm" title="Print Detailed Evaluation Register">
+                        <span class="material-symbols-rounded text-sm">print</span>
+                        <span>Print Register</span>
+                    </a>
+                    <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                        Current Assessor: <strong class="text-white">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong>
+                    </div>
                 </div>
             </div>
 
@@ -358,21 +428,21 @@
                     <table class="table-custom" id="evaluationTable">
                         <thead>
                             <tr>
-                                <th class="text-center w-10">Roll</th>
-                                <th class="w-28">Reg No</th>
-                                <th class="min-w-[140px]">Student Name</th>
-                                <th class="w-16 text-center">Batch</th>
-                                <th class="min-w-[190px]">Seminar Topic &amp; Guide</th>
-                                <th class="text-center w-14" title="Relevance of the topic (Max 7.5)">Relevance<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-14" title="Literature survey (Max 7.5)">Literature<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-16" title="Presentation slides & delivery (Max 37.5)">Presentation<br><span class="text-[9px] text-blue-400 font-mono">37.5M</span></th>
-                                <th class="text-center w-14" title="Interaction & discussion (Max 7.5)">Discussion<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-14" title="Seminar Report (Max 7.5)">Report<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-14" title="Attendance (Max 7.5)">Attendance<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-16" title="Score recorded by currently logged in assessor">My Score<br><span class="text-[9px] text-slate-400 font-mono">75M</span></th>
-                                <th class="text-center w-20" title="Committee Averaged Score (Click to view individual faculty marks)">Committee Avg<br><span class="text-[9px] text-blue-400 font-mono">75M</span></th>
-                                <th class="text-center w-16">SBTE Grade</th>
-                                <th class="text-center w-20">Action</th>
+                                <th class="text-center w-8 sm:w-10">Roll</th>
+                                <th class="w-20 sm:w-24">Reg No</th>
+                                <th class="min-w-[120px] max-w-[150px]">Student Name</th>
+                                <th class="w-10 sm:w-12 text-center">Batch</th>
+                                <th class="min-w-[130px] max-w-[180px]">Seminar Topic &amp; Guide</th>
+                                <th class="text-center w-11 rubric-col" title="1. Relevance of the topic (Max 7.5M)">Rel.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
+                                <th class="text-center w-11 rubric-col" title="2. Literature survey (Max 7.5M)">Lit.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
+                                <th class="text-center w-12 rubric-col" title="3. Presentation slides & delivery (Max 37.5M)">Pres.<br><span class="text-[9px] text-blue-400 font-mono">37.5M</span></th>
+                                <th class="text-center w-11 rubric-col" title="4. Interaction & discussion (Max 7.5M)">Disc.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
+                                <th class="text-center w-11 rubric-col" title="5. Seminar Report (Max 7.5M)">Rep.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
+                                <th class="text-center w-11 rubric-col" title="6. Attendance (Max 7.5M)">Att.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
+                                <th class="text-center w-14" title="Score recorded by currently logged in assessor">My Score<br><span class="text-[9px] text-slate-400 font-mono">75M</span></th>
+                                <th class="text-center w-16" title="Committee Averaged Score (Click to view individual faculty marks)">Comm. Avg<br><span class="text-[9px] text-blue-400 font-mono">75M</span></th>
+                                <th class="text-center w-14">Grade</th>
+                                <th class="text-center w-24 sticky-col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -385,10 +455,10 @@
                                 data-batch="{{ $st['batch'] }}">
                                 
                                 <td class="text-center font-bold text-slate-300">{{ $st['roll_no'] ?? '-' }}</td>
-                                <td class="font-mono text-slate-300 font-semibold text-[11px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
+                                <td class="font-mono text-slate-300 font-semibold text-[10px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
                                 <td>
-                                    <div class="font-bold text-white leading-snug">{{ $st['name'] }}</div>
-                                    <div class="text-[10px] text-slate-400">Class Attendance: <span class="text-slate-300 font-semibold">{{ $st['att_percentage'] }}%</span></div>
+                                    <div class="font-bold text-white leading-tight truncate max-w-[140px]">{{ $st['name'] }}</div>
+                                    <div class="text-[9px] text-slate-400">Att: <span class="text-slate-300 font-semibold">{{ $st['att_percentage'] }}%</span></div>
                                 </td>
                                 <td class="text-center">
                                     @if($st['batch'] === '1')
@@ -402,28 +472,28 @@
 
                                 <!-- Seminar Topic & Guide with Direct Edit Button -->
                                 <td>
-                                    <div class="text-[11px] text-slate-200 font-semibold truncate max-w-[240px] col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
+                                    <div class="text-[11px] text-slate-200 font-semibold truncate max-w-[170px] col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
                                         {{ $st['topic'] ?? '—' }}
                                     </div>
-                                    <div class="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                        <span>Guide: <strong class="text-slate-300 col-row-guide">{{ $st['guide_name'] ?? 'Not Assigned' }}</strong></span>
+                                    <div class="text-[9px] text-slate-400 flex items-center gap-1 mt-0.5 flex-wrap">
+                                        <span>Guide: <strong class="text-slate-300 col-row-guide truncate max-w-[90px]">{{ $st['guide_name'] ?? 'Not Assigned' }}</strong></span>
                                         @if($st['presentation_date_formatted'])
                                             <span>• <span class="text-slate-400 font-mono col-row-date">{{ $st['presentation_date_formatted'] }}</span></span>
                                         @endif
                                     </div>
-                                    <button type="button" onclick="openScheduleModal('{{ $st['reg_no'] }}')" class="mt-1 text-[10px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer">
-                                        <span class="material-symbols-rounded text-xs">edit_note</span>
-                                        <span>{{ !empty($st['topic']) ? 'Edit Topic / Guide' : '+ Add Topic & Guide' }}</span>
+                                    <button type="button" onclick="openScheduleModal('{{ $st['reg_no'] }}')" class="mt-0.5 text-[9px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-0.5 cursor-pointer">
+                                        <span class="material-symbols-rounded text-[11px]">edit_note</span>
+                                        <span>{{ !empty($st['topic']) ? 'Edit' : '+ Topic' }}</span>
                                     </button>
                                 </td>
 
                                 <!-- Averaged Rubrics -->
-                                <td class="text-center font-mono text-slate-300 col-avg-relevance">{{ $st['avg_relevance'] !== null ? number_format($st['avg_relevance'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-literature">{{ $st['avg_literature'] !== null ? number_format($st['avg_literature'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-presentation">{{ $st['avg_presentation'] !== null ? number_format($st['avg_presentation'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-interaction">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-report">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-attendance">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-relevance rubric-col">{{ $st['avg_relevance'] !== null ? number_format($st['avg_relevance'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-literature rubric-col">{{ $st['avg_literature'] !== null ? number_format($st['avg_literature'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-presentation rubric-col">{{ $st['avg_presentation'] !== null ? number_format($st['avg_presentation'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-interaction rubric-col">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-report rubric-col">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
+                                <td class="text-center font-mono text-slate-300 col-avg-attendance rubric-col">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
 
                                 <!-- My Score -->
                                 <td class="text-center font-mono font-bold text-slate-200 col-my-score">
@@ -458,10 +528,10 @@
                                 </td>
 
                                 <!-- Action Button -->
-                                <td class="text-center">
+                                <td class="text-center sticky-col-action">
                                     <button type="button" 
                                             onclick="openEvaluationModal('{{ $st['reg_no'] }}')" 
-                                            class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm">
+                                            class="px-2 sm:px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm whitespace-nowrap">
                                         <span class="material-symbols-rounded text-xs">{{ $st['my_evaluation'] ? 'edit' : 'add' }}</span>
                                         <span>{{ $st['my_evaluation'] ? 'Edit' : 'Evaluate' }}</span>
                                     </button>
@@ -497,8 +567,14 @@
                         <div class="text-[11px] text-slate-400">Track presentation dates, approved seminar topics, and supervising faculty guides.</div>
                     </div>
                 </div>
-                <div class="text-xs text-slate-300">
-                    Total Scheduled: <strong class="text-blue-400">{{ $studentResults->whereNotNull('presentation_date')->count() }}</strong> / {{ $totalStudents }}
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=schedule" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-700/60 text-blue-300 hover:text-white font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm" title="Print Presentation Schedule & Log">
+                        <span class="material-symbols-rounded text-sm">print</span>
+                        <span>Print Schedule</span>
+                    </a>
+                    <div class="text-xs text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                        Total Scheduled: <strong class="text-blue-400">{{ $studentResults->whereNotNull('presentation_date')->count() }}</strong> / {{ $totalStudents }}
+                    </div>
                 </div>
             </div>
 
@@ -508,15 +584,15 @@
                     <table class="table-custom" id="scheduleTable">
                         <thead>
                             <tr>
-                                <th class="text-center w-12">Roll</th>
-                                <th class="w-28">Reg No</th>
-                                <th class="min-w-[150px]">Student Name</th>
-                                <th class="w-16 text-center">Batch</th>
-                                <th class="w-36 text-center">Presentation Date</th>
-                                <th class="min-w-[240px]">Approved Seminar Topic</th>
-                                <th class="min-w-[180px]">Seminar Guide</th>
-                                <th class="text-center w-24">Status</th>
-                                <th class="text-center w-20">Action</th>
+                                <th class="text-center w-8 sm:w-12">Roll</th>
+                                <th class="w-20 sm:w-24">Reg No</th>
+                                <th class="min-w-[140px]">Student Name</th>
+                                <th class="w-12 text-center">Batch</th>
+                                <th class="w-32 text-center">Presentation Date</th>
+                                <th class="min-w-[200px]">Approved Seminar Topic</th>
+                                <th class="min-w-[150px]">Seminar Guide</th>
+                                <th class="text-center w-20">Status</th>
+                                <th class="text-center w-24 sticky-col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -529,7 +605,7 @@
                                 data-batch="{{ $st['batch'] }}">
                                 
                                 <td class="text-center font-bold text-slate-300">{{ $st['roll_no'] ?? '-' }}</td>
-                                <td class="font-mono text-slate-300 font-semibold text-[11px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
+                                <td class="font-mono text-slate-300 font-semibold text-[10px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
                                 <td>
                                     <div class="font-bold text-white">{{ $st['name'] }}</div>
                                 </td>
@@ -595,10 +671,10 @@
                                 </td>
 
                                 <!-- Action Button -->
-                                <td class="text-center">
+                                <td class="text-center sticky-col-action">
                                     <button type="button" 
                                             onclick="openScheduleModal('{{ $st['reg_no'] }}')" 
-                                            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-bold text-[11px] transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm">
+                                            class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-bold text-[11px] transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm whitespace-nowrap">
                                         <span class="material-symbols-rounded text-xs text-blue-400">edit_calendar</span>
                                         <span>Update</span>
                                     </button>
@@ -681,12 +757,21 @@
 
             <!-- Consolidated Table -->
             <div class="glass-panel overflow-hidden">
-                <div class="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-                    <div class="font-bold text-xs text-white">Consolidated CIA Mark Register (Treated as ESE Mark - Max 75 Marks)</div>
-                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print" target="_blank" class="text-blue-400 hover:text-blue-300 text-[11px] font-bold flex items-center gap-1">
-                        <span class="material-symbols-rounded text-sm">print</span>
-                        Print Formal Register
-                    </a>
+                <div class="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                    <div>
+                        <div class="font-bold text-xs text-white">Consolidated CIA Mark Register (Treated as ESE Mark - Max 75 Marks)</div>
+                        <div class="text-[10.5px] text-slate-400">Statutory Clause 11.2.6: Seminar has CIA only. These continuous assessment marks constitute the final grade.</div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=cia_submission" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 hover:text-white text-[11px] font-bold flex items-center gap-1.5 no-underline shadow-sm transition" title="Print Official SBTE Final Mark Entry Statement">
+                            <span class="material-symbols-rounded text-sm text-emerald-400">verified</span>
+                            <span>Print SBTE Marksheet</span>
+                        </a>
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white text-[11px] font-bold flex items-center gap-1.5 no-underline shadow-sm transition" title="Print 6-Rubric Detailed Register">
+                            <span class="material-symbols-rounded text-sm text-blue-400">print</span>
+                            <span>Print Full Register</span>
+                        </a>
+                    </div>
                 </div>
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="table-custom">
@@ -754,269 +839,339 @@
 
         </div>
 
-    </main>
-
-    <!-- ========================================================== -->
-    <!-- ========================================================== -->
-    <!-- MODAL 1: Seminar Evaluation Modal (75M) + Topic & Guide    -->
-    <!-- Full-Screen on Desktop (Zero Scroll) & Responsive Mobile   -->
-    <!-- ========================================================== -->
-    <div id="evaluationModal" class="fixed inset-0 z-[80] hidden bg-[#0b0f19] flex-col w-screen h-screen overflow-hidden">
-        
-        <!-- Sticky Modal Header (Zero-scroll desktop, compact height: ~52px) -->
-        <div class="px-4 py-2.5 sm:px-6 bg-[#0c1322] border-b border-slate-800 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-rounded text-lg sm:text-xl">rate_review</span>
+        <!-- TAB 4: Course Exit Survey & Attainment -->
+        <div id="tabContent-survey" class="tab-pane hidden space-y-5">
+            <!-- Header Panel -->
+            <div class="glass-panel p-4 border border-purple-500/30 bg-gradient-to-r from-slate-900/95 via-purple-950/20 to-slate-900/95 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                            <span class="material-symbols-rounded text-xl">assignment_turned_in</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-white">End Semester Exit Survey (Indirect Attainment - 20% Weightage)</h3>
+                                <span id="seminarSurveyStatusBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Checking...</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">Collect student feedback on CO1–CO3 seminar outcomes to calculate indirect attainment for accreditation.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btnOpenSeminarExitSurvey" onclick="initiateSeminarExitSurvey()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">play_arrow</span> Open Survey
+                        </button>
+                        <button id="btnCloseSeminarExitSurvey" onclick="closeSeminarExitSurvey()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer hidden">
+                            <span class="material-symbols-rounded text-sm">lock</span> Close &amp; Lock
+                        </button>
+                        <button id="btnCopySeminarSurveyLink" onclick="copySeminarSurveyLink()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer hidden">
+                            <span class="material-symbols-rounded text-sm">content_copy</span> Copy Student Link
+                        </button>
+                        <a id="btnTestSeminarSurveyLink" href="#" target="_blank" class="px-3.5 py-1.5 bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all hidden">
+                            <span class="material-symbols-rounded text-sm">open_in_new</span> Test Form
+                        </a>
+                        <a id="btnPrintSeminarSurveyReport" href="/classroom/{{ $batchSubject->id }}/course-exit/report" target="_blank" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <span class="material-symbols-rounded text-sm">print</span> Survey Report
+                        </a>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <div class="text-sm sm:text-base font-extrabold text-white leading-tight" id="evalModalStudentName">Student Evaluation</div>
-                    <div class="text-xs text-slate-400 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800" id="evalModalStudentMeta">
-                        Reg: - • Roll: -
+
+                <!-- Live Survey Response Stats & URL Bar -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-[10px] uppercase font-semibold">Student Responses</span>
+                        <div class="flex items-center justify-between mt-1">
+                            <span id="seminarSurveyResponseStat" class="text-sm font-bold text-white font-mono">0 / {{ $totalStudents }} Submitted</span>
+                            <span id="seminarSurveyResponsePct" class="text-xs text-sky-400 font-mono font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                            <div id="seminarSurveyProgressBar" class="bg-sky-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-[10px] uppercase font-semibold">NBA Attainment Weightage Rule</span>
+                        <div class="text-slate-200 mt-1 font-mono text-[11px] flex items-center gap-1.5">
+                            <span class="text-emerald-400 font-bold">80% Direct CIE</span> + <span class="text-purple-400 font-bold">20% Indirect Exit</span> = <span class="text-white font-bold">100% Overall</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Direct: Continuous Internal Assessment (75M). Indirect: Survey rating average (1 to 3 scale).</p>
+                    </div>
+                    <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-[10px] uppercase font-semibold">Student Survey URL</span>
+                        <div class="mt-1 flex items-center gap-2">
+                            <input type="text" id="seminarSurveyUrlInput" readonly class="w-full px-2 py-1 bg-slate-950 border border-slate-700 rounded text-[11px] text-slate-300 font-mono select-all" value="Initiate survey to generate student link">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <!-- Live Header Score Pill -->
-                <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs">
-                    <span class="text-slate-400 font-medium">Live Total:</span>
-                    <span class="font-bold text-blue-400 text-sm" id="evalHeaderScoreVal">0.0</span>
-                    <span class="text-slate-500">/ 75</span>
+            <!-- Attainment Matrix Table -->
+            <div class="glass-panel overflow-hidden border border-slate-700/80 shadow-lg">
+                <div class="px-5 py-3 bg-[#0f172a] border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-rounded text-base text-blue-400">analytics</span>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">CO Attainment Matrix (Direct + Indirect)</h4>
+                    </div>
+                    <div class="text-xs font-mono text-slate-400" id="seminarAttainmentSummaryText">
+                        Loading Attainment...
+                    </div>
                 </div>
-
-                <button type="button" onclick="closeEvaluationModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800/80 transition cursor-pointer" title="Close Modal (Esc)">
-                    <span class="material-symbols-rounded text-xl">close</span>
-                </button>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="table-custom" id="seminarAttainmentTable">
+                        <thead>
+                            <tr>
+                                <th class="w-16">CO Code</th>
+                                <th>Course Outcome Description</th>
+                                <th class="text-center w-28">Direct CIE Level<br><span class="text-slate-400 font-normal">80% Weight</span></th>
+                                <th class="text-center w-28">Indirect Survey<br><span class="text-slate-400 font-normal">20% Weight</span></th>
+                                <th class="text-center w-28 bg-purple-950/30 text-purple-300 font-bold">Overall Level<br><span class="font-normal">(Max 3.0)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="seminarAttainmentTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-6 text-slate-400">Click "Course Exit Survey &amp; Attainment" to load attainment data.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Form wrapping Body & Footer with 100% viewport fill -->
-        <form id="evaluationForm" onsubmit="submitEvaluationForm(event)" class="flex flex-col flex-grow overflow-hidden">
-            <input type="hidden" id="evalRegNo" name="reg_no">
+    </main>
 
-            <!-- Body: On Desktop (lg:), it fits 100% without scroll (overflow-y-auto lg:overflow-y-hidden). On mobile/small screens, smooth vertical scroll -->
-            <div class="p-3 sm:p-4 lg:p-5 flex-grow overflow-y-auto lg:overflow-y-hidden flex flex-col justify-between space-y-2.5 lg:space-y-3">
-                
-                <!-- Row 1: Assessor Selector, Topic, Assigned Guide & Presentation Date in 1 Sleek Horizontal Bar on Desktop -->
-                <div class="p-2.5 sm:p-3 rounded-xl bg-slate-900/90 border border-slate-800 shrink-0 shadow-sm">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 sm:gap-3 items-center">
-                        <!-- Assessor Selector (Committee Member) -->
-                        <div class="lg:col-span-3 space-y-1">
-                            <div class="flex items-center justify-between">
-                                <label class="block text-[11px] font-bold text-slate-300 truncate">Evaluating Assessor</label>
-                                <span class="text-[10px] text-slate-400 font-mono hidden lg:inline" id="currentAssessorDisplay">{{ $activeStaff->name ?? 'Faculty' }}</span>
-                            </div>
-                            <select id="evalAssessorMobile" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none" onchange="onAssessorChange(this.value)">
-                                @foreach($guides as $g)
-                                    <option value="{{ $g->mobile_no }}" {{ ($activeStaff && $activeStaff->mobile_no == $g->mobile_no) ? 'selected' : '' }}>
-                                        {{ $g->name }} ({{ $g->designation }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+    <!-- ========================================================== -->
+    <!-- MODAL 1: Compact, Professional Seminar Evaluation Dialog  -->
+    <!-- Centered Card Modal (Max 780px wide, User-Friendly Colors) -->
+    <!-- ========================================================== -->
+    <div id="evaluationModal" class="fixed inset-0 z-[80] hidden bg-slate-950/80 backdrop-blur-md items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        
+        <div class="bg-[#111a2e] border border-slate-700/80 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]">
 
-                        <!-- Approved Seminar Topic -->
-                        <div class="lg:col-span-4 space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-300 truncate">Approved Seminar Topic</label>
-                            <input type="text" id="evalTopicInput" placeholder="Enter approved seminar topic title..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none">
+            <!-- Modal Header -->
+            <div class="px-5 py-3 bg-[#0c1322] border-b border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-rounded text-lg">rate_review</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm sm:text-base font-extrabold text-white leading-tight" id="evalModalStudentName">Student Evaluation</span>
+                            <span class="text-[11px] text-slate-400 font-mono px-2 py-0.2 rounded bg-slate-900 border border-slate-800" id="evalModalStudentMeta">
+                                Reg: - • Roll: -
+                            </span>
                         </div>
-
-                        <!-- Assigned Guide -->
-                        <div class="lg:col-span-3 space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-300 truncate">Assigned Guide</label>
-                            <select id="evalGuideSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none">
-                                <option value="">— Select Faculty Guide —</option>
-                                @foreach($guides as $g)
-                                    <option value="{{ $g->mobile_no }}">{{ $g->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Presentation Date -->
-                        <div class="lg:col-span-2 space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-300 truncate">Presentation Date</label>
-                            <input type="date" id="evalPresentationDateInput" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs font-mono focus:border-blue-500 outline-none">
-                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Clause 11.2.6 Evaluation Rubrics &bull; Max 75 Marks</div>
                     </div>
                 </div>
 
-                <!-- Committee Breakdown Box (Compact horizontal bar if multiple faculty evaluated) -->
-                <div id="evalCommitteeBreakdownBox" class="hidden px-3 py-2 rounded-xl bg-slate-900/90 border border-blue-900/50 shrink-0">
-                    <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                            <span class="material-symbols-rounded text-base text-blue-400">group</span>
-                            <span>Recorded Committee Scores</span>
-                        </span>
-                        <span class="text-xs font-semibold text-blue-300" id="evalBreakdownAvgText">Average: 0 / 75</span>
+                <div class="flex items-center gap-2.5">
+                    <!-- Live Header Score Pill -->
+                    <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs">
+                        <span class="text-slate-400 font-medium">Total:</span>
+                        <span class="font-bold text-blue-400 text-sm" id="evalHeaderScoreVal">0.0</span>
+                        <span class="text-slate-500 text-[10px]">/ 75</span>
                     </div>
-                    <div id="evalBreakdownList" class="mt-1.5 space-y-1 text-xs"></div>
-                </div>
 
-                <!-- Rubric Heading & Badge -->
-                <div class="flex items-center justify-between shrink-0">
-                    <div class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                        <span class="material-symbols-rounded text-base text-blue-400">gavel</span>
-                        <span>Evaluation Rubrics (Clause 11.2.6 &bull; Total 75 Marks)</span>
-                    </div>
-                    <span class="text-[11px] text-slate-400 hidden sm:inline font-mono">Compact sliders or direct numeric score</span>
+                    <button type="button" onclick="closeEvaluationModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer" title="Close Modal (Esc)">
+                        <span class="material-symbols-rounded text-xl">close</span>
+                    </button>
                 </div>
+            </div>
 
-                <!-- 6 Evaluation Criteria in 2 Balanced Columns on Desktop (Zero Vertical Scroll) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 lg:gap-3 flex-grow">
+            <!-- Form wrapping Body & Footer -->
+            <form id="evaluationForm" onsubmit="submitEvaluationForm(event)" class="flex flex-col overflow-hidden flex-grow">
+                <input type="hidden" id="evalRegNo" name="reg_no">
+
+                <!-- Scrollable Body (clean padding, no excess height) -->
+                <div class="p-3.5 sm:p-4 overflow-y-auto custom-scrollbar space-y-3">
                     
-                    <!-- Column 1: Criteria 1, 2, 3 -->
-                    <div class="flex flex-col justify-between gap-2 lg:gap-2.5">
+                    <!-- Metadata Strip: Topic, Assessor, Guide & Date -->
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+                        
+                        <!-- Row 1: Approved Seminar Topic -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Approved Seminar Topic</label>
+                            <input type="text" id="evalTopicInput" placeholder="Enter or edit seminar topic..." class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition">
+                        </div>
+
+                        <!-- Row 2: Assessor, Guide & Presentation Date (3 columns) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Evaluating Assessor</label>
+                                <select id="evalAssessorMobile" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition" onchange="onAssessorChange(this.value)">
+                                    @foreach($guides as $g)
+                                        <option value="{{ $g->mobile_no }}" {{ ($activeStaff && $activeStaff->mobile_no == $g->mobile_no) ? 'selected' : '' }}>
+                                            {{ $g->name }} ({{ $g->designation }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span class="hidden" id="currentAssessorDisplay">{{ $activeStaff->name ?? 'Faculty' }}</span>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Assigned Guide</label>
+                                <select id="evalGuideSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition">
+                                    <option value="">— Select Guide —</option>
+                                    @foreach($guides as $g)
+                                        <option value="{{ $g->mobile_no }}">{{ $g->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Presentation Date</label>
+                                <input type="date" id="evalPresentationDateInput" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs font-mono focus:border-blue-500 outline-none transition">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Committee Breakdown Box (Shown if other faculty evaluated) -->
+                    <div id="evalCommitteeBreakdownBox" class="hidden px-3 py-2 rounded-xl bg-slate-900/90 border border-blue-900/50">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <span class="material-symbols-rounded text-base text-blue-400">group</span>
+                                <span>Recorded Committee Scores</span>
+                            </span>
+                            <span class="text-xs font-semibold text-blue-300" id="evalBreakdownAvgText">Average: 0 / 75</span>
+                        </div>
+                        <div id="evalBreakdownList" class="mt-1.5 space-y-1 text-xs"></div>
+                    </div>
+
+                    <!-- 6 Rubric Criteria in a Clean, Compact 2-Column Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         
                         <!-- Criterion 1: Relevance of Topic (Max 7.5) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                                <div class="truncate">
-                                    <span class="font-bold text-slate-100 text-xs sm:text-sm">Relevance of Topic</span>
-                                    <span class="text-slate-400 text-[11px] ml-1">(10%)</span>
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                                    <span class="font-bold text-slate-200 text-xs truncate">Relevance of Topic</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_relevance" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('relevance')">
+                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="7.5" step="0.25" id="range_relevance" class="w-24 sm:w-28" oninput="syncEvalInput('relevance')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_relevance" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center text-white font-bold text-xs sm:text-sm focus:border-blue-500 outline-none" oninput="syncEvalSlider('relevance')">
-                                    <span class="text-slate-500 text-xs">/ 7.5</span>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_relevance" class="w-full cursor-pointer" oninput="syncEvalInput('relevance')">
+                        </div>
+
+                        <!-- Criterion 3 (HERO): Presentation Delivery (Max 37.5 - 50%) -->
+                        <div class="p-2.5 rounded-xl bg-gradient-to-br from-blue-950/40 to-slate-900 border border-blue-600/50 shadow-sm space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm">3</span>
+                                    <span class="font-extrabold text-white text-xs truncate">Presentation Delivery</span>
+                                    <span class="px-1.5 py-0.2 rounded bg-blue-600/30 text-blue-300 text-[9px] font-bold border border-blue-500/40">50%</span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="37.5" id="input_presentation" class="w-16 bg-slate-950 border border-blue-500 rounded px-1.5 py-0.5 text-center text-blue-300 font-black text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('presentation')">
+                                    <span class="text-blue-400 font-bold text-[10px]">/ 37.5</span>
                                 </div>
                             </div>
+                            <input type="range" min="0" max="37.5" step="0.5" id="range_presentation" class="w-full cursor-pointer accent-blue-500" oninput="syncEvalInput('presentation')">
                         </div>
 
                         <!-- Criterion 2: Literature Survey (Max 7.5) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                                <div class="truncate">
-                                    <span class="font-bold text-slate-100 text-xs sm:text-sm">Literature Survey</span>
-                                    <span class="text-slate-400 text-[11px] ml-1">(10%)</span>
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                                    <span class="font-bold text-slate-200 text-xs truncate">Literature Survey</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_literature" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('literature')">
+                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="7.5" step="0.25" id="range_literature" class="w-24 sm:w-28" oninput="syncEvalInput('literature')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_literature" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center text-white font-bold text-xs sm:text-sm focus:border-blue-500 outline-none" oninput="syncEvalSlider('literature')">
-                                    <span class="text-slate-500 text-xs">/ 7.5</span>
-                                </div>
-                            </div>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_literature" class="w-full cursor-pointer" oninput="syncEvalInput('literature')">
                         </div>
 
-                        <!-- Criterion 3: Presentation: Slides & Delivery (Max 37.5 - 50% Hero) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-950/50 to-slate-900 border border-blue-500/50 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">3</span>
-                                <div class="truncate">
-                                    <span class="font-extrabold text-white text-xs sm:text-sm">Presentation (Slides &amp; Delivery)</span>
-                                    <span class="px-1.5 py-0.2 rounded bg-blue-600/30 text-blue-300 text-[10px] font-bold border border-blue-500/40 ml-1">50%</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="37.5" step="0.5" id="range_presentation" class="w-28 sm:w-36" oninput="syncEvalInput('presentation')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="37.5" id="input_presentation" class="w-16 bg-slate-950 border border-blue-500 rounded-lg px-1.5 py-1 text-center text-white font-black text-xs sm:text-sm focus:border-blue-400 outline-none" oninput="syncEvalSlider('presentation')">
-                                    <span class="text-blue-400 font-bold text-xs sm:text-sm">/ 37.5</span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Column 2: Criteria 4, 5, 6 -->
-                    <div class="flex flex-col justify-between gap-2 lg:gap-2.5">
-                        
                         <!-- Criterion 4: Interaction / Discussion (Max 7.5) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">4</span>
-                                <div class="truncate">
-                                    <span class="font-bold text-slate-100 text-xs sm:text-sm">Interaction / Discussion</span>
-                                    <span class="text-slate-400 text-[11px] ml-1">(10%)</span>
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                                    <span class="font-bold text-slate-200 text-xs truncate">Interaction / Viva</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_interaction" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('interaction')">
+                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="7.5" step="0.25" id="range_interaction" class="w-24 sm:w-28" oninput="syncEvalInput('interaction')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_interaction" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center text-white font-bold text-xs sm:text-sm focus:border-blue-500 outline-none" oninput="syncEvalSlider('interaction')">
-                                    <span class="text-slate-500 text-xs">/ 7.5</span>
-                                </div>
-                            </div>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_interaction" class="w-full cursor-pointer" oninput="syncEvalInput('interaction')">
                         </div>
 
                         <!-- Criterion 5: Seminar Report (Max 7.5) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">5</span>
-                                <div class="truncate">
-                                    <span class="font-bold text-slate-100 text-xs sm:text-sm">Seminar Report</span>
-                                    <span class="text-slate-400 text-[11px] ml-1">(10%)</span>
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
+                                    <span class="font-bold text-slate-200 text-xs truncate">Seminar Report</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_report" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('report')">
+                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="7.5" step="0.25" id="range_report" class="w-24 sm:w-28" oninput="syncEvalInput('report')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_report" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center text-white font-bold text-xs sm:text-sm focus:border-blue-500 outline-none" oninput="syncEvalSlider('report')">
-                                    <span class="text-slate-500 text-xs">/ 7.5</span>
-                                </div>
-                            </div>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_report" class="w-full cursor-pointer" oninput="syncEvalInput('report')">
                         </div>
 
-                        <!-- Criterion 6: Attendance (Max 7.5) -->
-                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 shadow-sm flex-grow">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">6</span>
+                        <!-- Criterion 6: Attendance (Max 7.5 with 1-click Auto) -->
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                            <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-1.5 truncate">
-                                    <span class="font-bold text-slate-100 text-xs sm:text-sm">Attendance</span>
-                                    <button type="button" onclick="applySuggestedAttendance()" id="btnApplySuggestedAtt" class="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 border border-emerald-600/50 text-emerald-400 rounded-lg font-bold text-[10px] transition flex items-center gap-1 cursor-pointer shrink-0" title="Apply Auto-Calculated Attendance Score">
-                                        <span class="material-symbols-rounded text-xs">auto_fix_high</span>
+                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">6</span>
+                                    <span class="font-bold text-slate-200 text-xs">Attendance</span>
+                                    <button type="button" onclick="applySuggestedAttendance()" id="btnApplySuggestedAtt" class="px-1.5 py-0.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/50 text-emerald-300 rounded font-bold text-[9px] transition flex items-center gap-1 cursor-pointer shrink-0" title="Apply Auto Attendance Score">
+                                        <span class="material-symbols-rounded text-[11px]">auto_fix_high</span>
                                         <span>Auto (<span id="modalSuggestedAttVal">7.5</span>M)</span>
                                     </button>
+                                    <span id="modalAttHelpText" class="hidden"></span>
+                                </div>
+                                <div class="flex items-center gap-1 font-mono shrink-0">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_attendance" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-emerald-400 font-bold text-xs focus:border-emerald-400 outline-none" oninput="syncEvalSlider('attendance')">
+                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                <input type="range" min="0" max="7.5" step="0.25" id="range_attendance" class="w-24 sm:w-28" oninput="syncEvalInput('attendance')">
-                                <div class="flex items-center gap-1 font-mono">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_attendance" class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center text-white font-bold text-xs sm:text-sm focus:border-blue-500 outline-none" oninput="syncEvalSlider('attendance')">
-                                    <span class="text-slate-500 text-xs">/ 7.5</span>
-                                </div>
-                            </div>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_attendance" class="w-full cursor-pointer accent-emerald-500" oninput="syncEvalInput('attendance')">
                         </div>
 
                     </div>
 
                 </div>
 
-            </div>
-
-            <!-- Sticky Modal Footer (Pinned at bottom, compact ~56px) -->
-            <div class="px-4 py-2.5 sm:px-6 sm:py-3 bg-[#0c1322] border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0 shadow-lg">
-                <div class="flex items-center justify-between sm:justify-start gap-4">
-                    <div>
-                        <div class="text-[10px] uppercase font-bold text-slate-400">Total Score (Clause 11.2.6)</div>
-                        <div class="text-xl sm:text-2xl font-black text-white font-mono leading-tight mt-0.5" id="evalLiveTotal">
-                            0.0 <span class="text-xs text-slate-500 font-normal">/ 75.0</span>
+                <!-- Modal Footer -->
+                <div class="px-5 py-3 bg-[#0c1322] border-t border-slate-800 flex items-center justify-between gap-3 shrink-0 shadow-lg">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div>
+                            <div class="text-[9px] uppercase font-bold text-slate-400">Total Score</div>
+                            <div class="text-lg sm:text-xl font-black text-white font-mono leading-tight" id="evalLiveTotal">
+                                0.0 <span class="text-[11px] text-slate-500 font-normal">/ 75.0</span>
+                            </div>
+                        </div>
+                        <div class="border-l border-slate-800 pl-3">
+                            <div class="text-[9px] uppercase font-bold text-slate-400">Grade</div>
+                            <div class="text-xs sm:text-sm font-extrabold" id="evalLiveGrade">—</div>
                         </div>
                     </div>
-                    <div class="border-l border-slate-800 pl-4">
-                        <div class="text-[10px] uppercase font-bold text-slate-400">Projected SBTE Grade</div>
-                        <div class="text-sm sm:text-base font-extrabold mt-0.5" id="evalLiveGrade">—</div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeEvaluationModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" id="btnSaveEval" class="px-5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <span class="material-symbols-rounded text-base">save</span>
+                            <span>Save Score</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <button type="button" onclick="closeEvaluationModal()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm transition cursor-pointer min-h-[40px]">
-                        Cancel (Esc)
-                    </button>
-                    <button type="submit" id="btnSaveEval" class="flex-1 sm:flex-none px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-sm cursor-pointer min-h-[40px]">
-                        <span class="material-symbols-rounded text-lg">save</span>
-                        <span>Save Evaluation</span>
-                    </button>
-                </div>
-            </div>
+            </form>
 
-        </form>
+        </div>
     </div>
 
     <!-- ========================================== -->
@@ -1202,6 +1357,21 @@
             window.location.href = '{{ $dashboardUrl }}';
         }
 
+        // ---------------- PRINT REPORTS DROPDOWN ----------------
+        function togglePrintDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('printDropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function (event) {
+            const container = document.getElementById('printReportsDropdownContainer');
+            const menu = document.getElementById('printDropdownMenu');
+            if (container && menu && !container.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
         // ---------------- TAB SWITCHING ----------------
         function switchTab(tabKey) {
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
@@ -1217,6 +1387,181 @@
                 targetBtn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
                 targetBtn.classList.remove('text-slate-400');
             }
+
+            if (tabKey === 'survey') {
+                loadSeminarSurveyData();
+            }
+        }
+
+        // ---------------- COURSE EXIT SURVEY & ATTAINMENT ----------------
+        let activeSeminarSurveyId = null;
+        let activeSeminarSurveyUrl = null;
+
+        function loadSeminarSurveyData() {
+            fetch(`/r21/classroom/seminar/${subjectId}/attainment/summary`, {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS' && res.data) {
+                    renderSeminarAttainment(res.data);
+                    if (res.data.survey) {
+                        updateSeminarSurveyUi(res.data.survey);
+                    }
+                }
+            })
+            .catch(err => console.error('Error loading seminar attainment/survey:', err));
+        }
+
+        function updateSeminarSurveyUi(survey) {
+            if (!survey) return;
+            activeSeminarSurveyId = survey.id;
+            activeSeminarSurveyUrl = survey.student_url;
+
+            const badge = document.getElementById('seminarSurveyStatusBadge');
+            const btnOpen = document.getElementById('btnOpenSeminarExitSurvey');
+            const btnClose = document.getElementById('btnCloseSeminarExitSurvey');
+            const btnCopy = document.getElementById('btnCopySeminarSurveyLink');
+            const btnTest = document.getElementById('btnTestSeminarSurveyLink');
+            const urlInput = document.getElementById('seminarSurveyUrlInput');
+            const statText = document.getElementById('seminarSurveyResponseStat');
+            const pctText = document.getElementById('seminarSurveyResponsePct');
+            const progBar = document.getElementById('seminarSurveyProgressBar');
+
+            const responded = survey.responded_count || 0;
+            const total = survey.total_students || 1;
+            const pct = Math.round((responded / total) * 100);
+
+            if (statText) statText.innerText = `${responded} / ${total} Submitted`;
+            if (pctText) pctText.innerText = `${pct}%`;
+            if (progBar) progBar.style.width = `${pct}%`;
+
+            if (survey.status === 'Active') {
+                if (badge) {
+                    badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                    badge.innerText = 'Survey Active';
+                }
+                if (btnOpen) btnOpen.classList.add('hidden');
+                if (btnClose) btnClose.classList.remove('hidden');
+                if (btnCopy) btnCopy.classList.remove('hidden');
+                if (btnTest) {
+                    btnTest.classList.remove('hidden');
+                    btnTest.href = survey.student_url || '#';
+                }
+                if (urlInput) urlInput.value = survey.student_url || '';
+            } else if (survey.status === 'Completed') {
+                if (badge) {
+                    badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/40';
+                    badge.innerText = 'Survey Closed & Locked';
+                }
+                if (btnOpen) {
+                    btnOpen.classList.remove('hidden');
+                    btnOpen.innerHTML = '<span class="material-symbols-rounded text-sm">restart_alt</span> Re-Open Survey';
+                }
+                if (btnClose) btnClose.classList.add('hidden');
+                if (btnCopy) btnCopy.classList.add('hidden');
+                if (btnTest) btnTest.classList.add('hidden');
+                if (urlInput) urlInput.value = 'Survey Closed and Locked';
+            } else {
+                if (badge) {
+                    badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700';
+                    badge.innerText = 'Not Initiated';
+                }
+                if (btnOpen) {
+                    btnOpen.classList.remove('hidden');
+                    btnOpen.innerHTML = '<span class="material-symbols-rounded text-sm">play_arrow</span> Open Survey';
+                }
+                if (btnClose) btnClose.classList.add('hidden');
+                if (btnCopy) btnCopy.classList.add('hidden');
+                if (btnTest) btnTest.classList.add('hidden');
+                if (urlInput) urlInput.value = 'Initiate survey to generate student link';
+            }
+        }
+
+        function initiateSeminarExitSurvey() {
+            if (!confirm('Open End Semester Course Exit Survey for all enrolled Seminar students?')) return;
+
+            fetch(`/api/classroom/${subjectId}/course-exit/initiate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    alert('Course Exit Survey initiated successfully! Students can now submit their feedback.');
+                    loadSeminarSurveyData();
+                } else {
+                    alert('Notice: ' + res.message);
+                    loadSeminarSurveyData();
+                }
+            })
+            .catch(err => alert('Network error while initiating survey.'));
+        }
+
+        function closeSeminarExitSurvey() {
+            if (!confirm('Are you sure you want to close and lock this survey? Student submissions will be locked and indirect attainment finalized.')) return;
+
+            fetch(`/api/classroom/${subjectId}/course-exit/close`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'SUCCESS') {
+                    alert('Course Exit Survey locked and finalized successfully.');
+                    loadSeminarSurveyData();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            })
+            .catch(err => alert('Network error while closing survey.'));
+        }
+
+        function copySeminarSurveyLink() {
+            const urlInput = document.getElementById('seminarSurveyUrlInput');
+            if (!urlInput || !urlInput.value || urlInput.value.indexOf('http') === -1) {
+                alert('No active survey URL to copy.');
+                return;
+            }
+            navigator.clipboard.writeText(urlInput.value).then(() => {
+                alert('Survey Link copied to clipboard!\n\n' + urlInput.value);
+            }).catch(() => {
+                urlInput.select();
+                document.execCommand('copy');
+                alert('Survey Link copied to clipboard!');
+            });
+        }
+
+        function renderSeminarAttainment(data) {
+            const summaryText = document.getElementById('seminarAttainmentSummaryText');
+            if (summaryText) {
+                summaryText.innerHTML = `Direct CIE: <strong class="text-emerald-400">${data.average_direct}</strong> | Indirect Exit: <strong class="text-purple-400">${data.average_indirect}</strong> | Overall: <strong class="text-white">${data.average_overall}</strong> / 3.0`;
+            }
+
+            const tbody = document.getElementById('seminarAttainmentTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const matrix = data.matrix || [];
+            matrix.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold text-sky-400 font-mono">${row.co_tag}</td>
+                    <td class="text-slate-200 text-xs">${row.description}</td>
+                    <td class="text-center font-mono font-bold text-emerald-400">${row.cie_level}</td>
+                    <td class="text-center font-mono font-bold text-purple-400">${row.indirect_attainment}</td>
+                    <td class="text-center font-mono font-bold bg-purple-950/20 text-white text-sm">${row.overall_attainment}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         // ---------------- BATCH FILTERING ----------------
@@ -1741,6 +2086,59 @@
             }
         }
 
+        // ---------------- RUBRIC VIEW TOGGLE (RESPONSIVE) ----------------
+        // Default to compact if screen is narrower than 1280px (e.g. standard laptops or tablets)
+        let isRubricsExpanded = window.innerWidth >= 1280;
+        let userManuallyToggledRubrics = false;
+
+        function toggleRubricColumns() {
+            isRubricsExpanded = !isRubricsExpanded;
+            userManuallyToggledRubrics = true;
+            applyRubricVisibility();
+        }
+
+        function applyRubricVisibility() {
+            const cols = document.querySelectorAll('.rubric-col');
+            const txt = document.getElementById('rubricToggleText');
+            const btn = document.getElementById('btnToggleRubrics');
+
+            cols.forEach(el => {
+                if (isRubricsExpanded) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+
+            if (txt) {
+                txt.textContent = isRubricsExpanded ? 'Compact View' : 'Full Rubrics';
+            }
+            if (btn) {
+                if (isRubricsExpanded) {
+                    btn.classList.add('border-blue-500', 'text-blue-300');
+                    btn.classList.remove('border-slate-700', 'text-slate-300');
+                } else {
+                    btn.classList.remove('border-blue-500', 'text-blue-300');
+                    btn.classList.add('border-slate-700', 'text-slate-300');
+                }
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            if (!userManuallyToggledRubrics) {
+                const shouldBeExpanded = window.innerWidth >= 1280;
+                if (shouldBeExpanded !== isRubricsExpanded) {
+                    isRubricsExpanded = shouldBeExpanded;
+                    applyRubricVisibility();
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            applyRubricVisibility();
+            loadSeminarSurveyData();
+        });
+
         // Global keydown handler for Escape key modal dismissal
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' || e.keyCode === 27) {
@@ -1767,5 +2165,7 @@
             }
         });
     </script>
+
+    @include('partials.carmie_assistant')
 </body>
 </html>

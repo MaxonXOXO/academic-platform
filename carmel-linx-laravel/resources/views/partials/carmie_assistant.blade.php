@@ -1,0 +1,450 @@
+<!-- =========================================================================
+     CARMIE - Carmel-linx Campus Guide & Academic Mentor (Widget Partial)
+     Carmie is a friendly, smart female academic guide for Carmel Polytechnic.
+     ========================================================================= -->
+<div id="carmieWidgetContainer" class="no-print select-none">
+
+  <!-- SVG AVATAR DEFINITION TEMPLATE -->
+  <svg class="hidden">
+    <defs>
+      <linearGradient id="carmieAvatarBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f43f5e"/>
+        <stop offset="50%" stop-color="#a855f7"/>
+        <stop offset="100%" stop-color="#6366f1"/>
+      </linearGradient>
+      <linearGradient id="carmieSkinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fff1eb"/>
+        <stop offset="100%" stop-color="#fcd5c0"/>
+      </linearGradient>
+      <linearGradient id="carmieHairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#4a2018"/>
+        <stop offset="100%" stop-color="#24100c"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- FLOATING ACTION BUTTON (BOTTOM-RIGHT) -->
+  <div id="carmieFabWrapper" class="fixed bottom-6 right-6 z-[9999] flex items-center gap-3">
+    <!-- Initial Greeting Balloon (Auto-dismisses or closeable) -->
+    <div id="carmieGreetingBubble" class="hidden sm:flex items-center gap-2.5 bg-slate-900/95 border border-rose-500/40 text-slate-100 text-xs font-semibold px-3.5 py-2 rounded-2xl shadow-xl shadow-rose-950/40 backdrop-blur-md animate-bounce cursor-pointer" onclick="toggleCarmieChat()">
+      <span class="text-base">🌸</span>
+      <span>Need help? Ask <strong>Carmie</strong>!</span>
+      <button type="button" onclick="dismissCarmieGreeting(event)" class="text-slate-400 hover:text-white ml-1 text-sm leading-none">&times;</button>
+    </div>
+
+    <!-- Toggle Button -->
+    <button type="button" 
+            id="carmieFabBtn"
+            onclick="toggleCarmieChat()" 
+            aria-label="Ask Carmie"
+            class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-rose-500 via-purple-600 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white shadow-xl shadow-rose-500/25 border-2 border-white/30 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer group overflow-hidden">
+      
+      <!-- Sparkle pulse ring -->
+      <span class="absolute -inset-1 rounded-full bg-gradient-to-r from-rose-500 to-indigo-500 opacity-40 blur-sm group-hover:opacity-75 animate-pulse transition duration-300 pointer-events-none"></span>
+
+      <!-- Carmie Face Avatar (Visible when closed) -->
+      <div id="carmieFabAvatar" class="relative z-10 w-full h-full p-0.5 transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+        <svg viewBox="0 0 100 100" class="w-full h-full select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="48" fill="url(#carmieAvatarBgGrad)"/>
+          <path d="M22 96 C24 80 34 75 44 77 L50 82 L56 77 C66 75 76 80 78 96 Z" fill="#3730a3"/>
+          <path d="M44 77 C40 82 46 87 50 82 C54 87 60 82 56 77 Z" fill="#ffffff"/>
+          <rect x="44" y="66" width="12" height="13" rx="4" fill="#fcd5c0"/>
+          <path d="M27 48 C23 60 25 76 30 83 C34 79 38 74 40 70 C60 70 62 74 70 83 C75 76 77 60 73 48 C70 32 30 32 27 48 Z" fill="url(#carmieHairGrad)"/>
+          <ellipse cx="50" cy="52" rx="19" ry="21" fill="url(#carmieSkinGrad)"/>
+          <circle cx="37" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+          <circle cx="63" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+          <path d="M37 49 Q41.5 45.5 45 49.5" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M55 49.5 Q58.5 45.5 63 49" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M36 43 Q41 39.5 45 42" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <path d="M55 42 Q59 39.5 64 43" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="53.5" r="1.2" fill="#e29d82"/>
+          <path d="M43.5 59 Q50 66.5 56.5 59" stroke="#e11d48" stroke-width="2.2" stroke-linecap="round" fill="#ffffff"/>
+          <rect x="33" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+          <rect x="53.5" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+          <path d="M46.5 48 L53.5 48" stroke="#fbbf24" stroke-width="1.6"/>
+          <path d="M29 44 C29 30 37 21 50 21 C63 21 71 30 71 44 C67 37 60 33 53 34 C44 35 38 41 33 42 C30 42 29 43 29 44 Z" fill="url(#carmieHairGrad)"/>
+          <circle cx="66" cy="32" r="3.2" fill="#fb7185"/>
+          <circle cx="66" cy="32" r="1.3" fill="#fef08a"/>
+        </svg>
+      </div>
+
+      <!-- Close Icon (Visible when open) -->
+      <span id="carmieFabClose" class="hidden material-symbols-rounded text-2xl relative z-10 text-white">close</span>
+
+      <!-- Online Dot Indicator -->
+      <span class="absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-slate-900 rounded-full z-20 shadow-xs"></span>
+    </button>
+  </div>
+
+  <!-- CHAT DRAWER / WINDOW -->
+  <div id="carmieChatModal" 
+       class="hidden fixed bottom-6 right-6 sm:bottom-24 sm:right-6 z-[10000] w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[calc(100vh-100px)] bg-slate-900/95 border border-slate-700/80 rounded-3xl shadow-2xl shadow-black/80 flex flex-col overflow-hidden backdrop-blur-xl transition-all duration-300 animate-fade-in font-sans">
+    
+    <!-- HEADER -->
+    <div class="px-4 py-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="relative w-11 h-11 rounded-2xl overflow-hidden shadow-md border border-rose-400/40 shrink-0 bg-slate-900 flex items-center justify-center p-0.5">
+          <svg viewBox="0 0 100 100" class="w-full h-full select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="48" fill="url(#carmieAvatarBgGrad)"/>
+            <path d="M22 96 C24 80 34 75 44 77 L50 82 L56 77 C66 75 76 80 78 96 Z" fill="#3730a3"/>
+            <path d="M44 77 C40 82 46 87 50 82 C54 87 60 82 56 77 Z" fill="#ffffff"/>
+            <rect x="44" y="66" width="12" height="13" rx="4" fill="#fcd5c0"/>
+            <path d="M27 48 C23 60 25 76 30 83 C34 79 38 74 40 70 C60 70 62 74 70 83 C75 76 77 60 73 48 C70 32 30 32 27 48 Z" fill="url(#carmieHairGrad)"/>
+            <ellipse cx="50" cy="52" rx="19" ry="21" fill="url(#carmieSkinGrad)"/>
+            <circle cx="37" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+            <circle cx="63" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+            <path d="M37 49 Q41.5 45.5 45 49.5" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M55 49.5 Q58.5 45.5 63 49" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M36 43 Q41 39.5 45 42" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M55 42 Q59 39.5 64 43" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <circle cx="50" cy="53.5" r="1.2" fill="#e29d82"/>
+            <path d="M43.5 59 Q50 66.5 56.5 59" stroke="#e11d48" stroke-width="2.2" stroke-linecap="round" fill="#ffffff"/>
+            <rect x="33" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+            <rect x="53.5" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+            <path d="M46.5 48 L53.5 48" stroke="#fbbf24" stroke-width="1.6"/>
+            <path d="M29 44 C29 30 37 21 50 21 C63 21 71 30 71 44 C67 37 60 33 53 34 C44 35 38 41 33 42 C30 42 29 43 29 44 Z" fill="url(#carmieHairGrad)"/>
+            <circle cx="66" cy="32" r="3.2" fill="#fb7185"/>
+            <circle cx="66" cy="32" r="1.3" fill="#fef08a"/>
+          </svg>
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full z-20"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h3 class="font-extrabold text-sm text-white tracking-tight">Carmie</h3>
+            <span class="text-xs">🌸</span>
+            <span id="carmieEngineBadge" class="text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
+              Campus Mentor
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-tight">Carmel-linx Academic Companion</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 text-slate-400">
+        <button type="button" onclick="clearCarmieHistory()" title="Clear conversation" class="p-1.5 hover:text-slate-200 hover:bg-slate-800/80 rounded-xl transition cursor-pointer">
+          <span class="material-symbols-rounded text-lg">delete_sweep</span>
+        </button>
+        <button type="button" onclick="toggleCarmieChat()" title="Close Carmie" class="p-1.5 hover:text-slate-200 hover:bg-slate-800/80 rounded-xl transition cursor-pointer">
+          <span class="material-symbols-rounded text-lg">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- QUICK STARTER SUGGESTION CHIPS -->
+    <div class="px-3.5 py-2 bg-slate-950/40 border-b border-slate-800/60 overflow-x-auto flex items-center gap-1.5 no-scrollbar shrink-0" id="carmieChipsContainer">
+      <button type="button" onclick="sendCarmieQuickPrompt('What can I do on this page?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
+        💡 What can I do here?
+      </button>
+      <button type="button" onclick="sendCarmieQuickPrompt('How do I set an assignment in 5041 Embedded Systems?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-sky-300 border border-blue-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
+        📝 Set Assignment in 5041
+      </button>
+      <button type="button" onclick="sendCarmieQuickPrompt('How does CO-PO matrix autosave work in Revision 2026 theory?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full transition-all cursor-pointer">
+        🎯 CO-PO Autosave in Rev 2026
+      </button>
+      <button type="button" onclick="sendCarmieQuickPrompt('How to log daily attendance and subject log?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition-all cursor-pointer">
+        📅 Attendance Log
+      </button>
+      <button type="button" onclick="sendCarmieQuickPrompt('How to complete the Course File checklist?')" class="carmie-chip whitespace-nowrap text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition-all cursor-pointer">
+        📁 Course File Checklist
+      </button>
+    </div>
+
+    <!-- CHAT MESSAGES SCROLL AREA -->
+    <div id="carmieMessages" class="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs select-text">
+      <!-- Default Welcome Message -->
+      <div class="flex items-start gap-2.5">
+        <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 shadow-sm border border-rose-400/40 bg-slate-900 p-0.5">
+          <svg viewBox="0 0 100 100" class="w-full h-full select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="48" fill="url(#carmieAvatarBgGrad)"/>
+            <path d="M22 96 C24 80 34 75 44 77 L50 82 L56 77 C66 75 76 80 78 96 Z" fill="#3730a3"/>
+            <path d="M44 77 C40 82 46 87 50 82 C54 87 60 82 56 77 Z" fill="#ffffff"/>
+            <rect x="44" y="66" width="12" height="13" rx="4" fill="#fcd5c0"/>
+            <path d="M27 48 C23 60 25 76 30 83 C34 79 38 74 40 70 C60 70 62 74 70 83 C75 76 77 60 73 48 C70 32 30 32 27 48 Z" fill="url(#carmieHairGrad)"/>
+            <ellipse cx="50" cy="52" rx="19" ry="21" fill="url(#carmieSkinGrad)"/>
+            <circle cx="37" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+            <circle cx="63" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+            <path d="M37 49 Q41.5 45.5 45 49.5" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M55 49.5 Q58.5 45.5 63 49" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M36 43 Q41 39.5 45 42" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M55 42 Q59 39.5 64 43" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <circle cx="50" cy="53.5" r="1.2" fill="#e29d82"/>
+            <path d="M43.5 59 Q50 66.5 56.5 59" stroke="#e11d48" stroke-width="2.2" stroke-linecap="round" fill="#ffffff"/>
+            <rect x="33" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+            <rect x="53.5" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+            <path d="M46.5 48 L53.5 48" stroke="#fbbf24" stroke-width="1.6"/>
+            <path d="M29 44 C29 30 37 21 50 21 C63 21 71 30 71 44 C67 37 60 33 53 34 C44 35 38 41 33 42 C30 42 29 43 29 44 Z" fill="url(#carmieHairGrad)"/>
+            <circle cx="66" cy="32" r="3.2" fill="#fb7185"/>
+            <circle cx="66" cy="32" r="1.3" fill="#fef08a"/>
+          </svg>
+        </div>
+        <div class="max-w-[85%] bg-slate-800/80 border border-slate-700/80 rounded-2xl rounded-tl-sm p-3 text-slate-200 leading-relaxed space-y-1.5 shadow-sm">
+          <p>Hi! I'm <strong>Carmie</strong>, your Carmel-linx academic companion! 🌸</p>
+          <p class="text-slate-300 text-[11.5px]">
+            Ask me anytime you're stuck or need help with assignments, CO-PO matrices, attendance, marks, or reports.
+          </p>
+          <p class="text-slate-400 text-[10.5px] italic pt-1 border-t border-slate-700/60">
+            Click any suggestion chip above or type your question below!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPING INDICATOR -->
+    <div id="carmieTypingIndicator" class="hidden px-4 py-2 bg-slate-950/40 text-slate-400 text-xs flex items-center gap-2 shrink-0">
+      <span class="material-symbols-rounded text-sm animate-spin text-rose-400">autorenew</span>
+      <span class="text-[11px] font-medium text-rose-200">Carmie is preparing your answer... 🌸</span>
+    </div>
+
+    <!-- INPUT BAR -->
+    <form id="carmieForm" onsubmit="handleCarmieSubmit(event)" class="p-3 bg-slate-950/90 border-t border-slate-800 flex items-center gap-2 shrink-0">
+      <input type="text"
+             id="carmieInput"
+             placeholder="Ask Carmie a question..."
+             autocomplete="off"
+             class="flex-1 bg-slate-900 border border-slate-700/80 hover:border-slate-600 focus:border-rose-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-colors shadow-inner">
+      <button type="submit" 
+              id="carmieSubmitBtn"
+              class="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer shrink-0 disabled:opacity-50">
+        <span class="material-symbols-rounded text-lg">send</span>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- CARMIE CLIENT-SIDE ENGINE SCRIPT -->
+<script>
+  let carmieChatOpen = false;
+  let carmieHistory = [];
+
+  const CARMIE_AVATAR_HTML = `
+    <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 shadow-sm border border-rose-400/40 bg-slate-900 p-0.5">
+      <svg viewBox="0 0 100 100" class="w-full h-full select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="url(#carmieAvatarBgGrad)"/>
+        <path d="M22 96 C24 80 34 75 44 77 L50 82 L56 77 C66 75 76 80 78 96 Z" fill="#3730a3"/>
+        <path d="M44 77 C40 82 46 87 50 82 C54 87 60 82 56 77 Z" fill="#ffffff"/>
+        <rect x="44" y="66" width="12" height="13" rx="4" fill="#fcd5c0"/>
+        <path d="M27 48 C23 60 25 76 30 83 C34 79 38 74 40 70 C60 70 62 74 70 83 C75 76 77 60 73 48 C70 32 30 32 27 48 Z" fill="url(#carmieHairGrad)"/>
+        <ellipse cx="50" cy="52" rx="19" ry="21" fill="url(#carmieSkinGrad)"/>
+        <circle cx="37" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+        <circle cx="63" cy="57" r="4.5" fill="#f43f5e" opacity="0.35"/>
+        <path d="M37 49 Q41.5 45.5 45 49.5" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M55 49.5 Q58.5 45.5 63 49" stroke="#24100c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M36 43 Q41 39.5 45 42" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M55 42 Q59 39.5 64 43" stroke="#4a2018" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <circle cx="50" cy="53.5" r="1.2" fill="#e29d82"/>
+        <path d="M43.5 59 Q50 66.5 56.5 59" stroke="#e11d48" stroke-width="2.2" stroke-linecap="round" fill="#ffffff"/>
+        <rect x="33" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+        <rect x="53.5" y="44" width="13.5" height="10" rx="3.5" stroke="#fbbf24" stroke-width="1.6" fill="rgba(255,255,255,0.2)"/>
+        <path d="M46.5 48 L53.5 48" stroke="#fbbf24" stroke-width="1.6"/>
+        <path d="M29 44 C29 30 37 21 50 21 C63 21 71 30 71 44 C67 37 60 33 53 34 C44 35 38 41 33 42 C30 42 29 43 29 44 Z" fill="url(#carmieHairGrad)"/>
+        <circle cx="66" cy="32" r="3.2" fill="#fb7185"/>
+        <circle cx="66" cy="32" r="1.3" fill="#fef08a"/>
+      </svg>
+    </div>
+  `;
+
+  function toggleCarmieChat() {
+    carmieChatOpen = !carmieChatOpen;
+    const modal = document.getElementById('carmieChatModal');
+    const fabAvatar = document.getElementById('carmieFabAvatar');
+    const fabClose = document.getElementById('carmieFabClose');
+    const greeting = document.getElementById('carmieGreetingBubble');
+    
+    if (greeting) greeting.classList.add('hidden');
+
+    if (carmieChatOpen) {
+      modal.classList.remove('hidden');
+      if (fabAvatar) fabAvatar.classList.add('hidden');
+      if (fabClose) fabClose.classList.remove('hidden');
+      setTimeout(() => {
+        const inp = document.getElementById('carmieInput');
+        if (inp) inp.focus();
+      }, 100);
+    } else {
+      modal.classList.add('hidden');
+      if (fabAvatar) fabAvatar.classList.remove('hidden');
+      if (fabClose) fabClose.classList.add('hidden');
+    }
+  }
+
+  function dismissCarmieGreeting(e) {
+    if (e) e.stopPropagation();
+    const g = document.getElementById('carmieGreetingBubble');
+    if (g) g.remove();
+    localStorage.setItem('carmie_greeting_dismissed', 'true');
+  }
+
+  function sendCarmieQuickPrompt(text) {
+    const inp = document.getElementById('carmieInput');
+    if (inp) {
+      inp.value = text;
+      handleCarmieSubmit(new Event('submit'));
+    }
+  }
+
+  function clearCarmieHistory() {
+    carmieHistory = [];
+    const container = document.getElementById('carmieMessages');
+    if (container) {
+      container.innerHTML = `
+        <div class="flex items-start gap-2.5">
+          ${CARMIE_AVATAR_HTML}
+          <div class="max-w-[85%] bg-slate-800/80 border border-slate-700/80 rounded-2xl rounded-tl-sm p-3 text-slate-200 leading-relaxed shadow-sm">
+            <p>Chat cleared! What would you like to explore next? 🌸</p>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function appendCarmieMessage(sender, text, actionLabel = null, actionRoute = null, source = null) {
+    const container = document.getElementById('carmieMessages');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = sender === 'user' ? 'flex items-start justify-end gap-2.5' : 'flex items-start gap-2.5';
+
+    let bubbleHtml = '';
+
+    if (sender === 'user') {
+      bubbleHtml = `
+        <div class="max-w-[85%] bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 text-white rounded-2xl rounded-tr-sm p-3 shadow-md text-xs leading-relaxed">
+          ${escapeHtml(text)}
+        </div>
+        <div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 text-slate-200 flex items-center justify-center shrink-0 text-xs font-bold shadow-sm">
+          <span class="material-symbols-rounded text-sm">person</span>
+        </div>
+      `;
+    } else {
+      // Parse markdown bold, lists, and headers
+      let formatted = formatCarmieMarkdown(text);
+
+      let actionHtml = '';
+      if (actionLabel && actionRoute && actionRoute !== '#') {
+        actionHtml = `
+          <div class="pt-2 mt-2 border-t border-slate-700/60">
+            <a href="${actionRoute}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/35 text-rose-200 border border-rose-500/30 text-[11px] font-bold transition-all shadow-xs">
+              <span>✨ ${escapeHtml(actionLabel)}</span>
+              <span class="material-symbols-rounded text-xs">arrow_forward</span>
+            </a>
+          </div>
+        `;
+      }
+
+      let sourceBadge = '';
+      if (source === 'local_playbook') {
+        sourceBadge = `<span class="inline-block mt-2 text-[9.5px] font-mono text-emerald-400/80 bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-800/40">Verified Carmel-linx Guide ⚡</span>`;
+      } else if (source === 'gemini_ai') {
+        sourceBadge = `<span class="inline-block mt-2 text-[9.5px] font-mono text-rose-300/80 bg-rose-950/40 px-1.5 py-0.2 rounded border border-rose-800/40">Powered by Gemini Flash ✨</span>`;
+      }
+
+      bubbleHtml = `
+        ${CARMIE_AVATAR_HTML}
+        <div class="max-w-[85%] bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-tl-sm p-3.5 text-slate-200 leading-relaxed shadow-sm space-y-2">
+          <div class="carmie-rendered-markdown leading-relaxed text-slate-200">${formatted}</div>
+          ${actionHtml}
+          ${sourceBadge}
+        </div>
+      `;
+    }
+
+    row.innerHTML = bubbleHtml;
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function formatCarmieMarkdown(text) {
+    if (!text) return '';
+    let t = text;
+
+    // Headers
+    t = t.replace(/^### (.*$)/gim, '<h4 class="font-bold text-rose-300 text-xs mt-1 mb-1">$1</h4>');
+    t = t.replace(/^## (.*$)/gim, '<h3 class="font-bold text-white text-xs mt-1 mb-1">$1</h3>');
+
+    // Bold
+    t = t.replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-white">$1</strong>');
+    
+    // Italics
+    t = t.replace(/\*(.*?)\*/gim, '<em class="text-slate-300 italic">$1</em>');
+
+    // Bullet points
+    t = t.replace(/^• (.*$)/gim, '<div class="flex items-start gap-1.5 my-1"><span class="text-rose-400 font-bold shrink-0 mt-0.5">•</span><span>$1</span></div>');
+    t = t.replace(/^(\d+)\. (.*$)/gim, '<div class="flex items-start gap-1.5 my-1"><span class="text-rose-400 font-mono font-bold shrink-0">$1.</span><span>$2</span></div>');
+
+    // Line breaks
+    t = t.replace(/\n\n/g, '<div class="h-1.5"></div>');
+
+    return t;
+  }
+
+  function escapeHtml(string) {
+    const el = document.createElement('div');
+    el.innerText = string || '';
+    return el.innerHTML;
+  }
+
+  function handleCarmieSubmit(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('carmieInput');
+    const submitBtn = document.getElementById('carmieSubmitBtn');
+    const typingIndicator = document.getElementById('carmieTypingIndicator');
+
+    if (!input || !input.value.trim()) return;
+
+    const query = input.value.trim();
+    input.value = '';
+
+    appendCarmieMessage('user', query);
+
+    if (typingIndicator) typingIndicator.classList.remove('hidden');
+    if (submitBtn) submitBtn.disabled = true;
+
+    // Collect active context
+    const currentUrl = window.location.pathname + window.location.search;
+    let subjectCode = '';
+    const codeEl = document.querySelector('[data-subject-code]');
+    if (codeEl) subjectCode = codeEl.getAttribute('data-subject-code');
+
+    fetch('/api/carmie/ask', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({
+        query: query,
+        current_url: currentUrl,
+        subject_code: subjectCode
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (typingIndicator) typingIndicator.classList.add('hidden');
+      if (submitBtn) submitBtn.disabled = false;
+
+      if (data.status === 'SUCCESS' || data.reply) {
+        appendCarmieMessage('carmie', data.reply, data.action_label, data.action_route, data.source);
+      } else {
+        appendCarmieMessage('carmie', "Sorry, I had trouble processing that. Could you try asking in a slightly different way?");
+      }
+    })
+    .catch(err => {
+      if (typingIndicator) typingIndicator.classList.add('hidden');
+      if (submitBtn) submitBtn.disabled = false;
+      appendCarmieMessage('carmie', "Network error connecting to Carmie: " + err.message);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if greeting was already dismissed previously
+    if (localStorage.getItem('carmie_greeting_dismissed') === 'true') {
+      const g = document.getElementById('carmieGreetingBubble');
+      if (g) g.remove();
+    } else {
+      setTimeout(() => {
+        dismissCarmieGreeting();
+      }, 9000);
+    }
+  });
+</script>

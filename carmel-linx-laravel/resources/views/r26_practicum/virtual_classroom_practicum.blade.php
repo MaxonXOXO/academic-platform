@@ -11,6 +11,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Suppress Tailwind CDN Play compilation ring spinner that blocks page view during JIT compile -->
+    <style>
+        [style*="position: fixed"][style*="z-index: 99999"],
+        [style*="position:fixed"][style*="z-index:99999"],
+        [style*="pointer-events: none"][style*="position: fixed"][style*="top: 0"][style*="left: 0"],
+        body > div[style*="position: fixed"][style*="inset: 0"][style*="z-index"],
+        body > div[style*="position:fixed"][style*="inset:0"],
+        body > div[style*="position: fixed"][style*="background: rgba(0"][style*="z-index: 99"],
+        body > div[style*="position:fixed"][style*="background:rgba(0"][style*="z-index:99"],
+        body > div[style*="position: fixed"][style*="width: 100vw"],
+        body > div[style*="position:fixed"][style*="width:100vw"] {
+            display: none !important;
+        }
+    </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -294,6 +308,32 @@
         .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spinners { -moz-appearance: textfield; }
     </style>
+    <!-- MutationObserver: Remove Tailwind CDN Play spinner as soon as it appears in DOM -->
+    <script>
+        (function() {
+            var pageLoadTime = Date.now();
+            function hideTwNode(node) {
+                // Only target elements injected within first 5 seconds (Tailwind compiles quickly)
+                if (node && node.nodeType === 1 && (Date.now() - pageLoadTime) < 5000) {
+                    var s = node.getAttribute('style') || '';
+                    // Tailwind CDN indicator: fixed + inset-0 + high z-index, added at body level on load
+                    if ((s.includes('position: fixed') || s.includes('position:fixed')) &&
+                        (s.includes('inset: 0') || s.includes('inset:0'))) {
+                        // Make sure it's not one of our own modals (they have id attributes)
+                        if (!node.id || node.id === '') {
+                            node.style.cssText += ';display:none!important;opacity:0!important;pointer-events:none!important';
+                        }
+                    }
+                }
+            }
+            var twObs = new MutationObserver(function(mutations) {
+                mutations.forEach(function(m) { m.addedNodes.forEach(hideTwNode); });
+            });
+            twObs.observe(document.documentElement, { childList: true, subtree: true });
+            // Disconnect after 5 seconds — Tailwind will have finished compiling by then
+            setTimeout(function() { twObs.disconnect(); }, 5000);
+        })();
+    </script>
 </head>
 <body class="min-h-screen pb-12 bg-slate-900 text-slate-100">
     @php

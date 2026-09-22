@@ -11,7 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS Browser CDN (matching all other Carmel Linx modules) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Flatpickr for dd/mm/yyyy Date Selection -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -334,6 +335,21 @@
         .no-spinners::-webkit-outer-spin-button,
         .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spinners { -moz-appearance: textfield; }
+
+        /* Defensive constraints for SVGs so unstyled SVGs never expand to 100vw */
+        svg {
+            max-width: 100%;
+        }
+        header svg, .header-subtitle svg, .header-btn svg {
+            max-width: 1.25rem !important;
+            max-height: 1.25rem !important;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        svg.w-3\.5 { width: 0.875rem !important; height: 0.875rem !important; }
+        svg.w-4 { width: 1rem !important; height: 1rem !important; }
+        svg.w-5 { width: 1.25rem !important; height: 1.25rem !important; }
+        svg.w-6 { width: 1.5rem !important; height: 1.5rem !important; }
     </style>
 </head>
 <body class="min-h-screen pb-12 bg-slate-900 text-slate-100">
@@ -407,8 +423,8 @@
             <!-- Right: Logged-In & Assigned Faculty Info & Back Button -->
             <div class="flex items-center space-x-3 flex-shrink-0">
                 <div class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-300 flex items-center space-x-2.5 header-subtitle">
-                    <div class="p-1 rounded-lg bg-sky-500/15 text-sky-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <div class="p-1 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0" style="width: 24px; height: 24px;">
+                        <svg class="w-4 h-4 shrink-0" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
                     <div class="text-white font-semibold">
                         Faculty: <span class="text-sky-300 font-bold">
@@ -425,7 +441,7 @@
                 </div>
 
                 <a href="javascript:void(0)" onclick="window.close(); setTimeout(function() { let ref = document.referrer; if (ref && (ref.includes('/dashboard/') || ref.includes('/classroom/'))) { window.location.href = ref; } else { window.location.href = '{{ $dashboardUrl }}'; } }, 150);" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold transition-all flex items-center space-x-1.5 border border-rose-500/30 flex-shrink-0 cursor-pointer no-underline text-[11px]" title="Dashboard">
-                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     <span>Dashboard</span>
                 </a>
             </div>

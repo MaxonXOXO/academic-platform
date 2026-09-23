@@ -846,21 +846,42 @@ class AttendanceController extends Controller
         $subjects = $subjectsQuery->orderBy('subject_code', 'asc')
             ->get(['id', 'subject_code', 'subject_name', 'subject_type']);
 
-        $students = Student::getClassroomStudentsQuery($classroomId)
-            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
-            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
+        $targetStudent = $request->input('student') ?? $request->input('reg_no');
+
+        $studentsQuery = Student::getClassroomStudentsQuery($classroomId)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC');
+
+        $students = $studentsQuery->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
+
+        if ($targetStudent) {
+            $students = $students->filter(fn($s) => $s->reg_no == $targetStudent || $s->sbte_reg_no == $targetStudent)->values();
+        }
 
         $subjectCodes = $subjects->pluck('subject_code')->filter()->unique();
         $subjectIds = $subjects->pluck('id');
 
         $studentAttQuery = DB::table('student_attendance')
-            ->whereIn('subject_code', $subjectCodes)
-            ->get();
+            ->whereIn('subject_code', $subjectCodes);
+        if ($fromDate) {
+            $studentAttQuery->where('date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $studentAttQuery->where('date', '<=', $toDate);
+        }
+        $studentAttQuery = $studentAttQuery->get();
         $studentAttGrouped = $studentAttQuery->groupBy('reg_no');
 
-        $classLogs = DB::table('class_logs_attendance')
-            ->whereIn('batch_subject_id', $subjectIds)
-            ->get();
+        $classLogsQuery = DB::table('class_logs_attendance')
+            ->whereIn('batch_subject_id', $subjectIds);
+        if ($fromDate) {
+            $classLogsQuery->where('date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $classLogsQuery->where('date', '<=', $toDate);
+        }
+        $classLogs = $classLogsQuery->get();
         $classLogsBySubject = $classLogs->groupBy('batch_subject_id');
 
         $reportRows = [];
@@ -933,6 +954,7 @@ class AttendanceController extends Controller
                     'subject_id' => $subj->id,
                     'subject_code' => $sCode,
                     'subject_name' => $subj->subject_name,
+                    'subject_type' => $subj->subject_type ?? 'Theory',
                     'conducted' => $conducted,
                     'attended' => $attended,
                     'percentage' => $pct,
@@ -979,6 +1001,15 @@ class AttendanceController extends Controller
         $totalStudents = count($students);
         $avgAttendance = $totalStudents > 0 ? round($aggregateSum / $totalStudents, 1) : 0.0;
 
+        $periodLabel = 'Full Semester';
+        if ($fromDate && $toDate) {
+            $periodLabel = date('d-m-Y', strtotime($fromDate)) . ' to ' . date('d-m-Y', strtotime($toDate));
+        } elseif ($fromDate) {
+            $periodLabel = 'From ' . date('d-m-Y', strtotime($fromDate));
+        } elseif ($toDate) {
+            $periodLabel = 'Up to ' . date('d-m-Y', strtotime($toDate));
+        }
+
         return response()->json([
             'status' => 'SUCCESS',
             'classroom' => [
@@ -986,6 +1017,11 @@ class AttendanceController extends Controller
                 'name' => $classroom->classroom_id,
                 'department' => $classroom->department ?? $classroom->branch ?? '',
                 'semester' => $classroom->current_semester ?? '',
+            ],
+            'period' => [
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'label' => $periodLabel
             ],
             'summary' => [
                 'total_students' => $totalStudents,
@@ -1000,7 +1036,7 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Printable Consolidated Semester Attendance Register
+     * Printable Consolidated or Individual Student Semester Attendance Register
      */
     public function printTutorAttendanceReport(Request $request)
     {
@@ -1017,12 +1053,41 @@ class AttendanceController extends Controller
             $classroom = DB::table('r26_class_management')->where('classroom_id', $classroomId)->first();
         }
 
+        $mode = $request->query('mode', 'consolidated');
+        $targetStudent = $request->query('student') ?? $request->query('reg_no');
+
+        // Check if individual student report requested
+        if ($targetStudent || in_array($mode, ['single', 'student', 'card'])) {
+            $studentData = $data['students'][0] ?? null;
+            if (!$studentData) {
+                abort(404, 'Student attendance data not found for this classroom.');
+            }
+
+            return view('tutor.attendance_student_print', [
+                'classroom' => $classroom,
+                'period' => $data['period'] ?? ['label' => 'Full Semester'],
+                'summary' => $data['summary'] ?? [],
+                'subjects' => collect($data['subjects'])->map(fn($s) => (object)$s),
+                'student' => $studentData
+            ]);
+        }
+
         return view('tutor.attendance_consolidated_print', [
             'classroom' => $classroom,
+            'period' => $data['period'] ?? ['label' => 'Full Semester'],
             'summary' => $data['summary'],
             'subjects' => collect($data['subjects'])->map(fn($s) => (object)$s),
             'students' => $data['students']
         ]);
+    }
+
+    /**
+     * Print Individual Student Attendance & Condonation Statement
+     */
+    public function printStudentAttendanceReport(Request $request, $regNo)
+    {
+        $request->merge(['student' => $regNo, 'mode' => 'single']);
+        return $this->printTutorAttendanceReport($request);
     }
 
     /**

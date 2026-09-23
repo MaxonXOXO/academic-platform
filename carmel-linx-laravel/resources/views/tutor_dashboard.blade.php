@@ -511,6 +511,32 @@
             </div>
           </div>
 
+          <!-- Attendance Period / Date Filter Toolbar -->
+          <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-sky-400 text-sm">calendar_month</span> Attendance Period:
+              </span>
+              <div class="flex items-center gap-1.5">
+                <label for="attFromDate" class="text-slate-400 text-[11px]">From:</label>
+                <input type="date" id="attFromDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+              </div>
+              <div class="flex items-center gap-1.5">
+                <label for="attToDate" class="text-slate-400 text-[11px]">To:</label>
+                <input type="date" id="attToDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+              </div>
+              <button onclick="loadConsolidatedAttendance()" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-xs transition flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-rounded text-sm">filter_alt</span> Filter Period
+              </button>
+              <button onclick="resetAttendancePeriod()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition cursor-pointer" title="Reset to Full Semester">
+                Clear
+              </button>
+            </div>
+            <div id="attPeriodLabelBadge" class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-cyan-400 font-mono text-[11px]">
+              Full Semester
+            </div>
+          </div>
+
           <!-- Filter & Search Toolbar -->
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-2">
@@ -2909,6 +2935,14 @@
     let attendanceDataCache = null;
     let currentAttendanceFilter = 'all';
 
+    function resetAttendancePeriod() {
+      const fromEl = document.getElementById('attFromDate');
+      const toEl = document.getElementById('attToDate');
+      if (fromEl) fromEl.value = '';
+      if (toEl) toEl.value = '';
+      loadConsolidatedAttendance();
+    }
+
     function loadConsolidatedAttendance() {
       const wrapper = document.getElementById('attTableWrapper');
       if (!wrapper) return;
@@ -2919,7 +2953,20 @@
         </div>
       `;
 
-      fetch('/api/tutor/attendance/consolidated')
+      const fromDate = document.getElementById('attFromDate')?.value || '';
+      const toDate = document.getElementById('attToDate')?.value || '';
+      let url = '/api/tutor/attendance/consolidated';
+      const params = new URLSearchParams();
+      if (fromDate) params.append('from_date', fromDate);
+      if (toDate) params.append('to_date', toDate);
+      if (params.toString()) url += '?' + params.toString();
+
+      const printBtn = document.getElementById('btnPrintAttendanceReport');
+      if (printBtn) {
+        printBtn.href = '/tutor/attendance/report/print' + (params.toString() ? ('?' + params.toString()) : '');
+      }
+
+      fetch(url)
         .then(res => res.json())
         .then(res => {
           if (res.status === 'SUCCESS') {
@@ -2931,6 +2978,7 @@
             if (document.getElementById('attCardCondonation')) document.getElementById('attCardCondonation').innerText = sum.condonation_count || 0;
             if (document.getElementById('attCardDetained')) document.getElementById('attCardDetained').innerText = sum.detained_count || 0;
             if (document.getElementById('attCardAverage')) document.getElementById('attCardAverage').innerText = (sum.average_attendance || 0) + '%';
+            if (document.getElementById('attPeriodLabelBadge')) document.getElementById('attPeriodLabelBadge').innerText = res.period?.label || 'Full Semester';
 
             renderAttendanceTable();
           } else {
@@ -2970,6 +3018,9 @@
       const allStudents = attendanceDataCache.students || [];
       const query = (document.getElementById('attSearchInput')?.value || '').toLowerCase();
 
+      const fromDate = document.getElementById('attFromDate')?.value || '';
+      const toDate = document.getElementById('attToDate')?.value || '';
+
       const filtered = allStudents.filter(st => {
         const matchesFilter = (currentAttendanceFilter === 'all') || (st.status === currentAttendanceFilter);
         const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
@@ -2998,9 +3049,9 @@
 
       headersHtml += `
         <th class="p-3 text-center bg-slate-900 text-slate-300">Total Attd / Cond</th>
-        <th class="p-3 text-center bg-blue-950/40 text-blue-300 font-bold">Sem %</th>
+        <th class="p-3 text-center bg-blue-950/40 text-blue-300 font-bold">Period %</th>
         <th class="p-3 text-center text-slate-300">Status</th>
-        <th class="p-3 text-center text-slate-300">Alert</th>
+        <th class="p-3 text-center text-slate-300">Actions / Report</th>
       `;
 
       let rowsHtml = '';
@@ -3030,6 +3081,12 @@
 
         const smsHref = `sms:${st.phone || ''}?body=${encodeURIComponent('Carmel Polytechnic College Alert: Attendance status of ' + st.name + ' (' + st.sbte_reg_no + ') is ' + st.overall_percentage + '% [' + st.status + ']. Min 75% required for SBTE exam eligibility.')}`;
 
+        let studentPrintUrl = `/tutor/attendance/student/${st.reg_no}/print`;
+        const sParams = new URLSearchParams();
+        if (fromDate) sParams.append('from_date', fromDate);
+        if (toDate) sParams.append('to_date', toDate);
+        if (sParams.toString()) studentPrintUrl += '?' + sParams.toString();
+
         rowsHtml += `
           <tr class="hover:bg-slate-800/30 transition-colors">
             <td class="p-3 text-slate-500 text-xs border-b border-slate-800">${idx + 1}</td>
@@ -3048,10 +3105,15 @@
                 ${st.status}
               </span>
             </td>
-            <td class="p-3 text-center border-b border-slate-800">
-              <a href="${smsHref}" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg inline-flex items-center text-xs transition-all" title="Send SMS Warning to Parent">
-                <span class="material-symbols-rounded text-base">sms</span>
-              </a>
+            <td class="p-3 text-center border-b border-slate-800 whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1.5">
+                <a href="${studentPrintUrl}" target="_blank" class="p-1.5 bg-sky-950/60 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 rounded-lg inline-flex items-center text-xs transition-all" title="Print Individual Attendance & Condonation Statement (A4)">
+                  <span class="material-symbols-rounded text-base">print</span>
+                </a>
+                <a href="${smsHref}" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg inline-flex items-center text-xs transition-all" title="Send SMS Warning to Parent">
+                  <span class="material-symbols-rounded text-base">sms</span>
+                </a>
+              </div>
             </td>
           </tr>
         `;

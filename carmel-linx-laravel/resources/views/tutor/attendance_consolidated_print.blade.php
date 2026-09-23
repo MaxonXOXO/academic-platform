@@ -144,10 +144,10 @@
 
     <table class="meta-table">
         <tr>
-            <td style="width: 28%;"><strong>Class / Batch:</strong> {{ $classroom->classroom_id }}</td>
-            <td style="width: 28%;"><strong>Department:</strong> {{ $classroom->department ?? $classroom->branch ?? 'Engineering' }}</td>
-            <td style="width: 24%;"><strong>Semester:</strong> {{ $classroom->current_semester ?? 'Current' }}</td>
-            <td style="width: 20%; text-align: right;"><strong>Date:</strong> {{ date('d-m-Y') }}</td>
+            <td style="width: 26%;"><strong>Class / Batch:</strong> {{ $classroom->classroom_id }}</td>
+            <td style="width: 26%;"><strong>Department:</strong> {{ $classroom->department ?? $classroom->branch ?? 'Engineering' }}</td>
+            <td style="width: 22%;"><strong>Semester:</strong> Semester {{ $classroom->current_semester ?? 'Current' }}</td>
+            <td style="width: 26%; text-align: right;"><strong>Period:</strong> {{ $period['label'] ?? 'Full Semester' }}</td>
         </tr>
         <tr>
             <td><strong>Total Students:</strong> {{ $summary['total_students'] }}</td>

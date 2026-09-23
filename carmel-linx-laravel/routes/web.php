@@ -1706,6 +1706,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/tutor/attendance/roll-numbers', [App\Http\Controllers\AttendanceController::class, 'updateRollNumbers']);
     Route::get('/api/tutor/attendance/consolidated', [App\Http\Controllers\AttendanceController::class, 'getConsolidatedTutorAttendance']);
     Route::get('/tutor/attendance/report/print', [App\Http\Controllers\AttendanceController::class, 'printTutorAttendanceReport']);
+    Route::get('/tutor/attendance/student/{regNo}/print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport']);
     Route::get('/api/tutor/progress-report', [App\Http\Controllers\TutorController::class, 'getProgressReportData']);
     Route::get('/tutor/progress-report/print', [App\Http\Controllers\TutorController::class, 'printProgressReport']);
     Route::get('/tutor/progress-report/student/{regNo}/print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);

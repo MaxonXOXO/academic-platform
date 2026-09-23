@@ -1976,6 +1976,11 @@
         }
         openClassroom(classroomId, subjectId, subjectName, '', revParam, typeParam, tabParam);
       } else {
+        // If a Demonstrator lands here without a subject (e.g. browser back), send them home
+        if ('{{ session("userRole") }}' === 'Demonstrator') {
+          window.location.replace('/dashboard/demonstrator');
+          return;
+        }
         loadLecturerBatches();
       }
       if (activePanel === 'security') loadSecurityLogs();
@@ -1991,7 +1996,7 @@
 
     function handleHeaderDashboardBack() {
       const userRole = '{{ session("userRole") }}';
-      if (userRole === 'Demonstrator' && isRev2021VirtualLab()) {
+      if (userRole === 'Demonstrator') {
         window.location.href = '/dashboard/demonstrator';
         return;
       }
@@ -2001,7 +2006,7 @@
     function switchPanel(panelId) {
       if (panelId === 'dashboard') {
         const userRole = '{{ session("userRole") }}';
-        if (userRole === 'Demonstrator' && isRev2021VirtualLab()) {
+        if (userRole === 'Demonstrator') {
           window.location.href = '/dashboard/demonstrator';
           return;
         }

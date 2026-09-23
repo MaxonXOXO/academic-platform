@@ -3654,7 +3654,7 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr class="bg-slate-900/40 text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
+                <tr class="bg-slate-900/40 text-base font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-12">S.No.</th>
                   <th class="p-3">Student Name</th>
                   <th class="p-3 w-28">Admission No</th>
@@ -3703,10 +3703,10 @@
 
           html += `
             <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/40 transition-premium" data-reg="${student.reg_no}">
-              <td class="px-4 py-4 text-slate-400 font-bold text-base text-center">${index + 1}</td>
-              <td class="px-4 py-4 font-bold text-slate-50 text-lg tracking-wide">${student.name}</td>
-              <td class="px-4 py-4 font-mono text-slate-200 text-base">${student.reg_no}</td>
-              <td class="px-4 py-4 font-mono text-slate-200 text-base">${student.sbte_reg_no || '-'}</td>
+              <td class="px-4 py-4 text-slate-400 font-bold text-lg text-center">${index + 1}</td>
+              <td class="px-4 py-4 font-bold text-slate-50 text-xl tracking-wide">${student.name}</td>
+              <td class="px-4 py-4 font-mono text-slate-200 text-lg">${student.reg_no}</td>
+              <td class="px-4 py-4 font-mono text-slate-200 text-lg">${student.sbte_reg_no || '-'}</td>
               <td class="px-3 py-3">${getInputHtml('CO1', m.CO1)}</td>
               <td class="px-3 py-3">${getInputHtml('CO2', m.CO2)}</td>
               <td class="px-3 py-3">${getInputHtml('CO3', m.CO3)}</td>

@@ -718,7 +718,7 @@ class AttendanceController extends Controller
         $staffMobile = Session::get('userId');
         $role = Session::get('userRole');
 
-        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Demonstrator', 'Workshop Superintendent'])) {
+        if (!$staffMobile || !$role || $role === 'Student') {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
@@ -770,13 +770,14 @@ class AttendanceController extends Controller
 
         $students = Student::getClassroomStudentsQuery($classroom->classroom_id)
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderByRaw("CASE WHEN admission_type = 'LET' THEN 1 ELSE 0 END ASC")
             ->orderByRaw('UPPER(name) ASC')
-            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no']);
+            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'admission_type']);
 
         return response()->json([
-            'status' => 'SUCCESS',
+            'status'       => 'SUCCESS',
             'classroom_id' => $classroom->classroom_id,
-            'students' => $students
+            'students'     => $students
         ]);
     }
 
@@ -1036,7 +1037,9 @@ class AttendanceController extends Controller
     public function updateRollNumbers(Request $request)
     {
         $role = Session::get('userRole');
-        if (!in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Workshop Superintendent'])) {
+        // Any authenticated staff member who is not a student may assign roll numbers
+        // (tutor assignment is by class record, not solely by designation)
+        if (!$role || $role === 'Student') {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 

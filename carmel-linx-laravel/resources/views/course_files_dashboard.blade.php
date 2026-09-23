@@ -812,7 +812,7 @@
                     <head>
                         <title>Print Document</title>
                         ${styles}
-                        <script src="https://cdn.tailwindcss.com"><\/script>
+                        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
                         <style>
                             @page { size: A4; margin: 15mm; }
                             body { font-family: 'Inter', sans-serif; background: #fff !important; color: #000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }

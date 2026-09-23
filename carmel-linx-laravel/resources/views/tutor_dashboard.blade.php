@@ -449,6 +449,7 @@
                   <th class="p-4 w-48">SBTE Exam No</th>
                   <th class="p-4">Student Name</th>
                   <th class="p-4 w-32 text-center">Roll Number</th>
+                  <th class="p-4 w-8 text-center"></th>
                 </tr>
               </thead>
               <tbody id="tutorRollNumberList">
@@ -2227,34 +2228,103 @@
 
     function loadTutorStudents() {
       const list = document.getElementById('tutorRollNumberList');
-      list.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading students...</td></tr>';
+      list.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading students...</td></tr>';
       fetch('/api/tutor/attendance/students')
         .then(res => res.json())
         .then(data => {
           if (data.status === 'SUCCESS') {
-            let html = '';
             if (data.students.length === 0) {
-              list.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No students in your classroom.</td></tr>';
+              list.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No students in your classroom.</td></tr>';
               return;
             }
+            let html = '';
             data.students.forEach((s, idx) => {
+              const isLet = (s.admission_type === 'LET');
+              const letBadge = isLet
+                ? `<span class="ml-1.5 px-1.5 py-0.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 rounded text-[10px] font-black tracking-wide">LET</span>`
+                : '';
+              const rowBg = isLet ? 'bg-amber-950/10' : '';
               html += `
-                <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium student-roll-row" data-reg="${s.reg_no}">
+                <tr class="border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium student-roll-row ${rowBg}"
+                    data-reg="${s.reg_no}" data-is-let="${isLet ? '1' : '0'}">
                   <td class="p-4 text-center font-bold text-slate-500 text-sm">${idx+1}</td>
                   <td class="p-4 font-mono font-bold text-slate-300 text-sm">${s.reg_no}</td>
                   <td class="p-4 font-mono font-bold text-teal-400 text-sm">${s.sbte_reg_no || '-'}</td>
-                  <td class="p-4 font-bold text-white text-sm">${s.name}</td>
+                  <td class="p-4 font-bold text-white text-sm">${s.name}${letBadge}</td>
                   <td class="p-2 text-center">
-                    <input type="number" class="w-24 bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-center font-bold text-white roll-no-input text-sm" value="${s.roll_no || ''}" min="1" placeholder="-">
+                    <input type="number"
+                      class="w-24 bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-center font-bold text-white roll-no-input text-sm"
+                      value="${s.roll_no || ''}" min="1" placeholder="-"
+                      onchange="autoSaveRollNumber(this)"
+                      onblur="autoSaveRollNumber(this)">
                   </td>
+                  <td class="p-2 text-center w-8 roll-save-status text-xs" title=""></td>
                 </tr>
               `;
             });
             list.innerHTML = html;
           } else {
-            list.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">${data.message || 'Failed to load students.'}</td></tr>`;
+            list.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">${data.message || 'Failed to load students.'}</td></tr>`;
           }
         });
+    }
+
+    // Auto-save debounce timers per reg_no
+    const _rollSaveTimers = {};
+
+    function autoSaveRollNumber(input) {
+      const row = input.closest('tr.student-roll-row');
+      if (!row) return;
+      const regNo = row.getAttribute('data-reg');
+      const val = input.value.trim();
+      const statusCell = row.querySelector('.roll-save-status');
+
+      // Clear any pending debounce for this student
+      clearTimeout(_rollSaveTimers[regNo]);
+
+      // Visual: mark as pending
+      if (statusCell) { statusCell.textContent = '⏳'; statusCell.title = 'Saving…'; }
+
+      _rollSaveTimers[regNo] = setTimeout(() => {
+        // Duplicate check: scan all current inputs for same value
+        if (val !== '') {
+          const allInputs = document.querySelectorAll('.roll-no-input');
+          let dupFound = false;
+          allInputs.forEach(inp => {
+            if (inp !== input && inp.value.trim() === val) dupFound = true;
+          });
+          if (dupFound) {
+            input.classList.add('border-red-500');
+            if (statusCell) { statusCell.textContent = '⚠️'; statusCell.title = `Roll #${val} already used by another student`; }
+            showGlobalMessage(`Duplicate roll number ${val} detected. Please use a unique number.`, true);
+            return;
+          }
+        }
+        input.classList.remove('border-red-500');
+
+        fetch('/api/tutor/attendance/roll-numbers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({
+            roll_numbers: [{ reg_no: regNo, roll_no: val ? parseInt(val) : null }]
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS') {
+            if (statusCell) { statusCell.textContent = '✓'; statusCell.title = 'Saved'; statusCell.style.color = '#34d399'; }
+            setTimeout(() => { if (statusCell) statusCell.textContent = ''; }, 2000);
+          } else {
+            if (statusCell) { statusCell.textContent = '✗'; statusCell.title = data.message || 'Failed'; statusCell.style.color = '#f87171'; }
+          }
+        })
+        .catch(() => {
+          if (statusCell) { statusCell.textContent = '✗'; statusCell.title = 'Network error'; statusCell.style.color = '#f87171'; }
+        });
+      }, 600); // 600ms debounce
     }
 
     function autoFillRollNumbers() {
@@ -2263,36 +2333,80 @@
       const rows = Array.from(tbody.querySelectorAll('.student-roll-row'));
       if (rows.length === 0) return;
 
-      // Sort rows alphabetically, fully case-insensitive and locale-aware
-      rows.sort((a, b) => {
-        const nameA = a.querySelector('td:nth-child(4)').innerText.trim();
-        const nameB = b.querySelector('td:nth-child(4)').innerText.trim();
-        return nameA.localeCompare(nameB, undefined, { sensitivity: 'base', ignorePunctuation: true });
-      });
+      // Separate regular and LET students
+      const regular = rows.filter(r => r.getAttribute('data-is-let') !== '1');
+      const letStudents = rows.filter(r => r.getAttribute('data-is-let') === '1');
 
-      // Physically reorder <tr> rows in the DOM (move each to end in sorted order)
-      // then assign sequential roll numbers and update the NO. counter column
-      rows.forEach((row, index) => {
-        tbody.appendChild(row);                                           // reorders in DOM
-        row.querySelector('td:first-child').innerText = index + 1;        // update NO. column
+      // Sort each group independently, case-insensitive locale-aware
+      const sortByName = (a, b) => {
+        const nA = a.querySelector('td:nth-child(4)').innerText.replace(/LET/g,'').trim();
+        const nB = b.querySelector('td:nth-child(4)').innerText.replace(/LET/g,'').trim();
+        return nA.localeCompare(nB, undefined, { sensitivity: 'base', ignorePunctuation: true });
+      };
+      regular.sort(sortByName);
+      letStudents.sort(sortByName);
+
+      // Combine: regular first, LET at bottom
+      const ordered = [...regular, ...letStudents];
+
+      // Physically reorder rows in DOM and assign sequential numbers
+      ordered.forEach((row, index) => {
+        tbody.appendChild(row);
+        row.querySelector('td:first-child').innerText = index + 1;
         const input = row.querySelector('.roll-no-input');
         if (input) input.value = index + 1;
       });
 
-      showGlobalMessage('Roll numbers auto-filled A–Z (1 to ' + rows.length + '). Move lateral-entry students to bottom if needed, then click Save.');
+      // Add a visual divider row before LET group if both groups exist
+      const existingDivider = tbody.querySelector('.let-divider-row');
+      if (existingDivider) existingDivider.remove();
+      if (regular.length > 0 && letStudents.length > 0) {
+        const divider = document.createElement('tr');
+        divider.className = 'let-divider-row';
+        divider.innerHTML = `<td colspan="6" class="px-4 py-1.5 bg-amber-950/30 border-y border-amber-800/30 text-amber-500 text-[10px] font-black uppercase tracking-widest">▼ Lateral Entry Students (LET)</td>`;
+        letStudents[0].parentNode.insertBefore(divider, letStudents[0]);
+      }
+
+      const msg = letStudents.length > 0
+        ? `Auto-filled: Regular 1–${regular.length}, LET ${regular.length+1}–${ordered.length}. Review then Save.`
+        : `Roll numbers auto-filled A–Z (1 to ${ordered.length}). Review then Save.`;
+      showGlobalMessage(msg);
     }
 
     function saveRollNumbers() {
       const rows = document.querySelectorAll('.student-roll-row');
       const rollNumbers = [];
+      const seen = {};
+      const duplicates = [];
+
       rows.forEach(row => {
         const regNo = row.getAttribute('data-reg');
         const rollNoVal = row.querySelector('.roll-no-input').value.trim();
-        rollNumbers.push({
-          reg_no: regNo,
-          roll_no: rollNoVal ? parseInt(rollNoVal) : null
-        });
+        const num = rollNoVal ? parseInt(rollNoVal) : null;
+
+        if (num !== null) {
+          if (seen[num]) {
+            duplicates.push(num);
+          }
+          seen[num] = true;
+        }
+        rollNumbers.push({ reg_no: regNo, roll_no: num });
       });
+
+      if (duplicates.length > 0) {
+        showGlobalMessage(`Duplicate roll numbers detected: ${[...new Set(duplicates)].join(', ')}. Fix before saving.`, true);
+        // Highlight duplicate inputs
+        document.querySelectorAll('.roll-no-input').forEach(inp => {
+          const v = parseInt(inp.value.trim());
+          if (duplicates.includes(v)) {
+            inp.classList.add('border-red-500');
+          }
+        });
+        return;
+      }
+
+      // Clear any red borders
+      document.querySelectorAll('.roll-no-input').forEach(inp => inp.classList.remove('border-red-500'));
 
       fetch('/api/tutor/attendance/roll-numbers', {
         method: 'POST',
@@ -2305,7 +2419,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
-          showGlobalMessage(data.message);
+          showGlobalMessage('All roll numbers saved successfully!');
           loadTutorStudents();
         } else {
           showGlobalMessage(data.message || "Failed to update roll numbers.", true);

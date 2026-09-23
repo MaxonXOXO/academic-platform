@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Services\PushNotificationService;
+use Carbon\Carbon;
 
 class TestEngineController extends Controller
 {
-    // MOCK MCQ POOL for Demo Purposes
-    private $mockMCQs = [
+    // Embedded Systems MCQ Pool (isolated strictly to Embedded Systems subjects)
+    private $embeddedSystemsMCQs = [
         'CO1' => [
             ['q' => 'Which of the following is a primary feature of an embedded system?', 'options' => ['High power consumption', 'General purpose computing', 'Real-time performance constraints', 'Requires a monitor'], 'ans' => 'Real-time performance constraints'],
             ['q' => 'What is the function of a watchdog timer?', 'options' => ['Keep real time', 'Reset the system on software hang', 'Manage battery life', 'Increase CPU speed'], 'ans' => 'Reset the system on software hang'],
@@ -60,12 +64,369 @@ class TestEngineController extends Controller
         ]
     ];
 
-    // Lecturer: Publish a new Online Test
+    // Dedicated C Programming MCQ Pool for Course 3045 (Fundamentals of C Programming)
+    private $cProgrammingMCQs = [
+        'CO1' => [
+            ['q' => 'Which format specifier is used to print or scan an integer value in C?', 'options' => ['%d', '%f', '%c', '%s'], 'ans' => '%d'],
+            ['q' => 'Which of the following is NOT a valid identifier or variable name in C?', 'options' => ['int', '_count', 'total_1', 'myVar'], 'ans' => 'int'],
+            ['q' => 'What is the size of a float data type in standard 32-bit C architecture?', 'options' => ['4 bytes', '2 bytes', '8 bytes', '1 byte'], 'ans' => '4 bytes'],
+            ['q' => 'Which operator is used in C to determine the size of a data type or variable in bytes?', 'options' => ['sizeof', 'len', 'size', 'lengthof'], 'ans' => 'sizeof'],
+            ['q' => 'Which header file is required to use the standard I/O functions printf() and scanf()?', 'options' => ['<stdio.h>', '<conio.h>', '<stdlib.h>', '<string.h>'], 'ans' => '<stdio.h>'],
+            ['q' => 'Which of the following is a bitwise AND operator in C?', 'options' => ['&', '&&', '|', '||'], 'ans' => '&'],
+            ['q' => 'What is the default return value of a successful main() function in C?', 'options' => ['0', '1', '-1', 'NULL'], 'ans' => '0'],
+            ['q' => 'Which escape sequence represents a newline character in C?', 'options' => ['\\n', '\\t', '\\r', '\\b'], 'ans' => '\\n'],
+            ['q' => 'Which symbol is used for single-line comments in modern C (C99 and later)?', 'options' => ['//', '/*', '#', '--'], 'ans' => '//'],
+            ['q' => 'Which operator has the highest precedence among the following in C?', 'options' => ['Parentheses ()', 'Addition +', 'Assignment =', 'Logical AND &&'], 'ans' => 'Parentheses ()']
+        ],
+        'CO2' => [
+            ['q' => 'Which loop construct in C is guaranteed to execute its body at least once even if the condition is false?', 'options' => ['do-while loop', 'while loop', 'for loop', 'nested if'], 'ans' => 'do-while loop'],
+            ['q' => 'What is the index of the very first element in an array in C?', 'options' => ['0', '1', '-1', 'Undefined'], 'ans' => '0'],
+            ['q' => 'Which statement is used to immediately terminate a loop or switch block in C?', 'options' => ['break', 'continue', 'goto', 'return'], 'ans' => 'break'],
+            ['q' => 'What happens if an array index exceeds its declared boundary in C?', 'options' => ['Undefined behavior / Memory corruption', 'Compilation error', 'Array automatically resizes', 'ArrayIndexOutOfBoundsException'], 'ans' => 'Undefined behavior / Memory corruption'],
+            ['q' => 'Which control statement skips the rest of the current iteration and jumps to the next loop iteration?', 'options' => ['continue', 'break', 'skip', 'pass'], 'ans' => 'continue'],
+            ['q' => 'What is the correct declaration of a 1-D integer array named "arr" with 10 elements in C?', 'options' => ['int arr[10];', 'int arr;', 'array arr[10];', 'int[10] arr;'], 'ans' => 'int arr[10];'],
+            ['q' => 'In a switch-case statement, what happens if no break statement is present in a matching case?', 'options' => ['Execution falls through to the subsequent cases', 'Program crashes immediately', 'Syntax error occurs', 'Only default case executes'], 'ans' => 'Execution falls through to the subsequent cases'],
+            ['q' => 'Which data type is permitted inside the switch control expression in C?', 'options' => ['Integer and Character', 'Float and Double', 'String literal', 'Pointer to struct'], 'ans' => 'Integer and Character'],
+            ['q' => 'How many elements can the array float marks[3][4]; store in total?', 'options' => ['12', '7', '14', '9'], 'ans' => '12'],
+            ['q' => 'Which loop is typically preferred when the exact number of iterations is known in advance?', 'options' => ['for loop', 'while loop', 'do-while loop', 'infinite loop'], 'ans' => 'for loop']
+        ],
+        'CO3' => [
+            ['q' => 'Which operator is used to obtain the memory address of a variable in C?', 'options' => ['& (Address-of)', '* (Indirection)', '-> (Arrow)', '% (Modulus)'], 'ans' => '& (Address-of)'],
+            ['q' => 'Which operator is known as the dereferencing or indirection operator in C?', 'options' => ['*', '&', '->', '.'], 'ans' => '*'],
+            ['q' => 'Which special character marks the termination of a string in C?', 'options' => ['\\0 (Null character)', '\\n (Newline)', 'EOF', 'Space'], 'ans' => '\\0 (Null character)'],
+            ['q' => 'Which standard library function in <string.h> is used to calculate the length of a string?', 'options' => ['strlen()', 'length()', 'strlength()', 'size()'], 'ans' => 'strlen()'],
+            ['q' => 'Which function is used to copy the contents of one string to another in C?', 'options' => ['strcpy()', 'strcmp()', 'strcat()', 'strdup()'], 'ans' => 'strcpy()'],
+            ['q' => 'What does a pointer variable store in C?', 'options' => ['Memory address of another variable', 'Value of a variable', 'Data type of a variable', 'Size of an array'], 'ans' => 'Memory address of another variable'],
+            ['q' => 'What is the output of strcmp("apple", "apple") in C?', 'options' => ['0', '1', '-1', 'True'], 'ans' => '0'],
+            ['q' => 'What is a NULL pointer in C?', 'options' => ['A pointer that points to memory address 0 / no valid location', 'A pointer pointing to an integer 0', 'An uninitialized pointer', 'A pointer that points to itself'], 'ans' => 'A pointer that points to memory address 0 / no valid location'],
+            ['q' => 'If ptr points to an integer array element, what does ptr++ do?', 'options' => ['Advances ptr to the next integer element in memory', 'Increments the integer value stored at ptr by 1', 'Causes a compilation error', 'Doubles the memory address of ptr'], 'ans' => 'Advances ptr to the next integer element in memory'],
+            ['q' => 'Which function concatenates (appends) source string to the end of target string in C?', 'options' => ['strcat()', 'strcpy()', 'strappend()', 'strjoin()'], 'ans' => 'strcat()']
+        ],
+        'CO4' => [
+            ['q' => 'What is the return type of a C function that does not return any value to the caller?', 'options' => ['void', 'int', 'null', 'empty'], 'ans' => 'void'],
+            ['q' => 'What is a function prototype in C?', 'options' => ['A declaration that specifies function name, return type, and parameter types', 'The complete executable body of the function', 'A function call inside main()', 'A built-in library function header'], 'ans' => 'A declaration that specifies function name, return type, and parameter types'],
+            ['q' => 'When arguments are passed to a function by value, what does the called function receive?', 'options' => ['A copy of the argument values', 'Direct reference to the original variable', 'A pointer to the caller stack', 'A global variable address'], 'ans' => 'A copy of the argument values'],
+            ['q' => 'What is recursion in C programming?', 'options' => ['A function calling itself directly or indirectly', 'A loop running indefinitely', 'Passing pointers between functions', 'Declaring functions inside structures'], 'ans' => 'A function calling itself directly or indirectly'],
+            ['q' => 'Which storage class keyword preserves a variable value across multiple function calls?', 'options' => ['static', 'auto', 'register', 'extern'], 'ans' => 'static'],
+            ['q' => 'What is the default scope of a variable declared inside a C function without keywords?', 'options' => ['Local to that function', 'Global across all functions', 'Static across function calls', 'Visible to all source files'], 'ans' => 'Local to that function'],
+            ['q' => 'How can a C function modify variables defined in its calling function?', 'options' => ['By passing pointers (call by reference)', 'By passing arguments by value', 'By using the const keyword', 'Functions can never affect caller variables'], 'ans' => 'By passing pointers (call by reference)'],
+            ['q' => 'Which standard library function in <stdlib.h> allocates dynamic memory on the heap?', 'options' => ['malloc()', 'alloc()', 'new', 'create()'], 'ans' => 'malloc()'],
+            ['q' => 'What is required in every recursive function to prevent an infinite recursive loop and stack overflow?', 'options' => ['A base case (termination condition)', 'A while loop', 'A global counter', 'A goto statement'], 'ans' => 'A base case (termination condition)'],
+            ['q' => 'Which keyword is used to access a global variable defined in another file in C?', 'options' => ['extern', 'static', 'register', 'global'], 'ans' => 'extern']
+        ]
+    ];
+
+    /**
+     * Resolve Course Outcome Description by querying course_files, sibling batches, syllabus_registry, or lesson plans.
+     */
+    private function resolveCoDescription($subjectId, $subjectCode, $subjectName, $co)
+    {
+        // 1. Direct course_files for this batch_subject_id
+        $syllabus = DB::table('course_files')->where('batch_subject_id', $subjectId)->first();
+        if ($syllabus && !empty($syllabus->parsed_cos)) {
+            $parsedCos = is_string($syllabus->parsed_cos) ? json_decode($syllabus->parsed_cos, true) : $syllabus->parsed_cos;
+            if (is_array($parsedCos)) {
+                foreach ($parsedCos as $c) {
+                    if (isset($c['id']) && strcasecmp(trim($c['id']), trim($co)) === 0 && !empty($c['description'])) {
+                        return $c['description'];
+                    }
+                }
+            }
+        }
+
+        // 2. Sibling batch_subjects with same subject_code
+        $siblingIds = DB::table('batch_subjects')->where('subject_code', $subjectCode)->pluck('id');
+        if ($siblingIds->isNotEmpty()) {
+            $siblingSyllabus = DB::table('course_files')->whereIn('batch_subject_id', $siblingIds)->whereNotNull('parsed_cos')->first();
+            if ($siblingSyllabus && !empty($siblingSyllabus->parsed_cos)) {
+                $parsedCos = is_string($siblingSyllabus->parsed_cos) ? json_decode($siblingSyllabus->parsed_cos, true) : $siblingSyllabus->parsed_cos;
+                if (is_array($parsedCos)) {
+                    foreach ($parsedCos as $c) {
+                        if (isset($c['id']) && strcasecmp(trim($c['id']), trim($co)) === 0 && !empty($c['description'])) {
+                            return $c['description'];
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Syllabus registry
+        $reg = DB::table('syllabus_registry')->where('subject_code', $subjectCode)->first();
+        if ($reg && !empty($reg->course_outcomes)) {
+            $regCos = is_string($reg->course_outcomes) ? json_decode($reg->course_outcomes, true) : $reg->course_outcomes;
+            if (is_array($regCos)) {
+                foreach ($regCos as $c) {
+                    $cId = $c['co'] ?? ($c['id'] ?? '');
+                    if (strcasecmp(trim($cId), trim($co)) === 0 && !empty($c['description'])) {
+                        return $c['description'];
+                    }
+                }
+            }
+        }
+
+        // 4. Lesson plans or templates
+        $topics = DB::table('lesson_plans')
+            ->where('batch_subject_id', $subjectId)
+            ->where('co_id', $co)
+            ->pluck('topic_content')
+            ->toArray();
+        if (empty($topics)) {
+            $topics = DB::table('lesson_plan_templates')
+                ->where('subject_code', $subjectCode)
+                ->where('co_id', $co)
+                ->pluck('topic_content')
+                ->toArray();
+        }
+        if (!empty($topics)) {
+            return implode(', ', array_slice($topics, 0, 5));
+        }
+
+        return "Core concepts and syllabus topics of {$subjectName} for outcome {$co}";
+    }
+
+    /**
+     * Get subject-safe fallback question pool (never serves Embedded Systems to non-embedded courses).
+     */
+    private function getSubjectFallbackPool($subjectCode, $subjectName, $co, $coDesc)
+    {
+        $sNameLower = strtolower($subjectName);
+        $sCodeClean = strtoupper(str_replace([' ', '-'], '', $subjectCode));
+
+        // Course 3045 or C Programming courses
+        if (str_contains($sNameLower, 'c prog') || str_contains($sNameLower, 'fundamentals of c') || str_contains($sCodeClean, '3045')) {
+            if (isset($this->cProgrammingMCQs[$co])) {
+                return $this->cProgrammingMCQs[$co];
+            }
+            return array_merge($this->cProgrammingMCQs['CO1'], $this->cProgrammingMCQs['CO2']);
+        }
+
+        // Embedded Systems courses
+        if (str_contains($sNameLower, 'embedded') || str_contains($sCodeClean, '5041')) {
+            if (isset($this->embeddedSystemsMCQs[$co])) {
+                return $this->embeddedSystemsMCQs[$co];
+            }
+            return array_merge($this->embeddedSystemsMCQs['CO1'], $this->embeddedSystemsMCQs['CO2']);
+        }
+
+        // Dynamic subject-bound fallback for any other course
+        return [
+            [
+                'q' => "Which of the following best describes the fundamental principle of {$coDesc} in {$subjectName}?",
+                'options' => [
+                    "Standard theoretical concept and application in {$subjectName}",
+                    "Unrelated computational procedure",
+                    "Random external protocol",
+                    "Obsolete non-standard method"
+                ],
+                'ans' => "Standard theoretical concept and application in {$subjectName}"
+            ],
+            [
+                'q' => "In the context of {$subjectName} ({$co}), what is the primary objective of studying {$coDesc}?",
+                'options' => [
+                    "To apply core methodologies and solve domain problems",
+                    "To ignore system constraints",
+                    "To bypass standard analysis",
+                    "None of the above"
+                ],
+                'ans' => "To apply core methodologies and solve domain problems"
+            ],
+            [
+                'q' => "Which characteristic is essential when analyzing {$coDesc} in {$subjectName}?",
+                'options' => [
+                    "Adherence to domain specifications and accuracy",
+                    "Arbitrary parameter estimation",
+                    "Zero verification and testing",
+                    "Inconsistent execution steps"
+                ],
+                'ans' => "Adherence to domain specifications and accuracy"
+            ],
+            [
+                'q' => "What is the recommended analytical approach for {$coDesc} in {$subjectName}?",
+                'options' => [
+                    "Systematic evaluation according to engineering standards",
+                    "Ad-hoc guesswork",
+                    "Omitting core requirements",
+                    "Uncontrolled testing"
+                ],
+                'ans' => "Systematic evaluation according to engineering standards"
+            ]
+        ];
+    }
+
+    /**
+     * Generate MCQ questions payload using Question Bank, Gemini AI, or Subject-Safe Fallbacks.
+     */
+    public function generateQuestionsPayload($subjectId, array $cos, $qCount, $generationMode = 'bank', $genAnswers = 1)
+    {
+        $batchSubject = DB::table('batch_subjects')->where('id', $subjectId)->first();
+        if (!$batchSubject) return [];
+
+        $subjectCode = trim((string)$batchSubject->subject_code);
+        $subjectName = trim((string)($batchSubject->subject_name ?? 'Course'));
+        $revision = trim((string)($batchSubject->syllabus_revision_code ?? 'REV2021'));
+
+        $numCos = count($cos);
+        $qCountPerCo = ceil($qCount / max(1, $numCos));
+
+        $payload = [];
+        $totalMcq = 0;
+
+        foreach ($cos as $co) {
+            if ($totalMcq >= $qCount) break;
+
+            $remaining = $qCount - $totalMcq;
+            $currentLimit = min($remaining, $qCountPerCo);
+
+            $dbQuestions = collect();
+            if ($generationMode === 'bank') {
+                $dbQuestions = DB::table('question_bank')
+                    ->where('subject_code', $subjectCode)
+                    ->where('co_tag', $co)
+                    ->where('type', 'MCQ')
+                    ->inRandomOrder()
+                    ->get();
+            }
+
+            if ($dbQuestions->isNotEmpty()) {
+                $dbCount = count($dbQuestions);
+                $limitToUse = min($currentLimit, $dbCount);
+                for ($i = 0; $i < $limitToUse; $i++) {
+                    $q = $dbQuestions[$i];
+                    $optionsArr = is_string($q->options) ? json_decode($q->options, true) : $q->options;
+
+                    $correctAnsVal = $q->correct_answer;
+                    if (is_array($optionsArr) && in_array(strtoupper(trim((string)$q->correct_answer)), ['A', 'B', 'C', 'D'])) {
+                        $charMap = ['A' => 0, 'B' => 1, 'C' => 2, 'D' => 3];
+                        $idx = $charMap[strtoupper(trim((string)$q->correct_answer))];
+                        if (isset($optionsArr[$idx])) {
+                            $correctAnsVal = $optionsArr[$idx];
+                        }
+                    }
+
+                    $payload[] = [
+                        'q' => $q->question_text,
+                        'options' => $optionsArr ?: [],
+                        'ans' => $genAnswers ? $correctAnsVal : null,
+                        'co' => $co
+                    ];
+                    $totalMcq++;
+                }
+            } else {
+                $coDesc = $this->resolveCoDescription($subjectId, $subjectCode, $subjectName, $co);
+
+                $apiKey = env('GEMINI_API_KEY');
+                $generatedWithAi = false;
+
+                if ($apiKey && \App\Http\Controllers\SystemSettingController::isAiEnabled()) {
+                    try {
+                        $prompt = "You are a university engineering professor and examiner for the course '{$subjectName}' (Course Code: {$subjectCode}, Revision: {$revision}).
+Generate exactly {$currentLimit} multiple-choice questions (MCQs) for Course Outcome '{$co}' strictly focusing on the course syllabus topic: '{$coDesc}'.
+
+STRICT REQUIREMENTS:
+1. Every question and all four options MUST be 100% strictly relevant to '{$subjectName}' (Course Code: {$subjectCode}).
+2. DO NOT include questions from unrelated subjects such as Embedded Systems, microcontrollers, or general electronics unless '{$subjectName}' is specifically that topic. If the course is 'Fundamentals of C Programming', all questions MUST be strictly about C programming (syntax, data types, control flow, functions, pointers, arrays, memory, standard I/O).
+3. Provide exactly 4 distinct, plausible options per question (Option A, Option B, Option C, Option D).
+4. The 'ans' field must be the EXACT string of one of the 4 options.
+5. Return ONLY a valid JSON array of objects strictly matching this schema:
+[
+  {
+    \"q\": \"Question text?\",
+    \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"],
+    \"ans\": \"Exact text of the correct option\"
+  }
+]";
+
+                        $response = \Illuminate\Support\Facades\Http::timeout(30)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                            'contents' => [['parts' => [['text' => $prompt]]]],
+                            'generationConfig' => ['responseMimeType' => 'application/json']
+                        ]);
+
+                        if ($response->successful()) {
+                            $jsonString = $response->json('candidates.0.content.parts.0.text');
+                            $cleanJson = trim(str_replace(['```json', '```JSON', '```'], '', $jsonString));
+                            $parsed = json_decode($cleanJson, true);
+
+                            if (is_array($parsed) && count($parsed) > 0) {
+                                foreach ($parsed as $q) {
+                                    if ($totalMcq >= $qCount) break;
+                                    if (isset($q['q']) && isset($q['options']) && isset($q['ans']) && is_array($q['options'])) {
+                                        $q['co'] = $co;
+                                        if (!$genAnswers) $q['ans'] = null;
+                                        $payload[] = $q;
+                                        $totalMcq++;
+                                    }
+                                }
+                                if ($totalMcq > 0) {
+                                    $generatedWithAi = true;
+                                }
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning("Gemini MCQ generation failed for {$subjectCode}: " . $e->getMessage());
+                    }
+                }
+
+                if (!$generatedWithAi) {
+                    $fallbackPool = $this->getSubjectFallbackPool($subjectCode, $subjectName, $co, $coDesc);
+                    shuffle($fallbackPool);
+                    $poolSize = count($fallbackPool);
+                    $added = 0;
+                    while ($added < $currentLimit && $totalMcq < $qCount && $poolSize > 0) {
+                        $q = $fallbackPool[$added % $poolSize];
+                        $q['co'] = $co;
+                        if (!$genAnswers) {
+                            $q['ans'] = null;
+                        }
+                        $payload[] = $q;
+                        $totalMcq++;
+                        $added++;
+                    }
+                }
+            }
+        }
+
+        return $payload;
+    }
+
+    // Lecturer: Preview & Edit Questions before publish
+    public function previewOnlineTestQuestions(Request $request, $subjectId)
+    {
+        $role = Session::get('userRole');
+        if (!in_array($role, ['Lecturer', 'HOD', 'Principal', 'Admin', 'Super_Admin'])) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
+
+        $batchSubject = DB::table('batch_subjects')->where('id', $subjectId)->first();
+        if (!$batchSubject) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Subject assignment not found.']);
+        }
+
+        $cos = $request->input('cos', []);
+        $qCount = intval($request->input('q_count', 5));
+        $generationMode = $request->input('generation_mode', 'ai');
+        $genAnswers = intval($request->input('gen_answers', 1));
+
+        if (empty($cos)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Please select at least one CO.']);
+        }
+
+        $questions = $this->generateQuestionsPayload($subjectId, $cos, $qCount, $generationMode, $genAnswers);
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'subject_code' => $batchSubject->subject_code,
+            'subject_name' => $batchSubject->subject_name,
+            'questions' => $questions
+        ]);
+    }
+
     // Lecturer: Publish a new Online Test
     public function publishOnlineTest(Request $request, $subjectId)
     {
         $role = Session::get('userRole');
-        if ($role !== 'Lecturer') return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        if (!in_array($role, ['Lecturer', 'HOD', 'Principal', 'Admin', 'Super_Admin'])) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+        }
 
         // classroom_id and subject_code are required from batch_subjects
         $batchSubject = DB::table('batch_subjects')->where('id', $subjectId)->first();
@@ -82,142 +443,54 @@ class TestEngineController extends Controller
         $end = $request->input('end');
         $qCount = intval($request->input('q_count', 3));
         $genAnswers = intval($request->input('gen_answers', 1));
+        $generationMode = $request->input('generation_mode', 'bank');
 
         if (empty($cos)) {
             return response()->json(['status' => 'ERROR', 'message' => 'Please select at least one CO.']);
         }
 
-        $numCos = count($cos);
-        $qCountPerCo = ceil($qCount / max(1, $numCos));
-
-        $generationMode = $request->input('generation_mode', 'bank');
-
-        // Generate MCQ payload based on selected COs
         $payload = [];
         $totalMcq = 0;
-        foreach ($cos as $co) {
-            if ($totalMcq >= $qCount) break;
-            
-            // Adjust to not exceed total qCount
-            $remaining = $qCount - $totalMcq;
-            $currentLimit = min($remaining, $qCountPerCo);
 
-            $dbQuestions = collect();
-            if ($generationMode === 'bank') {
-                // Fetch all available questions from question_bank for this CO
-                $dbQuestions = DB::table('question_bank')
-                    ->where('subject_code', $subjectCode)
-                    ->where('co_tag', $co)
-                    ->where('type', 'MCQ')
-                    ->inRandomOrder()
-                    ->get();
+        // If reviewed/edited questions are submitted directly from frontend preview
+        $reviewedQuestions = $request->input('questions');
+        if (is_array($reviewedQuestions) && count($reviewedQuestions) > 0) {
+            foreach ($reviewedQuestions as $item) {
+                if (empty(trim($item['q'] ?? ''))) continue;
+                $options = isset($item['options']) && is_array($item['options'])
+                    ? array_values(array_filter(array_map('trim', $item['options']), fn($o) => $o !== ''))
+                    : [];
+                if (count($options) < 2) continue;
+
+                $ans = isset($item['ans']) ? trim((string)$item['ans']) : null;
+                $coTag = !empty($item['co']) ? trim($item['co']) : ($cos[0] ?? 'CO1');
+
+                $payload[] = [
+                    'q' => trim($item['q']),
+                    'options' => $options,
+                    'ans' => $genAnswers ? $ans : null,
+                    'co' => $coTag
+                ];
+                $totalMcq++;
             }
 
-            if ($dbQuestions->isNotEmpty()) {
-                $dbCount = count($dbQuestions);
-                // Do not loop up to currentLimit if it exceeds the available questions
-                $limitToUse = min($currentLimit, $dbCount);
-                for ($i = 0; $i < $limitToUse; $i++) {
-                    $q = $dbQuestions[$i];
-                    $optionsArr = is_string($q->options) ? json_decode($q->options, true) : $q->options;
-                    
-                    // Resolve A, B, C, D to actual option string if needed
-                    $correctAnsVal = $q->correct_answer;
-                    if (is_array($optionsArr) && in_array(strtoupper(trim($q->correct_answer)), ['A', 'B', 'C', 'D'])) {
-                        $charMap = ['A' => 0, 'B' => 1, 'C' => 2, 'D' => 3];
-                        $idx = $charMap[strtoupper(trim($q->correct_answer))];
-                        if (isset($optionsArr[$idx])) {
-                            $correctAnsVal = $optionsArr[$idx];
-                        }
-                    }
-
-                    $payload[] = [
-                        'q' => $q->question_text,
-                        'options' => $optionsArr ?: [],
-                        'ans' => $genAnswers ? $correctAnsVal : null,
-                        'co' => $co
-                    ];
-                    $totalMcq++;
-                }
-            } else {
-                // Attempt to generate strictly based on Syllabus CO contents via AI
-                $syllabus = DB::table('course_files')->where('batch_subject_id', $subjectId)->first();
-                $coDesc = 'General topics';
-                if ($syllabus && $syllabus->parsed_cos) {
-                    $parsedCos = json_decode($syllabus->parsed_cos, true);
-                    if (is_array($parsedCos)) {
-                        foreach ($parsedCos as $c) {
-                            if (isset($c['id']) && trim($c['id']) === trim($co)) {
-                                $coDesc = $c['description'] ?? 'General topics';
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                $apiKey = env('GEMINI_API_KEY');
-                $generatedWithAi = false;
-                
-                if ($apiKey && \App\Http\Controllers\SystemSettingController::isAiEnabled()) {
-                    try {
-                        $prompt = "You are an examiner generating MCQs for an engineering exam. Generate exactly {$currentLimit} multiple-choice questions for Course Outcome '{$co}' based strictly on the syllabus topic: '{$coDesc}'. Return ONLY a valid JSON array of objects exactly matching this schema: [{\"q\": \"question text?\", \"options\": [\"Option 1\", \"Option 2\", \"Option 3\", \"Option 4\"], \"ans\": \"Exact string of the correct option\"}]";
-                        $response = \Illuminate\Support\Facades\Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-                            'contents' => [['parts' => [['text' => $prompt]]]],
-                            'generationConfig' => ['responseMimeType' => 'application/json']
-                        ]);
-
-                        if ($response->successful()) {
-                            $jsonString = $response->json('candidates.0.content.parts.0.text');
-                            $cleanJson = trim(str_replace(['```json', '```JSON', '```'], '', $jsonString));
-                            $parsed = json_decode($cleanJson, true);
-                            
-                            if (is_array($parsed) && count($parsed) > 0) {
-                                foreach ($parsed as $q) {
-                                    if ($totalMcq >= $qCount) break;
-                                    if (isset($q['q']) && isset($q['options']) && isset($q['ans'])) {
-                                        $q['co'] = $co;
-                                        if (!$genAnswers) $q['ans'] = null;
-                                        $payload[] = $q;
-                                        $totalMcq++;
-                                    }
-                                }
-                                $generatedWithAi = true;
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::warning("Gemini MCQ generation failed: " . $e->getMessage());
-                    }
-                }
-
-                if (!$generatedWithAi) {
-                    // Fallback to mock MCQ pool — cycle through to fulfill any requested count
-                    if (isset($this->mockMCQs[$co])) {
-                        $pool = $this->mockMCQs[$co];
-                        shuffle($pool);
-                        $poolSize = count($pool);
-                        $added = 0;
-                        while ($added < $currentLimit && $totalMcq < $qCount) {
-                            // Use modulo to cycle through pool if count > pool size
-                            $q = $pool[$added % $poolSize];
-                            $q['co'] = $co;
-                            if (!$genAnswers) {
-                                $q['ans'] = null;
-                            }
-                            $payload[] = $q;
-                            $totalMcq++;
-                            $added++;
-                        }
-                    }
-                }
+            if ($totalMcq === 0) {
+                return response()->json(['status' => 'ERROR', 'message' => 'No valid questions found in submission. Each question must have question text and at least 2 options.']);
             }
+        } else {
+            // Direct generation path (Instant Publish)
+            $payload = $this->generateQuestionsPayload($subjectId, $cos, $qCount, $generationMode, $genAnswers);
+            $totalMcq = count($payload);
         }
 
         $customName = $request->input('custom_name');
         $testName = !empty($customName) ? trim($customName) : 'Online MCQ Test - ' . implode(', ', $cos);
 
+        $newTestId = (string) Str::uuid();
+
         // Save to test_configs
         DB::table('test_configs')->insert([
-            'test_id' => DB::raw('(UUID())'),
+            'test_id' => $newTestId,
             'subject_code' => $subjectCode,
             'classroom_id' => $classroomId,
             'test_name' => $testName,
@@ -236,7 +509,30 @@ class TestEngineController extends Controller
             'updated_at' => now()
         ]);
 
-        return response()->json(['status' => 'SUCCESS', 'message' => 'Online Test Published successfully.']);
+        // Dispatch Web Push Notification to students of this classroom
+        try {
+            $studentIds = DB::table('students')->where('classroom_id', $classroomId)->pluck('reg_no')->toArray();
+            if (!empty($studentIds)) {
+                $pushTitle = "📝 Online MCQ Test: " . $subjectCode;
+                $pushBody = "{$testName} ({$totalMcq} MCQs, {$duration} mins) has been published. Tap to launch!";
+                $launchUrl = "/student/online-tests/{$newTestId}/start";
+
+                $subscriptions = \App\Models\PushSubscription::whereIn('user_id', $studentIds)->get();
+                if ($subscriptions->isNotEmpty()) {
+                    PushNotificationService::dispatchPayload(
+                        $subscriptions,
+                        $pushTitle,
+                        $pushBody,
+                        $launchUrl,
+                        'carmel-mcq-' . $newTestId
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("MCQ Push Notification dispatch failed: " . $e->getMessage());
+        }
+
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Online Test Published successfully.', 'mcq_count' => $totalMcq, 'test_id' => $newTestId]);
     }
 
     // Lecturer: Get Active Online Tests
@@ -367,12 +663,154 @@ class TestEngineController extends Controller
         ]);
     }
 
+    /**
+     * Student: Render the dedicated mobile/desktop online test taking interface.
+     */
+    public function showOnlineTest(Request $request, $testId)
+    {
+        $regNo = Session::get('userId');
+        $userRole = Session::get('userRole');
+
+        if (!$regNo || $userRole !== 'Student') {
+            Session::put('url.intended', url("/student/online-tests/{$testId}/start"));
+            return redirect('/')->with('error', 'Please log in with your student credentials to access the test.');
+        }
+
+        $student = DB::table('students')->where('reg_no', $regNo)->first();
+        if (!$student) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Student Profile Not Found',
+                'message' => 'Unable to locate your student profile in the system.',
+                'backUrl' => '/dashboard/student'
+            ], 404);
+        }
+
+        $test = DB::table('test_configs')->where('test_id', $testId)->first();
+        if (!$test) {
+            // Check fallback by integer id
+            $test = DB::table('test_configs')->where('id', $testId)->first();
+        }
+
+        if (!$test) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Online Test Not Found',
+                'message' => 'The requested test configuration could not be found. It may have been deleted or expired.',
+                'backUrl' => '/dashboard/student'
+            ], 404);
+        }
+
+        // Verify classroom batch assignment
+        if ($test->classroom_id && $student->classroom_id !== $test->classroom_id) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Test Not Assigned to Your Batch',
+                'message' => 'This examination has been scheduled for a different classroom batch.',
+                'backUrl' => '/dashboard/student'
+            ], 403);
+        }
+
+        // Verify active status
+        if (!$test->is_active) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Test Inactive',
+                'message' => 'This test is currently inactive or deactivated by the subject faculty.',
+                'backUrl' => '/dashboard/student'
+            ]);
+        }
+
+        // Check start and end schedule
+        $now = now();
+        if ($test->start_time && $now < Carbon::parse($test->start_time)) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Test Not Started Yet',
+                'message' => 'This test is scheduled to commence on ' . Carbon::parse($test->start_time)->format('d M Y, h:i A') . '. Please check back at the scheduled start time.',
+                'backUrl' => '/dashboard/student'
+            ]);
+        }
+
+        if ($test->end_time && $now > Carbon::parse($test->end_time)) {
+            return response()->view('student_online_test_error', [
+                'title' => 'Test Deadline Expired',
+                'message' => 'The submission deadline for this test was ' . Carbon::parse($test->end_time)->format('d M Y, h:i A') . '.',
+                'backUrl' => '/dashboard/student'
+            ]);
+        }
+
+        // Attempts check
+        $attemptsCount = DB::table('test_attempts')
+            ->where('test_id', $test->test_id)
+            ->where('reg_no', $regNo)
+            ->where('status', 'completed')
+            ->count();
+
+        $activeAttempt = DB::table('test_attempts')
+            ->where('test_id', $test->test_id)
+            ->where('reg_no', $regNo)
+            ->where('status', 'in_progress')
+            ->orderBy('start_time', 'desc')
+            ->first();
+
+        if ($attemptsCount >= ($test->max_attempts ?? 1) && !$activeAttempt) {
+            $bestScore = DB::table('test_attempts')
+                ->where('test_id', $test->test_id)
+                ->where('reg_no', $regNo)
+                ->max('total_score');
+
+            return response()->view('student_online_test_error', [
+                'title' => 'Maximum Attempts Completed',
+                'message' => "You have already completed all permitted attempts ({$test->max_attempts}) for this test. Your best score: {$bestScore} / {$test->mcq_count}.",
+                'backUrl' => '/dashboard/student'
+            ]);
+        }
+
+        // Resolve subject details
+        $batchSubject = DB::table('batch_subjects')
+            ->where('subject_code', $test->subject_code)
+            ->where('classroom_id', $test->classroom_id)
+            ->first();
+
+        $subjectName = $batchSubject?->subject_name ?? $test->subject_code;
+
+        return view('student_online_test', compact(
+            'test',
+            'student',
+            'subjectName',
+            'attemptsCount',
+            'activeAttempt'
+        ));
+    }
+
     // Student: Start Test
     public function startTest(Request $request, $testId)
     {
         $regNo = Session::get('userId');
         $test = DB::table('test_configs')->where('test_id', $testId)->first();
         if (!$test) return response()->json(['status' => 'ERROR', 'message' => 'Test not found']);
+
+        // Check if there is already an in-progress attempt to resume
+        $activeAttempt = DB::table('test_attempts')
+            ->where('test_id', $testId)
+            ->where('reg_no', $regNo)
+            ->where('status', 'in_progress')
+            ->orderBy('start_time', 'desc')
+            ->first();
+
+        if ($activeAttempt) {
+            $fullPayload = json_decode($test->questions_payload, true);
+            $safePayload = array_map(function($q) {
+                unset($q['ans']);
+                return $q;
+            }, $fullPayload);
+
+            $elapsedMinutes = Carbon::parse($activeAttempt->start_time)->diffInMinutes(now());
+            $remainingMinutes = max(1, $test->duration - $elapsedMinutes);
+
+            return response()->json([
+                'status' => 'SUCCESS', 
+                'attempt_id' => $activeAttempt->attempt_id ?? $activeAttempt->id,
+                'duration' => $remainingMinutes,
+                'questions' => $safePayload
+            ]);
+        }
 
         $attemptsCount = DB::table('test_attempts')->where('test_id', $testId)->where('reg_no', $regNo)->count();
         if ($attemptsCount >= $test->max_attempts) {

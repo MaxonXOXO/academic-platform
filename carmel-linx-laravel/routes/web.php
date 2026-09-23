@@ -233,6 +233,10 @@ Route::middleware(['web'])->group(function () {
     });
 
     Route::get('/student/mobile', [\App\Http\Controllers\StudentAttendanceController::class, 'showStudentMobileDashboard'])->name('student.mobile');
+    Route::get('/dashboard/student/mobile', function (\Illuminate\Http\Request $request) {
+        if (Session::get('userRole') !== 'Student') return redirect('/');
+        return app(\App\Http\Controllers\StudentAttendanceController::class)->showStudentMobileDashboard($request);
+    });
 
     Route::get('/student/attendance', [\App\Http\Controllers\StudentAttendanceController::class, 'showStudentAttendance']);
 
@@ -726,6 +730,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/classroom/{subjectId}/save-written-test-marks', [App\Http\Controllers\ClassroomController::class, 'saveWrittenTestMarks']);
     Route::post('/api/classroom/generate-scheme-answers', [App\Http\Controllers\ClassroomController::class, 'generateAnswerKeyForScheme']);
     Route::post('/api/classroom/{subjectId}/publish-online-test', [App\Http\Controllers\TestEngineController::class, 'publishOnlineTest']);
+    Route::post('/api/classroom/{subjectId}/preview-online-test-questions', [App\Http\Controllers\TestEngineController::class, 'previewOnlineTestQuestions']);
     Route::get('/api/classroom/{subjectId}/active-online-tests', [App\Http\Controllers\TestEngineController::class, 'getActiveTestsLecturer']);
     Route::get('/api/test-engine/report/{testId}', [App\Http\Controllers\TestEngineController::class, 'generateTestReport']);
     Route::get('/classroom/{subjectId}/assignment-report', [App\Http\Controllers\ClassroomController::class, 'printAssignmentReport']);
@@ -857,8 +862,10 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/staff/profile/update-dob', [\App\Http\Controllers\StaffBirthdayController::class, 'updateSelfDob']);
     Route::post('/api/student/tasks/submit', [App\Http\Controllers\DataController::class, 'submitManualTask']);
     Route::get('/api/student/online-tests', [App\Http\Controllers\TestEngineController::class, 'getAvailableTests']);
+    Route::get('/student/online-tests/{testId}/start', [App\Http\Controllers\TestEngineController::class, 'showOnlineTest'])->name('student.online-test.start');
     Route::post('/api/student/online-tests/{testId}/start', [App\Http\Controllers\TestEngineController::class, 'startTest']);
     Route::post('/api/student/online-tests/{testId}/submit', [App\Http\Controllers\TestEngineController::class, 'submitTest']);
+    Route::get('/api/student/online-tests/{testId}/answer-key', [App\Http\Controllers\TestEngineController::class, 'getAnswerKey']);
 
     // Student Mock Practice Test (Practice Only)
     Route::get('/student/mock-test', [App\Http\Controllers\StudentMockTestController::class, 'index']);
@@ -2177,6 +2184,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/staff/leave/process-approval', [App\Http\Controllers\StaffLeaveController::class, 'processApproval']);
     Route::get('/staff/leave/{id}/pdf', [App\Http\Controllers\StaffLeaveController::class, 'generateLeavePDF']);
     Route::get('/staff/leave/reports', [App\Http\Controllers\StaffLeaveController::class, 'getLeaveReports']);
+    Route::get('/api/staff/my-punch-log', [App\Http\Controllers\MentoringController::class, 'getMyMonthlyPunchLog']);
 });
 
 // Parent Dashboard Add-On Routes

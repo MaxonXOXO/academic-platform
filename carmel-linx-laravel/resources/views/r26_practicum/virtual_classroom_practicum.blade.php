@@ -109,10 +109,11 @@
         }
 
         .mode-btn.active {
-            background: linear-gradient(135deg, rgba(30, 58, 138, 0.55) 0%, rgba(15, 23, 42, 0.92) 100%);
-            color: #93c5fd !important;
-            border: 1px solid rgba(59, 130, 246, 0.45);
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.5);
+            background: #2563eb !important;
+            color: #ffffff !important;
+            border: 1px solid #3b82f6 !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            font-weight: 700 !important;
         }
 
         .subtab-btn {
@@ -131,10 +132,11 @@
         }
 
         .subtab-btn.active {
-            color: #38bdf8 !important; /* vivid sky-400 */
-            border-bottom-color: #0284c7;
-            background: rgba(14, 165, 233, 0.16) !important;
+            color: #ffffff !important;
+            background: #2563eb !important;
+            border-bottom-color: #3b82f6 !important;
             font-weight: 700;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
         }
 
         /* Form Inputs & Select Controls */
@@ -347,46 +349,37 @@
                     <span class="font-extrabold text-white text-base tracking-tight group-hover:text-sky-300 transition-colors">Carmel Linx</span>
                     <span class="text-slate-600 font-bold">|</span>
                 </a>
-                <div class="space-y-0.5">
-                    <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
-                        <h1 class="text-lg font-bold text-white tracking-tight">{{ $batchSubject->subject_name }}</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-semibold whitespace-nowrap">
-                            Practicum Course ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
-                        </span>
+                <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
+                    <h1 class="text-lg font-bold text-white tracking-tight">{{ $batchSubject->subject_name }}</h1>
+                    <span class="px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-semibold whitespace-nowrap">
+                        Practicum Course ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
+                    </span>
 
-                        @php
-                            $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
-                        @endphp
-                        @if($isAiActive)
-                            <span class="px-2.5 py-0.5 rounded-full bg-slate-800/90 text-slate-300 border border-slate-700 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI Support API Active">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <span>AI Active</span>
-                            </span>
-                        @else
-                            <span class="px-2.5 py-0.5 rounded-full bg-amber-950/40 text-amber-400 border border-amber-900/60 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                <span>AI Offline (Local DB)</span>
-                            </span>
-                        @endif
-                    </div>
-                    
-                    <p class="text-slate-400 subject-meta-text leading-tight mt-0.5">
-                        Subject Code: <span class="text-white font-semibold font-mono">{{ $batchSubject->subject_code }}</span> | 
-                        Batch Code: <span class="text-amber-400 font-bold font-mono">{{ $batchSubject->classroom_id }}</span> | 
-                        Branch: <span class="text-blue-300 font-semibold">{{ function_exists('getFullBranchName') ? getFullBranchName($classroom->department ?? $classroom->branch ?? '') : ($classroom->department ?? $classroom->branch) }}</span> | 
-                        Semester: <span class="text-white font-semibold">{{ $practicumCourseFile->semester }}</span>
-                    </p>
+                    @php
+                        $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled();
+                    @endphp
+                    @if($isAiActive)
+                        <span class="px-2.5 py-0.5 rounded-full bg-slate-800/90 text-slate-300 border border-slate-700 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI Support API Active">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>AI Active</span>
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-950/40 text-amber-400 border border-amber-900/60 text-xs font-medium whitespace-nowrap flex items-center space-x-1.5" title="AI is deactivated. Generating content from structured syllabus database and offline banks.">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span>AI Offline</span>
+                        </span>
+                    @endif
                 </div>
             </div>
 
             <!-- Right: Logged-In & Assigned Faculty Info & Back Button -->
             <div class="flex items-center space-x-3 flex-shrink-0">
-                <div class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-300 flex items-center space-x-2.5 header-subtitle">
-                    <div class="p-1 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0" style="width: 24px; height: 24px;">
+                <div class="flex items-center space-x-2 text-slate-300 header-subtitle">
+                    <div class="p-1 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0" style="width: 24px; height: 24px;">
                         <svg class="w-4 h-4 shrink-0" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
-                    <div class="text-white font-semibold">
-                        Faculty: <span class="text-sky-300 font-bold">
+                    <div class="font-semibold">
+                        <span class="text-blue-300">Faculty:</span> <span class="text-blue-400 font-bold">
                             {{ Session::get('userName') ?? 'Faculty In-Charge' }}
                             @if(isset($assignedStaff) && count($assignedStaff) > 0)
                                 @foreach(($assignedStaff ?? []) as $stf)
@@ -409,41 +402,43 @@
 
     <!-- 2. SUB-HEADER CONTROL CONSOLE BAR -->
     <div class="max-w-[98%] mx-auto px-4 md:px-8 mt-3">
-        <div class="glass-card p-3.5 rounded-xl border border-slate-800 flex items-center justify-between flex-wrap gap-3">
+        <div class="glass-card p-3 rounded-xl border border-slate-800 flex items-center justify-between flex-wrap gap-3">
             
-            <!-- Hours & Assessment Details (Dynamic from Uploaded Syllabus) -->
-            <div class="flex items-center space-x-3 flex-wrap gap-y-1 text-slate-300 schedule-meta-text">
-                <span>Theory: <span class="font-bold text-blue-400">{{ $theoryHours ?? 45 }} Hrs</span> (L)</span>
-                <span class="text-slate-600 font-bold">•</span>
-                <span>Practical: <span class="font-bold text-emerald-400">{{ $practicalHours ?? 45 }} Hrs</span> (P)</span>
-                <span class="text-slate-600 font-bold">•</span>
-                <span>Total Schedule: <span class="font-bold text-sky-400">{{ $practicumCourseFile->contact_hours ?? (($theoryHours ?? 45) + ($practicalHours ?? 45)) }} Hrs</span></span>
-                <span class="text-slate-600 font-bold">•</span>
-                <span>CIE: <span class="font-bold text-amber-400">{{ $practicumCourseFile->cie_marks ?? 40 }}M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-sky-400">{{ $practicumCourseFile->ese_marks ?? 60 }}M</span></span>
+            <!-- Subject Metadata & Hours/Assessment Details -->
+            <div class="space-y-1">
+                <p class="text-slate-400 subject-meta-text leading-tight mb-0">
+                    Subject Code: <span class="text-white font-semibold font-mono">{{ $batchSubject->subject_code }}</span> | 
+                    Batch Code: <span class="text-amber-400 font-bold font-mono">{{ $batchSubject->classroom_id }}</span> | 
+                    Branch: <span class="text-blue-300 font-semibold">{{ function_exists('getFullBranchName') ? getFullBranchName($classroom->department ?? $classroom->branch ?? '') : ($classroom->department ?? $classroom->branch) }}</span> | 
+                    Semester: <span class="text-white font-semibold">{{ $practicumCourseFile->semester }}</span>
+                </p>
+                <div class="flex items-center space-x-3 flex-wrap gap-y-1 text-slate-300 schedule-meta-text">
+                    <span>Theory: <span class="font-bold text-blue-400">{{ $theoryHours ?? 45 }} Hrs</span> (L)</span>
+                    <span class="text-slate-600 font-bold">•</span>
+                    <span>Practical: <span class="font-bold text-emerald-400">{{ $practicalHours ?? 45 }} Hrs</span> (P)</span>
+                    <span class="text-slate-600 font-bold">•</span>
+                    <span>Total Schedule: <span class="font-bold text-sky-400">{{ $practicumCourseFile->contact_hours ?? (($theoryHours ?? 45) + ($practicalHours ?? 45)) }} Hrs</span></span>
+                    <span class="text-slate-600 font-bold">•</span>
+                    <span>CIE: <span class="font-bold text-amber-400">{{ $practicumCourseFile->cie_marks ?? 40 }}M</span> <span class="text-slate-500">|</span> ESE: <span class="font-bold text-sky-400">{{ $practicumCourseFile->ese_marks ?? 60 }}M</span></span>
+                </div>
             </div>
 
             <!-- Action Controls -->
             <div class="flex items-center space-x-2 flex-wrap gap-y-1.5">
                 
                 <!-- Upload Syllabus -->
-                <button onclick="openSyllabusModal()" class="header-btn px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 hover:border-sky-400/50 text-sky-300 font-semibold transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <button onclick="openSyllabusModal()" class="header-btn px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500 text-white font-semibold transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     <span>Upload Syllabus</span>
                 </button>
 
                 <!-- View Syllabus PDF -->
                 @if($practicumCourseFile->syllabus_pdf_path)
-                <a href="/storage/{{ $practicumCourseFile->syllabus_pdf_path }}" target="_blank" class="header-btn px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-400/50 text-emerald-300 font-semibold transition-all flex items-center space-x-1.5 shadow-xs no-underline">
-                    <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <a href="/storage/{{ $practicumCourseFile->syllabus_pdf_path }}" target="_blank" class="header-btn px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500 text-white font-semibold transition-all flex items-center space-x-1.5 shadow-xs no-underline">
+                    <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>View Syllabus PDF</span>
                 </a>
                 @endif
-
-                <!-- Course File Console -->
-                <a href="/r26/classroom/practicum/course-file/{{ $batchSubject->id }}" class="header-btn px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-400/50 text-amber-300 font-semibold transition-all flex items-center space-x-1.5 shadow-xs no-underline">
-                    <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                    <span>Course File Console</span>
-                </a>
 
                 <!-- Fullscreen Button -->
                 <button onclick="toggleFullscreen()" class="p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all flex items-center justify-center cursor-pointer shadow-xs" title="Toggle Fullscreen">
@@ -786,7 +781,7 @@
             <div id="theory-subcontent-series" class="space-y-4 hidden">
 
                 <!-- QP Generator Panel — 4 Cards -->
-                <div class="glass-card p-5 rounded-xl border border-slate-800 no-print">
+                <div class="p-5 rounded-xl border border-slate-800 no-print bg-slate-950 shadow-xl" style="background-color: #020617 !important;">
                     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
                             <h3 class="text-base font-bold text-white flex items-center gap-2 flex-wrap">
@@ -810,7 +805,7 @@
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         @foreach(['Series 1' => 'CO1', 'Series 2' => 'CO2', 'Series 3' => 'CO3', 'Series 4' => 'CO4'] as $series => $co)
                         @php $savedQp = $seriesQps[$series] ?? null; @endphp
-                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-900/15' : 'border-slate-700 bg-slate-800/50' }} p-3 flex flex-col gap-2">
+                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-950/40' : 'border-slate-800 bg-slate-900/80' }} p-3 flex flex-col gap-2">
                             <!-- Card Header -->
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-white text-sm">{{ $series }}</span>
@@ -1298,7 +1293,7 @@
 
             <!-- Subtab 7: Attendance Reports -->
             <div id="theory-subcontent-attendance" class="space-y-5 hidden">
-                <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-6">
+                <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6" style="background-color: #020617 !important;">
                     <!-- Top Action & Info Bar -->
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-800 pb-5">
                         <div class="space-y-1">
@@ -1328,7 +1323,7 @@
                     <!-- 3 Printable Reports Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <!-- Card 1: Teaching & Attendance Log Register (Log-wise) -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-indigo-500/20 hover:border-indigo-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1341,13 +1336,13 @@
                                 </div>
                                 <span class="material-symbols-rounded text-indigo-400 bg-indigo-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">menu_book</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-950/40 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📄 Print Log Register (A4)
                             </a>
                         </div>
 
                         <!-- Card 2: Detailed Course Register (Course-wise Grid) -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1360,13 +1355,13 @@
                                 </div>
                                 <span class="material-symbols-rounded text-cyan-400 bg-cyan-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">view_list</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-cyan-950/40 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📊 Print Course Matrix (A4)
                             </a>
                         </div>
 
                         <!-- Card 3: Consolidated Attendance Report -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-emerald-500/20 hover:border-emerald-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1379,7 +1374,7 @@
                                 </div>
                                 <span class="material-symbols-rounded text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">analytics</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-950/40 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 hover:border-emerald-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📋 Print Consolidated (A4)
                             </a>
                         </div>
@@ -1681,7 +1676,7 @@
 
             <!-- Subtab: Common Attendance & Teaching Logs in Lab Mode -->
             <div id="lab-subcontent-attendance" class="space-y-5 hidden">
-                <div class="glass-card p-6 rounded-xl border border-slate-800 space-y-6">
+                <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6" style="background-color: #020617 !important;">
                     <!-- Top Action & Info Bar -->
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-800 pb-5">
                         <div class="space-y-1">
@@ -1711,7 +1706,7 @@
                     <!-- 3 Printable Reports Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <!-- Card 1: Teaching & Attendance Log Register (Log-wise) -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-indigo-500/20 hover:border-indigo-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1724,13 +1719,13 @@
                                 </div>
                                 <span class="material-symbols-rounded text-indigo-400 bg-indigo-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">menu_book</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-950/40 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📄 Print Log Register (A4)
                             </a>
                         </div>
 
                         <!-- Card 2: Detailed Course Register (Course-wise Grid) -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1743,13 +1738,13 @@
                                 </div>
                                 <span class="material-symbols-rounded text-cyan-400 bg-cyan-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">view_list</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-cyan-950/40 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📊 Print Course Matrix (A4)
                             </a>
                         </div>
 
                         <!-- Card 3: Consolidated Attendance Report -->
-                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-emerald-500/20 hover:border-emerald-500/50 shadow-lg transition-all duration-300 group flex flex-col justify-between space-y-4">
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
                                     <div class="flex items-center space-x-2">
@@ -1762,7 +1757,7 @@
                                 </div>
                                 <span class="material-symbols-rounded text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">analytics</span>
                             </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-950/40 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 hover:border-emerald-400 transition-all shadow-md no-underline block">
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
                                 📋 Print Consolidated (A4)
                             </a>
                         </div>
@@ -1829,31 +1824,25 @@
                 </div>
             </div>
 
-            <!-- Subtab 1: Experiments Roster (Customizable & Synced with Lesson Plan) -->
+            <!-- Subtab 1: Experiments List (Customizable & Synced with Lesson Plan) -->
             <div id="lab-subcontent-roster" class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
-                <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
-                        <h3 class="text-base md:text-lg font-bold text-white mb-1 flex items-center space-x-2">
-                            <span>🧪 Practical Experiments Roster</span>
+                        <h3 class="text-base md:text-lg font-bold text-white flex items-center space-x-2">
+                            <span>🧪 Practical Experiments List</span>
                             <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">Customizable</span>
                         </h3>
-                        <p class="text-slate-400 text-xs">
-                            Customize experiment titles, durations, codes, mapped COs, and session codes. All updates are automatically synchronized to the Practical Lesson Plan.
-                        </p>
                     </div>
-                    <div class="flex items-center flex-wrap gap-2 no-print">
-                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-experiment-list" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all flex items-center space-x-1.5 no-underline shadow-sm">
+                    <div class="flex items-center flex-nowrap gap-2 no-print overflow-x-auto whitespace-nowrap">
+                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-experiment-list" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all flex items-center space-x-1.5 no-underline shadow-sm shrink-0">
                             <span>🖨️ Print Experiment List</span>
                         </a>
-                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-experiments-log" target="_blank" class="px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900 text-indigo-200 border border-indigo-700/50 font-semibold text-xs transition-all flex items-center space-x-1.5 no-underline shadow-sm">
+                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-experiments-log" target="_blank" class="px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900 text-indigo-200 border border-indigo-700/50 font-semibold text-xs transition-all flex items-center space-x-1.5 no-underline shadow-sm shrink-0">
                             <span>🖨️ Print Experiments Log</span>
                         </a>
-                        <button type="button" onclick="exportExperimentsLogCsv()" class="px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/50 font-semibold text-xs transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
-                            <span>📥 Export Log CSV</span>
-                        </button>
-                        <button type="button" onclick="saveCustomExperimentsRoster()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center space-x-1.5 cursor-pointer">
+                        <button type="button" onclick="saveCustomExperimentsRoster()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Experiments Roster</span>
+                            <span>Save Experiment List</span>
                         </button>
                     </div>
                 </div>
@@ -1937,7 +1926,7 @@
                         <span class="text-xs text-slate-400 hidden sm:inline">Edits synchronize to Lesson Plan</span>
                         <button type="button" onclick="saveCustomExperimentsRoster()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center space-x-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Experiments Roster</span>
+                            <span>Save Experiment List</span>
                         </button>
                     </div>
                 </div>
@@ -2250,7 +2239,7 @@
                 </div>
  
                 <!-- Practical QP Generator Panel -->
-                <div class="glass-card p-5 rounded-xl border border-slate-800 space-y-4 mb-5 no-print">
+                <div class="p-5 rounded-xl border border-slate-800 space-y-4 mb-5 no-print bg-slate-950 shadow-xl" style="background-color: #020617 !important;">
                     <div class="flex items-center gap-3">
                         <div class="p-2 rounded-lg bg-blue-500/10 text-sky-400">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -2269,7 +2258,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach(['Practical Series 1' => 'CO1+CO2', 'Practical Series 2' => 'CO3+CO4'] as $series => $co)
                         @php $savedQp = $seriesQps[$series] ?? null; @endphp
-                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-900/15' : 'border-slate-700 bg-slate-800/50' }} p-3 flex flex-col gap-2">
+                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-950/40' : 'border-slate-800 bg-slate-900/80' }} p-3 flex flex-col gap-2">
                             <!-- Card Header -->
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-white text-sm">{{ $series }}</span>
@@ -3024,7 +3013,7 @@
         function saveCustomExperimentsRoster() {
             const rows = document.querySelectorAll('#exp-roster-tbody tr.exp-row');
             if (rows.length === 0) {
-                Swal.fire('Empty Roster', 'Please add at least one experiment row before saving.', 'warning');
+                Swal.fire('Empty List', 'Please add at least one experiment row before saving.', 'warning');
                 return;
             }
 
@@ -3059,7 +3048,7 @@
             }
 
             Swal.fire({
-                title: 'Saving Experiments Roster...',
+                title: 'Saving Experiment List...',
                 text: 'Updating course file and synchronizing practical lesson plans...',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
@@ -3075,7 +3064,7 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'SUCCESS') {
+                if (data.success || data.status === 'SUCCESS') {
                     // Update Planner tab in DOM if planner rows exist
                     const plannerRows = document.querySelectorAll('#lab-subcontent-planner tbody tr[id^="lp-row-"]');
                     data.experiments.forEach((exp, idx) => {
@@ -3105,7 +3094,7 @@
 
                     Swal.fire('Saved & Synchronized!', data.message, 'success');
                 } else {
-                    Swal.fire('Error', data.message || 'Failed to save experiments roster.', 'error');
+                    Swal.fire('Error', data.message || 'Failed to save experiment list.', 'error');
                 }
             })
             .catch(err => {

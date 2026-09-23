@@ -770,7 +770,7 @@ class AttendanceController extends Controller
 
         $students = Student::getClassroomStudentsQuery($classroom->classroom_id)
             ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no']);
 
         return response()->json([

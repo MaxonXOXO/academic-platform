@@ -1908,6 +1908,97 @@ class MentoringController extends Controller
         return view('tutor_student_diary_full', ['studentRegNo' => $regNo]);
     }
 
+    /**
+     * API: Return monthly punch log for the logged-in staff.
+     * GET /api/staff/my-punch-log?month=9&year=2026
+     */
+    public function getMyMonthlyPunchLog(Request $request)
+    {
+        $userId  = Session::get('userId');
+        $staffId = Session::get('userStaffId') ?? $userId;
+
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthenticated'], 401);
+        }
+
+        $month = (int) ($request->input('month') ?? date('n'));
+        $year  = (int) ($request->input('year')  ?? date('Y'));
+
+        $startDate = sprintf('%04d-%02d-01', $year, $month);
+        $endDate   = date('Y-m-t', strtotime($startDate));
+
+        $punches = \App\Models\SfStaffTimePunch::where(function ($q) use ($staffId, $userId) {
+            $q->where('staff_id', $staffId);
+            if ($userId && $userId !== $staffId) {
+                $q->orWhere('staff_id', $userId);
+            }
+        })
+        ->whereBetween('punch_date', [$startDate, $endDate])
+        ->orderBy('punch_date')
+        ->get(['punch_date', 'in_time', 'out_time', 'in_premises_status', 'out_premises_status', 'punch_status', 'remarks']);
+
+        // Build a day-indexed map so JS can render a full calendar
+        $records = [];
+        foreach ($punches as $punch) {
+            $inTime  = $punch->in_time  ? date('H:i', strtotime($punch->in_time))  : null;
+            $outTime = $punch->out_time ? date('H:i', strtotime($punch->out_time)) : null;
+
+            // Compute duration
+            $durationStr = null;
+            if ($inTime && $outTime) {
+                $diffSec = strtotime($punch->punch_date . ' ' . $punch->out_time)
+                         - strtotime($punch->punch_date . ' ' . $punch->in_time);
+                if ($diffSec > 0) {
+                    $hrs  = floor($diffSec / 3600);
+                    $mins = round(($diffSec % 3600) / 60);
+                    $durationStr = "{$hrs}h {$mins}m";
+                }
+            }
+
+            // Derive a simple status label
+            $status = 'Present';
+            if (!$inTime) {
+                $status = 'Absent';
+            } elseif ($inTime > '09:15') {
+                $status = 'Late';
+            } elseif ($outTime && $outTime < '16:00') {
+                $status = 'Early Out';
+            }
+
+            $records[$punch->punch_date] = [
+                'date'         => $punch->punch_date,
+                'in_time'      => $inTime,
+                'out_time'     => $outTime,
+                'duration'     => $durationStr,
+                'status'       => $status,
+                'in_premises'  => $punch->in_premises_status,
+                'out_premises' => $punch->out_premises_status,
+                'remarks'      => $punch->remarks,
+            ];
+        }
+
+        // Summary counters
+        $presentCount   = collect($records)->where('status', 'Present')->count();
+        $lateCount      = collect($records)->where('status', 'Late')->count();
+        $earlyOutCount  = collect($records)->where('status', 'Early Out')->count();
+        $totalPunched   = count($records);
+
+        return response()->json([
+            'status'       => 'SUCCESS',
+            'month'        => $month,
+            'year'         => $year,
+            'start_date'   => $startDate,
+            'end_date'     => $endDate,
+            'records'      => $records,
+            'summary'      => [
+                'total_punched'   => $totalPunched,
+                'present'         => $presentCount,
+                'late'            => $lateCount,
+                'early_out'       => $earlyOutCount,
+            ],
+        ]);
+    }
+
     public function showStaffMobileDashboard(Request $request)
     {
         $userId = Session::get('userId');

@@ -747,13 +747,29 @@
                     <div class="space-y-2">
                         @forelse($activeTests as $test)
                         <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 d-flex align-items-center justify-content-between mb-2">
-                            <div>
+                            <div class="pe-2">
                                 <strong class="text-white d-block" style="font-size: 0.85rem;">{{ $test->test_name ?? ($test->title ?? 'Online Test') }}</strong>
                                 <small class="text-secondary" style="font-size: 0.72rem;">Duration: {{ $test->duration ?? 30 }} mins | Questions: {{ $test->mcq_count ?? 10 }}</small>
                             </div>
-                            <a href="/student/online-tests/{{ $test->test_id ?? $test->id }}/start" class="btn btn-sm btn-purple px-3 py-1 rounded-pill fw-bold text-white" style="font-size: 0.72rem; background-color: #8b5cf6;">
-                                Launch <i class="fa-solid fa-play ms-1"></i>
-                            </a>
+                            <div>
+                                @if(!empty($test->is_completed))
+                                    <span class="badge bg-success bg-opacity-25 text-emerald-400 border border-success border-opacity-30 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                        Score: {{ $test->best_score ?? 0 }}/{{ $test->mcq_count ?? 10 }}
+                                    </span>
+                                @elseif(!empty($test->is_not_started))
+                                    <span class="badge bg-secondary bg-opacity-25 text-slate-300 border border-secondary border-opacity-30 px-2.5 py-1 rounded-pill font-mono" style="font-size: 0.7rem;">
+                                        Starts {{ \Carbon\Carbon::parse($test->start_time)->format('d M, h:i A') }}
+                                    </span>
+                                @elseif(!empty($test->is_expired))
+                                    <span class="badge bg-danger bg-opacity-25 text-rose-300 border border-danger border-opacity-30 px-2.5 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                        Expired
+                                    </span>
+                                @else
+                                    <a href="/student/online-tests/{{ $test->test_id ?? $test->id }}/start" class="btn btn-sm btn-purple px-3 py-1 rounded-pill fw-bold text-white" style="font-size: 0.72rem; background-color: #8b5cf6;">
+                                        Launch <i class="fa-solid fa-play ms-1"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                         @empty
                         <div class="text-center text-secondary py-3" style="font-size: 0.78rem;">

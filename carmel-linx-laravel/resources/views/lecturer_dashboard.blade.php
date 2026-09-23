@@ -5088,9 +5088,14 @@
                   <label class="block text-[10px] text-slate-500 font-bold mb-1 uppercase">Custom Test ID/Name (Optional)</label>
                   <input type="text" id="online_test_name" class="w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-[10px] text-slate-200 outline-none focus:border-purple-500" placeholder="e.g. Midterm Test 1">
                 </div>
-                <button onclick="publishOnlineTest('${currentSubjectId}')" class="w-full py-2 bg-purple-600/80 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-premium flex items-center justify-center gap-2">
-                  <span class="material-symbols-rounded text-[10px]">rocket_launch</span> Generate & Publish to Students
-                </button>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="btnPreviewOnlineTest" onclick="previewOnlineTestQuestions('${currentSubjectId}')" class="flex-1 py-2 bg-indigo-600/90 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-premium flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                    <span class="material-symbols-rounded text-[12px]">visibility</span> Preview &amp; Edit Questions
+                  </button>
+                  <button type="button" id="btnInstantPublishOnlineTest" onclick="publishOnlineTest('${currentSubjectId}')" class="py-2 px-3 bg-purple-600/80 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-premium flex items-center justify-center gap-1.5 shadow-sm cursor-pointer" title="Directly publish to students without preview">
+                    <span class="material-symbols-rounded text-[12px]">bolt</span> Instant Publish
+                  </button>
+                </div>
               </div>
               
               <!-- Active Tests Dashboard -->
@@ -5098,6 +5103,47 @@
                 <h5 class="text-[10px] font-bold text-slate-300 mb-3 border-b border-slate-800/60 pb-2">Active Online Tests</h5>
                 <div id="activeOnlineTestsList" class="space-y-2 text-[10px] text-slate-400">
                    <div class="p-3 bg-slate-950 border border-slate-800 rounded text-center border-dashed">No active online tests found.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Question Preview & Editor Section -->
+            <div id="onlineTestPreviewContainer" class="hidden mt-4 pt-4 border-t border-slate-800/60">
+              <div class="bg-slate-900/90 border border-indigo-500/40 rounded-xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/60 flex-wrap gap-2">
+                  <div>
+                    <h6 class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                      <span class="material-symbols-rounded text-sm text-indigo-400">edit_note</span> Review &amp; Edit Questions (Rev 2021 Theory)
+                    </h6>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Review, refine questions, edit options, or mark the correct answer before publishing to students.</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="previewQCountBadge" class="px-2.5 py-1 bg-indigo-950/60 text-indigo-300 border border-indigo-800/40 rounded-lg text-[10px] font-bold font-mono">0 Questions</span>
+                    <button type="button" onclick="addCustomPreviewQuestion()" class="px-2.5 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-premium cursor-pointer shadow-sm">
+                      <span class="material-symbols-rounded text-xs">add_circle</span> Add Question
+                    </button>
+                    <button type="button" onclick="closePreviewOnlineTest()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold flex items-center gap-0.5 transition-premium cursor-pointer border border-slate-700">
+                      <span class="material-symbols-rounded text-xs">close</span> Close
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Questions List Container -->
+                <div id="onlineTestQuestionsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1"></div>
+
+                <!-- Bottom Action Bar -->
+                <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2">
+                  <button type="button" onclick="addCustomPreviewQuestion()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-premium cursor-pointer">
+                    <span class="material-symbols-rounded text-xs text-emerald-400">add_circle</span> Add Another Question
+                  </button>
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="closePreviewOnlineTest()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-[10px] font-bold transition-premium cursor-pointer">
+                      Discard
+                    </button>
+                    <button type="button" id="btnConfirmPublishOnlineTest" onclick="confirmAndPublishReviewedTest('${currentSubjectId}')" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg text-[11px] font-bold shadow-md transition-premium flex items-center gap-1.5 cursor-pointer">
+                      <span class="material-symbols-rounded text-xs">rocket_launch</span> Confirm &amp; Publish Test to Students
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -5621,15 +5667,324 @@
         });
     }
 
+    let _currentPreviewQuestions = [];
+    let _previewAvailableCos = [];
+
+    function escapeHtmlAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeHtmlText(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function previewOnlineTestQuestions(subjectId) {
+      const selectElement = document.getElementById('online_test_cos');
+      if (!selectElement) return;
+      const selectedCos = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+      const q_count = parseInt(document.getElementById('online_test_q_count')?.value || 5);
+      const gen_mode = document.getElementById('online_test_gen_mode')?.value || 'ai';
+
+      if (selectedCos.length === 0) {
+        alert("Please select at least one Target CO.");
+        return;
+      }
+
+      _previewAvailableCos = Array.from(selectElement.options).map(opt => opt.value);
+      if (_previewAvailableCos.length === 0) _previewAvailableCos = selectedCos;
+
+      const previewContainer = document.getElementById('onlineTestPreviewContainer');
+      const questionsList = document.getElementById('onlineTestQuestionsList');
+      const btnPreview = document.getElementById('btnPreviewOnlineTest');
+
+      if (previewContainer) previewContainer.classList.remove('hidden');
+      if (questionsList) {
+        questionsList.innerHTML = `
+          <div class="p-8 text-center bg-slate-950/60 rounded-xl border border-slate-800/80">
+            <span class="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></span>
+            <div class="text-xs font-bold text-slate-200">Generating Questions with AI...</div>
+            <div class="text-[10px] text-slate-400 mt-1">Please wait while questions are tailored to the course syllabus topics.</div>
+          </div>
+        `;
+      }
+      if (btnPreview) {
+        btnPreview.disabled = true;
+        btnPreview.classList.add('opacity-50');
+      }
+
+      fetch(`/api/classroom/${subjectId}/preview-online-test-questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          cos: selectedCos,
+          q_count: q_count,
+          generation_mode: gen_mode,
+          gen_answers: 1
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btnPreview) {
+          btnPreview.disabled = false;
+          btnPreview.classList.remove('opacity-50');
+        }
+
+        if (data.status === 'SUCCESS' && Array.isArray(data.questions)) {
+          _currentPreviewQuestions = data.questions.map(q => ({
+            co: q.co || selectedCos[0] || 'CO1',
+            q: q.q || '',
+            options: Array.isArray(q.options) && q.options.length > 0 ? q.options.slice(0, 4) : ['', '', '', ''],
+            ans: q.ans || ''
+          }));
+          renderOnlineTestQuestionsEditor();
+          if (previewContainer) previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          alert(data.message || 'Failed to generate preview questions.');
+          if (previewContainer) previewContainer.classList.add('hidden');
+        }
+      })
+      .catch(err => {
+        if (btnPreview) {
+          btnPreview.disabled = false;
+          btnPreview.classList.remove('opacity-50');
+        }
+        alert('An error occurred while generating questions: ' + err.message);
+        if (previewContainer) previewContainer.classList.add('hidden');
+      });
+    }
+
+    function renderOnlineTestQuestionsEditor() {
+      const container = document.getElementById('onlineTestQuestionsList');
+      const countBadge = document.getElementById('previewQCountBadge');
+      if (!container) return;
+
+      if (countBadge) {
+        countBadge.innerText = `${_currentPreviewQuestions.length} Questions`;
+      }
+
+      if (_currentPreviewQuestions.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-slate-500 text-xs bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
+            No questions available. Click "+ Add Question" to create one manually.
+          </div>
+        `;
+        return;
+      }
+
+      const optLetters = ['A', 'B', 'C', 'D'];
+      let html = '';
+
+      _currentPreviewQuestions.forEach((q, qIdx) => {
+        while (q.options.length < 4) q.options.push('');
+
+        const coOptionsHtml = _previewAvailableCos.map(c => `
+          <option value="${c}" ${c === q.co ? 'selected' : ''}>${c}</option>
+        `).join('');
+
+        let optionsInputsHtml = '';
+        q.options.forEach((optText, optIdx) => {
+          const letter = optLetters[optIdx] || `Opt ${optIdx + 1}`;
+          const isCorrect = (q.ans && optText && q.ans.trim() === optText.trim()) || false;
+          optionsInputsHtml += `
+            <div class="flex items-center gap-2 bg-slate-950/70 p-1.5 rounded-lg border ${isCorrect ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-slate-800/80'}">
+              <label class="flex items-center gap-1.5 cursor-pointer shrink-0" title="Select as correct answer">
+                <input type="radio" name="preview_ans_${qIdx}" value="${optIdx}" ${isCorrect ? 'checked' : ''} onchange="setPreviewCorrectAnswer(${qIdx}, ${optIdx})" class="w-3.5 h-3.5 text-emerald-500 focus:ring-0 cursor-pointer">
+                <span class="text-[10px] font-bold ${isCorrect ? 'text-emerald-400' : 'text-slate-400'}">${letter}:</span>
+              </label>
+              <input type="text" value="${escapeHtmlAttr(optText)}" oninput="updatePreviewOption(${qIdx}, ${optIdx}, this.value)" class="w-full bg-transparent text-[10px] text-slate-200 outline-none placeholder-slate-600 focus:text-white" placeholder="Enter option ${letter} text...">
+              ${isCorrect ? `<span class="px-1.5 py-0.5 bg-emerald-900/60 text-emerald-300 rounded text-[9px] font-bold uppercase tracking-wider shrink-0">Correct</span>` : ''}
+            </div>
+          `;
+        });
+
+        html += `
+          <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 hover:border-slate-700/80 transition-premium shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 flex items-center justify-center text-[10px] font-black font-mono">${qIdx + 1}</span>
+                <span class="text-[10px] font-bold text-slate-300">Question ${qIdx + 1}</span>
+                <select onchange="updatePreviewCo(${qIdx}, this.value)" class="bg-slate-900 border border-slate-700/60 rounded px-1.5 py-0.5 text-[9px] font-bold text-indigo-300 outline-none focus:border-indigo-500">
+                  ${coOptionsHtml}
+                </select>
+              </div>
+              <button type="button" onclick="deletePreviewQuestion(${qIdx})" class="text-rose-400 hover:text-rose-300 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer" title="Delete this question">
+                <span class="material-symbols-rounded text-xs">delete</span> Remove
+              </button>
+            </div>
+
+            <div>
+              <label class="block text-[9px] uppercase font-bold text-slate-500 mb-1">Question Text</label>
+              <textarea rows="2" oninput="updatePreviewQText(${qIdx}, this.value)" class="w-full bg-slate-900/90 border border-slate-700/60 rounded-lg p-2 text-[10px] text-slate-100 outline-none focus:border-indigo-500 placeholder-slate-600 resize-y" placeholder="Type question prompt here...">${escapeHtmlText(q.q)}</textarea>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[9px] uppercase font-bold text-slate-500">Options &amp; Correct Answer (Select radio button for the correct option)</label>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                ${optionsInputsHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updatePreviewQText(idx, val) {
+      if (_currentPreviewQuestions[idx]) {
+        _currentPreviewQuestions[idx].q = val;
+      }
+    }
+
+    function updatePreviewOption(idx, optIdx, val) {
+      if (_currentPreviewQuestions[idx]) {
+        const oldVal = _currentPreviewQuestions[idx].options[optIdx];
+        _currentPreviewQuestions[idx].options[optIdx] = val;
+        if (_currentPreviewQuestions[idx].ans === oldVal) {
+          _currentPreviewQuestions[idx].ans = val;
+        }
+      }
+    }
+
+    function setPreviewCorrectAnswer(idx, optIdx) {
+      if (_currentPreviewQuestions[idx] && _currentPreviewQuestions[idx].options[optIdx] !== undefined) {
+        _currentPreviewQuestions[idx].ans = _currentPreviewQuestions[idx].options[optIdx];
+        renderOnlineTestQuestionsEditor();
+      }
+    }
+
+    function updatePreviewCo(idx, co) {
+      if (_currentPreviewQuestions[idx]) {
+        _currentPreviewQuestions[idx].co = co;
+      }
+    }
+
+    function addCustomPreviewQuestion() {
+      const defaultCo = _previewAvailableCos[0] || 'CO1';
+      _currentPreviewQuestions.push({
+        co: defaultCo,
+        q: '',
+        options: ['', '', '', ''],
+        ans: ''
+      });
+      renderOnlineTestQuestionsEditor();
+      const container = document.getElementById('onlineTestQuestionsList');
+      if (container) container.scrollTop = container.scrollHeight;
+    }
+
+    function deletePreviewQuestion(idx) {
+      if (_currentPreviewQuestions[idx]) {
+        _currentPreviewQuestions.splice(idx, 1);
+        renderOnlineTestQuestionsEditor();
+      }
+    }
+
+    function closePreviewOnlineTest() {
+      const previewContainer = document.getElementById('onlineTestPreviewContainer');
+      if (previewContainer) previewContainer.classList.add('hidden');
+    }
+
+    function confirmAndPublishReviewedTest(subjectId) {
+      if (_currentPreviewQuestions.length === 0) {
+        alert("Please add at least one question before publishing.");
+        return;
+      }
+
+      for (let i = 0; i < _currentPreviewQuestions.length; i++) {
+        const item = _currentPreviewQuestions[i];
+        if (!item.q || item.q.trim() === '') {
+          alert(`Question #${i + 1} has empty question text. Please provide question text.`);
+          return;
+        }
+        const validOptions = item.options.filter(o => o && o.trim() !== '');
+        if (validOptions.length < 2) {
+          alert(`Question #${i + 1} must have at least 2 non-empty options.`);
+          return;
+        }
+        if (!item.ans || item.ans.trim() === '') {
+          alert(`Question #${i + 1} does not have a correct answer selected. Please choose the correct answer radio button.`);
+          return;
+        }
+      }
+
+      const selectElement = document.getElementById('online_test_cos');
+      const selectedCos = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+      const attempts = document.getElementById('online_test_attempts')?.value || 1;
+      const duration = document.getElementById('online_test_duration')?.value || 30;
+      const start = document.getElementById('online_test_start')?.value || '';
+      const end = document.getElementById('online_test_end')?.value || '';
+      const customName = document.getElementById('online_test_name')?.value || '';
+
+      const btn = document.getElementById('btnConfirmPublishOnlineTest');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50');
+      }
+
+      fetch(`/api/classroom/${subjectId}/publish-online-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          cos: selectedCos.length > 0 ? selectedCos : [...new Set(_currentPreviewQuestions.map(q => q.co))],
+          attempts,
+          duration,
+          start,
+          end,
+          q_count: _currentPreviewQuestions.length,
+          custom_name: customName,
+          questions: _currentPreviewQuestions
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50');
+        }
+
+        if (data.status === 'SUCCESS') {
+          alert(`Online Test successfully published with ${_currentPreviewQuestions.length} reviewed questions!`);
+          closePreviewOnlineTest();
+          loadActiveOnlineTests(subjectId);
+
+          if (selectElement) selectElement.selectedIndex = -1;
+          if (document.getElementById('online_test_start')?._flatpickr) document.getElementById('online_test_start')._flatpickr.clear();
+          if (document.getElementById('online_test_end')?._flatpickr) document.getElementById('online_test_end')._flatpickr.clear();
+          if (document.getElementById('online_test_name')) document.getElementById('online_test_name').value = '';
+          _currentPreviewQuestions = [];
+        } else {
+          alert(data.message || 'Failed to publish test.');
+        }
+      })
+      .catch(err => {
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50');
+        }
+        alert('Failed to publish test: ' + err.message);
+      });
+    }
+
     function publishOnlineTest(subjectId) {
       const selectElement = document.getElementById('online_test_cos');
       const selectedCos = Array.from(selectElement.selectedOptions).map(opt => opt.value);
-      const attempts = document.getElementById('online_test_attempts').value;
-      const duration = document.getElementById('online_test_duration').value;
-      const start = document.getElementById('online_test_start').value;
-      const end = document.getElementById('online_test_end').value;
-      const q_count = document.getElementById('online_test_q_count').value;
-      const gen_mode = document.getElementById('online_test_gen_mode').value;
+      const attempts = document.getElementById('online_test_attempts')?.value || 1;
+      const duration = document.getElementById('online_test_duration')?.value || 30;
+      const start = document.getElementById('online_test_start')?.value || '';
+      const end = document.getElementById('online_test_end')?.value || '';
+      const q_count = document.getElementById('online_test_q_count')?.value || 10;
+      const gen_mode = document.getElementById('online_test_gen_mode')?.value || 'bank';
+      const customName = document.getElementById('online_test_name')?.value || '';
 
       if (selectedCos.length === 0) {
         alert("Please select at least one CO.");
@@ -5639,18 +5994,19 @@
       fetch(`/api/classroom/${subjectId}/publish-online-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ cos: selectedCos, attempts, duration, start, end, q_count, generation_mode: gen_mode })
+        body: JSON.stringify({ cos: selectedCos, attempts, duration, start, end, q_count, generation_mode: gen_mode, custom_name: customName })
       })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
-          alert("Online Test successfully published!");
+          alert(`Online Test successfully published! (${data.mcq_count || q_count} questions)`);
           loadActiveOnlineTests(subjectId);
           
           // Clear inputs
           selectElement.selectedIndex = -1;
-          if (document.getElementById('online_test_start')._flatpickr) document.getElementById('online_test_start')._flatpickr.clear();
-          if (document.getElementById('online_test_end')._flatpickr) document.getElementById('online_test_end')._flatpickr.clear();
+          if (document.getElementById('online_test_start')?.flatpickr) document.getElementById('online_test_start')._flatpickr.clear();
+          if (document.getElementById('online_test_end')?.flatpickr) document.getElementById('online_test_end')._flatpickr.clear();
+          if (document.getElementById('online_test_name')) document.getElementById('online_test_name').value = '';
         } else {
           alert(data.message || "Failed to publish test.");
         }

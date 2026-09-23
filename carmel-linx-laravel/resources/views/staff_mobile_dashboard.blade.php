@@ -150,14 +150,13 @@
             body {
                 padding-bottom: 40px;
             }
+            /* Hide entire mobile layout on desktop */
             .mobile-container {
-                max-width: 960px !important;
-                margin: 24px auto !important;
-                padding: 24px !important;
-                border-radius: 24px;
-                background: rgba(15, 23, 42, 0.7);
-                border: 1px solid var(--card-border);
-                box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+                display: none !important;
+            }
+            /* Show desktop layout only on desktop */
+            .desktop-dashboard {
+                display: flex !important;
             }
             .bottom-nav {
                 position: static !important;
@@ -176,7 +175,340 @@
             .desktop-banner {
                 display: none !important;
             }
+            /* Hide desktop layout on mobile */
+            .desktop-dashboard {
+                display: none !important;
+            }
         }
+
+        /* ── Desktop Dashboard Layout ── */
+        .desktop-dashboard {
+            display: none;
+            min-height: 100vh;
+            background: #090d16;
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.82rem;
+        }
+
+        .desk-sidebar {
+            width: 210px;
+            min-width: 210px;
+            background: rgba(10, 16, 31, 0.98);
+            border-right: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .desk-sidebar-brand {
+            padding: 14px 14px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .desk-nav-section-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 10px 14px 4px;
+        }
+
+        .desk-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 7px;
+            margin: 1px 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            border: none;
+            background: transparent;
+            width: calc(100% - 16px);
+            text-align: left;
+            line-height: 1.3;
+        }
+
+        .desk-nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: #cbd5e1;
+        }
+
+        .desk-nav-item.active {
+            background: rgba(37, 99, 235, 0.18);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.28);
+        }
+
+        .desk-nav-item .desk-nav-icon {
+            font-size: 0.78rem;
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .desk-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .desk-topbar {
+            height: 48px;
+            background: rgba(10, 16, 31, 0.98);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 22px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .desk-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 22px;
+        }
+
+        .desk-panel {
+            display: none;
+        }
+
+        .desk-panel.active {
+            display: block;
+            animation: deskFadeIn 0.2s ease;
+        }
+
+        @keyframes deskFadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .desk-card {
+            background: #0d1525;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+
+        .desk-card-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .desk-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .desk-stat-pill {
+            background: #0a1122;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .desk-stat-pill .val {
+            font-size: 1.3rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .desk-stat-pill .lbl {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Punch cards (IN/OUT/Hours) */
+        .punch-time-card {
+            background: #0a1122;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 9px;
+            padding: 12px 14px;
+            text-align: center;
+        }
+
+        .punch-time-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .punch-time-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            line-height: 1;
+        }
+
+        .punch-time-sub {
+            margin-top: 5px;
+        }
+
+        /* Punch Log Table */
+        .punch-log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .punch-log-table th {
+            background: #0a1122;
+            color: #475569;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .punch-log-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+
+        .punch-log-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .punch-log-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .punch-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.63rem;
+            font-weight: 700;
+        }
+
+        .punch-status-badge.present  { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .punch-status-badge.late     { background: rgba(245,158,11,0.12);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .punch-status-badge.early-out{ background: rgba(168,85,247,0.12);  color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+        .punch-status-badge.absent   { background: rgba(239,68,68,0.1);    color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .punch-status-badge.holiday  { background: rgba(99,102,241,0.12);  color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
+        .punch-status-badge.no-record{ background: rgba(100,116,139,0.1);  color: #64748b; border: 1px solid rgba(100,116,139,0.2); }
+
+        /* Leave history rows */
+        .leave-row {
+            background: #0a1122;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .desk-form-label {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .desk-form-input {
+            width: 100%;
+            padding: 7px 10px;
+            background: #0a1122;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 7px;
+            color: #e2e8f0;
+            font-size: 0.78rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .desk-form-input:focus {
+            border-color: rgba(37, 99, 235, 0.5);
+        }
+
+        .desk-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            background: #2563eb;
+            color: #fff;
+            border: 1px solid #3b82f6;
+            border-radius: 7px;
+            font-size: 0.77rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .desk-btn-primary:hover { background: #1d4ed8; color: #fff; }
+
+        .desk-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: transparent;
+            color: #64748b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 7px;
+            font-size: 0.77rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .desk-btn-secondary:hover { background: rgba(255,255,255,0.05); color: #cbd5e1; }
+
+        .desk-section-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 14px 0;
+        }
+
 
         /* Mobile Header */
         .mobile-header {
@@ -4266,5 +4598,785 @@
 
     <!-- Hidden Input for Photo File Upload -->
     <input type="file" id="staffPhotoFileInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" style="display: none;" onchange="handleStaffPhotoUpload(this)">
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- DESKTOP DASHBOARD: Only shown on screens ≥768px via CSS              -->
+    <!-- Mobile layout is hidden via .mobile-container { display:none } above -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <div class="desktop-dashboard">
+
+        <!-- ─── LEFT SIDEBAR ─── -->
+        <aside class="desk-sidebar">
+
+            <!-- Brand -->
+            <div class="desk-sidebar-brand">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+                    <img src="{{ asset('logo.jpg') }}" alt="Logo" style="width:28px;height:28px;border-radius:7px;object-fit:cover;">
+                    <div>
+                        <div style="font-weight:900;font-size:0.88rem;background:linear-gradient(135deg,#38bdf8,#60a5fa,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Carmel Linx</div>
+                        <div style="font-size:0.58rem;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Staff Portal</div>
+                    </div>
+                </div>
+                <!-- Staff avatar + name -->
+                <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+                    <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;border:1.5px solid #0891b2;flex-shrink:0;">
+                        @if(!empty($staff->photo_url))
+                            <img src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" style="width:100%;height:100%;object-fit:cover;">
+                        @else
+                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4f46e5,#7c3aed);font-weight:900;font-size:0.7rem;color:#fff;">{{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}</div>
+                        @endif
+                    </div>
+                    <div style="min-width:0;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $staff->name ?? session('userName') }}</div>
+                        <div style="font-size:0.62rem;color:#3b82f6;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $staff->department ?? session('userBranch','Academic') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav style="padding:8px 0;flex:1;">
+                <div class="desk-nav-section-label">Attendance</div>
+                <button class="desk-nav-item active" id="deskNav-punch" onclick="deskSwitchPanel('punch')">
+                    <i class="fa-solid fa-fingerprint desk-nav-icon"></i> Today's Punch
+                </button>
+                <button class="desk-nav-item" id="deskNav-monthly" onclick="deskSwitchPanel('monthly')">
+                    <i class="fa-solid fa-calendar-days desk-nav-icon"></i> Monthly Log
+                </button>
+
+                <div class="desk-nav-section-label">Leave Management</div>
+                <button class="desk-nav-item" id="deskNav-leave" onclick="deskSwitchPanel('leave')">
+                    <i class="fa-solid fa-file-signature desk-nav-icon"></i> Leave Portal
+                </button>
+                @if(in_array(session('userRole'), ['HOD','Academic_Coordinator','Academic Coordinator','Academic_Coordinator_SF','Gen_Dept_Coordinator_Self_Finance','Principal','Super_Admin']))
+                <button class="desk-nav-item" id="deskNav-approvals" onclick="deskSwitchPanel('approvals')">
+                    <i class="fa-solid fa-clock-rotate-left desk-nav-icon"></i> Pending Approvals
+                </button>
+                @endif
+
+                <div style="height:1px;background:rgba(255,255,255,0.05);margin:10px 8px;"></div>
+                <a href="{{ $desktopUrl }}" class="desk-nav-item">
+                    <i class="fa-solid fa-arrow-left desk-nav-icon"></i> Back to Dashboard
+                </a>
+                <a href="{{ url('/logout') }}" onclick="return confirm('Are you sure you want to logout?');" class="desk-nav-item" style="color:#ef4444;">
+                    <i class="fa-solid fa-power-off desk-nav-icon"></i> Sign Out
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ─── MAIN AREA ─── -->
+        <div class="desk-main">
+
+            <!-- Top Bar -->
+            <div class="desk-topbar">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="deskPanelTitle" style="font-size:0.88rem;font-weight:700;color:#e2e8f0;">Today's Attendance</span>
+                    <span style="font-size:0.7rem;color:#475569;font-weight:500;">{{ date('D, d M Y') }}</span>
+                </div>
+                @if($isSfStaff)
+                <a href="/sf-attendance/face-punch" class="desk-btn-primary">
+                    <i class="fa-solid fa-camera"></i> Face Punch
+                </a>
+                @endif
+            </div>
+
+            <!-- Content Area -->
+            <div class="desk-content">
+
+                <!-- ══ PANEL: TODAY'S PUNCH ══ -->
+                <div id="deskPanel-punch" class="desk-panel active">
+
+                    @if($isSfStaff)
+                    <!-- Punch Status Hero Card -->
+                    <div class="desk-card" style="background:linear-gradient(135deg,rgba(13,21,37,0.98),rgba(20,31,52,0.95));border:1px solid rgba(56,189,248,0.18);">
+                        <div class="desk-card-title" style="border-color:rgba(56,189,248,0.12);">
+                            <span style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#10b981);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.78rem;">
+                                <i class="fa-solid fa-camera-rotate"></i>
+                            </span>
+                            Biometric Punch — {{ date('d M Y') }}
+                            @if($isCompleted)
+                                <span style="margin-left:auto;padding:3px 10px;border-radius:20px;font-size:0.63rem;font-weight:700;background:rgba(5,150,105,0.2);color:#34d399;border:1px solid rgba(52,211,153,0.35);"><i class="fa-solid fa-circle-check me-1"></i>Completed</span>
+                            @elseif($isPunchedIn)
+                                <span style="margin-left:auto;padding:3px 10px;border-radius:20px;font-size:0.63rem;font-weight:700;background:rgba(2,132,199,0.2);color:#38bdf8;border:1px solid rgba(56,189,248,0.35);"><i class="fa-solid fa-right-to-bracket me-1"></i>Checked In</span>
+                            @else
+                                <span style="margin-left:auto;padding:3px 10px;border-radius:20px;font-size:0.63rem;font-weight:700;background:rgba(217,119,6,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);"><i class="fa-solid fa-clock me-1"></i>Not Punched</span>
+                            @endif
+                        </div>
+
+                        <!-- IN / OUT / Duration stats -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                            <div class="punch-time-card">
+                                <div class="punch-time-label"><i class="fa-solid fa-sun" style="color:#f59e0b;margin-right:4px;"></i>Check-In</div>
+                                <div class="punch-time-value" style="color:{{ $isPunchedIn ? '#34d399' : '#334155' }};">{{ $inTimeFormatted ?? '--:--' }}</div>
+                                @if($isPunchedIn)
+                                <div class="punch-time-sub">
+                                    <span style="font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:20px;background:{{ $inStatusLabel==='LATE IN'?'rgba(239,68,68,0.18)':($inStatusLabel==='EARLY IN'?'rgba(56,189,248,0.18)':'rgba(52,211,153,0.18)') }};color:{{ $inStatusLabel==='LATE IN'?'#f87171':($inStatusLabel==='EARLY IN'?'#38bdf8':'#34d399') }};border:1px solid {{ $inStatusLabel==='LATE IN'?'rgba(239,68,68,0.35)':($inStatusLabel==='EARLY IN'?'rgba(56,189,248,0.35)':'rgba(52,211,153,0.35)') }};">{{ $inStatusLabel }}</span>
+                                </div>
+                                @endif
+                            </div>
+                            <div class="punch-time-card">
+                                <div class="punch-time-label"><i class="fa-solid fa-moon" style="color:#38bdf8;margin-right:4px;"></i>Check-Out</div>
+                                <div class="punch-time-value" style="color:{{ $isPunchedOut ? '#38bdf8' : '#334155' }};">{{ $outTimeFormatted ?? '--:--' }}</div>
+                                @if($isPunchedOut)
+                                <div class="punch-time-sub">
+                                    <span style="font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:20px;background:{{ $outStatusLabel==='EARLY OUT'?'rgba(245,158,11,0.18)':($outStatusLabel==='LATE OUT'?'rgba(168,85,247,0.18)':'rgba(52,211,153,0.18)') }};color:{{ $outStatusLabel==='EARLY OUT'?'#fbbf24':($outStatusLabel==='LATE OUT'?'#c084fc':'#34d399') }};border:1px solid {{ $outStatusLabel==='EARLY OUT'?'rgba(245,158,11,0.35)':($outStatusLabel==='LATE OUT'?'rgba(168,85,247,0.35)':'rgba(52,211,153,0.35)') }};">{{ $outStatusLabel }}</span>
+                                </div>
+                                @endif
+                            </div>
+                            <div class="punch-time-card">
+                                <div class="punch-time-label"><i class="fa-solid fa-stopwatch" style="color:#f59e0b;margin-right:4px;"></i>Campus Hours</div>
+                                <div class="punch-time-value" style="color:{{ $campusHours ? '#f59e0b' : '#334155' }};">{{ $campusHours ?? '—' }}</div>
+                                @if(!$campusHours)
+                                <div class="punch-time-sub" style="font-size:0.63rem;color:#475569;">Not yet computed</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if(!$isCompleted)
+                        <div style="margin-top:12px;text-align:center;">
+                            <a href="/sf-attendance/face-punch" class="desk-btn-primary">
+                                <i class="fa-solid fa-camera"></i>
+                                {{ $isPunchedIn ? 'Face Punch — Check OUT' : 'Face Punch — Check IN' }}
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                    @else
+                    <div class="desk-card" style="text-align:center;padding:28px;">
+                        <i class="fa-solid fa-fingerprint" style="font-size:1.6rem;color:#334155;margin-bottom:10px;display:block;"></i>
+                        <div style="color:#64748b;font-size:0.8rem;">Biometric punch tracking is available for Self-Financing (SF) staff.</div>
+                    </div>
+                    @endif
+
+                    <!-- Quick stats tip -->
+                    <div class="desk-card" style="padding:10px 14px;">
+                        <div style="display:flex;align-items:center;gap:8px;color:#64748b;font-size:0.77rem;">
+                            <i class="fa-solid fa-circle-info" style="color:#3b82f6;font-size:0.75rem;"></i>
+                            For a full daily log of this month's punch records, go to <button onclick="deskSwitchPanel('monthly')" style="background:none;border:none;color:#60a5fa;font-weight:700;cursor:pointer;font-size:0.77rem;padding:0;margin-left:3px;">Monthly Log →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ PANEL: MONTHLY PUNCH LOG ══ -->
+                <div id="deskPanel-monthly" class="desk-panel">
+
+                    <!-- Month / Year Selector -->
+                    <div class="desk-card">
+                        <div class="desk-card-title">
+                            <i class="fa-solid fa-calendar-days" style="color:#60a5fa;"></i>
+                            Monthly Attendance Log
+                        </div>
+                        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+                            <div>
+                                <label class="desk-form-label">Month</label>
+                                <select id="deskMonthSel" class="desk-form-input" style="width:140px;">
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="desk-form-label">Year</label>
+                                <select id="deskYearSel" class="desk-form-input" style="width:100px;">
+                                    @for($y = date('Y'); $y >= date('Y') - 3; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <button onclick="loadDeskMonthlyLog()" class="desk-btn-primary">
+                                <i class="fa-solid fa-magnifying-glass"></i> Load Records
+                            </button>
+                            <button onclick="exportPunchLogCSV()" class="desk-btn-secondary">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div class="desk-stat-grid" id="deskMonthlySummaryGrid" style="display:none;">
+                        <div class="desk-stat-pill">
+                            <div class="val" style="color:#34d399;" id="deskStatPresent">—</div>
+                            <div class="lbl">Present Days</div>
+                        </div>
+                        <div class="desk-stat-pill">
+                            <div class="val" style="color:#fbbf24;" id="deskStatLate">—</div>
+                            <div class="lbl">Late In</div>
+                        </div>
+                        <div class="desk-stat-pill">
+                            <div class="val" style="color:#c084fc;" id="deskStatEarlyOut">—</div>
+                            <div class="lbl">Early Out</div>
+                        </div>
+                        <div class="desk-stat-pill">
+                            <div class="val" style="color:#60a5fa;" id="deskStatPunched">—</div>
+                            <div class="lbl">Days Punched</div>
+                        </div>
+                    </div>
+
+                    <!-- Punch Log Table -->
+                    <div class="desk-card" style="padding:0;overflow:hidden;">
+                        <div id="deskMonthlyTableWrap" style="overflow-x:auto;">
+                            <div style="padding:40px;text-align:center;color:#64748b;">
+                                <i class="fa-solid fa-calendar-days" style="font-size:1.4rem;margin-bottom:8px;display:block;color:#334155;"></i>
+                                Select a month and year, then click <strong style="color:#60a5fa;">Load Records</strong>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ PANEL: LEAVE PORTAL ══ -->
+                <div id="deskPanel-leave" class="desk-panel">
+
+                    <!-- Top action bar -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <div style="font-size:0.85rem;font-weight:700;color:#e2e8f0;margin:0;">Staff Leave Portal</div>
+                            <div style="font-size:0.7rem;color:#475569;margin-top:2px;">3-Stage Hierarchical Approval Workflow</div>
+                        </div>
+                        <button onclick="openStaffLeaveModal()" class="desk-btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Apply Leave
+                        </button>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+
+                        <!-- Leave Balance -->
+                        <div class="desk-card">
+                            <div class="desk-card-title"><i class="fa-solid fa-scale-balanced" style="color:#34d399;"></i> Leave Balance</div>
+                            <div class="desk-stat-grid" style="margin-bottom:0;">
+                                <div class="desk-stat-pill">
+                                    <div class="val" style="color:#34d399;" id="deskClTotal">15</div>
+                                    <div class="lbl">CL Quota</div>
+                                </div>
+                                <div class="desk-stat-pill">
+                                    <div class="val" style="color:#f87171;" id="deskClTaken">—</div>
+                                    <div class="lbl">CL Taken</div>
+                                </div>
+                                <div class="desk-stat-pill">
+                                    <div class="val" style="color:#fbbf24;" id="deskClBalance">—</div>
+                                    <div class="lbl">CL Balance</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Apply form (desktop inline) -->
+                        <div class="desk-card">
+                            <div class="desk-card-title"><i class="fa-solid fa-paper-plane" style="color:#60a5fa;"></i> Quick Apply</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                                <div>
+                                    <label class="desk-form-label">Leave Type</label>
+                                    <select id="deskLeaveType" class="desk-form-input" onchange="deskToggleCclDate()">
+                                        <option value="Casual Leave">Casual Leave (CL)</option>
+                                        <option value="Compensatory Casual Leave">Compensatory Casual Leave (CCL)</option>
+                                        <option value="Duty Leave">Duty Leave (DL)</option>
+                                        <option value="Medical Leave">Medical Leave (ML)</option>
+                                        <option value="Loss of Pay">Loss of Pay (LOP)</option>
+                                        <option value="Special Leave">Special Leave</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="desk-form-label">Session</label>
+                                    <select id="deskLeaveSession" class="desk-form-input">
+                                        <option value="Full Day">Full Day</option>
+                                        <option value="FN">FN (Forenoon)</option>
+                                        <option value="AN">AN (Afternoon)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="desk-form-label">From Date</label>
+                                    <input type="date" id="deskLeaveFrom" class="desk-form-input" value="{{ date('Y-m-d') }}">
+                                </div>
+                                <div>
+                                    <label class="desk-form-label">To Date</label>
+                                    <input type="date" id="deskLeaveTo" class="desk-form-input" value="{{ date('Y-m-d') }}">
+                                </div>
+                            </div>
+                            <div id="deskCclDateBox" style="display:none;margin-bottom:10px;">
+                                <label class="desk-form-label">CCL Date (Date Duty Was Performed)</label>
+                                <input type="date" id="deskCclDate" class="desk-form-input" value="{{ date('Y-m-d') }}">
+                            </div>
+                            <div style="margin-bottom:12px;">
+                                <label class="desk-form-label">Reason</label>
+                                <textarea id="deskLeaveReason" class="desk-form-input" rows="2" placeholder="Reason for leave..."></textarea>
+                            </div>
+                            <div id="deskLeaveAlert" style="display:none;padding:9px 14px;border-radius:9px;font-size:0.8rem;font-weight:700;margin-bottom:10px;"></div>
+                            <button onclick="submitDeskLeaveRequest()" class="desk-btn-primary" style="width:100%;justify-content:center;" id="deskLeaveSubmitBtn">
+                                <i class="fa-solid fa-paper-plane"></i> Submit to HOD
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- My Leave Applications -->
+                    <div class="desk-card" style="margin-top:0;">
+                        <div class="desk-card-title">
+                            <i class="fa-solid fa-list-check" style="color:#60a5fa;"></i>
+                            My Leave Applications
+                            <button onclick="loadDeskLeaveHistory()" style="margin-left:auto;background:none;border:none;color:#64748b;cursor:pointer;font-size:0.78rem;display:flex;align-items:center;gap:5px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="deskLeaveHistoryContainer">
+                            <div style="text-align:center;padding:24px;color:#64748b;">
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.4rem;margin-bottom:8px;display:block;color:#3b82f6;"></i>
+                                Loading leave records...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ PANEL: PENDING APPROVALS ══ -->
+                @if(in_array(session('userRole'), ['HOD','Academic_Coordinator','Academic Coordinator','Academic_Coordinator_SF','Gen_Dept_Coordinator_Self_Finance','Principal','Super_Admin']))
+                <div id="deskPanel-approvals" class="desk-panel">
+                    <div class="desk-card">
+                        <div class="desk-card-title">
+                            <i class="fa-solid fa-clock-rotate-left" style="color:#fbbf24;"></i>
+                            Pending Staff Leave Approvals
+                            <button onclick="loadDeskPendingApprovals()" style="margin-left:auto;background:none;border:none;color:#64748b;cursor:pointer;font-size:0.78rem;display:flex;align-items:center;gap:5px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="deskPendingApprovalsContainer">
+                            <div style="text-align:center;padding:24px;color:#64748b;">
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.4rem;margin-bottom:8px;display:block;color:#3b82f6;"></i>
+                                Loading pending approvals...
+                            </div>
+                        </div>
+                        @if(in_array(session('userRole'), ['HOD','Academic_Coordinator','Academic Coordinator','Academic_Coordinator_SF','Gen_Dept_Coordinator_Self_Finance','Principal']))
+                        <div style="margin-top:16px;text-align:right;">
+                            <a href="/staff/leave/reports" class="desk-btn-secondary" style="text-decoration:none;">
+                                <i class="fa-solid fa-table-list"></i> View Master Leave Ledger
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+            </div><!-- /desk-content -->
+        </div><!-- /desk-main -->
+    </div><!-- /desktop-dashboard -->
+
+    <!-- Desktop JS -->
+    <script>
+    // ─── DESKTOP NAVIGATION ───
+    function deskSwitchPanel(panelId) {
+        document.querySelectorAll('.desk-panel').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.desk-nav-item').forEach(el => el.classList.remove('active'));
+
+        const panel = document.getElementById('deskPanel-' + panelId);
+        const navBtn = document.getElementById('deskNav-' + panelId);
+        if (panel) panel.classList.add('active');
+        if (navBtn) navBtn.classList.add('active');
+
+        const titles = {
+            punch:     "Today's Attendance",
+            monthly:   "Monthly Attendance Log",
+            leave:     "Staff Leave Portal",
+            approvals: "Pending Leave Approvals"
+        };
+        const titleEl = document.getElementById('deskPanelTitle');
+        if (titleEl) titleEl.textContent = titles[panelId] || "Leave & Attendance";
+
+        if (panelId === 'leave') {
+            loadDeskLeaveHistory();
+        }
+        if (panelId === 'approvals') {
+            loadDeskPendingApprovals();
+        }
+    }
+
+    // ─── MONTHLY PUNCH LOG ───
+    let _punchLogData = null;
+
+    function loadDeskMonthlyLog() {
+        const month = document.getElementById('deskMonthSel').value;
+        const year  = document.getElementById('deskYearSel').value;
+        const wrap  = document.getElementById('deskMonthlyTableWrap');
+        const summaryGrid = document.getElementById('deskMonthlySummaryGrid');
+
+        wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#64748b;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:10px;color:#3b82f6;"></i>
+            Loading punch records for ${getMonthName(month)} ${year}...
+        </div>`;
+        if (summaryGrid) summaryGrid.style.display = 'none';
+
+        fetch(`/api/staff/my-punch-log?month=${month}&year=${year}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status !== 'SUCCESS') {
+                wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#f87171;">Failed to load records. Please try again.</div>`;
+                return;
+            }
+
+            _punchLogData = data;
+
+            // Update summary
+            document.getElementById('deskStatPresent').textContent  = data.summary.present;
+            document.getElementById('deskStatLate').textContent      = data.summary.late;
+            document.getElementById('deskStatEarlyOut').textContent  = data.summary.early_out;
+            document.getElementById('deskStatPunched').textContent   = data.summary.total_punched;
+            if (summaryGrid) summaryGrid.style.display = 'grid';
+
+            // Build table of all calendar days
+            const startDate = new Date(data.start_date);
+            const endDate   = new Date(data.end_date);
+            const records   = data.records;
+
+            let rows = '';
+            let d = new Date(startDate);
+            while (d <= endDate) {
+                const dateStr = formatDateKey(d);
+                const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+                const dayNum  = d.getDate().toString().padStart(2, '0');
+                const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                const record = records[dateStr] || null;
+
+                let inCell = '<span style="color:#334155;">—</span>';
+                let outCell = '<span style="color:#334155;">—</span>';
+                let durCell = '<span style="color:#334155;">—</span>';
+                let statusCell = '';
+                let rowStyle = '';
+
+                if (isWeekend) {
+                    rowStyle = 'background:rgba(99,102,241,0.04);';
+                    statusCell = '<span class="punch-status-badge holiday">Weekend</span>';
+                    inCell = '—'; outCell = '—'; durCell = '—';
+                } else if (record) {
+                    inCell  = record.in_time  ? `<span style="font-family:monospace;font-weight:700;color:#34d399;">${record.in_time}</span>` : '<span style="color:#64748b;">—</span>';
+                    outCell = record.out_time ? `<span style="font-family:monospace;font-weight:700;color:#38bdf8;">${record.out_time}</span>` : '<span style="color:#64748b;">—</span>';
+                    durCell = record.duration ? `<span style="font-family:monospace;color:#f59e0b;">${record.duration}</span>` : '—';
+
+                    const st = record.status || 'Present';
+                    const cls = st === 'Present' ? 'present' : (st === 'Late' ? 'late' : (st === 'Early Out' ? 'early-out' : 'absent'));
+                    const icon = st === 'Present' ? '✓' : (st === 'Late' ? '⚠' : (st === 'Early Out' ? '↩' : '✗'));
+                    statusCell = `<span class="punch-status-badge ${cls}">${icon} ${st}</span>`;
+                } else {
+                    // Weekday with no record
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const dCopy = new Date(d); dCopy.setHours(0,0,0,0);
+                    if (dCopy < today) {
+                        statusCell = '<span class="punch-status-badge absent">✗ No Record</span>';
+                    } else if (dCopy.getTime() === today.getTime()) {
+                        statusCell = '<span class="punch-status-badge no-record">Today</span>';
+                    } else {
+                        statusCell = '<span class="punch-status-badge no-record">—</span>';
+                    }
+                }
+
+                rows += `<tr style="${rowStyle}">
+                    <td style="color:#94a3b8;font-family:monospace;font-weight:700;">${dayNum}</td>
+                    <td style="color:#64748b;font-size:0.75rem;font-weight:600;">${dayName}</td>
+                    <td>${inCell}</td>
+                    <td>${outCell}</td>
+                    <td>${durCell}</td>
+                    <td>${statusCell}</td>
+                </tr>`;
+
+                d.setDate(d.getDate() + 1);
+            }
+
+            wrap.innerHTML = `
+                <table class="punch-log-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        })
+        .catch(() => {
+            wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#f87171;">Network error. Please check your connection.</div>`;
+        });
+    }
+
+    function formatDateKey(d) {
+        return d.getFullYear() + '-' +
+            String(d.getMonth()+1).padStart(2,'0') + '-' +
+            String(d.getDate()).padStart(2,'0');
+    }
+
+    function getMonthName(m) {
+        const names = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+        return names[parseInt(m)] || '';
+    }
+
+    function exportPunchLogCSV() {
+        if (!_punchLogData) { alert('Please load records first.'); return; }
+        const records = _punchLogData.records;
+        const month   = getMonthName(_punchLogData.month);
+        const year    = _punchLogData.year;
+
+        let csv = 'Date,Day,Check-In,Check-Out,Duration,Status\n';
+        const startDate = new Date(_punchLogData.start_date);
+        const endDate   = new Date(_punchLogData.end_date);
+        let d = new Date(startDate);
+        while (d <= endDate) {
+            const dateStr = formatDateKey(d);
+            const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+            const dayNum  = d.getDate().toString().padStart(2, '0');
+            const rec = records[dateStr];
+            csv += `${dateStr},${dayName},${rec ? (rec.in_time||'') : ''},${rec ? (rec.out_time||'') : ''},${rec ? (rec.duration||'') : ''},${rec ? rec.status : (d.getDay()===0||d.getDay()===6?'Weekend':'No Record')}\n`;
+            d.setDate(d.getDate() + 1);
+        }
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `Attendance_Log_${month}_${year}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ─── DESKTOP LEAVE HISTORY ───
+    function loadDeskLeaveHistory() {
+        const container = document.getElementById('deskLeaveHistoryContainer');
+        if (!container) return;
+        container.innerHTML = `<div style="text-align:center;padding:24px;color:#64748b;"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.4rem;display:block;margin-bottom:8px;color:#3b82f6;"></i>Loading...</div>`;
+
+        fetch('/api/staff/leave/my-history')
+        .then(r => r.json())
+        .then(data => {
+            // Update balance cards
+            if (data.status === 'SUCCESS') {
+                const clTotal  = data.cl_total || 15;
+                const clTaken  = data.cl_taken !== undefined ? data.cl_taken : 0;
+                const clBal    = Math.max(0, clTotal - clTaken);
+                const elTotal  = document.getElementById('deskClTotal');
+                const elTaken  = document.getElementById('deskClTaken');
+                const elBal    = document.getElementById('deskClBalance');
+                if (elTotal) elTotal.textContent = clTotal;
+                if (elTaken) elTaken.textContent = clTaken;
+                if (elBal)   elBal.textContent   = clBal;
+                // Also sync mobile modal balance info
+                const clInfo = document.getElementById('clBalanceInfo');
+                if (clInfo) clInfo.textContent = `[Total: ${clTotal}, Taken: ${clTaken}]`;
+            }
+
+            if (data.status === 'SUCCESS' && data.leaves && data.leaves.length > 0) {
+                let html = '';
+                data.leaves.forEach(item => {
+                    let statusBadge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(6,182,212,0.15);color:#06b6d4;border:1px solid rgba(6,182,212,0.3);">Pending HOD</span>';
+                    if (item.overall_status === 'Approved')            statusBadge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);">✓ Final Approved</span>';
+                    else if (item.overall_status === 'Rejected')       statusBadge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);">✗ Rejected</span>';
+                    else if (item.overall_status === 'Pending_Coordinator') statusBadge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);">Pending Coordinator</span>';
+                    else if (item.overall_status === 'Pending_Principal')   statusBadge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);">Pending Principal</span>';
+
+                    const dateStr = (item.from_date === item.to_date) ? item.from_date : `${item.from_date} → ${item.to_date}`;
+                    const cclHtml = item.ccl_date ? `<span style="color:#38bdf8;font-family:monospace;">· CCL: ${item.ccl_date}</span>` : '';
+
+                    html += `<div class="leave-row">
+                        <div>
+                            <div style="font-weight:800;color:#f1f5f9;font-size:0.88rem;margin-bottom:4px;">
+                                ${item.leave_type} <span style="color:#64748b;font-weight:600;">(${item.session_type})</span>
+                            </div>
+                            <div style="font-size:0.75rem;color:#64748b;">
+                                <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${dateStr} · <strong style="color:#94a3b8;">${item.total_days} day(s)</strong> ${cclHtml}
+                            </div>
+                            <div style="font-size:0.74rem;color:#475569;margin-top:4px;font-style:italic;">"${item.reason || ''}"</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                            ${statusBadge}
+                            <a href="/staff/leave/${item.id}/pdf" target="_blank" class="desk-btn-secondary" style="padding:5px 12px;font-size:0.72rem;text-decoration:none;">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `<div style="text-align:center;padding:32px;color:#64748b;font-size:0.85rem;">
+                    <i class="fa-solid fa-folder-open" style="font-size:1.4rem;display:block;margin-bottom:8px;color:#334155;"></i>
+                    No leave applications submitted yet.
+                </div>`;
+            }
+        })
+        .catch(() => {
+            container.innerHTML = `<div style="color:#f87171;padding:16px;">Failed to load leave history.</div>`;
+        });
+    }
+
+    // ─── DESKTOP PENDING APPROVALS ───
+    function loadDeskPendingApprovals() {
+        const container = document.getElementById('deskPendingApprovalsContainer');
+        if (!container) return;
+        container.innerHTML = `<div style="text-align:center;padding:24px;color:#64748b;"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.4rem;display:block;margin-bottom:8px;color:#3b82f6;"></i>Loading...</div>`;
+
+        fetch('/api/staff/leave/pending-approvals')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'SUCCESS' && data.approvals && data.approvals.length > 0) {
+                const stage = data.role === 'HOD' ? 'HOD' : (data.role === 'Principal' ? 'Principal' : 'Coordinator');
+                let html = '';
+                data.approvals.forEach(item => {
+                    const cclHtml = item.ccl_date ? `<span style="color:#38bdf8;font-family:monospace;"> · CCL: ${item.ccl_date}</span>` : '';
+                    html += `<div style="background:#020617;border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:16px 18px;margin-bottom:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+                            <div>
+                                <strong style="color:#f1f5f9;">${item.staff_name}</strong>
+                                <span style="color:#64748b;font-size:0.78rem;margin-left:8px;">${item.department}</span>
+                            </div>
+                            <span style="padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:800;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);">${item.leave_type}</span>
+                        </div>
+                        <div style="font-size:0.78rem;color:#64748b;margin-bottom:6px;">
+                            ${item.from_date} → ${item.to_date} (${item.session_type}) · ${item.total_days} day(s)${cclHtml}
+                        </div>
+                        <div style="font-size:0.78rem;color:#475569;font-style:italic;margin-bottom:12px;">"${item.reason}"</div>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="deskActionApproval(${item.id},'${stage}','Approved')" class="desk-btn-primary" style="flex:1;justify-content:center;padding:8px;">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                            <button onclick="deskActionApproval(${item.id},'${stage}','Rejected')" class="desk-btn-secondary" style="flex:1;justify-content:center;padding:8px;border-color:rgba(239,68,68,0.4);color:#f87171;">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `<div style="text-align:center;padding:32px;color:#64748b;font-size:0.85rem;">
+                    <i class="fa-solid fa-inbox" style="font-size:1.4rem;display:block;margin-bottom:8px;color:#334155;"></i>
+                    No pending leave requests in your queue.
+                </div>`;
+            }
+        });
+    }
+
+    function deskActionApproval(leaveId, stage, action) {
+        const remarks = prompt(`Enter optional remarks for ${action}:`) || '';
+        fetch('/api/staff/leave/process-approval', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ leave_id: leaveId, stage, action, remarks })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                loadDeskPendingApprovals();
+            } else {
+                alert(data.message || 'Error processing approval.');
+            }
+        });
+    }
+
+    // ─── DESKTOP QUICK-APPLY LEAVE ───
+    function deskToggleCclDate() {
+        const type = document.getElementById('deskLeaveType').value;
+        const box  = document.getElementById('deskCclDateBox');
+        if (box) box.style.display = (type === 'Compensatory Casual Leave') ? 'block' : 'none';
+    }
+
+    function submitDeskLeaveRequest() {
+        const leaveType   = document.getElementById('deskLeaveType').value;
+        const sessionType = document.getElementById('deskLeaveSession').value;
+        const fromDate    = document.getElementById('deskLeaveFrom').value;
+        const toDate      = document.getElementById('deskLeaveTo').value;
+        const cclDate     = document.getElementById('deskCclDate').value;
+        const reason      = document.getElementById('deskLeaveReason').value.trim();
+        const alertEl     = document.getElementById('deskLeaveAlert');
+        const btn         = document.getElementById('deskLeaveSubmitBtn');
+
+        const diffMs = new Date(toDate) - new Date(fromDate);
+        const totalDays = Math.max(0.5, Math.round((diffMs / 86400000) + 1));
+
+        if (!fromDate || !toDate || !reason) {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(239,68,68,0.15)';
+            alertEl.style.color = '#f87171';
+            alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+            alertEl.textContent = 'Please fill From Date, To Date, and Reason.';
+            return;
+        }
+
+        if (leaveType === 'Compensatory Casual Leave' && !cclDate) {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(239,68,68,0.15)';
+            alertEl.style.color = '#f87171';
+            alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+            alertEl.textContent = 'Please specify the CCL Date.';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+        alertEl.style.display = 'none';
+
+        fetch('/api/staff/leave/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                leave_type: leaveType,
+                session_type: sessionType,
+                from_date: fromDate,
+                to_date: toDate,
+                ccl_date: leaveType === 'Compensatory Casual Leave' ? cclDate : null,
+                total_days: totalDays,
+                reason: reason,
+                work_arrangement: []
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to HOD';
+            alertEl.style.display = 'block';
+            if (data.status === 'SUCCESS') {
+                alertEl.style.background = 'rgba(16,185,129,0.15)';
+                alertEl.style.color = '#34d399';
+                alertEl.style.border = '1px solid rgba(16,185,129,0.3)';
+                alertEl.textContent = data.message;
+                document.getElementById('deskLeaveReason').value = '';
+                setTimeout(() => {
+                    alertEl.style.display = 'none';
+                    loadDeskLeaveHistory();
+                }, 1500);
+            } else {
+                alertEl.style.background = 'rgba(239,68,68,0.15)';
+                alertEl.style.color = '#f87171';
+                alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                alertEl.textContent = data.message || 'Failed to submit leave.';
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to HOD';
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(239,68,68,0.15)';
+            alertEl.style.color = '#f87171';
+            alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+            alertEl.textContent = 'Network error. Please try again.';
+        });
+    }
+
+    // ─── INIT DESKTOP ───
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set month/year selectors to current month
+        const now = new Date();
+        const monthSel = document.getElementById('deskMonthSel');
+        const yearSel  = document.getElementById('deskYearSel');
+        if (monthSel) monthSel.value = String(now.getMonth() + 1);
+        if (yearSel)  yearSel.value  = String(now.getFullYear());
+    });
+    </script>
 </body>
 </html>

@@ -388,11 +388,34 @@ class StudentAttendanceController extends Controller
         // Active Online Tests from test_configs
         $activeTests = [];
         if (\Illuminate\Support\Facades\Schema::hasTable('test_configs')) {
-            $activeTests = DB::table('test_configs')
+            $rawTests = DB::table('test_configs')
                 ->where('classroom_id', $student->classroom_id)
                 ->where('is_active', true)
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            foreach ($rawTests as $t) {
+                $completedAttempts = DB::table('test_attempts')
+                    ->where('test_id', $t->test_id)
+                    ->where('reg_no', $student->reg_no)
+                    ->where('status', 'completed')
+                    ->count();
+
+                $t->my_attempts = $completedAttempts;
+                $t->is_completed = ($completedAttempts >= ($t->max_attempts ?? 1));
+                if ($t->is_completed) {
+                    $t->best_score = DB::table('test_attempts')
+                        ->where('test_id', $t->test_id)
+                        ->where('reg_no', $student->reg_no)
+                        ->max('total_score');
+                }
+
+                $now = now();
+                $t->is_not_started = ($t->start_time && $now < \Carbon\Carbon::parse($t->start_time));
+                $t->is_expired = ($t->end_time && $now > \Carbon\Carbon::parse($t->end_time));
+
+                $activeTests[] = $t;
+            }
         }
 
         // Check for active campus-wide event today for students

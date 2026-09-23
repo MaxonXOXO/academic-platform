@@ -2258,25 +2258,28 @@
     }
 
     function autoFillRollNumbers() {
-      const rows = Array.from(document.querySelectorAll('.student-roll-row'));
+      const tbody = document.getElementById('tutorRollNumberList');
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('.student-roll-row'));
       if (rows.length === 0) return;
 
-      // Sort rows alphabetically by student name
+      // Sort rows alphabetically, fully case-insensitive and locale-aware
       rows.sort((a, b) => {
-        const nameA = a.querySelector('td:nth-child(4)').innerText.trim().toLowerCase();
-        const nameB = b.querySelector('td:nth-child(4)').innerText.trim().toLowerCase();
-        return nameA.localeCompare(nameB);
+        const nameA = a.querySelector('td:nth-child(4)').innerText.trim();
+        const nameB = b.querySelector('td:nth-child(4)').innerText.trim();
+        return nameA.localeCompare(nameB, undefined, { sensitivity: 'base', ignorePunctuation: true });
       });
 
-      // Update the roll number inputs sequentially on screen
+      // Physically reorder <tr> rows in the DOM (move each to end in sorted order)
+      // then assign sequential roll numbers and update the NO. counter column
       rows.forEach((row, index) => {
+        tbody.appendChild(row);                                           // reorders in DOM
+        row.querySelector('td:first-child').innerText = index + 1;        // update NO. column
         const input = row.querySelector('.roll-no-input');
-        if (input) {
-          input.value = index + 1;
-        }
+        if (input) input.value = index + 1;
       });
-      
-      showGlobalMessage('Roll numbers auto-filled alphabetically (1 to ' + rows.length + '). Review and click Save.');
+
+      showGlobalMessage('Roll numbers auto-filled A–Z (1 to ' + rows.length + '). Move lateral-entry students to bottom if needed, then click Save.');
     }
 
     function saveRollNumbers() {

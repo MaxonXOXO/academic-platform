@@ -3632,7 +3632,7 @@
               <span class="material-symbols-rounded text-sm">print</span> Print Assignment Report
             </button>
             <button onclick="generateAIQuestions('${currentSubjectId}')" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white rounded-xl text-sm font-bold transition-premium flex items-center gap-2 shadow-lg shadow-blue-900/20 cursor-pointer">
-              <span class="material-symbols-rounded text-sm">smart_toy</span> AI Generate Questions
+              <span class="material-symbols-rounded text-sm">smart_toy</span> Setup Assignment
             </button>
             <button onclick="generateAIQuestions('${currentSubjectId}', null, 'bank')" class="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-500 hover:to-violet-400 text-white rounded-xl text-sm font-bold transition-premium flex items-center gap-2 shadow-lg shadow-indigo-900/20 cursor-pointer">
               <span class="material-symbols-rounded text-sm">database</span> Pull from Question Bank

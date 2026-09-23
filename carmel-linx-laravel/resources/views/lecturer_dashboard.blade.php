@@ -84,6 +84,12 @@
     #markEntryTbody td:nth-child(2) {
       font-size: 1.1rem !important; /* Student name — most prominent */
     }
+    #markEntryTbody td:nth-child(3),
+    #markEntryTbody td:nth-child(4) {
+      font-size: 1rem !important; /* Adm No & SBTE Reg No */
+      font-weight: 700 !important;
+      color: #e2e8f0 !important;
+    }
     .assignment-marks-table thead th {
       font-size: 0.95rem !important;
     }
@@ -193,6 +199,24 @@
     
     #manualMarksWrapper table td {
       padding: 12px 10px !important;
+    }
+
+    /* Summative marks table — override global 13px/12px !important suppressors */
+    #summativeMarkEntryTbody td {
+      font-size: 1rem !important;
+    }
+    #summativeMarkEntryTbody td:nth-child(2) {
+      font-size: 1.1rem !important;
+    }
+    /* Summative CO inputs — must be large, bold, fully visible */
+    input.summ-mark {
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+      min-height: 2.25rem !important;
+      color: #f1f5f9 !important;
+      line-height: 1.25 !important;
     }
 
     /* Flatpickr date picker calendar visibility in dark background */
@@ -4810,15 +4834,15 @@
         students.forEach((student, index) => {
           let sm = student.summative_marks || {};
           marksEntryHtml += `
-            <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium text-sm" data-reg="${student.reg_no}">
-              <td class="p-3 text-slate-400 font-bold">${index + 1}</td>
-              <td class="p-3 font-bold text-slate-200">${student.name}</td>
-              <td class="p-3 font-mono text-slate-400">${student.reg_no}</td>
-              <td class="p-3 font-mono text-slate-400">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-300 text-sm focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+            <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium" data-reg="${student.reg_no}">
+              <td class="p-3 text-slate-400 font-bold text-base">${index + 1}</td>
+              <td class="p-3 font-bold text-slate-100 text-lg">${student.name}</td>
+              <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.reg_no}</td>
+              <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.sbte_reg_no || '-'}</td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
             </tr>
           `;
         });

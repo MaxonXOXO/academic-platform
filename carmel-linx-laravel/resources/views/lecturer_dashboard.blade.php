@@ -208,15 +208,25 @@
     #summativeMarkEntryTbody td:nth-child(2) {
       font-size: 1.1rem !important;
     }
-    /* Summative CO inputs — must be large, bold, fully visible */
+    /* Summative CO inputs — must be large, bold, fully visible, never clipped */
     input.summ-mark {
       font-size: 1rem !important;
       font-weight: 700 !important;
       padding-top: 0.5rem !important;
       padding-bottom: 0.5rem !important;
+      padding-left: 0.25rem !important;
+      padding-right: 0.25rem !important;
       min-height: 2.25rem !important;
+      min-width: 3.5rem !important;
+      width: 100% !important;
       color: #f1f5f9 !important;
       line-height: 1.25 !important;
+    }
+    /* Ensure CO column cells are wide enough for 2-digit input */
+    #summativeMarkEntryTbody td:nth-child(n+5) {
+      min-width: 5rem !important;
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
     }
 
     /* Flatpickr date picker calendar visibility in dark background */
@@ -4821,10 +4831,10 @@
                   <th class="p-3">Student Name</th>
                   <th class="p-3 w-28">Admission No</th>
                   <th class="p-3 w-32">SBTE Reg No</th>
-                  <th class="p-3 text-center w-20">CO1</th>
-                  <th class="p-3 text-center w-20">CO2</th>
-                  <th class="p-3 text-center w-20">CO3</th>
-                  <th class="p-3 text-center w-20">CO4</th>
+                  <th class="p-3 text-center w-28">CO1</th>
+                  <th class="p-3 text-center w-28">CO2</th>
+                  <th class="p-3 text-center w-28">CO3</th>
+                  <th class="p-3 text-center w-28">CO4</th>
                 </tr>
               </thead>
               <tbody id="summativeMarkEntryTbody">

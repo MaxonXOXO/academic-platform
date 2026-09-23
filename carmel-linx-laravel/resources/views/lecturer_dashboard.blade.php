@@ -74,6 +74,20 @@
       }
     }
 
+    /* Assignment Marks Table — explicit readable font sizes, overriding global suppressors */
+    #markEntryTbody td {
+      font-size: 1rem !important; /* 16px for reg/sbte */
+    }
+    #markEntryTbody td:nth-child(1) {
+      font-size: 1.05rem !important; /* Serial number */
+    }
+    #markEntryTbody td:nth-child(2) {
+      font-size: 1.1rem !important; /* Student name — most prominent */
+    }
+    .assignment-marks-table thead th {
+      font-size: 0.95rem !important;
+    }
+
     /* Screen responsiveness: scale down fonts, paddings, and gaps for monitors under 1440px (like 1366x768) */
     @media (max-width: 1440px) {
       html, body {
@@ -3652,7 +3666,7 @@
             </button>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px]">
+            <table class="w-full text-left border-collapse min-w-[700px] assignment-marks-table">
               <thead>
                 <tr class="bg-slate-900/40 text-base font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-12">S.No.</th>

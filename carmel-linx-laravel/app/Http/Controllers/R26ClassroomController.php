@@ -45,8 +45,7 @@ class R26ClassroomController extends Controller
 
         // Get enrolled students
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Course file data
@@ -786,9 +785,8 @@ class R26ClassroomController extends Controller
             ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
         
-        $students = Student::where('classroom_id', $batchSubject->classroom_id)
-            ->orderByRaw('CAST(roll_no AS UNSIGNED) ASC')
-            ->orderBy('name', 'asc')
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -1310,8 +1308,7 @@ class R26ClassroomController extends Controller
         }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -1572,7 +1569,7 @@ class R26ClassroomController extends Controller
         if (!$batchSubject) return response()->json(['status' => 'ERROR', 'message' => 'Subject not found']);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -1818,8 +1815,7 @@ class R26ClassroomController extends Controller
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $academicMarks = \DB::table('academic_marks')
@@ -1877,8 +1873,7 @@ class R26ClassroomController extends Controller
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -2052,8 +2047,7 @@ class R26ClassroomController extends Controller
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -2267,8 +2261,7 @@ class R26ClassroomController extends Controller
         }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first()

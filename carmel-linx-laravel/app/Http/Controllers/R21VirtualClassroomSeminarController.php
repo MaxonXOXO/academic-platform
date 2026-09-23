@@ -63,8 +63,7 @@ class R21VirtualClassroomSeminarController extends Controller
 
         // Enrolled Students Query
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Seminar Registrations (Topic, Date, Guide)
@@ -525,8 +524,7 @@ class R21VirtualClassroomSeminarController extends Controller
         }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $allEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)->get();
@@ -736,7 +734,7 @@ class R21VirtualClassroomSeminarController extends Controller
         $courseFile = CourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $allEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)->get();

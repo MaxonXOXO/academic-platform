@@ -389,7 +389,7 @@ class RemedialController extends Controller
 
         $logs = RemedialSessionLog::where('room_id', $roomId)->orderBy('session_date', 'asc')->get();
         $studentRegs = DB::table('remedial_students')->where('room_id', $roomId)->pluck('reg_no')->toArray();
-        $students = DB::table('students')->whereIn('reg_no', $studentRegs)->orderBy('name', 'asc')->get(['reg_no', 'name', 'sbte_reg_no']);
+        $students = DB::table('students')->whereIn('reg_no', $studentRegs)->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $lecturer = DB::table('staff_profiles')->where('mobile_no', $room->created_by_mobile)->first();
         $lecturerName = $lecturer ? $lecturer->name : 'Unknown Lecturer';
@@ -458,7 +458,7 @@ class RemedialController extends Controller
 
         $logs = RemedialSessionLog::where('room_id', $roomId)->orderBy('session_date', 'asc')->get();
         $studentRegs = DB::table('remedial_students')->where('room_id', $roomId)->pluck('reg_no')->toArray();
-        $students = DB::table('students')->whereIn('reg_no', $studentRegs)->orderBy('name', 'asc')->get(['reg_no', 'name', 'sbte_reg_no']);
+        $students = DB::table('students')->whereIn('reg_no', $studentRegs)->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $lecturer = DB::table('staff_profiles')->where('mobile_no', $room->created_by_mobile)->first();
         $lecturerName = $lecturer ? $lecturer->name : 'Unknown Lecturer';

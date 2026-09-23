@@ -64,8 +64,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
 
         // Fetch students enrolled
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch existing evaluations
@@ -800,8 +799,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
         $eseConfig = array_merge(AttainmentService::getDefaultEseConfig('Project', 'REV2021'), $settings['ese_config'] ?? []);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $evaluations = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)
@@ -986,7 +984,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
         $eseConfig = array_merge(AttainmentService::getDefaultEseConfig('Project', 'REV2021'), $settings['ese_config'] ?? []);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $evaluations = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
@@ -1182,8 +1180,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
         ];
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $evaluations = R21MajorProjectEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');

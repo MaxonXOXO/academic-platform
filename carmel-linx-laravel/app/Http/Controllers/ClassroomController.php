@@ -2657,8 +2657,7 @@ Return ONLY valid JSON matching this exact structure:
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('semester', $batchSubject->semester)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch Academic Marks (Assignment + Summative)
@@ -2802,8 +2801,7 @@ Return ONLY valid JSON matching this exact structure:
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('semester', $batchSubject->semester)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch logs for conducted hours and attendance
@@ -3111,8 +3109,7 @@ Return ONLY valid JSON matching this exact structure:
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('semester', $batchSubject->semester)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch Course File & Attainment Settings
@@ -3303,7 +3300,7 @@ Return ONLY valid JSON matching this exact structure:
         }
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $courseFile = \App\Models\CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -3540,7 +3537,7 @@ Return ONLY valid JSON matching this exact structure:
         if (!$batchSubject) return response()->json(['status' => 'ERROR', 'message' => 'Subject not found'], 404);
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $courseFile = \App\Models\CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -4438,8 +4435,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)->get();
@@ -4839,8 +4835,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)
@@ -5508,8 +5503,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         // 2. Identify students in this batch or entire classroom
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 
         $affectedRegNos = [];
@@ -6407,8 +6401,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $experiments = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)

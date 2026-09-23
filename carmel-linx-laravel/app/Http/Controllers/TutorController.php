@@ -157,8 +157,7 @@ class TutorController extends Controller
 
         // 2. Fetch Students for this Classroom
         $students = Student::getClassroomStudentsQuery($classroomId)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
 
         $studentRegNos = $students->pluck('reg_no')->toArray();

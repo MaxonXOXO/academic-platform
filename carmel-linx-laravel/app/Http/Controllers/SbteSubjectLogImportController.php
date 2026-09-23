@@ -73,8 +73,7 @@ class SbteSubjectLogImportController extends Controller
             ->where(function ($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['roll_no', 'name', 'reg_no']);
 
         if ($classroomStudents->isEmpty()) {

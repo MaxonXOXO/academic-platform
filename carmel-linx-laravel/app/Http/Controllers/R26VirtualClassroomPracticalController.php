@@ -128,7 +128,8 @@ class R26VirtualClassroomPracticalController extends Controller
         if (!$classroom) abort(404, 'Classroom not found.');
 
         $students  = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')->orderBy('name', 'asc')->get();
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
         $labBatches = R26StudentLabBatch::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
         // R2026 Practical course file (isolated table)
@@ -859,7 +860,9 @@ class R26VirtualClassroomPracticalController extends Controller
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $classroom    = $this->getClassroom($batchSubject->classroom_id);
-        $students     = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderBy('roll_no')->get();
+        $students     = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
         $labBatches   = R26StudentLabBatch::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
         $lessonPlans  = LessonPlan::where('batch_subject_id', $subjectId)->orderBy('day_no')->get();
         $experimentLogs = R26PracticalExperimentEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('experiment_no');

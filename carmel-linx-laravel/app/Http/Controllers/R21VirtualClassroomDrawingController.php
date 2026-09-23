@@ -44,8 +44,7 @@ class R21VirtualClassroomDrawingController extends Controller
 
         // Enrolled Students Query
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Default sheets (minimum 2 sheets per module across 4 modules = 8 sheets)
@@ -528,7 +527,7 @@ class R21VirtualClassroomDrawingController extends Controller
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $courseFile = R21DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
-        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderBy('roll_no')->get();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
         $sheetEvals = R21DrawingSheetEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
         $sheets = $courseFile->parsed_sheets ?: [];
 
@@ -542,7 +541,7 @@ class R21VirtualClassroomDrawingController extends Controller
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $courseFile = R21DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
-        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderBy('roll_no')->get();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
         $seriesTests = R21DrawingSeriesTest::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
 
         return view('r21_drawing.summative_test_print', compact('batchSubject', 'courseFile', 'students', 'seriesTests'));
@@ -556,7 +555,7 @@ class R21VirtualClassroomDrawingController extends Controller
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $courseFile = R21DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
-        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderBy('roll_no')->get();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
         
         $sheetEvals = R21DrawingSheetEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
         $seriesTests = R21DrawingSeriesTest::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');

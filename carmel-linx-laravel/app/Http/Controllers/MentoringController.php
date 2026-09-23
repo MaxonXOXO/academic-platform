@@ -86,10 +86,7 @@ class MentoringController extends Controller
                 $batchLabel = $isTutor ? 'A' : 'B';
 
                 // Fetch all students belonging to this classroom using helper query
-                $allStudents = Student::getClassroomStudentsQuery($classroomId)
-                    ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-                    ->orderBy('name', 'asc')
-                    ->get();
+                $allStudents = Student::getClassroomStudentsQuery($classroomId)->get();
                 $totalCount  = $allStudents->count();
 
                 // Get explicit batch assignments if any exist
@@ -186,10 +183,7 @@ class MentoringController extends Controller
                     || in_array(Session::get('userRole'), ['Super_Admin', 'Principal', 'Admin', 'HOD']);
             if (!$allowed) return response()->json(['status' => 'ERROR', 'message' => 'Not authorised for this classroom.']);
 
-            $students = Student::getClassroomStudentsQuery($classroomId)
-                ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-                ->orderBy('name', 'asc')
-                ->get();
+            $students = Student::getClassroomStudentsQuery($classroomId)->get();
             $batches  = MentoringBatch::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
 
             $data = $students->map(function ($s) use ($batches) {
@@ -726,10 +720,7 @@ class MentoringController extends Controller
                 if ($cleanMentorMob) $q->orWhere('mobile_no', $cleanMentorMob);
             })->first();
 
-            $students = Student::getClassroomStudentsQuery($classroomId)
-                ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-                ->orderBy('name', 'asc')
-                ->get();
+            $students = Student::getClassroomStudentsQuery($classroomId)->get();
             $batches  = MentoringBatch::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
 
             $batchA = []; $batchB = []; $unassigned = [];

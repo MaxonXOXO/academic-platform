@@ -122,8 +122,7 @@ class AttendanceController extends Controller
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 
         // Fetch lesson plans for dropdown selection (ordered by day_no, then id)
@@ -222,8 +221,7 @@ class AttendanceController extends Controller
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 
         $labBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $id)->pluck('lab_batch', 'reg_no');
@@ -297,8 +295,7 @@ class AttendanceController extends Controller
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'roll_no']);
 
         foreach ($targetSubjectIds as $tId) {
@@ -769,9 +766,7 @@ class AttendanceController extends Controller
         }
 
         $students = Student::getClassroomStudentsQuery($classroom->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderByRaw("CASE WHEN admission_type = 'LET' THEN 1 ELSE 0 END ASC")
-            ->orderByRaw('UPPER(name) ASC')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'admission_type']);
 
         return response()->json([
@@ -852,8 +847,7 @@ class AttendanceController extends Controller
             ->get(['id', 'subject_code', 'subject_name', 'subject_type']);
 
         $students = Student::getClassroomStudentsQuery($classroomId)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
 
         $subjectCodes = $subjects->pluck('subject_code')->filter()->unique();
@@ -1158,10 +1152,9 @@ class AttendanceController extends Controller
 
         // 2. Fetch Date-Wise Attendance Matrix
         $batchSubject = BatchSubject::findOrFail($batchSubjectId);
-        $students = Student::where('classroom_id', $batchSubject->classroom_id)
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('status', 'Approved')
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 
         // Gather unique date/periods

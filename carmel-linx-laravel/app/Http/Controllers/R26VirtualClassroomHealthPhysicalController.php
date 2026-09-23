@@ -45,8 +45,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
 
         // Enrolled Students Query
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch or Create Health & Physical Course File Record
@@ -393,13 +392,12 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
         if ($students->isEmpty()) {
-            $students = StudentProfile::where('branch', $batchSubject->branch)
-                ->where('batch_year', $batchSubject->batch_year)
-                ->orderBy('reg_no')
+            $students = Student::where('branch', $batchSubject->branch)
+                ->where('admission_year', $batchSubject->batch_year)
+                ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
                 ->get();
         }
         $hpCourseFile = R26HealthPhysicalCourseFile::where('batch_subject_id', $subjectId)->first();

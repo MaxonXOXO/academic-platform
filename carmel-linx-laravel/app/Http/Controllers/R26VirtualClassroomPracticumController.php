@@ -47,8 +47,7 @@ class R26VirtualClassroomPracticumController extends Controller
 
         // Enrolled Students Query
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch or Create Practicum Course File Record
@@ -932,7 +931,7 @@ class R26VirtualClassroomPracticumController extends Controller
         $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
         
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
 
         $attendanceData = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
@@ -1779,7 +1778,9 @@ class R26VirtualClassroomPracticumController extends Controller
         $lecturerName = $meta['lecturerName'];
 
         $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
-        $students = Student::where('classroom_id', $batchSubject->classroom_id)->orderBy('roll_no', 'asc')->get();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
 
         $assignedStaff = DB::table('subject_staff_assignments')
             ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
@@ -1839,7 +1840,9 @@ class R26VirtualClassroomPracticumController extends Controller
         $lecturerName = $meta['lecturerName'];
 
         $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
-        $students = Student::where('classroom_id', $batchSubject->classroom_id)->orderBy('roll_no', 'asc')->get();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
 
         $assignedStaff = DB::table('subject_staff_assignments')
             ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
@@ -2380,8 +2383,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $practicumCourseFile = \App\Models\R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
@@ -2508,8 +2510,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         }
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $practicumCourseFile = \App\Models\R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
@@ -2689,7 +2690,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         $lecturerName = $meta['lecturerName'];
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $totalEnrolled = $students->count();
@@ -2933,7 +2934,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderBy('roll_no', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
 
         $totalEnrolled = $students->count();

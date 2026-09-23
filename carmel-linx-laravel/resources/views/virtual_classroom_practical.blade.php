@@ -542,6 +542,7 @@
                 <table class="table-custom">
                     <thead>
                         <tr>
+                            <th class="text-center w-12">Roll</th>
                             <th class="w-28">Register No</th>
                             <th>Student Name</th>
                             <th class="text-center w-24">Batch</th>
@@ -554,7 +555,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($students as $student)
+                        @foreach($students as $index => $student)
                         @php
                             $score = $consolidatedScores[$student->reg_no] ?? [];
                             $batchDesignation = $labBatches->get($student->reg_no)->lab_batch ?? 'Unassigned';
@@ -563,6 +564,7 @@
                             $gradedColor = $graded === 0 ? 'text-red-400' : ($graded < $totalExp ? 'text-amber-400' : 'text-emerald-400');
                         @endphp
                         <tr class="student-row" data-reg-no="{{ $student->reg_no }}" data-batch="{{ $batchDesignation }}">
+                            <td class="text-center text-cyan-400 font-mono text-xs">{{ $student->roll_no ?? ($index + 1) }}</td>
                             <td>
                                 <span class="badge bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-medium px-1.5 py-0.5 rounded">
                                     {{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}

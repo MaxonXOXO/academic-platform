@@ -48,8 +48,7 @@ class VirtualClassroomPracticalController extends Controller
 
         // Fetch students enrolled in this classroom
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
 
         // Fetch lab batch designations (R26StudentLabBatch is shared across R2021 too — batch_subject_id keyed)
@@ -815,8 +814,7 @@ class VirtualClassroomPracticalController extends Controller
         $batchSubject = BatchSubject::with(['classroom', 'courseFile'])->findOrFail($batchSubjectId);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
 
         $experiments = PracticalExperiment::where('batch_subject_id', $batchSubjectId)
@@ -1000,8 +998,7 @@ class VirtualClassroomPracticalController extends Controller
         AttendanceController::syncPracticalExperimentsWithLogs($batchSubjectId);
 
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->orderByRaw('ISNULL(roll_no), roll_no ASC')
-            ->orderBy('name', 'asc')
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get();
 
         $experiments = PracticalExperiment::where('batch_subject_id', $batchSubjectId)

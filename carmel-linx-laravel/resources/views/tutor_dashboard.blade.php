@@ -214,13 +214,18 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Sidebar Navigation -->
-  <aside class="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl md:sticky md:top-0 md:h-screen">
-    <div class="p-6 border-b border-slate-800/60 flex items-center gap-3">
-      <img src="{{ asset('logo.jpg') }}" class="w-10 h-10 rounded-xl object-cover shadow-lg">
-      <div>
-        <h2 class="font-black tracking-tight leading-tight text-white" style="font-size: 1.15rem; font-weight: 900; letter-spacing: -0.3px; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Carmel Linx</h2>
-        <span class="text-slate-400 font-bold uppercase tracking-wider">Tutor Panel</span>
+  <aside id="tutorSidebar" class="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl md:sticky md:top-0 md:h-screen transition-all duration-300">
+    <div class="p-6 border-b border-slate-800/60 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="{{ asset('logo.jpg') }}" class="w-10 h-10 rounded-xl object-cover shadow-lg">
+        <div>
+          <h2 class="font-black tracking-tight leading-tight text-white" style="font-size: 1.15rem; font-weight: 900; letter-spacing: -0.3px; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Carmel Linx</h2>
+          <span class="text-slate-400 font-bold uppercase tracking-wider">Tutor Panel</span>
+        </div>
       </div>
+      <button onclick="toggleSidebar()" class="hidden md:flex p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition cursor-pointer" title="Fold Sidebar for Widescreen View">
+        <span class="material-symbols-rounded text-lg">menu_open</span>
+      </button>
     </div>
 
     <!-- Active Profile Info -->
@@ -302,8 +307,14 @@
   <main class="flex-grow min-w-0 flex flex-col overflow-hidden relative min-h-screen">
     
     <!-- Top Header -->
-    <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-30 sticky top-0">
-      <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Supervised Class Roster</h1>
+    <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 md:px-8 z-30 sticky top-0">
+      <div class="flex items-center gap-3">
+        <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/60 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer" title="Fold / Unfold Sidebar for Maximum Screen Width">
+          <span class="material-symbols-rounded text-lg" id="sidebarToggleIcon">menu_open</span>
+          <span id="sidebarToggleText" class="hidden sm:inline text-[11px]">Fold Sidebar</span>
+        </button>
+        <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Supervised Class Roster</h1>
+      </div>
       <div class="flex items-center gap-3">
         @include('partials.fullscreen_btn')
         <div id="loadingIndicator" class="hidden items-center gap-2 text-slate-400 text-[10px] text-xs">
@@ -3032,26 +3043,25 @@
       if (!wrapper) return;
 
       let headersHtml = `
-        <th class="p-3 text-left w-12 text-slate-400">#</th>
-        <th class="p-3 text-left w-20 text-slate-300">Roll</th>
-        <th class="p-3 text-left w-28 text-slate-300">Reg No</th>
-        <th class="p-3 text-left text-slate-300">Student Name</th>
+        <th class="p-2 text-center w-12 text-slate-300">Roll</th>
+        <th class="p-2 text-left w-24 text-slate-300">Reg No</th>
+        <th class="p-2 text-left min-w-[120px] text-slate-300">Student Name</th>
       `;
 
       subjects.forEach(s => {
         headersHtml += `
-          <th class="p-3 text-center text-slate-300 whitespace-nowrap" title="${s.subject_name}">
-            <div class="font-bold text-xs">${s.subject_code}</div>
-            <div class="text-[0.62rem] text-slate-400 font-normal">Att/Tot (CIA)</div>
+          <th class="p-1.5 text-center text-slate-300 whitespace-nowrap min-w-[56px]" title="${s.subject_name}">
+            <div class="font-bold text-[11px] text-sky-400 font-mono">${s.subject_code}</div>
+            <div class="text-[0.58rem] text-slate-400 font-normal">Att/Tot</div>
           </th>
         `;
       });
 
       headersHtml += `
-        <th class="p-3 text-center bg-slate-900 text-slate-300">Total Attd / Cond</th>
-        <th class="p-3 text-center bg-blue-950/40 text-blue-300 font-bold">Period %</th>
-        <th class="p-3 text-center text-slate-300">Status</th>
-        <th class="p-3 text-center text-slate-300">Actions / Report</th>
+        <th class="p-2 text-center bg-slate-900 text-slate-300 whitespace-nowrap text-[11px]">Total Attd</th>
+        <th class="p-2 text-center bg-blue-950/40 text-blue-300 font-bold whitespace-nowrap text-[11px]">Period %</th>
+        <th class="p-2 text-center text-slate-300 text-[11px]">Status</th>
+        <th class="p-2 text-center text-slate-300 text-[11px]">Actions</th>
       `;
 
       let rowsHtml = '';
@@ -3062,14 +3072,13 @@
           if (sData && sData.conducted > 0) {
             const pColor = sData.percentage >= 75 ? 'text-emerald-400' : (sData.percentage >= 65 ? 'text-amber-400' : 'text-rose-400');
             subjCols += `
-              <td class="p-2 text-center text-xs border-b border-slate-800">
-                <div class="font-mono text-[0.72rem]">${sData.attended}/${sData.conducted}</div>
-                <div class="font-bold ${pColor} font-mono text-xs">${sData.percentage}%</div>
-                <div class="text-[0.6rem] text-slate-400" title="Suggested CIA Attendance Marks">${sData.cia_attendance_mark}M</div>
+              <td class="p-1 text-center text-[11px] border-b border-slate-800">
+                <div class="font-mono text-[10px] text-slate-400">${sData.attended}/${sData.conducted}</div>
+                <div class="font-bold ${pColor} font-mono text-[11px]">${sData.percentage}%</div>
               </td>
             `;
           } else {
-            subjCols += `<td class="p-2 text-center text-xs text-slate-600 border-b border-slate-800">-</td>`;
+            subjCols += `<td class="p-1 text-center text-[11px] text-slate-600 border-b border-slate-800">-</td>`;
           }
         });
 
@@ -3089,29 +3098,28 @@
 
         rowsHtml += `
           <tr class="hover:bg-slate-800/30 transition-colors">
-            <td class="p-3 text-slate-500 text-xs border-b border-slate-800">${idx + 1}</td>
-            <td class="p-3 font-mono font-bold text-slate-300 text-xs border-b border-slate-800">${st.roll_no || '-'}</td>
-            <td class="p-3 font-mono text-white text-xs border-b border-slate-800">${st.sbte_reg_no}</td>
-            <td class="p-3 font-bold text-slate-200 text-xs border-b border-slate-800">${st.name}</td>
+            <td class="p-2 text-center font-mono font-bold text-cyan-400 text-xs border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-2 font-mono text-white text-xs border-b border-slate-800">${st.sbte_reg_no}</td>
+            <td class="p-2 font-bold text-slate-200 text-xs border-b border-slate-800 truncate max-w-[150px]" title="${st.name}">${st.name}</td>
             ${subjCols}
-            <td class="p-3 text-center font-mono text-xs bg-slate-900/50 text-slate-300 border-b border-slate-800">
+            <td class="p-2 text-center font-mono text-xs bg-slate-900/50 text-slate-300 border-b border-slate-800">
               ${st.total_attended} / ${st.total_conducted}
             </td>
-            <td class="p-3 text-center font-mono font-bold text-sm bg-blue-950/20 text-blue-300 border-b border-slate-800">
+            <td class="p-2 text-center font-mono font-bold text-xs bg-blue-950/20 text-blue-300 border-b border-slate-800">
               ${st.overall_percentage}%
             </td>
-            <td class="p-3 text-center border-b border-slate-800">
-              <span class="px-2.5 py-1 rounded text-[0.68rem] font-bold ${statusClass}">
+            <td class="p-2 text-center border-b border-slate-800">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
                 ${st.status}
               </span>
             </td>
-            <td class="p-3 text-center border-b border-slate-800 whitespace-nowrap">
-              <div class="flex items-center justify-center gap-1.5">
-                <a href="${studentPrintUrl}" target="_blank" class="p-1.5 bg-sky-950/60 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 rounded-lg inline-flex items-center text-xs transition-all" title="Print Individual Attendance & Condonation Statement (A4)">
-                  <span class="material-symbols-rounded text-base">print</span>
+            <td class="p-2 text-center border-b border-slate-800 whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1">
+                <a href="${studentPrintUrl}" target="_blank" class="p-1 bg-sky-950/60 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 rounded-md inline-flex items-center text-xs transition-all" title="Print Individual Attendance & Condonation Statement (A4)">
+                  <span class="material-symbols-rounded text-sm">print</span>
                 </a>
-                <a href="${smsHref}" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg inline-flex items-center text-xs transition-all" title="Send SMS Warning to Parent">
-                  <span class="material-symbols-rounded text-base">sms</span>
+                <a href="${smsHref}" class="p-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-md inline-flex items-center text-xs transition-all" title="Send SMS Warning to Parent">
+                  <span class="material-symbols-rounded text-sm">sms</span>
                 </a>
               </div>
             </td>
@@ -3120,7 +3128,7 @@
       });
 
       if (filtered.length === 0) {
-        rowsHtml = `<tr><td colspan="${subjects.length + 8}" class="p-8 text-center text-slate-400 text-xs">No students matching the criteria.</td></tr>`;
+        rowsHtml = `<tr><td colspan="${subjects.length + 7}" class="p-8 text-center text-slate-400 text-xs">No students matching the criteria.</td></tr>`;
       }
 
       wrapper.innerHTML = `
@@ -3251,10 +3259,9 @@
 
       // Multi-tier header
       let headerRow1 = `
-        <th rowspan="2" class="p-2.5 text-left w-10 text-slate-400 border-r border-slate-800">#</th>
-        <th rowspan="2" class="p-2.5 text-left w-14 text-slate-300 border-r border-slate-800">Roll</th>
+        <th rowspan="2" class="p-2.5 text-center w-12 text-cyan-400 font-mono font-bold border-r border-slate-800">Roll</th>
         <th rowspan="2" class="p-2.5 text-left w-24 text-slate-300 border-r border-slate-800">SBTE Reg No</th>
-        <th rowspan="2" class="p-2.5 text-left min-w-[160px] text-slate-300 border-r border-slate-800">Student Name</th>
+        <th rowspan="2" class="p-2.5 text-left min-w-[150px] text-slate-300 border-r border-slate-800">Student Name</th>
       `;
 
       let headerRow2 = '';
@@ -3318,8 +3325,7 @@
 
         rowsHtml += `
           <tr class="hover:bg-slate-800/40 transition-colors">
-            <td class="p-2.5 text-slate-500 text-xs border-r border-b border-slate-800">${idx + 1}</td>
-            <td class="p-2.5 font-mono font-bold text-slate-300 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-2.5 font-mono font-bold text-center text-cyan-400 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
             <td class="p-2.5 font-mono text-white text-xs border-r border-b border-slate-800">${st.sbte_reg_no}</td>
             <td class="p-2.5 font-bold text-slate-200 text-xs border-r border-b border-slate-800 truncate max-w-[180px]" title="${st.name}">
               ${st.name}
@@ -3345,7 +3351,7 @@
       });
 
       if (filtered.length === 0) {
-        rowsHtml = `<tr><td colspan="${(subjects.length * 5) + 8}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
+        rowsHtml = `<tr><td colspan="${(subjects.length * 5) + 7}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
       }
 
       wrapper.innerHTML = `
@@ -3364,6 +3370,43 @@
         </table>
       `;
     }
+
+    // Sidebar folding logic for widescreen table views
+    function toggleSidebar() {
+      const sidebar = document.getElementById('tutorSidebar');
+      const icon = document.getElementById('sidebarToggleIcon');
+      const text = document.getElementById('sidebarToggleText');
+      if (!sidebar) return;
+
+      const isHidden = sidebar.classList.contains('hidden') || sidebar.classList.contains('md:hidden') || sidebar.style.display === 'none';
+      if (isHidden) {
+        sidebar.classList.remove('hidden', 'md:hidden');
+        sidebar.style.display = '';
+        if (icon) icon.innerText = 'menu_open';
+        if (text) text.innerText = 'Fold Sidebar';
+        localStorage.setItem('tutor_sidebar_folded', '0');
+      } else {
+        sidebar.classList.add('hidden', 'md:hidden');
+        sidebar.style.display = 'none';
+        if (icon) icon.innerText = 'menu';
+        if (text) text.innerText = 'Unfold Sidebar';
+        localStorage.setItem('tutor_sidebar_folded', '1');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('tutor_sidebar_folded') === '1') {
+        const sidebar = document.getElementById('tutorSidebar');
+        const icon = document.getElementById('sidebarToggleIcon');
+        const text = document.getElementById('sidebarToggleText');
+        if (sidebar) {
+          sidebar.classList.add('hidden', 'md:hidden');
+          sidebar.style.display = 'none';
+        }
+        if (icon) icon.innerText = 'menu';
+        if (text) text.innerText = 'Unfold Sidebar';
+      }
+    });
   </script>
 
 

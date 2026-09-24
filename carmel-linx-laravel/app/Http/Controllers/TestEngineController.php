@@ -779,6 +779,63 @@ STRICT REQUIREMENTS:
         ));
     }
 
+    /**
+     * Helper to shuffle questions and their options for a participant.
+     */
+    private function shuffleQuestionsAndOptions(array $questions): array
+    {
+        $shuffled = $questions;
+        shuffle($shuffled);
+
+        foreach ($shuffled as &$q) {
+            if (isset($q['options']) && is_array($q['options'])) {
+                $options = array_values(array_map('trim', $q['options']));
+
+                // If ans is a letter 'A','B','C','D' and not the exact option text, resolve it before shuffle
+                if (isset($q['ans']) && $q['ans'] !== null) {
+                    $trimmedAns = trim((string)$q['ans']);
+                    if (in_array(strtoupper($trimmedAns), ['A', 'B', 'C', 'D'])) {
+                        $charMap = ['A' => 0, 'B' => 1, 'C' => 2, 'D' => 3];
+                        $letterIdx = $charMap[strtoupper($trimmedAns)];
+                        if (!in_array($trimmedAns, $options) && isset($options[$letterIdx])) {
+                            $q['ans'] = $options[$letterIdx];
+                        }
+                    }
+                }
+
+                shuffle($options);
+                $q['options'] = $options;
+            }
+        }
+        unset($q);
+
+        return $shuffled;
+    }
+
+    /**
+     * Resolve the questions payload specific to a student attempt.
+     */
+    private function resolveAttemptQuestions($attempt, $test): array
+    {
+        if ($attempt) {
+            if (isset($attempt->questions_payload) && !empty($attempt->questions_payload)) {
+                $decoded = json_decode($attempt->questions_payload, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    return $decoded;
+                }
+            }
+
+            if (!empty($attempt->responses)) {
+                $respData = json_decode($attempt->responses, true);
+                if (is_array($respData) && isset($respData['__shuffled_questions']) && is_array($respData['__shuffled_questions'])) {
+                    return $respData['__shuffled_questions'];
+                }
+            }
+        }
+
+        return json_decode($test->questions_payload, true) ?: [];
+    }
+
     // Student: Start Test
     public function startTest(Request $request, $testId)
     {
@@ -795,7 +852,7 @@ STRICT REQUIREMENTS:
             ->first();
 
         if ($activeAttempt) {
-            $fullPayload = json_decode($test->questions_payload, true);
+            $fullPayload = $this->resolveAttemptQuestions($activeAttempt, $test);
             $safePayload = array_map(function($q) {
                 unset($q['ans']);
                 return $q;
@@ -817,29 +874,40 @@ STRICT REQUIREMENTS:
             return response()->json(['status' => 'ERROR', 'message' => 'Maximum attempts reached.']);
         }
 
-        // Create attempt
-        $attemptId = DB::table('test_attempts')->insertGetId([
-            'attempt_id' => DB::raw('(UUID())'),
+        $masterPayload = json_decode($test->questions_payload, true) ?: [];
+        $shuffledPayload = $this->shuffleQuestionsAndOptions($masterPayload);
+
+        $attemptUuid = (string) Str::uuid();
+        $insertData = [
+            'attempt_id' => $attemptUuid,
             'reg_no' => $regNo,
             'test_id' => $testId,
             'attempt_number' => $attemptsCount + 1,
             'start_time' => now(),
             'status' => 'in_progress',
+            'questions_payload' => json_encode($shuffledPayload),
             'created_at' => now(),
             'updated_at' => now()
-        ]);
+        ];
 
-        $fullPayload = json_decode($test->questions_payload, true);
-        
+        try {
+            DB::table('test_attempts')->insert($insertData);
+        } catch (\Exception $e) {
+            // Fallback in case questions_payload column is not yet present on table
+            unset($insertData['questions_payload']);
+            $insertData['responses'] = json_encode(['__shuffled_questions' => $shuffledPayload]);
+            DB::table('test_attempts')->insert($insertData);
+        }
+
         // Strip answers before sending to client
         $safePayload = array_map(function($q) {
             unset($q['ans']);
             return $q;
-        }, $fullPayload);
+        }, $shuffledPayload);
 
         return response()->json([
             'status' => 'SUCCESS', 
-            'attempt_id' => $attemptId, // UUID isn't returned by insertGetId easily, but we can query it
+            'attempt_id' => $attemptUuid,
             'duration' => $test->duration,
             'questions' => $safePayload
         ]);
@@ -858,7 +926,7 @@ STRICT REQUIREMENTS:
         $attempt = DB::table('test_attempts')->where('test_id', $testId)->where('reg_no', $regNo)->where('status', 'in_progress')->orderBy('start_time', 'desc')->first();
         if (!$attempt) return response()->json(['status' => 'ERROR', 'message' => 'No active attempt found.']);
 
-        $payload = json_decode($test->questions_payload, true);
+        $payload = $this->resolveAttemptQuestions($attempt, $test);
         $score = 0;
         $total = count($payload);
         $results = []; // Detailed results for summary
@@ -890,13 +958,24 @@ STRICT REQUIREMENTS:
         }
 
         // Update attempt
-        DB::table('test_attempts')->where('attempt_id', $attempt->attempt_id)->update([
+        $updateData = [
             'end_time' => now(),
             'total_score' => $score,
             'status' => 'completed',
-            'responses' => json_encode($answers),
             'updated_at' => now()
-        ]);
+        ];
+
+        if (isset($attempt->questions_payload)) {
+            $updateData['responses'] = json_encode($answers);
+        } else {
+            // Keep shuffled questions alongside responses in fallback mode
+            $updateData['responses'] = json_encode([
+                '__shuffled_questions' => $payload,
+                'answers' => $answers
+            ]);
+        }
+
+        DB::table('test_attempts')->where('attempt_id', $attempt->attempt_id)->update($updateData);
 
         // Sync to academic_marks (Keep highest mark)
         foreach ($coScores as $co => $data) {
@@ -936,7 +1015,7 @@ STRICT REQUIREMENTS:
             'summary' => [
                 'score' => $score,
                 'total' => $total,
-                'percentage' => round(($score / $total) * 100, 2),
+                'percentage' => $total > 0 ? round(($score / $total) * 100, 2) : 0,
                 'details' => $showAnswers ? $results : null,
                 'message' => $showAnswers ? null : 'Answers will be available after the test end time: ' . $test->end_time
             ]
@@ -976,8 +1055,13 @@ STRICT REQUIREMENTS:
             ]);
         }
 
-        $payload = json_decode($test->questions_payload, true);
-        $studentAnswers = json_decode($attempt->responses, true) ?: [];
+        $payload = $this->resolveAttemptQuestions($attempt, $test);
+
+        $decodedResponses = json_decode($attempt->responses, true) ?: [];
+        $studentAnswers = $decodedResponses;
+        if (is_array($decodedResponses) && isset($decodedResponses['__shuffled_questions'])) {
+            $studentAnswers = $decodedResponses['answers'] ?? [];
+        }
 
         $results = [];
         foreach ($payload as $index => $q) {
@@ -986,20 +1070,21 @@ STRICT REQUIREMENTS:
             $isCorrect = ($correctAns !== null && strcasecmp($studentAns, $correctAns) === 0);
             $results[] = [
                 'q' => $q['q'],
-                'options' => $q['options'],
+                'options' => $q['options'] ?? [],
                 'student_ans' => $studentAns,
                 'correct_ans' => $q['ans'],
                 'is_correct' => $isCorrect,
-                'co' => $q['co']
+                'co' => $q['co'] ?? 'CO1'
             ];
         }
 
+        $totalCount = count($payload);
         return response()->json([
             'status' => 'SUCCESS',
             'test_name' => $test->test_name,
             'score' => $attempt->total_score,
-            'total' => count($payload),
-            'percentage' => round(($attempt->total_score / count($payload)) * 100, 2),
+            'total' => $totalCount,
+            'percentage' => $totalCount > 0 ? round(($attempt->total_score / $totalCount) * 100, 2) : 0,
             'details' => $results
         ]);
     }

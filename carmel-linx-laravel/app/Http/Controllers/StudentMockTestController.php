@@ -230,10 +230,18 @@ No extra markdown blocks, no leading/trailing commentary.";
                 }
             }
 
-            // Shuffle and slice to desired count
+            // Shuffle questions and options to desired count
             if (count($questions) > 0) {
                 shuffle($questions);
                 $questions = array_slice($questions, 0, $numQuestions);
+                foreach ($questions as &$q) {
+                    if (!empty($q['options']) && is_array($q['options'])) {
+                        $opts = array_values(array_map('trim', $q['options']));
+                        shuffle($opts);
+                        $q['options'] = $opts;
+                    }
+                }
+                unset($q);
             }
 
             // Verify if we actually got questions

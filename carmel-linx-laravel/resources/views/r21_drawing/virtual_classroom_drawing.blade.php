@@ -10,30 +10,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f172a;        /* Slate 900 */
-            --bg-secondary: #1e293b;      /* Slate 800 */
-            --bg-card: #182234;           /* Refined Deep Slate Card */
-            --bg-card-hover: #223048;     /* Subtle Card Hover */
-            --bg-input: #0b1120;          /* Clean dark input background */
-            --border-color: #2b3952;      /* Elegant Border */
+            --bg-primary: #080d1a;        /* Deep Obsidian Canvas */
+            --bg-secondary: #0e172a;      /* Slate 900 Surface */
+            --bg-card: #0f182c;           /* Refined Dark Card */
+            --bg-card-hover: #15223c;     /* Card Hover State */
+            --bg-input: #070e1c;          /* High Contrast Dark Input */
+            --border-color: rgba(51, 65, 85, 0.45); /* Subtle Slate Border */
             --border-light: rgba(148, 163, 184, 0.12);
-            --accent-blue: #2563eb;       /* Executive Royal Blue */
+            --accent-blue: #2563eb;       /* Royal Blue */
             --accent-sky: #0284c7;        /* Sky Blue */
-            --accent-indigo: #4f46e5;     /* Professional Indigo */
-            --accent-emerald: #059669;    /* Professional Emerald */
-            --accent-amber: #d97706;      /* Warm Amber */
-            --accent-rose: #e11d48;       /* Subtle Rose */
+            --accent-indigo: #6366f1;     /* Indigo */
+            --accent-emerald: #10b981;    /* Emerald */
+            --accent-amber: #f59e0b;      /* Warm Amber */
+            --accent-rose: #f43f5e;       /* Rose */
             --text-main: #f8fafc;         /* Crisp White */
-            --text-body: #e2e8f0;         /* Soft Gray */
-            --text-muted: #94a3b8;        /* Muted Slate */
+            --text-body: #cbd5e1;         /* Soft Slate */
+            --text-muted: #64748b;        /* Muted Label */
         }
 
         body {
             background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
             color: var(--text-body);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             letter-spacing: -0.01em;
         }
 
@@ -43,355 +46,538 @@
             letter-spacing: -0.02em;
         }
 
+        /* Top Navigation Bar */
         .navbar-custom {
-            background-color: #111c30;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            background: rgba(10, 16, 30, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.45);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
         }
 
+        /* Glass Cards */
         .glass-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+            background: linear-gradient(180deg, rgba(16, 26, 46, 0.85) 0%, rgba(11, 18, 34, 0.9) 100%);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .glass-card:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 6px 24px rgba(37, 99, 235, 0.12);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.5);
         }
 
-        .stat-card {
-            padding: 0.85rem 1.15rem;
+        /* Sleek Compact Assessment Metric Cards */
+        .metric-card {
+            padding: 0.5rem 0.8rem;
             border-radius: 10px;
-            background: linear-gradient(145deg, #172338 0%, #111b2d 100%);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, rgba(15, 24, 43, 0.85) 0%, rgba(10, 17, 32, 0.92) 100%);
+            border: 1px solid rgba(51, 65, 85, 0.45);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            transition: all 0.2s ease;
+            height: 100%;
         }
 
-        .stat-card .stat-val {
-            font-size: 1.25rem;
+        .metric-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .metric-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.92rem;
+            flex-shrink: 0;
+        }
+
+        .metric-label {
+            font-size: 0.61rem;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.05rem;
+        }
+
+        .metric-val {
+            font-size: 0.98rem;
             font-weight: 800;
             font-family: 'Outfit', sans-serif;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
+            line-height: 1.15;
         }
 
+        .metric-sub {
+            font-size: 0.66rem;
+            color: #94a3b8;
+            margin-top: 0.05rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Modern Segmented Navigation Tabs */
         .nav-tabs-custom {
-            border-bottom: 1px solid var(--border-color);
-            gap: 0.35rem;
+            background: rgba(11, 18, 34, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .nav-tabs-custom .nav-item {
+            margin: 0;
         }
 
         .nav-tabs-custom .nav-link {
-            color: var(--text-muted);
-            border: 1px solid transparent;
-            border-radius: 8px 8px 0 0;
-            padding: 0.6rem 1.15rem;
-            font-size: 0.82rem;
+            color: #94a3b8;
+            border: none;
+            border-radius: 9px;
+            padding: 0.5rem 0.95rem;
+            font-size: 0.81rem;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.18s ease;
             background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            white-space: nowrap;
         }
 
         .nav-tabs-custom .nav-link:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.04);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .nav-tabs-custom .nav-link.active {
-            color: #ffffff;
-            background: var(--bg-card);
-            border-color: var(--border-color) var(--border-color) transparent;
-            border-top: 3px solid var(--accent-blue);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4) !important;
+            font-weight: 700;
         }
 
+        .tab-badge {
+            font-size: 0.68rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.12);
+            color: inherit;
+        }
+
+        /* Refined Executive Table */
         .table-custom {
             color: var(--text-body);
-            border-color: var(--border-color);
-            font-size: 0.77rem;
-            line-height: 1.35;
+            border-color: rgba(51, 65, 85, 0.45);
+            font-size: 0.81rem;
+            line-height: 1.4;
         }
 
         .table-custom th {
-            background-color: #131d2e;
+            background-color: #0b1220 !important;
             color: #94a3b8;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.69rem;
-            letter-spacing: 0.04em;
-            padding: 0.55rem 0.55rem;
-            border-bottom: 2px solid var(--border-color);
+            font-size: 0.71rem;
+            letter-spacing: 0.05em;
+            padding: 0.65rem 0.65rem;
+            border-bottom: 2px solid rgba(51, 65, 85, 0.6);
             white-space: nowrap;
         }
 
         .table-custom td {
-            background-color: #172236;
-            border-color: var(--border-color);
+            background-color: #0f182c;
+            border-color: rgba(51, 65, 85, 0.35);
             vertical-align: middle;
-            padding: 0.4rem 0.55rem;
+            padding: 0.45rem 0.65rem;
             font-weight: 500;
         }
 
         .table-custom tr:nth-child(even) td {
-            background-color: #141e30;
+            background-color: #0c1426;
         }
 
         .table-custom tr:hover td {
-            background-color: #1c2b44;
+            background-color: #16243d;
         }
 
+        .roll-pill {
+            font-weight: 800;
+            font-size: 0.94rem;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        .reg-pill {
+            font-family: monospace;
+            font-weight: 600;
+            color: #93c5fd;
+            font-size: 0.85rem;
+            letter-spacing: 0.03em;
+        }
+
+        /* High-Contrast Inputs */
         .form-control-custom {
             background-color: var(--bg-input);
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(71, 85, 105, 0.6);
             color: #ffffff;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            padding: 0.35rem 0.55rem;
+            border-radius: 8px;
+            font-size: 0.83rem;
+            padding: 0.4rem 0.65rem;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .form-control-custom:focus {
-            background-color: var(--bg-input);
+            background-color: #060b17;
             color: #ffffff;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
             outline: none;
         }
 
         .mark-input {
-            width: 72px;
+            width: 76px;
+            height: 35px;
             text-align: center;
-            font-weight: 700;
-            font-size: 0.86rem;
-            color: #93c5fd;
+            font-weight: 800;
+            font-size: 0.94rem;
+            color: #38bdf8;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(71, 85, 105, 0.6);
+            border-radius: 8px;
+        }
+
+        .mark-input:focus {
+            color: #ffffff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+            outline: none;
         }
 
         .btn-primary-custom {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: #ffffff;
             border: none;
-            font-weight: 600;
-            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+            font-weight: 700;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
         }
         .btn-primary-custom:hover {
             background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
             color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-success-custom {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: #ffffff;
             border: none;
-            font-weight: 600;
-            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+            font-weight: 700;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            transition: all 0.2s ease;
         }
         .btn-success-custom:hover {
-            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
         }
 
-        /* Professional, Muted Status Badges */
+        /* Status & Outcome Badges */
         .badge-blue {
-            background: rgba(37, 99, 235, 0.14);
+            background: rgba(37, 99, 235, 0.15);
             color: #93c5fd;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            border-radius: 6px;
         }
         .badge-indigo {
-            background: rgba(79, 70, 229, 0.14);
-            color: #a5b4fc;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.15);
+            color: #c7d2fe;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 6px;
         }
         .badge-emerald {
-            background: rgba(5, 150, 105, 0.14);
+            background: rgba(16, 185, 129, 0.15);
             color: #6ee7b7;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-radius: 6px;
         }
         .badge-amber {
-            background: rgba(217, 119, 6, 0.14);
-            color: #fcd34d;
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.15);
+            color: #fde68a;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 6px;
         }
         .badge-rose {
-            background: rgba(225, 29, 72, 0.14);
-            color: #fda4af;
-            border: 1px solid rgba(244, 63, 94, 0.3);
+            background: rgba(244, 63, 94, 0.15);
+            color: #fecdd3;
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            border-radius: 6px;
         }
         .badge-slate {
-            background: rgba(148, 163, 184, 0.12);
+            background: rgba(51, 65, 85, 0.4);
             color: #cbd5e1;
-            border: 1px solid rgba(148, 163, 184, 0.25);
+            border: 1px solid rgba(71, 85, 105, 0.4);
+            border-radius: 6px;
         }
 
         .autosave-badge {
-            font-size: 0.72rem;
-            padding: 0.3rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: 600;
+            font-size: 0.74rem;
+            padding: 0.32rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
             transition: all 0.2s ease;
         }
         .autosave-saved {
-            background: rgba(5, 150, 105, 0.15);
-            color: #6ee7b7;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.14);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
         }
         .autosave-saving {
-            background: rgba(217, 119, 6, 0.15);
+            background: rgba(245, 158, 11, 0.14);
             color: #fcd34d;
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.35);
         }
         .autosave-error {
-            background: rgba(225, 29, 72, 0.15);
-            color: #fda4af;
-            border: 1px solid rgba(244, 63, 94, 0.3);
+            background: rgba(244, 63, 94, 0.14);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.35);
         }
 
+        /* Sheet Pills */
         .sheet-pill {
             cursor: pointer;
-            border: 1px solid var(--border-color);
-            background: #111a2c;
-            padding: 0.45rem 0.95rem;
-            border-radius: 8px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: all 0.15s ease;
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            background: rgba(15, 23, 42, 0.8);
+            padding: 0.42rem 0.95rem;
+            border-radius: 9px;
+            font-size: 0.79rem;
+            font-weight: 700;
+            color: #94a3b8;
+            transition: all 0.18s ease;
             white-space: nowrap;
         }
         .sheet-pill:hover {
-            background: #17243c;
-            color: var(--text-main);
-            border-color: #3b82f6;
+            background: rgba(30, 41, 59, 0.9);
+            color: #ffffff;
+            border-color: #64748b;
         }
         .sheet-pill.active {
-            background: rgba(37, 99, 235, 0.15);
-            border-color: #3b82f6;
-            color: #93c5fd;
-            box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            border-color: #3b82f6 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+        }
+
+        /* Summative Test Switcher Buttons */
+        #btnSelectTest1, #btnSelectTest2 {
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.65);
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+        }
+        #btnSelectTest1:hover, #btnSelectTest2:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #ffffff;
+            border-color: rgba(99, 102, 241, 0.6);
+        }
+        #btnSelectTest1.active, #btnSelectTest2.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            border-color: #6366f1 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+        }
+
+        /* Sleek Info Strips & Sub Cards */
+        .info-strip {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(51, 65, 85, 0.45);
+            border-radius: 10px;
+        }
+
+        .sub-card {
+            background: linear-gradient(145deg, rgba(15, 24, 43, 0.85) 0%, rgba(10, 17, 32, 0.92) 100%);
+            border: 1px solid rgba(51, 65, 85, 0.45);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-card:hover {
+            border-color: rgba(56, 189, 248, 0.35);
+        }
+
+        /* Sleek Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
         }
     </style>
 </head>
 <body>
 
     <!-- Professional Top Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2.5 px-3">
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2 px-3">
         <div class="container-fluid">
+            <!-- Left: Big Subject Code & Subject Information -->
             <div class="d-flex align-items-center gap-3">
+                <span class="badge px-3 py-1 font-monospace fw-bolder fs-5" style="background: rgba(37, 99, 235, 0.22); color: #60a5fa; border: 1.5px solid rgba(59, 130, 246, 0.45); letter-spacing: 0.04em;">
+                    {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}
+                </span>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge badge-indigo px-2 py-0.5 fw-bold" style="letter-spacing: 0.03em; font-size: 0.72rem;">R-2021 SCHEME</span>
+                        <span class="text-white fw-bold fs-6 brand-font">Virtual Drawing Studio</span>
+                        <span class="text-light fw-semibold fs-6">&bull; {{ $batchSubject->subject_name }}</span>
+                    </div>
+                    <div class="text-muted small mt-0.5" style="font-size: 0.76rem;">
+                        Semester {{ $classroom->current_semester ?? $batchSubject->semester }} &bull; Batch: <span class="font-monospace text-slate-300">{{ $classroom->classroom_id ?? $batchSubject->classroom_id }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Staff Name, Auto-Save Indicator, Print, and Dashboard Back Button -->
+            <div class="d-flex align-items-center gap-2.5 mt-2 mt-lg-0 flex-wrap">
+                <!-- Staff Name Pill -->
+                <span class="d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-pill" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.25); font-size: 0.78rem; color: #f1f5f9;">
+                    <i class="fa-solid fa-user-tie text-info"></i>
+                    <span class="text-muted">Staff:</span>
+                    <strong class="text-white">{{ session('userName') ?? ($batchSubject->staff->name ?? 'Faculty') }}</strong>
+                </span>
+
+                <span id="globalAutoSaveIndicator" class="autosave-badge autosave-saved">
+                    <i class="fa-solid fa-cloud-check"></i> All Changes Saved
+                </span>
+
+                <a href="/r21/classroom/drawing/{{ $batchSubject->id }}/print/cia" target="_blank" class="btn btn-sm btn-outline-light px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(71, 85, 105, 0.6); font-size: 0.78rem;">
+                    <i class="fa-solid fa-print text-info"></i>
+                    <span>Print CIA</span>
+                </a>
+
                 @php
                     $role = session('userRole');
                     $backUrl = ($role === 'Demonstrator') ? '/dashboard/demonstrator' : (($role === 'Trade_Instructor') ? '/dashboard/tradeinstructor' : '/dashboard/lecturer');
                 @endphp
-                <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm px-2.5 py-1 text-light border-secondary">
-                    <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
-                </a>
-                <div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge badge-indigo px-2.5 py-0.5 fw-bold">Revision 2021</span>
-                        <span class="text-white fw-bold fs-6">Virtual Drawing Classroom</span>
-                    </div>
-                    <div class="text-muted small" style="font-size: 0.78rem;">
-                        [{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}] {{ $batchSubject->subject_name }} &bull; Semester {{ $classroom->current_semester ?? $batchSubject->semester }}
-                    </div>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-2.5">
-                <span id="globalAutoSaveIndicator" class="autosave-badge autosave-saved">
-                    <i class="fa-solid fa-cloud-check"></i> All Changes Saved
-                </span>
-                <a href="/r21/classroom/drawing/{{ $batchSubject->id }}/print/cia" target="_blank" class="btn btn-sm btn-outline-light px-3 py-1">
-                    <i class="fa-solid fa-print me-1.5 text-info"></i> Print CIA Marksheet
+                <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm px-3 py-1 text-light border-secondary d-flex align-items-center gap-1.5" style="background: rgba(30, 41, 59, 0.6); border-color: rgba(71, 85, 105, 0.6) !important; font-size: 0.8rem;">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="fw-semibold">Dashboard</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid py-3 px-4">
+    <div class="container-fluid py-2.5 px-3 px-md-4">
 
-        <!-- Executive Stat & Assessment Overview Banner -->
-        <div class="row g-3 mb-3">
+        <!-- Compact Assessment Metrics Row (Small & Sleek) -->
+        <div class="row g-2 mb-2.5">
             <div class="col-xl-3 col-md-6">
-                <div class="stat-card d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">ENROLLED STUDENTS</div>
-                        <div class="stat-val text-white">{{ $students->count() }} Students</div>
-                        <div class="small text-muted" style="font-size: 0.72rem;">Batch: {{ $classroom->classroom_id ?? $batchSubject->classroom_id }}</div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">
+                        <i class="fa-solid fa-users"></i>
                     </div>
-                    <div class="p-3 rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #60a5fa;">
-                        <i class="fa-solid fa-users fs-4"></i>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="metric-label">Enrolled Students</div>
+                        <div class="metric-val text-white">{{ $students->count() }} <span class="small fw-normal text-muted" style="font-size: 0.72rem;">Students</span></div>
+                        <div class="metric-sub"><i class="fa-solid fa-graduation-cap me-1"></i>Batch: {{ $classroom->classroom_id ?? $batchSubject->classroom_id }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
-                <div class="stat-card d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">FORMATIVE ASSESSMENT (40%)</div>
-                        <div class="stat-val text-info">{{ $formativeMax }} Marks</div>
-                        <div class="small text-muted" style="font-size: 0.72rem;">Min 2 Sheets / Module &bull; Timely (50%) + App. (50%)</div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.25);">
+                        <i class="fa-solid fa-pen-ruler"></i>
                     </div>
-                    <div class="p-3 rounded-circle" style="background: rgba(2, 132, 199, 0.12); color: #38bdf8;">
-                        <i class="fa-solid fa-pen-ruler fs-4"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="stat-card d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">SUMMATIVE ASSESSMENT (40%)</div>
-                        <div class="stat-val text-indigo" style="color: #a5b4fc;">{{ $summativeMax }} Marks</div>
-                        <div class="small text-muted" style="font-size: 0.72rem;">Avg of 2 Tests &bull; Procedure, Final, Dimen, Neat</div>
-                    </div>
-                    <div class="p-3 rounded-circle" style="background: rgba(99, 102, 241, 0.12); color: #a5b4fc;">
-                        <i class="fa-solid fa-pen-to-square fs-4"></i>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="metric-label">Formative Sheets (40%)</div>
+                        <div class="metric-val text-info">{{ $formativeMax }} <span class="small fw-normal text-muted" style="font-size: 0.72rem;">Marks Max</span></div>
+                        <div class="metric-sub"><i class="fa-solid fa-check-double me-1"></i>Timely (50%) + App. (50%)</div>
                     </div>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
-                <div class="stat-card d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">ATTENDANCE (20%) & TOTAL CIA</div>
-                        <div class="stat-val text-emerald" style="color: #34d399;">{{ $attMax }}M Att + {{ $formativeMax + $summativeMax }}M = {{ $ciaMax }}M CIA</div>
-                        <div class="small text-muted" style="font-size: 0.72rem;">Attendance excluded from direct CO attainment</div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.25);">
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </div>
-                    <div class="p-3 rounded-circle" style="background: rgba(5, 150, 105, 0.12); color: #34d399;">
-                        <i class="fa-solid fa-chart-pie fs-4"></i>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="metric-label">Summative Tests (40%)</div>
+                        <div class="metric-val" style="color: #a5b4fc;">{{ $summativeMax }} <span class="small fw-normal text-muted" style="font-size: 0.72rem;">Marks Max</span></div>
+                        <div class="metric-sub"><i class="fa-solid fa-calculator me-1"></i>Avg of 2 Tests (4 Criteria)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25);">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="metric-label">Attendance (20%) & Total CIA</div>
+                        <div class="metric-val" style="color: #34d399;">{{ $ciaMax }} <span class="small fw-normal text-muted" style="font-size: 0.72rem;">CIA Total</span></div>
+                        <div class="metric-sub"><i class="fa-solid fa-shield-halved me-1"></i>{{ $attMax }}M Att + {{ $formativeMax + $summativeMax }}M Continuous</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Professional Navigation Tabs -->
+        <!-- Modern Segmented Navigation Tabs -->
         <ul class="nav nav-tabs nav-tabs-custom mb-3" id="r21DrawingTabs" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" id="tab-formative-link" data-bs-toggle="tab" data-bs-target="#tab-formative" type="button">
-                    <i class="fa-solid fa-pen-ruler me-1.5 text-info"></i>Formative Assessment (Sheets - 40% / {{ $formativeMax }}M)
+                    <i class="fa-solid fa-pen-ruler me-1.5 text-info"></i>Formative Sheets <span class="tab-badge">40% &bull; {{ $formativeMax }}M</span>
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-summative-link" data-bs-toggle="tab" data-bs-target="#tab-summative" type="button">
-                    <i class="fa-solid fa-clipboard-check me-1.5" style="color: #a5b4fc;"></i>Summative Tests (Avg 2 Tests - 40% / {{ $summativeMax }}M)
+                    <i class="fa-solid fa-clipboard-check me-1.5" style="color: #a5b4fc;"></i>Summative Tests <span class="tab-badge">40% &bull; {{ $summativeMax }}M</span>
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-attendance-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">
-                    <i class="fa-solid fa-user-check me-1.5 text-emerald" style="color: #34d399;"></i>Attendance & Performance (20% / {{ $attMax }}M)
+                    <i class="fa-solid fa-user-check me-1.5" style="color: #34d399;"></i>Attendance <span class="tab-badge">20% &bull; {{ $attMax }}M</span>
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-cia-link" data-bs-toggle="tab" data-bs-target="#tab-cia" type="button">
-                    <i class="fa-solid fa-award me-1.5" style="color: #fbbf24;"></i>Consolidated CIA & Attainment ({{ $ciaMax }}M)
+                    <i class="fa-solid fa-award me-1.5" style="color: #fbbf24;"></i>Consolidated CIA <span class="tab-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">{{ $ciaMax }}M CIA</span>
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-lessonplan-link" data-bs-toggle="tab" data-bs-target="#tab-lessonplan" type="button">
-                    <i class="fa-solid fa-calendar-days me-1.5 text-primary"></i>Lesson Plan (60 Hours)
+                    <i class="fa-solid fa-calendar-days me-1.5 text-primary"></i>Lesson Plan <span class="tab-badge">60 Hrs</span>
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="tab-syllabus-link" data-bs-toggle="tab" data-bs-target="#tab-syllabus" type="button">
-                    <i class="fa-solid fa-file-pdf me-1.5" style="color: #f43f5e;"></i>Syllabus, COs & Matrix
+                    <i class="fa-solid fa-file-pdf me-1.5" style="color: #f43f5e;"></i>Syllabus & Matrix
                 </button>
             </li>
         </ul>
@@ -404,8 +590,8 @@
                 <div class="glass-card p-3 mb-3">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="fw-bold mb-1 text-white"><i class="fa-solid fa-pen-ruler me-2 text-info"></i>Formative Continuous Evaluation: Drawing Sheets</h5>
-                            <p class="text-muted small mb-0">
+                            <div class="fw-bold text-white fs-6 mb-0.5"><i class="fa-solid fa-pen-ruler me-1.5 text-info"></i>Formative Continuous Evaluation: Drawing Sheets</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.76rem;">
                                 Continuous evaluation of drawing sheets (minimum two sheets evaluated per module). Rubric: <strong>Timely Completion (50%)</strong> &amp; <strong>Appearance and Organization (50%)</strong>.
                             </p>
                         </div>
@@ -429,14 +615,14 @@
                                  data-sheet-title="{{ $sheet['title'] ?? '' }}"
                                  data-sheet-module="{{ $sheet['module'] ?? '' }}"
                                  data-sheet-co="{{ $sheet['co_id'] ?? '' }}">
-                                <span class="badge {{ str_contains($sheet['module'] ?? '', '1') ? 'badge-blue' : (str_contains($sheet['module'] ?? '', '2') ? 'badge-indigo' : (str_contains($sheet['module'] ?? '', '3') ? 'badge-amber' : 'badge-emerald')) }} me-1.5">{{ $sheet['module'] ?? 'Mod' }}</span>
+                                 <span class="badge {{ str_contains($sheet['module'] ?? '', '1') ? 'badge-blue' : (str_contains($sheet['module'] ?? '', '2') ? 'badge-indigo' : (str_contains($sheet['module'] ?? '', '3') ? 'badge-amber' : 'badge-emerald')) }} me-1.5">{{ $sheet['module'] ?? 'Mod' }}</span>
                                 {{ $sheet['sheet_no'] }}
                             </div>
                         @endforeach
                     </div>
 
                     <!-- Selected Sheet Info Banner -->
-                    <div class="p-2.5 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background: #111a2a; border: 1px solid var(--border-color);">
+                    <div class="info-strip mb-3 d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3">
                             <span class="badge badge-blue px-2.5 py-1.5 fw-bold fs-6" id="activeSheetPillLabel">Sheet 1</span>
                             <div>
@@ -455,9 +641,8 @@
                         <table class="table table-custom table-bordered align-middle text-center mb-0" id="sheetMarksTable">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">#</th>
-                                    <th style="width: 110px;">Roll No</th>
-                                    <th style="width: 140px;">Reg No</th>
+                                    <th style="width: 80px;">Roll No</th>
+                                    <th style="width: 130px;">Reg No</th>
                                     <th class="text-start">Student Name</th>
                                     <th style="width: 135px;" class="text-info">Timely Completion<br><small class="text-muted font-monospace">(Max 50)</small></th>
                                     <th style="width: 155px;" class="text-info">Appearance & Org<br><small class="text-muted font-monospace">(Max 50)</small></th>
@@ -476,9 +661,8 @@
                                         $isAbsent = $eval ? $eval->is_absent : false;
                                     @endphp
                                     <tr data-reg-no="{{ $student->reg_no }}">
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td class="fw-bold">{{ $student->roll_no ?? '-' }}</td>
-                                        <td class="text-muted font-monospace">{{ $student->reg_no }}</td>
+                                        <td><span class="roll-pill">{{ $student->roll_no ?? '-' }}</span></td>
+                                        <td><span class="reg-pill">{{ $student->reg_no }}</span></td>
                                         <td class="text-start fw-semibold text-white">{{ $student->name }}</td>
                                         <td>
                                             <input type="number" step="0.5" min="0" max="50" 
@@ -518,7 +702,7 @@
                     </div>
 
                     <!-- Bottom Save Bar -->
-                    <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                    <div class="info-strip d-flex align-items-center justify-content-between">
                         <div class="text-muted small">
                             <i class="fa-solid fa-keyboard me-1 text-info"></i> Keyboard Navigation: Press <strong>Enter</strong> or <strong>Arrow Keys</strong> to rapidly move between cells. Changes auto-save automatically.
                         </div>
@@ -534,8 +718,8 @@
                 <div class="glass-card p-3 mb-3">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="fw-bold mb-1 text-white"><i class="fa-solid fa-clipboard-check me-2" style="color: #a5b4fc;"></i>Summative Assessment: Written Series Tests (40% Weightage)</h5>
-                            <p class="text-muted small mb-0">
+                            <div class="fw-bold text-white fs-6 mb-0.5"><i class="fa-solid fa-clipboard-check me-1.5" style="color: #a5b4fc;"></i>Summative Assessment: Written Series Tests (40% Weightage)</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.76rem;">
                                 Average of two tests. Evaluation criteria: <strong>Procedure of drawing (40%)</strong>, <strong>Final drawing (30%)</strong>, <strong>Dimensioning (20%)</strong>, and <strong>Neatness of drawing (10%)</strong>.
                             </p>
                         </div>
@@ -550,7 +734,7 @@
                     </div>
 
                     <!-- Test Selector Tabs (Test 1 vs Test 2) -->
-                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                    <div class="info-strip p-2 mb-3 d-flex align-items-center justify-content-between">
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-outline-primary active px-3.5 py-1.5 fw-bold" id="btnSelectTest1" onclick="switchSummativeTest('Test 1')">
                                 <i class="fa-solid fa-file-pen me-1.5"></i> Summative Test 1 (Modules I & II)
@@ -570,8 +754,7 @@
                         <table class="table table-custom table-bordered align-middle text-center mb-0" id="summativeMarksTable">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">#</th>
-                                    <th style="width: 100px;">Roll No</th>
+                                    <th style="width: 80px;">Roll No</th>
                                     <th style="width: 130px;">Reg No</th>
                                     <th class="text-start">Student Name</th>
                                     <th style="width: 110px;" class="text-info">Procedure (40%)<br><small class="text-muted font-monospace">Max 40</small></th>
@@ -595,9 +778,8 @@
                                         $abs = $t1 ? $t1->is_absent : false;
                                     @endphp
                                     <tr data-reg-no="{{ $student->reg_no }}">
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td class="fw-bold">{{ $student->roll_no ?? '-' }}</td>
-                                        <td class="text-muted font-monospace">{{ $student->reg_no }}</td>
+                                        <td><span class="roll-pill">{{ $student->roll_no ?? '-' }}</span></td>
+                                        <td><span class="reg-pill">{{ $student->reg_no }}</span></td>
                                         <td class="text-start fw-semibold text-white">{{ $student->name }}</td>
                                         <td>
                                             <input type="number" step="0.5" min="0" max="40" 
@@ -653,7 +835,7 @@
                     </div>
 
                     <!-- Bottom Save Bar -->
-                    <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                    <div class="info-strip d-flex align-items-center justify-content-between">
                         <div class="text-muted small">
                             <i class="fa-solid fa-calculator me-1 text-primary"></i> Summative CIA Mark will be computed as the <strong>Average of Test 1 and Test 2</strong> scaled to 40% of CIA ({{ $summativeMax }}M).
                         </div>
@@ -669,8 +851,8 @@
                 <div class="glass-card p-3 mb-3">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="fw-bold mb-1 text-white"><i class="fa-solid fa-user-check me-2 text-emerald" style="color: #34d399;"></i>Attendance & Performance in Drawing Class (20% / {{ $attMax }}M)</h5>
-                            <p class="text-muted small mb-0">
+                            <div class="fw-bold text-white fs-6 mb-0.5"><i class="fa-solid fa-user-check me-1.5 text-emerald" style="color: #34d399;"></i>Attendance & Performance in Drawing Class (20% / {{ $attMax }}M)</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.76rem;">
                                 Attendance and performance in the drawing class evaluated for 20% of the internal marks.
                             </p>
                         </div>
@@ -690,7 +872,7 @@
                         <div class="d-flex align-items-center gap-2 text-amber fw-bold mb-1" style="color: #fcd34d;">
                             <i class="fa-solid fa-circle-info"></i> Attendance Assessment Policy:
                         </div>
-                        <div class="text-light small">
+                        <div class="text-light small" style="font-size: 0.76rem;">
                             Attendance marks contribute 20% to the continuous internal evaluation (CIA) and are strictly excluded from direct Course Outcome (CO) attainment calculations.
                         </div>
                     </div>
@@ -700,11 +882,10 @@
                         <table class="table table-custom table-bordered align-middle text-center mb-0" id="attTable">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">#</th>
-                                    <th style="width: 110px;">Roll No</th>
-                                    <th style="width: 140px;">Reg No</th>
+                                    <th style="width: 80px;">Roll No</th>
+                                    <th style="width: 130px;">Reg No</th>
                                     <th class="text-start">Student Name</th>
-                                    <th style="width: 140px;" class="text-info">Attendance %</th>
+                                    <th style="width: 130px;" class="text-info">Attendance %</th>
                                     <th style="width: 150px;" style="color: #34d399;">Computed Mark ({{ $attMax }}M)</th>
                                     <th style="width: 160px;" class="text-warning">Override Mark ({{ $attMax }}M)</th>
                                     <th style="width: 150px;" class="text-white">Final Attendance Mark</th>
@@ -716,9 +897,8 @@
                                         $res = $studentResults[$idx];
                                     @endphp
                                     <tr data-reg-no="{{ $student->reg_no }}">
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td class="fw-bold">{{ $student->roll_no ?? '-' }}</td>
-                                        <td class="text-muted font-monospace">{{ $student->reg_no }}</td>
+                                        <td><span class="roll-pill">{{ $student->roll_no ?? '-' }}</span></td>
+                                        <td><span class="reg-pill">{{ $student->reg_no }}</span></td>
                                         <td class="text-start fw-semibold text-white">{{ $student->name }}</td>
                                         <td>
                                             <span class="badge {{ $res['att_percentage'] >= 75 ? 'badge-emerald' : 'badge-rose' }} fs-6 px-2.5 py-1">
@@ -751,7 +931,7 @@
                     </div>
 
                     <!-- Bottom Save Bar -->
-                    <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                    <div class="info-strip d-flex align-items-center justify-content-between">
                         <div class="text-muted small">
                             Leave the override field empty to automatically adopt the calculated percentage attendance mark.
                         </div>
@@ -767,8 +947,8 @@
                 <div class="glass-card p-3 mb-3">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="fw-bold mb-1 text-white"><i class="fa-solid fa-award me-2" style="color: #fbbf24;"></i>Consolidated CIA Mark Register & CO Attainment (50 Marks)</h5>
-                            <p class="text-muted small mb-0">
+                            <div class="fw-bold text-white fs-6 mb-0.5"><i class="fa-solid fa-award me-1.5" style="color: #fbbf24;"></i>Consolidated CIA Mark Register & CO Attainment ({{ $ciaMax }} Marks)</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.76rem;">
                                 Scheme: Formative Sheets (40% / {{ $formativeMax }}M) + Summative Tests (40% / {{ $summativeMax }}M) + Attendance (20% / {{ $attMax }}M) = Total CIA ({{ $ciaMax }}M).
                             </p>
                         </div>
@@ -784,8 +964,7 @@
                         <table class="table table-custom table-bordered align-middle text-center mb-0">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">#</th>
-                                    <th style="width: 100px;">Roll No</th>
+                                    <th style="width: 80px;">Roll No</th>
                                     <th style="width: 130px;">Reg No</th>
                                     <th class="text-start">Student Name</th>
                                     <th class="text-info">Formative (40%)<br><small class="text-muted">Sheets ({{ $formativeMax }}M)</small></th>
@@ -801,9 +980,8 @@
                                         $res = $studentResults[$idx];
                                     @endphp
                                     <tr>
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td class="fw-bold">{{ $student->roll_no ?? '-' }}</td>
-                                        <td class="text-muted font-monospace">{{ $student->reg_no }}</td>
+                                        <td><span class="roll-pill">{{ $student->roll_no ?? '-' }}</span></td>
+                                        <td><span class="reg-pill">{{ $student->reg_no }}</span></td>
                                         <td class="text-start fw-semibold text-white">{{ $student->name }}</td>
                                         <td class="fw-bold text-info">{{ $res['formative_mark'] }}</td>
                                         <td class="fw-bold" style="color: #a5b4fc;">{{ $res['summative_mark'] }}</td>
@@ -831,7 +1009,7 @@
                         <div class="row g-3">
                             @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coKey)
                                 <div class="col-md-3">
-                                    <div class="p-3 rounded-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                                    <div class="sub-card p-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="badge badge-indigo fw-bold">{{ $coKey }}</span>
                                             <span class="badge badge-emerald">Level 3</span>
@@ -851,8 +1029,8 @@
                 <div class="glass-card p-3 mb-3">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="fw-bold mb-1 text-white"><i class="fa-solid fa-calendar-days me-2 text-primary"></i>Drawing Hall Course Lesson Plan (60 Hours)</h5>
-                            <p class="text-muted small mb-0">Structured drawing hall practical sessions aligned with course modules and drawing sheets.</p>
+                            <div class="fw-bold text-white fs-6 mb-0.5"><i class="fa-solid fa-calendar-days me-1.5 text-primary"></i>Drawing Hall Course Lesson Plan (60 Hours)</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.76rem;">Structured drawing hall practical sessions aligned with course modules and drawing sheets.</p>
                         </div>
                         <a href="/r21/classroom/drawing/{{ $batchSubject->id }}/print/lesson-plan" target="_blank" class="btn btn-outline-light btn-sm">
                             <i class="fa-solid fa-print me-1"></i> Print Lesson Plan
@@ -896,8 +1074,8 @@
             <div class="tab-pane fade" id="tab-syllabus" role="tabpanel">
                 <div class="row g-4">
                     <div class="col-lg-4">
-                        <div class="glass-card p-4">
-                            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-cloud-arrow-up me-2 text-info"></i>Upload Drawing Syllabus PDF</h5>
+                        <div class="glass-card p-3 p-md-4">
+                            <div class="fw-bold text-white fs-6 mb-2.5"><i class="fa-solid fa-cloud-arrow-up me-1.5 text-info"></i>Upload Drawing Syllabus PDF</div>
                             <form id="uploadSyllabusForm" enctype="multipart/form-data">
                                 <div class="mb-3">
                                     <label class="form-label text-muted small">Select Syllabus PDF Document</label>
@@ -916,8 +1094,8 @@
                             @endif
                         </div>
 
-                        <div class="glass-card p-4 mt-3">
-                            <h6 class="fw-bold text-white mb-2"><i class="fa-solid fa-book-open me-2 text-warning"></i>Reference Textbooks</h6>
+                        <div class="glass-card p-3 p-md-4 mt-3">
+                            <div class="fw-bold text-white fs-6 mb-2"><i class="fa-solid fa-book-open me-1.5 text-warning"></i>Reference Textbooks</div>
                             <ul class="list-unstyled mb-0 small text-muted">
                                 @foreach($drawingCourseFile->parsed_textbooks ?? [] as $book)
                                     <li class="mb-2"><i class="fa-solid fa-angle-right text-primary me-1.5"></i> {{ $book }}</li>
@@ -927,12 +1105,12 @@
                     </div>
 
                     <div class="col-lg-8">
-                        <div class="glass-card p-4 mb-4">
-                            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-bullseye me-2 text-info"></i>Course Outcomes (COs)</h5>
+                        <div class="glass-card p-3 p-md-4 mb-3">
+                            <div class="fw-bold text-white fs-6 mb-2.5"><i class="fa-solid fa-bullseye me-1.5 text-info"></i>Course Outcomes (COs)</div>
                             <div class="row g-3">
                                 @foreach($drawingCourseFile->parsed_cos ?? [] as $co)
                                 <div class="col-md-6">
-                                    <div class="p-3 rounded-3" style="background: #111a2a; border: 1px solid var(--border-color);">
+                                    <div class="sub-card p-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="badge badge-blue fw-bold">{{ $co['id'] }}</span>
                                             <span class="badge badge-indigo">{{ $co['cognitive_level'] ?? 'Apply' }}</span>
@@ -945,8 +1123,8 @@
                         </div>
 
                         <!-- CO-PO Matrix -->
-                        <div class="glass-card p-4">
-                            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-table-cells me-2 text-warning"></i>CO-PO Articulation Matrix</h5>
+                        <div class="glass-card p-3 p-md-4">
+                            <div class="fw-bold text-white fs-6 mb-2.5"><i class="fa-solid fa-table-cells me-1.5 text-warning"></i>CO-PO Articulation Matrix</div>
                             <div class="table-responsive">
                                 <table class="table table-custom table-bordered text-center align-middle mb-0">
                                     <thead>

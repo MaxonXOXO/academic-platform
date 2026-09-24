@@ -24,6 +24,7 @@ class AcademicMark extends Model
         'mark_id',
         'reg_no',
         'subject_code',
+        'batch_subject_id',
         'category',
         'co_tag',
         'max_marks',

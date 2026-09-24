@@ -1,4 +1,4 @@
-﻿-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
 -- Host: localhost    Database: carmel_linx_db
 -- ------------------------------------------------------
@@ -1407,6 +1407,7 @@ CREATE TABLE `test_attempts` (
   `total_score` decimal(5,2) NOT NULL DEFAULT 0.00,
   `status` varchar(20) NOT NULL DEFAULT 'in_progress',
   `responses` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`responses`)),
+  `questions_payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`attempt_id`),

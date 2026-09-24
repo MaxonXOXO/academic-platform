@@ -1505,8 +1505,7 @@ Syllabus Text:
                         ->where(function($q) use ($subjectId, $batchSubject) {
                             $q->where('batch_subject_id', $subjectId)
                               ->orWhere(function($subQ) use ($batchSubject) {
-                                  $subQ->whereNull('batch_subject_id')
-                                       ->where('subject_code', $batchSubject->subject_code);
+                                  $subQ->where('subject_code', $batchSubject->subject_code);
                               });
                         })
                         ->where('category', 'Assignment')
@@ -1516,11 +1515,10 @@ Syllabus Text:
                         ->where(function($q) use ($subjectId, $batchSubject) {
                             $q->where('batch_subject_id', $subjectId)
                               ->orWhere(function($subQ) use ($batchSubject) {
-                                  $subQ->whereNull('batch_subject_id')
-                                       ->where('subject_code', $batchSubject->subject_code);
+                                  $subQ->where('subject_code', $batchSubject->subject_code);
                               });
                         })
-                        ->where('category', 'Summative')
+                        ->whereIn('category', ['Written Test', 'Summative', 'Series Test'])
                         ->get();
 
             $taskSubmissions = \DB::table('student_task_submissions')
@@ -1534,8 +1532,8 @@ Syllabus Text:
                 $coMarks = [];
                 $coSubmissions = [];
                 foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                    $mark = $studentMarks->where('co_tag', $co)->first();
-                    $coMarks[$co] = $mark ? $mark->marks_obtained : null;
+                    $mark = $studentMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
+                    $coMarks[$co] = ($mark && is_numeric($mark->marks_obtained)) ? (float)$mark->marks_obtained : null;
 
                     $sub = $taskSubmissions->where('reg_no', $student->reg_no)->where('co_tag', $co)->where('category', 'Assignment')->first();
                     $coSubmissions[$co] = $sub ? $sub->status : null;
@@ -1546,8 +1544,8 @@ Syllabus Text:
                 $studentSummativeMarks = $summativeMarks->where('reg_no', $student->reg_no);
                 $coSummative = [];
                 foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                    $mark = $studentSummativeMarks->where('co_tag', $co)->first();
-                    $coSummative[$co] = $mark ? $mark->marks_obtained : null;
+                    $mark = $studentSummativeMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
+                    $coSummative[$co] = ($mark && is_numeric($mark->marks_obtained)) ? (float)$mark->marks_obtained : null;
                 }
                 $student->summative_marks = $coSummative;
 
@@ -1898,19 +1896,36 @@ Syllabus Text:
                 continue;
             }
 
-            \App\Models\AcademicMark::updateOrCreate(
-                [
-                    'reg_no' => $mark['reg_no'],
+            $existing = \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
+                ->where('co_tag', $mark['co_tag'])
+                ->where('category', 'Assignment')
+                ->where(function($q) use ($subjectId, $batchSubject) {
+                    $q->where('batch_subject_id', $subjectId)
+                      ->orWhere(function($subQ) use ($batchSubject) {
+                          $subQ->where('subject_code', $batchSubject->subject_code);
+                      });
+                })
+                ->latest('updated_at')
+                ->first();
+
+            if ($existing) {
+                $existing->update([
                     'batch_subject_id' => $subjectId,
-                    'category' => 'Assignment',
-                    'co_tag' => $mark['co_tag']
-                ],
-                [
                     'subject_code' => $batchSubject->subject_code,
                     'max_marks' => 20,
                     'marks_obtained' => $mark['marks_obtained']
-                ]
-            );
+                ]);
+            } else {
+                \App\Models\AcademicMark::create([
+                    'reg_no' => $mark['reg_no'],
+                    'batch_subject_id' => $subjectId,
+                    'category' => 'Assignment',
+                    'co_tag' => $mark['co_tag'],
+                    'subject_code' => $batchSubject->subject_code,
+                    'max_marks' => 20,
+                    'marks_obtained' => $mark['marks_obtained']
+                ]);
+            }
 
             // Update student's task submission status to 'Graded'
             \DB::table('student_task_submissions')
@@ -2249,22 +2264,48 @@ Return ONLY valid JSON matching this exact structure:
         $summativeTests = $courseFile->summative_manual_tests ?? [];
         
         foreach ($marksData as $mark) {
-            $coTag = $mark['co_tag'];
-            $maxMarks = isset($summativeTests[$coTag]) ? $summativeTests[$coTag]['total_marks'] : 50;
+            if (!isset($mark['reg_no']) || !isset($mark['co_tag']) || !isset($mark['marks_obtained'])) {
+                continue;
+            }
 
-            \App\Models\AcademicMark::updateOrCreate(
-                [
-                    'reg_no' => $mark['reg_no'],
+            if ($mark['marks_obtained'] === '' || $mark['marks_obtained'] === null) {
+                continue;
+            }
+
+            $coTag = $mark['co_tag'];
+            $maxMarks = isset($summativeTests[$coTag]['total_marks']) ? $summativeTests[$coTag]['total_marks'] : 50;
+
+            $existing = \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
+                ->where('co_tag', $coTag)
+                ->whereIn('category', ['Written Test', 'Summative', 'Series Test'])
+                ->where(function($q) use ($subjectId, $batchSubject) {
+                    $q->where('batch_subject_id', $subjectId)
+                      ->orWhere(function($subQ) use ($batchSubject) {
+                          $subQ->where('subject_code', $batchSubject->subject_code);
+                      });
+                })
+                ->latest('updated_at')
+                ->first();
+
+            if ($existing) {
+                $existing->update([
                     'batch_subject_id' => $subjectId,
-                    'category' => 'Written Test',
-                    'co_tag' => $coTag
-                ],
-                [
                     'subject_code' => $batchSubject->subject_code,
+                    'category' => 'Written Test',
                     'max_marks' => $maxMarks,
                     'marks_obtained' => $mark['marks_obtained']
-                ]
-            );
+                ]);
+            } else {
+                \App\Models\AcademicMark::create([
+                    'reg_no' => $mark['reg_no'],
+                    'batch_subject_id' => $subjectId,
+                    'subject_code' => $batchSubject->subject_code,
+                    'category' => 'Written Test',
+                    'co_tag' => $coTag,
+                    'max_marks' => $maxMarks,
+                    'marks_obtained' => $mark['marks_obtained']
+                ]);
+            }
         }
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Written test marks saved successfully.']);
@@ -2342,8 +2383,7 @@ Return ONLY valid JSON matching this exact structure:
                     ->where(function($q) use ($subjectId, $batchSubject) {
                         $q->where('batch_subject_id', $subjectId)
                           ->orWhere(function($subQ) use ($batchSubject) {
-                              $subQ->whereNull('batch_subject_id')
-                                   ->where('subject_code', $batchSubject->subject_code);
+                              $subQ->where('subject_code', $batchSubject->subject_code);
                           });
                     })
                     ->where('category', 'Assignment')
@@ -2353,8 +2393,8 @@ Return ONLY valid JSON matching this exact structure:
             $studentMarks = $marks->where('reg_no', $student->reg_no);
             $coMarks = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                $mark = $studentMarks->where('co_tag', $co)->first();
-                $coMarks[$co] = $mark ? intval(round($mark->marks_obtained)) : '-';
+                $mark = $studentMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
+                $coMarks[$co] = ($mark && is_numeric($mark->marks_obtained)) ? intval(round($mark->marks_obtained)) : '-';
             }
             $student->assignment_marks = $coMarks;
             return $student;
@@ -2581,7 +2621,10 @@ Return ONLY valid JSON matching this exact structure:
         if (!$batchSubject) return response("Subject not found.", 404);
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-                    ->where('semester', $batchSubject->semester)
+                    ->where(function($q) use ($batchSubject) {
+                        $q->where('semester', $batchSubject->semester)
+                          ->orWhere('classroom_id', $batchSubject->classroom_id);
+                    })
                     ->get(['reg_no', 'name', 'sbte_reg_no']);
         
         $studentRegNos = $students->pluck('reg_no')->toArray();
@@ -2589,19 +2632,18 @@ Return ONLY valid JSON matching this exact structure:
                     ->where(function($q) use ($subjectId, $batchSubject) {
                         $q->where('batch_subject_id', $subjectId)
                           ->orWhere(function($subQ) use ($batchSubject) {
-                              $subQ->whereNull('batch_subject_id')
-                                   ->where('subject_code', $batchSubject->subject_code);
+                              $subQ->where('subject_code', $batchSubject->subject_code);
                           });
                     })
-                    ->where('category', 'Summative')
+                    ->whereIn('category', ['Written Test', 'Summative', 'Series Test'])
                     ->get();
         
         $students = $students->map(function ($student) use ($marks) {
             $studentMarks = $marks->where('reg_no', $student->reg_no);
             $coMarks = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                $mark = $studentMarks->where('co_tag', $co)->first();
-                $coMarks[$co] = $mark ? intval(round($mark->marks_obtained)) : '-';
+                $mark = $studentMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
+                $coMarks[$co] = ($mark && is_numeric($mark->marks_obtained)) ? intval(round($mark->marks_obtained)) : '-';
             }
             $student->summative_marks = $coMarks;
             return $student;
@@ -2656,12 +2698,20 @@ Return ONLY valid JSON matching this exact structure:
             ];
 
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->where('semester', $batchSubject->semester)
+            ->where(function($q) use ($batchSubject) {
+                $q->where('semester', $batchSubject->semester)
+                  ->orWhere('classroom_id', $batchSubject->classroom_id);
+            })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no', 'academic_status']);
 
         // Fetch Academic Marks (Assignment + Summative)
-        $marks = \App\Models\AcademicMark::where('batch_subject_id', $subjectId)->get();
+        $marks = \App\Models\AcademicMark::where(function($q) use ($subjectId, $batchSubject) {
+            $q->where('batch_subject_id', $subjectId)
+              ->orWhere(function($subQ) use ($batchSubject) {
+                  $subQ->where('subject_code', $batchSubject->subject_code);
+              });
+        })->get();
 
         // Fetch Attendance Logs to compute attendance %
         $logs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
@@ -2677,7 +2727,7 @@ Return ONLY valid JSON matching this exact structure:
             $assignSum = 0;
             $assignCount = 0;
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                $m = $studMarks->where('category', 'Assignment')->where('co_tag', $co)->first();
+                $m = $studMarks->where('category', 'Assignment')->where('co_tag', $co)->sortByDesc('updated_at')->first();
                 if ($m && is_numeric($m->marks_obtained)) {
                     $val = round((float)$m->marks_obtained, 1);
                     $coAssign[$co] = $val;
@@ -2694,7 +2744,7 @@ Return ONLY valid JSON matching this exact structure:
             $summSum = 0;
             $summCount = 0;
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                $m = $studMarks->where('category', 'Summative')->where('co_tag', $co)->first();
+                $m = $studMarks->whereIn('category', ['Written Test', 'Summative', 'Series Test'])->where('co_tag', $co)->sortByDesc('updated_at')->first();
                 if ($m && is_numeric($m->marks_obtained)) {
                     $val = round((float)$m->marks_obtained, 1);
                     $coSummative[$co] = $val;
@@ -2816,8 +2866,7 @@ Return ONLY valid JSON matching this exact structure:
             ->where(function($q) use ($subjectId, $batchSubject) {
                 $q->where('batch_subject_id', $subjectId)
                   ->orWhere(function($subQ) use ($batchSubject) {
-                      $subQ->whereNull('batch_subject_id')
-                           ->where('subject_code', $batchSubject->subject_code);
+                      $subQ->where('subject_code', $batchSubject->subject_code);
                   });
             })
             ->get();
@@ -3131,7 +3180,12 @@ Return ONLY valid JSON matching this exact structure:
 
         // Direct assessment marks from academic_marks (Assignment + Summative)
         $academicMarks = \Illuminate\Support\Facades\DB::table('academic_marks')
-            ->where('batch_subject_id', $subjectId)
+            ->where(function($q) use ($subjectId, $batchSubject) {
+                $q->where('batch_subject_id', $subjectId)
+                  ->orWhere(function($subQ) use ($batchSubject) {
+                      $subQ->where('subject_code', $batchSubject->subject_code);
+                  });
+            })
             ->get()
             ->groupBy('reg_no');
 
@@ -3198,8 +3252,8 @@ Return ONLY valid JSON matching this exact structure:
                 $studMarks = $academicMarks->get($stud->reg_no, collect());
                 $coMarks = $studMarks->where('co_tag', $coTag);
 
-                $assignMark = $coMarks->where('category', 'Assignment')->first();
-                $summMark   = $coMarks->where('category', 'Summative')->first();
+                $assignMark = $coMarks->where('category', 'Assignment')->sortByDesc('updated_at')->first();
+                $summMark   = $coMarks->whereIn('category', ['Summative', 'Written Test', 'Series Test'])->sortByDesc('updated_at')->first();
 
                 $valAssign = $assignMark ? (float)$assignMark->marks_obtained : 0.0;
                 $valSumm   = $summMark ? (float)$summMark->marks_obtained : 0.0;
@@ -3560,7 +3614,12 @@ Return ONLY valid JSON matching this exact structure:
         $maxEseMarks = (float)($eseConfig['max_marks'] ?? 75.0);
 
         $academicMarks = \Illuminate\Support\Facades\DB::table('academic_marks')
-            ->where('batch_subject_id', $subjectId)
+            ->where(function($q) use ($subjectId, $batchSubject) {
+                $q->where('batch_subject_id', $subjectId)
+                  ->orWhere(function($subQ) use ($batchSubject) {
+                      $subQ->where('subject_code', $batchSubject->subject_code);
+                  });
+            })
             ->get()
             ->groupBy('reg_no');
 
@@ -3627,11 +3686,11 @@ Return ONLY valid JSON matching this exact structure:
 
                 // Rev 2021 Theory Assessment Components (Clause 11.2.1):
                 // Formative: Assignments / Case Studies (scaled max 5M per CO, total 20M across 4 COs)
-                $formativeMark = $coMarks->whereIn('category', ['Assignment', 'Formative', 'Self Study: Assignment'])->first();
+                $formativeMark = $coMarks->whereIn('category', ['Assignment', 'Formative', 'Self Study: Assignment'])->sortByDesc('updated_at')->first();
                 $formativeScore = $formativeMark ? (float)$formativeMark->marks_obtained : 0.0;
 
                 // Summative: Series tests (scaled max 5M per CO, total 20M across 4 COs)
-                $summativeMark = $coMarks->whereIn('category', ['Summative', 'Series Exam', 'Series Test'])->first();
+                $summativeMark = $coMarks->whereIn('category', ['Summative', 'Written Test', 'Series Exam', 'Series Test'])->sortByDesc('updated_at')->first();
                 $summativeScore = $summativeMark ? (float)$summativeMark->marks_obtained : 0.0;
 
                 // Academic CIE Score per CO: max 10 marks (attendance 10M strictly excluded per Clause 11.2.1)

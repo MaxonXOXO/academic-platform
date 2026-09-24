@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Cleanup Verification & Audit Report - [5013] Transportation Engineering</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 10mm 10mm 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            margin: 0 auto;
+            padding: 8px;
+            font-size: 10.5px;
+            line-height: 1.35;
+            max-width: 200mm;
+            background: #fff;
+        }
+        .no-print {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-print {
+            background: #1e3a8a;
+            color: #fff;
+        }
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2.5px solid #1e3a8a;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .college-name {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .college-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 3px 0 0 0;
+        }
+        .report-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 3px 14px;
+            border-radius: 4px;
+            margin-top: 6px;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+        .meta-table td {
+            padding: 4px 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .meta-table .lbl {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #334155;
+            width: 18%;
+        }
+        .meta-table .val {
+            font-weight: 600;
+            color: #0f172a;
+            width: 32%;
+        }
+        .section-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1.5px solid #93c5fd;
+            padding-bottom: 3px;
+            margin: 12px 0 6px 0;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .summary-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 8px;
+            background: #fafafa;
+            text-align: center;
+        }
+        .summary-card .num {
+            font-size: 17px;
+            font-weight: 900;
+            color: #1e3a8a;
+            margin-bottom: 2px;
+        }
+        .summary-card .desc {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .alert-box {
+            border-left: 4px solid #10b981;
+            background: #ecfdf5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 10px;
+            color: #065f46;
+        }
+        .alert-box strong {
+            color: #047857;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 9.5px;
+        }
+        .data-table th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            text-align: center;
+        }
+        .data-table td {
+            padding: 3.5px 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .data-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+        .data-table .text-left {
+            text-align: left;
+        }
+        .badge {
+            display: inline-block;
+            padding: 1.5px 6px;
+            font-size: 8.5px;
+            font-weight: 700;
+            border-radius: 3px;
+        }
+        .badge-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .footer-sign {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+        }
+        .sign-box {
+            text-align: center;
+            width: 28%;
+            border-top: 1px solid #64748b;
+            padding-top: 5px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #334155;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <div>
+            <strong style="color:#1e3a8a; font-size:13px;">Official Academic Subject Log & Attendance Audit</strong>
+            <span style="color:#64748b; margin-left: 8px;">Rectified & Verified: 24-Sep-2026 20:13</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="audit_report_5013_transportation_engineering.pdf" download="Audit_Report_5013_Transportation_Engineering.pdf" class="btn" style="background:#059669; color:#fff;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                Download PDF
+            </a>
+            <button class="btn btn-print" onclick="window.print()">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg>
+                Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="college-name">Carmel Polytechnic College, Alappuzha</div>
+        <div class="college-sub">Department of Civil Engineering &bull; Internal Academic Verification Audit</div>
+        <div class="report-badge">Official Subject Log &amp; Attendance Report (Cleaned &amp; Normalized)</div>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td class="lbl">Course / Subject</td>
+            <td class="val"><strong>[5013] Transportation Engineering</strong></td>
+            <td class="lbl">Classroom / Batch</td>
+            <td class="val">CE_2024_2027 (Sem 5)</td>
+        </tr>
+        <tr>
+            <td class="lbl">Syllabus Revision</td>
+            <td class="val">REV2021 (Theory)</td>
+            <td class="lbl">Faculty / Staff ID</td>
+            <td class="val">Staff (9400524401)</td>
+        </tr>
+        <tr>
+            <td class="lbl">Allotted Plan Hours</td>
+            <td class="val"><strong>62 Hours</strong> (60 Theory + 2 Buffer/Revision)</td>
+            <td class="lbl">Dashboard Card Metric</td>
+            <td class="val"><strong style="color:#059669;">33 / 62 hrs</strong> (Rectified &bull; 53%)</td>
+        </tr>
+        <tr>
+            <td class="lbl">Academic Year</td>
+            <td class="val"><strong>2026</strong> (Current Academic Year)</td>
+            <td class="lbl">Audit Status</td>
+            <td class="val"><span class="badge badge-completed">Verified &amp; Cleaned</span></td>
+        </tr>
+    </table>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="num">62</div>
+            <div class="desc">Allotted Hours (60+2)</div>
+        </div>
+        <div class="summary-card">
+            <div class="num">28 / 62</div>
+            <div class="desc">Lesson Topics Done</div>
+        </div>
+        <div class="summary-card">
+            <div class="num" style="color:#059669;">33</div>
+            <div class="desc">Conducted Periods</div>
+        </div>
+        <div class="summary-card">
+            <div class="num">1,664</div>
+            <div class="desc">Student Att. Marks</div>
+        </div>
+    </div>
+
+    <div class="alert-box">
+        <strong>Rectification Successfully Applied:</strong><br>
+        1. <strong>Purged Accidental 2023 Import:</strong> Removed 42 extraneous class log periods and 2,016 attendance records tagged with year 2023.<br>
+        2. <strong>Synchronized Lesson Plans:</strong> Lesson plans #1535 through #1562 have been verified as <strong>Completed</strong> with their actual 2026 teaching dates. The remaining 34 topics are reset to <strong>Pending</strong>.<br>
+        3. <strong>Lecturer Dashboard Display:</strong> Accurately displays <strong>33 / 62 hrs</strong> (33 teaching periods conducted across 26 active calendar days).
+    </div>
+
+    <div class="section-title">1. Verified Academic Schedule (Year 2026: 33 Periods across 26 Calendar Days)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:5%;">#</th>
+                <th style="width:14%;">Date</th>
+                <th style="width:10%;">Period</th>
+                <th style="width:12%;">LP Topic ID</th>
+                <th>Topic / Curriculum Content Covered</th>
+                <th style="width:12%;">Attendance</th>
+                <th style="width:10%;">Status</th>
+            </tr>
+        </thead>
+        <tbody><tr>
+        <td>1</td>
+        <td><strong>10-Jun-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1535</td>
+        <td class="text-left">Role of transportation in national development; Introduction to Indian Roads Congress (IRC)</td>
+        <td>54 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>2</td>
+        <td><strong>10-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1535</td>
+        <td class="text-left">Role of transportation in national development; Introduction to Indian Roads Congress (IRC)</td>
+        <td>54 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>3</td>
+        <td><strong>11-Jun-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1536</td>
+        <td class="text-left">IRC classification of roads (National Highways, State Highways, MDR, ODR, VR)</td>
+        <td>59 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>4</td>
+        <td><strong>11-Jun-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1536</td>
+        <td class="text-left">IRC classification of roads (National Highways, State Highways, MDR, ODR, VR)</td>
+        <td>59 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>5</td>
+        <td><strong>12-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1537</td>
+        <td class="text-left">Major State Highways (SH) and National Highways (NH) in Kerala</td>
+        <td>60 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>6</td>
+        <td><strong>15-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1538</td>
+        <td class="text-left">Road Alignment: Definition, importance, and basic requirements of an ideal alignment</td>
+        <td>58 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>7</td>
+        <td><strong>16-Jun-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1539</td>
+        <td class="text-left">Factors controlling highway alignment (Topography, obligation points, traffic, geometric design)</td>
+        <td>61 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>8</td>
+        <td><strong>16-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1540</td>
+        <td class="text-left">Engineering surveys for highway location: Map study, Reconnaissance, Preliminary &amp; Final Location surveys</td>
+        <td>61 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>9</td>
+        <td><strong>17-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1541</td>
+        <td class="text-left">Traffic Engineering: Scope and Traffic Volume Studies (methods, tools, and presentation)</td>
+        <td>58 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>10</td>
+        <td><strong>18-Jun-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1542</td>
+        <td class="text-left">Traffic Intensity Studies &amp; Origin-Destination (O-D) Studies</td>
+        <td>54 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>11</td>
+        <td><strong>19-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1543</td>
+        <td class="text-left">Road intersection studies; Types of at-grade intersections (Unchannelized, Channelized)</td>
+        <td>55 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>12</td>
+        <td><strong>23-Jun-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1544</td>
+        <td class="text-left">Traffic Islands: Channelizing islands, Pedestrian loading islands, Rotary islands</td>
+        <td>59 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>13</td>
+        <td><strong>24-Jun-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1545</td>
+        <td class="text-left">Grade-separated intersections: Overpass, Underpass, Cloverleaf junction, Trumpet junction</td>
+        <td>50 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>14</td>
+        <td><strong>25-Jun-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1546</td>
+        <td class="text-left">Road Markings: Types, functions, and materials (pavement, curb, and object markings)</td>
+        <td>49 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>15</td>
+        <td><strong>01-Jul-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1547</td>
+        <td class="text-left">Traffic Signs: Mandatory/Regulatory, Cautionary/Warning, Informatory, and Temporary signs</td>
+        <td>27 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>16</td>
+        <td><strong>02-Jul-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1548</td>
+        <td class="text-left">Standard cross-sections of National Highways in embankment and cutting</td>
+        <td>59 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>17</td>
+        <td><strong>02-Jul-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1548</td>
+        <td class="text-left">Standard cross-sections of National Highways in embankment and cutting</td>
+        <td>59 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>18</td>
+        <td><strong>06-Jul-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1549</td>
+        <td class="text-left">StCross-sectional elements: Right of way, formation width, carriageway,  shoulders, side slopes</td>
+        <td>51 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>19</td>
+        <td><strong>09-Jul-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1550</td>
+        <td class="text-left">Camber (types, functions, values) and Gradient (types, ruling, limiting, exceptional)</td>
+        <td>57 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>20</td>
+        <td><strong>16-Jul-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1551</td>
+        <td class="text-left">Design Speed and Sight Distance: Stopping Sight Distance (SSD) principles and formulas</td>
+        <td>60 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>21</td>
+        <td><strong>17-Jul-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1552</td>
+        <td class="text-left">Highway Curves: Necessity, horizontal &amp; vertical curves, transition curves, extra widening</td>
+        <td>55 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>22</td>
+        <td><strong>27-Jul-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1553</td>
+        <td class="text-left">Super-elevation: Definition, necessity, formula, and limit values</td>
+        <td>52 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>23</td>
+        <td><strong>27-Jul-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1554</td>
+        <td class="text-left">Road Drainage and Road Arboriculture: Surface/subsurface drainage &amp; highway planting</td>
+        <td>52 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>24</td>
+        <td><strong>28-Jul-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1555</td>
+        <td class="text-left">Road Aggregates: Desirable properties and standard laboratory tests (Impact, Crushing, Abrasion, Shape)</td>
+        <td>48 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>25</td>
+        <td><strong>06-Aug-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1556</td>
+        <td class="text-left">Bituminous Materials: Types (Cutback, Emulsion, Tar), properties, and tests (Penetration, Ductility, Softening point)</td>
+        <td>53 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>26</td>
+        <td><strong>11-Aug-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1557</td>
+        <td class="text-left">Pavement: Definition, classification (Flexible vs Rigid), structural components &amp; functions</td>
+        <td>53 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>27</td>
+        <td><strong>17-Aug-2026</strong></td>
+        <td>Period 3</td>
+        <td>LP #1558</td>
+        <td class="text-left">Flexible Pavement Construction: Granular Sub-Base (GSB) &amp; Wet Mix Macadam (WMM)</td>
+        <td>56 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>28</td>
+        <td><strong>18-Aug-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1559</td>
+        <td class="text-left">Flexible Pavement Construction: Bituminous Macadam (BM) &amp; Bituminous Concrete (BC)</td>
+        <td>54 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>29</td>
+        <td><strong>19-Aug-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1560</td>
+        <td class="text-left">Modified Bitumen: Natural Rubber Modified Bitumen (NRMB) &amp; Use of shredded waste plastic</td>
+        <td>55 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>30</td>
+        <td><strong>01-Sep-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1561</td>
+        <td class="text-left">Rigid Pavement: Cement concrete road construction (Alternate &amp; Continuous bay methods, Joints, Sealers, White topping)</td>
+        <td>55 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>31</td>
+        <td><strong>01-Sep-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1561</td>
+        <td class="text-left">Rigid Pavement: Cement concrete road construction (Alternate &amp; Continuous bay methods, Joints, Sealers, White topping)</td>
+        <td>55 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>32</td>
+        <td><strong>02-Sep-2026</strong></td>
+        <td>Period 1</td>
+        <td>LP #1562</td>
+        <td class="text-left">Classification of Indian Railways, Railway Zones, and Rail Gauges (BG, MG, NG)</td>
+        <td>57 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr><tr>
+        <td>33</td>
+        <td><strong>02-Sep-2026</strong></td>
+        <td>Period 2</td>
+        <td>LP #1562</td>
+        <td class="text-left">Classification of Indian Railways, Railway Zones, and Rail Gauges (BG, MG, NG)</td>
+        <td>57 / 64</td>
+        <td><span class="badge badge-completed">Verified</span></td>
+    </tr></tbody>
+    </table>
+
+    <div class="section-title">2. Curriculum Coverage Status</div>
+    <table class="meta-table" style="margin-bottom:14px;">
+        <tr>
+            <td class="lbl">Total Planned Curriculum Hours</td>
+            <td class="val"><strong>62 Hours</strong></td>
+            <td class="lbl">Engaged Teaching Hours</td>
+            <td class="val"><strong>33 Hours</strong> (53.2%)</td>
+        </tr>
+        <tr>
+            <td class="lbl">Total Lesson Topics</td>
+            <td class="val">62 Topics</td>
+            <td class="lbl">Completed Topics</td>
+            <td class="val"><strong>28 Topics</strong> (Covered across 33 periods)</td>
+        </tr>
+        <tr>
+            <td class="lbl">Remaining Topics</td>
+            <td class="val"><strong>34 Topics Pending</strong></td>
+            <td class="lbl">Active Date Range</td>
+            <td class="val"><strong>10-Jun-2026</strong> to <strong>02-Sep-2026</strong></td>
+        </tr>
+    </table>
+
+    <div class="footer-sign">
+        <div class="sign-box">
+            Faculty In-Charge<br>
+            <span style="font-size:8.5px; font-weight:normal; color:#64748b;">[5013] Transportation Engg.</span>
+        </div>
+        <div class="sign-box">
+            Head of Department<br>
+            <span style="font-size:8.5px; font-weight:normal; color:#64748b;">Civil Engineering</span>
+        </div>
+        <div class="sign-box">
+            Principal / Academic Auditor<br>
+            <span style="font-size:8.5px; font-weight:normal; color:#64748b;">Carmel Polytechnic College</span>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -3748,6 +3748,7 @@
                        class="${styleClasses}" data-co="${co}"
                        oninput="triggerAssignmentMarksAutoSave()"
                        onchange="triggerAssignmentMarksAutoSave(true)"
+                       onblur="triggerAssignmentMarksAutoSave(true)"
                        onkeydown="handleAssignmentMarkKeyDown(event, this)">
                 ${indicator}
               </div>
@@ -4322,7 +4323,7 @@
       } else {
         _assignmentMarksAutoSaveTimer = setTimeout(() => {
           saveAssignmentMarks(currentSubjectId, true);
-        }, 1200);
+        }, 600);
       }
     }
     window.triggerAssignmentMarksAutoSave = triggerAssignmentMarksAutoSave;
@@ -4407,6 +4408,16 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
+          // Sync with in-memory student cache
+          if (Array.isArray(window.currentVirtualStudents)) {
+            marksPayload.forEach(mp => {
+              const st = window.currentVirtualStudents.find(s => s.reg_no === mp.reg_no);
+              if (st) {
+                if (!st.assignment_marks) st.assignment_marks = {};
+                st.assignment_marks[mp.co_tag] = parseFloat(mp.marks_obtained);
+              }
+            });
+          }
           if (btnTop) {
             btnTop.disabled = false;
             btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">check_circle</span> Saved!';
@@ -4849,10 +4860,10 @@
               <td class="p-3 font-bold text-slate-100 text-lg">${student.name}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.reg_no}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
             </tr>
           `;
         });
@@ -6171,7 +6182,7 @@
       } else {
         _summativeMarksAutoSaveTimer = setTimeout(() => {
           saveSummativeMarks(currentSubjectId, true);
-        }, 1200);
+        }, 600);
       }
     }
     window.triggerSummativeMarksAutoSave = triggerSummativeMarksAutoSave;
@@ -6256,6 +6267,16 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {
+          // Sync with in-memory student cache
+          if (Array.isArray(window.currentVirtualStudents)) {
+            marksPayload.forEach(mp => {
+              const st = window.currentVirtualStudents.find(s => s.reg_no === mp.reg_no);
+              if (st) {
+                if (!st.summative_marks) st.summative_marks = {};
+                st.summative_marks[mp.co_tag] = parseFloat(mp.marks_obtained);
+              }
+            });
+          }
           if (btnTop) {
             btnTop.disabled = false;
             btnTop.innerHTML = '<span class="material-symbols-rounded text-xs">check_circle</span> Saved!';
@@ -6485,7 +6506,17 @@
     window.savePracticalSummativeMarks = savePracticalSummativeMarks;
 
     function printAssignmentReport(subjectId) {
-      window.open(`/classroom/${subjectId}/assignment-report`, '_blank');
+      const sid = subjectId || currentSubjectId;
+      if (_assignmentMarksAutoSaveTimer) {
+        clearTimeout(_assignmentMarksAutoSaveTimer);
+        _assignmentMarksAutoSaveTimer = null;
+        saveAssignmentMarks(sid, true);
+        setTimeout(() => {
+          window.open(`/classroom/${sid}/assignment-report`, '_blank');
+        }, 350);
+      } else {
+        window.open(`/classroom/${sid}/assignment-report`, '_blank');
+      }
     }
 
     function printAssignmentPaperAndRubrics(subjectId, coTag) {
@@ -6493,7 +6524,17 @@
     }
 
     function printSummativeReport(subjectId) {
-      window.open(`/classroom/${subjectId}/summative-report`, '_blank');
+      const sid = subjectId || currentSubjectId;
+      if (_summativeMarksAutoSaveTimer) {
+        clearTimeout(_summativeMarksAutoSaveTimer);
+        _summativeMarksAutoSaveTimer = null;
+        saveSummativeMarks(sid, true);
+        setTimeout(() => {
+          window.open(`/classroom/${sid}/summative-report`, '_blank');
+        }, 350);
+      } else {
+        window.open(`/classroom/${sid}/summative-report`, '_blank');
+      }
     }
 
     function printStudentExamPaper(coTag, totalMarks) {

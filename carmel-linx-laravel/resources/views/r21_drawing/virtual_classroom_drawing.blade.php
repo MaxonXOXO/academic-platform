@@ -280,7 +280,11 @@
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2.5 px-3">
         <div class="container-fluid">
             <div class="d-flex align-items-center gap-3">
-                <a href="/dashboard" class="btn btn-outline-secondary btn-sm px-2.5 py-1 text-light border-secondary">
+                @php
+                    $role = session('userRole');
+                    $backUrl = ($role === 'Demonstrator') ? '/dashboard/demonstrator' : (($role === 'Trade_Instructor') ? '/dashboard/tradeinstructor' : '/dashboard/lecturer');
+                @endphp
+                <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm px-2.5 py-1 text-light border-secondary">
                     <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
                 </a>
                 <div>

@@ -2272,19 +2272,19 @@
       } else {
         // Revision 2021 Drawing Classroom
         if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics')) {
-          window.open(`/r21/classroom/drawing/${subjectId}`, '_blank');
+          window.location.href = `/r21/classroom/drawing/${subjectId}`;
           return;
         }
 
         // Revision 2021 Virtual Seminar Classroom (Clause 11.2.6)
         if (sTypeLower.includes('seminar') || sNameLower.includes('seminar')) {
-          window.open(`/r21/classroom/seminar/${subjectId}`, '_blank');
+          window.location.href = `/r21/classroom/seminar/${subjectId}`;
           return;
         }
 
         // Revision 2021 Virtual Major Project Classroom (Clauses 11.2.5 & 11.3.4)
         if (sTypeLower.includes('project') || sNameLower.includes('project')) {
-          window.open(`/r21/classroom/project/${subjectId}`, '_blank');
+          window.location.href = `/r21/classroom/project/${subjectId}`;
           return;
         }
 

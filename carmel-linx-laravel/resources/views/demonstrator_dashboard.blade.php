@@ -42,6 +42,25 @@
     .transition-premium {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    /* Sleek visible scrollbar for comfortable scrolling on dense panels */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #334155 #090d16;
+    }
     .scrollbar-hidden::-webkit-scrollbar {
       display: none;
     }
@@ -246,13 +265,13 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row md:h-screen md:overflow-hidden">
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Sidebar Navigation -->
-  <aside class="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl">
-    <div class="p-5 border-b border-slate-800/60 flex items-center gap-3">
+  <aside class="w-full md:w-64 bg-slate-950 text-white shrink-0 flex flex-col border-r border-slate-800/80 z-20 shadow-xl md:h-screen md:max-h-screen md:overflow-y-auto">
+    <div class="p-5 border-b border-slate-800/60 flex items-center gap-3 shrink-0">
       <img src="{{ asset('logo.jpg') }}" class="w-10 h-10 rounded-xl object-cover shadow-lg border border-slate-800/60">
       <div>
         <h2 class="font-black tracking-tight leading-tight text-white" style="font-size: 1.15rem; font-weight: 900; letter-spacing: -0.3px; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Carmel Linx</h2>
@@ -261,7 +280,7 @@
     </div>
 
     <!-- Active Profile Info -->
-    <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3" id="sidebarAvatarContainer">
+    <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3 shrink-0" id="sidebarAvatarContainer">
       <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
       <div class="overflow-hidden">
         <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
@@ -270,7 +289,7 @@
     </div>
 
     <!-- Navigation Menus -->
-    <nav class="flex-grow p-4 space-y-1.5">
+    <nav class="flex-grow overflow-y-auto p-4 space-y-1.5 scrollbar-thin">
       <button id="navDashboard" onclick="switchPanel('dashboard')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium bg-blue-600 text-white shadow-md cursor-pointer mobile-link">
         <span class="material-symbols-rounded text-lg">edit_note</span> Lab Workspaces
       </button>
@@ -333,7 +352,7 @@
     </nav>
 
     <!-- Logout -->
-    <div class="p-4 border-t border-slate-800/80 space-y-2.5">
+    <div class="p-4 border-t border-slate-800/80 space-y-2.5 shrink-0 mt-auto">
       <a href="{{ url('/logout') }}" class="w-full py-2.5 bg-slate-800 hover:bg-red-950 hover:text-red-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer no-underline text-center text-slate-300 transition-premium">
         <span class="material-symbols-rounded text-sm">logout</span> Sign Out
       </a>
@@ -350,10 +369,10 @@
   </aside>
 
   <!-- Main Workspace -->
-  <main class="flex-grow flex flex-col overflow-hidden relative">
+  <main class="flex-grow flex flex-col relative md:h-screen md:overflow-hidden min-w-0">
     
     <!-- Top Header -->
-    <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
+    <header class="h-16 shrink-0 sticky top-0 z-30 border-b border-slate-800/60 bg-slate-900/90 backdrop-blur-md flex items-center justify-between px-6 md:px-8 shadow-md">
       <h1 id="panelTitle" class="text-base font-bold text-slate-100 tracking-tight">Lab Workspaces</h1>
       <div class="flex items-center gap-3">
         @include('partials.fullscreen_btn')
@@ -361,7 +380,7 @@
     </header>
 
     <!-- Panel Container -->
-    <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6">
+    <div class="flex-grow min-h-0 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar">
       
       <!-- PANEL 1: DASHBOARD -->
       <div id="panelDashboard" class="space-y-6">
@@ -441,7 +460,15 @@
                           $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
                         }
                       } else {
-                        $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($s->subject_type ?? 'Practical');
+                        if (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics')) {
+                          $targetUrl = "/r21/classroom/drawing/{$s->subject_id}";
+                        } elseif (str_contains($sTypeLower, 'seminar') || str_contains($sNameLower, 'seminar')) {
+                          $targetUrl = "/r21/classroom/seminar/{$s->subject_id}";
+                        } elseif (str_contains($sTypeLower, 'project') || str_contains($sNameLower, 'project')) {
+                          $targetUrl = "/r21/classroom/project/{$s->subject_id}";
+                        } else {
+                          $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($s->subject_type ?? 'Practical');
+                        }
                       }
 
                       $prog = \App\Http\Controllers\DataController::getSubjectProgressData($s->subject_id, $s->subject_type);

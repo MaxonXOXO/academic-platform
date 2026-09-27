@@ -402,7 +402,7 @@
                     <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                     <td class="font-mono">{{ number_format($student->attendance_percentage ?? 100, 1) }}%</td>
-                    <td class="font-mono font-bold" style="background-color: #f0fdfa; color: #0f766e;">{{ number_format($student->total_internal, 2) }}</td>
+                    <td class="font-mono font-bold" style="background-color: #f0fdfa; color: #0f766e;">{{ round($student->total_internal) }}</td>
                     <td class="font-mono font-bold" style="background-color: #eff6ff; color: #1d4ed8;">{{ $eseDisplay }}</td>
                     <td class="font-mono font-bold" style="background-color: #faf5ff; color: #6b21a8; font-size: 11.5px;">{{ $totalDisplay }}</td>
                     <td style="font-weight: bold; font-size: 12px; color: {{ $finalGrade === 'F' ? '#b91c1c' : '#111' }};">{{ $finalGrade }}</td>

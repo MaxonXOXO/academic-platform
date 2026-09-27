@@ -158,7 +158,23 @@ class SbteSubjectLogImportController extends Controller
         foreach ($hoursRaw as $hr) {
             preg_match_all('/\d+/', $hr, $hm);
             if (!empty($hm[0])) {
-                $hoursList[] = array_map('intval', $hm[0]);
+                $cleanedHours = [];
+                foreach ($hm[0] as $numStr) {
+                    $num = (int)$numStr;
+                    // If multiple period numbers were concatenated without delimiter, e.g. 23 -> [2, 3]
+                    if ($num > 7) {
+                        $digits = str_split((string)$num);
+                        foreach ($digits as $d) {
+                            $di = (int)$d;
+                            if ($di >= 1 && $di <= 7 && !in_array($di, $cleanedHours)) {
+                                $cleanedHours[] = $di;
+                            }
+                        }
+                    } elseif ($num >= 1 && $num <= 7 && !in_array($num, $cleanedHours)) {
+                        $cleanedHours[] = $num;
+                    }
+                }
+                $hoursList[] = !empty($cleanedHours) ? $cleanedHours : [1];
             }
         }
 
@@ -168,7 +184,13 @@ class SbteSubjectLogImportController extends Controller
         }
 
         // Extract Students attendance rows: Roll. No. Name [Marks...] Total
-        preg_match_all('/(?m)^(\d+)\.\s+([A-Za-z\s\.\']+?)\t?\s+([A123\s]+?)\s+(\d+)\s*$/', $fullText, $studMatches, PREG_SET_ORDER);
+        // Match flexibly with uppercase letters, numbers, hyphens, slashes for attendance marks
+        preg_match_all('/(?m)^(\d+)\.\s+([A-Za-z\s\.\'\-]+?)\t?\s+([A-Z0-9\-\s\.\/]+?)\s+(\d+)\s*$/', $fullText, $studMatches, PREG_SET_ORDER);
+
+        if (empty($studMatches)) {
+            // Fallback: match without requiring leading dot or strict total
+            preg_match_all('/(?m)^(\d+)[\.\s]+([A-Za-z\s\.\'\-]+?)\t?\s+([A-Z0-9\-\s\.\/]{5,})\s+(\d+)\s*$/', $fullText, $studMatches, PREG_SET_ORDER);
+        }
 
         if (empty($studMatches)) {
             return response()->json([
@@ -195,6 +217,7 @@ class SbteSubjectLogImportController extends Controller
         }
 
         $matchedStudentsCount = 0;
+        $matchedRegNos = [];
         foreach ($studMatches as $sm) {
             $rollNo = (int)$sm[1];
             $rawName = trim($sm[2]);
@@ -217,10 +240,11 @@ class SbteSubjectLogImportController extends Controller
 
             $regNo = $studentObj->reg_no;
             $matchedStudentsCount++;
+            $matchedRegNos[] = $regNo;
 
             for ($i = 0; $i < $sessionCount; $i++) {
                 $mark = strtoupper(trim($marks[$i] ?? 'A'));
-                if ($mark === 'A' || $mark === '0') {
+                if ($mark === 'A' || $mark === '0' || $mark === '-' || $mark === 'AB') {
                     $sessionAttendance[$i]['absent'][] = $regNo;
                 } else {
                     $sessionAttendance[$i]['present'][] = $regNo;
@@ -228,8 +252,20 @@ class SbteSubjectLogImportController extends Controller
             }
         }
 
+        // Safety fallback: Ensure any enrolled classroom student not explicitly in the absent list is counted present
+        foreach ($classroomStudents as $cs) {
+            $rNo = $cs->reg_no;
+            for ($i = 0; $i < $sessionCount; $i++) {
+                if (!in_array($rNo, $sessionAttendance[$i]['absent']) && !in_array($rNo, $sessionAttendance[$i]['present'])) {
+                    $sessionAttendance[$i]['present'][] = $rNo;
+                }
+            }
+        }
+        $matchedStudentsCount = max($matchedStudentsCount, $classroomStudents->count());
+
         // Fetch lesson plans & practical experiments
         $lessonPlans = LessonPlan::where('batch_subject_id', $batchSubject->id)
+            ->orderBy('day_no', 'asc')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -241,6 +277,7 @@ class SbteSubjectLogImportController extends Controller
         $totalHoursLogged = 0;
         $mappedLpCount = 0;
         $usedLpIds = [];
+        $lpSeqIndex = 0;
 
         DB::beginTransaction();
         try {
@@ -250,45 +287,46 @@ class SbteSubjectLogImportController extends Controller
                 $presentRegNos = array_values(array_unique($sessionAttendance[$i]['present']));
                 $absentRegNos = array_values(array_unique($sessionAttendance[$i]['absent']));
 
-                // Topic assignment
-                $assignedLpId = null;
-                $assignedTopic = null;
-
-                if ($autoFillLp) {
-                    // Try to get lesson plan by sequential index or next unassigned
-                    $assignedLp = $lessonPlans->get($i) ?: $lessonPlans->first(function ($lp) use ($usedLpIds) {
-                        return !in_array($lp->id, $usedLpIds);
-                    });
-
-                    if ($assignedLp) {
-                        $assignedTopic = $assignedLp->topic_content;
-                        $assignedLpId = $assignedLp->id;
-                        $usedLpIds[] = $assignedLp->id;
-                        $assignedLp->status = 'Completed';
-                        $assignedLp->actual_date = $date;
-                        $assignedLp->save();
-                        $mappedLpCount++;
-                    } elseif ($practicalExperiments->isNotEmpty()) {
-                        $expIndex = $i % $practicalExperiments->count();
-                        $assignedExp = $practicalExperiments->get($expIndex);
-                        if ($assignedExp) {
-                            $assignedTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
-                            $assignedExp->conducted_date = $date;
-                            $assignedExp->save();
-                            $mappedLpCount++;
-                        } else {
-                            $assignedTopic = "Practical Session";
-                        }
-                    }
-                }
-
-                if (empty($assignedTopic)) {
-                    $assignedTopic = "Topic pending manual update";
-                }
-
                 // Create distinct period logs for exact hour calculations
                 foreach ($periods as $period) {
                     $period = (int)$period;
+
+                    // Topic assignment per period hour
+                    $assignedLpId = null;
+                    $assignedTopic = null;
+
+                    if ($autoFillLp) {
+                        $assignedLp = $lessonPlans->get($lpSeqIndex) ?: $lessonPlans->first(function ($lp) use ($usedLpIds) {
+                            return !in_array($lp->id, $usedLpIds);
+                        });
+
+                        if ($assignedLp) {
+                            $assignedTopic = $assignedLp->topic_content;
+                            $assignedLpId = $assignedLp->id;
+                            $usedLpIds[] = $assignedLp->id;
+                            $assignedLp->status = 'Completed';
+                            $assignedLp->actual_date = $date;
+                            $assignedLp->actual_hours = 1;
+                            $assignedLp->save();
+                            $mappedLpCount++;
+                            $lpSeqIndex++;
+                        } elseif ($practicalExperiments->isNotEmpty()) {
+                            $expIndex = $totalHoursLogged % $practicalExperiments->count();
+                            $assignedExp = $practicalExperiments->get($expIndex);
+                            if ($assignedExp) {
+                                $assignedTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
+                                $assignedExp->conducted_date = $date;
+                                $assignedExp->save();
+                                $mappedLpCount++;
+                            } else {
+                                $assignedTopic = "Practical Session";
+                            }
+                        }
+                    }
+
+                    if (empty($assignedTopic)) {
+                        $assignedTopic = "Topic pending manual update";
+                    }
 
                     $existingLog = DB::table('class_logs_attendance')
                         ->where('batch_subject_id', $batchSubject->id)
@@ -624,6 +662,7 @@ class SbteSubjectLogImportController extends Controller
         }
 
         $lessonPlans = LessonPlan::where('batch_subject_id', $batchSubjectId)
+            ->orderBy('day_no', 'asc')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -654,61 +693,25 @@ class SbteSubjectLogImportController extends Controller
             ];
         }
 
-        // Group continuous session logs by date and sub_batch
-        $groupedSessions = [];
-        foreach ($allLogs as $log) {
-            $key = $log->date . '__' . ($log->sub_batch ?? 'Whole');
-            if (!isset($groupedSessions[$key])) {
-                $groupedSessions[$key] = [
-                    'date' => $log->date,
-                    'sub_batch' => $log->sub_batch ?? 'Whole',
-                    'log_ids' => [$log->id],
-                    'current_topic' => trim($log->topics_covered ?? ''),
-                    'current_lp_id' => $log->lesson_plan_id
-                ];
-            } else {
-                $groupedSessions[$key]['log_ids'][] = $log->id;
-            }
-        }
-
         $syncedCount = 0;
-        $sessionIndex = 0;
 
         DB::beginTransaction();
         try {
-            foreach ($groupedSessions as $session) {
-                $topic = $session['current_topic'];
-                $needsUpdate = empty($topic) || 
-                               stripos($topic, 'pending') !== false || 
-                               stripos($topic, 'to be updated') !== false ||
-                               empty($session['current_lp_id']);
+            if ($lessonPlans->isNotEmpty()) {
+                // For theory subjects, each distinct log (hour) maps to a distinct sequential lesson plan
+                foreach ($allLogs as $idx => $log) {
+                    $assignedLp = $lessonPlans->get($idx);
+                    if ($assignedLp) {
+                        $newTopic = $assignedLp->topic_content;
+                        $newLpId = $assignedLp->id;
 
-                if ($needsUpdate) {
-                    $newTopic = null;
-                    $newLpId = null;
+                        $assignedLp->status = 'Completed';
+                        $assignedLp->actual_date = $log->date;
+                        $assignedLp->actual_hours = 1;
+                        $assignedLp->save();
 
-                    if ($lessonPlans->isNotEmpty()) {
-                        $assignedLp = $lessonPlans->get($sessionIndex);
-                        if ($assignedLp) {
-                            $newTopic = $assignedLp->topic_content;
-                            $newLpId = $assignedLp->id;
-                            $assignedLp->status = 'Completed';
-                            $assignedLp->actual_date = $session['date'];
-                            $assignedLp->save();
-                        }
-                    } elseif ($practicalExperiments->isNotEmpty()) {
-                        $expIdx = $sessionIndex % $practicalExperiments->count();
-                        $assignedExp = $practicalExperiments->get($expIdx);
-                        if ($assignedExp) {
-                            $newTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
-                            $assignedExp->conducted_date = $session['date'];
-                            $assignedExp->save();
-                        }
-                    }
-
-                    if ($newTopic) {
                         DB::table('class_logs_attendance')
-                            ->whereIn('id', $session['log_ids'])
+                            ->where('id', $log->id)
                             ->update([
                                 'topics_covered' => $newTopic,
                                 'lesson_plan_id' => $newLpId,
@@ -718,7 +721,7 @@ class SbteSubjectLogImportController extends Controller
                         if (Schema::hasTable('student_attendance')) {
                             DB::table('student_attendance')
                                 ->where('subject_code', $batchSubject->subject_code)
-                                ->where('date', $session['date'])
+                                ->where('date', $log->date)
                                 ->update([
                                     'lesson_plan_id' => $newLpId,
                                     'updated_at' => now()
@@ -729,7 +732,55 @@ class SbteSubjectLogImportController extends Controller
                     }
                 }
 
-                $sessionIndex++;
+                // Reset remaining lesson plans to Pending
+                for ($p = count($allLogs); $p < $lessonPlans->count(); $p++) {
+                    $pendingLp = $lessonPlans->get($p);
+                    if ($pendingLp) {
+                        $pendingLp->status = 'Pending';
+                        $pendingLp->actual_date = null;
+                        $pendingLp->actual_hours = null;
+                        $pendingLp->save();
+                    }
+                }
+            } else {
+                // Practical experiments grouping by date and sub_batch
+                $groupedSessions = [];
+                foreach ($allLogs as $log) {
+                    $key = $log->date . '__' . ($log->sub_batch ?? 'Whole');
+                    if (!isset($groupedSessions[$key])) {
+                        $groupedSessions[$key] = [
+                            'date' => $log->date,
+                            'sub_batch' => $log->sub_batch ?? 'Whole',
+                            'log_ids' => [$log->id],
+                            'current_topic' => trim($log->topics_covered ?? ''),
+                            'current_lp_id' => $log->lesson_plan_id
+                        ];
+                    } else {
+                        $groupedSessions[$key]['log_ids'][] = $log->id;
+                    }
+                }
+
+                $sessionIndex = 0;
+                foreach ($groupedSessions as $session) {
+                    $expIdx = $sessionIndex % $practicalExperiments->count();
+                    $assignedExp = $practicalExperiments->get($expIdx);
+                    if ($assignedExp) {
+                        $newTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
+                        $assignedExp->conducted_date = $session['date'];
+                        $assignedExp->save();
+
+                        DB::table('class_logs_attendance')
+                            ->whereIn('id', $session['log_ids'])
+                            ->update([
+                                'topics_covered' => $newTopic,
+                                'lesson_plan_id' => null,
+                                'updated_at' => now()
+                            ]);
+
+                        $syncedCount++;
+                    }
+                    $sessionIndex++;
+                }
             }
 
             DB::commit();

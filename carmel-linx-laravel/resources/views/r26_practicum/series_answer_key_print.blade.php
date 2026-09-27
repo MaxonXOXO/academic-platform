@@ -98,10 +98,12 @@ if (!function_exists('getBtShort')) {
         @if(!empty($questions))
  
         @php
+            $qCount = count($questions);
+            $qMark = $qCount ? ($questions[0]['marks'] ?? 1) : 1;
             $partLabel = match($partKey) {
-                'part_a' => $qpRecord->pattern_type === 'practical_series' ? 'PART A — Practical Tasks (Answer any ONE Question × 40 Marks)' : ($qpRecord->pattern_type === 'table_4_2_design' ? 'PART A — 6 × 5 = 30 Marks' : 'PART A — 4 × 1 = 4 Marks'),
-                'part_b' => $qpRecord->pattern_type === 'table_4_2_design' ? 'PART B — 2 × 10 = 20 Marks' : 'PART B — 6 × 3 = 18 Marks',
-                'part_c' => 'PART C — 4 × 7 = 28 Marks',
+                'part_a' => $qpRecord->pattern_type === 'practical_series' ? 'PART A — Practical Tasks (Answer any ONE Question × 40 Marks)' : ($qpRecord->pattern_type === 'table_4_2_design' ? 'PART A — 6 × 5 = 30 Marks' : "PART A — {$qCount} × {$qMark} = " . ($qCount * $qMark) . " Marks"),
+                'part_b' => $qpRecord->pattern_type === 'table_4_2_design' ? 'PART B — 2 × 10 = 20 Marks' : "PART B — {$qCount} × {$qMark} = " . ($qCount * $qMark) . " Marks",
+                'part_c' => "PART C — " . ($qCount > 3 ? (int)($qCount/2) . " Questions (7M each = " . ((int)($qCount/2)*$qMark) . " Marks)" : "Answer any 2 of 3 (7M each = 14 Marks)"),
                 default  => strtoupper($partKey),
             };
         @endphp
@@ -148,8 +150,10 @@ if (!function_exists('getBtShort')) {
             <span>PART A (Practical Tasks) = 40 Marks | 3 Hours</span>
             @elseif($qpRecord->pattern_type === 'table_4_2_design')
             <span>Part A (30M) + Part B (20M) = 50 Marks | {{ (str_contains($qpRecord->co_tag ?? '', '+') || str_contains($qpRecord->co_tag ?? '', ',')) ? '3 Hours' : '1 Hour' }}</span>
+            @elseif(str_contains($qpRecord->co_tag ?? '', '+') || ($qpRecord->max_marks ?? 0) >= 50)
+            <span>Part A (4M) + Part B (18M) + Part C (28M) = 50 Marks | 2 Hours</span>
             @else
-            <span>Part A (2M) + Part B (9M) + Part C (2 of 3 × 7 = 14M) = 25 Marks | {{ (str_contains($qpRecord->co_tag ?? '', '+') || str_contains($qpRecord->co_tag ?? '', ',')) ? '3 Hours' : '1 Hour' }}</span>
+            <span>Part A (2M) + Part B (9M) + Part C (2 of 3 × 7 = 14M) = 25 Marks | 1 Hour</span>
             @endif
             <span>Scaled CIA Mark: {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'practical_series' ? 40 : ($qpRecord->pattern_type === 'table_4_2_design' ? 50 : 25)) }}M → 10 CIA Marks</span>
         </div>

@@ -343,7 +343,7 @@
                 <td style="color: #6b21a8;">{{ number_format($scoreT2, 1) }}</td>
                 <td style="background-color: #f3e8ff; color: #7e22ce; font-weight: 800;">{{ number_format($avgTests, 2) }}</td>
                 <td style="background-color: #dcfce7; color: #15803d; font-weight: 900; font-size: 13px; border-left: 2px solid #22c55e;">
-                    {{ number_format($totalInternal, 2) }}
+                    {{ round($totalInternal) }}
                 </td>
             </tr>
         </tbody>
@@ -449,7 +449,7 @@
         <tr>
             <td style="padding: 6px 10px; width: 33%; border-right: 1px solid #e2e8f0;">
                 <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block;">Continuous Internal Assessment (CIA):</span>
-                <strong style="font-size: 13px; color: #15803d; font-family: monospace;">{{ number_format($totalInternal, 2) }} / 75.00</strong>
+                <strong style="font-size: 13px; color: #15803d; font-family: monospace;">{{ round($totalInternal) }} / 75</strong>
             </td>
             <td style="padding: 6px 10px; width: 33%; border-right: 1px solid #e2e8f0;">
                 <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block;">Board Exam (ESE - 50M):</span>

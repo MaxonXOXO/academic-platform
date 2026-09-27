@@ -612,6 +612,7 @@ Route::middleware(['web'])->group(function () {
     // Revision 2026 Practicum Series QP / Scheme / Answer Key
     Route::post('/api/r26/classroom/practicum/{subjectId}/series-qp/generate/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'generateSeriesQp']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/series-qp/save/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveSeriesQp']);
+    Route::post('/api/r26/classroom/practicum/{subjectId}/series-qp/reset/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'resetSeriesQp']);
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-qp/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesQpPdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-scheme/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesSchemePdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-key/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesAnswerKeyPdf']);

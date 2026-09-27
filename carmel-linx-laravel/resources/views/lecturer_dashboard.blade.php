@@ -28,14 +28,28 @@
     /* Hide up/down spinner buttons in number inputs */
     .no-spinner::-webkit-inner-spin-button,
     .no-spinner::-webkit-outer-spin-button,
+    .prac-lw-direct-input::-webkit-inner-spin-button,
+    .prac-lw-direct-input::-webkit-outer-spin-button,
     input[type=number].no-spinner::-webkit-inner-spin-button,
-    input[type=number].no-spinner::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    input[type=number].no-spinner::-webkit-outer-spin-button,
+    input[type=number].prac-lw-direct-input::-webkit-inner-spin-button,
+    input[type=number].prac-lw-direct-input::-webkit-outer-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
     }
-    .no-spinner, input[type=number].no-spinner {
-      -moz-appearance: textfield;
-      appearance: textfield;
+    .no-spinner, .prac-lw-direct-input, input[type=number].no-spinner, input[type=number].prac-lw-direct-input {
+      -moz-appearance: textfield !important;
+      appearance: textfield !important;
+    }
+
+    /* High-visibility Output: Total CIA cell */
+    .prac-total-cia-cell {
+      font-size: 1.35rem !important; /* ~22px bold and big */
+      font-weight: 800 !important;
+      color: #10b981 !important; /* clear green */
+      text-align: center !important;
+      background-color: rgba(16, 185, 129, 0.12) !important;
+      letter-spacing: -0.01em !important;
     }
 
     /* Universal typography fix to avoid screen text spreading/bleeding on super bold weights */
@@ -1285,7 +1299,7 @@
                           <th class="p-2.5 text-center text-slate-300">Test 1 (15)</th>
                           <th class="p-2.5 text-center text-slate-300">Test 2 (15)</th>
                           <th class="p-2.5 text-center text-sky-400 font-bold">Test Avg (15)</th>
-                          <th class="p-2.5 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
+                          <th class="p-2.5 text-center text-emerald-400 bg-emerald-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
                           <th class="p-2.5 text-center text-sky-400">Board Exam (50)</th>
                         </tr>
                       </thead>
@@ -1635,13 +1649,13 @@
                         <th class="p-2 text-center">Obs/Rec (7.5)</th>
                         <th class="p-2 text-center">Proc/Punct (7.5)</th>
                         <th class="p-2 text-center text-rose-400">Viva (10)</th>
-                        <th class="p-2 text-center text-blue-400 font-bold">Lab Work (37.5)</th>
+                        <th class="p-2 text-center text-blue-400 font-bold bg-blue-500/10">Lab Work (37.5)</th>
                         <th class="p-2 text-center text-amber-400">Open Ended (7.5)</th>
                         <th class="p-2 text-center text-emerald-400">Attendance (15)</th>
                         <th class="p-2 text-center text-slate-300">Test 1 (15)</th>
                         <th class="p-2 text-center text-slate-300">Test 2 (15)</th>
                         <th class="p-2 text-center text-sky-400 font-bold">Test Avg (15)</th>
-                        <th class="p-2 text-center text-teal-300 bg-teal-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
+                        <th class="p-2 text-center text-emerald-400 bg-emerald-500/15 font-black text-xs sm:text-sm tracking-wide">Total CIA (75)</th>
                       </tr>
                     </thead>
                     <tbody id="labEvaluationsTableBody" class="divide-y divide-slate-800/50">
@@ -2610,7 +2624,12 @@
         fetchPracticalEvaluations();
       } else if (tabName === 'summative' || tabName === 'tabSummative') {
         if (window.isCurrentSubjectPractical) {
-          fetchPracticalEvaluations();
+          if (typeof labStudentsData !== 'undefined' && labStudentsData && labStudentsData.length > 0 && typeof updateSummativeAssessmentValues === 'function') {
+            updateSummativeAssessmentValues(labStudentsData);
+          }
+          if (typeof fetchPracticalEvaluations === 'function') {
+            fetchPracticalEvaluations();
+          }
         }
       } else if (tabName === 'lab_copo') {
         fetchPracticalCoPoMapping();
@@ -2744,11 +2763,15 @@
           const isPractical = subjectTypeRaw === 'practical' || subjectTypeRaw === 'lab' || subjectTypeRaw.includes('lab') || subjectTypeRaw.includes('practical') || subjectTypeRaw.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical') || sNameLower.includes('practicum') || sNameLower.includes('workshop');
           window.isCurrentSubjectPractical = isPractical;
 
+          window.currentCourseCos = data.data.cos || [];
           renderCourseStructure(data.data.cos, data.data.modules, data.data.textbooks, data.data.copo);
           renderCoursePlanner(data.data.lesson_plans);
           renderFormativeAssessment(data.data.students || []);
           renderSummativeAssessment(data.data.cos, data.data.students || []);
           loadActiveOnlineTests(subjectId);
+          if (isPractical && typeof fetchPracticalEvaluations === 'function') {
+            fetchPracticalEvaluations();
+          }
           
           // Always render the formative questions section (show prompt if none generated yet)
           renderAIQuestionsList(currentQuestions, subjectId);
@@ -4669,8 +4692,51 @@
       container.innerHTML = html;
     }
 
+    function updateSummativeAssessmentValues(students) {
+      if (!students || students.length === 0) return;
+      const tbody = document.getElementById('pracSummativeMarkTbody');
+      if (!tbody || tbody.children.length === 0 || tbody.querySelector('td[colspan]')) {
+        renderSummativeAssessment(window.currentCourseCos || [], students);
+        return;
+      }
+      students.forEach(student => {
+        const row = tbody.querySelector(`tr[data-reg="${student.reg_no}"]`);
+        if (!row) return;
+
+        let s1 = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? student.tests['Test 1'].total : (student.series1_score !== undefined && student.series1_score !== null ? student.series1_score : (student.practical_test1 !== undefined && student.practical_test1 !== null ? student.practical_test1 : ''));
+        let s2 = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? student.tests['Test 2'].total : (student.series2_score !== undefined && student.series2_score !== null ? student.series2_score : (student.practical_test2 !== undefined && student.practical_test2 !== null ? student.practical_test2 : ''));
+        if (Number(s1) > 15) s1 = Math.round((Number(s1) / 2) * 10) / 10;
+        if (Number(s2) > 15) s2 = Math.round((Number(s2) / 2) * 10) / 10;
+        let boardGrade = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? String(student.board_exam_marks).trim() : '';
+
+        const s1Input = row.querySelector('.prac-s1-input');
+        const s2Input = row.querySelector('.prac-s2-input');
+        const bgSelect = row.querySelector('.prac-board-grade');
+        const avgDisplay = row.querySelector('.prac-avg-display');
+
+        if (s1Input && document.activeElement !== s1Input) {
+          s1Input.value = (s1 !== '' && s1 !== null && s1 !== undefined && Number(s1) !== 0) ? s1 : (s1 === 0 || s1 === '0' ? '0' : (s1Input.value || ''));
+        }
+        if (s2Input && document.activeElement !== s2Input) {
+          s2Input.value = (s2 !== '' && s2 !== null && s2 !== undefined && Number(s2) !== 0) ? s2 : (s2 === 0 || s2 === '0' ? '0' : (s2Input.value || ''));
+        }
+        if (bgSelect && document.activeElement !== bgSelect && boardGrade) {
+          bgSelect.value = boardGrade;
+        }
+        if (avgDisplay) {
+          const curS1 = s1Input ? s1Input.value : s1;
+          const curS2 = s2Input ? s2Input.value : s2;
+          let tAvg = (curS1 !== '' || curS2 !== '') ? (((Number(curS1) || 0) + (Number(curS2) || 0)) / ((curS1 !== '' && curS2 !== '') ? 2 : 1)).toFixed(1) : '-';
+          avgDisplay.innerText = tAvg !== '-' ? tAvg + ' / 15' : '-';
+        }
+      });
+    }
+    window.updateSummativeAssessmentValues = updateSummativeAssessmentValues;
+
     function renderSummativeAssessment(cos, students) {
+      if (cos && cos.length > 0) window.currentCourseCos = cos;
       if (window.isCurrentSubjectPractical) {
+        const studList = (students && students.length > 0) ? students : (typeof labStudentsData !== 'undefined' && labStudentsData && labStudentsData.length > 0 ? labStudentsData : (window.currentVirtualStudents || []));
         let html = `
 
 
@@ -4734,10 +4800,12 @@
                 <tbody id="pracSummativeMarkTbody" class="divide-y divide-slate-800/50">
         `;
 
-        if (students && students.length > 0) {
-          students.forEach((student, index) => {
+        if (studList && studList.length > 0) {
+          studList.forEach((student, index) => {
             let s1 = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? student.tests['Test 1'].total : (student.series1_score !== undefined && student.series1_score !== null ? student.series1_score : (student.practical_test1 !== undefined && student.practical_test1 !== null ? student.practical_test1 : ''));
             let s2 = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? student.tests['Test 2'].total : (student.series2_score !== undefined && student.series2_score !== null ? student.series2_score : (student.practical_test2 !== undefined && student.practical_test2 !== null ? student.practical_test2 : ''));
+            if (Number(s1) > 15) s1 = Math.round((Number(s1) / 2) * 10) / 10;
+            if (Number(s2) > 15) s2 = Math.round((Number(s2) / 2) * 10) / 10;
             let tAvg = (s1 !== '' || s2 !== '') ? (((Number(s1) || 0) + (Number(s2) || 0)) / ( (s1 !== '' && s2 !== '') ? 2 : 1 )).toFixed(1) : '-';
             let boardGrade = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? String(student.board_exam_marks).trim() : '';
 
@@ -4747,10 +4815,10 @@
                 <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
                 <td class="p-2.5 text-center font-mono text-slate-400">${student.sbte_reg_no || student.reg_no}</td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' && s1 !== null ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' && s2 !== null ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-sky-500/5">
                   <span class="prac-avg-display font-mono font-bold text-sky-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
@@ -9632,6 +9700,9 @@
           renderLabEvaluationsTable();
           renderPracticalReportsTable();
           calculateLabStatistics();
+          if (window.isCurrentSubjectPractical && typeof updateSummativeAssessmentValues === 'function') {
+            updateSummativeAssessmentValues(labStudentsData);
+          }
         } else {
           if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-red-400 font-bold text-sm">${res.message}</td></tr>`;
         }
@@ -9679,13 +9750,16 @@
         const avgProc = student.avg_proc_punct !== undefined && student.avg_proc_punct !== null ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
         const avgViva = student.avg_viva_voce !== undefined && student.avg_viva_voce !== null ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
         const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
+        const hasDirectLw = (student.lab_work_marks !== undefined && student.lab_work_marks !== null && student.lab_work_marks !== '');
+        const directLwDisplay = hasDirectLw ? student.lab_work_marks : '';
+        const calculatedSplit = (student.calculated_split_avg !== undefined) ? student.calculated_split_avg : expAverage;
         const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
         const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
         const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
         const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
         const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
         const attHoursText = (student.total_classes !== undefined && student.total_classes > 0) ? ` <span class="text-[10px] text-slate-400 font-sans font-normal">(${student.present_classes}/${student.total_classes} hrs)</span>` : '';
-        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? parseFloat(student.total_internal).toFixed(2) : '0.00';
+        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? Math.round(parseFloat(student.total_internal)) : '0';
 
         tr.innerHTML = `
           <td class="p-2 text-center font-mono font-medium text-cyan-400 text-xs">${student.roll_no || '-'}</td>
@@ -9699,18 +9773,35 @@
           <td class="p-2 text-center">
             <span class="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[11px] font-bold rounded-md" title="${attendedExps} Done Marked / ${conductedExps} Total Completed (${totalSyllabusExps} in syllabus)">${attendedExps} / ${conductedExps}</span>
           </td>
-          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgRough}</td>
-          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgFair}</td>
-          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgObs}</td>
-          <td class="p-2 text-center font-mono text-slate-300 text-xs">${avgProc}</td>
-          <td class="p-2 text-center font-mono text-rose-400 text-xs">${avgViva}</td>
-          <td class="p-2 text-center font-mono font-semibold text-blue-400 text-xs cursor-pointer hover:underline" onclick="openLwModal('${student.reg_no}')">${expAverage}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs prac-rubric-rough">${avgRough}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs prac-rubric-fair">${avgFair}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs prac-rubric-obs">${avgObs}</td>
+          <td class="p-2 text-center font-mono text-slate-300 text-xs prac-rubric-proc">${avgProc}</td>
+          <td class="p-2 text-center font-mono text-rose-400 text-xs prac-rubric-viva">${avgViva}</td>
+          <td class="p-1.5 text-center bg-blue-500/5">
+            <div class="inline-flex items-center justify-center gap-1">
+              <input type="number" step="0.25" min="0" max="37.5"
+                value="${directLwDisplay}"
+                placeholder="${expAverage > 0 ? expAverage : '0-37.5'}"
+                data-reg="${student.reg_no}"
+                data-calc-split="${calculatedSplit}"
+                title="Direct Lab Work mark out of 37.5 (leave empty to use split-up calculation)"
+                class="prac-lw-direct-input no-spinner w-20 bg-slate-900 border ${hasDirectLw ? 'border-sky-500/80 font-bold text-sky-300' : 'border-slate-700/60 font-semibold text-blue-400'} rounded px-2 py-1 text-center font-mono focus:text-white focus:border-sky-400 outline-none text-xs transition-colors"
+                style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;"
+                oninput="handlePracLwDirectInput(this, '${student.reg_no}')"
+                onchange="triggerPracLwDirectSave(this, '${student.reg_no}', true)"
+                onkeydown="handlePracMarkKeyDown(event, this)">
+              <button type="button" onclick="openLwModal('${student.reg_no}')" title="Configure / View Split-up Rubrics" class="text-slate-500 hover:text-blue-400 p-0.5 rounded cursor-pointer transition-colors" tabindex="-1">
+                <span class="material-symbols-rounded text-sm">tune</span>
+              </button>
+            </div>
+          </td>
           <td class="p-2 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
           <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)${attHoursText}</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
           <td class="p-2 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
-          <td class="p-2 text-center font-mono font-black text-teal-300 bg-teal-500/10 text-base">${internalsTotal}</td>
+          <td class="p-2 text-center font-bold text-emerald-400 bg-emerald-500/15 prac-total-cia-cell" style="font-size: 1.35rem !important; font-weight: 800 !important; color: #10b981 !important; line-height: 1.2;">${internalsTotal}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -9762,7 +9853,7 @@
         const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
         const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
         const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
-        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? parseFloat(student.total_internal).toFixed(2) : '0.00';
+        const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? Math.round(parseFloat(student.total_internal)) : '0';
         const boardMarksVal = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
 
         tr.innerHTML = `
@@ -9788,7 +9879,7 @@
           <td class="p-2.5 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
           <td class="p-2.5 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
           <td class="p-2.5 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
-          <td class="p-2.5 text-center font-mono font-black text-teal-300 bg-teal-500/10 text-base">${internalsTotal}</td>
+          <td class="p-2.5 text-center font-bold text-emerald-400 bg-emerald-500/15 prac-total-cia-cell" style="font-size: 1.35rem !important; font-weight: 800 !important; color: #10b981 !important; line-height: 1.2;">${internalsTotal}</td>
           <td class="p-2.5 text-center">
             <input type="number" step="0.5" min="0" max="50" value="${boardMarksVal}" placeholder="0.0" onchange="quickUpdateBoardExam('${student.reg_no}', this.value)" class="no-spinner w-16 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-1.5 py-1 text-center font-mono font-bold text-sky-400 text-xs outline-none">
           </td>
@@ -9827,6 +9918,146 @@
         }
       })
       .catch(err => console.error(err));
+    }
+
+    let _pracLwAutoSaveTimers = {};
+
+    function handlePracLwDirectInput(inputEl, regNo) {
+      let val = inputEl.value.trim();
+      if (val !== '') {
+        let num = parseFloat(val);
+        if (num < 0) { num = 0; inputEl.value = '0'; }
+        if (num > 37.5) { num = 37.5; inputEl.value = '37.5'; }
+        val = num;
+      }
+
+      const student = (typeof labStudentsData !== 'undefined' && labStudentsData) 
+        ? labStudentsData.find(s => String(s.reg_no).trim() === String(regNo).trim()) 
+        : null;
+
+      const row = inputEl.closest('tr');
+      const calcSplit = parseFloat(inputEl.getAttribute('data-calc-split')) || 0;
+      const isDirect = (val !== '' && !isNaN(val));
+      const effectiveLw = isDirect ? parseFloat(val) : calcSplit;
+
+      if (isDirect) {
+        inputEl.classList.remove('border-slate-700/60', 'text-blue-400');
+        inputEl.classList.add('border-sky-500/80', 'text-sky-300', 'font-bold');
+      } else {
+        inputEl.classList.remove('border-sky-500/80', 'text-sky-300', 'font-bold');
+        inputEl.classList.add('border-slate-700/60', 'text-blue-400', 'font-semibold');
+      }
+
+      if (student) {
+        student.lab_work_marks = isDirect ? parseFloat(val) : null;
+        student.avg_lab_work = effectiveLw;
+        student.is_direct_lab_work = isDirect;
+
+        // Auto-derive rubrics proportionally if direct entry is used and no experiment breakdown exists
+        if (row) {
+          const rRough = row.querySelector('.prac-rubric-rough');
+          const rFair  = row.querySelector('.prac-rubric-fair');
+          const rObs   = row.querySelector('.prac-rubric-obs');
+          const rProc  = row.querySelector('.prac-rubric-proc');
+          const rViva  = row.querySelector('.prac-rubric-viva');
+
+          if (isDirect) {
+            const hasExistingExpMarks = student.experiments_marks && Object.values(student.experiments_marks).some(m => m && (m.total > 0 || m.rough_record > 0));
+            if (!hasExistingExpMarks) {
+              const rVal = (effectiveLw * (5.0 / 37.5)).toFixed(2);
+              const fVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+              const oVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+              const pVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+              const vVal = (effectiveLw - (parseFloat(rVal) + parseFloat(fVal) + parseFloat(oVal) + parseFloat(pVal))).toFixed(2);
+              if (rRough) rRough.innerText = rVal;
+              if (rFair)  rFair.innerText  = fVal;
+              if (rObs)   rObs.innerText   = oVal;
+              if (rProc)  rProc.innerText  = pVal;
+              if (rViva)  rViva.innerText  = vVal;
+            }
+          } else {
+            // Revert back to original calculated split averages
+            if (rRough) rRough.innerText = student.avg_rough_record !== undefined ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
+            if (rFair)  rFair.innerText  = student.avg_fair_record !== undefined ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
+            if (rObs)   rObs.innerText   = student.avg_obs_prep !== undefined ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
+            if (rProc)  rProc.innerText  = student.avg_proc_punct !== undefined ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
+            if (rViva)  rViva.innerText  = student.avg_viva_voce !== undefined ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
+          }
+        }
+      }
+
+      // Recalculate row's Total CIA in real time!
+      if (row) {
+        const testsAvg = (student && student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average) : 0;
+        const openEnded = (student && student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended) : (student && student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project) : 0);
+        const attendance = (student && student.attendance_marks !== undefined && student.attendance_marks !== null) ? parseFloat(student.attendance_marks) : 0;
+        const newTotal = Math.round(testsAvg + effectiveLw + openEnded + attendance);
+
+        if (student) student.total_internal = newTotal;
+
+        const totalCell = row.querySelector('.prac-total-cia-cell');
+        if (totalCell) {
+          totalCell.innerText = newTotal;
+        }
+      }
+
+      triggerPracLwDirectSave(inputEl, regNo, false);
+    }
+
+    function triggerPracLwDirectSave(inputEl, regNo, isImmediate = false) {
+      if (_pracLwAutoSaveTimers[regNo]) {
+        clearTimeout(_pracLwAutoSaveTimers[regNo]);
+        delete _pracLwAutoSaveTimers[regNo];
+      }
+
+      const delay = isImmediate ? 50 : 800;
+
+      _pracLwAutoSaveTimers[regNo] = setTimeout(() => {
+        delete _pracLwAutoSaveTimers[regNo];
+
+        const val = inputEl.value.trim();
+        const lwPayload = (val !== '' && !isNaN(val)) ? parseFloat(val) : null;
+        const subjId = currentSubjectId || window.currentSubjectId;
+        if (!subjId) return;
+
+        inputEl.classList.remove('border-emerald-500', 'border-rose-500');
+        inputEl.classList.add('border-amber-400');
+
+        fetch(`/api/classroom/${subjId}/practical/evaluate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          body: JSON.stringify({
+            reg_no: regNo,
+            lab_work_marks: lwPayload
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS') {
+            inputEl.classList.remove('border-amber-400');
+            inputEl.classList.add('border-emerald-500');
+            setTimeout(() => {
+              inputEl.classList.remove('border-emerald-500');
+              if (lwPayload !== null) {
+                inputEl.classList.add('border-sky-500/80');
+              } else {
+                inputEl.classList.add('border-slate-700/60');
+              }
+            }, 1200);
+          } else {
+            inputEl.classList.remove('border-amber-400');
+            inputEl.classList.add('border-rose-500');
+          }
+        })
+        .catch(err => {
+          console.error('Error auto-saving direct lab work mark:', err);
+          inputEl.classList.remove('border-amber-400');
+          inputEl.classList.add('border-rose-500');
+        });
+      }, delay);
     }
 
     function filterLabGridByBatch() {
@@ -9884,12 +10115,12 @@
       let passedCount = 0;
 
       labStudentsData.forEach(student => {
-        sumInternals += parseFloat(student.total_internal || 0);
+        sumInternals += Math.round(parseFloat(student.total_internal || 0));
         if (student.board_exam_marks !== null) {
           sumBoard += parseFloat(student.board_exam_marks);
           boardCount++;
 
-          const totalScore = parseFloat(student.total_internal || 0) + parseFloat(student.board_exam_marks);
+          const totalScore = Math.round(parseFloat(student.total_internal || 0)) + parseFloat(student.board_exam_marks);
           if (totalScore >= 50 && parseFloat(student.board_exam_marks) >= 20) {
             passedCount++;
           }
@@ -10616,6 +10847,9 @@
         if (attMark) attMark.value = (student.attendance_marks !== undefined && student.attendance_marks !== null) ? student.attendance_marks : '';
         if (boardExam) boardExam.value = (student.board_exam_marks !== undefined && student.board_exam_marks !== null) ? student.board_exam_marks : '';
 
+        const directLwEl = document.getElementById('labScore_directLabWork');
+        if (directLwEl) directLwEl.value = (student.lab_work_marks !== undefined && student.lab_work_marks !== null) ? student.lab_work_marks : '';
+
         // Set test marks safely
         const t1Co1El = document.getElementById('labScore_t1_co1');
         const t1Co2El = document.getElementById('labScore_t1_co2');
@@ -10692,6 +10926,12 @@
       
       const setVal = (key, max) => {
         let val = marks[key];
+        if ((val === undefined || val === null || val === '') && (key === 'prerequisite' || key === 'obs_prep')) {
+          val = marks.prerequisite !== undefined && marks.prerequisite !== null && marks.prerequisite !== '' ? marks.prerequisite : (marks.prerequisites !== undefined && marks.prerequisites !== null && marks.prerequisites !== '' ? marks.prerequisites : marks.obs_prep);
+        }
+        if ((val === undefined || val === null || val === '') && (key === 'execution' || key === 'proc_punct')) {
+          val = marks.execution !== undefined && marks.execution !== null && marks.execution !== '' ? marks.execution : (marks.work_done !== undefined && marks.work_done !== null && marks.work_done !== '' ? marks.work_done : marks.proc_punct);
+        }
         if (val === undefined || val === null) val = '';
         document.getElementById(`active_exp_${key}`).value = val;
         syncSlider(`active_exp_${key}`, `active_exp_${key}_slider`, max);
@@ -10711,6 +10951,16 @@
         tempStudentExpMarks[expId] = {};
       }
       tempStudentExpMarks[expId][key] = val;
+      if (key === 'prerequisite' || key === 'prerequisites' || key === 'obs_prep') {
+        tempStudentExpMarks[expId].prerequisite = val;
+        tempStudentExpMarks[expId].prerequisites = val;
+        tempStudentExpMarks[expId].obs_prep = val;
+      }
+      if (key === 'execution' || key === 'work_done' || key === 'proc_punct') {
+        tempStudentExpMarks[expId].execution = val;
+        tempStudentExpMarks[expId].work_done = val;
+        tempStudentExpMarks[expId].proc_punct = val;
+      }
       calcLabModalScores();
     }
 
@@ -10745,11 +10995,14 @@
 
       labExperimentsData.forEach(exp => {
         const val = tempStudentExpMarks[exp.id] || {};
-        const prereq = parseFloat(val.prerequisite || val.obs_prep);
-        const exec = parseFloat(val.execution || val.proc_punct);
+        const pRaw = val.prerequisite !== undefined && val.prerequisite !== null && val.prerequisite !== '' ? val.prerequisite : (val.prerequisites !== undefined && val.prerequisites !== null && val.prerequisites !== '' ? val.prerequisites : val.obs_prep);
+        const eRaw = val.execution !== undefined && val.execution !== null && val.execution !== '' ? val.execution : (val.work_done !== undefined && val.work_done !== null && val.work_done !== '' ? val.work_done : val.proc_punct);
+        const vRaw = val.viva_voce !== undefined && val.viva_voce !== null && val.viva_voce !== '' ? val.viva_voce : val.result;
+        const prereq = parseFloat(pRaw);
+        const exec = parseFloat(eRaw);
         const rough = parseFloat(val.rough_record);
         const fair = parseFloat(val.fair_record);
-        const viva = parseFloat(val.viva_voce);
+        const viva = parseFloat(vRaw);
 
         if (!isNaN(prereq) || !isNaN(exec) || !isNaN(rough) || !isNaN(fair) || !isNaN(viva)) {
           totalGradedSum += ((isNaN(prereq)?0:prereq) + (isNaN(exec)?0:exec) + (isNaN(rough)?0:rough) + (isNaN(fair)?0:fair) + (isNaN(viva)?0:viva));
@@ -10760,10 +11013,21 @@
       const conductedCount = (window.conductedExpsCount !== undefined && window.conductedExpsCount > 0) ? window.conductedExpsCount : (labExperimentsData ? labExperimentsData.length : gradedExpsCount);
       const totalDivisor = Math.max(conductedCount, gradedExpsCount, 1);
       const expAvg = totalDivisor > 0 ? (totalGradedSum / totalDivisor) : 0;
+
+      const directLwEl = document.getElementById('labScore_directLabWork');
+      const hasDirectLw = directLwEl && directLwEl.value.trim() !== '' && !isNaN(parseFloat(directLwEl.value));
+      const effectiveExp = hasDirectLw ? Math.min(37.5, Math.max(0, parseFloat(directLwEl.value))) : expAvg;
+
       const labelExp = document.getElementById('labModalLabelExp');
-      if (labelExp) labelExp.innerText = expAvg.toFixed(2);
+      if (labelExp) labelExp.innerText = effectiveExp.toFixed(2);
       const labelSummaryExp = document.getElementById('labModalLabelExpSummary');
-      if (labelSummaryExp) labelSummaryExp.innerText = `${expAvg.toFixed(2)} / 37.5`;
+      if (labelSummaryExp) {
+        if (hasDirectLw) {
+          labelSummaryExp.innerText = `${effectiveExp.toFixed(2)} / 37.5 (Direct)`;
+        } else {
+          labelSummaryExp.innerText = `${effectiveExp.toFixed(2)} / 37.5`;
+        }
+      }
 
       if (typeof renderLabModalExpsSummary === 'function') {
         renderLabModalExpsSummary();
@@ -10787,8 +11051,8 @@
       const projectMark = parseFloat(document.getElementById('labScore_projectMark').value) || 0;
       const attMark = parseFloat(document.getElementById('labScore_attendanceMark').value) || 0;
 
-      const totalCA = expAvg + testsAvg + projectMark + attMark;
-      document.getElementById('labModalLabelInternals').innerText = `${totalCA.toFixed(2)} / 75`;
+      const totalCA = Math.round(effectiveExp + testsAvg + projectMark + attMark);
+      document.getElementById('labModalLabelInternals').innerText = `${totalCA} / 75`;
     }
 
     function adjustExpMark(expId, key, delta, max) {
@@ -10818,16 +11082,28 @@
 
       labExperimentsData.forEach(exp => {
         const val = tempStudentExpMarks[exp.id] || {};
-        const prereq = val.prerequisite !== undefined && val.prerequisite !== null ? val.prerequisite : (val.obs_prep !== undefined && val.obs_prep !== null ? val.obs_prep : '');
-        const exec = val.execution !== undefined && val.execution !== null ? val.execution : (val.proc_punct !== undefined && val.proc_punct !== null ? val.proc_punct : '');
+        const prereq = (val.prerequisite !== undefined && val.prerequisite !== null && val.prerequisite !== '') 
+          ? val.prerequisite 
+          : ((val.prerequisites !== undefined && val.prerequisites !== null && val.prerequisites !== '') 
+            ? val.prerequisites 
+            : ((val.obs_prep !== undefined && val.obs_prep !== null && val.obs_prep !== '') ? val.obs_prep : ''));
+
+        const exec = (val.execution !== undefined && val.execution !== null && val.execution !== '') 
+          ? val.execution 
+          : ((val.work_done !== undefined && val.work_done !== null && val.work_done !== '') 
+            ? val.work_done 
+            : ((val.proc_punct !== undefined && val.proc_punct !== null && val.proc_punct !== '') ? val.proc_punct : ''));
+
         const rough = val.rough_record !== undefined && val.rough_record !== null ? val.rough_record : '';
         const fair = val.fair_record !== undefined && val.fair_record !== null ? val.fair_record : '';
+        const viva = (val.viva_voce !== undefined && val.viva_voce !== null && val.viva_voce !== '') 
+          ? val.viva_voce 
+          : ((val.result !== undefined && val.result !== null && val.result !== '') ? val.result : '');
 
         const pNum = parseFloat(prereq);
         const eNum = parseFloat(exec);
         const rNum = parseFloat(rough);
         const fNum = parseFloat(fair);
-        const viva = val.viva_voce !== undefined && val.viva_voce !== null ? val.viva_voce : '';
         const vNum = parseFloat(viva);
 
         const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum) || !isNaN(vNum);
@@ -11018,12 +11294,12 @@
       tempStudentExpMarks[expId].date = dateVal;
       tempStudentExpMarks[expId].evaluation_date = dateVal;
 
-      const valObj = tempStudentExpMarks[expId];
-      const p = parseFloat(valObj.prerequisite || valObj.obs_prep);
-      const e = parseFloat(valObj.execution || valObj.proc_punct);
+      const valObj = tempStudentExpMarks[expId] || {};
+      const p = parseFloat(valObj.prerequisite !== undefined ? valObj.prerequisite : (valObj.prerequisites !== undefined ? valObj.prerequisites : valObj.obs_prep));
+      const e = parseFloat(valObj.execution !== undefined ? valObj.execution : (valObj.work_done !== undefined ? valObj.work_done : valObj.proc_punct));
       const r = parseFloat(valObj.rough_record);
       const f = parseFloat(valObj.fair_record);
-      const v = parseFloat(valObj.viva_voce || valObj.result);
+      const v = parseFloat(valObj.viva_voce !== undefined ? valObj.viva_voce : valObj.result);
       const hasMarks = (!isNaN(p) && p > 0) || (!isNaN(e) && e > 0) || (!isNaN(r) && r > 0) || (!isNaN(f) && f > 0) || (!isNaN(v) && v > 0);
 
       const attBadge = document.getElementById(`exp_att_badge_${expId}`);
@@ -11048,6 +11324,21 @@
       if (!tempStudentExpMarks[expId]) tempStudentExpMarks[expId] = {};
       tempStudentExpMarks[expId][key] = val;
 
+      if (key === 'prerequisite' || key === 'prerequisites' || key === 'obs_prep') {
+        tempStudentExpMarks[expId]['prerequisite'] = val;
+        tempStudentExpMarks[expId]['prerequisites'] = val;
+        tempStudentExpMarks[expId]['obs_prep'] = val;
+      }
+      if (key === 'execution' || key === 'work_done' || key === 'proc_punct') {
+        tempStudentExpMarks[expId]['execution'] = val;
+        tempStudentExpMarks[expId]['work_done'] = val;
+        tempStudentExpMarks[expId]['proc_punct'] = val;
+      }
+      if (key === 'viva_voce' || key === 'result') {
+        tempStudentExpMarks[expId]['viva_voce'] = val;
+        tempStudentExpMarks[expId]['result'] = val;
+      }
+
       // Auto-populate date if empty when mark is entered
       const dateInput = document.getElementById(`exp_${expId}_date`);
       if (dateInput && !dateInput.value) {
@@ -11062,18 +11353,19 @@
       }
 
       // Update card total badge
-      const valObj = tempStudentExpMarks[expId];
-      const pNum = parseFloat(valObj.prerequisite || valObj.obs_prep);
-      const eNum = parseFloat(valObj.execution || valObj.proc_punct);
+      const valObj = tempStudentExpMarks[expId] || {};
+      const pNum = parseFloat(valObj.prerequisite !== undefined ? valObj.prerequisite : (valObj.prerequisites !== undefined ? valObj.prerequisites : valObj.obs_prep));
+      const eNum = parseFloat(valObj.execution !== undefined ? valObj.execution : (valObj.work_done !== undefined ? valObj.work_done : valObj.proc_punct));
       const rNum = parseFloat(valObj.rough_record);
       const fNum = parseFloat(valObj.fair_record);
+      const vNum = parseFloat(valObj.viva_voce !== undefined ? valObj.viva_voce : valObj.result);
 
-      const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum) || !isNaN(parseFloat(valObj.viva_voce));
+      const isGraded = !isNaN(pNum) || !isNaN(eNum) || !isNaN(rNum) || !isNaN(fNum) || !isNaN(vNum);
       const badge = document.getElementById(`exp_total_badge_${expId}`);
       if (badge) {
         if (isGraded) {
-          const vNum = parseFloat(valObj.viva_voce) || 0;
-          const tot = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum) + vNum;
+          const v = isNaN(vNum) ? 0 : vNum;
+          const tot = (isNaN(pNum)?0:pNum) + (isNaN(eNum)?0:eNum) + (isNaN(rNum)?0:rNum) + (isNaN(fNum)?0:fNum) + v;
           badge.className = "text-xs font-mono px-2.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold";
           badge.innerText = `${tot.toFixed(1)} / 37.5`;
         } else {
@@ -11115,18 +11407,38 @@
       const activeExpMarks = {};
       for (const [expId, m] of Object.entries(tempStudentExpMarks || {})) {
         if (!m) continue;
-        const p = parseFloat(m.prerequisite || m.obs_prep) || 0;
-        const e = parseFloat(m.execution || m.proc_punct) || 0;
+        const pRaw = (m.prerequisite !== undefined && m.prerequisite !== null && m.prerequisite !== '') ? m.prerequisite : ((m.prerequisites !== undefined && m.prerequisites !== null && m.prerequisites !== '') ? m.prerequisites : m.obs_prep);
+        const eRaw = (m.execution !== undefined && m.execution !== null && m.execution !== '') ? m.execution : ((m.work_done !== undefined && m.work_done !== null && m.work_done !== '') ? m.work_done : m.proc_punct);
+        const vRaw = (m.viva_voce !== undefined && m.viva_voce !== null && m.viva_voce !== '') ? m.viva_voce : m.result;
+        const p = parseFloat(pRaw) || 0;
+        const e = parseFloat(eRaw) || 0;
         const r = parseFloat(m.rough_record) || 0;
         const f = parseFloat(m.fair_record) || 0;
-        const v = parseFloat(m.viva_voce || m.result) || 0;
+        const v = parseFloat(vRaw) || 0;
         const dateInput = document.getElementById(`exp_${expId}_date`);
         const dVal = dateInput ? dateInput.value : (m.date || m.evaluation_date || '');
         if (p > 0 || e > 0 || r > 0 || f > 0 || v > 0 || (dVal && m.is_attended)) {
           m.date = dVal;
           m.evaluation_date = dVal;
+          m.prerequisite = (pRaw !== undefined && pRaw !== null) ? pRaw : '';
+          m.prerequisites = m.prerequisite;
+          m.obs_prep = m.prerequisite;
+          m.execution = (eRaw !== undefined && eRaw !== null) ? eRaw : '';
+          m.work_done = m.execution;
+          m.proc_punct = m.execution;
+          m.rough_record = (m.rough_record !== undefined && m.rough_record !== null) ? m.rough_record : '';
+          m.fair_record = (m.fair_record !== undefined && m.fair_record !== null) ? m.fair_record : '';
+          m.viva_voce = (vRaw !== undefined && vRaw !== null) ? vRaw : '';
+          m.result = m.viva_voce;
           activeExpMarks[expId] = m;
         }
+      }
+
+      const directLwInput = document.getElementById('labScore_directLabWork');
+      let directLwMark = null;
+      if (directLwInput && directLwInput.value.trim() !== '') {
+        const parsed = parseFloat(directLwInput.value);
+        if (!isNaN(parsed)) directLwMark = Math.min(37.5, Math.max(0, parsed));
       }
 
       fetch(`/api/classroom/${currentSubjectId}/practical/evaluate`, {
@@ -11134,6 +11446,7 @@
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({
           reg_no: regNo,
+          lab_work_marks: directLwMark,
           open_ended_project_topic: projectTopic,
           micro_project: projectMark,
           attendance_marks: attMark,
@@ -11145,6 +11458,18 @@
       .then(res => res.json())
       .then(res => {
         if (res.status === 'SUCCESS') {
+          if (window.labStudentsData && Array.isArray(window.labStudentsData)) {
+            const studentObj = window.labStudentsData.find(s => s.reg_no === regNo || s.sbte_reg_no === regNo || String(s.reg_no) === String(regNo));
+            if (studentObj) {
+              if (!studentObj.experiments_marks) studentObj.experiments_marks = {};
+              Object.assign(studentObj.experiments_marks, JSON.parse(JSON.stringify(activeExpMarks)));
+              if (directLwMark !== null) studentObj.lab_work_marks = directLwMark;
+              studentObj.open_ended_project_topic = projectTopic;
+              studentObj.micro_project = projectMark;
+              studentObj.attendance_marks = attMark;
+              studentObj.board_exam_marks = boardExamMark;
+            }
+          }
           alert('Evaluation saved successfully.');
           closeStudentLabModal();
           fetchPracticalEvaluations();
@@ -12794,9 +13119,13 @@
                 <span class="material-symbols-rounded text-teal-400 text-base">science</span>
                 Continuous Evaluation (Day-to-Day Lab Work)
               </h4>
-              <p class="text-xs text-slate-400 mt-0.5">Grade each experiment individually out of 37.5. Final mark is the average across all graded experiments.</p>
+              <p class="text-xs text-slate-400 mt-0.5">Grade experiments individually (out of 37.5) or enter the direct total mark. If direct mark is set, it overrides the split-up average.</p>
             </div>
-            <div class="flex items-center gap-4 shrink-0">
+            <div class="flex flex-wrap items-center gap-4 shrink-0">
+              <div class="flex items-center gap-2 bg-slate-900 border border-slate-700/60 px-3 py-1.5 rounded-xl shadow-sm">
+                <label for="labScore_directLabWork" class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Direct Mark (37.5):</label>
+                <input type="number" step="0.25" min="0" max="37.5" id="labScore_directLabWork" oninput="calcLabModalScores()" placeholder="Auto" class="no-spinner w-16 bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-lg px-2 py-1 text-xs text-cyan-300 font-mono font-bold text-center outline-none" style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;">
+              </div>
               <div class="text-right">
                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Lab Work Average:</span>
                 <span id="labModalLabelExpSummary" class="text-base font-mono font-black text-emerald-400">0.00 / 37.5</span>
@@ -12925,7 +13254,7 @@
         <div class="text-xs text-slate-400 font-bold flex gap-4">
           <div>Lab Work Avg: <span class="text-slate-200 font-mono" id="labModalLabelExp">0.0</span></div>
           <div>Model Test: <span class="text-slate-200 font-mono" id="labModalLabelTest">0.0</span></div>
-          <div>Internal CA: <span class="text-teal-400 font-black font-mono text-sm" id="labModalLabelInternals">0.0 / 75</span></div>
+          <div>Internal CA: <span class="text-emerald-400 font-bold font-mono text-base sm:text-lg" id="labModalLabelInternals">0 / 75</span></div>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeStudentLabModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-premium cursor-pointer">

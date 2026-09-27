@@ -144,9 +144,21 @@ if (!function_exists('getBtShort')) {
             </div>
 
         @else
+            @php
+                $cntA = count($qp['part_a'] ?? []);
+                $mrkA = $cntA ? ($qp['part_a'][0]['marks'] ?? 1) : 1;
+                $totA = $cntA * $mrkA;
+
+                $cntB = count($qp['part_b'] ?? []);
+                $mrkB = $cntB ? ($qp['part_b'][0]['marks'] ?? 3) : 3;
+                $totB = $cntB * $mrkB;
+
+                $cntC = count($qp['part_c'] ?? []);
+                $mrkC = $cntC ? ($qp['part_c'][0]['marks'] ?? 7) : 7;
+            @endphp
             <!-- Part A Scheme -->
             <div class="mb-4">
-                <div class="part-header">PART A — 2 × 1 = 2 Marks</div>
+                <div class="part-header">PART A — {{ $cntA }} × {{ $mrkA }} = {{ $totA }} Marks</div>
                 @foreach ($qp['part_a'] ?? [] as $q)
                 <div class="q-block mt-2">
                     <div class="q-question">
@@ -166,7 +178,7 @@ if (!function_exists('getBtShort')) {
 
             <!-- Part B Scheme -->
             <div class="mb-4">
-                <div class="part-header">PART B — 3 × 3 = 9 Marks</div>
+                <div class="part-header">PART B — {{ $cntB }} × {{ $mrkB }} = {{ $totB }} Marks</div>
                 @foreach ($qp['part_b'] ?? [] as $q)
                 <div class="q-block mt-2">
                     <div class="q-question">
@@ -186,7 +198,7 @@ if (!function_exists('getBtShort')) {
 
             <!-- Part C Scheme -->
             <div class="mb-4">
-                <div class="part-header">PART C — Answer any 2 of 3 (7M each = 14 Marks)</div>
+                <div class="part-header">PART C — {{ $cntC > 3 ? (int)($cntC/2) . ' Questions (7M each = ' . ((int)($cntC/2)*$mrkC) . ' Marks)' : 'Answer any 2 of 3 (7M each = 14 Marks)' }}</div>
                 @foreach ($qp['part_c'] ?? [] as $q)
                 <div class="q-block mt-2">
                     <div class="q-question">

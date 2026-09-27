@@ -10,6 +10,7 @@ class PracticalEvaluation extends Model
         'batch_subject_id',
         'reg_no',
         'assessor_mobile_no',
+        'lab_work_marks',
         'micro_project',
         'open_ended_topic',
         'attendance_marks',

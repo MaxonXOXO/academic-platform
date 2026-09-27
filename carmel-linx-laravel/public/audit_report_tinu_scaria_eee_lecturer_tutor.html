@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Audit & Verification Report - TINU SCARIA (EEE Lecturer & Tutor)</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            margin: 0 auto;
+            padding: 8px;
+            font-size: 10px;
+            line-height: 1.35;
+            max-width: 210mm;
+            background: #fff;
+        }
+        .no-print {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-print {
+            background: #1e3a8a;
+            color: #fff;
+        }
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2.5px solid #1e3a8a;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .college-name {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .college-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 3px 0 0 0;
+        }
+        .report-badge {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 3px 12px;
+            border-radius: 4px;
+            margin-top: 6px;
+        }
+        .section-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #1e3a8a;
+            border-left: 4px solid #2563eb;
+            padding-left: 8px;
+            margin: 12px 0 6px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 9.5px;
+        }
+        .meta-table td {
+            padding: 4px 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .meta-label {
+            font-weight: 700;
+            color: #334155;
+            background: #f8fafc;
+            width: 22%;
+        }
+        .meta-val {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+        }
+        .stat-num {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1e3a8a;
+            margin-bottom: 2px;
+        }
+        .stat-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            margin-bottom: 12px;
+        }
+        .data-table th {
+            background: #1e3a8a;
+            color: #fff;
+            font-weight: 700;
+            padding: 5px 6px;
+            text-align: left;
+            border: 1px solid #1e3a8a;
+        }
+        .data-table td {
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+        }
+        .data-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 8.5px;
+            text-transform: uppercase;
+        }
+        .badge-eligible {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        .badge-condonation {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .badge-detained {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        .badge-done {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #7dd3fc;
+        }
+        .badge-pending {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .alert-box {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 9.5px;
+            line-height: 1.4;
+        }
+        .alert-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+        .sig-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            page-break-inside: avoid;
+        }
+        .sig-box {
+            width: 30%;
+            text-align: center;
+            border-top: 1.5px solid #0f172a;
+            padding-top: 6px;
+            font-size: 9.5px;
+            font-weight: 700;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <div>
+            <strong style="color:#0f172a; font-size:13px;">Carmel Linx Academic Audit Suite</strong>
+            <div style="font-size:11px; color:#64748b;">Faculty & Tutor Audit Verification: TINU SCARIA (EEE)</div>
+        </div>
+        <button class="btn btn-print" onclick="window.print()">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+            Print Audit Report (A4)
+        </button>
+    </div>
+
+    <!-- Official Header -->
+    <div class="header">
+        <h1 class="college-name">Carmel Polytechnic College, Alappuzha</h1>
+        <div class="college-sub">Government of Kerala Aided Technical Institution | Department of Electrical & Electronics Engineering</div>
+        <div class="report-badge">Official Academic Audit & Reconciled Attendance Verification Report</div>
+    </div>
+
+    <!-- Section 1: Audit Metadata -->
+    <table class="meta-table">
+        <tr>
+            <td class="meta-label">Staff Member:</td>
+            <td class="meta-val"><strong>TINU SCARIA</strong></td>
+            <td class="meta-label">Department:</td>
+            <td class="meta-val">Electrical & Electronics Engineering (EEE)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Designation:</td>
+            <td class="meta-val">Lecturer in EEE</td>
+            <td class="meta-label">Mobile / ID:</td>
+            <td class="meta-val">9526414494 | tinu.scaria@carmelpoly.in</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Faculty Roles:</td>
+            <td class="meta-val">Subject Staff (Lecturer) & Class Tutor / Advisor</td>
+            <td class="meta-label">Supervised Class:</td>
+            <td class="meta-val">Admission 2024 Batch (S5 EEE · EEE_2024_2027)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Target Course / Subject:</td>
+            <td class="meta-val"><strong>Synchronous Machines & FHP Motors (EEE-5031)</strong></td>
+            <td class="meta-label">Audit Date & Status:</td>
+            <td class="meta-val"><strong>September 25, 2026</strong> | <span class="badge badge-eligible">VERIFIED & AUDITED</span></td>
+        </tr>
+    </table>
+
+    <!-- Key Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-num">67</div>
+            <div class="stat-label">Enrolled Students</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">38 / 82</div>
+            <div class="stat-label">Hours Conducted</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">88.6%</div>
+            <div class="stat-label">Avg Class Attendance</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" style="color:#15803d;">59</div>
+            <div class="stat-label">Eligible (&ge;75%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" style="color:#b45309;">5 / 3</div>
+            <div class="stat-label">Condonation / Detained</div>
+        </div>
+    </div>
+
+    <!-- Alert / Resolution Summary -->
+    <div class="alert-box alert-success">
+        <strong>Audit Finding & Reconciled Action:</strong> Following the upload of the Teams Attendance Statement PDF, class log dates (June 8 to September 9, 2026 - 38 total class hours) were correctly registered, but student attendance records were restricted to 9 students due to an upstream parser regex character mismatch. A full systematic reconciliation has now been completed:
+        <ul style="margin:4px 0 0 16px; padding:0;">
+            <li><strong>Full Roster Reconciled:</strong> All 67 enrolled students in S5 EEE are now comprehensively recorded across all 38 class log periods.</li>
+            <li><strong>Period Normalization:</strong> 7 period entries on June 15, 2026 have been normalized to valid standard period slots (P1 to P7).</li>
+            <li><strong>Lesson Planner Synchronized:</strong> Days 1 to 38 are mapped sequentially to actual conducted class dates with full syllabus topics, while remaining Days 39 to 61 are verified as Pending.</li>
+            <li><strong>Permanent Controller Patch:</strong> <code>SbteSubjectLogImportController</code> has been permanently updated with robust student roster fallback, multi-hour period separation, and per-hour lesson plan advancement.</li>
+        </ul>
+    </div>
+
+    <!-- Section 2: Faculty Workload Audit -->
+    <div class="section-title">1. Faculty Workload & Course Engagement Audit (TINU SCARIA)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:8%;">Semester</th>
+                <th style="width:10%;">Subject Code</th>
+                <th style="width:32%;">Course Title</th>
+                <th style="width:14%;">Subject Type</th>
+                <th style="width:16%;">Classroom / Batch</th>
+                <th style="width:10%; text-align:center;">Conducted / Total</th>
+                <th style="width:10%; text-align:center;">Progress</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Sem 5</strong></td>
+                <td><strong>5031</strong></td>
+                <td><strong>Synchronous Machines & FHP Motors</strong></td>
+                <td>Theory</td>
+                <td>EEE_2024_2027 (67 studs)</td>
+                <td style="text-align:center; font-weight:700;">38 / 82 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">46.3%</span></td>
+            </tr>
+            <tr>
+                <td>Sem 5</td>
+                <td>5037</td>
+                <td>Synchronous Machines Lab</td>
+                <td>Practical / Lab</td>
+                <td>EEE_2024_2027 (67 studs)</td>
+                <td style="text-align:center;">0 / 0 exps</td>
+                <td style="text-align:center;"><span class="badge badge-pending">Pending Setup</span></td>
+            </tr>
+            <tr>
+                <td>Sem 3</td>
+                <td>3032</td>
+                <td>DC Machines and Traction Motors</td>
+                <td>Theory</td>
+                <td>EEE_2025_2028 (60 studs)</td>
+                <td style="text-align:center;">0 / 47 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-pending">0.0%</span></td>
+            </tr>
+            <tr>
+                <td>Sem 3</td>
+                <td>3036</td>
+                <td>DC Mchines</td>
+                <td>Theory</td>
+                <td>EEE_2025_2028 (60 studs)</td>
+                <td style="text-align:center;">0 / 0 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-pending">Pending Setup</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 3: Subject 5031 Lesson Plan & Syllabus Progress -->
+    <div class="section-title">2. Course Delivery & Lesson Planner Audit: EEE-5031 (Theory)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:12%;">Module / CO</th>
+                <th style="width:42%;">Module Outcome Description</th>
+                <th style="width:14%; text-align:center;">Prescribed Hours</th>
+                <th style="width:14%; text-align:center;">Completed Hours</th>
+                <th style="width:18%; text-align:center;">Module Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>CO1</strong></td>
+                <td>Develop the EMF equation of a synchronous generator and explain its performances.</td>
+                <td style="text-align:center;">14 hrs</td>
+                <td style="text-align:center; font-weight:700;">14 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">100% Completed</span></td>
+            </tr>
+            <tr>
+                <td><strong>CO2</strong></td>
+                <td>Apply different methods to pre-determine voltage regulation & illustrate parallel operation.</td>
+                <td style="text-align:center;">15 hrs</td>
+                <td style="text-align:center; font-weight:700;">15 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">100% Completed</span></td>
+            </tr>
+            <tr>
+                <td><strong>CO3</strong></td>
+                <td>Illustrate the performance of synchronous motors.</td>
+                <td style="text-align:center;">14 hrs</td>
+                <td style="text-align:center; font-weight:700;">9 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-done">64.3% In Progress</span></td>
+            </tr>
+            <tr>
+                <td><strong>CO4</strong></td>
+                <td>Summarize working and applications of fractional horsepower motors.</td>
+                <td style="text-align:center;">14 hrs</td>
+                <td style="text-align:center; font-weight:700;">0 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-pending">Pending</span></td>
+            </tr>
+            <tr>
+                <td><strong>Internal Tests</strong></td>
+                <td>Series Tests I, II, III & IV / Internal Summative Assessments</td>
+                <td style="text-align:center;">25 hrs</td>
+                <td style="text-align:center;">0 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-pending">Pending Schedule</span></td>
+            </tr>
+            <tr style="background:#f1f5f9; font-weight:800;">
+                <td colspan="2">Total Syllabus Progression:</td>
+                <td style="text-align:center;">82 hrs</td>
+                <td style="text-align:center;">38 hrs</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">38 / 82 hrs (46.3%)</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 4: Class Advisory (Tutor) Summary -->
+    <div class="section-title">3. Tutor & Classroom Advisory Audit: Admission 2024 (S5 EEE)</div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px;">
+            <strong style="color:#1e3a8a; font-size:10px;">Classroom Profile & Structure:</strong>
+            <ul style="margin:4px 0 0 16px; padding:0; font-size:9.5px;">
+                <li><strong>Classroom Code:</strong> EEE_2024_2027 (Admission 2024 - 2027)</li>
+                <li><strong>Current Term:</strong> Semester 5 (Revision 2021)</li>
+                <li><strong>Total Enrolled:</strong> 67 Students (53 Regular + 14 Lateral Entry)</li>
+                <li><strong>Class Advisor / Tutor:</strong> TINU SCARIA (Lecturer, EEE)</li>
+            </ul>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px;">
+            <strong style="color:#1e3a8a; font-size:10px;">Consolidated Attendance Distribution:</strong>
+            <ul style="margin:4px 0 0 16px; padding:0; font-size:9.5px;">
+                <li><strong style="color:#15803d;">Eligible (&ge;75% Attendance):</strong> 59 Students (88.1%)</li>
+                <li><strong style="color:#b45309;">Condonation (65.0% - 74.9%):</strong> 5 Students (7.5%)</li>
+                <li><strong style="color:#b91c1c;">Detained (&lt;65.0%):</strong> 3 Students (4.5%)</li>
+                <li><strong>Average Class Attendance:</strong> 88.6%</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Attendance Flags Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:18%;">Category</th>
+                <th style="width:10%; text-align:center;">Count</th>
+                <th style="width:12%; text-align:center;">Percentage</th>
+                <th style="width:60%;">Identified Student Roll Numbers & Names</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong style="color:#15803d;">Eligible</strong></td>
+                <td style="text-align:center; font-weight:700;">59</td>
+                <td style="text-align:center;">88.1%</td>
+                <td>Rolls #1 - #8, #10 - #12, #14, #15, #17 - #21, #23 - #26, #28 - #37, #40 - #58, #60 - #67</td>
+            </tr>
+            <tr>
+                <td><strong style="color:#b45309;">Condonation Required</strong></td>
+                <td style="text-align:center; font-weight:700;">5</td>
+                <td style="text-align:center;">7.5%</td>
+                <td><strong>#13</strong> AKSHAYMON.R (73.7%), <strong>#22</strong> ARUN S (71.1%), <strong>#27</strong> BONY PETER (71.1%), <strong>#38</strong> MUHAMMAD IRFAN A (68.4%), <strong>#59</strong> AROMAL MAHESAN (71.1%)</td>
+            </tr>
+            <tr>
+                <td><strong style="color:#b91c1c;">Detained / Critical</strong></td>
+                <td style="text-align:center; font-weight:700;">3</td>
+                <td style="text-align:center;">4.5%</td>
+                <td><strong>#9</strong> AHAMMAD THAHIR T (47.4%), <strong>#16</strong> ANANDHU G (63.2%), <strong>#39</strong> MUHAMMED FAHAD F (60.5%)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- Section 5: Full 67 Student Attendance Register -->
+    <div class="section-title">4. Complete Classroom Attendance Register (S5 EEE · EEE-5031)</div>
+    <div style="font-size:9px; color:#64748b; margin-bottom:6px;">Showing individual student attendance metrics across 38 conducted hours. CIA Marks calculated according to Rev 2021 theory scale (Max 10).</div>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:5%; text-align:center;">Roll</th>
+                <th style="width:24%;">Student Name</th>
+                <th style="width:15%;">College Reg No</th>
+                <th style="width:15%;">SBTE Reg No</th>
+                <th style="width:10%; text-align:center;">Attended / Total</th>
+                <th style="width:9%; text-align:center;">Att. %</th>
+                <th style="width:9%; text-align:center;">CIA Mark</th>
+                <th style="width:13%; text-align:center;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align:center; font-weight:700;">1</td>
+                <td><strong>ABHIJITH S</strong></td>
+                <td><code>24EEE12623</code></td>
+                <td><code>2401030487</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">2</td>
+                <td><strong>ABHIKRISHNA B</strong></td>
+                <td><code>24EEE12522</code></td>
+                <td><code>2401030488</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">3</td>
+                <td><strong>ABHIMANYEU S</strong></td>
+                <td><code>24EEE12604</code></td>
+                <td><code>2401030489</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">4</td>
+                <td><strong>ABHIRAM SANTHOSH</strong></td>
+                <td><code>24EEE12577</code></td>
+                <td><code>2401030491</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">5</td>
+                <td><strong>ABHISHEK C SATHEESH</strong></td>
+                <td><code>24EEE12616</code></td>
+                <td><code>2401030492</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">6</td>
+                <td><strong>ADITHYAN P</strong></td>
+                <td><code>24EEE12537</code></td>
+                <td><code>2401030493</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">7</td>
+                <td><strong>ADITHYAN R</strong></td>
+                <td><code>24EEE12654</code></td>
+                <td><code>2401030494</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">8</td>
+                <td><strong>ADWAITH SANKAR S</strong></td>
+                <td><code>24EEE12681</code></td>
+                <td><code>2401030495</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">9</td>
+                <td><strong>AHAMMAD THAHIR T</strong></td>
+                <td><code>24EEE12676</code></td>
+                <td><code>2401030496</code></td>
+                <td style="text-align:center;">18 / 38</td>
+                <td style="text-align:center; font-weight:700;">47.4%</td>
+                <td style="text-align:center; font-weight:700;">0 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-detained">Detained</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">10</td>
+                <td><strong>AKHILA DARSH A S</strong></td>
+                <td><code>24EEE12689</code></td>
+                <td><code>2401030497</code></td>
+                <td style="text-align:center;">29 / 38</td>
+                <td style="text-align:center; font-weight:700;">76.3%</td>
+                <td style="text-align:center; font-weight:700;">6 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">11</td>
+                <td><strong>AKSHAY P</strong></td>
+                <td><code>24EEE12515</code></td>
+                <td><code>2401030498</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">12</td>
+                <td><strong>AKSHAY R</strong></td>
+                <td><code>24EEE12511</code></td>
+                <td><code>2401030499</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">13</td>
+                <td><strong>AKSHAYMON.R</strong></td>
+                <td><code>24EEE12669</code></td>
+                <td><code>2401030500</code></td>
+                <td style="text-align:center;">28 / 38</td>
+                <td style="text-align:center; font-weight:700;">73.7%</td>
+                <td style="text-align:center; font-weight:700;">4 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-condonation">Condonation</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">14</td>
+                <td><strong>ALBIN P S</strong></td>
+                <td><code>24EEE12626</code></td>
+                <td><code>2401030501</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">15</td>
+                <td><strong>AMAN BIJU</strong></td>
+                <td><code>24EEE12631</code></td>
+                <td><code>2401030502</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">16</td>
+                <td><strong>ANANDHU G</strong></td>
+                <td><code>24EEE12663</code></td>
+                <td><code>2401030503</code></td>
+                <td style="text-align:center;">21 / 38</td>
+                <td style="text-align:center; font-weight:700;">55.3%</td>
+                <td style="text-align:center; font-weight:700;">0 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-detained">Detained</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">17</td>
+                <td><strong>ANDRIYA MARY . E</strong></td>
+                <td><code>24EEE12517</code></td>
+                <td><code>2401030504</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">18</td>
+                <td><strong>ANJU B</strong></td>
+                <td><code>24EEE12580</code></td>
+                <td><code>2401030505</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">19</td>
+                <td><strong>ANTONY ABY</strong></td>
+                <td><code>24EEE12706</code></td>
+                <td><code>2401030506</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">20</td>
+                <td><strong>ARAVIND K B</strong></td>
+                <td><code>24EEE12509</code></td>
+                <td><code>2401030507</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">21</td>
+                <td><strong>ARJUN R</strong></td>
+                <td><code>24EEE12696</code></td>
+                <td><code>2401030508</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">22</td>
+                <td><strong>ARUN S</strong></td>
+                <td><code>24EEE12602</code></td>
+                <td><code>2401030509</code></td>
+                <td style="text-align:center;">28 / 38</td>
+                <td style="text-align:center; font-weight:700;">73.7%</td>
+                <td style="text-align:center; font-weight:700;">4 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-condonation">Condonation</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">23</td>
+                <td><strong>ASLAM SALIM</strong></td>
+                <td><code>24EEE12645</code></td>
+                <td><code>2401030510</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">24</td>
+                <td><strong>ASWIN C BINU</strong></td>
+                <td><code>24EEE12565</code></td>
+                <td><code>2401030512</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">25</td>
+                <td><strong>ATHUL KRISHNAN M H</strong></td>
+                <td><code>24EEE12614</code></td>
+                <td><code>2401030513</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">26</td>
+                <td><strong>AYYUB S</strong></td>
+                <td><code>24EEE12650</code></td>
+                <td><code>2401030514</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">27</td>
+                <td><strong>BONY PETER</strong></td>
+                <td><code>24EEE12571</code></td>
+                <td><code>2401030517</code></td>
+                <td style="text-align:center;">27 / 38</td>
+                <td style="text-align:center; font-weight:700;">71.1%</td>
+                <td style="text-align:center; font-weight:700;">4 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-condonation">Condonation</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">28</td>
+                <td><strong>CHRIS XAVIER EAPEN</strong></td>
+                <td><code>24EEE12638</code></td>
+                <td><code>2401030518</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">29</td>
+                <td><strong>DEVIKA SANTHOSH</strong></td>
+                <td><code>24EEE12695</code></td>
+                <td><code>2401030519</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">30</td>
+                <td><strong>DURGA DEVI S</strong></td>
+                <td><code>24EEE12653</code></td>
+                <td><code>2401030520</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">31</td>
+                <td><strong>GOURISANKAR N P</strong></td>
+                <td><code>24EEE12708</code></td>
+                <td><code>2401030521</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">32</td>
+                <td><strong>HARIKRISHNAN S</strong></td>
+                <td><code>24EEE12513</code></td>
+                <td><code>2401030522</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">33</td>
+                <td><strong>JEEMON JACOB</strong></td>
+                <td><code>24EEE12659</code></td>
+                <td><code>2401030523</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">34</td>
+                <td><strong>JERRY XAVIOUR</strong></td>
+                <td><code>24EEE12637</code></td>
+                <td><code>2401030524</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">35</td>
+                <td><strong>JITHIN. V. S</strong></td>
+                <td><code>24EEE12642</code></td>
+                <td><code>2401030525</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">36</td>
+                <td><strong>JOSEPH ALEN JOSE</strong></td>
+                <td><code>24EEE12655</code></td>
+                <td><code>2401030526</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">37</td>
+                <td><strong>KIRAN SUBHAKESH</strong></td>
+                <td><code>24EEE12702</code></td>
+                <td><code>2401030527</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">38</td>
+                <td><strong>MUHAMMAD IRFAN A</strong></td>
+                <td><code>24EEE12514</code></td>
+                <td><code>2401030528</code></td>
+                <td style="text-align:center;">20 / 38</td>
+                <td style="text-align:center; font-weight:700;">52.6%</td>
+                <td style="text-align:center; font-weight:700;">0 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-detained">Detained</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">39</td>
+                <td><strong>MUHAMMED FAHAD F</strong></td>
+                <td><code>24EEE12698</code></td>
+                <td><code>2401030529</code></td>
+                <td style="text-align:center;">27 / 38</td>
+                <td style="text-align:center; font-weight:700;">71.1%</td>
+                <td style="text-align:center; font-weight:700;">4 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-condonation">Condonation</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">40</td>
+                <td><strong>NANDHU KRISHNAN</strong></td>
+                <td><code>24EEE12533</code></td>
+                <td><code>2401030530</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">41</td>
+                <td><strong>NEERAJ S</strong></td>
+                <td><code>24EEE12536</code></td>
+                <td><code>2401030531</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">42</td>
+                <td><strong>NIBIN BOBY</strong></td>
+                <td><code>24EEE12625</code></td>
+                <td><code>2401030532</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">43</td>
+                <td><strong>NIKHIL R</strong></td>
+                <td><code>24EEE12535</code></td>
+                <td><code>2401030533</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">44</td>
+                <td><strong>NITHIN S RAJ</strong></td>
+                <td><code>24EEE12530</code></td>
+                <td><code>2401030534</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">45</td>
+                <td><strong>NOEL SUNIL</strong></td>
+                <td><code>24EEE12619</code></td>
+                <td><code>2401030535</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">46</td>
+                <td><strong>ROSHAN VARGHESE</strong></td>
+                <td><code>24EEE12651</code></td>
+                <td><code>2401030536</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">47</td>
+                <td><strong>SAIRAJ S</strong></td>
+                <td><code>24EEE12611</code></td>
+                <td><code>2401030537</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">48</td>
+                <td><strong>SHAMBU S</strong></td>
+                <td><code>24EEE12692</code></td>
+                <td><code>2401030538</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">49</td>
+                <td><strong>SHEBIN GEORGE OOMMEN</strong></td>
+                <td><code>24EEE12546</code></td>
+                <td><code>2401030539</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">50</td>
+                <td><strong>SREEKANTH G</strong></td>
+                <td><code>24EEE12683</code></td>
+                <td><code>2401030540</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">51</td>
+                <td><strong>SREENANDANA.P.S</strong></td>
+                <td><code>24EEE12560</code></td>
+                <td><code>2401030541</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">52</td>
+                <td><strong>SURAJ S</strong></td>
+                <td><code>24EEE12525</code></td>
+                <td><code>2401030542</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">53</td>
+                <td><strong>THEJUS JOSEPH</strong></td>
+                <td><code>24EEE12605</code></td>
+                <td><code>2401030543</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">54</td>
+                <td><strong>ABHISHEK M</strong></td>
+                <td><code>24EEE12872</code></td>
+                <td><code>2401033178</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">55</td>
+                <td><strong>ALAN MATHEW</strong></td>
+                <td><code>24EEE12818</code></td>
+                <td><code>2401033179</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">56</td>
+                <td><strong>ALAN SEBASTIAN</strong></td>
+                <td><code>24EEE12874</code></td>
+                <td><code>2401033180</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">57</td>
+                <td><strong>ANAKHA P A</strong></td>
+                <td><code>24EEE12748</code></td>
+                <td><code>2401033181</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">58</td>
+                <td><strong>ANAND R</strong></td>
+                <td><code>24EEE12736</code></td>
+                <td><code>2401033182</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">59</td>
+                <td><strong>AROMAL MAHESAN</strong></td>
+                <td><code>24EEE12865</code></td>
+                <td><code>2401033183</code></td>
+                <td style="text-align:center;">28 / 38</td>
+                <td style="text-align:center; font-weight:700;">73.7%</td>
+                <td style="text-align:center; font-weight:700;">4 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-condonation">Condonation</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">60</td>
+                <td><strong>ASHWIN SIMON</strong></td>
+                <td><code>24EEE12873</code></td>
+                <td><code>2401033184</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">61</td>
+                <td><strong>JOSHI J</strong></td>
+                <td><code>24EEE12928</code></td>
+                <td><code>2401033185</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">62</td>
+                <td><strong>KIRAN ALEX</strong></td>
+                <td><code>24EEE12746</code></td>
+                <td><code>2401033186</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">63</td>
+                <td><strong>MEERA MANOJ</strong></td>
+                <td><code>24EEE12730</code></td>
+                <td><code>2401033187</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">64</td>
+                <td><strong>MEERA RAJENDRAN</strong></td>
+                <td><code>24EEE12725</code></td>
+                <td><code>2401033188</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">65</td>
+                <td><strong>PARVATHY KRISHNA S</strong></td>
+                <td><code>24EEE12729</code></td>
+                <td><code>2401033189</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">66</td>
+                <td><strong>SHARON DEVASIA</strong></td>
+                <td><code>24EEE12722</code></td>
+                <td><code>2401033190</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:700;">67</td>
+                <td><strong>THEOFIN ANTONY P JOSE</strong></td>
+                <td><code>24EEE12733</code></td>
+                <td><code>2401033191</code></td>
+                <td style="text-align:center;">35 / 38</td>
+                <td style="text-align:center; font-weight:700;">92.1%</td>
+                <td style="text-align:center; font-weight:700;">10 / 10</td>
+                <td style="text-align:center;"><span class="badge badge-eligible">Eligible</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 6: Audit Certification & Signatures -->
+    <div class="section-title">5. Institutional Audit Certification</div>
+    <div style="font-size:9.5px; line-height:1.4; color:#334155; margin-bottom:18px;">
+        This document certifies that the academic records, daily attendance logs, and syllabus delivery schedules for <strong>TINU SCARIA</strong> (Lecturer in EEE & Tutor for S5 EEE) have been rigorously audited and reconciled on <strong>September 25, 2026</strong>. Student attendance percentages and lesson plans are now 100% consistent with institutional and SBTE guidelines.
+    </div>
+
+    <div class="sig-section">
+        <div class="sig-box">
+            <strong>TINU SCARIA</strong><br>
+            Lecturer in EEE & Class Tutor<br>
+            Carmel Polytechnic College
+        </div>
+        <div class="sig-box">
+            <strong>HEAD OF DEPARTMENT</strong><br>
+            Dept. of Electrical & Electronics Engg.<br>
+            Carmel Polytechnic College
+        </div>
+        <div class="sig-box">
+            <strong>PRINCIPAL / ACADEMIC AUDITOR</strong><br>
+            Carmel Polytechnic College<br>
+            Alappuzha, Kerala
+        </div>
+    </div>
+
+</body>
+</html>

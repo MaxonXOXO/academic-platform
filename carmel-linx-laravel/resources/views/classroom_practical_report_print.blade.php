@@ -267,7 +267,7 @@
                     <td>{{ $t1Val }}</td>
                     <td>{{ $t2Val }}</td>
                     <td>{{ number_format($student->tests['average'] ?? 0, 2) }}</td>
-                    <td style="font-weight: bold; background-color: #fafdfc; color: #0f766e;">{{ number_format($student->total_internal, 2) }}</td>
+                    <td style="font-weight: bold; background-color: #fafdfc; color: #0f766e;">{{ round($student->total_internal) }}</td>
                     <td style="font-weight: bold; background-color: #fafdff; color: #1d4ed8;">{{ $eseDisplay }}</td>
                     <td style="font-weight: bold; background-color: #fffafd; color: #6b21a8;">{{ $finalResultDisplay }}</td>
                 </tr>

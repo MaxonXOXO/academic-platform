@@ -1892,22 +1892,28 @@ class R26VirtualClassroomPracticumController extends Controller
             $batchSubject = BatchSubject::findOrFail($subjectId);
             $practicumFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
             $subjectType = $this->resolveSubjectType($practicumFile, $batchSubject);
-            $patternType = $subjectType['pattern'];
+            $requestedCo = $request->input('co_tag');
+            $requestedPattern = $request->input('pattern_type');
 
-            $coTag = match($seriesNo) {
-                'Series 1', 'CO1' => 'CO1',
-                'Series 2', 'CO2' => 'CO2',
-                'Series 3', 'CO3' => 'CO3',
-                'Series 4', 'CO4' => 'CO4',
-                'Practical Series 1', 'Test 1 (CO1+CO2)' => 'CO1+CO2',
-                'Practical Series 2', 'Test 2 (CO3+CO4)' => 'CO3+CO4',
-                default => 'CO1'
-            };
-
-            $isPractical = (strpos($seriesNo, 'Practical') !== false || strpos($seriesNo, 'Test 1') !== false || strpos($seriesNo, 'Test 2') !== false);
+            $patternType = $subjectType['pattern'] ?? 'table_4_1_standard';
+            $isPractical = (str_contains($seriesNo, 'Practical') || $requestedPattern === 'practical_series');
             if ($isPractical) {
                 $patternType = 'practical_series';
+            } elseif (!empty($requestedPattern)) {
+                $patternType = $requestedPattern;
             }
+
+            $coTag = $requestedCo ?: match($seriesNo) {
+                'Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)' => 'CO1',
+                'Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)' => 'CO2',
+                'Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)' => 'CO3',
+                'Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)' => 'CO4',
+                'Series Exam 1 (CA4)', 'Series 1 (CA4)', 'Series 1 (CO1+CO2)', 'CA4' => 'CO1+CO2',
+                'Series Exam 2 (CA5)', 'Series 2 (CA5)', 'Series 2 (CO3+CO4)', 'CA5' => 'CO3+CO4',
+                'Practical Series 1' => 'CO1+CO2',
+                'Practical Series 2' => 'CO3+CO4',
+                default => 'CO1'
+            };
 
             // ── Try question bank first ────────────────────────────────────
             $bankGrouped = \App\Models\R26QuestionBank::getForSubjectCo(
@@ -1959,16 +1965,23 @@ class R26VirtualClassroomPracticumController extends Controller
                         'CO1' => ['I', '1'],
                         'CO2' => ['II', '2'],
                         'CO3' => ['III', '3'],
-                        'CO4' => ['IV', '4']
+                        'CO4' => ['IV', '4'],
+                        'CO1+CO2' => ['I', '1', 'II', '2'],
+                        'CO3+CO4' => ['III', '3', 'IV', '4']
                     ];
                     $targetIds = $moduleIdMap[$coTag] ?? [];
+                    $combinedTitles = [];
+                    $combinedContents = [];
                     foreach ($parsedModules as $mod) {
                         $mId = strval($mod['module_id'] ?? $mod['id'] ?? '');
                         if (in_array($mId, $targetIds)) {
-                            $moduleTitle = $mod['title'] ?? '';
-                            $moduleContent = $mod['content'] ?? '';
-                            break;
+                            if (!empty($mod['title'])) $combinedTitles[] = $mod['title'];
+                            if (!empty($mod['content'])) $combinedContents[] = $mod['content'];
                         }
+                    }
+                    if (!empty($combinedTitles)) {
+                        $moduleTitle = implode(' & ', $combinedTitles);
+                        $moduleContent = implode('; ', $combinedContents);
                     }
                 }
 
@@ -2169,7 +2182,35 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
                                     ['q_no' => '8(b)', 'text' => "OR: Formulate design equations and draw detailed cross-sectional assembly views for {$topics[1]}.", 'marks' => 10, 'co' => $coTag, 'bloom' => 'Analyze', 'choice_group' => 'Set 2', 'scheme_key' => "Formulated equations (4M) + cross-section layout (4M) + labelling (2M)", 'answer_key' => "Assembled sectional views, labels, and mathematical design for {$topics[1]}."],
                                 ]
                             ];
+                        } elseif (str_contains($coTag, '+')) {
+                            // 50 Marks Combined Series Exam (CA4: Mod I & II or CA5: Mod III & IV)
+                            $coA = ($coTag === 'CO3+CO4') ? 'CO3' : 'CO1';
+                            $coB = ($coTag === 'CO3+CO4') ? 'CO4' : 'CO2';
+
+                            $qpData = [
+                                'part_a' => [
+                                    ['q_no' => '1', 'text' => "Define the fundamental concept and primary function of {$topics[0]}.", 'marks' => 1, 'co' => $coA, 'bloom' => 'Remember', 'scheme_key' => "Correct definition or function = 1M", 'answer_key' => "Standard definition of {$topics[0]} as per the syllabus."],
+                                    ['q_no' => '2', 'text' => "State the standard unit, formula, or law governing {$topics[1]}.", 'marks' => 1, 'co' => $coA, 'bloom' => 'Remember', 'scheme_key' => "Correct law, unit or formula = 1M", 'answer_key' => "Governing law / formula / SI unit for {$topics[1]}."],
+                                    ['q_no' => '3', 'text' => "State the core working principle and operational criterion of {$topics[2]}.", 'marks' => 1, 'co' => $coB, 'bloom' => 'Remember', 'scheme_key' => "Core principle stated = 1M", 'answer_key' => "Basic operating principle of {$topics[2]}."],
+                                    ['q_no' => '4', 'text' => "Identify the primary application domain and significance of {$topics[3]}.", 'marks' => 1, 'co' => $coB, 'bloom' => 'Remember', 'scheme_key' => "Application domain identified = 1M", 'answer_key' => "Primary engineering application of {$topics[3]}."],
+                                ],
+                                'part_b' => [
+                                    ['q_no' => '5', 'text' => "Explain the working mechanism of {$topics[0]} using a neat schematic diagram.", 'marks' => 3, 'co' => $coA, 'bloom' => 'Understand', 'scheme_key' => "Explanation (2M) + diagram (1M)", 'answer_key' => "Schematic representation and process explanation for {$topics[0]}."],
+                                    ['q_no' => '6', 'text' => "Distinguish between the key characteristics of {$topics[1]} and standard alternatives.", 'marks' => 3, 'co' => $coA, 'bloom' => 'Understand', 'scheme_key' => "Comparison points listed (3M)", 'answer_key' => "At least 3 valid comparison points for {$topics[1]}."],
+                                    ['q_no' => '7', 'text' => "Derive the mathematical expression or setup equation for {$topics[2]} response.", 'marks' => 3, 'co' => $coA, 'bloom' => 'Apply', 'scheme_key' => "Derivation setup (1M) + step-by-step derivation (2M)", 'answer_key' => "Analytical derivation leading to standard expression for {$topics[2]}."],
+                                    ['q_no' => '8', 'text' => "Describe the functional setup and measurement technique for {$topics[3]}.", 'marks' => 3, 'co' => $coB, 'bloom' => 'Understand', 'scheme_key' => "Setup description (2M) + measurement procedure (1M)", 'answer_key' => "Detailed procedural steps and measurement techniques for {$topics[3]}."],
+                                    ['q_no' => '9', 'text' => "Apply governing equations to determine key parameters of {$topics[4]}.", 'marks' => 3, 'co' => $coB, 'bloom' => 'Apply', 'scheme_key' => "Formula setup (1M) + parameter determination (2M)", 'answer_key' => "Quantitative calculation and parameter values for {$topics[4]}."],
+                                    ['q_no' => '10', 'text' => "Analyze the effects of environmental and operational variations on {$topics[5]}.", 'marks' => 3, 'co' => $coB, 'bloom' => 'Understand', 'scheme_key' => "Analysis of variations (2M) + impact factors (1M)", 'answer_key' => "Operational impacts and behavioral shifts in {$topics[5]}."],
+                                ],
+                                'part_c' => [
+                                    ['q_no' => '11(a)', 'text' => "Design and analyze a complete system for {$topics[6]} to satisfy given technical requirements.", 'marks' => 7, 'co' => $coA, 'bloom' => 'Analyze', 'choice_group' => 'Set 1', 'scheme_key' => "System setup (2M) + calculations (3M) + diagram (2M)", 'answer_key' => "Complete layout, design specifications, and schematic diagram for {$topics[6]}."],
+                                    ['q_no' => '11(b)', 'text' => "OR: Evaluate the performance parameters and construct detailed working equations for {$topics[0]}.", 'marks' => 7, 'co' => $coA, 'bloom' => 'Analyze', 'choice_group' => 'Set 1', 'scheme_key' => "Parameters list (2M) + working equations (3M) + validation (2M)", 'answer_key' => "Performance validation and mathematical models for {$topics[0]}."],
+                                    ['q_no' => '12(a)', 'text' => "Formulate and solve the engineering implementation problem for {$topics[7]} with complete working.", 'marks' => 7, 'co' => $coB, 'bloom' => 'Analyze', 'choice_group' => 'Set 2', 'scheme_key' => "Problem setup (2M) + step-by-step solution (4M) + results (1M)", 'answer_key' => "Full design solution, steps, and final results for {$topics[7]} application."],
+                                    ['q_no' => '12(b)', 'text' => "OR: Conduct comprehensive theoretical analysis and comparative evaluation of {$topics[2]}.", 'marks' => 7, 'co' => $coB, 'bloom' => 'Analyze', 'choice_group' => 'Set 2', 'scheme_key' => "Theoretical analysis (3M) + evaluation matrix (3M) + conclusion (1M)", 'answer_key' => "Comparative study, performance curves, and analytical synthesis for {$topics[2]}."],
+                                ]
+                            ];
                         } else {
+                            // Standard 25 Marks Single CO Test (Table 4.1)
                             $qpData = [
                                 'part_a' => [
                                     ['q_no' => '1', 'text' => "Define the fundamental concept and primary function of {$topics[0]}.", 'marks' => 1, 'co' => $coTag, 'bloom' => 'Remember', 'scheme_key' => "Correct definition or function = 1M", 'answer_key' => "Standard definition of {$topics[0]} as per the syllabus."],
@@ -2303,17 +2344,128 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
     }
 
     /**
+     * Reset / Delete Series Exam Question Paper for a given series.
+     * Note: This strictly clears only the QP document record; it does NOT affect student evaluation marks, attendance, or lesson plans.
+     */
+    public function resetSeriesQp(Request $request, $subjectId, $seriesNo)
+    {
+        try {
+            $seriesNo = str_replace('+', ' ', urldecode($seriesNo));
+            $deleted = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)
+                ->where('series_no', $seriesNo)
+                ->delete();
+
+            return response()->json([
+                'status' => 'SUCCESS',
+                'message' => "Question paper for '{$seriesNo}' has been reset successfully. You can now generate a new question paper.",
+                'deleted' => $deleted
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Resolve existing QP record, check common aliases, or auto-generate on-the-fly.
+     * Prevents 404 ModelNotFoundException when printing question papers, schemes, or answer keys.
+     */
+    private function resolveOrGenerateQpRecord($batchSubject, $practicumCourseFile, $subjectId, $seriesNo)
+    {
+        $cleanSeriesNo = trim(str_replace('+', ' ', urldecode($seriesNo)));
+
+        // 1. Direct match
+        $qpRecord = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)
+            ->where('series_no', $cleanSeriesNo)
+            ->first();
+
+        if ($qpRecord) {
+            return $qpRecord;
+        }
+
+        // 2. Check aliases
+        $aliasMap = [
+            'Series 1' => ['Series 1', 'Test 1', 'Test 1 (CO1)', 'Series Exam 1 (CA4)', 'Series 1 (CA4)', 'CO1'],
+            'Test 1' => ['Series 1', 'Test 1', 'Test 1 (CO1)', 'Series Exam 1 (CA4)', 'Series 1 (CA4)', 'CO1'],
+            'Test 1 (CO1)' => ['Series 1', 'Test 1', 'Test 1 (CO1)', 'Series Exam 1 (CA4)', 'Series 1 (CA4)', 'CO1'],
+            'Series Exam 1 (CA4)' => ['Series Exam 1 (CA4)', 'Series 1 (CA4)', 'Series 1', 'Test 1', 'Test 1 (CO1)'],
+            'Series 1 (CA4)' => ['Series Exam 1 (CA4)', 'Series 1 (CA4)', 'Series 1', 'Test 1', 'Test 1 (CO1)'],
+
+            'Series 2' => ['Series 2', 'Test 2', 'Test 2 (CO2)', 'Series Exam 2 (CA5)', 'Series 2 (CA5)', 'CO2'],
+            'Test 2' => ['Series 2', 'Test 2', 'Test 2 (CO2)', 'Series Exam 2 (CA5)', 'Series 2 (CA5)', 'CO2'],
+            'Test 2 (CO2)' => ['Series 2', 'Test 2', 'Test 2 (CO2)', 'Series Exam 2 (CA5)', 'Series 2 (CA5)', 'CO2'],
+            'Series Exam 2 (CA5)' => ['Series Exam 2 (CA5)', 'Series 2 (CA5)', 'Series 2', 'Test 2', 'Test 2 (CO2)'],
+            'Series 2 (CA5)' => ['Series Exam 2 (CA5)', 'Series 2 (CA5)', 'Series 2', 'Test 2', 'Test 2 (CO2)'],
+
+            'Series 3' => ['Series 3', 'Test 3', 'Test 3 (CO3)', 'CO3'],
+            'Test 3' => ['Series 3', 'Test 3', 'Test 3 (CO3)', 'CO3'],
+            'Test 3 (CO3)' => ['Series 3', 'Test 3', 'Test 3 (CO3)', 'CO3'],
+
+            'Series 4' => ['Series 4', 'Test 4', 'Test 4 (CO4)', 'CO4'],
+            'Test 4' => ['Series 4', 'Test 4', 'Test 4 (CO4)', 'CO4'],
+            'Test 4 (CO4)' => ['Series 4', 'Test 4', 'Test 4 (CO4)', 'CO4'],
+
+            'Practical Series 1' => ['Practical Series 1', 'Series 1', 'Test 1'],
+            'Practical Series 2' => ['Practical Series 2', 'Series 2', 'Test 2'],
+        ];
+
+        $aliases = $aliasMap[$cleanSeriesNo] ?? [$cleanSeriesNo];
+        $qpRecord = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)
+            ->whereIn('series_no', $aliases)
+            ->first();
+
+        if ($qpRecord) {
+            return $qpRecord;
+        }
+
+        // 3. Fallback: Auto-generate via generateSeriesQp and persist to DB
+        $req = new Request();
+        $resp = $this->generateSeriesQp($req, $subjectId, $cleanSeriesNo);
+        $respData = $resp->getData(true);
+        $qpData = $respData['qp_data'] ?? [];
+        $coTag = $respData['co_tag'] ?? 'CO1';
+        $patternType = $respData['pattern_type'] ?? 'table_4_1_standard';
+
+        $maxMarks = ($patternType === 'practical_series') ? 40 : (($patternType === 'table_4_2_design') ? 50 : (str_contains($coTag, '+') ? 50 : 25));
+        $duration = ($patternType === 'practical_series' || str_contains($coTag, '+') || str_contains($coTag, ',')) ? 120 : 60;
+
+        $userId = Session::get('userId');
+
+        return \App\Models\R26SeriesExamQp::create([
+            'batch_subject_id' => $subjectId,
+            'series_no'        => $cleanSeriesNo,
+            'co_tag'           => $coTag,
+            'pattern_type'     => $patternType,
+            'max_marks'        => $maxMarks,
+            'duration_minutes' => $duration,
+            'qp_data'          => $qpData,
+            'scheme_data'      => $qpData,
+            'answer_key'       => $qpData,
+            'status'           => 'auto_generated',
+            'created_by'       => $userId,
+        ]);
+    }
+
+    /**
      * Print Series Question Paper PDF View
      */
     public function printSeriesQpPdf($subjectId, $seriesNo)
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
-        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
-        $seriesNo = str_replace('+', ' ', urldecode($seriesNo));
-        $qpRecord = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)->where('series_no', $seriesNo)->firstOrFail();
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$practicumCourseFile) {
+            $practicumCourseFile = new R26PracticumCourseFile(['batch_subject_id' => $subjectId]);
+        }
+        $cleanSeriesNo = trim(str_replace('+', ' ', urldecode($seriesNo)));
+        $qpRecord = $this->resolveOrGenerateQpRecord($batchSubject, $practicumCourseFile, $subjectId, $cleanSeriesNo);
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
-        return view('r26_practicum.series_qp_print', array_merge($meta, compact('batchSubject', 'practicumCourseFile', 'qpRecord', 'seriesNo', 'subjectType')));
+        return view('r26_practicum.series_qp_print', array_merge($meta, [
+            'batchSubject' => $batchSubject,
+            'practicumCourseFile' => $practicumCourseFile,
+            'qpRecord' => $qpRecord,
+            'seriesNo' => $cleanSeriesNo,
+            'subjectType' => $subjectType
+        ]));
     }
 
     /**
@@ -2323,11 +2475,20 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
-        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
-        $seriesNo = str_replace('+', ' ', urldecode($seriesNo));
-        $qpRecord = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)->where('series_no', $seriesNo)->firstOrFail();
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$practicumCourseFile) {
+            $practicumCourseFile = new R26PracticumCourseFile(['batch_subject_id' => $subjectId]);
+        }
+        $cleanSeriesNo = trim(str_replace('+', ' ', urldecode($seriesNo)));
+        $qpRecord = $this->resolveOrGenerateQpRecord($batchSubject, $practicumCourseFile, $subjectId, $cleanSeriesNo);
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
-        return view('r26_practicum.series_scheme_print', array_merge($meta, compact('batchSubject', 'practicumCourseFile', 'qpRecord', 'seriesNo', 'subjectType')));
+        return view('r26_practicum.series_scheme_print', array_merge($meta, [
+            'batchSubject' => $batchSubject,
+            'practicumCourseFile' => $practicumCourseFile,
+            'qpRecord' => $qpRecord,
+            'seriesNo' => $cleanSeriesNo,
+            'subjectType' => $subjectType
+        ]));
     }
 
     /**
@@ -2337,11 +2498,20 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
     {
         $batchSubject = BatchSubject::findOrFail($subjectId);
         $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
-        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
-        $seriesNo = str_replace('+', ' ', urldecode($seriesNo));
-        $qpRecord = \App\Models\R26SeriesExamQp::where('batch_subject_id', $subjectId)->where('series_no', $seriesNo)->firstOrFail();
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$practicumCourseFile) {
+            $practicumCourseFile = new R26PracticumCourseFile(['batch_subject_id' => $subjectId]);
+        }
+        $cleanSeriesNo = trim(str_replace('+', ' ', urldecode($seriesNo)));
+        $qpRecord = $this->resolveOrGenerateQpRecord($batchSubject, $practicumCourseFile, $subjectId, $cleanSeriesNo);
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
-        return view('r26_practicum.series_answer_key_print', array_merge($meta, compact('batchSubject', 'practicumCourseFile', 'qpRecord', 'seriesNo', 'subjectType')));
+        return view('r26_practicum.series_answer_key_print', array_merge($meta, [
+            'batchSubject' => $batchSubject,
+            'practicumCourseFile' => $practicumCourseFile,
+            'qpRecord' => $qpRecord,
+            'seriesNo' => $cleanSeriesNo,
+            'subjectType' => $subjectType
+        ]));
     }
 
     /**

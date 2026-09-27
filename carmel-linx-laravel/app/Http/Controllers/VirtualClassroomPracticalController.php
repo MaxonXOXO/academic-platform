@@ -424,6 +424,9 @@ class VirtualClassroomPracticalController extends Controller
 
             // 2. Open-Ended (max 7.5 direct — stored as micro_project in PracticalEvaluation)
             $eval = $evalMap->get($regNo);
+            if ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '') {
+                $avgLabWork375 = round((float)$eval->lab_work_marks, 2);
+            }
             $openEndedMark = $eval ? round((float)$eval->micro_project, 2) : 0.0;
 
             // 3. Tests — avg of Test 1 + Test 2 total scores (each max 15)
@@ -441,7 +444,7 @@ class VirtualClassroomPracticalController extends Controller
             $attMark = $attendanceMarks[$regNo]['mark'] ?? 0;
 
             // CIA Total out of 75
-            $totalCIA = round($avgLabWork375 + $openEndedMark + $scaledTests15 + $attMark, 2);
+            $totalCIA = (float)round($avgLabWork375 + $openEndedMark + $scaledTests15 + $attMark);
 
             $consolidatedScores[$regNo] = [
                 'avg_lab_work_375'    => $avgLabWork375,
@@ -680,6 +683,7 @@ class VirtualClassroomPracticalController extends Controller
         $assessorMobile = $staff->mobile_no ?? Session::get('userId');
 
         $regNo          = $request->input('reg_no');
+        $labWorkMark    = $request->has('lab_work_mark') && $request->input('lab_work_mark') !== '' && $request->input('lab_work_mark') !== null ? (float)$request->input('lab_work_mark') : ($request->has('lab_work_marks') && $request->input('lab_work_marks') !== '' && $request->input('lab_work_marks') !== null ? (float)$request->input('lab_work_marks') : null);
         $openEndedMark  = $request->has('open_ended_mark') && $request->input('open_ended_mark') !== '' && $request->input('open_ended_mark') !== null ? (float)$request->input('open_ended_mark') : null;
         $openEndedTopic = $request->input('open_ended_topic');
         $test1          = $request->has('test1') && $request->input('test1') !== '' && $request->input('test1') !== null ? (float)$request->input('test1') : null;
@@ -696,6 +700,9 @@ class VirtualClassroomPracticalController extends Controller
             'reg_no'           => $regNo
         ]);
         $eval->assessor_mobile_no = $assessorMobile;
+        if ($request->has('lab_work_mark') || $request->has('lab_work_marks')) {
+            $eval->lab_work_marks = $labWorkMark !== null ? min(37.5, max(0, $labWorkMark)) : null;
+        }
         if ($openEndedMark !== null) {
             $eval->micro_project = min(7.5, max(0, $openEndedMark));
         }
@@ -740,6 +747,9 @@ class VirtualClassroomPracticalController extends Controller
         $sumExp = $allExpMarks->sum('total_mark');
         $cntExp = $allExpMarks->count();
         $avgLabWork = $cntExp > 0 ? round($sumExp / $cntExp, 2) : 0.0;
+        if ($eval->lab_work_marks !== null && $eval->lab_work_marks !== '') {
+            $avgLabWork = (float)$eval->lab_work_marks;
+        }
 
         $t1Score = $test1;
         $t2Score = $test2;
@@ -767,7 +777,7 @@ class VirtualClassroomPracticalController extends Controller
 
         $attVal = $attendanceMark ?? (float)($eval->attendance_marks ?? 0);
         $oeVal  = $openEndedMark ?? (float)($eval->micro_project ?? 0);
-        $totalCIA = round($avgLabWork + $oeVal + $scaledTests15 + $attVal, 2);
+        $totalCIA = (float)round($avgLabWork + $oeVal + $scaledTests15 + $attVal);
 
         // Sync StudentSemesterMarks
         try {
@@ -913,7 +923,7 @@ class VirtualClassroomPracticalController extends Controller
             $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
 
             // Total Internal Assessment (Max 75)
-            $totalInternal = round($avgLabWork + $microProject + $avgTests + $attendanceMarks, 2);
+            $totalInternal = (float)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
 
             $student->avg_rough_record = $avgRough;
             $student->avg_fair_record  = $avgFair;
@@ -1413,7 +1423,7 @@ class VirtualClassroomPracticalController extends Controller
         $avgLabWork     = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
 
         // Total Internal CIA (Max 75)
-        $totalInternal = round($avgLabWork + $microProject + $avgTests + $attendanceMarks, 2);
+        $totalInternal = (float)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
 
         // ESE and Final Results calculation
         $eseDisplay = '-';

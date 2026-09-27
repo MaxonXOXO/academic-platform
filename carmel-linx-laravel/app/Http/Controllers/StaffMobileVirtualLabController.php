@@ -246,7 +246,7 @@ class StaffMobileVirtualLabController extends Controller
             $avgTest40     = $scaledTests15;
 
             // ── CIA Total (identical formula to desktop) ───────────────────────
-            $totalCIA = round($avgLabWork + $openEndedMarks + $scaledTests15 + $attendanceMarks, 2);
+            $totalCIA = (float)round($avgLabWork + $openEndedMarks + $scaledTests15 + $attendanceMarks);
 
             // ── Experiment detail for popup (all exps, graded & ungraded) ──────
             $expDetail = [];

@@ -838,18 +838,23 @@
                                     class="w-full py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-sky-300 text-center block">
                                     🖨️ Print QP
                                 </a>
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block">
-                                        📋 Scheme
-                                    </a>
-                                    <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block">
-                                        🔑 Key
-                                    </a>
-                                </div>
-                            </div>
-                            @endif
+                                        <div class="grid grid-cols-2 gap-1.5">
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-750 text-slate-300 text-center block">
+                                                📋 Scheme
+                                            </a>
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-750 text-slate-300 text-center block">
+                                                🔑 Key
+                                            </a>
+                                        </div>
+                                        <!-- Reset Test Button -->
+                                        <button type="button" onclick="confirmResetSeriesQp('{{ $series }}')"
+                                            class="w-full py-1 rounded-lg text-[11px] font-semibold bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/40 text-rose-300 hover:text-rose-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1">
+                                            <span>🔄 Reset Test</span>
+                                        </button>
+                                    </div>
+                                    @endif
                         </div>
                         @endforeach
                     </div><!-- /grid -->
@@ -3970,6 +3975,48 @@
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
 
     let _currentSeries = '', _currentCo = '', _currentPattern = QP_PATTERN, _draftQp = {};
+
+    async function confirmResetSeriesQp(seriesNo) {
+        if (!confirm(`Are you sure you want to reset the Question Paper for "${seriesNo}"?\n\nThis will clear the generated Question Paper, Evaluation Scheme, and Answer Key document so you can generate a new one.\n\n(Note: This only affects the Question Paper tool; it will NOT affect student evaluation marks or lesson plans.)`)) {
+            return;
+        }
+        const statusEl = document.getElementById('qp-gen-status');
+        if (statusEl) {
+            statusEl.classList.remove('hidden');
+            statusEl.style.color = '#38bdf8';
+            statusEl.innerHTML = `🔄 Resetting question paper for <strong>${seriesNo}</strong>...`;
+        }
+
+        try {
+            const res = await fetch(`/api/r26/classroom/practicum/${SUBJECT_ID}/series-qp/reset/${encodeURIComponent(seriesNo)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF
+                }
+            });
+            const data = await res.json();
+            if (data.status === 'SUCCESS') {
+                if (statusEl) {
+                    statusEl.style.color = '#4ade80';
+                    statusEl.innerHTML = `✅ ${data.message}`;
+                }
+                setTimeout(() => location.reload(), 600);
+            } else {
+                alert('Error resetting QP: ' + data.message);
+                if (statusEl) {
+                    statusEl.style.color = '#f87171';
+                    statusEl.innerHTML = `❌ Error: ${data.message}`;
+                }
+            }
+        } catch(e) {
+            alert('Network error: ' + e.message);
+            if (statusEl) {
+                statusEl.style.color = '#f87171';
+                statusEl.innerHTML = `❌ Network Error: ${e.message}`;
+            }
+        }
+    }
  
     async function openQpPreviewModal(seriesNo, coTag, mode) {
         _currentSeries = seriesNo;

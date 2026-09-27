@@ -1526,8 +1526,25 @@ Syllabus Text:
                         ->whereIn('reg_no', $studentRegNos)
                         ->get();
 
+            // Load practical tests & evaluations for practical / virtual lab subjects
+            $pracTests = collect();
+            $pracTestMarks = collect();
+            $pracEvaluations = collect();
+            $isPracticalSubject = false;
+            $subjectTypeRaw = strtolower($batchSubject->subject_type ?? '');
+            $subjectNameRaw = strtolower($batchSubject->subject_name ?? '');
+            if (str_contains($subjectTypeRaw, 'practical') || str_contains($subjectTypeRaw, 'lab') || str_contains($subjectNameRaw, 'lab') || str_contains($subjectNameRaw, 'practical')) {
+                $isPracticalSubject = true;
+            }
+            if ($isPracticalSubject || \App\Models\PracticalTest::where('batch_subject_id', $subjectId)->exists() || \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->exists()) {
+                $pracTests = \App\Models\PracticalTest::where('batch_subject_id', $subjectId)->get();
+                $pracTestIds = $pracTests->pluck('id')->toArray();
+                $pracTestMarks = \App\Models\PracticalTestMark::whereIn('practical_test_id', $pracTestIds)->whereIn('reg_no', $studentRegNos)->get();
+                $pracEvaluations = \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->whereIn('reg_no', $studentRegNos)->get();
+            }
+
             // Map marks and submissions to students
-            $students = $students->map(function ($student) use ($marks, $summativeMarks, $taskSubmissions) {
+            $students = $students->map(function ($student) use ($batchSubject, $marks, $summativeMarks, $taskSubmissions, $pracTests, $pracTestMarks, $pracEvaluations) {
                 $studentMarks = $marks->where('reg_no', $student->reg_no);
                 $coMarks = [];
                 $coSubmissions = [];
@@ -1548,6 +1565,58 @@ Syllabus Text:
                     $coSummative[$co] = ($mark && is_numeric($mark->marks_obtained)) ? (float)$mark->marks_obtained : null;
                 }
                 $student->summative_marks = $coSummative;
+
+                // Practical tests and board grade mapping
+                $pT1 = $pracTests->where('test_name', 'Test 1')->first();
+                $pT2 = $pracTests->where('test_name', 'Test 2')->first();
+
+                $t1Co1 = $pT1 ? $pracTestMarks->where('practical_test_id', $pT1->id)->where('reg_no', $student->reg_no)->where('co_tag', 'CO1')->first() : null;
+                $t1Co2 = $pT1 ? $pracTestMarks->where('practical_test_id', $pT1->id)->where('reg_no', $student->reg_no)->where('co_tag', 'CO2')->first() : null;
+                $t2Co3 = $pT2 ? $pracTestMarks->where('practical_test_id', $pT2->id)->where('reg_no', $student->reg_no)->where('co_tag', 'CO3')->first() : null;
+                $t2Co4 = $pT2 ? $pracTestMarks->where('practical_test_id', $pT2->id)->where('reg_no', $student->reg_no)->where('co_tag', 'CO4')->first() : null;
+
+                $scoreT1 = ($t1Co1 ? (float)$t1Co1->marks_obtained : 0.0) + ($t1Co2 ? (float)$t1Co2->marks_obtained : 0.0);
+                $scoreT2 = ($t2Co3 ? (float)$t2Co3->marks_obtained : 0.0) + ($t2Co4 ? (float)$t2Co4->marks_obtained : 0.0);
+
+                if ($scoreT1 > 15.0 && $t1Co1 && $t1Co2 && (float)$t1Co1->marks_obtained == (float)$t1Co2->marks_obtained) {
+                    $scoreT1 = (float)$t1Co1->marks_obtained;
+                }
+                if ($scoreT2 > 15.0 && $t2Co3 && $t2Co4 && (float)$t2Co3->marks_obtained == (float)$t2Co4->marks_obtained) {
+                    $scoreT2 = (float)$t2Co3->marks_obtained;
+                }
+
+                $hasT1 = ($t1Co1 !== null || $t1Co2 !== null);
+                $hasT2 = ($t2Co3 !== null || $t2Co4 !== null);
+                $avgTests = ($hasT1 || $hasT2) ? round(($scoreT1 + $scoreT2) / (($hasT1 && $hasT2) ? 2 : 1), 2) : 0.0;
+
+                $pEval = $pracEvaluations->where('reg_no', $student->reg_no)->first();
+                $boardExam = $pEval ? $pEval->board_exam_marks : null;
+                if ($boardExam === null && \Schema::hasTable('student_board_grades')) {
+                    $bgRow = \DB::table('student_board_grades')->where('reg_no', $student->reg_no)->where('subject_code', $batchSubject->subject_code)->first();
+                    if ($bgRow) {
+                        $boardExam = $bgRow->grade;
+                    }
+                }
+
+                $student->tests = [
+                    'Test 1' => [
+                        'CO1' => $t1Co1 ? (float)$t1Co1->marks_obtained : 0.0,
+                        'CO2' => $t1Co2 ? (float)$t1Co2->marks_obtained : 0.0,
+                        'total' => $hasT1 ? $scoreT1 : 0.0
+                    ],
+                    'Test 2' => [
+                        'CO3' => $t2Co3 ? (float)$t2Co3->marks_obtained : 0.0,
+                        'CO4' => $t2Co4 ? (float)$t2Co4->marks_obtained : 0.0,
+                        'total' => $hasT2 ? $scoreT2 : 0.0
+                    ],
+                    'average' => $avgTests
+                ];
+                $student->practical_test1 = $hasT1 ? $scoreT1 : null;
+                $student->practical_test2 = $hasT2 ? $scoreT2 : null;
+                $student->series1_score = $hasT1 ? $scoreT1 : null;
+                $student->series2_score = $hasT2 ? $scoreT2 : null;
+                $student->board_exam_marks = $boardExam;
+                $student->lab_work_marks = $pEval ? $pEval->lab_work_marks : null;
 
                 return $student;
             });
@@ -4595,16 +4664,30 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgVivaVoce = round($sumViva / $totalDivisor, 2);
             $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
 
+            $hasDirectLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
+            if ($hasDirectLabWork) {
+                $avgLabWork = (float)$eval->lab_work_marks;
+                if ($sumRough == 0 && $sumFair == 0 && $sumObsPrep == 0 && $sumProcPunct == 0 && $sumViva == 0 && $avgLabWork > 0) {
+                    $avgRoughRecord = round($avgLabWork * (5.0 / 37.5), 2);
+                    $avgFairRecord  = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgObsPrep     = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgProcPunct   = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgVivaVoce    = round($avgLabWork - ($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct), 2);
+                }
+            }
+
             // Practical tests marks
             $t1 = $tests->where('test_name', 'Test 1')->first();
             $t2 = $tests->where('test_name', 'Test 2')->first();
 
             $scoreT1 = $t1 ? (float)$testMarks->where('practical_test_id', $t1->id)->where('reg_no', $regNo)->sum('marks_obtained') : 0.0;
             $scoreT2 = $t2 ? (float)$testMarks->where('practical_test_id', $t2->id)->where('reg_no', $regNo)->sum('marks_obtained') : 0.0;
+            if ($scoreT1 > 15.0) $scoreT1 = round($scoreT1 / 2, 2);
+            if ($scoreT2 > 15.0) $scoreT2 = round($scoreT2 / 2, 2);
             $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
 
             // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15]
-            $totalInternal = round($avgTests + $avgLabWork + $microProject + $attendanceMarks, 2);
+            $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
 
             $student->avg_rough_record = $avgRoughRecord;
             $student->avg_fair_record = $avgFairRecord;
@@ -5195,7 +5278,13 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
                 ? (float)$eval->attendance_marks
                 : $calculatedAttendanceMarks;
-            $boardExam = $eval ? ($eval->board_exam_marks !== null ? (float)$eval->board_exam_marks : null) : null;
+            $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
+            if ($boardExam === null && \Schema::hasTable('student_board_grades')) {
+                $bgRow = \DB::table('student_board_grades')->where('reg_no', $regNo)->where('subject_code', $batchSubject->subject_code)->first();
+                if ($bgRow) {
+                    $boardExam = $bgRow->grade;
+                }
+            }
 
             // Graded/attended experiments list & average calculation
             $studentExpMarks = [];
@@ -5257,7 +5346,11 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
                 $studentExpMarks[$exp->id] = [
                     'prerequisites' => $hasScore ? (float)$mark->prerequisites : null,
+                    'prerequisite' => $hasScore ? (float)$mark->prerequisites : null,
+                    'obs_prep' => $hasScore ? (float)$mark->prerequisites : null,
                     'work_done' => $hasScore ? (float)$mark->work_done : null,
+                    'execution' => $hasScore ? (float)$mark->work_done : null,
+                    'proc_punct' => $hasScore ? (float)$mark->work_done : null,
                     'result' => $hasScore ? (float)$mark->result : null,
                     'viva_voce' => $hasScore ? (float)$mark->result : null,
                     'rough_record' => $hasScore ? (float)$mark->rough_record : null,
@@ -5288,7 +5381,19 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgObsPrep     = round($sumObsPrep / $totalDivisor, 2);
             $avgProcPunct   = round($sumProcPunct / $totalDivisor, 2);
             $avgVivaVoce    = round($sumViva / $totalDivisor, 2);
-            $avgLabWork     = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
+            $calculatedSplitAvg = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
+
+            $directLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '') ? (float)$eval->lab_work_marks : null;
+            $hasDirectLabWork = ($directLabWork !== null);
+            $avgLabWork = $hasDirectLabWork ? $directLabWork : $calculatedSplitAvg;
+
+            if ($hasDirectLabWork && $sumRough == 0 && $sumFair == 0 && $sumObsPrep == 0 && $sumProcPunct == 0 && $sumViva == 0 && $avgLabWork > 0) {
+                $avgRoughRecord = round($avgLabWork * (5.0 / 37.5), 2);
+                $avgFairRecord  = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgObsPrep     = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgProcPunct   = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgVivaVoce    = round($avgLabWork - ($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct), 2);
+            }
 
             // Practical tests marks per CO
             $t1 = $tests->where('test_name', 'Test 1')->first();
@@ -5301,10 +5406,21 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
             $scoreT1 = ($t1Co1 ? (float)$t1Co1->marks_obtained : 0.0) + ($t1Co2 ? (float)$t1Co2->marks_obtained : 0.0);
             $scoreT2 = ($t2Co3 ? (float)$t2Co3->marks_obtained : 0.0) + ($t2Co4 ? (float)$t2Co4->marks_obtained : 0.0);
-            $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
+
+            // Safeguard against legacy duplicate marks exceeding 15
+            if ($scoreT1 > 15.0 && $t1Co1 && $t1Co2 && (float)$t1Co1->marks_obtained == (float)$t1Co2->marks_obtained) {
+                $scoreT1 = (float)$t1Co1->marks_obtained;
+            }
+            if ($scoreT2 > 15.0 && $t2Co3 && $t2Co4 && (float)$t2Co3->marks_obtained == (float)$t2Co4->marks_obtained) {
+                $scoreT2 = (float)$t2Co3->marks_obtained;
+            }
+
+            $hasT1 = ($t1Co1 !== null || $t1Co2 !== null);
+            $hasT2 = ($t2Co3 !== null || $t2Co4 !== null);
+            $avgTests = ($hasT1 || $hasT2) ? round(($scoreT1 + $scoreT2) / (($hasT1 && $hasT2) ? 2 : 1), 2) : 0.0;
 
             // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15]
-            $totalInternal = round($avgTests + $avgLabWork + $microProject + $attendanceMarks, 2);
+            $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
 
             return [
                 'reg_no' => $regNo,
@@ -5325,6 +5441,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'open_ended_topic' => $openEndedTopic,
                 'board_exam_marks' => $boardExam,
                 'experiments_marks' => $studentExpMarks,
+                'lab_work_marks' => $directLabWork,
+                'is_direct_lab_work' => $hasDirectLabWork,
+                'calculated_split_avg' => $calculatedSplitAvg,
                 'avg_rough_record' => $avgRoughRecord,
                 'avg_fair_record' => $avgFairRecord,
                 'avg_obs_prep' => $avgObsPrep,
@@ -5335,15 +5454,19 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                     'Test 1' => [
                         'CO1' => $t1Co1 ? (float)$t1Co1->marks_obtained : 0.0,
                         'CO2' => $t1Co2 ? (float)$t1Co2->marks_obtained : 0.0,
-                        'total' => $scoreT1
+                        'total' => $hasT1 ? $scoreT1 : 0.0
                     ],
                     'Test 2' => [
                         'CO3' => $t2Co3 ? (float)$t2Co3->marks_obtained : 0.0,
                         'CO4' => $t2Co4 ? (float)$t2Co4->marks_obtained : 0.0,
-                        'total' => $scoreT2
+                        'total' => $hasT2 ? $scoreT2 : 0.0
                     ],
                     'average' => $avgTests
                 ],
+                'practical_test1' => $hasT1 ? $scoreT1 : null,
+                'practical_test2' => $hasT2 ? $scoreT2 : null,
+                'series1_score' => $hasT1 ? $scoreT1 : null,
+                'series2_score' => $hasT2 ? $scoreT2 : null,
                 'total_internal' => $totalInternal
             ];
         });
@@ -5381,6 +5504,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         $request->validate([
             'reg_no' => 'required|string',
+            'lab_work_marks' => 'nullable|numeric|min:0|max:37.5',
             'micro_project' => 'nullable|numeric|min:0|max:7.5',
             'open_ended_project_topic' => 'nullable|string|max:255',
             'attendance_marks' => 'nullable|numeric|min:0|max:15',
@@ -5398,6 +5522,10 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         ]);
 
         $eval->assessor_mobile_no = $userId;
+        if ($request->has('lab_work_marks')) {
+            $lw = $request->input('lab_work_marks');
+            $eval->lab_work_marks = ($lw !== '' && $lw !== null) ? min(37.5, max(0, (float)$lw)) : null;
+        }
         if ($request->has('micro_project') && $request->input('micro_project') !== null) {
             $eval->micro_project = $request->input('micro_project');
         }
@@ -5418,8 +5546,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $batchSubject = \App\Models\BatchSubject::findOrFail($subjectId);
 
             foreach ($experimentsData as $expId => $val) {
-                $prerequisites = isset($val['prerequisite']) && $val['prerequisite'] !== '' ? (float)$val['prerequisite'] : (isset($val['obs_prep']) && $val['obs_prep'] !== '' ? (float)$val['obs_prep'] : 0);
-                $work_done = isset($val['execution']) && $val['execution'] !== '' ? (float)$val['execution'] : (isset($val['proc_punct']) && $val['proc_punct'] !== '' ? (float)$val['proc_punct'] : 0);
+                $prerequisites = isset($val['prerequisite']) && $val['prerequisite'] !== '' ? (float)$val['prerequisite'] : (isset($val['prerequisites']) && $val['prerequisites'] !== '' ? (float)$val['prerequisites'] : (isset($val['obs_prep']) && $val['obs_prep'] !== '' ? (float)$val['obs_prep'] : 0));
+                $work_done = isset($val['execution']) && $val['execution'] !== '' ? (float)$val['execution'] : (isset($val['work_done']) && $val['work_done'] !== '' ? (float)$val['work_done'] : (isset($val['proc_punct']) && $val['proc_punct'] !== '' ? (float)$val['proc_punct'] : 0));
                 $result = isset($val['viva_voce']) && $val['viva_voce'] !== '' ? (float)$val['viva_voce'] : (isset($val['output']) && $val['output'] !== '' ? (float)$val['output'] : (isset($val['result']) && $val['result'] !== '' ? (float)$val['result'] : 0));
                 $rough_record = isset($val['rough_record']) && $val['rough_record'] !== '' ? (float)$val['rough_record'] : 0;
                 $fair_record = isset($val['fair_record']) && $val['fair_record'] !== '' ? (float)$val['fair_record'] : 0;
@@ -5741,43 +5869,69 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $s2 = isset($item['series2']) && $item['series2'] !== '' ? (float)$item['series2'] : null;
             $boardGrade = isset($item['board_exam_grade']) ? trim($item['board_exam_grade']) : (isset($item['board_exam_marks']) ? trim($item['board_exam_marks']) : null);
 
-            // Consolidated eval record
-            if ($boardGrade !== null) {
+            // Consolidated eval record & board grade/marks
+            if ($boardGrade !== null && $boardGrade !== '') {
+                if (is_numeric($boardGrade)) {
+                    \App\Models\PracticalEvaluation::updateOrCreate(
+                        ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
+                        ['assessor_mobile_no' => $userId, 'board_exam_marks' => (float)$boardGrade]
+                    );
+                } else {
+                    $batchSubject = \App\Models\BatchSubject::find($subjectId);
+                    if ($batchSubject && \Schema::hasTable('student_board_grades')) {
+                        \DB::table('student_board_grades')->updateOrInsert(
+                            ['reg_no' => $regNo, 'subject_code' => $batchSubject->subject_code],
+                            [
+                                'semester' => $batchSubject->semester,
+                                'grade' => $boardGrade,
+                                'updated_at' => now()
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // Direct Lab Work mark (/37.5) if provided
+            if (array_key_exists('lab_work_marks', $item) || array_key_exists('lab_work', $item)) {
+                $rawLw = $item['lab_work_marks'] ?? ($item['lab_work'] ?? null);
+                $lwVal = ($rawLw !== '' && $rawLw !== null) ? min(37.5, max(0, (float)$rawLw)) : null;
                 \App\Models\PracticalEvaluation::updateOrCreate(
                     ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
-                    ['assessor_mobile_no' => $userId, 'board_exam_marks' => $boardGrade]
+                    ['assessor_mobile_no' => $userId, 'lab_work_marks' => $lwVal]
                 );
             }
 
-            // Save Test 1 (CO1 & CO2) - Test 1 applies to CO1 & CO2 for attainment
+            // Save Test 1 (CO1 & CO2) - Test 1 applies to CO1 & CO2 for attainment (max 15: 7.5 per CO)
             if ($s1 !== null) {
                 $t1 = \App\Models\PracticalTest::firstOrCreate(
                     ['batch_subject_id' => $subjectId, 'test_name' => 'Test 1'],
                     ['questions' => []]
                 );
+                $halfS1 = round($s1 / 2, 2);
                 \App\Models\PracticalTestMark::updateOrCreate(
                     ['practical_test_id' => $t1->id, 'reg_no' => $regNo, 'co_tag' => 'CO1'],
-                    ['marks_obtained' => $s1]
+                    ['marks_obtained' => $halfS1]
                 );
                 \App\Models\PracticalTestMark::updateOrCreate(
                     ['practical_test_id' => $t1->id, 'reg_no' => $regNo, 'co_tag' => 'CO2'],
-                    ['marks_obtained' => $s1]
+                    ['marks_obtained' => round($s1 - $halfS1, 2)]
                 );
             }
 
-            // Save Test 2 (CO3 & CO4) - Test 2 applies to CO3 & CO4 for attainment
+            // Save Test 2 (CO3 & CO4) - Test 2 applies to CO3 & CO4 for attainment (max 15: 7.5 per CO)
             if ($s2 !== null) {
                 $t2 = \App\Models\PracticalTest::firstOrCreate(
                     ['batch_subject_id' => $subjectId, 'test_name' => 'Test 2'],
                     ['questions' => []]
                 );
+                $halfS2 = round($s2 / 2, 2);
                 \App\Models\PracticalTestMark::updateOrCreate(
                     ['practical_test_id' => $t2->id, 'reg_no' => $regNo, 'co_tag' => 'CO3'],
-                    ['marks_obtained' => $s2]
+                    ['marks_obtained' => $halfS2]
                 );
                 \App\Models\PracticalTestMark::updateOrCreate(
                     ['practical_test_id' => $t2->id, 'reg_no' => $regNo, 'co_tag' => 'CO4'],
-                    ['marks_obtained' => $s2]
+                    ['marks_obtained' => round($s2 - $halfS2, 2)]
                 );
             }
 
@@ -5957,13 +6111,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
         // Consolidated
         $eval = \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->first();
+        if ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '') {
+            $avgLabWork = (float)$eval->lab_work_marks;
+        }
         $microProject = $eval ? (float)$eval->micro_project : 0.00;
         $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
             ? (float)$eval->attendance_marks
             : $calculatedAttendanceMarks;
         $boardExam = $eval ? $eval->board_exam_marks : null;
 
-        $totalInternal = round($avgTests + $avgLabWork + $microProject + $attendanceMarks, 2);
+        $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
 
         // Update or Create semester marks record
         \App\Models\StudentSemesterMarks::updateOrCreate(

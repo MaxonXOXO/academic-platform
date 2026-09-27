@@ -589,7 +589,7 @@
                             <td class="text-center font-mono text-purple-400 text-xs" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-amber-400 text-xs" id="cia-open-{{ $student->reg_no }}">{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-sky-400 text-xs" id="cia-att-{{ $student->reg_no }}">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 0 }}</td>
-                            <td class="text-center font-mono font-bold text-xs text-cyan-300" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_75'] ?? $score['total_cia_60'] ?? '0.00' }}</td>
+                            <td class="text-center font-mono font-bold text-xs text-cyan-300" id="cia-total-{{ $student->reg_no }}">{{ isset($score['total_cia_75']) ? round($score['total_cia_75']) : (isset($score['total_cia_60']) ? round($score['total_cia_60']) : '0') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -2702,7 +2702,7 @@
                     if (elAtt) elAtt.innerText = d.att_mark_15;
 
                     const elTotal = document.getElementById(`cia-total-${regNo}`);
-                    if (elTotal) elTotal.innerText = d.total_cia_75.toFixed(2);
+                    if (elTotal) elTotal.innerText = Math.round(d.total_cia_75);
 
                     // Update Tab 2 project title & score if exists
                     const titleInp = document.getElementById(`open-title-${regNo}`);

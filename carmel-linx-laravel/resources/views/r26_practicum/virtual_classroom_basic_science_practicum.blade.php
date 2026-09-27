@@ -833,80 +833,201 @@
             <!-- Subtab 4: Theory Series Examinations -->
             <div id="theory-subcontent-series" class="space-y-4 hidden">
 
-                <!-- QP Generator Panel — 2 Cards for Basic Science Practicum -->
+                <!-- QP Generator Panel — 4 Modular Tests & 2 Combined Series Options -->
                 <div class="p-5 rounded-xl border border-slate-800 no-print bg-slate-950 shadow-xl" style="background-color: #020617 !important;">
-                    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div>
                             <h3 class="text-base font-bold text-white flex items-center gap-2 flex-wrap">
                                 <span>📄 Series Exam QP Generator</span>
                                 <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-semibold">
-                                    🔬 Basic Science Practicum (50 Marks | 2 Hours)
+                                    🔬 Basic Science Practicum
                                 </span>
                             </h3>
-                            <p class="text-slate-400 text-xs mt-1">
-                                SBTE Pattern: Part A (4×1=4M) + Part B (6×3=18M) + Part C (4×7=28M) = 50 Marks | 2 Hours | Averaged (CA4 &amp; CA5) &amp; Scaled to 10 CIA Marks
+                            <p class="text-slate-400 text-xs mt-1" id="qp-panel-desc">
+                                Choose between <strong>4 Modular Tests (Single CO · 25 Marks)</strong> or <strong>2 Combined Series (50 Marks)</strong>. Generated Question Papers, Schemes &amp; Answer Keys can be printed directly or reset at any time.
                             </p>
+                        </div>
+
+                        <!-- Mode Switcher Pill -->
+                        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 self-start md:self-auto flex-shrink-0">
+                            <button type="button" onclick="switchQpMode('4tests')" id="qp-mode-btn-4tests"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                                <span>🗂️ 4 Modular Tests</span>
+                                <span class="text-[10px] opacity-80">(CO1–CO4 · 25M)</span>
+                            </button>
+                            <button type="button" onclick="switchQpMode('2series')" id="qp-mode-btn-2series"
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                                <span>📑 2 Combined Series</span>
+                                <span class="text-[10px] opacity-80">(CA4 &amp; CA5 · 50M)</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 2 Series Cards for Basic Science -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        @foreach([
-                            'Series 1' => ['label' => 'Series Exam 1 (CA4)', 'co' => 'CO1 + CO2', 'modules' => 'Modules I & II'],
-                            'Series 2' => ['label' => 'Series Exam 2 (CA5)', 'co' => 'CO3 + CO4', 'modules' => 'Modules III & IV']
-                        ] as $series => $sMeta)
-                        @php $savedQp = $seriesQps[$series] ?? null; @endphp
-                        <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-950/40' : 'border-slate-800 bg-slate-900/80' }} p-4 flex flex-col gap-2.5">
-                            <!-- Card Header -->
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="font-bold text-white text-sm">{{ $sMeta['label'] }}</span>
-                                    <span class="text-xs text-slate-400 block">{{ $sMeta['modules'] }}</span>
-                                </div>
-                                <span class="text-xs px-2.5 py-1 rounded-full font-mono {{ $savedQp ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-700 text-slate-400' }}">{{ $sMeta['co'] }}</span>
-                            </div>
-
-                            <!-- Status -->
-                            @if($savedQp)
-                            <div class="text-xs text-emerald-400 font-semibold">✅ QP Saved</div>
-                            @else
-                            <div class="text-xs text-slate-500">⬜ Not generated</div>
-                            @endif
-
-                            <!-- Generate buttons -->
-                            <div class="flex flex-col sm:flex-row gap-2 mt-1">
-                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'ai')"
-                                    class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all text-center cursor-pointer">
-                                    ⚡ AI Generate
-                                </button>
-                                <button onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'manual')"
-                                    class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all text-center cursor-pointer">
-                                    ✏ Manual Entry
-                                </button>
-                            </div>
-
-                            <!-- Print buttons (only if saved) -->
-                            @if($savedQp)
-                            <div class="border-t border-slate-700/50 pt-2.5 flex flex-col gap-2">
-                                <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-qp/{{ rawurlencode($series) }}" target="_blank"
-                                    class="w-full py-2 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-sky-300 text-center block no-underline">
-                                    🖨️ Print QP
-                                </a>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block no-underline">
-                                        📋 Scheme
-                                    </a>
-                                    <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
-                                        class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-center block no-underline">
-                                        🔑 Key
-                                    </a>
-                                </div>
-                            </div>
-                            @endif
+                    <!-- Mode 1: 4 Modular Tests (Single CO Tests - 25 Marks | 1 Hour) -->
+                    <div id="qp-container-4tests" class="space-y-2">
+                        <div class="flex items-center justify-between text-xs text-slate-400 px-1 mb-2">
+                            <span>SBTE Table 4.1 Pattern: Part A (2×1=2M) + Part B (3×3=9M) + Part C (2×7=14M) = <strong>25 Marks | 1 Hour</strong> (Scaled to CIA)</span>
+                            <span class="text-sky-400 font-medium">1 Test per Course Outcome</span>
                         </div>
-                        @endforeach
-                    </div><!-- /grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                            @foreach([
+                                'Series 1' => ['label' => 'Test 1 (CO1)', 'co' => 'CO1', 'modules' => 'Module I', 'marks' => '25M · 1 Hr'],
+                                'Series 2' => ['label' => 'Test 2 (CO2)', 'co' => 'CO2', 'modules' => 'Module II', 'marks' => '25M · 1 Hr'],
+                                'Series 3' => ['label' => 'Test 3 (CO3)', 'co' => 'CO3', 'modules' => 'Module III', 'marks' => '25M · 1 Hr'],
+                                'Series 4' => ['label' => 'Test 4 (CO4)', 'co' => 'CO4', 'modules' => 'Module IV', 'marks' => '25M · 1 Hr']
+                            ] as $series => $sMeta)
+                            @php
+                                $savedQp = $seriesQps[$series] ?? $seriesQps[$sMeta['label']] ?? null;
+                            @endphp
+                            <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-950/40 shadow-emerald-950/20' : 'border-slate-800 bg-slate-900/80' }} p-3.5 flex flex-col justify-between gap-2.5 transition-all">
+                                <div>
+                                    <!-- Card Header -->
+                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                        <span class="font-bold text-white text-sm tracking-wide">{{ $sMeta['label'] }}</span>
+                                        <span class="text-[11px] px-2 py-0.5 rounded-full font-mono font-bold {{ $savedQp ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-sky-400 border border-slate-700' }}">{{ $sMeta['co'] }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                        <span>{{ $sMeta['modules'] }}</span>
+                                        <span class="text-[10px] text-amber-400 font-mono">{{ $sMeta['marks'] }}</span>
+                                    </div>
+
+                                    <!-- Status -->
+                                    @if($savedQp)
+                                    <div class="text-xs text-emerald-400 font-semibold flex items-center justify-between bg-emerald-950/60 border border-emerald-800/40 rounded-lg px-2.5 py-1">
+                                        <span>✅ QP Saved</span>
+                                        <span class="text-slate-300 text-[10px] font-mono">{{ $savedQp->max_marks ?? 25 }}M</span>
+                                    </div>
+                                    @else
+                                    <div class="text-xs text-slate-500 bg-slate-950/60 border border-slate-800/60 rounded-lg px-2.5 py-1">
+                                        ⬜ Not generated
+                                    </div>
+                                    @endif
+                                </div>
+
+                                <div class="space-y-2 mt-1">
+                                    <!-- Generate / Edit buttons -->
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        <button type="button" onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'ai')"
+                                            class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1">
+                                            <span>⚡</span> <span>{{ $savedQp ? 'Regen' : 'AI Gen' }}</span>
+                                        </button>
+                                        <button type="button" onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'manual')"
+                                            class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all text-center cursor-pointer flex items-center justify-center gap-1">
+                                            <span>✏</span> <span>{{ $savedQp ? 'Edit' : 'Manual' }}</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Print buttons (only if saved) -->
+                                    @if($savedQp)
+                                    <div class="border-t border-slate-700/60 pt-2 flex flex-col gap-1.5">
+                                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-qp/{{ rawurlencode($series) }}" target="_blank"
+                                            class="w-full py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-850 border border-blue-500/40 text-sky-300 text-center block no-underline transition-all">
+                                            🖨️ Print QP
+                                        </a>
+                                        <div class="grid grid-cols-2 gap-1.5">
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 text-center block no-underline transition-all">
+                                                📋 Scheme
+                                            </a>
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 text-center block no-underline transition-all">
+                                                🔑 Key
+                                            </a>
+                                        </div>
+                                        <!-- Reset Test Button -->
+                                        <button type="button" onclick="confirmResetSeriesQp('{{ $series }}')"
+                                            class="w-full py-1 rounded-lg text-[11px] font-semibold bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/40 text-rose-300 hover:text-rose-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1">
+                                            <span>🔄 Reset Test</span>
+                                        </button>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div><!-- /Mode 1 -->
+
+                    <!-- Mode 2: 2 Combined Series (50 Marks | 2 Hours) -->
+                    <div id="qp-container-2series" class="space-y-2 hidden">
+                        <div class="flex items-center justify-between text-xs text-slate-400 px-1 mb-2">
+                            <span>SBTE Pattern: Part A (4×1=4M) + Part B (6×3=18M) + Part C (4×7=28M) = <strong>50 Marks | 2 Hours</strong> | Averaged (CA4 &amp; CA5)</span>
+                            <span class="text-amber-400 font-medium">Combined Modules</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach([
+                                'Series Exam 1 (CA4)' => ['label' => 'Series Exam 1 (CA4)', 'co' => 'CO1 + CO2', 'modules' => 'Modules I & II', 'marks' => '50M · 2 Hrs'],
+                                'Series Exam 2 (CA5)' => ['label' => 'Series Exam 2 (CA5)', 'co' => 'CO3 + CO4', 'modules' => 'Modules III & IV', 'marks' => '50M · 2 Hrs']
+                            ] as $series => $sMeta)
+                            @php
+                                $savedQp = $seriesQps[$series] ?? $seriesQps[str_replace('Series Exam ', 'Series ', $series)] ?? null;
+                            @endphp
+                            <div class="rounded-xl border {{ $savedQp ? 'border-emerald-600/50 bg-emerald-950/40 shadow-emerald-950/20' : 'border-slate-800 bg-slate-900/80' }} p-4 flex flex-col justify-between gap-3 transition-all">
+                                <div>
+                                    <!-- Card Header -->
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <span class="font-bold text-white text-sm tracking-wide">{{ $sMeta['label'] }}</span>
+                                        <span class="text-xs px-2.5 py-0.5 rounded-full font-mono font-bold {{ $savedQp ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-sky-400 border border-slate-700' }}">{{ $sMeta['co'] }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                        <span>{{ $sMeta['modules'] }}</span>
+                                        <span class="text-xs text-amber-400 font-mono">{{ $sMeta['marks'] }}</span>
+                                    </div>
+
+                                    <!-- Status -->
+                                    @if($savedQp)
+                                    <div class="text-xs text-emerald-400 font-semibold flex items-center justify-between bg-emerald-950/60 border border-emerald-800/40 rounded-lg px-3 py-1.5">
+                                        <span>✅ QP Saved</span>
+                                        <span class="text-slate-300 text-xs font-mono">{{ $savedQp->max_marks ?? 50 }} Marks</span>
+                                    </div>
+                                    @else
+                                    <div class="text-xs text-slate-500 bg-slate-950/60 border border-slate-800/60 rounded-lg px-3 py-1.5">
+                                        ⬜ Not generated
+                                    </div>
+                                    @endif
+                                </div>
+
+                                <div class="space-y-2 mt-1">
+                                    <!-- Generate buttons -->
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <button type="button" onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'ai')"
+                                            class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1.5">
+                                            <span>⚡</span> <span>{{ $savedQp ? 'Regenerate AI' : 'AI Generate' }}</span>
+                                        </button>
+                                        <button type="button" onclick="openQpPreviewModal('{{ $series }}', '{{ $sMeta['co'] }}', 'manual')"
+                                            class="w-full sm:w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all text-center cursor-pointer flex items-center justify-center gap-1.5">
+                                            <span>✏</span> <span>{{ $savedQp ? 'Edit Manual' : 'Manual Entry' }}</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Print buttons (only if saved) -->
+                                    @if($savedQp)
+                                    <div class="border-t border-slate-700/60 pt-2.5 flex flex-col gap-2">
+                                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-qp/{{ rawurlencode($series) }}" target="_blank"
+                                            class="w-full py-2 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-850 border border-blue-500/40 text-sky-300 text-center block no-underline transition-all">
+                                            🖨️ Print Question Paper
+                                        </a>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-scheme/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 text-center block no-underline transition-all">
+                                                📋 Scheme
+                                            </a>
+                                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/series-qp/print-key/{{ rawurlencode($series) }}" target="_blank"
+                                                class="py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 text-center block no-underline transition-all">
+                                                🔑 Key
+                                            </a>
+                                        </div>
+                                        <!-- Reset Test Button -->
+                                        <button type="button" onclick="confirmResetSeriesQp('{{ $series }}')"
+                                            class="w-full py-1.5 rounded-lg text-xs font-semibold bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/40 text-rose-300 hover:text-rose-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1.5">
+                                            <span>🔄 Reset Test</span>
+                                        </button>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div><!-- /Mode 2 -->
 
                     <div id="qp-gen-status" class="mt-3 text-xs text-slate-400 hidden"></div>
                 </div><!-- /QP Generator Panel -->
@@ -4154,7 +4275,7 @@
         }
 
     // =====================================================================
-    // Series QP Generator — Preview / Edit Modal System
+    // Series QP Generator — Preview / Edit Modal System & Dual Mode
     // =====================================================================
 
     const SUBJECT_ID = {{ $batchSubject->id }};
@@ -4162,6 +4283,77 @@
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
 
     let _currentSeries = '', _currentCo = '', _currentPattern = QP_PATTERN, _draftQp = {};
+
+    function switchQpMode(mode) {
+        const c4 = document.getElementById('qp-container-4tests');
+        const c2 = document.getElementById('qp-container-2series');
+        const b4 = document.getElementById('qp-mode-btn-4tests');
+        const b2 = document.getElementById('qp-mode-btn-2series');
+
+        if (mode === '2series') {
+            if (c4) c4.classList.add('hidden');
+            if (c2) c2.classList.remove('hidden');
+            if (b4) {
+                b4.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            }
+            if (b2) {
+                b2.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer';
+            }
+            try { localStorage.setItem('r26_bs_qp_mode', '2series'); } catch(e){}
+        } else {
+            if (c4) c4.classList.remove('hidden');
+            if (c2) c2.classList.add('hidden');
+            if (b4) {
+                b4.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer';
+            }
+            if (b2) {
+                b2.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            }
+            try { localStorage.setItem('r26_bs_qp_mode', '4tests'); } catch(e){}
+        }
+    }
+
+    async function confirmResetSeriesQp(seriesNo) {
+        if (!confirm(`Are you sure you want to reset the Question Paper for "${seriesNo}"?\n\nThis will clear the generated Question Paper, Evaluation Scheme, and Answer Key document so you can generate a new one.\n\n(Note: This only affects the Question Paper tool; it will NOT affect student evaluation marks or lesson plans.)`)) {
+            return;
+        }
+        const statusEl = document.getElementById('qp-gen-status');
+        if (statusEl) {
+            statusEl.classList.remove('hidden');
+            statusEl.style.color = '#38bdf8';
+            statusEl.innerHTML = `🔄 Resetting question paper for <strong>${seriesNo}</strong>...`;
+        }
+
+        try {
+            const res = await fetch(`/api/r26/classroom/practicum/${SUBJECT_ID}/series-qp/reset/${encodeURIComponent(seriesNo)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF
+                }
+            });
+            const data = await res.json();
+            if (data.status === 'SUCCESS') {
+                if (statusEl) {
+                    statusEl.style.color = '#4ade80';
+                    statusEl.innerHTML = `✅ ${data.message}`;
+                }
+                setTimeout(() => location.reload(), 600);
+            } else {
+                alert('Error resetting QP: ' + data.message);
+                if (statusEl) {
+                    statusEl.style.color = '#f87171';
+                    statusEl.innerHTML = `❌ Error: ${data.message}`;
+                }
+            }
+        } catch(e) {
+            alert('Network error: ' + e.message);
+            if (statusEl) {
+                statusEl.style.color = '#f87171';
+                statusEl.innerHTML = `❌ Network Error: ${e.message}`;
+            }
+        }
+    }
  
     async function openQpPreviewModal(seriesNo, coTag, mode) {
         _currentSeries = seriesNo;
@@ -4169,30 +4361,33 @@
         _activeQpTab   = 'qp';
         switchQpEditorTab('qp');
         const statusEl = document.getElementById('qp-gen-status');
-        statusEl.classList.remove('hidden');
-        statusEl.style.color = '#94a3b8';
+        if (statusEl) {
+            statusEl.classList.remove('hidden');
+            statusEl.style.color = '#94a3b8';
+        }
  
         const isPractical = seriesNo.indexOf('Practical') !== -1;
         _currentPattern = isPractical ? 'practical_series' : QP_PATTERN;
  
         const modal = document.getElementById('qp-preview-modal');
         modal.classList.remove('hidden');
-        document.getElementById('qp-modal-title').textContent = `Series Exam QP — ${seriesNo} (${coTag}) | ${_currentPattern === 'practical_series' ? 'Practical Rubrics (Table 3.1)' : (_currentPattern === 'table_4_2_design' ? 'Table 4.2 Design' : 'Table 4.1 Standard')}`;
+        document.getElementById('qp-modal-title').textContent = `Series Exam QP — ${seriesNo} (${coTag}) | ${_currentPattern === 'practical_series' ? 'Practical Rubrics (Table 3.1)' : (_currentPattern === 'table_4_2_design' ? 'Table 4.2 Design' : (_currentCo.indexOf('+') !== -1 ? '50 Marks Combined Series' : 'Table 4.1 Standard (25 Marks)'))}`;
  
         document.getElementById('qp-editor-body').innerHTML = '<div class="text-slate-400 text-sm p-8 text-center animate-pulse">⚡ Loading questions…</div>';
  
         if (mode === 'ai') {
-            statusEl.innerHTML = `⚡ Fetching AI/Bank questions for <strong>${seriesNo}</strong>...`;
+            if (statusEl) statusEl.innerHTML = `⚡ Fetching AI/Bank questions for <strong>${seriesNo}</strong>...`;
             try {
                 const res = await fetch(`/api/r26/classroom/practicum/${SUBJECT_ID}/series-qp/generate/${encodeURIComponent(seriesNo)}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                    body: JSON.stringify({ co_tag: coTag, pattern_type: _currentPattern })
                 });
                 const data = await res.json();
                 if (data.status === 'SUCCESS') {
                     _draftQp = data.qp_data;
                     _currentPattern = data.pattern_type;
-                    statusEl.innerHTML = `<span style="color:#4ade80">${data.message}</span>`;
+                    if (statusEl) statusEl.innerHTML = `<span style="color:#4ade80">${data.message}</span>`;
                     renderQpEditor(_draftQp, _currentPattern);
                 } else {
                     document.getElementById('qp-editor-body').innerHTML = `<div class="text-red-400 p-6">${data.message}</div>`;
@@ -4202,7 +4397,7 @@
             }
         } else {
             // Manual entry — blank template
-            statusEl.innerHTML = `✏ Manual mode — fill in questions for <strong>${seriesNo}</strong>`;
+            if (statusEl) statusEl.innerHTML = `✏ Manual mode — fill in questions for <strong>${seriesNo}</strong>`;
             _draftQp = buildEmptyQpTemplate(_currentPattern, coTag);
             renderQpEditor(_draftQp, _currentPattern);
         }
@@ -4224,6 +4419,33 @@
                     {q_no:'7(b)', text:'OR: ', marks:10, co:coTag, bloom:'Analyze', choice_group:'Set 1', scheme_key:'', answer_key:''},
                     {q_no:'8(a)', text:'', marks:10, co:coTag, bloom:'Analyze', choice_group:'Set 2', scheme_key:'', answer_key:''},
                     {q_no:'8(b)', text:'OR: ', marks:10, co:coTag, bloom:'Analyze', choice_group:'Set 2', scheme_key:'', answer_key:''},
+                ]
+            };
+        } else if (coTag.indexOf('+') !== -1 || _currentSeries.indexOf('CA') !== -1) {
+            // 50 Marks Combined Series Exam: 4×1M + 6×3M + 4×7M = 50M
+            const cos = coTag.split('+').map(c => c.trim());
+            const coA = cos[0] || 'CO1';
+            const coB = cos[1] || 'CO2';
+            return {
+                part_a: [
+                    {q_no:'1', text:'', marks:1, co:coA, bloom:'Remember', scheme_key:'', answer_key:''},
+                    {q_no:'2', text:'', marks:1, co:coA, bloom:'Remember', scheme_key:'', answer_key:''},
+                    {q_no:'3', text:'', marks:1, co:coB, bloom:'Remember', scheme_key:'', answer_key:''},
+                    {q_no:'4', text:'', marks:1, co:coB, bloom:'Remember', scheme_key:'', answer_key:''},
+                ],
+                part_b: [
+                    {q_no:'5', text:'', marks:3, co:coA, bloom:'Understand', scheme_key:'', answer_key:''},
+                    {q_no:'6', text:'', marks:3, co:coA, bloom:'Understand', scheme_key:'', answer_key:''},
+                    {q_no:'7', text:'', marks:3, co:coA, bloom:'Apply', scheme_key:'', answer_key:''},
+                    {q_no:'8', text:'', marks:3, co:coB, bloom:'Understand', scheme_key:'', answer_key:''},
+                    {q_no:'9', text:'', marks:3, co:coB, bloom:'Understand', scheme_key:'', answer_key:''},
+                    {q_no:'10', text:'', marks:3, co:coB, bloom:'Apply', scheme_key:'', answer_key:''},
+                ],
+                part_c: [
+                    {q_no:'11(a)', text:'', marks:7, co:coA, bloom:'Analyze', choice_group:'Set 1', scheme_key:'', answer_key:''},
+                    {q_no:'11(b)', text:'OR: ', marks:7, co:coA, bloom:'Analyze', choice_group:'Set 1', scheme_key:'', answer_key:''},
+                    {q_no:'12(a)', text:'', marks:7, co:coB, bloom:'Analyze', choice_group:'Set 2', scheme_key:'', answer_key:''},
+                    {q_no:'12(b)', text:'OR: ', marks:7, co:coB, bloom:'Analyze', choice_group:'Set 2', scheme_key:'', answer_key:''},
                 ]
             };
         } else {
@@ -4279,13 +4501,51 @@
         if (keyMarks) keyMarks.innerText = val + 'M';
     }
  
+    async function printFromQpModal(docType) {
+        if (!_currentSeries) {
+            alert('Please open a series test first.');
+            return;
+        }
+        if (_draftQp && Object.keys(_draftQp).length > 0) {
+            try {
+                await fetch(`/api/r26/classroom/practicum/${SUBJECT_ID}/series-qp/save/${encodeURIComponent(_currentSeries)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                    body: JSON.stringify({
+                        co_tag: _currentCo,
+                        pattern_type: _currentPattern,
+                        qp_data: _draftQp,
+                        scheme_data: _draftQp,
+                        answer_key: _draftQp,
+                    })
+                });
+            } catch (e) {
+                console.warn('Auto-save before print error:', e);
+            }
+        }
+        const url = `/r26/classroom/practicum/${SUBJECT_ID}/series-qp/print-${docType}/${encodeURIComponent(_currentSeries)}`;
+        window.open(url, '_blank');
+    }
+
+    function resetCurrentModalDraft() {
+        if (confirm("Reset current draft questions back to blank template? Any unsaved edits will be discarded.")) {
+            _draftQp = buildEmptyQpTemplate(_currentPattern, _currentCo);
+            renderQpEditor(_draftQp, _currentPattern);
+        }
+    }
+
     function renderQpEditor(qpData, pattern) {
         const container = document.getElementById('qp-editor-body');
+        const isCombined50 = _currentCo.indexOf('+') !== -1 || _currentSeries.indexOf('CA') !== -1;
         const parts = pattern === 'practical_series'
             ? [['part_a', 'PART A — Practical Tasks (Answer any ONE task - 40 Marks)', '40']]
             : (pattern === 'table_4_2_design'
                 ? [['part_a','PART A — Answer ALL (6 × 5M = 30M)','5'],['part_b','PART B — Answer ONE per Set (10M each)','10']]
-                : [['part_a','PART A — Answer ALL (2 × 1M = 2M)','1'],['part_b','PART B — Answer ALL (3 × 3M = 9M)','3'],['part_c','PART C — Answer ANY 2 of 3 (7M each = 14M)','7']]);
+                : (isCombined50
+                    ? [['part_a','PART A — Answer ALL (4 × 1M = 4M)','1'],['part_b','PART B — Answer ALL (6 × 3M = 18M)','3'],['part_c','PART C — Answer ANY 4 (4 × 7M = 28M)','7']]
+                    : [['part_a','PART A — Answer ALL (2 × 1M = 2M)','1'],['part_b','PART B — Answer ALL (3 × 3M = 9M)','3'],['part_c','PART C — Answer ANY 2 of 3 (7M each = 14M)','7']]
+                  )
+              );
  
         let htmlQp = '';
         let htmlScheme = '';
@@ -4885,12 +5145,23 @@
         <div class="w-full max-w-[98%] bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 flex flex-col" style="max-height:95vh">
 
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800 rounded-t-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-3.5 border-b border-slate-700 bg-slate-800 rounded-t-2xl gap-3">
                 <div>
-                    <h2 class="text-lg font-bold text-white" id="qp-modal-title">Series QP Preview</h2>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2" id="qp-modal-title">Series QP Preview</h2>
                     <p class="text-slate-400 text-xs mt-0.5">Edit questions, marking schemes, and model answers side-by-side — then Save to Question Bank</p>
                 </div>
-                <button onclick="closeQpModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <div class="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                    <button type="button" onclick="printFromQpModal('qp')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-750 text-sky-300 border border-blue-500/30 flex items-center gap-1 cursor-pointer transition-all" title="Print Formatted Question Paper">
+                        <span>🖨️ Print QP</span>
+                    </button>
+                    <button type="button" onclick="printFromQpModal('scheme')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-750 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 cursor-pointer transition-all" title="Print Evaluation Scheme">
+                        <span>📋 Scheme</span>
+                    </button>
+                    <button type="button" onclick="printFromQpModal('key')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 cursor-pointer transition-all" title="Print Model Answer Key">
+                        <span>🔑 Key</span>
+                    </button>
+                    <button onclick="closeQpModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none ml-2 cursor-pointer">&times;</button>
+                </div>
             </div>
 
             <!-- Tab Switcher Bar -->
@@ -4906,11 +5177,16 @@
             </div>
 
             <!-- Footer -->
-            <div class="flex items-center justify-between px-6 py-4 border-t border-slate-700 bg-slate-800 rounded-b-2xl">
-                <button onclick="closeQpModal()" class="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm">Cancel</button>
-                <div class="flex items-center gap-3">
-                    <span class="text-slate-500 text-xs">Questions, schemes, and model answers are saved together in one step</span>
-                    <button id="qp-save-btn" onclick="saveQpFromModal()" class="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all">
+            <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-700 bg-slate-800 rounded-b-2xl gap-3">
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <button onclick="closeQpModal()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs cursor-pointer">Cancel</button>
+                    <button type="button" onclick="resetCurrentModalDraft()" class="px-3 py-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 font-semibold text-xs cursor-pointer transition-all flex items-center gap-1.5" title="Reset current draft back to blank template">
+                        <span>🔄 Reset to Template</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <span class="text-slate-400 text-xs hidden md:inline">QP, Scheme &amp; Answer Key are saved together</span>
+                    <button id="qp-save-btn" onclick="saveQpFromModal()" class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-lg transition-all cursor-pointer">
                         💾 Save &amp; Add to Question Bank
                     </button>
                 </div>

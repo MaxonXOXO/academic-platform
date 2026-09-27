@@ -41,7 +41,7 @@ if (!function_exists('getBtShort')) {
     <div class="no-print mb-6 flex items-center justify-between bg-slate-100 p-4 rounded-xl border border-slate-300">
         <div>
             <h2 class="font-bold text-slate-800 text-lg">Series Exam Question Paper — {{ $seriesNo }}</h2>
-            <p class="text-slate-600 text-sm">{{ $subjectType['label'] ?? '📄 Standard (Table 4.1)' }} | Max {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'table_4_2_design' ? 50 : 25) }} Marks | {{ (str_contains($qpRecord->co_tag ?? '', '+') || str_contains($qpRecord->co_tag ?? '', ',')) ? '3 Hours' : '1 Hour' }}</p>
+            <p class="text-slate-600 text-sm">{{ $subjectType['label'] ?? '📄 Standard (Table 4.1)' }} | Max {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'table_4_2_design' || str_contains($qpRecord->co_tag ?? '', '+') ? 50 : 25) }} Marks | {{ ($qpRecord->pattern_type === 'practical_series') ? '3 Hours' : ((str_contains($qpRecord->co_tag ?? '', '+') || ($qpRecord->max_marks ?? 0) >= 50) ? '2 Hours' : '1 Hour') }}</p>
         </div>
         <div class="flex items-center space-x-3">
             <button onclick="window.print()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow transition-all flex items-center space-x-2">
@@ -71,7 +71,7 @@ if (!function_exists('getBtShort')) {
                 <div><span class="font-bold">Academic Year:</span> 2026-2027</div>
                 <div><span class="font-bold">Series Exam:</span> {{ $seriesNo }}</div>
                 <div><span class="font-bold">Date:</span> {{ date('d/m/Y') }}</div>
-                <div class="flex gap-6"><span><span class="font-bold">Duration:</span> {{ ($qpRecord->pattern_type === 'practical_series' || str_contains($qpRecord->co_tag ?? '', '+') || str_contains($qpRecord->co_tag ?? '', ',')) ? '3 Hours' : '1 Hour' }}</span> <span><span class="font-bold">Max Marks:</span> {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'practical_series' ? 40 : ($qpRecord->pattern_type === 'table_4_2_design' ? 50 : 25)) }}</span></div>
+                <div class="flex gap-6"><span><span class="font-bold">Duration:</span> {{ ($qpRecord->pattern_type === 'practical_series') ? '3 Hours' : ((str_contains($qpRecord->co_tag ?? '', '+') || ($qpRecord->max_marks ?? 0) >= 50) ? '2 Hours' : '1 Hour') }}</span> <span><span class="font-bold">Max Marks:</span> {{ $qpRecord->max_marks ?? ($qpRecord->pattern_type === 'practical_series' ? 40 : ($qpRecord->pattern_type === 'table_4_2_design' || str_contains($qpRecord->co_tag ?? '', '+') ? 50 : 25)) }}</span></div>
             </div>
         </div>
  
@@ -138,10 +138,22 @@ if (!function_exists('getBtShort')) {
             </div>
 
         @else
-            {{-- TABLE 4.1 STANDARD PATTERN --}}
+            {{-- TABLE 4.1 STANDARD / COMBINED PATTERN --}}
+            @php
+                $cntA = count($qp['part_a'] ?? []);
+                $mrkA = $cntA ? ($qp['part_a'][0]['marks'] ?? 1) : 1;
+                $totA = $cntA * $mrkA;
+
+                $cntB = count($qp['part_b'] ?? []);
+                $mrkB = $cntB ? ($qp['part_b'][0]['marks'] ?? 3) : 3;
+                $totB = $cntB * $mrkB;
+
+                $cntC = count($qp['part_c'] ?? []);
+                $mrkC = $cntC ? ($qp['part_c'][0]['marks'] ?? 7) : 7;
+            @endphp
             <!-- Part A -->
             <div class="mb-4">
-                <div class="part-header">PART A &nbsp;|&nbsp; Answer ALL Questions &nbsp;|&nbsp; (2 × 1 = 2 Marks)</div>
+                <div class="part-header">PART A &nbsp;|&nbsp; Answer ALL Questions &nbsp;|&nbsp; ({{ $cntA }} × {{ $mrkA }} = {{ $totA }} Marks)</div>
                 <table class="w-full text-sm mt-1">
                     @foreach ($qp['part_a'] ?? [] as $q)
                     <tr class="q-row">
@@ -158,7 +170,7 @@ if (!function_exists('getBtShort')) {
 
             <!-- Part B -->
             <div class="mb-4">
-                <div class="part-header">PART B &nbsp;|&nbsp; Answer ALL Questions &nbsp;|&nbsp; (3 × 3 = 9 Marks)</div>
+                <div class="part-header">PART B &nbsp;|&nbsp; Answer ALL Questions &nbsp;|&nbsp; ({{ $cntB }} × {{ $mrkB }} = {{ $totB }} Marks)</div>
                 <table class="w-full text-sm mt-1">
                     @foreach ($qp['part_b'] ?? [] as $q)
                     <tr class="q-row">
@@ -175,7 +187,7 @@ if (!function_exists('getBtShort')) {
 
             <!-- Part C -->
             <div class="mb-4">
-                <div class="part-header">PART C &nbsp;|&nbsp; Answer ANY TWO out of THREE Questions &nbsp;|&nbsp; (2 × 7 = 14 Marks)</div>
+                <div class="part-header">PART C &nbsp;|&nbsp; {{ $cntC > 3 ? 'Answer Question from Each Module / Set' : 'Answer ANY TWO out of THREE Questions' }} &nbsp;|&nbsp; ({{ $cntC > 3 ? (int)($cntC/2) . ' × ' . $mrkC . ' = ' . ((int)($cntC/2) * $mrkC) : '2 × 7 = 14' }} Marks)</div>
                 @php $choiceGroups = collect($qp['part_c'] ?? [])->groupBy('choice_group'); @endphp
                 @foreach ($choiceGroups as $setName => $qs)
                 <div class="border border-slate-200 rounded-lg mt-2 mb-1">

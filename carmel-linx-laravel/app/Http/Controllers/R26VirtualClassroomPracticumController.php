@@ -289,13 +289,16 @@ class R26VirtualClassroomPracticumController extends Controller
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
             if ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
-                $slMarks = round((($slScoreRaw / 15.0) * 5.0) * 2) / 2;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
                 $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
+            $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
 
             // 3. Continuous Practical Evaluation (Max 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
@@ -305,24 +308,92 @@ class R26VirtualClassroomPracticumController extends Controller
             // 4. Theory Series Exam Marks (Max 10 CIA Marks)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
             if ($isBasicScience) {
-                // Basic Science: CA4 is Series 1 (Mod 1&2), CA5 is Series 2 (Mod 3&4) - Max 50 each
-                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1', 'CA4'])->first();
-                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2', 'CA5'])->first();
-                $st1Score = $st1 ? $st1->total_score_50 : 0.00;
-                $st2Score = $st2 ? $st2->total_score_50 : 0.00;
-                $avgTheorySeries50 = ($st1Score + $st2Score) / 2.0;
-                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
-            } else {
-                // Program Core: 4 CO 1-Hour Tests
+                // Basic Science: 4 Modular / CO Tests (CO1, CO2, CO3, CO4 - 25M each)
+                // Series 1 (CA4: CO1 + CO2 - Max 50), Series 2 (CA5: CO3 + CO4 - Max 50)
                 $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
                 $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
                 $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
                 $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
-                $st1Score = $st1 ? $st1->total_score_50 : 0.00;
-                $st2Score = $st2 ? $st2->total_score_50 : 0.00;
-                $st3Score = $st3 ? $st3->total_score_50 : 0.00;
-                $st4Score = $st4 ? $st4->total_score_50 : 0.00;
-                $avgTheorySeries50 = ($st1Score + $st2Score + $st3Score + $st4Score) / 4.0;
+
+                // Check legacy CA4 / CA5 if Series 1/2 were entered directly as combined
+                if (!$st1 && !$st2) {
+                    $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4'])->first();
+                    if ($legacyCa4) {
+                        $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
+                        $co1Score = $half;
+                        $co2Score = $half;
+                    } else {
+                        $co1Score = 0.00;
+                        $co2Score = 0.00;
+                    }
+                } else {
+                    $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
+                    $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
+                }
+
+                if (!$st3 && !$st4) {
+                    $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5'])->first();
+                    if ($legacyCa5) {
+                        $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
+                        $co3Score = $half;
+                        $co4Score = $half;
+                    } else {
+                        $co3Score = 0.00;
+                        $co4Score = 0.00;
+                    }
+                } else {
+                    $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
+                    $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
+                }
+
+                $series1Total = min(50.0, $co1Score + $co2Score);
+                $series2Total = min(50.0, $co3Score + $co4Score);
+
+                $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
+                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            } else {
+                // Program Core: 4 CO Tests (CO1, CO2, CO3, CO4 - 25M each)
+                // Series 1 (CA4: CO1 + CO2 - Max 50), Series 2 (CA5: CO3 + CO4 - Max 50)
+                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
+                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
+                $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
+                $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+
+                // Check legacy CA4 / CA5 if Series 1/2 were entered directly as combined
+                if (!$st1 && !$st2) {
+                    $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4'])->first();
+                    if ($legacyCa4) {
+                        $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
+                        $co1Score = $half;
+                        $co2Score = $half;
+                    } else {
+                        $co1Score = 0.00;
+                        $co2Score = 0.00;
+                    }
+                } else {
+                    $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
+                    $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
+                }
+
+                if (!$st3 && !$st4) {
+                    $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5'])->first();
+                    if ($legacyCa5) {
+                        $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
+                        $co3Score = $half;
+                        $co4Score = $half;
+                    } else {
+                        $co3Score = 0.00;
+                        $co4Score = 0.00;
+                    }
+                } else {
+                    $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
+                    $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
+                }
+
+                $series1Total = min(50.0, $co1Score + $co2Score);
+                $series2Total = min(50.0, $co3Score + $co4Score);
+
+                $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
                 $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
             }
 
@@ -400,8 +471,16 @@ class R26VirtualClassroomPracticumController extends Controller
                 'roll_no' => $student->roll_no,
                 'att_percentage' => $attPercentage,
                 'att_marks' => $attMarks,
+                'sl_raw_score' => $slScoreRaw10,
                 'sl_marks' => $slMarks,
                 'continuous_eval_marks' => $continuousEvalMarks,
+                'co1_theory_mark' => $co1Score,
+                'co2_theory_mark' => $co2Score,
+                'co3_theory_mark' => $co3Score,
+                'co4_theory_mark' => $co4Score,
+                'series1_theory_total' => $series1Total,
+                'series2_theory_total' => $series2Total,
+                'series_theory_avg' => $avgTheorySeries50,
                 'series_theory_marks' => $seriesTheoryMarks,
                 'series_practical_marks' => $seriesPracticalMarks,
                 'total_cia_marks' => $totalCiaMarks,
@@ -511,7 +590,20 @@ class R26VirtualClassroomPracticumController extends Controller
         $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
 
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold) {
+            $coKey = strtolower($coTag) . '_theory_mark';
+
+            // Check if specific CO marks have been recorded
+            $hasSpecificCoMarks = $studentResults->contains(function($s) use ($coKey) {
+                return isset($s[$coKey]) && (float)$s[$coKey] > 0;
+            });
+
+            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold, $coKey, $hasSpecificCoMarks) {
+                if ($hasSpecificCoMarks) {
+                    $coScore = (float)($s[$coKey] ?? 0);
+                    $pct = ($coScore / 25.0) * 100.0;
+                    return $pct >= $cieThreshold;
+                }
+
                 // Strictly exclude attendance marks from academic attainment calculation
                 $academicCia = max(0, ($s['total_cia_marks'] ?? 0) - ($s['att_marks'] ?? 0));
                 $academicScore = $academicCia + ($s['total_ese'] ?? 0);
@@ -615,6 +707,7 @@ class R26VirtualClassroomPracticumController extends Controller
             'indirectStats',
             'combinedStats',
             'poAttainments',
+            'slAcademicMarks',
             'slStudentSplitup',
             'slConfigs',
             'subjectType',
@@ -959,9 +1052,17 @@ class R26VirtualClassroomPracticumController extends Controller
             $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
 
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
-            $st1 = $stStEvals->where('series_no', 'Series 1')->first();
-            $st2 = $stStEvals->where('series_no', 'Series 2')->first();
-            $avgTheorySeries50 = (($st1 ? $st1->total_score_50 : 0) + ($st2 ? $st2->total_score_50 : 0)) / 2.0;
+            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
+            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
+            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
+            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+            $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
+            $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
+            $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
+            $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
+            $series1Total = min(50.0, $co1Score + $co2Score);
+            $series2Total = min(50.0, $co3Score + $co4Score);
+            $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
             $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
 
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
@@ -1433,7 +1534,7 @@ class R26VirtualClassroomPracticumController extends Controller
     }
 
     /**
-     * Bulk Save All Lesson Plan Rows
+     * Bulk Save All Lesson Plan Rows (handles in-between insertions & existing edits)
      */
     public function saveAllLessonPlans(Request $request, $subjectId)
     {
@@ -1443,44 +1544,26 @@ class R26VirtualClassroomPracticumController extends Controller
 
         $plansData = $request->input('plans');
 
-        foreach ($plansData as $item) {
-            if (!isset($item['id'])) continue;
-            
-            $pedagogy = $item['pedagogy'] ?? ($item['mode'] ?? 'Lecture (L)');
-            $mode = 'L';
-            if (stripos($pedagogy, 'Practical') !== false || stripos($pedagogy, 'Lab') !== false) {
-                $mode = 'P';
-            } elseif (stripos($pedagogy, 'Series Exam') !== false || stripos($pedagogy, 'ST') !== false) {
-                $mode = 'ST';
-            } elseif (stripos($pedagogy, 'SP') !== false) {
-                $mode = 'SP';
-            }
+        DB::transaction(function () use ($plansData, $subjectId) {
+            // Step 1: Update all existing rows
+            foreach ($plansData as $item) {
+                if (!isset($item['id'])) continue;
+                if (str_starts_with((string)$item['id'], 'new_')) continue;
 
-            $topicText = trim($item['topic_content'] ?? '');
-            $propDate = $this->parseDateForStorage($item['proposed_date'] ?? null);
-            $actDate = $this->parseDateForStorage($item['actual_date'] ?? null);
-
-            if (str_starts_with((string)$item['id'], 'new_')) {
-                // If new row added with no text entered, never save or calculate that row
-                if ($topicText === '') {
-                    continue;
+                $pedagogy = $item['pedagogy'] ?? ($item['mode'] ?? 'Lecture (L)');
+                $mode = 'L';
+                if (stripos($pedagogy, 'Practical') !== false || stripos($pedagogy, 'Lab') !== false) {
+                    $mode = 'P';
+                } elseif (stripos($pedagogy, 'Series Exam') !== false || stripos($pedagogy, 'ST') !== false) {
+                    $mode = 'ST';
+                } elseif (stripos($pedagogy, 'SP') !== false) {
+                    $mode = 'SP';
                 }
 
-                $maxDay = LessonPlan::where('batch_subject_id', $subjectId)->max('day_no') ?? 0;
-                LessonPlan::create([
-                    'batch_subject_id' => $subjectId,
-                    'day_no' => $maxDay + 1,
-                    'topic_content' => $topicText,
-                    'proposed_date' => $propDate,
-                    'actual_date' => $actDate,
-                    'co_id' => $item['co_id'] ?? 'CO1',
-                    'sub_batch' => $item['sub_batch'] ?? 'ALL',
-                    'pedagogy' => $pedagogy,
-                    'mode' => $mode,
-                    'remarks' => $item['remarks'] ?? '',
-                    'status' => $actDate ? 'Completed' : 'Pending'
-                ]);
-            } else {
+                $topicText = trim($item['topic_content'] ?? '');
+                $propDate = $this->parseDateForStorage($item['proposed_date'] ?? null);
+                $actDate = $this->parseDateForStorage($item['actual_date'] ?? null);
+
                 LessonPlan::where('id', $item['id'])
                     ->where('batch_subject_id', $subjectId)
                     ->update([
@@ -1495,7 +1578,85 @@ class R26VirtualClassroomPracticumController extends Controller
                         'status' => $actDate ? 'Completed' : 'Pending'
                     ]);
             }
-        }
+
+            // Step 2: Insert new rows (in the order they appear in the DOM)
+            $createdNewMap = [];
+
+            foreach ($plansData as $item) {
+                if (!isset($item['id'])) continue;
+                if (!str_starts_with((string)$item['id'], 'new_')) continue;
+
+                $topicText = trim($item['topic_content'] ?? '');
+                // If new row added with no text entered, never save that row
+                if ($topicText === '') {
+                    continue;
+                }
+
+                $pedagogy = $item['pedagogy'] ?? ($item['mode'] ?? 'Lecture (L)');
+                $mode = 'L';
+                if (stripos($pedagogy, 'Practical') !== false || stripos($pedagogy, 'Lab') !== false) {
+                    $mode = 'P';
+                } elseif (stripos($pedagogy, 'Series Exam') !== false || stripos($pedagogy, 'ST') !== false) {
+                    $mode = 'ST';
+                } elseif (stripos($pedagogy, 'SP') !== false) {
+                    $mode = 'SP';
+                }
+
+                $propDate = $this->parseDateForStorage($item['proposed_date'] ?? null);
+                $actDate = $this->parseDateForStorage($item['actual_date'] ?? null);
+
+                $prevId = $item['prev_id'] ?? null;
+                $newDayNo = null;
+
+                if ($prevId && !str_starts_with((string)$prevId, 'new_')) {
+                    $prevPlan = LessonPlan::where('batch_subject_id', $subjectId)->find($prevId);
+                    if ($prevPlan) {
+                        $newDayNo = $prevPlan->day_no + 1;
+                    }
+                } elseif ($prevId && isset($createdNewMap[$prevId])) {
+                    $newDayNo = $createdNewMap[$prevId] + 1;
+                }
+
+                if ($newDayNo === null) {
+                    if ($prevId === null && LessonPlan::where('batch_subject_id', $subjectId)->exists()) {
+                        $newDayNo = 1;
+                    } else {
+                        $maxDay = LessonPlan::where('batch_subject_id', $subjectId)->max('day_no') ?? 0;
+                        $newDayNo = $maxDay + 1;
+                    }
+                }
+
+                $hoursCount = ($mode === 'P' || $mode === 'SP') ? 3 : 1;
+
+                // Shift existing rows >= $newDayNo by $hoursCount so space is made cleanly
+                LessonPlan::where('batch_subject_id', $subjectId)
+                    ->where('day_no', '>=', $newDayNo)
+                    ->increment('day_no', $hoursCount);
+
+                $lastDayAssigned = $newDayNo;
+                for ($h = 0; $h < $hoursCount; $h++) {
+                    $curDay = $newDayNo + $h;
+                    $hourSuffix = ($hoursCount > 1) ? ' (Hour ' . ($h + 1) . '/' . $hoursCount . ')' : '';
+                    LessonPlan::create([
+                        'batch_subject_id' => $subjectId,
+                        'day_no' => $curDay,
+                        'topic_content' => $topicText . $hourSuffix,
+                        'proposed_date' => $propDate,
+                        'actual_date' => $actDate,
+                        'co_id' => $item['co_id'] ?? 'CO1',
+                        'sub_batch' => $item['sub_batch'] ?? (($mode === 'P' || $mode === 'SP') ? 'Batch A & B' : 'ALL'),
+                        'allocated_hours' => 1,
+                        'pedagogy' => $pedagogy,
+                        'mode' => $mode,
+                        'remarks' => $item['remarks'] ?? '',
+                        'status' => $actDate ? 'Completed' : 'Pending'
+                    ]);
+                    $lastDayAssigned = $curDay;
+                }
+
+                $createdNewMap[$item['id']] = $lastDayAssigned;
+            }
+        });
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'All lesson plan rows saved successfully!']);
     }
@@ -1748,7 +1909,7 @@ class R26VirtualClassroomPracticumController extends Controller
                             'subject_code' => $batchSubject->subject_code,
                             'category' => 'Self Study: ' . $actName,
                             'co_tag' => $coTag,
-                            'max_marks' => 15,
+                            'max_marks' => 10,
                             'marks_obtained' => $score,
                             'entered_by' => $enteredBy,
                             'created_at' => now(),
@@ -1860,7 +2021,7 @@ class R26VirtualClassroomPracticumController extends Controller
             $regNo = $student->reg_no;
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
             $slScoreRaw = $stSlMarks->count() > 0 ? ($stSlMarks->avg('marks_obtained') ?: 0.00) : 0.00;
-            $slMarks = round(($slScoreRaw / 15.0) * 5.0, 2);
+            $slMarks = round(($slScoreRaw / 10.0) * 5.0, 2);
 
             $coScores = ['CO1' => 0.0, 'CO2' => 0.0, 'CO3' => 0.0, 'CO4' => 0.0];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {

@@ -51,6 +51,11 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
         // Fetch or Create Health & Physical Course File Record
         $hpCourseFile = R26HealthPhysicalCourseFile::where('batch_subject_id', $subjectId)->first();
 
+        if ($hpCourseFile && !empty($batchSubject->subject_code) && $hpCourseFile->course_code !== $batchSubject->subject_code) {
+            $hpCourseFile->update(['course_code' => $batchSubject->subject_code]);
+            $hpCourseFile->course_code = $batchSubject->subject_code;
+        }
+
         if (!$hpCourseFile) {
             $hpCourseFile = R26HealthPhysicalCourseFile::create([
                 'batch_subject_id' => $subjectId,
@@ -360,6 +365,16 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             ];
         }
 
+        // All Revision 2026 Health & Physical Classes for Quick Switching
+        $allHpClasses = BatchSubject::where('syllabus_revision_code', 'REV2026')
+            ->where(function($q) {
+                $q->where('subject_code', 'LIKE', '%1009%')
+                  ->orWhere('subject_name', 'LIKE', '%Health%')
+                  ->orWhere('subject_name', 'LIKE', '%Physical%');
+            })
+            ->orderBy('classroom_id')
+            ->get(['id', 'classroom_id', 'subject_code', 'subject_name']);
+
         return view('r26_health_physical.virtual_classroom_health_physical', compact(
             'batchSubject',
             'classroom',
@@ -380,7 +395,8 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             'midSemSurvey',
             'exitSurvey',
             'midSemResponses',
-            'exitSurveyResponses'
+            'exitSurveyResponses',
+            'allHpClasses'
         ));
     }
 
@@ -417,12 +433,37 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             ]
         ];
 
-        $studentResults = $students->map(function ($student) use ($activityEvals, $fitnessTests, $eseMarks) {
-            $stEval = $activityEvals->get($student->reg_no, collect())->first();
-            $stTests = $fitnessTests->get($student->reg_no, collect());
-            $stEse = $eseMarks->get($student->reg_no);
+        // Attendance Data
+        $attendanceData = DB::table('student_attendance')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
 
-            $attMarks = 5.0;
+        // Assigned Staff
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
+            ->get();
+
+        $studentResults = $students->map(function ($student) use ($attendanceData, $activityEvals, $fitnessTests, $eseMarks) {
+            $regNo = $student->reg_no;
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
+
+            if ($attPercentage >= 90) { $attMarks = 5.0; }
+            elseif ($attPercentage >= 80) { $attMarks = 4.0; }
+            elseif ($attPercentage >= 75) { $attMarks = 3.0; }
+            elseif ($attPercentage >= 70) { $attMarks = 2.0; }
+            elseif ($attPercentage >= 65) { $attMarks = 1.0; }
+            else { $attMarks = 0.0; }
+
+            $stEval = $activityEvals->get($regNo, collect())->first();
+            $stTests = $fitnessTests->get($regNo, collect());
+            $stEse = $eseMarks->get($regNo);
+
             $activityMarks = $stEval ? floatval($stEval->total_score_50) * 0.6 : 0.0;
             $ca1 = $stTests->where('test_no', 'CA1')->first();
             $ca2 = $stTests->where('test_no', 'CA2')->first();
@@ -438,7 +479,11 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                 'reg_no' => $student->reg_no,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
+                'total_sessions' => $totalAtt ?: 30,
+                'attended_sessions' => $present ?: ($totalAtt ?: 30),
+                'att_percentage' => $attPercentage,
                 'att_marks' => $attMarks,
+                'activity_score_50' => $stEval ? floatval($stEval->total_score_50) : 0.0,
                 'activity_marks' => round($activityMarks, 2),
                 'test_marks' => round($testMarks, 2),
                 'total_cie_marks' => $totalCieMarks,
@@ -476,8 +521,32 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
         return view('r26_health_physical.reports_print', compact(
             'batchSubject', 'classroom', 'students', 'hpCourseFile', 'lessonPlans',
             'activityEvals', 'fitnessTests', 'eseMarks', 'studentResults', 'evalScheme', 'type',
-            'exitSurvey', 'exitSurveyResponses', 'midSemSurvey', 'midSemResponses'
+            'exitSurvey', 'exitSurveyResponses', 'midSemSurvey', 'midSemResponses',
+            'attendanceData', 'assignedStaff'
         ));
+    }
+
+    /**
+     * View/Stream Uploaded Syllabus PDF
+     */
+    public function viewSyllabus($subjectId)
+    {
+        $hpCourseFile = R26HealthPhysicalCourseFile::where('batch_subject_id', $subjectId)->first();
+        if (!$hpCourseFile || !$hpCourseFile->syllabus_pdf_path) {
+            abort(404, 'Syllabus PDF not uploaded for this course.');
+        }
+
+        $path = str_replace('/storage/', '', $hpCourseFile->syllabus_pdf_path);
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . ($hpCourseFile->course_code ?: 'HP') . '_Syllabus.pdf"'
+            ]);
+        }
+
+        abort(404, 'Syllabus file not found on storage.');
     }
 
     /**
@@ -526,7 +595,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                     'syllabus_pdf_path' => $path,
                     'program' => $data['program'] ?? 'Engineering',
                     'course_title' => $data['course_title'] ?? 'Health and Physical Education',
-                    'course_code' => $data['course_code'] ?? '1009',
+                    'course_code' => $batchSubject->subject_code ?: ($data['course_code'] ?? '1009'),
                     'semester' => 'I',
                     'type_of_course' => 'Health & Physical',
                     'teaching_scheme' => $data['teaching_scheme'] ?? '0:0:2:0',
@@ -747,8 +816,24 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
     public function bulkUpdateLessonPlans(Request $request, $subjectId)
     {
         $plans = $request->input('plans', []);
+        $parseDate = function($val) {
+            if (!$val) return null;
+            $val = trim($val);
+            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $val)) {
+                try {
+                    return \Carbon\Carbon::createFromFormat('d/m/Y', $val)->format('Y-m-d');
+                } catch (\Exception $e) {}
+            }
+            try {
+                return \Carbon\Carbon::parse($val)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
+
         foreach ($plans as $id => $data) {
-            $actualDate = $data['actual_date'] ?? null;
+            $actualDate = $parseDate($data['actual_date'] ?? null);
+            $proposedDate = $parseDate($data['proposed_date'] ?? null);
             $status = $data['status'] ?? 'Pending';
             if ($actualDate && $status === 'Pending') {
                 $status = 'Completed';
@@ -760,7 +845,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                 'co_id' => $data['co_tag'] ?? ($data['co_id'] ?? 'CO1'),
                 'allocated_hours' => intval($data['allocated_hours'] ?? 1),
                 'pedagogy' => $data['pedagogy'] ?? 'Physical Practical Session',
-                'proposed_date' => $data['proposed_date'] ?? null,
+                'proposed_date' => $proposedDate,
                 'actual_date' => $actualDate,
                 'status' => $status,
             ]);

@@ -67,7 +67,7 @@
                 <th class="border border-slate-400 p-2 text-center w-16">CO2 Avg</th>
                 <th class="border border-slate-400 p-2 text-center w-16">CO3 Avg</th>
                 <th class="border border-slate-400 p-2 text-center w-16">CO4 Avg</th>
-                <th class="border border-slate-400 p-2 text-center w-20">Total Avg (/15)</th>
+                <th class="border border-slate-400 p-2 text-center w-20">Total Avg (/10)</th>
                 <th class="border border-slate-400 p-2 text-center w-24">CA Score (/5M)</th>
             </tr>
         </thead>
@@ -81,7 +81,7 @@
                 <td class="border border-slate-300 p-2 text-center font-medium">{{ number_format($res['co_scores']['CO2'] ?? 0, 1) }}</td>
                 <td class="border border-slate-300 p-2 text-center font-medium">{{ number_format($res['co_scores']['CO3'] ?? 0, 1) }}</td>
                 <td class="border border-slate-300 p-2 text-center font-medium">{{ number_format($res['co_scores']['CO4'] ?? 0, 1) }}</td>
-                <td class="border border-slate-300 p-2 text-center font-bold text-slate-800">{{ number_format(($res['sl_marks'] / 5.0) * 15.0, 2) }}</td>
+                <td class="border border-slate-300 p-2 text-center font-bold text-slate-800">{{ number_format(($res['sl_marks'] / 5.0) * 10.0, 2) }}</td>
                 <td class="border border-slate-300 p-2 text-center font-extrabold text-emerald-900 bg-emerald-50/50">{{ number_format($res['sl_marks'], 2) }}</td>
             </tr>
             @endforeach

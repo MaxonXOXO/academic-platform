@@ -621,7 +621,7 @@
                                 <th class="p-1.5 w-14 text-center">Batch</th>
                                 <th class="p-1.5 w-14 text-center">Hours</th>
                                 <th class="p-1.5 w-24">Remarks</th>
-                                <th class="p-1.5 w-8 text-center"></th>
+                                <th class="p-1.5 w-14 text-center text-slate-500">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="lp-theory-tbody" class="divide-y divide-slate-800/60 text-sm">
@@ -687,8 +687,13 @@
                                 <td class="p-2 pr-3">
                                     <input type="text" id="lp-remarks-{{ $plan->id }}" value="{{ $plan->remarks }}" placeholder="Status/Remarks" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">
                                 </td>
-                                <td class="p-1 text-center">
-                                    <button type="button" onclick="confirmDeleteLessonPlanRow({{ $plan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
+                                <td class="p-1 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center space-x-1">
+                                        <button type="button" onclick="insertLessonPlanRowAfter('lp-row-{{ $plan->id }}', 'L')" title="Insert row below" class="w-6 h-6 flex items-center justify-center rounded bg-sky-500/10 hover:bg-sky-500/25 border border-sky-500/25 text-sky-400 hover:text-sky-300 transition-all text-xs font-bold leading-none cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                        <button type="button" onclick="confirmDeleteLessonPlanRow({{ $plan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -717,8 +722,8 @@
                     <div class="space-y-1">
                         <h3 class="text-lg font-bold text-white">Self-Learning Evaluation & Customization (CA - 5 CIA Marks)</h3>
                         <p class="text-slate-400 text-xs leading-relaxed">
-                            Mandatory Core: <span class="font-bold text-amber-400">Assignment</span> & <span class="font-bold text-emerald-400">MCQ</span> (Out of 15 Marks).<br>
-                            Custom Catalog: Case Study, Quiz, Activity, Microproject, Mini Project, Report, Exercises, Presentation.
+                            Evaluated out of 10 Marks &bull; Scaled to 5 CIA Marks.<br>
+                            Activity Catalog: Assignment, MCQ, Case Study, Quiz, Activity, Microproject, Mini Project, Report, Exercises, Presentation.
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 flex-wrap gap-y-2 flex-shrink-0">
@@ -752,7 +757,7 @@
                                 <th class="p-2">SBTE No</th>
                                 <th class="p-2">Name</th>
                                 <th class="p-2">Activities</th>
-                                <th class="p-2 text-center">Raw Score</th>
+                                <th class="p-2 text-center">Raw Score (/10)</th>
                                 <th class="p-2 text-center">Converted CIA (5M)</th>
                             </tr>
                         </thead>
@@ -763,13 +768,24 @@
                                 <td class="p-2 font-mono text-emerald-400/90 text-xs">{{ $res['sbte_reg_no'] ?: '-' }}</td>
                                 <td class="p-2 text-slate-200 text-xs">{{ $res['name'] }}</td>
                                 <td class="p-2">
-                                    <div class="flex items-center space-x-1 text-[11px]">
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Assignment</span>
-                                        <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">MCQ</span>
+                                    <div class="flex items-center space-x-1 text-[11px] flex-wrap gap-1">
+                                        @php
+                                            $stMarks = isset($slAcademicMarks) ? $slAcademicMarks->get($res['reg_no'], collect()) : collect();
+                                            $distinctActs = $stMarks->pluck('category')->map(function($c) {
+                                                return str_replace('Self Study: ', '', $c);
+                                            })->unique();
+                                        @endphp
+                                        @if($distinctActs->count() > 0)
+                                            @foreach($distinctActs as $actName)
+                                            <span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[10px]">{{ $actName }}</span>
+                                            @endforeach
+                                        @else
+                                            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px]">No activities logged</span>
+                                        @endif
                                     </div>
                                 </td>
-                                <td class="p-2 text-center text-slate-300">{{ number_format(($res['sl_marks'] / 5.0) * 15.0, 2) }} / 15.00</td>
-                                <td class="p-2 text-center font-semibold text-emerald-400">{{ number_format($res['sl_marks'], 2) }} / 5.00</td>
+                                <td class="p-2 text-center text-slate-300 font-mono">{{ number_format(($res['sl_marks'] / 5.0) * 10.0, 2) }} / 10.00</td>
+                                <td class="p-2 text-center font-semibold text-emerald-400 font-mono">{{ number_format($res['sl_marks'], 2) }} / 5.00</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -867,31 +883,42 @@
                 <div class="glass-card p-5 rounded-xl border border-slate-800">
                     <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                         <div>
-                            <h3 class="text-base font-semibold text-slate-200">Theory Series Examinations</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">4 Series Tests (CO1, CO2, CO3, CO4 - 2 Hours each out of 50 marks), averaged and scaled to 10 CIA marks</p>
+                            <h3 class="text-base font-semibold text-slate-200">Theory Series Examinations (CA4 &amp; CA5)</h3>
+                            <p class="text-slate-400 text-xs mt-0.5">4 Modular/CO Tests (CO1–CO4 · 25M each) combined into 2 Series (CA4: Mod 1&amp;2, CA5: Mod 3&amp;4 · 50M each). CIA is calculated from the 2 Series averaged and scaled to 10 Marks; 4 separate CO marks are recorded for NBA Attainment.</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             <button onclick="printSubtabReport('Theory Series Examinations Report', 'theory-subcontent-series')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                            <button onclick="openSeriesTheoryModal()" class="header-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm">Enter Theory Series Marks</button>
+                            <button onclick="openSeriesTheoryModal()" class="header-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm cursor-pointer">Enter Theory Series Marks</button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse text-sm">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-500 font-medium bg-slate-900/60 text-[10px] uppercase tracking-wider">
-                                    <th class="p-2">Roll</th>
-                                    <th class="p-2">SBTE Reg No</th>
-                                    <th class="p-2">Student Name</th>
-                                    <th class="p-2 text-center w-28">Test 1 (CO1)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 2 (CO2)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 3 (CO3)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-28">Test 4 (CO4)<br><span class="text-[9px] text-slate-600 normal-case font-normal">/ 50 Marks</span></th>
-                                    <th class="p-2 text-center w-24">Avg (/50)</th>
-                                    <th class="p-2 text-center w-28">CIA (/10M)</th>
+                                <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
+                                    <th rowspan="2" class="p-2.5 align-middle">Roll</th>
+                                    <th rowspan="2" class="p-2.5 align-middle">SBTE Reg No</th>
+                                    <th rowspan="2" class="p-2.5 align-middle min-w-[140px]">Student Name</th>
+                                    <th colspan="3" class="p-2.5 text-center border-l border-r border-slate-800 bg-sky-950/30 text-sky-300 font-bold text-xs sm:text-sm">
+                                        Series Exam 1 (CA4: Modules I &amp; II - 50 Marks)
+                                    </th>
+                                    <th colspan="3" class="p-2.5 text-center border-r border-slate-800 bg-indigo-950/30 text-indigo-300 font-bold text-xs sm:text-sm">
+                                        Series Exam 2 (CA5: Modules III &amp; IV - 50 Marks)
+                                    </th>
+                                    <th rowspan="2" class="p-2.5 text-center w-28 align-middle">Series Avg<br><span class="text-[11px] text-amber-400 font-normal">(/50)</span></th>
+                                    <th rowspan="2" class="p-2.5 text-center w-28 align-middle">CIA Score<br><span class="text-[11px] text-emerald-400 font-normal">(/10M)</span></th>
+                                </tr>
+                                <tr class="border-b border-slate-800 text-slate-300 font-bold bg-slate-900/70 text-xs">
+                                    <th class="p-2 text-center border-l border-slate-800/60 w-28 text-sky-200">Test 1 (CO1)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center w-28 text-sky-200">Test 2 (CO2)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-sky-950/40 text-sky-300 font-extrabold">Series 1<br><span class="text-[10px] text-sky-400 font-mono">Tot /50</span></th>
+
+                                    <th class="p-2 text-center w-28 text-indigo-200">Test 3 (CO3)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center w-28 text-indigo-200">Test 4 (CO4)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-indigo-950/40 text-indigo-300 font-extrabold">Series 2<br><span class="text-[10px] text-indigo-400 font-mono">Tot /50</span></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/60 text-sm">
+                            <tbody class="divide-y divide-slate-800/60 text-sm sm:text-base">
                                 @foreach($studentResults as $res)
                                 @php
                                     $stEvals = $seriesTheoryEvals->get($res['reg_no'], collect());
@@ -900,38 +927,123 @@
                                     $s3 = $stEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
                                     $s4 = $stEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
                                     $regKey = preg_replace('/[^a-zA-Z0-9_]/', '_', $res['reg_no']);
+
+                                    $co1Val = $s1 ? (float)$s1->total_score_50 : null;
+                                    $co2Val = $s2 ? (float)$s2->total_score_50 : null;
+                                    $co3Val = $s3 ? (float)$s3->total_score_50 : null;
+                                    $co4Val = $s4 ? (float)$s4->total_score_50 : null;
+
+                                    // Fallback to legacy single-series if available
+                                    if ($co1Val === null && $co2Val === null) {
+                                        $legacyCa4 = $stEvals->whereIn('series_no', ['CA4'])->first();
+                                        if ($legacyCa4) {
+                                            $co1Val = round(((float)$legacyCa4->total_score_50) / 2.0, 1);
+                                            $co2Val = round(((float)$legacyCa4->total_score_50) / 2.0, 1);
+                                        }
+                                    }
+                                    if ($co3Val === null && $co4Val === null) {
+                                        $legacyCa5 = $stEvals->whereIn('series_no', ['CA5'])->first();
+                                        if ($legacyCa5) {
+                                            $co3Val = round(((float)$legacyCa5->total_score_50) / 2.0, 1);
+                                            $co4Val = round(((float)$legacyCa5->total_score_50) / 2.0, 1);
+                                        }
+                                    }
+
+                                    $hasS1 = ($co1Val !== null || $co2Val !== null);
+                                    $hasS2 = ($co3Val !== null || $co4Val !== null);
+
+                                    $s1Tot = $hasS1 ? min(50.0, ($co1Val ?? 0) + ($co2Val ?? 0)) : null;
+                                    $s2Tot = $hasS2 ? min(50.0, ($co3Val ?? 0) + ($co4Val ?? 0)) : null;
+
+                                    $avg50 = ($s1Tot !== null || $s2Tot !== null) ? ((($s1Tot ?? 0) + ($s2Tot ?? 0)) / 2.0) : null;
+                                    $cia10 = $avg50 !== null ? round((($avg50 / 50.0) * 10.0) * 2) / 2 : null;
                                 @endphp
                                 <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
-                                    <td class="p-2 text-slate-400 font-mono text-xs">{{ $res['roll_no'] }}</td>
-                                    <td class="p-2 font-mono text-slate-300 font-bold text-xs">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                    <td class="p-2 text-slate-200 text-xs font-normal">{{ $res['name'] }}</td>
-                                    @foreach([
-                                        ['s1', 'Series 1', $s1],
-                                        ['s2', 'Series 2', $s2],
-                                        ['s3', 'Series 3', $s3],
-                                        ['s4', 'Series 4', $s4],
-                                    ] as [$key, $seriesNo, $rec])
-                                    <td class="p-1.5 text-center">
+                                    <td class="p-2.5 text-slate-300 font-mono font-bold text-sm">{{ $res['roll_no'] }}</td>
+                                    <td class="p-2.5 font-mono text-white font-extrabold text-sm">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                    <td class="p-2.5 text-slate-100 text-sm font-semibold">{{ $res['name'] }}</td>
+
+                                    <!-- Series 1: Test 1 (CO1) -->
+                                    <td class="p-1.5 text-center border-l border-slate-800/60">
                                         <input type="number"
-                                            id="st-{{ $regKey }}-{{ $key }}"
+                                            id="st-{{ $regKey }}-s1"
                                             data-reg="{{ $res['reg_no'] }}"
-                                            data-series="{{ $seriesNo }}"
-                                            min="0" max="50" step="0.5"
-                                            value="{{ $rec ? number_format((float)$rec->total_score_50, 1, '.', '') : '' }}"
+                                            data-series="Series 1"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co1Val !== null ? number_format($co1Val, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             onchange="autoSaveSeriesTheory(this)"
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-bold text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-black text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all"
                                         >
                                     </td>
-                                    @endforeach
-                                    <td class="p-2 text-center">
-                                        <span id="st-avg-{{ $regKey }}" class="font-mono font-bold text-amber-300 text-xs">
-                                            {{ $res['series_theory_marks'] > 0 ? number_format($res['series_theory_marks'] * 5, 1) : '—' }}
+
+                                    <!-- Series 1: Test 2 (CO2) -->
+                                    <td class="p-1.5 text-center">
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s2"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 2"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co2Val !== null ? number_format($co2Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            onchange="autoSaveSeriesTheory(this)"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-black text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all"
+                                        >
+                                    </td>
+
+                                    <!-- Series 1 Subtotal (/50) -->
+                                    <td class="p-2 text-center border-r border-slate-800/60 bg-sky-950/20">
+                                        <span id="st-s1tot-{{ $regKey }}" class="font-mono font-bold text-sky-300 text-sm">
+                                            {{ $s1Tot !== null ? number_format($s1Tot, 1) : '—' }}
                                         </span>
                                     </td>
-                                    <td class="p-2 text-center">
-                                        <span id="st-cia-{{ $regKey }}" class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono font-bold text-xs inline-block">
-                                            {{ number_format($res['series_theory_marks'], 2) }}/10
+
+                                    <!-- Series 2: Test 3 (CO3) -->
+                                    <td class="p-1.5 text-center">
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s3"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 3"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co3Val !== null ? number_format($co3Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            onchange="autoSaveSeriesTheory(this)"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-black text-indigo-300 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500/30 no-spinners transition-all"
+                                        >
+                                    </td>
+
+                                    <!-- Series 2: Test 4 (CO4) -->
+                                    <td class="p-1.5 text-center">
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s4"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 4"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co4Val !== null ? number_format($co4Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            onchange="autoSaveSeriesTheory(this)"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-1.5 text-center font-black text-indigo-300 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500/30 no-spinners transition-all"
+                                        >
+                                    </td>
+
+                                    <!-- Series 2 Subtotal (/50) -->
+                                    <td class="p-2 text-center border-r border-slate-800/60 bg-indigo-950/20">
+                                        <span id="st-s2tot-{{ $regKey }}" class="font-mono font-bold text-indigo-300 text-sm">
+                                            {{ $s2Tot !== null ? number_format($s2Tot, 1) : '—' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Series Average (/50) -->
+                                    <td class="p-2 text-center bg-amber-950/10">
+                                        <span id="st-avg-{{ $regKey }}" class="font-mono font-bold text-amber-300 text-sm">
+                                            {{ $avg50 !== null ? number_format($avg50, 1) : '—' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- CIA Score (/10M) -->
+                                    <td class="p-2 text-center bg-emerald-950/10">
+                                        <span id="st-cia-{{ $regKey }}" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-bold text-sm inline-block">
+                                            {{ $cia10 !== null ? number_format($cia10, 2) . '/10' : '—' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -1970,10 +2082,10 @@
                                 <th class="p-1.5 w-14 text-center">Batch</th>
                                 <th class="p-1.5 w-14 text-center">Hours</th>
                                 <th class="p-1.5 w-24">Remarks</th>
-                                <th class="p-1.5 w-8 text-center"></th>
+                                <th class="p-1.5 w-14 text-center text-slate-500">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-sm">
+                        <tbody id="lp-lab-tbody" class="divide-y divide-slate-800/60 text-sm">
                             @php
                                 $labPlans = $lessonPlans->whereIn('mode', ['P', 'SP'])->values();
                                 $labSessions = $labPlans->chunk(3);
@@ -2034,8 +2146,13 @@
                                 <td class="p-2">
                                     <input type="text" id="lp-remarks-{{ $firstPlan->id }}" value="{{ $firstPlan->remarks }}" placeholder="Status/Remarks" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">
                                 </td>
-                                <td class="p-1 text-center">
-                                    <button type="button" onclick="confirmDeleteLessonPlanRow({{ $firstPlan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
+                                <td class="p-1 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center space-x-1">
+                                        <button type="button" onclick="insertLessonPlanRowAfter('lp-row-{{ $firstPlan->id }}', 'P')" title="Insert session below" class="w-6 h-6 flex items-center justify-center rounded bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 hover:text-emerald-300 transition-all text-xs font-bold leading-none cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                        <button type="button" onclick="confirmDeleteLessonPlanRow({{ $firstPlan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -2046,7 +2163,7 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800 mt-3">
-                    <button type="button" onclick="addCustomLessonPlanRow('lp-theory-tbody', 'P')" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                    <button type="button" onclick="addCustomLessonPlanRow('lp-lab-tbody', 'P')" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
                         <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         <span>Add Row (Customization)</span>
                     </button>
@@ -2545,7 +2662,7 @@
                 <button onclick="closeSlConfigModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
             </div>
             
-            <p class="text-slate-400 text-xs">Mandatory core activities (<span class="text-amber-400 font-bold">Assignment</span> & <span class="text-emerald-400 font-bold">MCQ</span>) are always evaluated out of 15 Marks. Select optional assessment activities per CO:</p>
+            <p class="text-slate-400 text-xs">Select self-learning assessment activities per CO (evaluated out of 10 Marks, scaled to 5 CIA Marks):</p>
 
             <form id="sl-config-form" onsubmit="saveSlConfig(event)" class="space-y-4 max-h-[450px] overflow-y-auto pr-1">
                 @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coTag)
@@ -2553,17 +2670,23 @@
                     <h4 class="font-bold text-amber-400 text-sm">{{ $coTag }} Assessment Activities</h4>
                     
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                        <label class="flex items-center space-x-2 text-slate-300 opacity-80 cursor-not-allowed">
-                            <input type="checkbox" checked disabled class="rounded bg-slate-800 border-slate-700 text-amber-500">
-                            <span class="font-bold">Assignment (Mandatory)</span>
-                        </label>
-                        <label class="flex items-center space-x-2 text-slate-300 opacity-80 cursor-not-allowed">
-                            <input type="checkbox" checked disabled class="rounded bg-slate-800 border-slate-700 text-emerald-500">
-                            <span class="font-bold">MCQ (Mandatory)</span>
-                        </label>
-                        @foreach(['case_study' => 'Case Study', 'quiz' => 'Quiz', 'activity' => 'Activity', 'microproject' => 'Microproject', 'mini_project' => 'Mini Project', 'report' => 'Report', 'exercises' => 'Exercises', 'presentation' => 'Presentation'] as $actKey => $actLabel)
+                        @foreach([
+                            'assignment' => 'Assignment',
+                            'mcq' => 'MCQ',
+                            'case_study' => 'Case Study',
+                            'quiz' => 'Quiz',
+                            'activity' => 'Activity',
+                            'microproject' => 'Microproject',
+                            'mini_project' => 'Mini Project',
+                            'report' => 'Report',
+                            'exercises' => 'Exercises',
+                            'presentation' => 'Presentation'
+                        ] as $actKey => $actLabel)
+                        @php
+                            $isChecked = isset($slConfigs[$coTag][$actKey]) ? !empty($slConfigs[$coTag][$actKey]) : in_array($actKey, ['assignment', 'mcq']);
+                        @endphp
                         <label class="flex items-center space-x-2 text-slate-200 cursor-pointer">
-                            <input type="checkbox" name="configs[{{ $coTag }}][{{ $actKey }}]" value="1" {{ !empty($slConfigs[$coTag][$actKey]) ? 'checked' : '' }} class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
+                            <input type="checkbox" name="configs[{{ $coTag }}][{{ $actKey }}]" value="1" {{ $isChecked ? 'checked' : '' }} class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0">
                             <span>{{ $actLabel }}</span>
                         </label>
                         @endforeach
@@ -2644,7 +2767,7 @@
             <div class="bg-gradient-to-r from-slate-900 via-blue-950/30 to-slate-900 p-2.5 rounded-xl border border-blue-500/30 flex items-center justify-between text-xs flex-shrink-0">
                 <div>
                     <span class="text-slate-400 font-medium">Selected Student Overall Raw Average:</span>
-                    <span id="sl-student-total-raw" class="font-extrabold text-amber-400 text-sm ml-1.5">0.00 / 15.00 M</span>
+                    <span id="sl-student-total-raw" class="font-extrabold text-amber-400 text-sm ml-1.5">0.00 / 10.00 M</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="text-slate-400 font-medium">Converted CA1 CIA Score:</span>
@@ -3350,7 +3473,7 @@
                                 <span class="text-[10px] text-slate-400 font-normal">(${actKeys.length} ${targetAct !== 'ALL' ? 'Filtered' : 'Active'})</span>
                             </h4>
                             <span id="co-sum-${co}" class="text-[10px] font-bold text-emerald-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                                Avg: 0.0 / 15.0
+                                Avg: 0.0 / 10.0
                             </span>
                         </div>
                         <div class="flex flex-wrap items-center justify-center gap-2">
@@ -3365,12 +3488,12 @@
                             <div class="flex items-center justify-between gap-1 mb-2">
                                 <span class="font-bold text-slate-300 text-[10px] uppercase tracking-wide truncate">${label}</span>
                                 <span id="badge-${co}-${actKey}" class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/20 flex-shrink-0">
-                                    ${parseFloat(currentVal).toFixed(1)}/15
+                                    ${parseFloat(currentVal).toFixed(1)}/10
                                 </span>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', -0.5)" class="w-8 h-10 rounded-lg bg-slate-800 hover:bg-rose-500/20 border border-slate-700 hover:border-rose-500/40 font-bold text-slate-200 text-base flex items-center justify-center flex-shrink-0 cursor-pointer shadow-sm transition-all select-none">−</button>
-                                <input type="number" id="input-${co}-${actKey}" min="0" max="15" step="0.5" value="${currentVal}" oninput="syncSlInput('${regNo}', '${co}', '${actKey}', this.value)" class="flex-1 h-10 bg-slate-900 border border-slate-700 rounded-lg text-center font-black text-emerald-300 text-xl outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners">
+                                <input type="number" id="input-${co}-${actKey}" min="0" max="10" step="0.5" value="${currentVal}" oninput="syncSlInput('${regNo}', '${co}', '${actKey}', this.value)" class="flex-1 h-10 bg-slate-900 border border-slate-700 rounded-lg text-center font-black text-emerald-300 text-xl outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners">
                                 <button type="button" onclick="stepSlSlider('${regNo}', '${co}', '${actKey}', 0.5)" class="w-8 h-10 rounded-lg bg-slate-800 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/40 font-bold text-slate-200 text-base flex items-center justify-center flex-shrink-0 cursor-pointer shadow-sm transition-all select-none">+</button>
                             </div>
                         </div>
@@ -3402,13 +3525,13 @@
         }
 
         function syncSlInput(regNo, co, actKey, val) {
-            const num = Math.max(0, Math.min(15, parseFloat(val) || 0));
+            const num = Math.max(0, Math.min(10, parseFloat(val) || 0));
             if (!slSplitupState[regNo]) slSplitupState[regNo] = {};
             if (!slSplitupState[regNo][co]) slSplitupState[regNo][co] = {};
             slSplitupState[regNo][co][actKey] = num;
 
             const badge = document.getElementById(`badge-${co}-${actKey}`);
-            if (badge) badge.innerText = `${num.toFixed(1)} / 15.0`;
+            if (badge) badge.innerText = `${num.toFixed(1)} / 10.0`;
 
             const input = document.getElementById(`input-${co}-${actKey}`);
             if (input && parseFloat(input.value) !== num) input.value = num;
@@ -3418,7 +3541,7 @@
 
         function stepSlSlider(regNo, co, actKey, delta) {
             const current = slSplitupState[regNo]?.[co]?.[actKey] || 0;
-            const next = Math.max(0, Math.min(15, current + delta));
+            const next = Math.max(0, Math.min(10, current + delta));
             syncSlInput(regNo, co, actKey, next);
         }
 
@@ -3439,7 +3562,7 @@
                 const coSumSpan = document.getElementById(`co-sum-${co}`);
                 if (coSumSpan) {
                     const coAvg = coCnt > 0 ? (coSum / coCnt) : 0;
-                    coSumSpan.innerText = `Avg: ${coAvg.toFixed(2)} / 15.0`;
+                    coSumSpan.innerText = `Avg: ${coAvg.toFixed(2)} / 10.0`;
                 }
 
                 totalScore += coSum;
@@ -3447,12 +3570,12 @@
             });
 
             const overallAvg = totalCount > 0 ? (totalScore / totalCount) : 0;
-            const ciaConverted = Math.min(5.0, (overallAvg / 15.0) * 5.0);
+            const ciaConverted = Math.min(5.0, (overallAvg / 10.0) * 5.0);
 
             const rawElem = document.getElementById('sl-student-total-raw');
             const ciaElem = document.getElementById('sl-student-converted-cia');
 
-            if (rawElem) rawElem.innerText = `${overallAvg.toFixed(2)} / 15.00 M`;
+            if (rawElem) rawElem.innerText = `${overallAvg.toFixed(2)} / 10.00 M`;
             if (ciaElem) ciaElem.innerText = `${ciaConverted.toFixed(2)} / 5.00 M`;
 
             renderSlConfirmationTable(regNo);
@@ -3492,7 +3615,7 @@
                 });
 
                 const overallAvg = totalCount > 0 ? (totalScore / totalCount) : 0;
-                const ciaConverted = Math.min(5.0, (overallAvg / 15.0) * 5.0);
+                const ciaConverted = Math.min(5.0, (overallAvg / 10.0) * 5.0);
 
                 if (overallAvg > 0 || (slSplitupState[regNo] && Object.keys(slSplitupState[regNo]).length > 0)) {
                     evaluatedCount++;
@@ -3511,7 +3634,7 @@
                         <td class="p-1.5 text-center">
                             <div class="flex items-center justify-center gap-1 flex-wrap">${coBreakdownArr.join('') || '<span class="text-slate-600 text-[10px]">-</span>'}</div>
                         </td>
-                        <td class="p-1.5 text-center font-bold text-amber-400 text-xs">${overallAvg.toFixed(2)} / 15.0</td>
+                        <td class="p-1.5 text-center font-bold text-amber-400 text-xs">${overallAvg.toFixed(2)} / 10.0</td>
                         <td class="p-1.5 text-center font-black text-emerald-400 text-xs">
                             <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">${ciaConverted.toFixed(2)} / 5.0</span>
                         </td>
@@ -3689,6 +3812,96 @@
             });
         }
 
+        function removeLessonPlanRow(rowId) {
+            const tr = document.getElementById(rowId);
+            if (tr) tr.remove();
+        }
+
+        function insertLessonPlanRowAfter(targetRowId, defaultMode) {
+            const targetTr = document.getElementById(targetRowId);
+            if (!targetTr) return;
+
+            const tbody = targetTr.closest('tbody');
+            if (!tbody) return;
+
+            const isLab = defaultMode === 'P' || targetTr.closest('#lab-subcontent-planner') !== null;
+            const mode = isLab ? 'P' : 'L';
+            const newId = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+            const targetPlanId = targetTr.getAttribute('data-plan-id');
+            const targetCo = document.getElementById('lp-co-' + targetPlanId)?.value || 'CO1';
+            const targetPropDate = document.getElementById('lp-prop-' + targetPlanId)?.value || '';
+
+            const tr = document.createElement('tr');
+            tr.id = `lp-row-${newId}`;
+            tr.setAttribute('data-plan-id', newId);
+            tr.className = 'hover:bg-slate-800/30 transition-all bg-sky-950/20 border-l-2 border-sky-500';
+
+            tr.innerHTML = `
+                <td class="p-2 font-normal text-center text-xs">
+                    <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold text-[10px]">NEW</span>
+                </td>
+                <td class="p-2">
+                    <select id="lp-pedagogy-${newId}" onchange="onPedagogyChange('${newId}', this.value)" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full ${mode === 'P' ? 'text-emerald-400' : 'text-blue-400'}">
+                        <option value="Lecture (L)" ${mode === 'L' ? 'selected' : ''}>Lecture (L)</option>
+                        <option value="Practical Lab (P)" ${mode === 'P' ? 'selected' : ''}>Practical Lab (P)</option>
+                        <option value="Theory Series Exam (ST)">Theory Series Exam (ST)</option>
+                        <option value="Practical Series Exam (SP)">Practical Series Exam (SP)</option>
+                        <option value="PPT Presentation">PPT Presentation</option>
+                        <option value="Demonstration">Demonstration</option>
+                        <option value="Group Activity">Group Activity</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="date" id="lp-prop-${newId}" value="${targetPropDate}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                </td>
+                <td class="p-2">
+                    <input type="date" id="lp-act-${newId}" value="" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 text-slate-200 text-xs w-full">
+                </td>
+                <td class="p-2">
+                    <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter lesson topic description..." class="bg-slate-900 border border-sky-500/50 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-sky-400 outline-none resize-y leading-snug"></textarea>
+                </td>
+                <td class="p-2 text-center">
+                    <select id="lp-co-${newId}" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                        <option value="CO1" ${targetCo === 'CO1' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO1</option>
+                        <option value="CO2" ${targetCo === 'CO2' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO2</option>
+                        <option value="CO3" ${targetCo === 'CO3' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO3</option>
+                        <option value="CO4" ${targetCo === 'CO4' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO4</option>
+                        <option value="CO5" ${targetCo === 'CO5' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO5</option>
+                        <option value="CO6" ${targetCo === 'CO6' ? 'selected' : ''} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO6</option>
+                    </select>
+                </td>
+                <td id="lp-batch-td-${newId}" class="p-2 text-center">
+                    <select id="lp-batch-${newId}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
+                        <option value="ALL" ${mode === 'L' ? 'selected' : ''}>ALL</option>
+                        <option value="A & B" ${mode === 'P' ? 'selected' : ''}>A & B</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                    </select>
+                </td>
+                <td id="lp-hours-td-${newId}" class="p-2 text-center font-normal">
+                    <span class="px-1.5 py-0.5 rounded ${mode === 'P' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'} text-xs font-normal">${mode === 'P' ? '3 Hrs' : '1 Hr'}</span>
+                </td>
+                <td class="p-2">
+                    <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
+                </td>
+                <td class="p-1 text-center whitespace-nowrap">
+                    <div class="flex items-center justify-center space-x-1">
+                        <button type="button" onclick="insertLessonPlanRowAfter('lp-row-${newId}', '${mode}')" title="Insert row below" class="w-6 h-6 flex items-center justify-center rounded bg-sky-500/10 hover:bg-sky-500/25 border border-sky-500/25 text-sky-400 hover:text-sky-300 transition-all text-xs font-bold leading-none cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                        <button type="button" onclick="removeLessonPlanRow('lp-row-${newId}')" title="Remove row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>
+                    </div>
+                </td>
+            `;
+
+            targetTr.after(tr);
+            const topicTextarea = document.getElementById('lp-topic-' + newId);
+            if (topicTextarea) {
+                topicTextarea.focus();
+            }
+        }
+
         function addCustomLessonPlanRow(tbodyId, defaultMode) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
@@ -3759,8 +3972,13 @@
                 <td class="p-2">
                     <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
                 </td>
-                <td class="p-1 text-center">
-                    <button type="button" onclick="document.getElementById('lp-row-${newId}').remove()" title="Remove Row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
+                <td class="p-1 text-center whitespace-nowrap">
+                    <div class="flex items-center justify-center space-x-1">
+                        <button type="button" onclick="insertLessonPlanRowAfter('lp-row-${newId}', '${defaultMode}')" title="Insert row below" class="w-6 h-6 flex items-center justify-center rounded bg-sky-500/10 hover:bg-sky-500/25 border border-sky-500/25 text-sky-400 hover:text-sky-300 transition-all text-xs font-bold leading-none cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                        <button type="button" onclick="removeLessonPlanRow('lp-row-${newId}')" title="Remove row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>
+                    </div>
                 </td>
             `;
 
@@ -3800,9 +4018,27 @@
                     return;
                 }
 
+                // Determine prev_id (the last ID of preceding tr in the same table/tbody)
+                let prevPlanId = null;
+                let prevTr = tr.previousElementSibling;
+                while (prevTr) {
+                    if (prevTr.getAttribute('data-plan-id')) {
+                        const pBlock = prevTr.getAttribute('data-block-ids');
+                        if (pBlock) {
+                            const arr = pBlock.split(',');
+                            prevPlanId = arr[arr.length - 1];
+                        } else {
+                            prevPlanId = prevTr.getAttribute('data-plan-id');
+                        }
+                        break;
+                    }
+                    prevTr = prevTr.previousElementSibling;
+                }
+
                 targetIds.forEach(id => {
                     plans.push({
                         id: id,
+                        prev_id: prevPlanId,
                         pedagogy: pedagogy,
                         proposed_date: propDate,
                         actual_date: actDate,
@@ -3815,8 +4051,8 @@
             });
 
             Swal.fire({
-                title: 'Saving All 90 Hours...',
-                text: 'Updating complete Practicum lesson plan',
+                title: 'Saving All Lesson Plans...',
+                text: 'Updating complete Practicum lesson plan sequence and details',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
@@ -3832,7 +4068,14 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'SUCCESS') {
-                    Swal.fire('Saved Successfully!', data.message, 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Saved Successfully!',
+                        text: data.message,
+                        confirmButtonColor: '#2563eb'
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
@@ -3888,6 +4131,11 @@
 
         // ── Delete row with SweetAlert confirmation ───────────────────────────
         function confirmDeleteLessonPlanRow(planId) {
+            if (String(planId).startsWith('new_')) {
+                removeLessonPlanRow('lp-row-' + planId);
+                return;
+            }
+
             Swal.fire({
                 title: 'Delete this row?',
                 text: 'This lesson plan entry will be permanently removed.',
@@ -4533,7 +4781,7 @@
         if (!regNo) return;
 
         const test = document.getElementById('series-theory-test-select').value;
-        const total = parseFloat(document.getElementById('series-theory-total').value) || 0;
+        const total = Math.max(0, Math.min(25, parseFloat(document.getElementById('series-theory-total').value) || 0));
 
         seriesTheoryEvalsState[regNo][test].total_score_50 = total;
 
@@ -4561,11 +4809,11 @@
     }
 
     function updateSeriesTheoryLiveTotal() {
-        const total = parseFloat(document.getElementById('series-theory-total').value) || 0;
+        const total = Math.max(0, Math.min(25, parseFloat(document.getElementById('series-theory-total').value) || 0));
         const isAbsent = document.getElementById('series-theory-absent').checked;
 
         const displayTotal = isAbsent ? 0 : total;
-        document.getElementById('series-theory-live-total').innerText = `${displayTotal.toFixed(2)} / 50.00`;
+        document.getElementById('series-theory-live-total').innerText = `${displayTotal.toFixed(2)} / 25.00`;
     }
 
     function prevSeriesTheoryStudent() {
@@ -4641,7 +4889,7 @@
         const regNo   = inputEl.getAttribute('data-reg');
         const series  = inputEl.getAttribute('data-series');
         const val     = parseFloat(inputEl.value);
-        const score   = isNaN(val) ? null : Math.max(0, Math.min(50, val));
+        const score   = isNaN(val) ? null : Math.max(0, Math.min(25, val));
 
         // Update live Avg & CIA display immediately
         updateSeriesTheoryRowLive(regNo);
@@ -4677,24 +4925,46 @@
 
     function updateSeriesTheoryRowLive(regNo) {
         const regKey = regNo.replace(/[^a-zA-Z0-9_]/g, '_');
-        const keys = ['s1', 's2', 's3', 's4'];
-        let sum = 0, count = 0;
-
-        keys.forEach(k => {
+        
+        const getVal = (k) => {
             const inp = document.getElementById(`st-${regKey}-${k}`);
-            if (inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) { sum += v; count++; }
+            if (inp && inp.value !== '' && !isNaN(parseFloat(inp.value))) {
+                return parseFloat(inp.value);
             }
-        });
+            return null;
+        };
 
-        const avg   = count > 0 ? (sum / count) : 0;
-        const cia   = Math.min(10, (avg / 50) * 10);
+        const v1 = getVal('s1');
+        const v2 = getVal('s2');
+        const v3 = getVal('s3');
+        const v4 = getVal('s4');
+
+        const hasS1 = (v1 !== null || v2 !== null);
+        const hasS2 = (v3 !== null || v4 !== null);
+
+        const s1Tot = hasS1 ? Math.min(50, (v1 || 0) + (v2 || 0)) : null;
+        const s2Tot = hasS2 ? Math.min(50, (v3 || 0) + (v4 || 0)) : null;
+
+        const s1El = document.getElementById(`st-s1tot-${regKey}`);
+        const s2El = document.getElementById(`st-s2tot-${regKey}`);
+        if (s1El) s1El.innerText = s1Tot !== null ? s1Tot.toFixed(1) : '—';
+        if (s2El) s2El.innerText = s2Tot !== null ? s2Tot.toFixed(1) : '—';
+
+        let avg50 = null;
+        if (s1Tot !== null || s2Tot !== null) {
+            avg50 = ((s1Tot || 0) + (s2Tot || 0)) / 2.0;
+        }
+
+        let cia10 = null;
+        if (avg50 !== null) {
+            cia10 = Math.round(((avg50 / 50.0) * 10.0) * 2) / 2;
+        }
+
         const avgEl = document.getElementById(`st-avg-${regKey}`);
         const ciaEl = document.getElementById(`st-cia-${regKey}`);
 
-        if (avgEl) avgEl.innerText = count > 0 ? avg.toFixed(1) : '—';
-        if (ciaEl) ciaEl.innerText = count > 0 ? `${cia.toFixed(2)}/10` : '—';
+        if (avgEl) avgEl.innerText = avg50 !== null ? avg50.toFixed(1) : '—';
+        if (ciaEl) ciaEl.innerText = cia10 !== null ? `${cia10.toFixed(2)}/10` : '—';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -4791,10 +5061,10 @@
                 <div class="flex items-center justify-between gap-3">
                     <label class="text-slate-300 text-xs font-semibold">Select Series Test:</label>
                     <select id="series-theory-test-select" onchange="onSeriesTheoryTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-amber-400 font-bold outline-none focus:border-amber-500">
-                        <option value="Series 1">Test 1 (CO1)</option>
-                        <option value="Series 2">Test 2 (CO2)</option>
-                        <option value="Series 3">Test 3 (CO3)</option>
-                        <option value="Series 4">Test 4 (CO4)</option>
+                        <option value="Series 1">Test 1 (CO1 - Max 25M)</option>
+                        <option value="Series 2">Test 2 (CO2 - Max 25M)</option>
+                        <option value="Series 3">Test 3 (CO3 - Max 25M)</option>
+                        <option value="Series 4">Test 4 (CO4 - Max 25M)</option>
                     </select>
                 </div>
 
@@ -4826,8 +5096,8 @@
 
                 <div class="border-t border-slate-800/80 pt-3 space-y-3">
                     <div>
-                        <label class="block text-slate-400 text-xs font-semibold mb-1">Total Series Test Mark (Max 50):</label>
-                        <input type="number" id="series-theory-total" min="0" max="50" step="0.5" oninput="onSeriesTheoryMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
+                        <label class="block text-slate-400 text-xs font-semibold mb-1">Total Test Mark (Max 25):</label>
+                        <input type="number" id="series-theory-total" min="0" max="25" step="0.5" oninput="onSeriesTheoryMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
                     </div>
 
                     <div class="flex items-center space-x-2">
@@ -4838,8 +5108,8 @@
 
                 <!-- Live Total Display -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-semibold">Total Series Test Score:</span>
-                    <span id="series-theory-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 50.00</span>
+                    <span class="text-slate-400 font-semibold">Total Test Score:</span>
+                    <span id="series-theory-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 25.00</span>
                 </div>
             </div>
 

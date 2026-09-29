@@ -1630,6 +1630,8 @@
                                      data-exam-id="{{ $exam->id }}" 
                                      value="{{ $sc['exam_marks'][$exam->id] ?? 0.0 }}" 
                                      class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs series-mark-input"
+                                     onfocus="this.select()"
+                                     onkeydown="handleR26SeriesMarkKeyDown(event, this)"
                                      oninput="recalculateSeriesRow(this); triggerSeriesMarksAutosave();">
                             </td>
                           @endforeach
@@ -2460,7 +2462,7 @@
                           </select>
                         </td>
                         <td class="p-2 text-center">
-                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs ese-mark-input" oninput="calculateEseRowFromMarks(this); triggerEseAutosave();">
+                          <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs ese-mark-input" onfocus="this.select()" oninput="calculateEseRowFromMarks(this); triggerEseAutosave();" onkeydown="handleR26EseMarkKeyDown(event, this)">
                         </td>
                         <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
                         <td class="p-2 text-center font-bold" data-field="grade_display">-</td>
@@ -4735,6 +4737,38 @@
       }
     }
 
+    function handleR26SeriesMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        const examId = inputElem.getAttribute('data-exam-id');
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector(`.series-mark-input[data-exam-id="${examId}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
+        } else {
+          const nextRow = currentRow.nextElementSibling;
+          if (nextRow) {
+            const targetInput = nextRow.querySelector(`.series-mark-input[data-exam-id="${examId}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          } else {
+            saveSeriesExamMarks(true);
+          }
+        }
+      }
+    }
+    window.handleR26SeriesMarkKeyDown = handleR26SeriesMarkKeyDown;
+
     let seriesMarksAutosaveTimer = null;
     function triggerSeriesMarksAutosave() {
       const badge = document.getElementById('seriesMarksAutosaveBadge');
@@ -4961,6 +4995,37 @@
         if (row) updateEseRowTotals(row);
       }
     }
+
+    function handleR26EseMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector('.ese-mark-input');
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
+        } else {
+          const nextRow = currentRow.nextElementSibling;
+          if (nextRow) {
+            const targetInput = nextRow.querySelector('.ese-mark-input');
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          } else {
+            triggerEseAutosave(true);
+          }
+        }
+      }
+    }
+    window.handleR26EseMarkKeyDown = handleR26EseMarkKeyDown;
 
     let eseAutosaveTimer = null;
     function triggerEseAutosave() {

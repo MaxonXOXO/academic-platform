@@ -14,6 +14,11 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- Flatpickr (dd/mm/yyyy support) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   
@@ -41,10 +46,12 @@
 
   @php
     $role = session('userRole');
+    $isPhysicalInstructor = in_array($role, ['Physical_Instructor', 'Physical Instructor', 'physical_instructor']);
     $defaultBackLink = '/dashboard/lecturer';
     if ($role === 'HOD') $defaultBackLink = '/dashboard/hod';
     if ($role === 'Demonstrator') $defaultBackLink = '/dashboard/demonstrator';
     if ($role === 'Trade_Instructor') $defaultBackLink = '/dashboard/tradeinstructor';
+    if ($role === 'Physical_Instructor' || $role === 'Physical Instructor') $defaultBackLink = '/dashboard/lecturer';
     if ($role === 'Workshop_Superintendent') $defaultBackLink = '/dashboard/workshop';
     if ($role === 'Tutor') $defaultBackLink = '/dashboard/tutor';
     if ($role === 'General_Coordinator_SF') $defaultBackLink = '/dashboard/general-coordinator-sf';
@@ -96,6 +103,37 @@
   <!-- Main Container -->
   <main class="max-w-xl lg:max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 mt-3 lg:mt-4 flex-grow">
     
+    @if($isPhysicalInstructor)
+    <!-- Mobile Physical Instructor Outdoor Deck -->
+    <div class="block lg:hidden mb-3 bg-gradient-to-r from-sky-950/90 via-slate-900 to-emerald-950/90 border border-sky-500/30 rounded-2xl p-3.5 shadow-lg">
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-person-running"></i>
+          </span>
+          <div>
+            <h3 class="text-xs font-bold text-white leading-tight">Physical Instructor Ground Deck</h3>
+            <span class="text-[10px] text-sky-300">R26 Health & Physical Education (1009)</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Outdoor
+        </span>
+      </div>
+
+      <!-- Quick Class Switcher Chips -->
+      <div class="pt-2 border-t border-slate-800/80">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Switch Class:</label>
+          <span class="text-[10px] text-slate-500">1-Tap Select</span>
+        </div>
+        <div id="piMobileClassChips" class="flex flex-wrap gap-1.5">
+          <span class="text-xs text-slate-500 py-1 font-mono">Loading classes...</span>
+        </div>
+      </div>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
       <!-- LEFT COLUMN: Class Log Setup Panel (Equal 50% Desktop Width) -->
@@ -186,8 +224,8 @@
             <!-- Date & Periods -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-slate-400 mb-1">Date</label>
-                <input type="date" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500 transition" value="{{ date('Y-m-d') }}">
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Date (dd/mm/yyyy)</label>
+                <input type="text" id="logDate" onchange="checkExistingAttendance()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500 transition cursor-pointer font-mono" value="{{ date('Y-m-d') }}" placeholder="dd/mm/yyyy">
               </div>
               <div>
                 <label class="block text-[11px] font-bold text-slate-400 mb-1">Period / Hour</label>
@@ -349,6 +387,24 @@
             </button>
           </div>
 
+          @if($isPhysicalInstructor)
+          <!-- Sticky Outdoor Ground Save Bar for Mobile (Always accessible on the sports ground) -->
+          <div class="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 backdrop-blur-md border-t border-sky-500/30 shadow-2xl z-40 flex items-center justify-between gap-3">
+            <div class="flex flex-col">
+              <span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Live Count</span>
+              <span id="piMobileLiveCount" class="text-xs font-bold text-emerald-400 font-mono">0 Present</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="toggleAllGrid(true)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-sky-300 border border-slate-700 font-bold text-xs cursor-pointer shadow-sm transition">
+                All Present
+              </button>
+              <button type="button" onclick="saveAttendanceAndLog()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 active:scale-95 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-sky-600/30 cursor-pointer transition">
+                <span class="material-symbols-rounded text-sm">save</span> Save Ground
+              </button>
+            </div>
+          </div>
+          @endif
+
         </div>
 
       </div>
@@ -427,6 +483,19 @@
         window.pendingEditLogIds = editLogIdsParam;
       }
 
+      // Initialize Flatpickr on Date Input for dd/mm/yyyy display format
+      if (typeof flatpickr !== 'undefined') {
+        window.fpLogDate = flatpickr("#logDate", {
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d/m/Y",
+          allowInput: true,
+          onChange: function() {
+            checkExistingAttendance();
+          }
+        });
+      }
+
       loadSubjects();
     });
 
@@ -450,19 +519,45 @@
         .then(data => {
           if (data.status === 'SUCCESS') {
             const select = document.getElementById('subjectSelect');
+            const piContainer = document.getElementById('piMobileClassChips');
+            if (piContainer) piContainer.innerHTML = '';
+
             data.subjects.forEach(sub => {
               const opt = document.createElement('option');
               opt.value = sub.id;
               opt.innerText = `${sub.classroom_id} - ${sub.subject_name} (${sub.subject_code})`;
               select.appendChild(opt);
+
+              if (piContainer) {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                const label = (sub.classroom_id || '').split('_')[0] || sub.classroom_id;
+                chip.className = "px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700";
+                chip.innerText = label;
+                chip.onclick = () => {
+                  select.value = sub.id;
+                  onSubjectChange();
+                  Array.from(piContainer.children).forEach(c => {
+                    c.className = "px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700";
+                  });
+                  chip.className = "px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer bg-sky-500 text-white shadow-md shadow-sky-500/30";
+                };
+                piContainer.appendChild(chip);
+              }
             });
 
-            // Automatically select subject if provided via URL parameter
+            // Automatically select subject if provided via URL parameter or default first for Physical Instructor
             const urlParams = new URLSearchParams(window.location.search);
             const targetSubjectId = urlParams.get('subject_id');
             if (targetSubjectId && data.subjects.some(s => String(s.id) === String(targetSubjectId))) {
               select.value = targetSubjectId;
               onSubjectChange();
+            } else if (@json($isPhysicalInstructor) && data.subjects.length > 0) {
+              select.value = data.subjects[0].id;
+              onSubjectChange();
+              if (piContainer && piContainer.firstElementChild) {
+                piContainer.firstElementChild.className = "px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer bg-sky-500 text-white shadow-md shadow-sky-500/30";
+              }
             }
           } else {
             showMessage(data.message || "Failed to load subjects", true);
@@ -476,6 +571,11 @@
 
      function onSubjectChange() {
       const subjectId = document.getElementById('subjectSelect').value;
+
+      // For physical instructor on mobile, switch to roomy touch grid mode automatically
+      if (@json($isPhysicalInstructor) && window.innerWidth < 1024) {
+        if (typeof switchMode === 'function') switchMode('grid');
+      }
 
       if (!subjectId) {
         document.getElementById('subBatchCard').classList.add('hidden');
@@ -964,6 +1064,10 @@
       const countLabel = document.getElementById('studentCountLabel');
       if (countLabel) {
         countLabel.innerHTML = `Total: <span class="text-slate-200 font-bold">${filtered.length}</span> <span class="text-slate-600 mx-1">•</span> <span class="text-emerald-400 font-bold">${presentCount} Present</span> <span class="text-slate-600 mx-1">•</span> <span class="text-rose-400 font-bold">${absentCount} Absent</span>`;
+      }
+      const piCount = document.getElementById('piMobileLiveCount');
+      if (piCount) {
+        piCount.innerText = `${presentCount} Present / ${absentCount} Absent`;
       }
     }
 
@@ -1459,7 +1563,13 @@
       // 1. Set Date
       if (log.date) {
         const dateInput = document.getElementById('logDate');
-        if (dateInput) dateInput.value = log.date;
+        if (dateInput) {
+          if (window.fpLogDate) {
+            window.fpLogDate.setDate(log.date, true);
+          } else {
+            dateInput.value = log.date;
+          }
+        }
       }
 
       // 2. Set Periods
@@ -1586,8 +1696,15 @@
       if (banner) banner.classList.add('hidden');
 
       // Reset Date to Today
+      const todayStr = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('logDate');
-      if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+      if (dateInput) {
+        if (window.fpLogDate) {
+          window.fpLogDate.setDate(todayStr, true);
+        } else {
+          dateInput.value = todayStr;
+        }
+      }
 
       // Reset periods to none
       document.querySelectorAll('input[name="logPeriods"]').forEach(cb => {

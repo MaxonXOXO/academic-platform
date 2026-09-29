@@ -14,6 +14,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <script>
         tailwind.config = {
@@ -89,7 +92,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-slate-400 mt-0.5">
-                        Course Code: <span class="font-mono text-slate-200 font-medium">{{ $hpCourseFile->course_code }}</span> | 
+                        Course Code: <span class="font-mono text-slate-200 font-medium">{{ $batchSubject->subject_code ?: $hpCourseFile->course_code }}</span> | 
                         Semester: <span class="text-sky-400 font-semibold">{{ $hpCourseFile->semester }}</span> | 
                         Credits: <span class="text-slate-200">{{ $hpCourseFile->credits }}</span> | 
                         CIE: 60M | ESE: 40M
@@ -97,12 +100,35 @@
                 </div>
             </div>
             
-            <div class="flex items-center space-x-3">
-                <button onclick="document.getElementById('uploadSyllabusModal').classList.remove('hidden')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs flex items-center space-x-2 shadow-lg shadow-sky-600/20 transition">
-                    <i class="fa-solid fa-file-pdf"></i>
-                    <span>Upload Syllabus PDF</span>
-                </button>
-                <a href="/dashboard/lecturer" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold text-[11px] transition border border-rose-500/30 flex items-center space-x-1.5 no-underline" title="Dashboard">
+            <div class="flex flex-wrap items-center gap-3">
+                @if(isset($allHpClasses) && $allHpClasses->count() > 1)
+                <div class="flex items-center space-x-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 shadow-xs">
+                    <span class="text-xs text-sky-400 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group"></i> Class:
+                    </span>
+                    <select onchange="if(this.value) window.location.href='/r26/classroom/health-physical/' + this.value" class="bg-transparent text-xs text-white font-bold font-mono focus:outline-none cursor-pointer">
+                        @foreach($allHpClasses as $cls)
+                            <option value="{{ $cls->id }}" class="bg-slate-900 text-white" {{ $cls->id == $batchSubject->id ? 'selected' : '' }}>
+                                {{ explode('_', $cls->classroom_id ?? '')[0] }} ({{ $cls->subject_code ?: '1009' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <div class="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
+                    <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[10px]">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </span>
+                    <div class="text-left">
+                        <span class="text-[9px] uppercase tracking-wider text-slate-400 block leading-tight font-semibold">Faculty</span>
+                        <span class="font-bold text-slate-200 leading-tight block text-xs">
+                            {{ $assignedStaff->count() ? $assignedStaff->pluck('name')->implode(', ') : (Session::get('userName') ?? 'Faculty In-Charge') }}
+                        </span>
+                    </div>
+                </div>
+
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-bold text-[11px] transition border border-rose-500/30 flex items-center space-x-1.5 no-underline shadow-xs" title="Return to Dashboard">
                     <i class="fa-solid fa-arrow-left text-[10px]"></i>
                     <span>Dashboard</span>
                 </a>
@@ -142,32 +168,49 @@
         <div id="tab-overview" class="tab-content">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <!-- Course Info Box -->
-                <div class="glass-panel p-6 rounded-2xl border border-slate-800">
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center">
-                        <i class="fa-solid fa-circle-info text-sky-400 mr-2"></i>Course Specifications
-                    </h3>
-                    <dl class="space-y-3 text-xs">
-                        <div class="flex justify-between py-1.5 border-b border-slate-800">
-                            <dt class="text-slate-400">Course Code</dt>
-                            <dd class="font-mono text-sky-300 font-semibold">{{ $hpCourseFile->course_code }}</dd>
-                        </div>
-                        <div class="flex justify-between py-1.5 border-b border-slate-800">
-                            <dt class="text-slate-400">Teaching Scheme (L:T:P:R)</dt>
-                            <dd class="font-mono text-slate-200">{{ $hpCourseFile->teaching_scheme }}</dd>
-                        </div>
-                        <div class="flex justify-between py-1.5 border-b border-slate-800">
-                            <dt class="text-slate-400">Total Instructional Hours</dt>
-                            <dd class="font-bold text-white">{{ $hpCourseFile->contact_hours }} Hours</dd>
-                        </div>
-                        <div class="flex justify-between py-1.5 border-b border-slate-800">
-                            <dt class="text-slate-400">Credits</dt>
-                            <dd class="font-bold text-sky-400">{{ $hpCourseFile->credits }}</dd>
-                        </div>
-                        <div class="flex justify-between py-1.5">
-                            <dt class="text-slate-400">Assessment Breakdown</dt>
-                            <dd class="text-slate-200 font-medium">60% CIE + 40% ESE</dd>
-                        </div>
-                    </dl>
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center">
+                            <i class="fa-solid fa-circle-info text-sky-400 mr-2"></i>Course Specifications
+                        </h3>
+                        <dl class="space-y-3 text-xs">
+                            <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                <dt class="text-slate-400">Course Code</dt>
+                                <dd class="font-mono text-sky-300 font-semibold">{{ $batchSubject->subject_code ?: $hpCourseFile->course_code }}</dd>
+                            </div>
+                            <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                <dt class="text-slate-400">Teaching Scheme (L:T:P:R)</dt>
+                                <dd class="font-mono text-slate-200">{{ $hpCourseFile->teaching_scheme }}</dd>
+                            </div>
+                            <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                <dt class="text-slate-400">Total Instructional Hours</dt>
+                                <dd class="font-bold text-white">{{ $hpCourseFile->contact_hours }} Hours</dd>
+                            </div>
+                            <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                <dt class="text-slate-400">Credits</dt>
+                                <dd class="font-bold text-sky-400">{{ $hpCourseFile->credits }}</dd>
+                            </div>
+                            <div class="flex justify-between py-1.5">
+                                <dt class="text-slate-400">Assessment Breakdown</dt>
+                                <dd class="text-slate-200 font-medium">60% CIE + 40% ESE</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Syllabus Actions inside Course Specifications Card only -->
+                    <div class="mt-6 pt-4 border-t border-slate-800 space-y-2.5">
+                        @if(!empty($hpCourseFile->syllabus_pdf_path))
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/syllabus/view" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 transition no-underline shadow-lg shadow-emerald-600/20">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>View Syllabus</span>
+                        </a>
+                        @endif
+
+                        <button type="button" onclick="document.getElementById('uploadSyllabusModal').classList.remove('hidden')" class="w-full py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 transition shadow-lg shadow-sky-600/20 cursor-pointer">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            <span>{{ !empty($hpCourseFile->syllabus_pdf_path) ? 'Re-upload Syllabus PDF' : 'Upload Syllabus PDF' }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Parsed Assessment Criteria (Dynamic PDF Split-Up) -->
@@ -304,10 +347,10 @@
                                     </div>
                                 </td>
                                 <td class="p-3 text-center">
-                                    <input type="date" value="{{ $lp->proposed_date }}" id="pdate_{{ $lp->id }}" class="bg-slate-900 text-slate-200 border border-slate-800 rounded px-2 py-1 text-sm focus:border-sky-500 font-mono">
+                                    <input type="text" value="{{ $lp->proposed_date ? \Carbon\Carbon::parse($lp->proposed_date)->format('d/m/Y') : '' }}" id="pdate_{{ $lp->id }}" class="hp-datepicker bg-slate-900 text-slate-200 border border-slate-800 rounded px-2 py-1 text-xs focus:border-sky-500 font-mono text-center w-28 cursor-pointer" placeholder="dd/mm/yyyy">
                                 </td>
                                 <td class="p-3 text-center">
-                                    <input type="date" value="{{ $lp->actual_date }}" id="adate_{{ $lp->id }}" class="bg-slate-900 text-slate-200 border border-slate-800 rounded px-2 py-1 text-sm focus:border-sky-500 font-mono">
+                                    <input type="text" value="{{ $lp->actual_date ? \Carbon\Carbon::parse($lp->actual_date)->format('d/m/Y') : '' }}" id="adate_{{ $lp->id }}" class="hp-datepicker bg-slate-900 text-slate-200 border border-slate-800 rounded px-2 py-1 text-xs focus:border-sky-500 font-mono text-center w-28 cursor-pointer" placeholder="dd/mm/yyyy">
                                 </td>
                                 <td class="p-3 text-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $lp->status === 'Completed' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : ($isSeriesTest ? 'bg-sky-500/30 text-sky-200 border border-sky-400/50' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30') }}">
@@ -325,18 +368,99 @@
         <!-- TAB 4: Continuous Fitness & Activity Log (Dynamic Titles from Uploaded PDF) -->
         <div id="tab-activity" class="tab-content hidden">
             <div class="glass-panel p-6 rounded-2xl border border-slate-800">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
                     <div>
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Continuous Activity & Fitness Log</h3>
-                        <p class="text-xs text-slate-400 mt-1">Headers & Criteria titles are dynamically rendered from the uploaded syllabus PDF.</p>
+                        <div class="flex items-center space-x-3">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Continuous Activity & Fitness Log</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                5 Criteria (50M) &rarr; Scaled to 30M CIE
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Headers & Criteria titles are dynamically extracted from the course scheme. Use common sliders to mass-grade warm-up exercises, or edit individually in the table.</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/activity-log" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-print"></i><span>Print Log</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/splitup" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5" title="Print Split-Up Mark List (50M)">
+                            <i class="fa-solid fa-list-check text-sky-400"></i><span>Split-Up Mark List</span>
                         </a>
-                        <button type="button" onclick="saveActivityMarks()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs">
-                            <i class="fa-solid fa-floppy-disk mr-1.5"></i>Save Evaluation Marks
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/cia" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5" title="Print CIA Report (60M)">
+                            <i class="fa-solid fa-file-invoice text-emerald-400"></i><span>CIA Report</span>
+                        </a>
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/attendance" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5" title="Print 30-Hour Attendance Report">
+                            <i class="fa-solid fa-clipboard-user text-amber-400"></i><span>Attendance Report</span>
+                        </a>
+                        <button type="button" onclick="saveActivityMarks(false)" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs shadow-lg shadow-sky-600/20 cursor-pointer flex items-center space-x-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i><span>Save Marks</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Quick Mobile / Desktop Class Switcher -->
+                @if(isset($allHpClasses) && $allHpClasses->count() > 1)
+                <div class="mb-5 p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between flex-wrap gap-2.5">
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-300">
+                        <i class="fa-solid fa-layer-group text-sky-400"></i>
+                        <span>Select Class:</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($allHpClasses as $cls)
+                            <a href="/r26/classroom/health-physical/{{ $cls->id }}" class="px-3 py-1 rounded-lg text-xs font-bold font-mono transition no-underline {{ $cls->id == $batchSubject->id ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700' }}">
+                                {{ explode('_', $cls->classroom_id ?? '')[0] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- COMMON-TO-ALL BATCH MARK INPUT SLIDER DECK -->
+                <div class="mb-6 p-4 rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-sky-950/30 border border-sky-500/20 shadow-lg">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-800/80 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm shrink-0">
+                                <i class="fa-solid fa-sliders"></i>
+                            </span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white uppercase tracking-wider">Common-to-All Mark Input Slider Deck</h4>
+                                <p class="text-[11px] text-slate-400">Physical warm-up and common drills apply to all attending students. Move any slider to grade the entire class in 1 step with auto-save.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <span id="autosaveStatusBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> <span>Auto-save active</span>
+                            </span>
+                            <button type="button" onclick="resetAllMarks()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-bold transition cursor-pointer" title="Reset all criteria to 0">
+                                <i class="fa-solid fa-rotate-left mr-1"></i>Reset (0M)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5 Criteria Common Sliders Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                        @foreach($evalScheme['day_work'] as $crit)
+                        @php $k = $crit['key']; $max = $crit['max_marks']; @endphp
+                        <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/90 hover:border-sky-500/40 transition flex flex-col justify-between">
+                            <div class="flex items-start justify-between gap-1 mb-2">
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wide">{{ strtoupper($k) }}</span>
+                                    <h5 class="text-xs font-semibold text-slate-200 leading-snug line-clamp-2" title="{{ $crit['title'] }}">{{ $crit['title'] }}</h5>
+                                </div>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800/50 shrink-0">
+                                    {{ $max }}M
+                                </span>
+                            </div>
+
+                            <div class="space-y-2 mt-auto">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] text-slate-400">Batch Mark:</span>
+                                    <input type="number" step="0.5" min="0" max="{{ $max }}" id="batch_inp_{{ $k }}" value="0"
+                                           oninput="onBatchSliderChange('{{ $k }}', this.value, true)"
+                                           class="w-16 bg-slate-900 text-center rounded border border-slate-700 text-xs py-0.5 font-mono text-sky-300 font-bold focus:border-sky-500">
+                                </div>
+                                <input type="range" step="0.5" min="0" max="{{ $max }}" id="batch_slider_{{ $k }}" value="0"
+                                       oninput="onBatchSliderChange('{{ $k }}', this.value, false)"
+                                       class="mark-slider w-full">
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
 
@@ -457,11 +581,19 @@
         <!-- TAB 6: Consolidated CIE & ESE Summary -->
         <div id="tab-summary" class="tab-content hidden">
             <div class="glass-panel p-6 rounded-2xl border border-slate-800">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider">Consolidated CIE (60M) + ESE (40M) Marksheet</h3>
-                    <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/consolidated" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-print"></i><span>Print Consolidated Register</span>
-                    </a>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/cia" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5" title="Print CIA Report (60M)">
+                            <i class="fa-solid fa-file-invoice text-emerald-400"></i><span>CIA Report</span>
+                        </a>
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/attendance" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5" title="Print Attendance Report">
+                            <i class="fa-solid fa-clipboard-user text-amber-400"></i><span>Attendance Report</span>
+                        </a>
+                        <a href="/r26/classroom/health-physical/{{ $batchSubject->id }}/print/consolidated" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-print"></i><span>Print Consolidated Register</span>
+                        </a>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-left border border-slate-800">
@@ -713,6 +845,8 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
     <!-- Preview Mid-Sem Survey Modal -->
     <div id="previewMidSemModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
         <div class="glass-panel p-6 rounded-2xl border border-slate-800 max-w-xl w-full mx-4 shadow-2xl">
@@ -814,16 +948,62 @@
             document.getElementById('tot_' + regNo).innerText = sum.toFixed(1);
         }
 
+        let autoSaveTimer = null;
+
+        function triggerDebouncedAutoSave() {
+            const badge = document.getElementById('autosaveStatusBadge');
+            if (badge) {
+                badge.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all";
+                badge.innerHTML = '<i class="fa-solid fa-pencil text-[10px]"></i> <span>Changes pending...</span>';
+            }
+
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveActivityMarks(true);
+            }, 650);
+        }
+
         function syncSlider(regNo, key, val) {
             const slider = document.getElementById(`s_${regNo}_${key}`);
             if (slider) slider.value = val;
             calcTotal(regNo);
+            triggerDebouncedAutoSave();
         }
 
         function syncInput(regNo, key, val) {
             const input = document.getElementById(`m_${regNo}_${key}`);
             if (input) input.value = val;
             calcTotal(regNo);
+            triggerDebouncedAutoSave();
+        }
+
+        function onBatchSliderChange(key, val, fromInput) {
+            val = parseFloat(val) || 0;
+            if (fromInput) {
+                const sl = document.getElementById('batch_slider_' + key);
+                if (sl) sl.value = val;
+            } else {
+                const inp = document.getElementById('batch_inp_' + key);
+                if (inp) inp.value = val;
+            }
+
+            const students = @json($students->pluck('reg_no'));
+            students.forEach(regNo => {
+                const inp = document.getElementById(`m_${regNo}_${key}`);
+                const sl = document.getElementById(`s_${regNo}_${key}`);
+                if (inp) inp.value = val;
+                if (sl) sl.value = val;
+                calcTotal(regNo);
+            });
+
+            triggerDebouncedAutoSave();
+        }
+
+        function resetAllMarks() {
+            const scheme = @json($evalScheme['day_work']);
+            scheme.forEach(crit => {
+                onBatchSliderChange(crit.key, 0, false);
+            });
         }
 
         function syncFitnessSlider(testNo, regNo, val) {
@@ -861,7 +1041,13 @@
             }
         }
 
-        async function saveActivityMarks() {
+        async function saveActivityMarks(isSilent = false) {
+            const badge = document.getElementById('autosaveStatusBadge');
+            if (badge) {
+                badge.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 transition-all";
+                badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> <span>Auto-saving...</span>';
+            }
+
             const students = @json($students->pluck('reg_no'));
             const keys = @json(collect($evalScheme['day_work'])->pluck('key'));
 
@@ -890,13 +1076,27 @@
                 });
                 const data = await res.json();
                 if (data.status === 'SUCCESS') {
-                    alert(data.message);
-                    window.location.reload();
+                    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    if (badge) {
+                        badge.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 transition-all";
+                        badge.innerHTML = `<i class="fa-solid fa-check text-[10px]"></i> <span>Saved (${timeStr})</span>`;
+                    }
+                    if (!isSilent) {
+                        alert('Continuous evaluation marks saved successfully!');
+                    }
                 } else {
-                    alert('Error: ' + data.message);
+                    if (badge) {
+                        badge.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 transition-all";
+                        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> <span>Save failed</span>';
+                    }
+                    if (!isSilent) alert('Error: ' + data.message);
                 }
             } catch (err) {
-                alert('Save failed: ' + err.message);
+                if (badge) {
+                    badge.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 transition-all";
+                    badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> <span>Network error</span>';
+                }
+                if (!isSilent) alert('Save failed: ' + err.message);
             }
         }
 
@@ -1011,6 +1211,31 @@
                 window.location.reload();
             } catch (err) { alert('Action failed: ' + err.message); }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr(".hp-datepicker", {
+                    dateFormat: "d/m/Y",
+                    allowInput: true
+                });
+            }
+
+            const scheme = @json($evalScheme['day_work']);
+            const students = @json($students->pluck('reg_no'));
+            if (students.length > 0) {
+                const firstReg = students[0];
+                scheme.forEach(crit => {
+                    const firstInp = document.getElementById(`m_${firstReg}_${crit.key}`);
+                    if (firstInp && parseFloat(firstInp.value) > 0) {
+                        const val = parseFloat(firstInp.value);
+                        const batchInp = document.getElementById('batch_inp_' + crit.key);
+                        const batchSl = document.getElementById('batch_slider_' + crit.key);
+                        if (batchInp) batchInp.value = val;
+                        if (batchSl) batchSl.value = val;
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

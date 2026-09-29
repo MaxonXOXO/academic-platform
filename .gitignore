@@ -11,4 +11,5 @@ carmel-linx-laravel/storage/framework/views/*
 !carmel-linx-laravel/storage/framework/views/.gitkeep
 carmel-linx-laravel/storage/framework/cache/*
 !carmel-linx-laravel/storage/framework/cache/.gitkeep
+carmel-linx-laravel/public/build
 

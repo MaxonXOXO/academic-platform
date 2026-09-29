@@ -669,6 +669,7 @@ Route::middleware(['web'])->group(function () {
 
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);
+    Route::get('/r26/classroom/health-physical/{subjectId}/syllabus/view', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'viewSyllabus']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'uploadSyllabus']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'bulkUpdateLessonPlans']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/evaluate/activity', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveActivityMarks']);

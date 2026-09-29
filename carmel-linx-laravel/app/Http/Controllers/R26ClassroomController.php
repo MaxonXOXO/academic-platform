@@ -2282,6 +2282,11 @@ class R26ClassroomController extends Controller
             ->get()
             ->groupBy('reg_no');
 
+        $practicumSeriesTheory = \DB::table('r26_practicum_series_theory')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
         // Exit Survey Responses for Indirect
         $exitSurvey = \DB::table('course_exit_surveys')
             ->where('batch_subject_id', $subjectId)
@@ -2362,6 +2367,17 @@ class R26ClassroomController extends Controller
                 $seriesMark = $coMarks->where('category', 'Series Exam')->first()
                     ?: $studMarks->where('category', 'Series Exam')->first();
                 $seriesScore = $seriesMark ? ((float)$seriesMark->marks_obtained / 2.0) : 0.0;
+                if ($seriesScore == 0.0 && $practicumSeriesTheory->has($regNo)) {
+                    $coSeriesMap = [
+                        'CO1' => ['Series 1', 'CO1'],
+                        'CO2' => ['Series 2', 'CO2'],
+                        'CO3' => ['Series 3', 'CO3'],
+                        'CO4' => ['Series 4', 'CO4'],
+                    ];
+                    $tags = $coSeriesMap[$coTag] ?? [$coTag];
+                    $pRec = $practicumSeriesTheory->get($regNo, collect())->whereIn('series_no', $tags)->first();
+                    $seriesScore = $pRec ? (float)$pRec->total_score_50 : 0.0;
+                }
                 
                 $cieScore = $selfStudyScore + $seriesScore;
                 $maxCoCie = 25.0;

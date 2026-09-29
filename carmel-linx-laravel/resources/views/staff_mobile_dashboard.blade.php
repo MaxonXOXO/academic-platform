@@ -639,8 +639,12 @@
 <body>
 @php
     $userRole = session('userRole');
+    $isPhysicalInstructor = in_array($userRole, ['Physical_Instructor', 'Physical Instructor', 'physical_instructor'])
+        || in_array(strtolower($staff->designation ?? ''), ['physical_instructor', 'physical instructor']);
     $desktopUrl = '/dashboard/tutor?mode=desktop';
-    if (in_array($userRole, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance'])) {
+    if ($isPhysicalInstructor) {
+        $desktopUrl = '/dashboard/lecturer?mode=desktop';
+    } elseif (in_array($userRole, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance'])) {
         $desktopUrl = '/dashboard/academic-coordinator?mode=desktop';
     } elseif ($userRole === 'HOD') {
         $desktopUrl = '/dashboard/hod?mode=desktop';
@@ -1124,8 +1128,60 @@
                 </div>
             </div>
 
-            <!-- TAB 3: REMEDIAL CLASSES -->
+            <!-- TAB 3: REMEDIAL / CONTINUOUS ASSESSMENT -->
             <div id="tab-remedial" class="tab-pane d-none fade-in">
+                @if($isPhysicalInstructor)
+                <div class="app-card border-start border-2" style="border-left-color: #06b6d4 !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">
+                                <i class="fa-solid fa-person-running text-cyan me-1"></i> Continuous Assessment (Rev 2026)
+                            </h6>
+                            <small class="text-secondary" style="font-size: 0.72rem;">50M Assessment &rarr; 30M Continuous CIE with Auto-Save</small>
+                        </div>
+                        <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.68rem; font-weight: 800;">
+                            Assessment
+                        </span>
+                    </div>
+
+                    <div class="mb-3 p-2.5 rounded-3" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25);">
+                        <label class="d-block text-secondary uppercase fw-bold mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Quick Switch Branch Assessment:</label>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            @foreach($assignments as $asg)
+                            <a href="/r26/classroom/health-physical/{{ $asg->id }}" class="btn btn-sm rounded-pill fw-bold text-white px-3 py-1.5" style="font-size: 0.76rem; background: linear-gradient(135deg, #0891b2, #3b82f6); border: none; text-decoration: none; box-shadow: 0 2px 6px rgba(6, 182, 212, 0.3);">
+                                {{ explode('_', $asg->classroom_id ?? '')[0] }}
+                            </a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        @foreach($assignments as $asg)
+                        <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-2.5" style="box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div>
+                                    <strong class="text-white d-block" style="font-size: 0.88rem;">{{ $asg->classroom_id }}</strong>
+                                    <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.68rem; font-family: monospace;">{{ $asg->subject_code ?: '1009' }}</span>
+                                    <small class="text-secondary ms-1" style="font-size: 0.75rem;">Health & Physical Education</small>
+                                </div>
+                                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">50M &rarr; 30M</span>
+                            </div>
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex gap-2 flex-wrap justify-content-end">
+                                <a href="/r26/classroom/health-physical/{{ $asg->id }}/print/splitup" target="_blank" class="btn btn-sm btn-outline-secondary px-2.5 py-1 rounded-pill fw-bold text-slate-300" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-list-check me-1 text-cyan"></i> Split-Up (50M)
+                                </a>
+                                <a href="/r26/classroom/health-physical/{{ $asg->id }}/print/cia" target="_blank" class="btn btn-sm btn-outline-secondary px-2.5 py-1 rounded-pill fw-bold text-slate-300" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-file-invoice me-1 text-cyan"></i> CIA (60M)
+                                </a>
+                                <a href="/r26/classroom/health-physical/{{ $asg->id }}" class="btn btn-sm px-3 py-1 rounded-pill fw-bold text-white" style="font-size: 0.75rem; background: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%); border: none; box-shadow: 0 0 10px rgba(6, 182, 212, 0.35);">
+                                    <i class="fa-solid fa-sliders me-1"></i> Assessment Sliders
+                                </a>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @else
                 <div class="app-card border-start border-2" style="border-left-color: #f97316 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="fw-bold mb-0" style="color: #fb923c; font-size: 0.95rem;">
@@ -1159,6 +1215,7 @@
                         @endforelse
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- TAB 4: MENTORING & LEAVE APPROVALS (IF MENTOR) -->
@@ -1426,10 +1483,17 @@
                 <i class="fa-solid fa-list-check"></i>
                 <span>To-Do</span>
             </a>
+            @if($isPhysicalInstructor)
+            <a href="#" class="nav-link-mobile" onclick="switchStaffTab(event, 'tab-remedial')">
+                <i class="fa-solid fa-sliders text-cyan"></i>
+                <span class="text-cyan fw-bold">Assessment</span>
+            </a>
+            @else
             <a href="#" class="nav-link-mobile" onclick="switchStaffTab(event, 'tab-remedial')">
                 <i class="fa-solid fa-kit-medical"></i>
                 <span>Remedial</span>
             </a>
+            @endif
             <a href="#" class="nav-link-mobile" onclick="switchStaffTab(event, 'tab-leave')">
                 <i class="fa-solid fa-file-signature"></i>
                 <span>Leave</span>
@@ -1552,7 +1616,7 @@
                     <!-- Top Row: Subject Code + Name (Left) & Back Button (Right) -->
                     <div class="d-flex align-items-center justify-content-between w-100 gap-2">
                         <div class="d-flex align-items-center gap-1.5 overflow-hidden flex-fill me-2">
-                            <i class="fa-solid fa-book-open text-cyan fs-6 flex-shrink-0"></i>
+                            <i class="fa-solid fa-book-open text-cyan fs-6 flex-shrink-0" id="attHeaderIcon"></i>
                             <div class="text-truncate">
                                 <span class="fw-black text-cyan" style="font-size: 0.95rem;" id="attSubjectConfirmCode">---</span>
                                 <span id="attSubjectConfirmName" class="fw-medium text-slate-300" style="font-size: 0.84rem; color: #cbd5e1 !important;"></span>
@@ -1740,7 +1804,7 @@
                         <!-- Sticky / Prominent Save Attendance Action Bar -->
                         <div class="sticky-bottom bg-slate-900 p-2.5 mt-2.5 rounded-3 border shadow-lg text-center" style="background-color: #0f172a !important; border: 1px solid rgba(6, 182, 212, 0.4) !important; position: sticky; bottom: 0; z-index: 10;">
                             <div id="attSaveInlineAlert" class="alert alert-danger py-2 px-3 small font-bold mb-2 d-none"></div>
-                            <button type="button" onclick="saveClassAttendance()" class="btn btn-cyan btn-save-att w-100 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.95rem;">
+                            <button type="button" onclick="saveClassAttendance()" id="btnSaveClassAtt" class="btn btn-cyan btn-save-att w-100 py-2.5 rounded-pill fw-black shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: #ffffff !important; border: none; font-size: 0.95rem;">
                                 <i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance
                             </button>
                         </div>
@@ -2195,6 +2259,89 @@
                 }
 
                 const batchSubId = st.batch_subject_id || (matchedAssig ? matchedAssig.id : '');
+
+                // For Physical Instructor: Dedicated clean mobile card strictly for Attendance
+                const isPhysicalUser = @json($isPhysicalInstructor);
+                const isHpSlot = isPhysicalUser || (st.subject_code && String(st.subject_code).includes('1009')) || ((st.subject_name || '').toLowerCase().includes('health') && (st.subject_name || '').toLowerCase().includes('physical'));
+
+                if (isPhysicalUser && isHpSlot) {
+                    html += `
+                        <div style="
+                            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+                            border: 1px solid rgba(255,255,255,0.10);
+                            border-left: 4px solid #06b6d4;
+                            border-radius: 14px;
+                            margin-bottom: 10px;
+                            overflow: hidden;
+                            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+                        ">
+                            <!-- Top info row -->
+                            <div style="padding: 12px 14px 10px 14px;">
+                                <!-- Period + Type badges -->
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:7px; flex-wrap:wrap;">
+                                    <span style="
+                                        background: rgba(6,182,212,0.20);
+                                        color: #ffffff;
+                                        border: 1px solid rgba(6,182,212,0.40);
+                                        border-radius: 20px;
+                                        font-size: 1.05rem;
+                                        font-weight: 900;
+                                        padding: 3px 12px;
+                                        letter-spacing: 0.5px;
+                                        text-transform: uppercase;
+                                        font-family: monospace;
+                                    ">${periodText}</span>
+                                    <span style="
+                                        background: rgba(6,182,212,0.15);
+                                        color: #38bdf8;
+                                        border: 1px solid rgba(6,182,212,0.3);
+                                        border-radius: 20px;
+                                        font-size: 0.65rem;
+                                        font-weight: 700;
+                                        padding: 2px 8px;
+                                        letter-spacing: 0.3px;
+                                    "><i class="fa-solid fa-person-running"></i> Physical Education</span>
+                                </div>
+                                <!-- Subject code + Classroom ID -->
+                                <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
+                                    <span style="font-size:0.78rem; font-weight:700; color:#cbd5e1; font-family:monospace; letter-spacing:0.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:1px 7px;">${st.subject_code}</span>
+                                    <span style="font-size:0.75rem; font-weight:700; color:#38bdf8; font-family:monospace; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:1px 7px;">${st.classroom_id}</span>
+                                </div>
+                                <!-- Subject name -->
+                                <div style="font-size:0.84rem; color:#ffffff; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${st.subject_name || 'Health & Physical Education'}</div>
+                            </div>
+                            <!-- Action buttons row: Strictly for Attendance -->
+                            <div style="
+                                display:flex;
+                                gap:8px;
+                                padding: 9px 14px 11px 14px;
+                                border-top: 1px solid rgba(255,255,255,0.07);
+                                background: rgba(0,0,0,0.15);
+                            ">
+                                <button onclick="openClassAttendanceModal('${batchSubId}', '${periodArg}', '${st.subject_code}', '${st.classroom_id}', '${(st.subject_name || '').replace(/'/g, "\\'")}')"
+                                    style="
+                                        flex:1;
+                                        background: linear-gradient(135deg,#0891b2,#3b82f6);
+                                        color:#fff;
+                                        border:none;
+                                        border-radius:10px;
+                                        font-size:0.78rem;
+                                        font-weight:800;
+                                        padding:9px 0;
+                                        cursor:pointer;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        gap:6px;
+                                        box-shadow: 0 2px 8px rgba(6,182,212,0.25);
+                                    ">
+                                    <i class="fa-solid fa-clipboard-user"></i> Mark Attendance
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
 
                 // Detect R2021 practical/lab subjects — show Virtual Lab button only for these
                 let subTypeLower = (st.subject_type || (matchedAssig ? matchedAssig.subject_type : '') || '').toLowerCase();
@@ -2937,6 +3084,21 @@
             document.getElementById('attSubjectConfirmName').textContent = subjectName ? ` - ${subjectName}` : '';
             document.getElementById('attBatchConfirmCode').textContent = classroomId || 'Active Batch';
 
+            const isPhysical = @json($isPhysicalInstructor) || (subjectCode && String(subjectCode).includes('1009')) || ((subjectName || '').toLowerCase().includes('health') && (subjectName || '').toLowerCase().includes('physical'));
+            const headerIcon = document.getElementById('attHeaderIcon');
+            if (headerIcon) {
+                if (isPhysical) {
+                    headerIcon.className = 'fa-solid fa-person-running text-cyan fs-6 flex-shrink-0';
+                } else {
+                    headerIcon.className = 'fa-solid fa-book-open text-cyan fs-6 flex-shrink-0';
+                }
+            }
+            const saveBtn = document.getElementById('btnSaveClassAtt');
+            if (saveBtn) {
+                saveBtn.style.background = 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)';
+                saveBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Save Class Log & Attendance';
+            }
+
             // Always select ALL periods as per the timetable on attendance entry
             let periodsToSelect = [];
             const schedPeriods = getTimetablePeriodsForSubject(batchSubjectId, subjectCode, classroomId);
@@ -3310,6 +3472,7 @@
                 }
                 let html = '';
                 const isR21Lab = !!window.isCurrentAttR21Lab;
+
                 filtered.forEach((s, idx) => {
                     const roll = s.roll_no || (idx + 1);
                     if (isR21Lab) {
@@ -3349,11 +3512,12 @@
                 }
                 let html = '';
                 const isR21Lab = !!window.isCurrentAttR21Lab;
+
                 filtered.forEach((s, idx) => {
                     const roll = s.roll_no || (idx + 1);
                     const btnStyle = s.present
-                        ? 'background: rgba(16, 185, 129, 0.25); color: #34d399; border: 2px solid rgba(52, 211, 153, 0.6);'
-                        : 'background: rgba(244, 63, 94, 0.25); color: #fb7185; border: 2px solid rgba(251, 113, 133, 0.6);';
+                        ? 'background: rgba(6, 182, 212, 0.20); color: #38bdf8; border: 2px solid rgba(6, 182, 212, 0.6);'
+                        : 'background: rgba(244, 63, 94, 0.20); color: #fb7185; border: 2px solid rgba(251, 113, 133, 0.6);';
                     if (isR21Lab) {
                         html += `<div class="col-3 col-sm-2 text-center p-1">
                             <button type="button" onclick="toggleAttStudentGrid('${s.reg_no}')" class="btn w-100 font-black rounded-3 shadow-sm py-1.5 font-mono" style="${btnStyle} font-size: 0.95rem; font-weight: 900; min-height: 42px;">

@@ -1038,7 +1038,7 @@
                     <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                         <div>
                             <h3 class="text-base font-semibold text-slate-200">Theory Series Examinations (CA4 &amp; CA5)</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">2 Series Exams (CA4: Mod 1&amp;2, CA5: Mod 3&amp;4 - 2 Hours each out of 50 Marks), averaged and scaled to 10 CIA Marks</p>
+                            <p class="text-slate-400 text-xs mt-0.5">4 Modular/CO Tests (CO1–CO4 · 25M each) or 2 Combined Series (CA4: Mod 1&amp;2, CA5: Mod 3&amp;4 · 50M each). CIA is calculated from the 2 Series averaged and scaled to 10 Marks; 4 separate CO marks are recorded for NBA Attainment.</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             <button onclick="printSubtabReport('Theory Series Examinations Report', 'theory-subcontent-series')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
@@ -1047,55 +1047,157 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse text-sm">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-500 font-medium bg-slate-900/60 text-[10px] uppercase tracking-wider">
-                                    <th class="p-2">Roll</th>
-                                    <th class="p-2">SBTE Reg No</th>
-                                    <th class="p-2">Student Name</th>
-                                    <th class="p-2 text-center w-36">Series 1 (CA4: Mod 1&amp;2)<br><span class="text-[9px] text-slate-500 normal-case font-normal">Max 50 Marks (2 Hrs)</span></th>
-                                    <th class="p-2 text-center w-36">Series 2 (CA5: Mod 3&amp;4)<br><span class="text-[9px] text-slate-500 normal-case font-normal">Max 50 Marks (2 Hrs)</span></th>
-                                    <th class="p-2 text-center w-28">Avg (/50)</th>
-                                    <th class="p-2 text-center w-28">CIA (/10M)</th>
+                                <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
+                                    <th rowspan="2" class="p-2.5 align-middle">Roll</th>
+                                    <th rowspan="2" class="p-2.5 align-middle">SBTE Reg No</th>
+                                    <th rowspan="2" class="p-2.5 align-middle min-w-[140px]">Student Name</th>
+                                    <th colspan="3" class="p-2.5 text-center border-l border-r border-slate-800 bg-sky-950/30 text-sky-300 font-bold text-xs sm:text-sm">
+                                        Series Exam 1 (CA4: Modules I &amp; II - 50 Marks)
+                                    </th>
+                                    <th colspan="3" class="p-2.5 text-center border-r border-slate-800 bg-indigo-950/30 text-indigo-300 font-bold text-xs sm:text-sm">
+                                        Series Exam 2 (CA5: Modules III &amp; IV - 50 Marks)
+                                    </th>
+                                    <th rowspan="2" class="p-2.5 text-center w-28 align-middle">Series Avg<br><span class="text-[11px] text-amber-400 font-normal">(/50)</span></th>
+                                    <th rowspan="2" class="p-2.5 text-center w-28 align-middle">CIA Score<br><span class="text-[11px] text-emerald-400 font-normal">(/10M)</span></th>
+                                </tr>
+                                <tr class="border-b border-slate-800 text-slate-300 font-bold bg-slate-900/70 text-xs">
+                                    <th class="p-2 text-center border-l border-slate-800/60 w-28 text-sky-200">Test 1 (CO1)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center w-28 text-sky-200">Test 2 (CO2)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-sky-950/40 text-sky-300 font-extrabold">Series 1<br><span class="text-[10px] text-sky-400 font-mono">Tot /50</span></th>
+
+                                    <th class="p-2 text-center w-28 text-indigo-200">Test 3 (CO3)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center w-28 text-indigo-200">Test 4 (CO4)<br><span class="text-[10px] text-slate-400 font-normal">Max 25M</span></th>
+                                    <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-indigo-950/40 text-indigo-300 font-extrabold">Series 2<br><span class="text-[10px] text-indigo-400 font-mono">Tot /50</span></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/60 text-sm">
+                            <tbody class="divide-y divide-slate-800/60 text-sm sm:text-base">
                                 @foreach($studentResults as $res)
                                 @php
                                     $stEvals = $seriesTheoryEvals->get($res['reg_no'], collect());
-                                    $s1 = $stEvals->whereIn('series_no', ['Series 1', 'CO1', 'CA4'])->first();
-                                    $s2 = $stEvals->whereIn('series_no', ['Series 2', 'CO2', 'CA5'])->first();
+                                    $s1 = $stEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
+                                    $s2 = $stEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
+                                    $s3 = $stEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
+                                    $s4 = $stEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
                                     $regKey = preg_replace('/[^a-zA-Z0-9_]/', '_', $res['reg_no']);
+
+                                    $co1Val = $s1 ? (float)$s1->total_score_50 : null;
+                                    $co2Val = $s2 ? (float)$s2->total_score_50 : null;
+                                    $co3Val = $s3 ? (float)$s3->total_score_50 : null;
+                                    $co4Val = $s4 ? (float)$s4->total_score_50 : null;
+
+                                    // Fallback to legacy single-series if available
+                                    if ($co1Val === null && $co2Val === null) {
+                                        $legacyCa4 = $stEvals->whereIn('series_no', ['CA4'])->first();
+                                        if ($legacyCa4) {
+                                            $co1Val = round(((float)$legacyCa4->total_score_50) / 2.0, 1);
+                                            $co2Val = round(((float)$legacyCa4->total_score_50) / 2.0, 1);
+                                        }
+                                    }
+                                    if ($co3Val === null && $co4Val === null) {
+                                        $legacyCa5 = $stEvals->whereIn('series_no', ['CA5'])->first();
+                                        if ($legacyCa5) {
+                                            $co3Val = round(((float)$legacyCa5->total_score_50) / 2.0, 1);
+                                            $co4Val = round(((float)$legacyCa5->total_score_50) / 2.0, 1);
+                                        }
+                                    }
+
+                                    $hasS1 = ($co1Val !== null || $co2Val !== null);
+                                    $hasS2 = ($co3Val !== null || $co4Val !== null);
+
+                                    $s1Tot = $hasS1 ? min(50.0, ($co1Val ?? 0) + ($co2Val ?? 0)) : null;
+                                    $s2Tot = $hasS2 ? min(50.0, ($co3Val ?? 0) + ($co4Val ?? 0)) : null;
+
+                                    $avg50 = ($s1Tot !== null || $s2Tot !== null) ? ((($s1Tot ?? 0) + ($s2Tot ?? 0)) / 2.0) : null;
+                                    $cia10 = $avg50 !== null ? round((($avg50 / 50.0) * 10.0) * 2) / 2 : null;
                                 @endphp
                                 <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
-                                    <td class="p-2 text-slate-400 font-mono text-xs">{{ $res['roll_no'] }}</td>
-                                    <td class="p-2 font-mono text-slate-300 font-bold text-xs">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                    <td class="p-2 text-slate-200 text-xs font-normal">{{ $res['name'] }}</td>
-                                    @foreach([
-                                        ['s1', 'Series 1', $s1],
-                                        ['s2', 'Series 2', $s2],
-                                    ] as [$key, $seriesNo, $rec])
-                                    <td class="p-1.5 text-center">
+                                    <td class="p-2.5 text-slate-300 font-mono font-bold text-sm">{{ $res['roll_no'] }}</td>
+                                    <td class="p-2.5 font-mono text-white font-extrabold text-sm">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                    <td class="p-2.5 text-slate-100 text-sm font-semibold">{{ $res['name'] }}</td>
+
+                                    <!-- Series 1: Test 1 (CO1) -->
+                                    <td class="p-2 text-center border-l border-slate-800/60">
                                         <input type="number"
-                                            id="st-{{ $regKey }}-{{ $key }}"
+                                            id="st-{{ $regKey }}-s1"
                                             data-reg="{{ $res['reg_no'] }}"
-                                            data-series="{{ $seriesNo }}"
-                                            min="0" max="50" step="0.5"
-                                            value="{{ $rec ? number_format((float)$rec->total_score_50, 1, '.', '') : '' }}"
+                                            data-series="Series 1"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co1Val !== null ? number_format($co1Val, 1, '.', '') : '' }}"
                                             placeholder="—"
-                                            onchange="autoSaveSeriesTheory(this)"
-                                            class="w-full max-w-[120px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
+                                            oninput="autoSaveSeriesTheory(this)"
+                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm sm:text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
-                                    @endforeach
+
+                                    <!-- Series 1: Test 2 (CO2) -->
                                     <td class="p-2 text-center">
-                                        <span id="st-avg-{{ $regKey }}" class="font-mono font-bold text-amber-300 text-xs">
-                                            {{ $res['series_theory_marks'] > 0 ? number_format($res['series_theory_marks'] * 5, 1) : '—' }}
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s2"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 2"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co2Val !== null ? number_format($co2Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            oninput="autoSaveSeriesTheory(this)"
+                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm sm:text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
+                                        >
+                                    </td>
+
+                                    <!-- Series 1: Subtotal (CO1 + CO2 / 50M) -->
+                                    <td class="p-2 text-center border-r border-slate-800/60 bg-sky-950/20">
+                                        <span id="st-s1-tot-{{ $regKey }}" class="font-mono font-bold text-sky-300 text-sm sm:text-base">
+                                            {{ $s1Tot !== null ? number_format($s1Tot, 1) . '/50' : '—' }}
                                         </span>
                                     </td>
+
+                                    <!-- Series 2: Test 3 (CO3) -->
                                     <td class="p-2 text-center">
-                                        <span id="st-cia-{{ $regKey }}" class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono font-bold text-xs inline-block">
-                                            {{ number_format($res['series_theory_marks'], 2) }}/10
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s3"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 3"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co3Val !== null ? number_format($co3Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            oninput="autoSaveSeriesTheory(this)"
+                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-indigo-300 text-sm sm:text-base outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
+                                        >
+                                    </td>
+
+                                    <!-- Series 2: Test 4 (CO4) -->
+                                    <td class="p-2 text-center">
+                                        <input type="number"
+                                            id="st-{{ $regKey }}-s4"
+                                            data-reg="{{ $res['reg_no'] }}"
+                                            data-series="Series 4"
+                                            min="0" max="25" step="0.5"
+                                            value="{{ $co4Val !== null ? number_format($co4Val, 1, '.', '') : '' }}"
+                                            placeholder="—"
+                                            oninput="autoSaveSeriesTheory(this)"
+                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-indigo-300 text-sm sm:text-base outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
+                                        >
+                                    </td>
+
+                                    <!-- Series 2: Subtotal (CO3 + CO4 / 50M) -->
+                                    <td class="p-2 text-center border-r border-slate-800/60 bg-indigo-950/20">
+                                        <span id="st-s2-tot-{{ $regKey }}" class="font-mono font-bold text-indigo-300 text-sm sm:text-base">
+                                            {{ $s2Tot !== null ? number_format($s2Tot, 1) . '/50' : '—' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Average (/50) -->
+                                    <td class="p-2.5 text-center">
+                                        <span id="st-avg-{{ $regKey }}" class="font-mono font-extrabold text-amber-300 text-sm sm:text-base">
+                                            {{ $avg50 !== null ? number_format($avg50, 1) : '—' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- CIA Score (/10M) -->
+                                    <td class="p-2.5 text-center">
+                                        <span id="st-cia-{{ $regKey }}" class="px-2.5 py-1 rounded-xl bg-blue-500/20 text-sky-300 border border-blue-500/30 font-mono font-black text-sm sm:text-base inline-block">
+                                            {{ $cia10 !== null ? number_format($cia10, 2) . '/10' : '—' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -1259,38 +1361,40 @@
                 </div>
 
                 <!-- CIA Summary Card -->
-                <div class="glass-card p-5 rounded-xl border border-slate-800">
-                    <h3 class="text-lg font-bold text-white mb-1">Consolidated Continuous Internal Assessment (CIA - 40 Marks Table 1.4)</h3>
-                    <p class="text-slate-400 text-xs mb-3">Attendance (5M) + CA1 Self Learning (5M) + CE Continuous Lab (10M) + CA2/CA3 Practical Tests (10M) + CA4/CA5 Theory Tests (10M) = 40 CIA Marks</p>
+                <div class="glass-card p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-1">Consolidated Continuous Internal Assessment (CIA - 40 Marks Table 1.4)</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Attendance (5M) + CA1 Self Learning (5M) + CE Continuous Lab (10M) + CA2/CA3 Practical Tests (10M) + CA4/CA5 Theory Tests (10M) = 40 CIA Marks</p>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse text-sm sm:text-base">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 font-medium bg-slate-900/60 text-sm">
-                                    <th class="p-2.5">Roll</th>
-                                    <th class="p-2.5">SBTE Reg No</th>
-                                    <th class="p-2.5">Student Name</th>
-                                    <th class="p-2.5 text-center">Att (5M)</th>
-                                    <th class="p-2.5 text-center">CA1 SL (5M)</th>
-                                    <th class="p-2.5 text-center">CE Lab (10M)</th>
-                                    <th class="p-2.5 text-center">CA4/5 Th Tests (10M)</th>
-                                    <th class="p-2.5 text-center">CA2/3 Pr Tests (10M)</th>
-                                    <th class="p-2.5 text-center">Total CIA (40M)</th>
+                                <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
+                                    <th class="p-3.5">Roll</th>
+                                    <th class="p-3.5">SBTE Reg No</th>
+                                    <th class="p-3.5 min-w-[150px]">Student Name</th>
+                                    <th class="p-3.5 text-center">Att (5M)</th>
+                                    <th class="p-3.5 text-center text-emerald-300">CA1 SL (5M)</th>
+                                    <th class="p-3.5 text-center text-teal-300">CE Lab (10M)</th>
+                                    <th class="p-3.5 text-center text-sky-300">CA4/5 Th Tests (10M)</th>
+                                    <th class="p-3.5 text-center text-indigo-300">CA2/3 Pr Tests (10M)</th>
+                                    <th class="p-3.5 text-center text-emerald-400 font-black">Total CIA (40M)</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/60 text-sm">
+                            <tbody class="divide-y divide-slate-800/60 text-sm sm:text-base">
                                 @foreach($studentResults as $res)
                                 <tr class="hover:bg-slate-800/30 transition-all">
-                                    <td class="p-2.5 text-slate-300 font-normal">{{ $res['roll_no'] }}</td>
-                                    <td class="p-2.5 font-mono text-slate-300 font-bold text-xs">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                    <td class="p-2.5 text-slate-300 font-normal">{{ $res['name'] }}</td>
-                                    <td class="p-2.5 text-center text-slate-300 font-normal">{{ $res['att_marks'] }}</td>
-                                    <td class="p-2.5 text-center text-slate-300 font-normal">{{ number_format($res['sl_marks'], 2) }}</td>
-                                    <td class="p-2.5 text-center text-slate-300 font-normal">{{ number_format($res['continuous_eval_marks'], 2) }}</td>
-                                    <td class="p-2.5 text-center text-slate-300 font-normal">{{ number_format($res['series_theory_marks'], 2) }}</td>
-                                    <td class="p-2.5 text-center text-slate-300 font-normal">{{ number_format($res['series_practical_marks'], 2) }}</td>
-                                    <td class="p-2.5 text-center text-slate-200 font-normal">
-                                        {{ number_format($res['total_cia_marks'], 2) }} / 40.00
+                                    <td class="p-3.5 text-slate-300 font-mono font-bold">{{ $res['roll_no'] }}</td>
+                                    <td class="p-3.5 font-mono text-white font-black">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                    <td class="p-3.5 text-white font-bold">{{ $res['name'] }}</td>
+                                    <td class="p-3.5 text-center text-slate-200 font-mono font-bold">{{ $res['att_marks'] }}</td>
+                                    <td class="p-3.5 text-center text-emerald-300 font-mono font-bold">{{ number_format($res['sl_marks'], 2) }}</td>
+                                    <td class="p-3.5 text-center text-teal-300 font-mono font-bold">{{ number_format($res['continuous_eval_marks'], 2) }}</td>
+                                    <td class="p-3.5 text-center text-sky-300 font-mono font-bold">{{ number_format($res['series_theory_marks'], 2) }}</td>
+                                    <td class="p-3.5 text-center text-indigo-300 font-mono font-bold">{{ number_format($res['series_practical_marks'], 2) }}</td>
+                                    <td class="p-3.5 text-center">
+                                        <span class="px-3 py-1 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-mono font-black text-base sm:text-lg inline-block shadow-sm">
+                                            {{ number_format($res['total_cia_marks'], 2) }} <span class="text-xs text-slate-400 font-normal">/ 40</span>
+                                        </span>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -4938,7 +5042,11 @@
         if (!regNo) return;
 
         const test = document.getElementById('series-theory-test-select').value;
-        const total = parseFloat(document.getElementById('series-theory-total').value) || 0;
+        const rawTotal = parseFloat(document.getElementById('series-theory-total').value);
+        const total = isNaN(rawTotal) ? 0 : Math.max(0, Math.min(25, rawTotal));
+
+        if (!seriesTheoryEvalsState[regNo]) seriesTheoryEvalsState[regNo] = {};
+        if (!seriesTheoryEvalsState[regNo][test]) seriesTheoryEvalsState[regNo][test] = { total_score_50: 0, is_absent: false };
 
         seriesTheoryEvalsState[regNo][test].total_score_50 = total;
 
@@ -4951,6 +5059,9 @@
         if (!regNo) return;
 
         const test = document.getElementById('series-theory-test-select').value;
+        if (!seriesTheoryEvalsState[regNo]) seriesTheoryEvalsState[regNo] = {};
+        if (!seriesTheoryEvalsState[regNo][test]) seriesTheoryEvalsState[regNo][test] = { total_score_50: 0, is_absent: false };
+
         seriesTheoryEvalsState[regNo][test].is_absent = isAbsent;
 
         const totalInput = document.getElementById('series-theory-total');
@@ -4970,7 +5081,7 @@
         const isAbsent = document.getElementById('series-theory-absent').checked;
 
         const displayTotal = isAbsent ? 0 : total;
-        document.getElementById('series-theory-live-total').innerText = `${displayTotal.toFixed(2)} / 50.00`;
+        document.getElementById('series-theory-live-total').innerText = `${displayTotal.toFixed(2)} / 25.00`;
     }
 
     function prevSeriesTheoryStudent() {
@@ -5046,9 +5157,13 @@
         const regNo   = inputEl.getAttribute('data-reg');
         const series  = inputEl.getAttribute('data-series');
         const val     = parseFloat(inputEl.value);
-        const score   = isNaN(val) ? null : Math.max(0, Math.min(50, val));
+        const score   = isNaN(val) ? null : Math.max(0, Math.min(25, val));
 
-        // Update live Avg & CIA display immediately
+        if (score !== null && !isNaN(val) && parseFloat(inputEl.value) > 25) {
+            inputEl.value = 25;
+        }
+
+        // Update live table totals, Avg & CIA display immediately
         updateSeriesTheoryRowLive(regNo);
 
         // Debounce the save
@@ -5072,7 +5187,13 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'SUCCESS') {
-                    const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1600, timerProgressBar: true });
+                    // Update state cache as well
+                    if (!seriesTheoryEvalsState[regNo]) seriesTheoryEvalsState[regNo] = {};
+                    if (!seriesTheoryEvalsState[regNo][series]) seriesTheoryEvalsState[regNo][series] = { total_score_50: 0, is_absent: false };
+                    seriesTheoryEvalsState[regNo][series].total_score_50 = score !== null ? score : 0;
+                    seriesTheoryEvalsState[regNo][series].is_absent = (score === null);
+
+                    const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1400, timerProgressBar: true });
                     toast.fire({ icon: 'success', title: 'Saved ✓' });
                 }
             })
@@ -5082,24 +5203,39 @@
 
     function updateSeriesTheoryRowLive(regNo) {
         const regKey = regNo.replace(/[^a-zA-Z0-9_]/g, '_');
-        const keys = ['s1', 's2'];
-        let sum = 0, count = 0;
+        const inp1 = document.getElementById(`st-${regKey}-s1`);
+        const inp2 = document.getElementById(`st-${regKey}-s2`);
+        const inp3 = document.getElementById(`st-${regKey}-s3`);
+        const inp4 = document.getElementById(`st-${regKey}-s4`);
 
-        keys.forEach(k => {
-            const inp = document.getElementById(`st-${regKey}-${k}`);
-            if (inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) { sum += v; count++; }
-            }
-        });
+        const v1 = (inp1 && inp1.value !== '') ? parseFloat(inp1.value) : null;
+        const v2 = (inp2 && inp2.value !== '') ? parseFloat(inp2.value) : null;
+        const v3 = (inp3 && inp3.value !== '') ? parseFloat(inp3.value) : null;
+        const v4 = (inp4 && inp4.value !== '') ? parseFloat(inp4.value) : null;
 
-        const avg   = count > 0 ? (sum / count) : 0;
-        const cia   = Math.min(10, (avg / 50) * 10);
+        const hasS1 = (v1 !== null || v2 !== null);
+        const hasS2 = (v3 !== null || v4 !== null);
+
+        const s1Total = hasS1 ? Math.min(50, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0)) : null;
+        const s2Total = hasS2 ? Math.min(50, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0)) : null;
+
+        const s1El = document.getElementById(`st-s1-tot-${regKey}`);
+        const s2El = document.getElementById(`st-s2-tot-${regKey}`);
         const avgEl = document.getElementById(`st-avg-${regKey}`);
         const ciaEl = document.getElementById(`st-cia-${regKey}`);
 
-        if (avgEl) avgEl.innerText = count > 0 ? avg.toFixed(1) : '—';
-        if (ciaEl) ciaEl.innerText = count > 0 ? `${cia.toFixed(2)}/10` : '—';
+        if (s1El) s1El.innerText = s1Total !== null ? `${s1Total.toFixed(1)}/50` : '—';
+        if (s2El) s2El.innerText = s2Total !== null ? `${s2Total.toFixed(1)}/50` : '—';
+
+        if (s1Total !== null || s2Total !== null) {
+            const avg = ((s1Total !== null ? s1Total : 0) + (s2Total !== null ? s2Total : 0)) / 2.0;
+            const cia = Math.min(10, Math.round(((avg / 50.0) * 10.0) * 2) / 2);
+            if (avgEl) avgEl.innerText = avg.toFixed(1);
+            if (ciaEl) ciaEl.innerText = `${cia.toFixed(2)}/10`;
+        } else {
+            if (avgEl) avgEl.innerText = '—';
+            if (ciaEl) ciaEl.innerText = '—';
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -5215,8 +5351,10 @@
                 <div class="flex items-center justify-between gap-3">
                     <label class="text-slate-300 text-xs font-semibold">Select Series Test:</label>
                     <select id="series-theory-test-select" onchange="onSeriesTheoryTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-amber-400 font-bold outline-none focus:border-amber-500">
-                        <option value="Series 1">Series Exam 1 (CA4: Modules 1 &amp; 2)</option>
-                        <option value="Series 2">Series Exam 2 (CA5: Modules 3 &amp; 4)</option>
+                        <option value="Series 1">Series 1: Test 1 / CO1 - Module I (Max 25M)</option>
+                        <option value="Series 2">Series 1: Test 2 / CO2 - Module II (Max 25M)</option>
+                        <option value="Series 3">Series 2: Test 3 / CO3 - Module III (Max 25M)</option>
+                        <option value="Series 4">Series 2: Test 4 / CO4 - Module IV (Max 25M)</option>
                     </select>
                 </div>
 
@@ -5248,8 +5386,8 @@
 
                 <div class="border-t border-slate-800/80 pt-3 space-y-3">
                     <div>
-                        <label class="block text-slate-400 text-xs font-semibold mb-1">Total Series Test Mark (Max 50):</label>
-                        <input type="number" id="series-theory-total" min="0" max="50" step="0.5" oninput="onSeriesTheoryMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
+                        <label class="block text-slate-400 text-xs font-semibold mb-1">Test Mark (Max 25 Marks):</label>
+                        <input type="number" id="series-theory-total" min="0" max="25" step="0.5" oninput="onSeriesTheoryMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
                     </div>
 
                     <div class="flex items-center space-x-2">
@@ -5260,8 +5398,8 @@
 
                 <!-- Live Total Display -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-semibold">Total Series Test Score:</span>
-                    <span id="series-theory-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 50.00</span>
+                    <span class="text-slate-400 font-semibold">Test Score:</span>
+                    <span id="series-theory-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 25.00</span>
                 </div>
             </div>
 

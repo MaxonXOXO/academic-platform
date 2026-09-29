@@ -3769,6 +3769,7 @@
               <div class="relative">
                 <input type="number" step="1" max="20" min="0" value="${val !== null ? Math.round(val) : ''}" 
                        class="${styleClasses}" data-co="${co}"
+                       onfocus="this.select()"
                        oninput="triggerAssignmentMarksAutoSave()"
                        onchange="triggerAssignmentMarksAutoSave(true)"
                        onblur="triggerAssignmentMarksAutoSave(true)"
@@ -4352,21 +4353,33 @@
     window.triggerAssignmentMarksAutoSave = triggerAssignmentMarksAutoSave;
 
     function handleAssignmentMarkKeyDown(event, inputElem) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' || event.key === 'Tab') {
         event.preventDefault();
-        const td = inputElem.closest('td');
-        const nextTd = td?.nextElementSibling;
-        const nextInputInRow = nextTd?.querySelector('.co-mark');
-        if (nextInputInRow) {
-          nextInputInRow.focus();
+        const coTag = inputElem.getAttribute('data-co');
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          // Move up to the same CO in the previous student row
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector(`.co-mark[data-co="${coTag}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
         } else {
-          const row = inputElem.closest('tr');
-          const nextRow = row?.nextElementSibling;
+          // Move down to the same CO in the next student row
+          const nextRow = currentRow.nextElementSibling;
           if (nextRow) {
-            const firstInputInNextRow = nextRow.querySelector('.co-mark');
-            if (firstInputInNextRow) firstInputInNextRow.focus();
+            const targetInput = nextRow.querySelector(`.co-mark[data-co="${coTag}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
           } else {
-            // Reached last mark! Auto-save immediately
+            // Reached last student in this column
             triggerAssignmentMarksAutoSave(true);
           }
         }
@@ -4392,18 +4405,16 @@
         const regNo = row.getAttribute('data-reg');
         const inputs = row.querySelectorAll('.co-mark');
         inputs.forEach(input => {
-          if (input.value !== '') {
-            marksPayload.push({
-              reg_no: regNo,
-              co_tag: input.getAttribute('data-co'),
-              marks_obtained: input.value
-            });
-          }
+          marksPayload.push({
+            reg_no: regNo,
+            co_tag: input.getAttribute('data-co'),
+            marks_obtained: input.value.trim() === '' ? null : input.value.trim()
+          });
         });
       });
 
       if (marksPayload.length === 0) {
-        if (!isAutoSave) alert("No marks entered.");
+        if (!isAutoSave) alert("No students found.");
         return;
       }
 
@@ -4437,7 +4448,7 @@
               const st = window.currentVirtualStudents.find(s => s.reg_no === mp.reg_no);
               if (st) {
                 if (!st.assignment_marks) st.assignment_marks = {};
-                st.assignment_marks[mp.co_tag] = parseFloat(mp.marks_obtained);
+                st.assignment_marks[mp.co_tag] = (mp.marks_obtained !== null && mp.marks_obtained !== '') ? parseFloat(mp.marks_obtained) : null;
               }
             });
           }
@@ -4815,10 +4826,10 @@
                 <td class="p-2.5 font-bold text-slate-200">${student.name}</td>
                 <td class="p-2.5 text-center font-mono text-slate-400">${student.sbte_reg_no || student.reg_no}</td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' && s1 !== null ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s1 !== '' && s1 !== null ? s1 : ''}" placeholder="0-15" class="prac-s1-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" onfocus="this.select()" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-slate-900/40">
-                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' && s2 !== null ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
+                  <input type="number" step="0.5" min="0" max="15" value="${s2 !== '' && s2 !== null ? s2 : ''}" placeholder="0-15" class="prac-s2-input w-24 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-center font-mono font-bold text-slate-100 focus:border-sky-500 outline-none" onfocus="this.select()" oninput="updatePracAvg(this); triggerPracMarksAutoSave();" onchange="triggerPracMarksAutoSave(true);" onkeydown="handlePracMarkKeyDown(event, this)">
                 </td>
                 <td class="p-2.5 text-center bg-sky-500/5">
                   <span class="prac-avg-display font-mono font-bold text-sky-400 text-xs">${tAvg !== '-' ? tAvg + ' / 15' : '-'}</span>
@@ -4928,10 +4939,10 @@
               <td class="p-3 font-bold text-slate-100 text-lg">${student.name}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.reg_no}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
             </tr>
           `;
         });
@@ -6256,21 +6267,33 @@
     window.triggerSummativeMarksAutoSave = triggerSummativeMarksAutoSave;
 
     function handleSummativeMarkKeyDown(event, inputElem) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' || event.key === 'Tab') {
         event.preventDefault();
-        const td = inputElem.closest('td');
-        const nextTd = td?.nextElementSibling;
-        const nextInputInRow = nextTd?.querySelector('.summ-mark');
-        if (nextInputInRow) {
-          nextInputInRow.focus();
+        const coTag = inputElem.getAttribute('data-co');
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          // Move up to the same CO in the previous student row
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector(`.summ-mark[data-co="${coTag}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
         } else {
-          const row = inputElem.closest('tr');
-          const nextRow = row?.nextElementSibling;
+          // Move down to the same CO in the next student row
+          const nextRow = currentRow.nextElementSibling;
           if (nextRow) {
-            const firstInputInNextRow = nextRow.querySelector('.summ-mark');
-            if (firstInputInNextRow) firstInputInNextRow.focus();
+            const targetInput = nextRow.querySelector(`.summ-mark[data-co="${coTag}"]`);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
           } else {
-            // Reached last mark! Auto-save immediately
+            // Reached last student in this column
             triggerSummativeMarksAutoSave(true);
           }
         }
@@ -6296,18 +6319,16 @@
         const regNo = row.getAttribute('data-reg');
         const inputs = row.querySelectorAll('.summ-mark');
         inputs.forEach(input => {
-          if (input.value !== '') {
-            marksPayload.push({
-              reg_no: regNo,
-              co_tag: input.getAttribute('data-co'),
-              marks_obtained: input.value
-            });
-          }
+          marksPayload.push({
+            reg_no: regNo,
+            co_tag: input.getAttribute('data-co'),
+            marks_obtained: input.value.trim() === '' ? null : input.value.trim()
+          });
         });
       });
 
       if (marksPayload.length === 0) {
-        if (!isAutoSave) alert("No marks entered.");
+        if (!isAutoSave) alert("No students found.");
         return;
       }
 
@@ -6341,7 +6362,7 @@
               const st = window.currentVirtualStudents.find(s => s.reg_no === mp.reg_no);
               if (st) {
                 if (!st.summative_marks) st.summative_marks = {};
-                st.summative_marks[mp.co_tag] = parseFloat(mp.marks_obtained);
+                st.summative_marks[mp.co_tag] = (mp.marks_obtained !== null && mp.marks_obtained !== '') ? parseFloat(mp.marks_obtained) : null;
               }
             });
           }
@@ -6440,21 +6461,43 @@
     window.triggerPracMarksAutoSave = triggerPracMarksAutoSave;
 
     function handlePracMarkKeyDown(event, inputElem) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' || event.key === 'Tab') {
         event.preventDefault();
-        const row = inputElem.closest('tr');
-        const isS1 = inputElem.classList.contains('prac-s1-input');
-        if (isS1) {
-          const s2 = row?.querySelector('.prac-s2-input');
-          if (s2) s2.focus();
+        let selector = '.prac-s1-input';
+        if (inputElem.classList.contains('prac-s2-input')) {
+          selector = '.prac-s2-input';
+        } else if (inputElem.classList.contains('prac-lw-direct-input')) {
+          selector = '.prac-lw-direct-input';
+        }
+
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector(selector);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
         } else {
-          const nextRow = row?.nextElementSibling;
+          const nextRow = currentRow.nextElementSibling;
           if (nextRow) {
-            const nextS1 = nextRow.querySelector('.prac-s1-input');
-            if (nextS1) nextS1.focus();
+            const targetInput = nextRow.querySelector(selector);
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
           } else {
-            // Reached last mark! Auto-save immediately
-            triggerPracMarksAutoSave(true);
+            // Reached last student row in practical marks
+            if (selector === '.prac-lw-direct-input') {
+              const reg = inputElem.getAttribute('data-reg');
+              if (reg) triggerPracLwDirectSave(inputElem, reg, true);
+            } else {
+              triggerPracMarksAutoSave(true);
+            }
           }
         }
       }
@@ -9788,6 +9831,7 @@
                 title="Direct Lab Work mark out of 37.5 (leave empty to use split-up calculation)"
                 class="prac-lw-direct-input no-spinner w-20 bg-slate-900 border ${hasDirectLw ? 'border-sky-500/80 font-bold text-sky-300' : 'border-slate-700/60 font-semibold text-blue-400'} rounded px-2 py-1 text-center font-mono focus:text-white focus:border-sky-400 outline-none text-xs transition-colors"
                 style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;"
+                onfocus="this.select()"
                 oninput="handlePracLwDirectInput(this, '${student.reg_no}')"
                 onchange="triggerPracLwDirectSave(this, '${student.reg_no}', true)"
                 onkeydown="handlePracMarkKeyDown(event, this)">
@@ -12417,6 +12461,35 @@
       recalculateEseStats();
     }
 
+    function handleEseMarkKeyDown(event, inputElem) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        const currentRow = inputElem.closest('tr');
+        if (!currentRow) return;
+
+        if (event.shiftKey) {
+          const prevRow = currentRow.previousElementSibling;
+          if (prevRow) {
+            const targetInput = prevRow.querySelector('.ese-mark-input');
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
+        } else {
+          const nextRow = currentRow.nextElementSibling;
+          if (nextRow) {
+            const targetInput = nextRow.querySelector('.ese-mark-input');
+            if (targetInput) {
+              targetInput.focus();
+              targetInput.select();
+            }
+          }
+        }
+      }
+    }
+    window.handleEseMarkKeyDown = handleEseMarkKeyDown;
+
     function onEseMarkChange(reg) {
       const maxMarks = parseFloat(document.getElementById('eseMaxMarks').value || 75);
       const markInp = document.querySelector(`.ese-mark-input[data-reg="${reg}"]`);
@@ -12476,7 +12549,7 @@
         const inputHtml = `
           <div class="flex items-center justify-center gap-1.5 flex-nowrap">
             <div class="flex items-center gap-1">
-              <input type="number" step="0.5" min="0" max="${maxMarks}" placeholder="Marks" data-reg="${reg}" class="ese-mark-input w-20 bg-slate-900 border border-slate-700 text-blue-400 font-mono font-bold text-center px-1.5 py-1 rounded-lg outline-none focus:border-blue-500 text-xs" value="${markVal !== null ? markVal : ''}" oninput="onEseMarkChange('${reg}')">
+              <input type="number" step="0.5" min="0" max="${maxMarks}" placeholder="Marks" data-reg="${reg}" class="ese-mark-input w-20 bg-slate-900 border border-slate-700 text-blue-400 font-mono font-bold text-center px-1.5 py-1 rounded-lg outline-none focus:border-blue-500 text-xs" value="${markVal !== null ? markVal : ''}" onfocus="this.select()" oninput="onEseMarkChange('${reg}')" onkeydown="handleEseMarkKeyDown(event, this)">
               <span class="text-[10px] text-slate-500 font-bold">/${maxMarks}</span>
             </div>
             <select data-reg="${reg}" onchange="onEseGradeChange('${reg}')" class="ese-val-input ese-grade-select bg-slate-900 border border-slate-700 text-teal-400 font-bold text-center w-36 px-1.5 py-1 rounded-lg outline-none focus:border-teal-500 cursor-pointer text-xs">

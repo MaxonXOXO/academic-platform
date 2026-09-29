@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         @if($type === 'lesson-plan') 30-Hour Physical Activity Schedule - {{ $batchSubject->subject_code }}
-        @elseif($type === 'activity-log') Continuous Fitness Log Marksheet - {{ $batchSubject->subject_code }}
+        @elseif($type === 'activity-log' || $type === 'splitup') Continuous Fitness Split-Up Marksheet - {{ $batchSubject->subject_code }}
+        @elseif($type === 'cia') CIA Consolidated Report (60M) - {{ $batchSubject->subject_code }}
+        @elseif($type === 'attendance') Health & Physical Attendance Register - {{ $batchSubject->subject_code }}
         @elseif($type === 'fitness-tests') Physical Fitness & Skill Tests Marksheet - {{ $batchSubject->subject_code }}
-        @elseif($type === 'consolidated') CIA Consolidated Register - {{ $batchSubject->subject_code }}
+        @elseif($type === 'consolidated') Consolidated CIA & ESE Register - {{ $batchSubject->subject_code }}
         @elseif($type === 'attainment') Direct & Indirect CO-PO Attainment Report - {{ $batchSubject->subject_code }}
-        @else Attendance Register - {{ $batchSubject->subject_code }}
+        @else Report - {{ $batchSubject->subject_code }}
         @endif
     </title>
     <style>
@@ -47,11 +49,13 @@
         <h2>Department of General Engineering (Aided & Self-Finance)</h2>
         <p>
             @if($type === 'lesson-plan') 30-HOUR PHYSICAL ACTIVITY SCHEDULE & LESSON PLAN
-            @elseif($type === 'activity-log') CONTINUOUS FITNESS & ACTIVITY LOG EVALUATION MARKSHEET (50M)
+            @elseif($type === 'activity-log' || $type === 'splitup') CONTINUOUS FITNESS & ACTIVITY SPLIT-UP MARKSHEET REPORT (50M & 30M CIE)
+            @elseif($type === 'cia') CONTINUOUS INTERNAL ASSESSMENT (CIA) CONSOLIDATED REPORT (60 MARKS)
+            @elseif($type === 'attendance') HEALTH & PHYSICAL EDUCATION ATTENDANCE REGISTER & STATUTORY MARKS (30 HOURS)
             @elseif($type === 'fitness-tests') PHYSICAL FITNESS & SKILL DEMO TESTS (CA1 & CA2 MARKSHEET)
-            @elseif($type === 'consolidated') CONSOLIDATED CIA (60M) + ESE (40M) MARKSHEET REGISTER
+            @elseif($type === 'consolidated') CONSOLIDATED CIA (60M) + ESE (40M) MARKSHEET REGISTER (100M)
             @elseif($type === 'attainment') DIRECT & INDIRECT CO-PO ATTAINMENT REPORT (REVISION 2026)
-            @else CLASSROOM ATTENDANCE REGISTER
+            @else CLASSROOM REPORT
             @endif
         </p>
     </div>
@@ -89,7 +93,7 @@
         </tbody>
     </table>
 
-    @elseif($type === 'activity-log')
+    @elseif($type === 'activity-log' || $type === 'splitup')
     <table>
         <thead>
             <tr>
@@ -97,14 +101,19 @@
                 <th style="width: 90px;">Reg No</th>
                 <th class="text-left">Student Name</th>
                 @foreach($evalScheme['day_work'] as $crit)
-                <th>{{ $crit['title'] }} ({{ $crit['max_marks'] }}M)</th>
+                <th>{{ $crit['title'] }}<br><span style="font-size: 9px; font-weight: normal;">({{ $crit['max_marks'] }}M)</span></th>
                 @endforeach
-                <th style="width: 70px;">Total (50M)</th>
+                <th style="width: 70px;">Total<br><span style="font-size: 9px; font-weight: normal;">(50M)</span></th>
+                <th style="width: 80px; background-color: #bae6fd; color: #0284c7;">CIE Continuous<br><span style="font-size: 9px; font-weight: normal;">(30M)</span></th>
             </tr>
         </thead>
         <tbody>
             @foreach($students as $idx => $s)
-            @php $stEval = $activityEvals->get($s->reg_no, collect())->first(); @endphp
+            @php
+                $stEval = $activityEvals->get($s->reg_no, collect())->first();
+                $tot50 = $stEval ? floatval($stEval->total_score_50) : 0.0;
+                $cie30 = round($tot50 * 0.6, 2);
+            @endphp
             <tr>
                 <td>{{ $idx + 1 }}</td>
                 <td>{{ $s->reg_no }}</td>
@@ -113,7 +122,8 @@
                 @php $k = $crit['key']; @endphp
                 <td>{{ $stEval ? ($stEval->$k ?? 0) : 0 }}</td>
                 @endforeach
-                <td class="bold">{{ $stEval ? number_format($stEval->total_score_50, 1) : '0.0' }}</td>
+                <td class="bold">{{ number_format($tot50, 1) }}</td>
+                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ number_format($cie30, 2) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -265,6 +275,77 @@
         @endforeach
     </div>
 
+    @elseif($type === 'cia')
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30px;">#</th>
+                <th style="width: 90px;">Reg No</th>
+                <th class="text-left">Student Name</th>
+                <th>Class Attendance (5M)</th>
+                <th>Continuous Fitness & Activity (30M)</th>
+                <th>Fitness & Skill Tests CA1/CA2 (15M)</th>
+                <th style="background-color: #bae6fd; color: #0284c7;">Total CIA Marks (60M)</th>
+                <th style="width: 80px;">Min Pass (24M)</th>
+                <th style="width: 80px;">CIA Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($studentResults as $idx => $res)
+            @php $isCiaPass = ($res['total_cie_marks'] >= 24.0); @endphp
+            <tr>
+                <td>{{ $idx + 1 }}</td>
+                <td>{{ $res['reg_no'] }}</td>
+                <td class="text-left">{{ $res['name'] }}</td>
+                <td>{{ $res['att_marks'] }}</td>
+                <td>{{ $res['activity_marks'] }}</td>
+                <td>{{ $res['test_marks'] }}</td>
+                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ $res['total_cie_marks'] }}</td>
+                <td>24.0</td>
+                <td class="{{ $isCiaPass ? 'badge-pass' : 'badge-fail' }}">
+                    {{ $isCiaPass ? 'ELIGIBLE' : 'FAILED' }}
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    @elseif($type === 'attendance')
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30px;">#</th>
+                <th style="width: 90px;">Reg No</th>
+                <th class="text-left">Student Name</th>
+                <th>Total Scheduled (30 Hours)</th>
+                <th>Attended Hours</th>
+                <th>Attendance Percentage (%)</th>
+                <th style="background-color: #bae6fd; color: #0284c7;">Statutory CIE Marks (5M)</th>
+                <th>Eligibility Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($studentResults as $idx => $res)
+            @php
+                $pct = $res['att_percentage'];
+                $isAttShortage = ($pct < 75.0);
+            @endphp
+            <tr>
+                <td>{{ $idx + 1 }}</td>
+                <td>{{ $res['reg_no'] }}</td>
+                <td class="text-left">{{ $res['name'] }}</td>
+                <td>{{ $res['total_sessions'] ?? 30 }}</td>
+                <td>{{ $res['attended_sessions'] ?? 30 }}</td>
+                <td class="bold {{ $pct < 75 ? 'badge-fail' : '' }}">{{ number_format($pct, 1) }}%</td>
+                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ $res['att_marks'] }}</td>
+                <td class="{{ $isAttShortage ? 'badge-fail' : 'badge-pass' }}">
+                    {{ $pct >= 75 ? 'ELIGIBLE' : ($pct >= 65 ? 'CONDONATION' : 'SHORTAGE') }}
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
     @else
     <table>
         <thead>
@@ -303,9 +384,18 @@
     @endif
 
     <div class="footer">
-        <div class="signature-box">Faculty In-Charge</div>
-        <div class="signature-box">HOD General Dept</div>
-        <div class="signature-box">Principal</div>
+        <div class="signature-box">
+            <strong>{{ isset($assignedStaff) && $assignedStaff->count() ? $assignedStaff->pluck('name')->implode(', ') : 'Faculty In-Charge' }}</strong>
+            <br><span style="font-size: 10px; font-weight: normal; color: #64748b;">Physical Instructor</span>
+        </div>
+        <div class="signature-box">
+            <strong>HOD General Dept</strong>
+            <br><span style="font-size: 10px; font-weight: normal; color: #64748b;">Department of General Engineering</span>
+        </div>
+        <div class="signature-box">
+            <strong>Principal</strong>
+            <br><span style="font-size: 10px; font-weight: normal; color: #64748b;">Carmel Polytechnic College</span>
+        </div>
     </div>
 
 </body>

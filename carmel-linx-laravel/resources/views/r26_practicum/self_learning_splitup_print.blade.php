@@ -63,11 +63,11 @@
                 <th class="border border-slate-400 p-2 text-center w-10">Roll</th>
                 <th class="border border-slate-400 p-2 w-28">SBTE Reg No</th>
                 <th class="border border-slate-400 p-2">Student Name</th>
-                <th class="border border-slate-400 p-2 text-center">CO1 Splitup (/15)</th>
-                <th class="border border-slate-400 p-2 text-center">CO2 Splitup (/15)</th>
-                <th class="border border-slate-400 p-2 text-center">CO3 Splitup (/15)</th>
-                <th class="border border-slate-400 p-2 text-center">CO4 Splitup (/15)</th>
-                <th class="border border-slate-400 p-2 text-center w-24">Avg Raw (/15)</th>
+                <th class="border border-slate-400 p-2 text-center">CO1 Splitup (/10)</th>
+                <th class="border border-slate-400 p-2 text-center">CO2 Splitup (/10)</th>
+                <th class="border border-slate-400 p-2 text-center">CO3 Splitup (/10)</th>
+                <th class="border border-slate-400 p-2 text-center">CO4 Splitup (/10)</th>
+                <th class="border border-slate-400 p-2 text-center w-24">Avg Raw (/10)</th>
                 <th class="border border-slate-400 p-2 text-center w-24">CA Score (/5M)</th>
             </tr>
         </thead>
@@ -83,7 +83,7 @@
 
                 $allVals = collect($split)->flatMap(fn($item) => array_values($item));
                 $avgRaw = $allVals->count() > 0 ? $allVals->avg() : 0.0;
-                $caScore = min(5.0, ($avgRaw / 15.0) * 5.0);
+                $caScore = min(5.0, ($avgRaw / 10.0) * 5.0);
             @endphp
             <tr class="border-b border-slate-300">
                 <td class="border border-slate-300 p-1.5 text-center font-bold">{{ $st->roll_no }}</td>

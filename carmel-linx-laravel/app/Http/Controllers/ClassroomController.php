@@ -1957,16 +1957,29 @@ Syllabus Text:
         $marksData = $request->input('marks', []);
         
         foreach ($marksData as $mark) {
-            if (!isset($mark['reg_no']) || !isset($mark['co_tag']) || !isset($mark['marks_obtained'])) {
+            if (!isset($mark['reg_no']) || !isset($mark['co_tag'])) {
                 continue;
             }
 
-            if ($mark['marks_obtained'] === '' || $mark['marks_obtained'] === null) {
+            $coTag = $mark['co_tag'];
+            $marksObtained = $mark['marks_obtained'] ?? null;
+
+            if ($marksObtained === '' || $marksObtained === null) {
+                \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
+                    ->where('co_tag', $coTag)
+                    ->where('category', 'Assignment')
+                    ->where(function($q) use ($subjectId, $batchSubject) {
+                        $q->where('batch_subject_id', $subjectId)
+                          ->orWhere(function($subQ) use ($batchSubject) {
+                              $subQ->where('subject_code', $batchSubject->subject_code);
+                          });
+                    })
+                    ->delete();
                 continue;
             }
 
             $existing = \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
-                ->where('co_tag', $mark['co_tag'])
+                ->where('co_tag', $coTag)
                 ->where('category', 'Assignment')
                 ->where(function($q) use ($subjectId, $batchSubject) {
                     $q->where('batch_subject_id', $subjectId)
@@ -1974,25 +1987,28 @@ Syllabus Text:
                           $subQ->where('subject_code', $batchSubject->subject_code);
                       });
                 })
-                ->latest('updated_at')
-                ->first();
+                ->get();
 
-            if ($existing) {
-                $existing->update([
+            if ($existing->isNotEmpty()) {
+                $primary = $existing->first();
+                $primary->update([
                     'batch_subject_id' => $subjectId,
                     'subject_code' => $batchSubject->subject_code,
                     'max_marks' => 20,
-                    'marks_obtained' => $mark['marks_obtained']
+                    'marks_obtained' => $marksObtained
                 ]);
+                if ($existing->count() > 1) {
+                    $existing->slice(1)->each(function($dup) { $dup->delete(); });
+                }
             } else {
                 \App\Models\AcademicMark::create([
                     'reg_no' => $mark['reg_no'],
                     'batch_subject_id' => $subjectId,
                     'category' => 'Assignment',
-                    'co_tag' => $mark['co_tag'],
+                    'co_tag' => $coTag,
                     'subject_code' => $batchSubject->subject_code,
                     'max_marks' => 20,
-                    'marks_obtained' => $mark['marks_obtained']
+                    'marks_obtained' => $marksObtained
                 ]);
             }
 
@@ -2000,7 +2016,7 @@ Syllabus Text:
             \DB::table('student_task_submissions')
                 ->where('reg_no', $mark['reg_no'])
                 ->where('subject_code', $batchSubject->subject_code)
-                ->where('co_tag', $mark['co_tag'])
+                ->where('co_tag', $coTag)
                 ->where('category', 'Assignment')
                 ->update(['status' => 'Graded', 'updated_at' => now()]);
         }
@@ -2333,15 +2349,27 @@ Return ONLY valid JSON matching this exact structure:
         $summativeTests = $courseFile->summative_manual_tests ?? [];
         
         foreach ($marksData as $mark) {
-            if (!isset($mark['reg_no']) || !isset($mark['co_tag']) || !isset($mark['marks_obtained'])) {
-                continue;
-            }
-
-            if ($mark['marks_obtained'] === '' || $mark['marks_obtained'] === null) {
+            if (!isset($mark['reg_no']) || !isset($mark['co_tag'])) {
                 continue;
             }
 
             $coTag = $mark['co_tag'];
+            $marksObtained = $mark['marks_obtained'] ?? null;
+
+            if ($marksObtained === '' || $marksObtained === null) {
+                \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
+                    ->where('co_tag', $coTag)
+                    ->whereIn('category', ['Written Test', 'Summative', 'Series Test'])
+                    ->where(function($q) use ($subjectId, $batchSubject) {
+                        $q->where('batch_subject_id', $subjectId)
+                          ->orWhere(function($subQ) use ($batchSubject) {
+                              $subQ->where('subject_code', $batchSubject->subject_code);
+                          });
+                    })
+                    ->delete();
+                continue;
+            }
+
             $maxMarks = isset($summativeTests[$coTag]['total_marks']) ? $summativeTests[$coTag]['total_marks'] : 50;
 
             $existing = \App\Models\AcademicMark::where('reg_no', $mark['reg_no'])
@@ -2353,17 +2381,20 @@ Return ONLY valid JSON matching this exact structure:
                           $subQ->where('subject_code', $batchSubject->subject_code);
                       });
                 })
-                ->latest('updated_at')
-                ->first();
+                ->get();
 
-            if ($existing) {
-                $existing->update([
+            if ($existing->isNotEmpty()) {
+                $primary = $existing->first();
+                $primary->update([
                     'batch_subject_id' => $subjectId,
                     'subject_code' => $batchSubject->subject_code,
                     'category' => 'Written Test',
                     'max_marks' => $maxMarks,
-                    'marks_obtained' => $mark['marks_obtained']
+                    'marks_obtained' => $marksObtained
                 ]);
+                if ($existing->count() > 1) {
+                    $existing->slice(1)->each(function($dup) { $dup->delete(); });
+                }
             } else {
                 \App\Models\AcademicMark::create([
                     'reg_no' => $mark['reg_no'],
@@ -2372,7 +2403,7 @@ Return ONLY valid JSON matching this exact structure:
                     'category' => 'Written Test',
                     'co_tag' => $coTag,
                     'max_marks' => $maxMarks,
-                    'marks_obtained' => $mark['marks_obtained']
+                    'marks_obtained' => $marksObtained
                 ]);
             }
         }

@@ -2870,17 +2870,13 @@ Return ONLY valid JSON matching this exact structure:
                 $attPercent = 100.0;
             }
 
-            // Attendance Marks out of 10
-            $attMarks = 0;
-            if ($attPercent >= 90) $attMarks = 10;
-            elseif ($attPercent >= 85) $attMarks = 9;
-            elseif ($attPercent >= 80) $attMarks = 8;
-            elseif ($attPercent >= 75) $attMarks = 7;
-            else $attMarks = 0;
+            // Attendance Marks out of 10 (Rev 2021: Actual % directly converted to max 10, >= .5 rounded up, < .5 rounded down)
+            $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
 
             // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10)
             $totalCie = round($assignAvg + $summAvg + $attMarks, 1);
-            $status = ($attPercent >= 75 && $totalCie >= 20) ? 'ELIGIBLE' : ($attPercent < 75 ? 'ATTENDANCE SHORTAGE' : 'NEEDS IMPROVEMENT');
+            // In individual subject calculation, exam eligibility is avoided as it is determined on consolidated semester attendance
+            $status = ($totalCie >= 20.0) ? 'PASSED' : 'NEEDS IMPROVEMENT';
 
             return (object)[
                 'reg_no' => $student->reg_no,
@@ -4649,8 +4645,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 $attendancePercentage = 100.00;
             }
             
-            // Proportional attendance mark out of 15 for all percentages (R2021)
-            $suggestedAttendanceMarks = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+            // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+            $suggestedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
             // Consolidated eval
             $eval = $evaluations->where('reg_no', $regNo)->first();
@@ -5298,8 +5294,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 $attendancePercentage = 100.00;
             }
 
-            // Proportional attendance mark out of 15 for all percentages (R2021)
-            $calculatedAttendanceMarks = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+            // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+            $calculatedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
             // Consolidated eval
             $eval = $evaluations->where('reg_no', $regNo)->first();
@@ -6137,8 +6133,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $totalForStudent = ($presentClasses + $absentClasses) > 0 ? ($presentClasses + $absentClasses) : $totalAttendanceClasses;
         $attendancePercentage = $totalForStudent > 0 ? (($presentClasses / $totalForStudent) * 100) : 100.00;
 
-        // Proportional attendance mark out of 15 for all percentages (R2021)
-        $calculatedAttendanceMarks = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+        // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+        $calculatedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
         // Consolidated
         $eval = \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->first();

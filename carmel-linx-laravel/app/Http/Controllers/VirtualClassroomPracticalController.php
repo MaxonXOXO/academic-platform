@@ -166,7 +166,8 @@ class VirtualClassroomPracticalController extends Controller
             $present = isset($studentPresentSlots[$rNo]) ? count($studentPresentSlots[$rNo]) : 0;
             $scheduled = isset($studentScheduledSlots[$rNo]) ? count($studentScheduledSlots[$rNo]) : 0;
             $totalForStudent = $scheduled > 0 ? $scheduled : $totalAttClasses;
-            $attMark = $totalForStudent > 0 ? round(($present / $totalForStudent) * 15, 1) : 15.0;
+            $pct = $totalForStudent > 0 ? round(($present / $totalForStudent) * 100, 1) : 100.0;
+            $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
             // Allow override from practical_evaluations if manually set (> 0)
             $ev = $evalMap->get($rNo);
@@ -875,8 +876,8 @@ class VirtualClassroomPracticalController extends Controller
             $presentClasses = $studentAttCounts[$regNo] ?? 0;
             $scheduledClasses = $studentScheduledCounts[$regNo] ?? 0;
             $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalClasses;
-            $pct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.00;
-            $suggestedAttendance = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+            $pct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 1) : 100.0;
+            $suggestedAttendance = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
             $eval = $evaluations->get($regNo);
             $microProject = $eval ? (float)$eval->micro_project : 0.00;
@@ -1274,7 +1275,7 @@ class VirtualClassroomPracticalController extends Controller
 
         $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalClasses;
         $attendancePercentage = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 1) : 100.0;
-        $suggestedAttendance = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 15, 1) : 15.0;
+        $suggestedAttendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
         // Practical Evaluation summary
         $eval = PracticalEvaluation::where('batch_subject_id', $batchSubjectId)

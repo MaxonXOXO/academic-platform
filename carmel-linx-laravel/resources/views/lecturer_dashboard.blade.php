@@ -10589,6 +10589,13 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
       }
+      setTimeout(() => {
+        const inputRough = document.getElementById('lw_rough');
+        if (inputRough) {
+          inputRough.focus();
+          inputRough.select();
+        }
+      }, 100);
     }
 
     function loadLwExpValues() {
@@ -10724,6 +10731,48 @@
       })
       .catch(() => alert('Failed to save experiment marks.'));
     }
+
+    function navigateLwModalInput(e, key) {
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        const keys = ['rough', 'fair', 'obs', 'proc', 'viva'];
+        const idx = keys.indexOf(key);
+        if (idx === -1) return;
+
+        if (e.shiftKey) {
+          // Backward: Shift + Tab or Shift + Enter
+          if (idx > 0) {
+            e.preventDefault();
+            const prevEl = document.getElementById(`lw_${keys[idx - 1]}`);
+            if (prevEl) {
+              prevEl.focus();
+              prevEl.select();
+            }
+          }
+        } else {
+          // Forward: Tab or Enter
+          if (idx < keys.length - 1) {
+            e.preventDefault();
+            const nextEl = document.getElementById(`lw_${keys[idx + 1]}`);
+            if (nextEl) {
+              nextEl.focus();
+              nextEl.select();
+            }
+          } else if (idx === keys.length - 1) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              saveLwModal(false, 1);
+            } else if (e.key === 'Tab') {
+              e.preventDefault();
+              const saveNextBtn = document.getElementById('lwModalSaveNextBtn');
+              if (saveNextBtn) {
+                saveNextBtn.focus();
+              }
+            }
+          }
+        }
+      }
+    }
+    window.navigateLwModalInput = navigateLwModalInput;
 
     /* OPEN-ENDED PROJECT MODAL CONTROLLERS */
     function openOeModal(regNo) {
@@ -10932,6 +10981,13 @@
           modal.style.removeProperty('display');
           modal.style.display = 'flex';
         }
+        setTimeout(() => {
+          const firstExpInput = document.querySelector('#labModalExpsListContainer input[id$="_rough_record"]');
+          if (firstExpInput) {
+            firstExpInput.focus();
+            firstExpInput.select();
+          }
+        }, 150);
       } catch (err) {
         console.error("Error opening student lab modal:", err);
         const modal = document.getElementById('studentLabModal');
@@ -11108,6 +11164,73 @@
       syncExpSlider(expId, key, next.toString(), max);
     }
 
+    function navigateExpRubricInput(e, expId, fieldKey) {
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        const keys = ['rough_record', 'fair_record', 'prerequisite', 'execution', 'viva_voce'];
+        const idx = keys.indexOf(fieldKey);
+        if (idx === -1) return;
+
+        if (e.shiftKey) {
+          // Backward: Shift + Tab or Shift + Enter
+          e.preventDefault();
+          if (idx > 0) {
+            const prevEl = document.getElementById(`exp_${expId}_${keys[idx - 1]}`);
+            if (prevEl) {
+              prevEl.focus();
+              prevEl.select();
+            }
+          } else {
+            // Find previous experiment card
+            if (window.labExperimentsData && window.labExperimentsData.length > 0) {
+              const expIdx = window.labExperimentsData.findIndex(x => x.id == expId);
+              if (expIdx > 0) {
+                const prevExpId = window.labExperimentsData[expIdx - 1].id;
+                const prevViva = document.getElementById(`exp_${prevExpId}_viva_voce`);
+                if (prevViva) {
+                  const prevCard = document.getElementById(`exp_card_${prevExpId}`);
+                  if (prevCard) prevCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  prevViva.focus();
+                  prevViva.select();
+                }
+              }
+            }
+          }
+        } else {
+          // Forward: Tab or Enter
+          e.preventDefault();
+          if (idx < keys.length - 1) {
+            const nextEl = document.getElementById(`exp_${expId}_${keys[idx + 1]}`);
+            if (nextEl) {
+              nextEl.focus();
+              nextEl.select();
+            }
+          } else {
+            // Last component of current experiment ('viva_voce') -> move to next experiment's rough_record
+            if (window.labExperimentsData && window.labExperimentsData.length > 0) {
+              const expIdx = window.labExperimentsData.findIndex(x => x.id == expId);
+              if (expIdx >= 0 && expIdx < window.labExperimentsData.length - 1) {
+                const nextExpId = window.labExperimentsData[expIdx + 1].id;
+                const nextRough = document.getElementById(`exp_${nextExpId}_rough_record`);
+                if (nextRough) {
+                  const nextCard = document.getElementById(`exp_card_${nextExpId}`);
+                  if (nextCard) nextCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  nextRough.focus();
+                  nextRough.select();
+                }
+              } else {
+                // Last experiment reached: focus Save Evaluation button
+                const saveBtn = document.getElementById('btnSaveStudentLabEval') || document.querySelector('button[onclick="saveStudentLabEvaluation()"]');
+                if (saveBtn) {
+                  saveBtn.focus();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    window.navigateExpRubricInput = navigateExpRubricInput;
+
     function renderLabModalExpsList() {
       const container = document.getElementById('labModalExpsListContainer');
       const jumpSelect = document.getElementById('expJumpSelect');
@@ -11192,7 +11315,7 @@
               <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700/80 hover:border-cyan-500/60 focus-within:border-cyan-400 transition-colors shadow-inner" title="Conducted / Evaluation Date">
                 <span class="material-symbols-rounded text-xs text-cyan-400">calendar_today</span>
                 <label for="exp_${exp.id}_date" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Date:</label>
-                <input type="date" id="exp_${exp.id}_date" value="${expDate}"
+                <input type="date" id="exp_${exp.id}_date" value="${expDate}" tabindex="-1"
                   onchange="updateExpDate(${exp.id}, this.value)"
                   class="bg-transparent text-xs font-mono font-bold text-cyan-200 outline-none cursor-pointer [color-scheme:dark]">
               </div>
@@ -11209,22 +11332,24 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <!-- Rough Record (5) -->
-            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2 flex flex-col justify-between">
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-855/50 space-y-2 flex flex-col justify-between">
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-amber-300">Rough Record</span>
                 <input type="number" step="0.5" min="0" max="5" value="${rough}"
+                  onfocus="this.select()"
+                  onkeydown="navigateExpRubricInput(event, ${exp.id}, 'rough_record')"
                   oninput="syncExpSlider(${exp.id}, 'rough_record', this.value, 5)"
                   id="exp_${exp.id}_rough_record"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-amber-400 text-xs focus:border-amber-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', -0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="5" step="0.5" value="${rNum || 0}"
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'rough_record', -0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" tabindex="-1" min="0" max="5" step="0.5" value="${rNum || 0}"
                     oninput="document.getElementById('exp_${exp.id}_rough_record').value = this.value; syncExpSlider(${exp.id}, 'rough_record', this.value, 5)"
                     id="exp_${exp.id}_rough_record_slider"
                     class="flex-1 h-1.5 rounded-full accent-amber-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'rough_record', 0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'rough_record', 0.5, 5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 5</span>
@@ -11237,18 +11362,20 @@
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-emerald-300">Fair Record</span>
                 <input type="number" step="0.5" min="0" max="7.5" value="${fair}"
+                  onfocus="this.select()"
+                  onkeydown="navigateExpRubricInput(event, ${exp.id}, 'fair_record')"
                   oninput="syncExpSlider(${exp.id}, 'fair_record', this.value, 7.5)"
                   id="exp_${exp.id}_fair_record"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-emerald-400 text-xs focus:border-emerald-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="7.5" step="0.5" value="${fNum || 0}"
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'fair_record', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" tabindex="-1" min="0" max="7.5" step="0.5" value="${fNum || 0}"
                     oninput="document.getElementById('exp_${exp.id}_fair_record').value = this.value; syncExpSlider(${exp.id}, 'fair_record', this.value, 7.5)"
                     id="exp_${exp.id}_fair_record_slider"
                     class="flex-1 h-1.5 rounded-full accent-emerald-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'fair_record', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'fair_record', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 7.5</span>
@@ -11261,18 +11388,20 @@
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-sky-300">Obs. &amp; Recording</span>
                 <input type="number" step="0.5" min="0" max="7.5" value="${prereq}"
+                  onfocus="this.select()"
+                  onkeydown="navigateExpRubricInput(event, ${exp.id}, 'prerequisite')"
                   oninput="syncExpSlider(${exp.id}, 'prerequisite', this.value, 7.5)"
                   id="exp_${exp.id}_prerequisite"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-sky-400 text-xs focus:border-sky-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="7.5" step="0.5" value="${pNum || 0}"
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'prerequisite', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" tabindex="-1" min="0" max="7.5" step="0.5" value="${pNum || 0}"
                     oninput="document.getElementById('exp_${exp.id}_prerequisite').value = this.value; syncExpSlider(${exp.id}, 'prerequisite', this.value, 7.5)"
                     id="exp_${exp.id}_prerequisite_slider"
                     class="flex-1 h-1.5 rounded-full accent-sky-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'prerequisite', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'prerequisite', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 7.5</span>
@@ -11285,18 +11414,20 @@
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-purple-300">Proc. &amp; Punct</span>
                 <input type="number" step="0.5" min="0" max="7.5" value="${exec}"
+                  onfocus="this.select()"
+                  onkeydown="navigateExpRubricInput(event, ${exp.id}, 'execution')"
                   oninput="syncExpSlider(${exp.id}, 'execution', this.value, 7.5)"
                   id="exp_${exp.id}_execution"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-purple-400 text-xs focus:border-purple-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="7.5" step="0.5" value="${eNum || 0}"
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'execution', -0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" tabindex="-1" min="0" max="7.5" step="0.5" value="${eNum || 0}"
                     oninput="document.getElementById('exp_${exp.id}_execution').value = this.value; syncExpSlider(${exp.id}, 'execution', this.value, 7.5)"
                     id="exp_${exp.id}_execution_slider"
                     class="flex-1 h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'execution', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'execution', 0.5, 7.5)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 7.5</span>
@@ -11309,18 +11440,20 @@
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-rose-300">Viva Voce</span>
                 <input type="number" step="0.5" min="0" max="10" value="${viva}"
+                  onfocus="this.select()"
+                  onkeydown="navigateExpRubricInput(event, ${exp.id}, 'viva_voce')"
                   oninput="syncExpSlider(${exp.id}, 'viva_voce', this.value, 10)"
                   id="exp_${exp.id}_viva_voce"
                   class="no-spinner w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-center font-bold text-rose-400 text-xs focus:border-rose-500 outline-none" placeholder="0.0">
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'viva_voce', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
-                  <input type="range" min="0" max="10" step="0.5" value="${vNum || 0}"
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'viva_voce', -0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">-</button>
+                  <input type="range" tabindex="-1" min="0" max="10" step="0.5" value="${vNum || 0}"
                     oninput="document.getElementById('exp_${exp.id}_viva_voce').value = this.value; syncExpSlider(${exp.id}, 'viva_voce', this.value, 10)"
                     id="exp_${exp.id}_viva_voce_slider"
                     class="flex-1 h-1.5 rounded-full accent-rose-500 bg-slate-800 cursor-pointer">
-                  <button type="button" onclick="adjustExpMark(${exp.id}, 'viva_voce', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
+                  <button type="button" tabindex="-1" onclick="adjustExpMark(${exp.id}, 'viva_voce', 0.5, 10)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs flex items-center justify-center shrink-0">+</button>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-semibold">
                   <span>0</span><span>Max 10</span>
@@ -12998,11 +13131,11 @@
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300 text-[11px] font-bold truncate">Rough Record</span>
               <div class="flex items-center gap-1 shrink-0">
-                <input type="number" id="lw_rough" step="0.5" min="0" max="5" oninput="syncLwComponent('rough', this.value, 5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <input type="number" id="lw_rough" step="0.5" min="0" max="5" onfocus="this.select()" onkeydown="navigateLwModalInput(event, 'rough')" oninput="syncLwComponent('rough', this.value, 5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
                 <span class="text-slate-500 text-[10px] font-mono">/ 5</span>
               </div>
             </div>
-            <input type="range" id="lw_rough_slider" min="0" max="5" step="0.5" oninput="syncLwComponent('rough', this.value, 5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <input type="range" id="lw_rough_slider" tabindex="-1" min="0" max="5" step="0.5" oninput="syncLwComponent('rough', this.value, 5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Fair Record (7.5) -->
@@ -13010,11 +13143,11 @@
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300 text-[11px] font-bold truncate">Fair Record</span>
               <div class="flex items-center gap-1 shrink-0">
-                <input type="number" id="lw_fair" step="0.5" min="0" max="7.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <input type="number" id="lw_fair" step="0.5" min="0" max="7.5" onfocus="this.select()" onkeydown="navigateLwModalInput(event, 'fair')" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
                 <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_fair_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <input type="range" id="lw_fair_slider" tabindex="-1" min="0" max="7.5" step="0.5" oninput="syncLwComponent('fair', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Observation & Recording (7.5) -->
@@ -13022,11 +13155,11 @@
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300 text-[11px] font-bold truncate">Obs &amp; Record</span>
               <div class="flex items-center gap-1 shrink-0">
-                <input type="number" id="lw_obs" step="0.5" min="0" max="7.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <input type="number" id="lw_obs" step="0.5" min="0" max="7.5" onfocus="this.select()" onkeydown="navigateLwModalInput(event, 'obs')" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
                 <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_obs_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <input type="range" id="lw_obs_slider" tabindex="-1" min="0" max="7.5" step="0.5" oninput="syncLwComponent('obs', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Procedure & Punctuality (7.5) -->
@@ -13034,11 +13167,11 @@
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300 text-[11px] font-bold truncate">Proc &amp; Punct</span>
               <div class="flex items-center gap-1 shrink-0">
-                <input type="number" id="lw_proc" step="0.5" min="0" max="7.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <input type="number" id="lw_proc" step="0.5" min="0" max="7.5" onfocus="this.select()" onkeydown="navigateLwModalInput(event, 'proc')" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
                 <span class="text-slate-500 text-[10px] font-mono">/ 7.5</span>
               </div>
             </div>
-            <input type="range" id="lw_proc_slider" min="0" max="7.5" step="0.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <input type="range" id="lw_proc_slider" tabindex="-1" min="0" max="7.5" step="0.5" oninput="syncLwComponent('proc', this.value, 7.5)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
 
           <!-- Viva Voce (10) -->
@@ -13046,11 +13179,11 @@
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-slate-300 text-[11px] font-bold truncate">Viva Voce</span>
               <div class="flex items-center gap-1 shrink-0">
-                <input type="number" id="lw_viva" step="0.5" min="0" max="10" oninput="syncLwComponent('viva', this.value, 10)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
+                <input type="number" id="lw_viva" step="0.5" min="0" max="10" onfocus="this.select()" onkeydown="navigateLwModalInput(event, 'viva')" oninput="syncLwComponent('viva', this.value, 10)" class="w-12 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-0.5 outline-none no-spinner focus:border-cyan-500">
                 <span class="text-slate-500 text-[10px] font-mono">/ 10</span>
               </div>
             </div>
-            <input type="range" id="lw_viva_slider" min="0" max="10" step="0.5" oninput="syncLwComponent('viva', this.value, 10)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <input type="range" id="lw_viva_slider" tabindex="-1" min="0" max="10" step="0.5" oninput="syncLwComponent('viva', this.value, 10)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
           </div>
         </div>
 
@@ -13079,7 +13212,7 @@
             <span class="material-symbols-rounded text-xs">arrow_back</span> Save &amp; Prev
           </button>
           <button onclick="saveLwModal(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition cursor-pointer border border-slate-600">Save Mark</button>
-          <button onclick="saveLwModal(false, 1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-0.5 cursor-pointer">
+          <button id="lwModalSaveNextBtn" onclick="saveLwModal(false, 1)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-0.5 cursor-pointer">
             Save &amp; Next <span class="material-symbols-rounded text-xs">arrow_forward</span>
           </button>
         </div>
@@ -13132,11 +13265,11 @@
           <div class="flex justify-between items-center text-xs font-bold">
             <span class="text-slate-300">Open-Ended Evaluation Mark</span>
             <div class="flex items-center gap-1">
-              <input type="number" id="oe_mark" step="0.5" min="0" max="7.5" oninput="syncOeSlider(this.value)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
+              <input type="number" id="oe_mark" step="0.5" min="0" max="7.5" onfocus="this.select()" oninput="syncOeSlider(this.value)" class="w-14 bg-slate-900 border border-slate-700 rounded text-center text-xs font-mono font-bold text-slate-100 py-1 outline-none no-spinner focus:border-slate-500">
               <span class="text-slate-500 text-[11px]">/ 7.5</span>
             </div>
           </div>
-          <input type="range" id="oe_mark_slider" min="0" max="7.5" step="0.5" oninput="syncOeSlider(this.value)" class="w-full accent-slate-400 cursor-pointer">
+          <input type="range" id="oe_mark_slider" tabindex="-1" min="0" max="7.5" step="0.5" oninput="syncOeSlider(this.value)" class="w-full accent-slate-400 cursor-pointer">
         </div>
       </div>
 
@@ -13197,7 +13330,7 @@
             <div class="flex flex-wrap items-center gap-4 shrink-0">
               <div class="flex items-center gap-2 bg-slate-900 border border-slate-700/60 px-3 py-1.5 rounded-xl shadow-sm">
                 <label for="labScore_directLabWork" class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Direct Mark (37.5):</label>
-                <input type="number" step="0.25" min="0" max="37.5" id="labScore_directLabWork" oninput="calcLabModalScores()" placeholder="Auto" class="no-spinner w-16 bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-lg px-2 py-1 text-xs text-cyan-300 font-mono font-bold text-center outline-none" style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;">
+                <input type="number" step="0.25" min="0" max="37.5" id="labScore_directLabWork" onfocus="this.select()" oninput="calcLabModalScores()" placeholder="Auto" class="no-spinner w-16 bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-lg px-2 py-1 text-xs text-cyan-300 font-mono font-bold text-center outline-none" style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;">
               </div>
               <div class="text-right">
                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Lab Work Average:</span>
@@ -13230,17 +13363,17 @@
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">CO1 (Max 7.5)</span>
-                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co1" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co1" onfocus="this.select()" oninput="syncSlider('labScore_t1_co1','labScore_t1_co1_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
                 </div>
-                <input type="range" id="labScore_t1_co1_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t1_co1_slider" tabindex="-1" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co1').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
               </div>
               <!-- CO2 -->
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">CO2 (Max 7.5)</span>
-                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co2" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t1_co2" onfocus="this.select()" oninput="syncSlider('labScore_t1_co2','labScore_t1_co2_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-blue-500 outline-none" placeholder="0.0">
                 </div>
-                <input type="range" id="labScore_t1_co2_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t1_co2_slider" tabindex="-1" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t1_co2').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-blue-500 bg-slate-800 cursor-pointer">
               </div>
             </div>
 
@@ -13254,17 +13387,17 @@
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">CO3 (Max 7.5)</span>
-                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co3" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co3" onfocus="this.select()" oninput="syncSlider('labScore_t2_co3','labScore_t2_co3_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
                 </div>
-                <input type="range" id="labScore_t2_co3_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t2_co3_slider" tabindex="-1" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co3').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
               </div>
               <!-- CO4 -->
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">CO4 (Max 7.5)</span>
-                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co4" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
+                  <input type="number" step="0.5" min="0" max="7.5" id="labScore_t2_co4" onfocus="this.select()" oninput="syncSlider('labScore_t2_co4','labScore_t2_co4_slider',7.5); calcLabModalScores()" class="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-200 text-center focus:border-purple-500 outline-none" placeholder="0.0">
                 </div>
-                <input type="range" id="labScore_t2_co4_slider" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_t2_co4_slider" tabindex="-1" min="0" max="7.5" step="0.5" value="0" oninput="document.getElementById('labScore_t2_co4').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-purple-500 bg-slate-800 cursor-pointer">
               </div>
             </div>
           </div>
@@ -13283,9 +13416,9 @@
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">Project Mark (Max 7.5)</span>
-                  <input type="number" step="0.1" min="0" max="7.5" id="labScore_projectMark" oninput="syncSlider('labScore_projectMark','labScore_projectMark_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                  <input type="number" step="0.1" min="0" max="7.5" id="labScore_projectMark" onfocus="this.select()" oninput="syncSlider('labScore_projectMark','labScore_projectMark_slider',7.5); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
                 </div>
-                <input type="range" id="labScore_projectMark_slider" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_projectMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_projectMark_slider" tabindex="-1" min="0" max="7.5" step="0.1" value="0" oninput="document.getElementById('labScore_projectMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
               </div>
             </div>
             <div class="bg-slate-950/30 border border-slate-800/40 p-4 rounded-xl space-y-4 flex flex-col justify-between">
@@ -13299,9 +13432,9 @@
               <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
                 <div class="flex justify-between items-center text-xs font-bold">
                   <span class="text-slate-300">Attendance Mark (Max 15)</span>
-                  <input type="number" step="0.1" min="0" max="15" id="labScore_attendanceMark" oninput="syncSlider('labScore_attendanceMark','labScore_attendanceMark_slider',15); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
+                  <input type="number" step="0.1" min="0" max="15" id="labScore_attendanceMark" onfocus="this.select()" oninput="syncSlider('labScore_attendanceMark','labScore_attendanceMark_slider',15); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none">
                 </div>
-                <input type="range" id="labScore_attendanceMark_slider" min="0" max="15" step="0.1" value="0" oninput="document.getElementById('labScore_attendanceMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+                <input type="range" id="labScore_attendanceMark_slider" tabindex="-1" min="0" max="15" step="0.1" value="0" oninput="document.getElementById('labScore_attendanceMark').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
               </div>
             </div>
           </div>
@@ -13314,9 +13447,9 @@
             <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-850/50 space-y-2">
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-slate-300">Board Exam Mark (Max 50)</span>
-                <input type="number" step="0.5" min="0" max="50" id="labScore_boardExam" oninput="syncSlider('labScore_boardExam','labScore_boardExam_slider',50); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none" placeholder="0.0">
+                <input type="number" step="0.5" min="0" max="50" id="labScore_boardExam" onfocus="this.select()" oninput="syncSlider('labScore_boardExam','labScore_boardExam_slider',50); calcLabModalScores()" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-base font-normal text-slate-200 text-center focus:border-slate-500 outline-none" placeholder="0.0">
               </div>
-              <input type="range" id="labScore_boardExam_slider" min="0" max="50" step="0.5" value="0" oninput="document.getElementById('labScore_boardExam').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
+              <input type="range" id="labScore_boardExam_slider" tabindex="-1" min="0" max="50" step="0.5" value="0" oninput="document.getElementById('labScore_boardExam').value = this.value; calcLabModalScores()" class="w-full h-1.5 rounded-full accent-slate-400 bg-slate-800 cursor-pointer">
             </div>
           </div>
         </div>
@@ -13333,7 +13466,7 @@
           <button type="button" onclick="closeStudentLabModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-premium cursor-pointer">
             Close
           </button>
-          <button type="button" onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
+          <button type="button" id="btnSaveStudentLabEval" onclick="saveStudentLabEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10">
             <span class="material-symbols-rounded text-sm">save</span> Save Evaluation
           </button>
         </div>

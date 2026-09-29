@@ -130,13 +130,8 @@ class R21VirtualClassroomSeminarController extends Controller
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
             $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
 
-            // SBTE 10% Attendance Slab (Max 7.5 M)
-            if ($attPercentage >= 90) { $suggestedAttMark = 7.5; }
-            elseif ($attPercentage >= 80) { $suggestedAttMark = 6.0; }
-            elseif ($attPercentage >= 75) { $suggestedAttMark = 4.5; }
-            elseif ($attPercentage >= 70) { $suggestedAttMark = 3.0; }
-            elseif ($attPercentage >= 65) { $suggestedAttMark = 1.5; }
-            else { $suggestedAttMark = 0.0; }
+            // Rev 2021: Actual percentage directly converted to max marks (Max 7.5M)
+            $suggestedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
 
             // Batch assignment
             $batchRow = $labBatches->get($regNo);

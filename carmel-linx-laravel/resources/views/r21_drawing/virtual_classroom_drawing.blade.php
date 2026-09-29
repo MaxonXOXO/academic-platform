@@ -991,7 +991,7 @@
                                         </td>
                                         <td>
                                             <span class="badge {{ $res['is_pass'] ? 'badge-emerald' : 'badge-rose' }} px-2 py-1">
-                                                {{ $res['is_pass'] ? 'Eligible' : 'Needs Improvement' }}
+                                                {{ $res['is_pass'] ? 'Passed' : 'Needs Improvement' }}
                                             </span>
                                         </td>
                                     </tr>

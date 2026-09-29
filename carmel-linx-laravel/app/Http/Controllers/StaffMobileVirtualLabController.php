@@ -170,7 +170,7 @@ class StaffMobileVirtualLabController extends Controller
             // If no logs exist for this student at all, show 0 — never fake 15 or 100%
             $hasAttData = $totalForStudent > 0;
             $attPct = $hasAttData ? round(($presentAtt / $totalForStudent) * 100, 1) : 0.0;
-            $calculatedAttMark = $hasAttData ? round(($presentAtt / $totalForStudent) * 15, 1) : 0.0;
+            $calculatedAttMark = $hasAttData ? \App\Services\AttainmentService::calculateR21AttendanceMark($attPct, 15.0) : 0.0;
 
             // Allow override from PracticalEvaluation.attendance_marks if set (> 0) by faculty
             $eval = $evaluations->get($regNo);

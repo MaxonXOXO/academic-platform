@@ -26,6 +26,34 @@ class AttainmentService
     ];
 
     /**
+     * Revision 2021 Attendance Mark Calculation:
+     * Directly converts actual percentage into the maximum attendance marks value.
+     * Calculated on actual conducted and actual attended sessions.
+     * Adjusts to nearest: >= 0.5 next whole number / half number, < 0.5 lower number.
+     * e.g., for 10M max: 95-100% => 10, 85-94% => 9, 75-84% => 8, 65-74% => 7, ..., 0-4% => 0.
+     * e.g., for 15M max: 100% => 15, 50% => 7.5.
+     * e.g., for 7.5M max: 100% => 7.5.
+     */
+    public static function calculateR21AttendanceMark(float $attPercentage, float $maxMarks = 10.0): float
+    {
+        if ($attPercentage <= 0.0) return 0.0;
+        if ($attPercentage >= 100.0) return (float)$maxMarks;
+
+        $raw = ($attPercentage / 100.0) * $maxMarks;
+
+        // If maxMarks is a whole integer like 10:
+        // .5 and above => next whole number, below .5 => lower whole number
+        if ($maxMarks == 10.0) {
+            return (float)min($maxMarks, max(0.0, round($raw)));
+        }
+
+        // For non-10 max (like 15 or 7.5):
+        // Allow half-marks (e.g. 50% of 15 => 7.5) with .5 and above rounding to nearest half
+        $rounded = round($raw * 2) / 2;
+        return (float)min($maxMarks, max(0.0, $rounded));
+    }
+
+    /**
      * Get Grade Points for a given letter grade.
      */
     public static function getGradePoints(?string $grade): int

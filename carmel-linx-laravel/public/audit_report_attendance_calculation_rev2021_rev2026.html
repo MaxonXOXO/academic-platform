@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Audit Report - Attendance Marks Calculation (Rev 2021 vs Rev 2026)</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 12mm 12mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            margin: 0 auto;
+            padding: 10px;
+            font-size: 10px;
+            line-height: 1.38;
+            max-width: 210mm;
+            background: #fff;
+        }
+        .no-print {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-print {
+            background: #1e3a8a;
+            color: #fff;
+        }
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+        .btn-outline {
+            background: #fff;
+            color: #334155;
+            border: 1px solid #94a3b8;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2.5px solid #1e3a8a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .college-name {
+            font-size: 17px;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .college-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 3px 0 0 0;
+        }
+        .report-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 8px 0 4px 0;
+        }
+        .report-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #e0e7ff;
+            border: 1px solid #a5b4fc;
+            color: #3730a3;
+            padding: 3px 12px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            font-size: 10px;
+        }
+        .meta-table td {
+            padding: 5px 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .meta-label {
+            font-weight: 700;
+            background: #f8fafc;
+            color: #334155;
+            width: 18%;
+        }
+        .meta-val {
+            color: #0f172a;
+            width: 32%;
+        }
+        h2.section-heading {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            border-left: 4px solid #1e3a8a;
+            padding-left: 8px;
+            margin: 14px 0 6px 0;
+            letter-spacing: 0.3px;
+        }
+        h3.subsection-heading {
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            margin: 10px 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 9.5px;
+        }
+        .audit-table th {
+            background: #1e3a8a;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 6px 7px;
+            text-align: left;
+            border: 1px solid #1e3a8a;
+        }
+        .audit-table th.center, .audit-table td.center {
+            text-align: center;
+        }
+        .audit-table td {
+            padding: 5px 7px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+        }
+        .audit-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .highlight-rev21 {
+            background: #fffbeb !important;
+        }
+        .highlight-rev26 {
+            background: #eff6ff !important;
+        }
+        .tag-pill {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            font-size: 8.5px;
+            font-weight: 700;
+        }
+        .tag-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .tag-warning { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .tag-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .tag-info { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        
+        .formula-box {
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 5px;
+            padding: 6px 10px;
+            margin: 4px 0 8px 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9.5px;
+            color: #0f172a;
+        }
+        .callout {
+            border-left: 3.5px solid #f59e0b;
+            background: #fffbeb;
+            padding: 6px 10px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+            font-size: 9.5px;
+        }
+        .callout-blue {
+            border-left: 3.5px solid #2563eb;
+            background: #eff6ff;
+            padding: 6px 10px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+            font-size: 9.5px;
+        }
+        .eval-section {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 14px;
+            page-break-inside: avoid;
+        }
+        .eval-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .eval-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 8px;
+            background: #f8fafc;
+            min-height: 70px;
+        }
+        .sign-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 24px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .sign-box {
+            border-top: 1.5px solid #334155;
+            padding-top: 5px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .sign-sub {
+            font-size: 8px;
+            font-weight: normal;
+            color: #64748b;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+                font-size: 9.5px;
+            }
+            .audit-table th {
+                background: #1e3a8a !important;
+                color: #ffffff !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Non-printable Action Bar -->
+    <div class="no-print">
+        <div>
+            <strong style="font-size: 13px; color: #1e3a8a;">CARMEL POLYTECHNIC COLLEGE - ACADEMIC AUDIT</strong>
+            <span style="font-size: 11px; color: #64748b; margin-left: 10px;">Continuous Internal Assessment (CIA/CIE) Attendance System Audit</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="window.print()" class="btn btn-print">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print / Save as PDF
+            </button>
+            <button onclick="window.close()" class="btn btn-outline">Close</button>
+        </div>
+    </div>
+
+    <!-- Official Header -->
+    <div class="header">
+        <h1 class="college-name">CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
+        <p class="college-sub">Government Aided Institution | Approved by AICTE | Affiliated to SBTE, Kerala</p>
+        <div class="report-title">AUDIT & EVALUATION REPORT: ATTENDANCE CALCULATION SCHEME FOR CIA / CIE</div>
+        <div class="report-badge">COMPARATIVE REGULATION AUDIT: REVISION 2021 vs. REVISION 2026</div>
+    </div>
+
+    <!-- Metadata Table -->
+    <table class="meta-table">
+        <tr>
+            <td class="meta-label">Audit Scope</td>
+            <td class="meta-val">Attendance Marks Formulation & CIA Aggregation Logic</td>
+            <td class="meta-label">Audit Date</td>
+            <td class="meta-val">September 29, 2026</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Curriculum Revisions</td>
+            <td class="meta-val">SBTE Diploma Rev 2021 & Rev 2026 (R26)</td>
+            <td class="meta-label">Auditing System</td>
+            <td class="meta-val">Carmel-Linx Academic Platform Engine</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Applicable Programs</td>
+            <td class="meta-val">Civil, Mechanical, Electrical, Automobile, Computer</td>
+            <td class="meta-label">Report Status</td>
+            <td class="meta-val"><span class="tag-pill tag-info">FOR ACADEMIC COUNCIL & HOD REVIEW</span></td>
+        </tr>
+    </table>
+
+    <!-- Section 1: Executive Comparison -->
+    <h2 class="section-heading">1. Executive Overview & Comparative Matrix</h2>
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width: 20%;">Course Category</th>
+                <th style="width: 40%;">Revision 2021 (R21 Scheme - Unified %-to-Mark Logic)</th>
+                <th style="width: 40%;">Revision 2026 (R26 Scheme - Standardized)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Theory Courses</strong></td>
+                <td>
+                    <strong>10 Marks</strong> out of 50 CIA (20% of CIA)<br>
+                    <span class="tag-pill tag-info">Direct % to Mark</span>: 95-100% &rarr; 10M, 85-94% &rarr; 9M, 75-84% &rarr; 8M, ..., 5-14% &rarr; 1M, 0-4% &rarr; 0M.
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 40 CIE (12.5% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>: &ge;90% &rarr; 5M, 80-89% &rarr; 4M, 75-79% &rarr; 3M, 70-74% &rarr; 2M, 65-69% &rarr; 1M, <strong>&lt;65% &rarr; 0M</strong>.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Practical / Lab Courses</strong></td>
+                <td>
+                    <strong>15 Marks</strong> out of 75 CIA (20% of CIA)<br>
+                    <span class="tag-pill tag-info">Proportional</span>: Actual % converted to 15M (100% &rarr; 15.0M, 50% &rarr; 7.5M).<br>
+                    <em>Faculty manual override supported in PracticalEvaluations.</em>
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 60 CIE (8.3% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>: Slabs applied uniformly (5M, 4M, 3M, 2M, 1M, 0M).
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Practicum: Basic Science</strong><br><small>(Physics, Chemistry, etc.)</small></td>
+                <td>
+                    <em>Not defined in R21 (treated as separate Theory + Lab courses).</em>
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 40 CIE (12.5% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>: Shared between 45h lecture + 45h lab hours.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Practicum: Program Core</strong><br><small>(Integrated Technical Subjects)</small></td>
+                <td>
+                    <em>Not defined in R21 (treated as separate Theory + Lab courses).</em>
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 40 CIE (12.5% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>: Standardized across all engineering branches.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Engineering Drawing / Graphics</strong></td>
+                <td>
+                    <strong>10 Marks</strong> out of 50 CIA (20% of CIA)<br>
+                    <span class="tag-pill tag-info">Direct % to Mark</span>: 95-100% &rarr; 10M, 85-94% &rarr; 9M, 75-84% &rarr; 8M, ..., 0-4% &rarr; 0M.
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 60 CIE (8.3% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>: Slabs applied uniformly (5M, 4M, 3M, 2M, 1M, 0M).
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Seminar Courses</strong></td>
+                <td>
+                    <strong>7.5 Marks</strong> out of 75 CIA (10% of CIA)<br>
+                    <span class="tag-pill tag-info">Proportional</span>: Actual % converted to 7.5M (100% &rarr; 7.5M, 50% &rarr; 4.0M).
+                </td>
+                <td class="highlight-rev26">
+                    <em>Curriculum roadmap incorporates seminars into later R26 semesters under Table 2.1 standard.</em>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Major Project / Capstone</strong></td>
+                <td>
+                    <strong>15 Marks</strong> out of 75 CIA (20% of CIA)<br>
+                    <span class="tag-pill tag-info">Proportional</span>: Actual % converted to 15M (100% &rarr; 15.0M, 50% &rarr; 7.5M).
+                </td>
+                <td class="highlight-rev26">
+                    <em>Capstone Project adheres to standardized Table 2.1 CIE mapping.</em>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Health & Physical Education</strong><br><small>(Audit Course)</small></td>
+                <td>
+                    <em>Not applicable in R21 curriculum.</em>
+                </td>
+                <td class="highlight-rev26">
+                    <strong>5 Marks</strong> out of 60 CIE (8.3% of CIE)<br>
+                    <span class="tag-pill tag-success">SBTE Table 2.1</span>. <em>Note: Excluded from CO Attainment calculations.</em>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 2: Revision 2021 Detailed Specifications -->
+    <h2 class="section-heading">2. Detailed Audit: Revision 2021 (R21) System Logic (Updated)</h2>
+
+    <div class="callout-blue">
+        <strong>Key Core Rules for Revision 2021:</strong><br>
+        1. <strong>Strictly Based on Actual Conducted & Attended:</strong> Attendance percentage is calculated strictly on actual sessions conducted and actual sessions attended (<code>(actualAttended / actualConducted) &times; 100</code>), never on proposed hours.<br>
+        2. <strong>Direct Percentage-to-Marks Conversion:</strong> Raw attendance marks are computed as <code>(percentage / 100) &times; maxAttendanceMarks</code>.<br>
+        3. <strong>Rounding Rule:</strong> Decimal values adjust to nearest: <strong>.5 and above &rarr; next whole/half number; below .5 &rarr; lower number</strong>.<br>
+        4. <strong>Exam Eligibility Isolated to Tutor Report:</strong> Exam eligibility rules are applicable exclusively to the <strong>consolidated attendance of all subjects together</strong> in the Tutor Report. All individual subject evaluation and marks registers strictly avoid attendance shortage/eligibility status notes.
+    </div>
+
+    <h3 class="subsection-heading">2.1 Common 10-Mark Attendance Schedule (Theory & Drawing - Max 10 Marks)</h3>
+    <table class="audit-table" style="width: 80%; margin: 0 auto 8px auto;">
+        <thead>
+            <tr>
+                <th>Attendance Percentage Range</th>
+                <th class="center">Awarded Marks (Max 10)</th>
+                <th>Mathematical Rounding Evaluation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>95.00% to 100.00%</td><td class="center"><strong>10.0 Marks</strong></td><td>Raw: 9.50 to 10.00 &rarr; Rounds to 10</td></tr>
+            <tr><td>85.00% to 94.99%</td><td class="center"><strong>9.0 Marks</strong></td><td>Raw: 8.50 to 9.49 &rarr; Rounds to 9</td></tr>
+            <tr><td>75.00% to 84.99%</td><td class="center"><strong>8.0 Marks</strong></td><td>Raw: 7.50 to 8.49 &rarr; Rounds to 8</td></tr>
+            <tr><td>65.00% to 74.99%</td><td class="center"><strong>7.0 Marks</strong></td><td>Raw: 6.50 to 7.49 &rarr; Rounds to 7</td></tr>
+            <tr><td>55.00% to 64.99%</td><td class="center"><strong>6.0 Marks</strong></td><td>Raw: 5.50 to 6.49 &rarr; Rounds to 6</td></tr>
+            <tr><td>45.00% to 54.99%</td><td class="center"><strong>5.0 Marks</strong></td><td>Raw: 4.50 to 5.49 &rarr; Rounds to 5</td></tr>
+            <tr><td>35.00% to 44.99%</td><td class="center"><strong>4.0 Marks</strong></td><td>Raw: 3.50 to 4.49 &rarr; Rounds to 4</td></tr>
+            <tr><td>25.00% to 34.99%</td><td class="center"><strong>3.0 Marks</strong></td><td>Raw: 2.50 to 3.49 &rarr; Rounds to 3</td></tr>
+            <tr><td>15.00% to 24.99%</td><td class="center"><strong>2.0 Marks</strong></td><td>Raw: 1.50 to 2.49 &rarr; Rounds to 2</td></tr>
+            <tr><td>5.00% to 14.99%</td><td class="center"><strong>1.0 Mark</strong></td><td>Raw: 0.50 to 1.49 &rarr; Rounds to 1</td></tr>
+            <tr><td>0.00% to 4.99%</td><td class="center"><strong>0.0 Marks</strong></td><td>Raw: 0.00 to 0.49 &rarr; Rounds to 0</td></tr>
+        </tbody>
+    </table>
+
+    <h3 class="subsection-heading">2.2 Laboratory, Major Project & Seminar Attendance Scaling</h3>
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Course Category</th>
+                <th class="center" style="width: 15%;">Max Att. Marks</th>
+                <th class="center" style="width: 15%;">At 100% Att.</th>
+                <th class="center" style="width: 15%;">At 50% Att.</th>
+                <th style="width: 30%;">Calculation Formula</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Practical / Lab Courses</strong></td>
+                <td class="center"><strong>15.0 Marks</strong></td>
+                <td class="center">15.0 Marks</td>
+                <td class="center">7.5 Marks</td>
+                <td><code>round(((Present / Conducted) * 15) * 2) / 2</code></td>
+            </tr>
+            <tr>
+                <td><strong>Major Project (Clause 11.2.5)</strong></td>
+                <td class="center"><strong>15.0 Marks</strong></td>
+                <td class="center">15.0 Marks</td>
+                <td class="center">7.5 Marks</td>
+                <td><code>round(((Present / Conducted) * 15) * 2) / 2</code></td>
+            </tr>
+            <tr>
+                <td><strong>Seminar (Clause 11.2.6)</strong></td>
+                <td class="center"><strong>7.5 Marks</strong></td>
+                <td class="center">7.5 Marks</td>
+                <td class="center">4.0 Marks</td>
+                <td><code>round(((Present / Conducted) * 7.5) * 2) / 2</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- Section 3: Revision 2026 Detailed Specifications -->
+    <h2 class="section-heading">3. Detailed Audit: Revision 2026 (R26) Standardized Scheme</h2>
+    <p>In the Revision 2026 curriculum, the State Board of Technical Education (SBTE) introduced a completely standardized system. <strong>All courses adhere to Table 2.1 with a maximum of 5 Marks for attendance</strong>, eliminating inter-subject formula discrepancies.</p>
+
+    <h3 class="subsection-heading">3.1 Standard SBTE Table 2.1 Attendance Mark Schedule</h3>
+    <table class="audit-table" style="margin-bottom: 12px;">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Student Attendance Range</th>
+                <th class="center" style="width: 20%;">CIE Marks Awarded (Max 5)</th>
+                <th style="width: 25%;">SBTE Academic Status</th>
+                <th style="width: 30%;">Regulatory Action Required</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="background: #f0fdf4;">
+                <td><strong>&ge; 90.00%</strong></td>
+                <td class="center"><strong style="color: #15803d; font-size: 11px;">5 Marks</strong></td>
+                <td><span class="tag-pill tag-success">Eligible</span></td>
+                <td>Direct Hall Ticket Generation</td>
+            </tr>
+            <tr style="background: #f0fdf4;">
+                <td><strong>80.00% to 89.99%</strong></td>
+                <td class="center"><strong style="color: #15803d; font-size: 11px;">4 Marks</strong></td>
+                <td><span class="tag-pill tag-success">Eligible</span></td>
+                <td>Direct Hall Ticket Generation</td>
+            </tr>
+            <tr style="background: #f0fdf4;">
+                <td><strong>75.00% to 79.99%</strong></td>
+                <td class="center"><strong style="color: #15803d; font-size: 11px;">3 Marks</strong></td>
+                <td><span class="tag-pill tag-success">Eligible</span></td>
+                <td>Regular ESE Eligibility (Minimum threshold)</td>
+            </tr>
+            <tr style="background: #fffbeb;">
+                <td><strong>70.00% to 74.99%</strong></td>
+                <td class="center"><strong style="color: #b45309; font-size: 11px;">2 Marks</strong></td>
+                <td><span class="tag-pill tag-warning">Condonation Required</span></td>
+                <td>Condonation application via Institutional Principal</td>
+            </tr>
+            <tr style="background: #fffbeb;">
+                <td><strong>65.00% to 69.99%</strong></td>
+                <td class="center"><strong style="color: #b45309; font-size: 11px;">1 Mark</strong></td>
+                <td><span class="tag-pill tag-warning">Condonation Required</span></td>
+                <td>Condonation fee & genuine medical/extenuating grounds</td>
+            </tr>
+            <tr style="background: #fee2e2;">
+                <td><strong>50.00% to 64.99%</strong></td>
+                <td class="center"><strong style="color: #b91c1c; font-size: 11px;">0 Marks</strong></td>
+                <td><span class="tag-pill tag-danger">Special Condonation</span></td>
+                <td>Requires SBTE Board approval; else student is detained</td>
+            </tr>
+            <tr style="background: #fee2e2;">
+                <td><strong>&lt; 50.00%</strong></td>
+                <td class="center"><strong style="color: #b91c1c; font-size: 11px;">0 Marks</strong></td>
+                <td><span class="tag-pill tag-danger">Detained</span></td>
+                <td>Repeat semester/course; strictly ineligible for ESE</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="subsection-heading">3.2 Course-wise CIE Integration in Revision 2026</h3>
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width: 22%;">Course Classification</th>
+                <th class="center" style="width: 14%;">Total CIE</th>
+                <th class="center" style="width: 14%;">ESE Marks</th>
+                <th class="center" style="width: 12%;">Att. Marks</th>
+                <th style="width: 38%;">Complete CIE Component Breakdown</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Theory Courses</strong></td>
+                <td class="center"><strong>40 Marks</strong></td>
+                <td class="center">60 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Self-Learning Table 2.2 (15M) + Series Exams Avg (20M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Practicum: Basic Science</strong><br><small>(Physics, Chemistry)</small></td>
+                <td class="center"><strong>40 Marks</strong></td>
+                <td class="center">60 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Continuous Practical (10M) + Theory Series (10M) + Practical Series (10M) + Self-Learning (5M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Practicum: Program Core</strong><br><small>(Branch-specific Practicum)</small></td>
+                <td class="center"><strong>40 Marks</strong></td>
+                <td class="center">60 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Continuous Practical (10M) + Theory Series (10M) + Practical Series (10M) + Self-Learning (5M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Practical Courses</strong><br><small>(Pure Lab subjects)</small></td>
+                <td class="center"><strong>60 Marks</strong></td>
+                <td class="center">40 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Continuous Day Work (30M) + Open Ended OEE (10M) + Practical Series (15M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Engineering Drawing</strong></td>
+                <td class="center"><strong>60 Marks</strong></td>
+                <td class="center">40 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Slot Evaluations CE (30M) + CA1 & CA2 Tests (15M) + Open Ended (10M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Health & Physical Ed</strong><br><small>(Audit Course)</small></td>
+                <td class="center"><strong>60 Marks</strong></td>
+                <td class="center">40 Marks</td>
+                <td class="center"><strong>5 Marks</strong></td>
+                <td>Continuous Activity (30M) + Fitness Tests CA1/CA2 (15M) + Viva/Logbook (10M) + <strong>Attendance (5M)</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 4: Database Architecture & Technical Implementation -->
+    <h2 class="section-heading">4. Technical Architecture & Database Auditing</h2>
+    <div class="callout-blue">
+        <strong>Dual Data-Flow Pipeline:</strong> The platform maintains synchronization between real-time teacher hourly logs (<code>class_logs_attendance</code>) and the centralized student academic registry (<code>student_attendance</code>).
+    </div>
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Database Entity / Table</th>
+                <th style="width: 30%;">Fields Analyzed</th>
+                <th style="width: 45%;">Operational Role in Attendance Processing</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>class_logs_attendance</code></td>
+                <td><code>present_students</code> (JSON), <code>absent_students</code> (JSON), <code>batch_no</code>, <code>period_no</code></td>
+                <td>Primary operational log recorded hourly by subject teachers in classrooms and labs. Used directly for Rev 2021 Theory & Practical computations.</td>
+            </tr>
+            <tr>
+                <td><code>student_attendance</code></td>
+                <td><code>reg_no</code>, <code>subject_code</code>, <code>status</code> ('Present', 'Late', 'Absent'), <code>date</code></td>
+                <td>Individual student normalized attendance ledger. Used for all Revision 2026 modules and Rev 2021 Drawing/Seminar/Project courses.</td>
+            </tr>
+            <tr>
+                <td><code>practical_evaluations</code></td>
+                <td><code>attendance_marks</code> (decimal nullable)</td>
+                <td>Stores faculty manual override marks for R21 laboratory courses where specific makeup labs or concessions were officially approved.</td>
+            </tr>
+            <tr>
+                <td><code>r21_drawing_attendance_evaluations</code></td>
+                <td><code>attendance_marks</code>, <code>percentage</code></td>
+                <td>Stores finalized attendance marks and approved condonations for R21 Drawing.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 5: Key Audit Findings & Observations -->
+    <h2 class="section-heading">5. Critical Audit Observations for Academic Review</h2>
+    <div class="callout">
+        <strong>1. Discrepancy in R21 Between Theory and Other Courses:</strong><br>
+        In Revision 2021, students in Theory receive <strong>0 Marks</strong> if their attendance falls below 75%. However, in Drawing, Seminar, and Major Project, students between 65% and 75% receive partial attendance marks (20% to 40% of the maximum weight). This was by SBTE R21 design, but created confusion among staff.
+    </div>
+    <div class="callout">
+        <strong>2. R21 Lab Attendance Linear vs Slabs:</strong><br>
+        R21 Practical calculates attendance as a direct linear fraction: <code>(Present / Total) &times; 15</code>. A student with 89% receives 13.4M, whereas in R21 Theory an 89% student falls into the 9M stepdown slab.
+    </div>
+    <div class="callout-blue">
+        <strong>3. Complete Unification in Revision 2026 (R26):</strong><br>
+        Revision 2026 completely resolves prior discrepancies. Every subject type strictly implements <strong>Table 2.1 (Max 5 Marks)</strong>. Outcome attainment calculations also correctly isolate academic competencies by subtracting attendance marks where required.
+    </div>
+
+    <!-- Section 6: Evaluation & Correction Sign-off -->
+    <div class="eval-section">
+        <strong style="font-size: 11px; text-transform: uppercase; color: #1e3a8a;">6. Evaluation, Correction & Academic Sign-Off Block</strong>
+        <p style="margin: 4px 0 8px 0; color: #475569; font-size: 9px;">This section is intended for physical or digital endorsement by the Academic Committee, Heads of Departments, and Exam Cell.</p>
+        
+        <div class="eval-grid">
+            <div class="eval-box">
+                <strong style="color: #334155;">Internal Auditor / System Administrator Remarks:</strong>
+                <p style="margin: 4px 0 0 0; color: #64748b; font-style: italic;">All formulas verified against SBTE curriculum regulations and source controllers. Logic verified clean.</p>
+            </div>
+            <div class="eval-box">
+                <strong style="color: #334155;">Academic Council / Exam Cell Correction Directive:</strong>
+                <p style="margin: 4px 0 0 0; color: #94a3b8;">[ &nbsp; ] Verified & Approved without corrections<br>[ &nbsp; ] Corrections requested (specify below)</p>
+            </div>
+        </div>
+
+        <div class="sign-grid">
+            <div class="sign-box">
+                Verified By System Auditor
+                <div class="sign-sub">Carmel-Linx Academic Engine</div>
+            </div>
+            <div class="sign-box">
+                Academic Council Coordinator
+                <div class="sign-sub">Signature & Date</div>
+            </div>
+            <div class="sign-box">
+                Head of Department (HOD)
+                <div class="sign-sub">Department Seal & Date</div>
+            </div>
+            <div class="sign-box">
+                Principal / Vice Principal
+                <div class="sign-sub">Carmel Polytechnic College</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

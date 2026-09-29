@@ -309,7 +309,6 @@
                     <th colspan="5" class="group-header">Summative Written Tests (Max 20)</th>
                     <th colspan="2" class="group-header">Attendance</th>
                     <th rowspan="2" style="width: 55px;" class="total-cie-cell">Total CIE (50)</th>
-                    <th rowspan="2" style="width: 70px;">Eligibility Status</th>
                 </tr>
                 <tr>
                     <th style="width: 34px;">CO1</th>
@@ -346,17 +345,10 @@
                         <td>{{ $s->att_percent }}%</td>
                         <td style="font-weight: 700;">{{ $s->att_marks }}</td>
                         <td class="total-cie-cell">{{ $s->total_cie }}</td>
-                        <td>
-                            @if($s->status === 'ELIGIBLE')
-                                <span class="badge-eligible">ELIGIBLE</span>
-                            @else
-                                <span class="badge-shortage">{{ $s->status }}</span>
-                            @endif
-                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="17" style="padding: 24px; text-align: center; color: #94a3b8;">
+                        <td colspan="16" style="padding: 24px; text-align: center; color: #94a3b8;">
                             No students enrolled in this classroom batch.
                         </td>
                     </tr>

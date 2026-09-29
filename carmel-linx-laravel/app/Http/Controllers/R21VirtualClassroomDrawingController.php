@@ -170,13 +170,8 @@ class R21VirtualClassroomDrawingController extends Controller
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
             $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 100.00;
 
-            // Kerala SBTE Attendance Slab for 20% weightage
-            if ($attPercentage >= 90) { $calcAttMark = $attMax; }
-            elseif ($attPercentage >= 80) { $calcAttMark = round($attMax * 0.8, 2); }
-            elseif ($attPercentage >= 75) { $calcAttMark = round($attMax * 0.6, 2); }
-            elseif ($attPercentage >= 70) { $calcAttMark = round($attMax * 0.4, 2); }
-            elseif ($attPercentage >= 65) { $calcAttMark = round($attMax * 0.2, 2); }
-            else { $calcAttMark = 0.00; }
+            // Rev 2021: Actual percentage directly converted to max marks (adjusted to nearest: >= .5 next whole, < .5 lower)
+            $calcAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, $attMax);
 
             // Check manual override if present in R21DrawingAttendanceEvaluation
             $savedAtt = $attEvals->get($regNo);

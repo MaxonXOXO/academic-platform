@@ -117,7 +117,7 @@
           <td style="font-weight: 900; font-size: 11.5px;">{{ $r['total_cia'] }}</td>
           <td>
             <span style="font-weight: 700; color: {{ $r['is_pass'] ? '#059669' : '#dc2626' }};">
-              {{ $r['is_pass'] ? 'ELIGIBLE' : 'NEEDS IMP' }}
+              {{ $r['is_pass'] ? 'PASSED' : 'NEEDS IMP' }}
             </span>
           </td>
         </tr>

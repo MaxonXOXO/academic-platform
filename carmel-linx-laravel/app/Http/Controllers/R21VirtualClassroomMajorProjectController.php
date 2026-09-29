@@ -106,13 +106,8 @@ class R21VirtualClassroomMajorProjectController extends Controller
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
             $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
 
-            // Suggested Attendance Marks out of 15
-            if ($attPercentage >= 90) { $suggestedAttMark = 15.0; }
-            elseif ($attPercentage >= 80) { $suggestedAttMark = 12.0; }
-            elseif ($attPercentage >= 75) { $suggestedAttMark = 9.0; }
-            elseif ($attPercentage >= 70) { $suggestedAttMark = 6.0; }
-            elseif ($attPercentage >= 65) { $suggestedAttMark = 3.0; }
-            else { $suggestedAttMark = 0.0; }
+            // Suggested Attendance Marks out of 15 (Rev 2021: Actual percentage directly converted to max 15)
+            $suggestedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 15.0);
 
             // Find assigned group
             $assignedGroup = null;
@@ -1217,13 +1212,8 @@ class R21VirtualClassroomMajorProjectController extends Controller
             }
             $attPercentage = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
 
-            // Suggested Attendance Marks (Max 15M, Clause 11.2.5)
-            if ($attPercentage >= 90) { $calcAttMark = 15.0; }
-            elseif ($attPercentage >= 80) { $calcAttMark = 12.0; }
-            elseif ($attPercentage >= 75) { $calcAttMark = 9.0; }
-            elseif ($attPercentage >= 70) { $calcAttMark = 6.0; }
-            elseif ($attPercentage >= 65) { $calcAttMark = 3.0; }
-            else { $calcAttMark = 0.0; }
+            // Suggested Attendance Marks (Max 15M, Rev 2021)
+            $calcAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 15.0);
 
             $attendanceMark = ($ev && $ev->attendance_marks > 0) ? (float)$ev->attendance_marks : $calcAttMark;
 

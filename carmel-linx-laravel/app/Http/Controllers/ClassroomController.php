@@ -2492,11 +2492,20 @@ Return ONLY valid JSON matching this exact structure:
         $students = $students->map(function ($student) use ($marks) {
             $studentMarks = $marks->where('reg_no', $student->reg_no);
             $coMarks = [];
+            $scores = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
                 $mark = $studentMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
-                $coMarks[$co] = ($mark && is_numeric($mark->marks_obtained)) ? intval(round($mark->marks_obtained)) : '-';
+                if ($mark && is_numeric($mark->marks_obtained)) {
+                    $coMarks[$co] = intval(round($mark->marks_obtained));
+                    $scores[] = (float)$mark->marks_obtained;
+                } else {
+                    $coMarks[$co] = '-';
+                }
             }
+            rsort($scores);
+            $best3Avg = count($scores) >= 3 ? round(($scores[0] + $scores[1] + $scores[2]) / 3.0, 1) : (count($scores) === 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-'));
             $student->assignment_marks = $coMarks;
+            $student->best3_avg = $best3Avg;
             return $student;
         });
 
@@ -2741,11 +2750,20 @@ Return ONLY valid JSON matching this exact structure:
         $students = $students->map(function ($student) use ($marks) {
             $studentMarks = $marks->where('reg_no', $student->reg_no);
             $coMarks = [];
+            $scores = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
                 $mark = $studentMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
-                $coMarks[$co] = ($mark && is_numeric($mark->marks_obtained)) ? intval(round($mark->marks_obtained)) : '-';
+                if ($mark && is_numeric($mark->marks_obtained)) {
+                    $coMarks[$co] = intval(round($mark->marks_obtained));
+                    $scores[] = (float)$mark->marks_obtained;
+                } else {
+                    $coMarks[$co] = '-';
+                }
             }
+            rsort($scores);
+            $best2Avg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-');
             $student->summative_marks = $coMarks;
+            $student->best2_avg = $best2Avg;
             return $student;
         });
 
@@ -2819,11 +2837,14 @@ Return ONLY valid JSON matching this exact structure:
             ->get();
         $totalLogs = $logs->count();
 
-        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs) {
+        $isR21 = str_contains($batchSubject->syllabus_revision_code ?? '', '2021') || (!str_contains($batchSubject->syllabus_revision_code ?? '', '2026') && !str_contains($batchSubject->classroom_id ?? '', '2026'));
+
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs, $isR21) {
             $studMarks = $marks->where('reg_no', $student->reg_no);
 
             // Assignment Marks (Formative)
             $coAssign = [];
+            $assignScores = [];
             $assignSum = 0;
             $assignCount = 0;
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
@@ -2831,30 +2852,57 @@ Return ONLY valid JSON matching this exact structure:
                 if ($m && is_numeric($m->marks_obtained)) {
                     $val = round((float)$m->marks_obtained, 1);
                     $coAssign[$co] = $val;
+                    $assignScores[] = $val;
                     $assignSum += $val;
                     $assignCount++;
                 } else {
                     $coAssign[$co] = '-';
                 }
             }
-            $assignAvg = $assignCount > 0 ? round($assignSum / 4, 1) : 0;
+
+            if ($isR21) {
+                // SBTE Revision 2021 Regulation: Best 3 out of highest assignment marks
+                rsort($assignScores);
+                if (count($assignScores) >= 3) {
+                    $assignAvg = round(($assignScores[0] + $assignScores[1] + $assignScores[2]) / 3.0, 1);
+                } elseif (count($assignScores) === 2) {
+                    $assignAvg = round(($assignScores[0] + $assignScores[1]) / 2.0, 1);
+                } elseif (count($assignScores) === 1) {
+                    $assignAvg = round($assignScores[0], 1);
+                } else {
+                    $assignAvg = 0.0;
+                }
+            } else {
+                $assignAvg = $assignCount > 0 ? round($assignSum / 4, 1) : 0;
+            }
 
             // Summative Written Test Marks
             $coSummative = [];
-            $summSum = 0;
-            $summCount = 0;
+            $summScores = [];
             foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
                 $m = $studMarks->whereIn('category', ['Written Test', 'Summative', 'Series Test'])->where('co_tag', $co)->sortByDesc('updated_at')->first();
                 if ($m && is_numeric($m->marks_obtained)) {
                     $val = round((float)$m->marks_obtained, 1);
                     $coSummative[$co] = $val;
-                    $summSum += $val;
-                    $summCount++;
+                    $summScores[] = $val;
                 } else {
                     $coSummative[$co] = '-';
                 }
             }
-            $summAvg = $summCount > 0 ? round($summSum / 4, 1) : 0;
+
+            if ($isR21) {
+                // SBTE Revision 2021 Regulation: Best 2 out of highest test marks
+                rsort($summScores);
+                if (count($summScores) >= 2) {
+                    $summAvg = round(($summScores[0] + $summScores[1]) / 2.0, 1);
+                } elseif (count($summScores) === 1) {
+                    $summAvg = round($summScores[0], 1);
+                } else {
+                    $summAvg = 0.0;
+                }
+            } else {
+                $summAvg = count($summScores) > 0 ? round(array_sum($summScores) / 4.0, 1) : 0.0;
+            }
 
             // Attendance %
             $presentCount = 0;

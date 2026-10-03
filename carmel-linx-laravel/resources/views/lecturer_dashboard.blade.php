@@ -3728,7 +3728,7 @@
             </button>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px] assignment-marks-table">
+            <table class="w-full text-left border-collapse min-w-[750px] assignment-marks-table">
               <thead>
                 <tr class="bg-slate-900/40 text-base font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-12">S.No.</th>
@@ -3739,6 +3739,7 @@
                   <th class="p-3 text-center w-20">CO2 (20)</th>
                   <th class="p-3 text-center w-20">CO3 (20)</th>
                   <th class="p-3 text-center w-20">CO4 (20)</th>
+                  <th class="p-3 text-center w-32 text-emerald-400 bg-emerald-500/10">Assign Avg (/20)<span class="block text-[9px] text-emerald-300 font-normal">Best 3 Assignments</span></th>
                 </tr>
               </thead>
               <tbody id="markEntryTbody">
@@ -3748,6 +3749,22 @@
         students.forEach((student, index) => {
           let m = student.assignment_marks || {};
           let sub = student.assignment_submissions || {};
+
+          let aScores = [];
+          ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+            if (m[c] !== null && m[c] !== undefined && m[c] !== '' && !isNaN(m[c])) {
+              aScores.push(Number(m[c]));
+            }
+          });
+          aScores.sort((a, b) => b - a);
+          let rowAssignAvgText = '-';
+          if (aScores.length >= 3) {
+            rowAssignAvgText = ((aScores[0] + aScores[1] + aScores[2]) / 3).toFixed(1) + ' / 20';
+          } else if (aScores.length === 2) {
+            rowAssignAvgText = ((aScores[0] + aScores[1]) / 2).toFixed(1) + ' / 20';
+          } else if (aScores.length === 1) {
+            rowAssignAvgText = aScores[0].toFixed(1) + ' / 20';
+          }
 
           const getInputHtml = (co, val) => {
             let isSubmitted = (sub[co] === 'Submitted');
@@ -3770,8 +3787,8 @@
                 <input type="number" step="1" max="20" min="0" value="${val !== null ? Math.round(val) : ''}" 
                        class="${styleClasses}" data-co="${co}"
                        onfocus="this.select()"
-                       oninput="triggerAssignmentMarksAutoSave()"
-                       onchange="triggerAssignmentMarksAutoSave(true)"
+                       oninput="updateTheoryAssignAvg(this); triggerAssignmentMarksAutoSave();"
+                       onchange="updateTheoryAssignAvg(this); triggerAssignmentMarksAutoSave(true);"
                        onblur="triggerAssignmentMarksAutoSave(true)"
                        onkeydown="handleAssignmentMarkKeyDown(event, this)">
                 ${indicator}
@@ -3789,11 +3806,12 @@
               <td class="px-3 py-3">${getInputHtml('CO2', m.CO2)}</td>
               <td class="px-3 py-3">${getInputHtml('CO3', m.CO3)}</td>
               <td class="px-3 py-3">${getInputHtml('CO4', m.CO4)}</td>
+              <td class="p-3 text-center bg-emerald-500/5"><span class="theory-assign-avg-display font-mono font-bold text-emerald-400 text-sm">${rowAssignAvgText}</span></td>
             </tr>
           `;
         });
       } else {
-        html += `<tr><td colspan="8" class="p-6 text-center text-slate-500 text-sm font-bold">No students found in this classroom.</td></tr>`;
+        html += `<tr><td colspan="9" class="p-6 text-center text-slate-500 text-sm font-bold">No students found in this classroom.</td></tr>`;
       }
 
       html += `
@@ -4387,6 +4405,31 @@
     }
     window.handleAssignmentMarkKeyDown = handleAssignmentMarkKeyDown;
 
+    function updateTheoryAssignAvg(inputElem) {
+      if (!inputElem) return;
+      const row = inputElem.closest('tr');
+      if (!row) return;
+      const inputs = row.querySelectorAll('.co-mark');
+      let scores = [];
+      inputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (val !== '' && !isNaN(val)) scores.push(Number(val));
+      });
+      scores.sort((a, b) => b - a);
+      const displaySpan = row.querySelector('.theory-assign-avg-display');
+      if (!displaySpan) return;
+      if (scores.length >= 3) {
+        displaySpan.innerText = ((scores[0] + scores[1] + scores[2]) / 3).toFixed(1) + ' / 20';
+      } else if (scores.length === 2) {
+        displaySpan.innerText = ((scores[0] + scores[1]) / 2).toFixed(1) + ' / 20';
+      } else if (scores.length === 1) {
+        displaySpan.innerText = scores[0].toFixed(1) + ' / 20';
+      } else {
+        displaySpan.innerText = '-';
+      }
+    }
+    window.updateTheoryAssignAvg = updateTheoryAssignAvg;
+
     function saveAssignmentMarks(subjectId, isAutoSave = false) {
       if (_assignmentMarksAutoSaveTimer) {
         clearTimeout(_assignmentMarksAutoSaveTimer);
@@ -4725,13 +4768,14 @@
         const bgSelect = row.querySelector('.prac-board-grade');
         const avgDisplay = row.querySelector('.prac-avg-display');
 
-        if (s1Input && document.activeElement !== s1Input) {
-          s1Input.value = (s1 !== '' && s1 !== null && s1 !== undefined && Number(s1) !== 0) ? s1 : (s1 === 0 || s1 === '0' ? '0' : (s1Input.value || ''));
+        // Never overwrite an input that already contains user-entered or existing value
+        if (s1Input && document.activeElement !== s1Input && (s1Input.value === '' || s1Input.value === null)) {
+          s1Input.value = (s1 !== '' && s1 !== null && s1 !== undefined && Number(s1) !== 0) ? s1 : (s1 === 0 || s1 === '0' ? '0' : '');
         }
-        if (s2Input && document.activeElement !== s2Input) {
-          s2Input.value = (s2 !== '' && s2 !== null && s2 !== undefined && Number(s2) !== 0) ? s2 : (s2 === 0 || s2 === '0' ? '0' : (s2Input.value || ''));
+        if (s2Input && document.activeElement !== s2Input && (s2Input.value === '' || s2Input.value === null)) {
+          s2Input.value = (s2 !== '' && s2 !== null && s2 !== undefined && Number(s2) !== 0) ? s2 : (s2 === 0 || s2 === '0' ? '0' : '');
         }
-        if (bgSelect && document.activeElement !== bgSelect && boardGrade) {
+        if (bgSelect && document.activeElement !== bgSelect && (!bgSelect.value || bgSelect.value === '') && boardGrade) {
           bgSelect.value = boardGrade;
         }
         if (avgDisplay) {
@@ -4790,6 +4834,9 @@
               <div class="flex items-center gap-2">
                 <span class="material-symbols-rounded text-sky-400 text-base">assignment_turned_in</span>
                 <span class="text-xs font-bold uppercase text-slate-200 tracking-wider">Series Practical Examination &amp; Board Exam Grade Register</span>
+                <span id="pracSummativeSaveStatusTop" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium ml-3">
+                  <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
+                </span>
               </div>
               <button id="btnSavePracSummativeTop" type="button" onclick="savePracticalSummativeMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
                 <span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks
@@ -4914,17 +4961,18 @@
             </div>
           </div>
           <div id="manualMarksWrapper" class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px]">
+            <table class="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr class="bg-slate-900/40 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/60">
                   <th class="p-3 w-12">S.No.</th>
                   <th class="p-3">Student Name</th>
                   <th class="p-3 w-28">Admission No</th>
                   <th class="p-3 w-32">SBTE Reg No</th>
-                  <th class="p-3 text-center w-28">CO1</th>
-                  <th class="p-3 text-center w-28">CO2</th>
-                  <th class="p-3 text-center w-28">CO3</th>
-                  <th class="p-3 text-center w-28">CO4</th>
+                  <th class="p-3 text-center w-24">CO1 <span class="block text-[10px] text-slate-400 font-normal">Test 1</span></th>
+                  <th class="p-3 text-center w-24">CO2 <span class="block text-[10px] text-slate-400 font-normal">Test 2</span></th>
+                  <th class="p-3 text-center w-24">CO3 <span class="block text-[10px] text-slate-400 font-normal">Test 3</span></th>
+                  <th class="p-3 text-center w-24">CO4 <span class="block text-[10px] text-slate-400 font-normal">Test 4</span></th>
+                  <th class="p-3 text-center w-32 text-sky-400 bg-sky-500/10">Written Avg (/20)<span class="block text-[9px] text-sky-300 font-normal">Best 2 of Tests</span></th>
                 </tr>
               </thead>
               <tbody id="summativeMarkEntryTbody">
@@ -4933,21 +4981,36 @@
       if (students && students.length > 0) {
         students.forEach((student, index) => {
           let sm = student.summative_marks || {};
+          let scores = [];
+          ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+            if (sm[c] !== null && sm[c] !== undefined && sm[c] !== '' && !isNaN(sm[c])) {
+              scores.push(Number(sm[c]));
+            }
+          });
+          scores.sort((a, b) => b - a);
+          let rowAvgText = '-';
+          if (scores.length >= 2) {
+            rowAvgText = ((scores[0] + scores[1]) / 2).toFixed(1) + ' / 20';
+          } else if (scores.length === 1) {
+            rowAvgText = scores[0].toFixed(1) + ' / 20';
+          }
+
           marksEntryHtml += `
             <tr class="border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium" data-reg="${student.reg_no}">
               <td class="p-3 text-slate-400 font-bold text-base">${index + 1}</td>
               <td class="p-3 font-bold text-slate-100 text-lg">${student.name}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.reg_no}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" onfocus="this.select()" oninput="triggerSummativeMarksAutoSave()" onchange="triggerSummativeMarksAutoSave(true)" onblur="triggerSummativeMarksAutoSave(true)" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3 text-center bg-sky-500/5"><span class="theory-summ-avg-display font-mono font-bold text-sky-400 text-sm">${rowAvgText}</span></td>
             </tr>
           `;
         });
       } else {
-        marksEntryHtml += `<tr><td colspan="8" class="p-6 text-center text-slate-500 text-sm font-bold">No students found.</td></tr>`;
+        marksEntryHtml += `<tr><td colspan="9" class="p-6 text-center text-slate-500 text-sm font-bold">No students found.</td></tr>`;
       }
       marksEntryHtml += `
             </tbody>
@@ -6301,6 +6364,31 @@
     }
     window.handleSummativeMarkKeyDown = handleSummativeMarkKeyDown;
 
+    function updateTheorySummativeAvg(inputElem) {
+      if (!inputElem) return;
+      const row = inputElem.closest('tr');
+      if (!row) return;
+      const inputs = row.querySelectorAll('.summ-mark');
+      let scores = [];
+      inputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (val !== '' && !isNaN(val)) {
+          scores.push(Number(val));
+        }
+      });
+      scores.sort((a, b) => b - a);
+      const displaySpan = row.querySelector('.theory-summ-avg-display');
+      if (!displaySpan) return;
+      if (scores.length >= 2) {
+        displaySpan.innerText = ((scores[0] + scores[1]) / 2).toFixed(1) + ' / 20';
+      } else if (scores.length === 1) {
+        displaySpan.innerText = scores[0].toFixed(1) + ' / 20';
+      } else {
+        displaySpan.innerText = '-';
+      }
+    }
+    window.updateTheorySummativeAvg = updateTheorySummativeAvg;
+
     function saveSummativeMarks(subjectId, isAutoSave = false) {
       if (_summativeMarksAutoSaveTimer) {
         clearTimeout(_summativeMarksAutoSaveTimer);
@@ -6439,11 +6527,37 @@
     window.updatePracAvg = updatePracAvg;
 
     let _pracMarksAutoSaveTimer = null;
-    function triggerPracMarksAutoSave(immediate = false) {
+    let _isPracMarksSaving = false;
+    let _hasPendingPracSave = false;
+
+    function updatePracSaveStatusUI(state, isAutoSave = true, errorMsg = '') {
       const statusSpan = document.getElementById('pracSummativeSaveStatus');
-      if (statusSpan) {
-        statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> <span class="text-amber-300 font-medium">Unsaved changes...</span>';
-      }
+      const statusSpanTop = document.getElementById('pracSummativeSaveStatusTop');
+
+      const apply = (el) => {
+        if (!el) return;
+        if (state === 'unsaved') {
+          el.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> <span class="text-amber-300 font-medium">Unsaved changes...</span>';
+        } else if (state === 'saving') {
+          el.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-sky-400">progress_activity</span> <span class="text-sky-400 font-medium">' + (isAutoSave ? 'Auto-saving...' : 'Saving...') + '</span>';
+        } else if (state === 'saved') {
+          el.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span class="text-emerald-400 font-medium">' + (isAutoSave ? 'All marks auto-saved' : 'Saved successfully') + '</span>';
+          setTimeout(() => {
+            if (!_isPracMarksSaving && !_hasPendingPracSave) {
+              el.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> <span class="text-slate-400">Auto-save ready</span>';
+            }
+          }, 2000);
+        } else if (state === 'error') {
+          el.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">' + (errorMsg || 'Save failed') + '</span>';
+        }
+      };
+
+      apply(statusSpan);
+      apply(statusSpanTop);
+    }
+
+    function triggerPracMarksAutoSave(immediate = false) {
+      updatePracSaveStatusUI('unsaved');
 
       if (_pracMarksAutoSaveTimer) {
         clearTimeout(_pracMarksAutoSaveTimer);
@@ -6455,14 +6569,19 @@
       } else {
         _pracMarksAutoSaveTimer = setTimeout(() => {
           savePracticalSummativeMarks(true);
-        }, 1200);
+        }, 500); // 500ms debounce: fast, batches rapid keypresses smoothly
       }
     }
     window.triggerPracMarksAutoSave = triggerPracMarksAutoSave;
 
     function handlePracMarkKeyDown(event, inputElem) {
-      if (event.key === 'Enter' || event.key === 'Tab') {
-        event.preventDefault();
+      if (event.key === 'Enter' || event.key === 'Tab' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+        }
+
         let selector = '.prac-s1-input';
         if (inputElem.classList.contains('prac-s2-input')) {
           selector = '.prac-s2-input';
@@ -6473,7 +6592,9 @@
         const currentRow = inputElem.closest('tr');
         if (!currentRow) return;
 
-        if (event.shiftKey) {
+        const isGoingUp = (event.shiftKey && (event.key === 'Enter' || event.key === 'Tab')) || event.key === 'ArrowUp';
+
+        if (isGoingUp) {
           const prevRow = currentRow.previousElementSibling;
           if (prevRow) {
             const targetInput = prevRow.querySelector(selector);
@@ -6510,6 +6631,12 @@
         _pracMarksAutoSaveTimer = null;
       }
 
+      // If already saving, queue a follow-up save so fast typists never lose latest state
+      if (_isPracMarksSaving) {
+        _hasPendingPracSave = true;
+        return;
+      }
+
       const rows = document.querySelectorAll('#pracSummativeMarkTbody tr[data-reg]');
       if (!rows || rows.length === 0) {
         if (!isAutoSave) alert('No student records found to save.');
@@ -6537,20 +6664,15 @@
         return;
       }
 
+      _isPracMarksSaving = true;
+      updatePracSaveStatusUI('saving', isAutoSave);
+
       const btnTop = document.getElementById('btnSavePracSummativeTop');
       const btnBottom = document.getElementById('btnSavePracSummativeBottom');
-      const statusSpan = document.getElementById('pracSummativeSaveStatus');
 
-      if (isAutoSave) {
-        if (statusSpan) {
-          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Auto-saving...</span>';
-        }
-      } else {
+      if (!isAutoSave) {
         if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
         if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...'; }
-        if (statusSpan) {
-          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin text-amber-400">progress_activity</span> <span class="text-amber-400 font-medium">Saving...</span>';
-        }
       }
 
       fetch(`/api/classroom/${subjId}/practical/evaluate-bulk`, {
@@ -6563,54 +6685,51 @@
       })
       .then(res => res.json())
       .then(data => {
+        _isPracMarksSaving = false;
+        if (btnTop) {
+          btnTop.disabled = false;
+          btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
+        }
+        if (btnBottom) {
+          btnBottom.disabled = false;
+          btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
+        }
+
         if (data.status === 'SUCCESS') {
-          if (btnTop) {
-            btnTop.disabled = false;
-            btnTop.innerHTML = '<span class="material-symbols-rounded text-sm text-white">check_circle</span> Saved!';
-          }
-          if (btnBottom) {
-            btnBottom.disabled = false;
-            btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm text-white">check_circle</span> Saved!';
-          }
-          if (statusSpan) {
-            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-emerald-400">check_circle</span> <span class="text-emerald-400 font-medium">' + (isAutoSave ? 'All marks auto-saved' : 'Saved successfully') + '</span>';
-          }
-          setTimeout(() => {
-            if (btnTop) {
-              btnTop.disabled = false;
-              btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
-            }
-            if (btnBottom) {
-              btnBottom.disabled = false;
-              btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks';
-            }
-            if (statusSpan) {
-              statusSpan.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> <span class="text-slate-400">Auto-save ready</span>';
-            }
-          }, 2500);
+          updatePracSaveStatusUI('saved', isAutoSave);
 
           if (!isAutoSave) {
             alert('Practical Series Exam marks and Board Exam Grades saved successfully!');
+            // Only refresh other tabs on explicit manual click of "Save Series & Board Marks"
+            if (typeof fetchPracticalEvaluations === 'function') {
+              fetchPracticalEvaluations();
+            }
           }
-          if (typeof fetchPracticalEvaluations === 'function') {
-            fetchPracticalEvaluations();
+
+          // If changes were made while this save was in flight, immediately run the queued save
+          if (_hasPendingPracSave) {
+            _hasPendingPracSave = false;
+            savePracticalSummativeMarks(true);
           }
         } else {
+          updatePracSaveStatusUI('error', isAutoSave, data.message);
           if (!isAutoSave) alert('Error saving marks: ' + (data.message || 'Unknown error'));
-          if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
-          if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
-          if (statusSpan) {
-            statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+          if (_hasPendingPracSave) {
+            _hasPendingPracSave = false;
+            savePracticalSummativeMarks(true);
           }
         }
       })
       .catch(err => {
         console.error('Error saving practical summative marks:', err);
-        if (!isAutoSave) alert('Failed to save practical marks.');
+        _isPracMarksSaving = false;
         if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
         if (btnBottom) { btnBottom.disabled = false; btnBottom.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Series &amp; Board Marks'; }
-        if (statusSpan) {
-          statusSpan.innerHTML = '<span class="material-symbols-rounded text-xs text-rose-400">error</span> <span class="text-rose-400 font-medium">Save failed</span>';
+        updatePracSaveStatusUI('error', isAutoSave);
+        if (!isAutoSave) alert('Failed to save practical marks.');
+        if (_hasPendingPracSave) {
+          _hasPendingPracSave = false;
+          savePracticalSummativeMarks(true);
         }
       });
     }

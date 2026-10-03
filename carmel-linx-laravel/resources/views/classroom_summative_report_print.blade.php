@@ -213,14 +213,15 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 50px;">S.No.</th>
+                    <th style="width: 45px;">S.No.</th>
                     <th>Student Name</th>
                     <th>College Adm No</th>
                     <th>SBTE Reg No</th>
-                    <th style="text-align: center; width: 70px;">CO1</th>
-                    <th style="text-align: center; width: 70px;">CO2</th>
-                    <th style="text-align: center; width: 70px;">CO3</th>
-                    <th style="text-align: center; width: 70px;">CO4</th>
+                    <th style="text-align: center; width: 65px;">CO1<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 1</span></th>
+                    <th style="text-align: center; width: 65px;">CO2<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 2</span></th>
+                    <th style="text-align: center; width: 65px;">CO3<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 3</span></th>
+                    <th style="text-align: center; width: 65px;">CO4<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 4</span></th>
+                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Written Avg<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Best 2 (/20)</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -234,14 +235,19 @@
                         <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO2'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO3'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO4'] }}</td>
+                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;">{{ $s->best2_avg !== '-' ? $s->best2_avg . ' / 20' : '-' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">No student marks found.</td>
+                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">No student marks found.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
+
+        <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 6px; font-style: italic;">
+            * Note: In accordance with SBTE Revision 2021 regulations, Written Test Average (Max 20) is determined from the best of the highest two test scores. Separate CO marks are retained for NBA Course Outcome attainment analysis.
+        </div>
 
         <div style="margin-top: 80px; display: flex; justify-content: space-between;">
             <div style="text-align: center; width: 200px; border-top: 1px solid var(--text-muted); padding-top: 5px;">

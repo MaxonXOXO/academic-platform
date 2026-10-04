@@ -1237,14 +1237,8 @@
                   <a id="pRepBtnExperiments" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-amber-400">list_alt</span> Experiments List
                   </a>
-                  <a id="pRepBtnPlanner" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
-                    <span class="material-symbols-rounded text-sm text-purple-400">calendar_today</span> Lesson Planner
-                  </a>
                   <a id="pRepBtnProjects" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
                     <span class="material-symbols-rounded text-sm text-rose-400">assignment</span> Open-Ended Projects
-                  </a>
-                  <a id="printLabReportBtn" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
-                    <span class="material-symbols-rounded text-sm text-sky-400">print</span> Print Register
                   </a>
                   <a id="printLabExperimentsBtn" target="_blank" class="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium no-underline flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 whitespace-nowrap" title="Print Completed Practical Experiments & Sessions Log">
                     <span class="material-symbols-rounded text-sm text-cyan-400">checklist</span> Print Experiments Log
@@ -1359,7 +1353,7 @@
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">folder_open</span> Comprehensive Course File (2021)</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
-                    <button onclick="openPrintReport('assignment_qp')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                    <button id="btnAssignmentQpReport" onclick="openPrintReport('assignment_qp')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Assignment QP & Rubrics Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
@@ -1376,7 +1370,7 @@
                     <p class="text-xs text-slate-400 leading-relaxed">Internal Continuous Evaluation (CIE), Series Exam marksheets, and final End-Semester Results.</p>
                   </div>
                   <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <button onclick="openPrintReport('cie_marksheet')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                    <button id="btnAssignmentMarkReport" onclick="openPrintReport('cie_marksheet')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Assignment Mark Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
@@ -1385,7 +1379,7 @@
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('class_roster')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-emerald-700/50 hover:border-emerald-600 text-emerald-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
-                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-emerald-400">badge</span> Consolidated Mark Report</span>
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-emerald-400">badge</span> <span id="lblConsolidatedMarkReport">Consolidated Mark Report</span></span>
                       <span class="material-symbols-rounded text-xs text-emerald-400">arrow_forward</span>
                     </button>
                     <button onclick="openPrintReport('final_results')" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
@@ -1414,7 +1408,7 @@
                     <button onclick="openPrintReport('class_log')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-indigo-300 border border-indigo-500/40 rounded-xl font-bold text-xs cursor-pointer transition-premium flex items-center gap-1.5 shadow-sm" title="Print official A4 classroom teaching & attendance log">
                       <span class="material-symbols-rounded text-xs text-indigo-400">print</span> Print Class Log (A4)
                     </button>
-                    <button onclick="openPrintReport('class_roster')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-emerald-300 border border-emerald-500/40 rounded-xl font-bold text-xs cursor-pointer transition-premium flex items-center gap-1.5 shadow-sm" title="Print official A4 class roster with attendance & marks">
+                    <button id="btnBottomClassRoster" onclick="openPrintReport('class_roster')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-emerald-300 border border-emerald-500/40 rounded-xl font-bold text-xs cursor-pointer transition-premium flex items-center gap-1.5 shadow-sm" title="Print official A4 class roster with attendance & marks">
                       <span class="material-symbols-rounded text-xs text-emerald-400">print</span> Print Class Roster (A4)
                     </button>
                   </div>
@@ -2323,6 +2317,37 @@
           }
         }
 
+        const isR26Subject = rStr.includes('2026') || rStr.includes('26');
+        const isR21PracticalSubject = isPractical && !isR26Subject;
+        const lblConsolidated = document.getElementById('lblConsolidatedMarkReport');
+        if (lblConsolidated) {
+          lblConsolidated.innerText = isR21PracticalSubject ? 'Consolidated Internal Mark Report' : 'Consolidated Mark Report';
+        }
+        const btnBottomRoster = document.getElementById('btnBottomClassRoster');
+        if (btnBottomRoster) {
+          if (isR21PracticalSubject) {
+            btnBottomRoster.classList.add('hidden');
+          } else {
+            btnBottomRoster.classList.remove('hidden');
+          }
+        }
+        const btnAssignmentMark = document.getElementById('btnAssignmentMarkReport');
+        if (btnAssignmentMark) {
+          if (isR21PracticalSubject) {
+            btnAssignmentMark.classList.add('hidden');
+          } else {
+            btnAssignmentMark.classList.remove('hidden');
+          }
+        }
+        const btnAssignmentQp = document.getElementById('btnAssignmentQpReport');
+        if (btnAssignmentQp) {
+          if (isR21PracticalSubject) {
+            btnAssignmentQp.classList.add('hidden');
+          } else {
+            btnAssignmentQp.classList.remove('hidden');
+          }
+        }
+
         let latText = '';
         if (batchId && batchId.includes('_LET')) {
           latText = ' <span class="bg-purple-900/60 border border-purple-500/50 text-purple-300 font-extrabold text-[10px] px-2 py-0.5 rounded-md ml-1">LATERAL ENTRY (LET)</span>';
@@ -2838,8 +2863,6 @@
               const fullWsBtn = document.getElementById('openFullVirtualLabBtn');
               const isR26Val = rStrVal.includes('2026') || rStrVal.includes('26');
               if (fullWsBtn) fullWsBtn.href = isR26Val ? `/r26/classroom/practical/${subjectId}` : `/classroom/practical/${subjectId}`;
-              const printBtn = document.getElementById('printLabReportBtn');
-              if (printBtn) printBtn.href = `/classroom/practical/${subjectId}/report/print`;
               const printExpBtn = document.getElementById('printLabExperimentsBtn');
               if (printExpBtn) printExpBtn.href = `/classroom/practical/${subjectId}/experiments/print`;
               const btnReg = document.getElementById('pRepBtnRegister');
@@ -2848,8 +2871,6 @@
               if (btnAtt) btnAtt.href = `/classroom/${subjectId}/practical-report/print?type=attendance`;
               const btnExp = document.getElementById('pRepBtnExperiments');
               if (btnExp) btnExp.href = `/classroom/${subjectId}/practical-report/print?type=experiments`;
-              const btnPlan = document.getElementById('pRepBtnPlanner');
-              if (btnPlan) btnPlan.href = `/classroom/${subjectId}/practical-report/print?type=planner`;
               const btnProj = document.getElementById('pRepBtnProjects');
               if (btnProj) btnProj.href = `/classroom/${subjectId}/practical-report/print?type=projects`;
               const btnVlAtt = document.getElementById('btnVirtualLabAttendanceLog');
@@ -2858,6 +2879,38 @@
                 btnVlAtt.href = `/staff/attendance-log?subject_id=${subjectId}&from=formative&tab=lab_evaluation&return_to=${encodeURIComponent(returnUrl)}`;
               }
             }
+
+            const isR26Val = rStrVal.includes('2026') || rStrVal.includes('26');
+            const isR21Practical = isPractical && !isR26Val;
+            const lblConsolidated = document.getElementById('lblConsolidatedMarkReport');
+            if (lblConsolidated) {
+              lblConsolidated.innerText = isR21Practical ? 'Consolidated Internal Mark Report' : 'Consolidated Mark Report';
+            }
+            const btnBottomRoster = document.getElementById('btnBottomClassRoster');
+            if (btnBottomRoster) {
+              if (isR21Practical) {
+                btnBottomRoster.classList.add('hidden');
+              } else {
+                btnBottomRoster.classList.remove('hidden');
+              }
+            }
+            const btnAssignmentMark = document.getElementById('btnAssignmentMarkReport');
+            if (btnAssignmentMark) {
+              if (isR21Practical) {
+                btnAssignmentMark.classList.add('hidden');
+              } else {
+                btnAssignmentMark.classList.remove('hidden');
+              }
+            }
+            const btnAssignmentQp = document.getElementById('btnAssignmentQpReport');
+            if (btnAssignmentQp) {
+              if (isR21Practical) {
+                btnAssignmentQp.classList.add('hidden');
+              } else {
+                btnAssignmentQp.classList.remove('hidden');
+              }
+            }
+
             toggleClassroomTab(activeTabToRestore);
           } else {
             if (pTitleBox) pTitleBox.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-xl font-extrabold text-sm md:text-base shadow-sm"><span class="material-symbols-rounded text-blue-400 text-lg">meeting_room</span> VIrtual theory classroom  R-2021</span>`;
@@ -2874,6 +2927,24 @@
             if (tabSurvey) tabSurvey.classList.remove('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
+
+            const lblConsolidated = document.getElementById('lblConsolidatedMarkReport');
+            if (lblConsolidated) {
+              lblConsolidated.innerText = 'Consolidated Mark Report';
+            }
+            const btnBottomRoster = document.getElementById('btnBottomClassRoster');
+            if (btnBottomRoster) {
+              btnBottomRoster.classList.remove('hidden');
+            }
+            const btnAssignmentMark = document.getElementById('btnAssignmentMarkReport');
+            if (btnAssignmentMark) {
+              btnAssignmentMark.classList.remove('hidden');
+            }
+            const btnAssignmentQp = document.getElementById('btnAssignmentQpReport');
+            if (btnAssignmentQp) {
+              btnAssignmentQp.classList.remove('hidden');
+            }
+
             toggleClassroomTab(activeTabToRestore);
           }
 
@@ -11045,7 +11116,7 @@
         const btnPrint = document.getElementById('btnLabModalPrintStudent');
         if (btnPrint) {
           const sid = currentSubjectId || window.currentSubjectId;
-          btnPrint.href = `/classroom/practical/${sid}/student/${encodeURIComponent(student.reg_no)}/print`;
+          btnPrint.href = `/classroom/practical/${sid}/student-print?reg_no=${encodeURIComponent(student.reg_no)}`;
         }
 
         // Set input values safely

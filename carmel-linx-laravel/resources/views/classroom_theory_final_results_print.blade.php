@@ -348,7 +348,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="16" style="padding: 24px; text-align: center; color: #94a3b8;">
+                        <td colspan="17" style="padding: 24px; text-align: center; color: #94a3b8;">
                             No students enrolled in this classroom batch.
                         </td>
                     </tr>

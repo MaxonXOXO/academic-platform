@@ -333,15 +333,15 @@
         <thead>
             <tr>
                 <th style="width: 4%">Sl No</th>
-                <th style="width: 5%">Roll</th>
+                <th style="width: 4%">Roll</th>
                 <th style="width: 14%">PRN (SBTE)</th>
                 <th>Student Name</th>
-                <th style="width: 9%">Attendance %</th>
-                <th style="width: 10%; background-color: #e6fffa;">Final CIA<br>(75 Marks)</th>
-                <th style="width: 11%; background-color: #e6f0ff;">Practical ESE<br>(50 Marks / Grade)</th>
+                <th style="width: 8%">Attendance %</th>
+                <th style="width: 9%; background-color: #f0fdf4;">Attend. Mark<br>(15 Marks)</th>
+                <th style="width: 11%; background-color: #e6fffa;">Final CIA<br>(75 Marks)</th>
+                <th style="width: 12%; background-color: #e6f0ff;">Practical ESE<br>(50 Marks / Grade)</th>
                 <th style="width: 11%; background-color: #f7e6ff;">Grand Total<br>(125 Marks)</th>
                 <th style="width: 9%">Awarded Grade</th>
-                <th style="width: 12%">Result Status</th>
             </tr>
         </thead>
         <tbody>
@@ -352,7 +352,6 @@
                     $eseDisplay = '-';
                     $totalDisplay = '-';
                     $finalGrade = '-';
-                    $resultStatus = '-';
 
                     if ($boardVal !== null && $boardVal !== '') {
                         if (is_numeric($boardVal)) {
@@ -363,10 +362,8 @@
                             $totalDisplay = number_format($tot, 1);
                             $finalGrade = $calcGrade($tot, 125);
                             if ($tot >= 50 && $eseNum >= 20) {
-                                $resultStatus = 'PASSED';
                                 $passCount++;
                             } else {
-                                $resultStatus = 'REAPPEARANCE';
                                 $failCount++;
                                 $finalGrade = 'F';
                             }
@@ -378,17 +375,14 @@
                                 $totalDisplay = number_format($tot, 1);
                                 $finalGrade = $calcGrade($tot, 125);
                                 if ($tot >= 50 && $boardNum >= 20) {
-                                    $resultStatus = 'PASSED';
                                     $passCount++;
                                 } else {
-                                    $resultStatus = 'REAPPEARANCE';
                                     $failCount++;
                                     $finalGrade = 'F';
                                 }
                             } else {
                                 $finalGrade = $gLet;
-                                $resultStatus = ($gLet !== 'F' && $gLet !== 'ABS') ? 'PASSED' : 'REAPPEARANCE';
-                                if ($resultStatus === 'PASSED') $passCount++; else $failCount++;
+                                if ($gLet !== 'F' && $gLet !== 'ABS') $passCount++; else $failCount++;
                             }
                         }
                         if (isset($gradesDist[$finalGrade])) {
@@ -402,13 +396,11 @@
                     <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
                     <td class="font-mono">{{ number_format($student->attendance_percentage ?? 100, 1) }}%</td>
+                    <td class="font-mono font-bold" style="background-color: #f0fdf4; color: #047857;">{{ number_format($student->attendance_marks ?? 0, 1) }}</td>
                     <td class="font-mono font-bold" style="background-color: #f0fdfa; color: #0f766e;">{{ round($student->total_internal) }}</td>
                     <td class="font-mono font-bold" style="background-color: #eff6ff; color: #1d4ed8;">{{ $eseDisplay }}</td>
                     <td class="font-mono font-bold" style="background-color: #faf5ff; color: #6b21a8; font-size: 11.5px;">{{ $totalDisplay }}</td>
                     <td style="font-weight: bold; font-size: 12px; color: {{ $finalGrade === 'F' ? '#b91c1c' : '#111' }};">{{ $finalGrade }}</td>
-                    <td style="font-weight: bold; color: {{ $resultStatus === 'PASSED' ? '#047857' : ($resultStatus === 'REAPPEARANCE' ? '#b91c1c' : '#64748b') }};">
-                        {{ $resultStatus }}
-                    </td>
                 </tr>
             @empty
                 <tr>
@@ -436,8 +428,8 @@
                     <td class="font-mono font-bold" style="text-align: right; color: #047857;">{{ $passCount }}</td>
                 </tr>
                 <tr>
-                    <td style="font-weight: bold; color: #b91c1c;">Reappearance Required:</td>
-                    <td class="font-mono font-bold" style="text-align: right; color: #b91c1c;">{{ $failCount }}</td>
+                    <td style="font-weight: bold; color: #64748b;">Not Cleared:</td>
+                    <td class="font-mono font-bold" style="text-align: right; color: #64748b;">{{ $failCount }}</td>
                 </tr>
                 <tr style="border-top: 1px solid #000;">
                     <td style="font-weight: bold;">Practical Pass Percentage:</td>

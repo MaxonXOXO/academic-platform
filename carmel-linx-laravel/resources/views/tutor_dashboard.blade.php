@@ -3090,11 +3090,11 @@
 
         const smsHref = `sms:${st.phone || ''}?body=${encodeURIComponent('Carmel Polytechnic College Alert: Attendance status of ' + st.name + ' (' + st.sbte_reg_no + ') is ' + st.overall_percentage + '% [' + st.status + ']. Min 75% required for SBTE exam eligibility.')}`;
 
-        let studentPrintUrl = `/tutor/attendance/student/${st.reg_no}/print`;
+        let studentPrintUrl = `/tutor/attendance/student-print?reg_no=${encodeURIComponent(st.reg_no)}`;
         const sParams = new URLSearchParams();
         if (fromDate) sParams.append('from_date', fromDate);
         if (toDate) sParams.append('to_date', toDate);
-        if (sParams.toString()) studentPrintUrl += '?' + sParams.toString();
+        if (sParams.toString()) studentPrintUrl += '&' + sParams.toString();
 
         rowsHtml += `
           <tr class="hover:bg-slate-800/30 transition-colors">
@@ -3342,7 +3342,7 @@
               ${rankBadgeHtml}
             </td>
             <td class="p-2.5 text-center border-b border-slate-800">
-              <a href="/tutor/progress-report/student/${encodeURIComponent(st.reg_no)}/print" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
+              <a href="/tutor/progress-report/student-print?reg_no=${encodeURIComponent(st.reg_no)}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
                 <span class="material-symbols-rounded text-sm">print</span> Card
               </a>
             </td>

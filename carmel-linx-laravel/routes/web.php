@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 
+// Support registration numbers containing slashes (e.g. 25EL4460/25, 25EL4407/25)
+Route::pattern('regNo', '[A-Za-z0-9_.\-\/]+');
+
 if (!function_exists('getFullBranchName')) {
     function getFullBranchName($code) {
         if (empty($code)) return 'General';
@@ -799,7 +802,8 @@ Route::middleware(['web'])->group(function () {
     Route::get('/classroom/practical/{subjectId}/series-report/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printSeriesReport']);
     Route::get('/classroom/practical/{subjectId}/final-results/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printFinalResults']);
     Route::get('/classroom/practical/{subjectId}/experiments/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printExperimentsLog']);
-    Route::get('/classroom/practical/{subjectId}/student/{regNo}/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printStudentReport']);
+    Route::get('/classroom/practical/{subjectId}/student/{regNo}/print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printStudentReport'])->where('regNo', '.*');
+    Route::get('/classroom/practical/{subjectId}/student-print', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'printStudentReport']);
     Route::get('/api/classroom/{subjectId}/practical/attendance-log', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'getAttendanceLog']);
     Route::post('/api/classroom/{subjectId}/practical/cia-summary', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'saveStudentCiaSummary']);
     Route::get('/api/classroom/{subjectId}/practical/batch-setup', [App\Http\Controllers\AttendanceController::class, 'getLabBatchSetup']);
@@ -1708,10 +1712,12 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/tutor/attendance/roll-numbers', [App\Http\Controllers\AttendanceController::class, 'updateRollNumbers']);
     Route::get('/api/tutor/attendance/consolidated', [App\Http\Controllers\AttendanceController::class, 'getConsolidatedTutorAttendance']);
     Route::get('/tutor/attendance/report/print', [App\Http\Controllers\AttendanceController::class, 'printTutorAttendanceReport']);
-    Route::get('/tutor/attendance/student/{regNo}/print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport']);
+    Route::get('/tutor/attendance/student-print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport']);
+    Route::get('/tutor/attendance/student/{regNo}/print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport'])->where('regNo', '.*');
     Route::get('/api/tutor/progress-report', [App\Http\Controllers\TutorController::class, 'getProgressReportData']);
     Route::get('/tutor/progress-report/print', [App\Http\Controllers\TutorController::class, 'printProgressReport']);
-    Route::get('/tutor/progress-report/student/{regNo}/print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);
+    Route::get('/tutor/progress-report/student-print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);
+    Route::get('/tutor/progress-report/student/{regNo}/print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard'])->where('regNo', '.*');
     Route::get('/api/staff/attendance/subjects/{id}/reports', [App\Http\Controllers\AttendanceController::class, 'getReports']);
 
     // SBTE Compliance Console Routes

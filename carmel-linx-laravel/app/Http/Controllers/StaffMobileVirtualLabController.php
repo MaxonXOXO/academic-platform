@@ -102,31 +102,38 @@ class StaffMobileVirtualLabController extends Controller
             ->get(['date', 'period', 'topics_covered', 'sub_batch', 'present_students', 'absent_students']);
 
         // Normalize student attendance slots and actual engaged hours
-        $studentPresentSlots = [];    // [reg_no => [slotKey => true]]
-        $studentScheduledSlots = [];  // [reg_no => [slotKey => true]]
-        $actualSlotKeys = [];         // unique slots for the batch
+        $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+        $allUniqueSlots = [];
+        $studentPresentSlots = [];
 
         foreach ($classLogs as $log) {
             $slotKey = $log->date . '_P' . $log->period;
-            $batchSlotKey = $slotKey . '_' . ($log->sub_batch ?? 'Whole');
-            $actualSlotKeys[$batchSlotKey] = true;
+            $allUniqueSlots[$slotKey] = true;
+            $sb = (string)($log->sub_batch ?? 'Whole');
+            if ($sb === '1' || $sb === 1) {
+                $batchUniqueSlots['1'][$slotKey] = true;
+            } elseif ($sb === '2' || $sb === 2) {
+                $batchUniqueSlots['2'][$slotKey] = true;
+            } else {
+                $batchUniqueSlots['Whole'][$slotKey] = true;
+            }
 
-            $pList = json_decode($log->present_students ?? '[]', true);
-            $aList = json_decode($log->absent_students ?? '[]', true);
+            $pList = json_decode($log->present_students ?? '[]', true) ?: [];
             if (is_array($pList)) {
                 foreach ($pList as $rNo) {
                     $studentPresentSlots[$rNo][$slotKey] = true;
-                    $studentScheduledSlots[$rNo][$slotKey] = true;
-                }
-            }
-            if (is_array($aList)) {
-                foreach ($aList as $rNo) {
-                    $studentScheduledSlots[$rNo][$slotKey] = true;
                 }
             }
         }
 
-        $totalAttClasses = count($actualSlotKeys); // total actual conducted session slots
+        $b1Scheduled = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+        $b2Scheduled = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+        $wholeScheduled = count($allUniqueSlots);
+        $totalAttClasses = $wholeScheduled ?: $classLogs->count();
+
+        $assignedBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->pluck('lab_batch', 'reg_no');
 
         // Determine which experiments have been conducted in this class
         $conductedExpIds = $experiments->filter(function($exp) use ($allExpMarks, $classLogs) {
@@ -153,30 +160,60 @@ class StaffMobileVirtualLabController extends Controller
         })->pluck('id')->toArray();
         $conductedExperimentsCount = count($conductedExpIds);
 
+        // Authoritative official attendance from TEAMS upload in student_attendance
+        $officialAttendance = DB::table('student_attendance')
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
         // ── Per-student data payload ───────────────────────────────────────────
-        $studentsData = $students->map(function ($student) use (
+        $studentsData = $students->map(function ($student, $sIdx) use (
             $batchSubject, $experiments, $totalExperiments,
             $allExpMarks, $evaluations, $tests, $allTestMarks,
-            $t1, $t2, $totalAttClasses, $studentPresentSlots, $studentScheduledSlots, $conductedExperimentsCount
+            $t1, $t2, $totalAttClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $assignedBatches, $officialAttendance
         ) {
             $regNo = $student->reg_no;
 
+            $labBatch = null;
+            if (isset($assignedBatches[$regNo])) {
+                $labBatch = (string)$assignedBatches[$regNo];
+            } elseif ($batchSubject->lab_batch_cutoff && $student->roll_no !== null) {
+                $labBatch = ((int)$student->roll_no <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+            } elseif ($batchSubject->lab_batch_mode === 'full') {
+                $labBatch = '1';
+            } else {
+                $mid = (int)ceil($student->count ?? 25);
+                $labBatch = ($sIdx < $mid) ? '1' : '2';
+            }
+
+            // Fixed batch-based conducted hours
+            if ($batchSubject->subject_type === 'Theory') {
+                $totalForStudent = $wholeScheduled ?: $totalAttClasses;
+            } elseif ($labBatch === '1') {
+                $totalForStudent = $b1Scheduled > 0 ? $b1Scheduled : ($wholeScheduled ?: $totalAttClasses);
+            } elseif ($labBatch === '2') {
+                $totalForStudent = $b2Scheduled > 0 ? $b2Scheduled : ($wholeScheduled ?: $totalAttClasses);
+            } else {
+                $totalForStudent = $wholeScheduled ?: $totalAttClasses;
+            }
+
             // ── Attendance ─────────────────────────────────────────────────────
-            $presentAtt = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
-            $scheduledAtt = isset($studentScheduledSlots[$regNo]) ? count($studentScheduledSlots[$regNo]) : 0;
-            $totalForStudent = $scheduledAtt > 0 ? $scheduledAtt : $totalAttClasses;
+            $rawPresent = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
+            $presentAtt = min($totalForStudent, $rawPresent);
+            $logAttPct = $totalForStudent > 0 ? round(($presentAtt / $totalForStudent) * 100, 2) : 100.0;
 
-            // Attendance marks out of 15 proportional to attendance % for all percentages (R2021)
-            // If no logs exist for this student at all, show 0 — never fake 15 or 100%
-            $hasAttData = $totalForStudent > 0;
-            $attPct = $hasAttData ? round(($presentAtt / $totalForStudent) * 100, 1) : 0.0;
-            $calculatedAttMark = $hasAttData ? \App\Services\AttainmentService::calculateR21AttendanceMark($attPct, 15.0) : 0.0;
-
-            // Allow override from PracticalEvaluation.attendance_marks if set (> 0) by faculty
-            $eval = $evaluations->get($regNo);
-            $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
-                ? (float)$eval->attendance_marks
-                : $calculatedAttMark;
+            // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
+            $stOfficial = $officialAttendance->get($regNo, collect());
+            if ($stOfficial->isNotEmpty()) {
+                $offTot = $stOfficial->count();
+                $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                $attPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+            } else {
+                $attPct = $logAttPct;
+            }
+            $calculatedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+            $attendanceMarks = $calculatedAttMark;
 
             // ── Open-Ended ─────────────────────────────────────────────────────
             $openEndedMarks = $eval ? (float)($eval->micro_project ?? 0) : 0.0;

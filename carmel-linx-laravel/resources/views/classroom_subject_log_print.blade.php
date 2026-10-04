@@ -287,7 +287,7 @@
         </tr>
         <tr>
             <td class="lbl">Sessions Recorded:</td>
-            <td class="val"><strong>{{ $logs->count() }}</strong> Logs ({{ $totalHours }} Conducted Hours)</td>
+            <td class="val"><strong>{{ $logs->count() }}</strong> Sessions ({{ $totalHours }} Conducted Hours)</td>
             <td class="lbl">Enrolled Students:</td>
             <td class="val"><strong>{{ $totalEnrolled }}</strong> Students</td>
         </tr>
@@ -298,13 +298,14 @@
         <thead>
             <tr>
                 <th style="width: 25px;">Sl</th>
-                <th style="width: 58px;">Date</th>
-                <th style="width: 48px;">Period</th>
+                <th style="width: 62px;">Date</th>
+                <th style="width: 50px;">Batch</th>
+                <th style="width: 48px;">Hours</th>
                 <th>Syllabus Topic Covered / Log Entry</th>
                 <th style="width: 32px;">Pres</th>
                 <th style="width: 32px;">Abs</th>
                 <th style="width: 42px;">Attn %</th>
-                <th style="width: 42px;">Sign</th>
+                <th style="width: 35px;">Sign</th>
             </tr>
         </thead>
         <tbody>
@@ -312,8 +313,9 @@
             <tr>
                 <td class="text-center" style="font-weight: 700;">{{ $idx + 1 }}</td>
                 <td class="text-center font-mono">{{ $log->formatted_date }}</td>
-                <td class="text-center font-mono" style="color: #475569;">{{ $log->period_label }}</td>
-                <td>{{ $log->topics_covered ?: 'Syllabus lecture session' }}</td>
+                <td class="text-center" style="font-weight: 700; color: #1e3a8a; font-size: 8.5px;">{{ $log->batch_label }}</td>
+                <td class="text-center font-mono" style="color: #334155; font-weight: 600;">{{ $log->hours_csv ?? $log->period_label }}</td>
+                <td style="white-space: pre-line;">{{ $log->topics_covered ?: 'Syllabus lecture session' }}</td>
                 <td class="text-center" style="font-weight: 700; color: #047857;">{{ $log->present_count }}</td>
                 <td class="text-center" style="color: #b91c1c;">{{ $log->absent_count }}</td>
                 <td class="text-center" style="font-weight: 700; color: {{ $log->attendance_pct < 75 ? '#b91c1c' : '#047857' }};">
@@ -323,7 +325,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="text-center" style="padding: 16px; color: #64748b;">
+                <td colspan="9" class="text-center" style="padding: 16px; color: #64748b;">
                     No class logs recorded yet for this subject.
                 </td>
             </tr>

@@ -990,8 +990,8 @@
                                             <span class="badge badge-amber fs-6 px-2.5 py-1">{{ $res['total_cia'] }} / {{ $ciaMax }}</span>
                                         </td>
                                         <td>
-                                            <span class="badge {{ $res['is_pass'] ? 'badge-emerald' : 'badge-rose' }} px-2 py-1">
-                                                {{ $res['is_pass'] ? 'Passed' : 'Needs Improvement' }}
+                                            <span class="badge {{ $res['is_pass'] ? 'badge-emerald' : 'bg-slate-700 text-slate-400' }} px-2 py-1">
+                                                {{ $res['is_pass'] ? 'Passed' : '-' }}
                                             </span>
                                         </td>
                                     </tr>

@@ -2835,11 +2835,32 @@ Return ONLY valid JSON matching this exact structure:
         $logs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
             ->get();
-        $totalLogs = $logs->count();
+        $uniqueSlotLogs = [];
+        $studentPresentSlots = [];
+        foreach ($logs as $l) {
+            $slotKey = $l->date . '_P' . $l->period;
+            $uniqueSlotLogs[$slotKey] = true;
+            $presentList = json_decode($l->present_students ?? '[]', true) ?: [];
+            foreach ($presentList as $rNo) {
+                $studentPresentSlots[$rNo][$slotKey] = true;
+            }
+        }
+        $totalLogs = count($uniqueSlotLogs) ?: $logs->count();
+
+        // Fetch official TEAMS attendance
+        $officialAttendance = collect();
+        if (\Schema::hasTable('student_attendance')) {
+            $allLookupRegs = $students->pluck('reg_no')->concat($students->pluck('sbte_reg_no'))->filter()->unique()->toArray();
+            $officialAttendance = \DB::table('student_attendance')
+                ->where('subject_code', $batchSubject->subject_code)
+                ->whereIn('reg_no', $allLookupRegs)
+                ->get()
+                ->groupBy('reg_no');
+        }
 
         $isR21 = str_contains($batchSubject->syllabus_revision_code ?? '', '2021') || (!str_contains($batchSubject->syllabus_revision_code ?? '', '2026') && !str_contains($batchSubject->classroom_id ?? '', '2026'));
 
-        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs, $isR21) {
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs, $isR21, $studentPresentSlots, $officialAttendance) {
             $studMarks = $marks->where('reg_no', $student->reg_no);
 
             // Assignment Marks (Formative)
@@ -2904,18 +2925,22 @@ Return ONLY valid JSON matching this exact structure:
                 $summAvg = count($summScores) > 0 ? round(array_sum($summScores) / 4.0, 1) : 0.0;
             }
 
-            // Attendance %
-            $presentCount = 0;
-            if ($totalLogs > 0) {
-                foreach ($logs as $l) {
-                    $presentList = json_decode($l->present_students ?? '[]', true) ?: [];
-                    if (in_array($student->reg_no, $presentList)) {
-                        $presentCount++;
-                    }
-                }
-                $attPercent = round(($presentCount / $totalLogs) * 100, 1);
+            // Attendance % (Authoritative source: TEAMS uploaded attendance)
+            $stAtt = $officialAttendance->get($student->reg_no, collect());
+            if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
+                $stAtt = $officialAttendance->get($student->sbte_reg_no, collect());
+            }
+
+            if ($stAtt->isNotEmpty()) {
+                $offTot = $stAtt->count();
+                $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
             } else {
-                $attPercent = 100.0;
+                $presentCount = isset($studentPresentSlots[$student->reg_no]) ? count($studentPresentSlots[$student->reg_no]) : 0;
+                if ($presentCount === 0 && !empty($student->sbte_reg_no) && isset($studentPresentSlots[$student->sbte_reg_no])) {
+                    $presentCount = count($studentPresentSlots[$student->sbte_reg_no]);
+                }
+                $attPercent = ($totalLogs > 0) ? round(($presentCount / $totalLogs) * 100, 1) : 100.0;
             }
 
             // Attendance Marks out of 10 (Rev 2021: Actual % directly converted to max 10, >= .5 rounded up, < .5 rounded down)
@@ -2923,8 +2948,7 @@ Return ONLY valid JSON matching this exact structure:
 
             // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10)
             $totalCie = round($assignAvg + $summAvg + $attMarks, 1);
-            // In individual subject calculation, exam eligibility is avoided as it is determined on consolidated semester attendance
-            $status = ($totalCie >= 20.0) ? 'PASSED' : 'NEEDS IMPROVEMENT';
+            $status = ($totalCie >= 20.0) ? 'PASSED' : '-';
 
             return (object)[
                 'reg_no' => $student->reg_no,
@@ -2971,6 +2995,115 @@ Return ONLY valid JSON matching this exact structure:
     }
 
     /**
+     * Print Consolidated Lab Internal Mark Report on A4 Portrait (Revision 2021).
+     */
+    public function printPracticalClassRoster($subjectId)
+    {
+        $userId = \Illuminate\Support\Facades\Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
+        if (!$batchSubject) abort(404, 'Subject not found.');
+
+        // Synchronize practical experiments with class logs
+        \App\Http\Controllers\AttendanceController::syncPracticalExperimentsWithLogs($subjectId);
+
+        // Fetch consolidated practical report data via VirtualClassroomPracticalController
+        $reportData = app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->getPracticalReportData($subjectId);
+
+        $students = $reportData['students'];
+        $subject = $reportData['subject'];
+        $fullDepartment = $reportData['fullDepartment'];
+        $cleanedBatch = $reportData['cleanedBatch'];
+
+        // Retrieve all assigned staff names
+        $assignedStaffList = \Illuminate\Support\Facades\DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->pluck('staff_profiles.name')
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+
+        if (empty($assignedStaffList)) {
+            $defaultName = \Illuminate\Support\Facades\Session::get('userName') ?? 'Faculty Member';
+            $assignedStaffList = [$defaultName];
+        }
+        $facultyNames = implode(', ', $assignedStaffList);
+
+        // Fetch class logs to get batch conducted hours breakdown
+        $classLogs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->get();
+
+        $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+        $allUniqueSlots = [];
+        foreach ($classLogs as $l) {
+            $slotKey = $l->date . '_P' . $l->period;
+            $allUniqueSlots[$slotKey] = true;
+            $sb = (string)($l->sub_batch ?? 'Whole');
+            if ($sb === '1' || $sb === 1) {
+                $batchUniqueSlots['1'][$slotKey] = true;
+            } elseif ($sb === '2' || $sb === 2) {
+                $batchUniqueSlots['2'][$slotKey] = true;
+            } else {
+                $batchUniqueSlots['Whole'][$slotKey] = true;
+            }
+        }
+        $b1Scheduled = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+        $b2Scheduled = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+        $wholeScheduled = count($allUniqueSlots);
+        $totalConductedHours = $wholeScheduled ?: $classLogs->count();
+
+        if ($b1Scheduled > 0 && $b2Scheduled > 0) {
+            $conductedHoursText = "Batch 1: {$b1Scheduled} Hrs • Batch 2: {$b2Scheduled} Hrs (Total: " . ($b1Scheduled + $b2Scheduled) . " Sessions)";
+            $conductedHoursSummary = "B1: {$b1Scheduled}h | B2: {$b2Scheduled}h";
+        } else {
+            $conductedHoursText = "{$totalConductedHours} Hours (Total Sessions)";
+            $conductedHoursSummary = "{$totalConductedHours} Hours";
+        }
+
+        $totalStudents = $students->count();
+        $eligibleCount = $students->filter(function($s) {
+            return (float)($s->attendance_percentage ?? 100) >= 75.0;
+        })->count();
+        $shortageCount = $totalStudents - $eligibleCount;
+        $overallAvgAttn = $totalStudents > 0 ? round($students->avg('attendance_percentage'), 1) : 100.0;
+
+        $coAttainmentSummary = [
+            'CO1' => 'Level 3 (High)',
+            'CO2' => 'Level 3 (High)',
+            'CO3' => 'Level 3 (High)',
+            'CO4' => 'Level 3 (High)',
+        ];
+        $poLevelAverage = '2.8';
+        $dateOfPreparation = date('d-m-Y');
+        $lecturerName = \Illuminate\Support\Facades\Session::get('userName') ?? 'Faculty Member';
+
+        return view('classroom_practical_roster_print', [
+            'subject' => $subject,
+            'fullDepartment' => $fullDepartment,
+            'cleanedBatch' => $cleanedBatch,
+            'students' => $students,
+            'facultyNames' => $facultyNames,
+            'assignedStaffList' => $assignedStaffList,
+            'lecturerName' => $lecturerName,
+            'conductedHoursText' => $conductedHoursText,
+            'conductedHoursSummary' => $conductedHoursSummary,
+            'totalConductedHours' => $totalConductedHours,
+            'overallAvgAttn' => $overallAvgAttn,
+            'eligibleCount' => $eligibleCount,
+            'shortageCount' => $shortageCount,
+            'coAttainmentSummary' => $coAttainmentSummary,
+            'poLevelAverage' => $poLevelAverage,
+            'dateOfPreparation' => $dateOfPreparation
+        ]);
+    }
+
+    /**
      * Print Consolidated Class Roster & Attainment Register on A4 Portrait.
      */
     public function printTheoryClassRoster($subjectId)
@@ -2982,6 +3115,14 @@ Return ONLY valid JSON matching this exact structure:
 
         $batchSubject = \App\Models\BatchSubject::with('classroom')->find($subjectId);
         if (!$batchSubject) abort(404, 'Subject not found.');
+
+        // If this subject is a Practical / Lab subject, route to dedicated Consolidated Lab Internal Mark Report
+        $isPractical = \Illuminate\Support\Str::contains(strtolower($batchSubject->subject_type ?? ''), ['practical', 'lab', 'workshop', 'practicum'])
+            || \Illuminate\Support\Str::contains(strtolower($batchSubject->subject_name ?? ''), ['lab', 'practical', 'workshop', 'practicum']);
+
+        if ($isPractical) {
+            return $this->printPracticalClassRoster($subjectId);
+        }
 
         $classroom = \App\Models\ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: (object)[
@@ -3002,7 +3143,17 @@ Return ONLY valid JSON matching this exact structure:
         $logs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
             ->get();
-        $totalConductedHours = $logs->count();
+        $uniqueSlotLogs = [];
+        $studentPresentSlots = [];
+        foreach ($logs as $l) {
+            $slotKey = $l->date . '_P' . $l->period;
+            $uniqueSlotLogs[$slotKey] = true;
+            $presList = json_decode($l->present_students ?? '[]', true) ?: [];
+            foreach ($presList as $rNo) {
+                $studentPresentSlots[$rNo][$slotKey] = true;
+            }
+        }
+        $totalConductedHours = count($uniqueSlotLogs) ?: $logs->count();
 
         // Fetch direct AcademicMarks (Assignments + Summative Tests)
         $studentRegNos = $students->pluck('reg_no')->toArray();
@@ -3015,10 +3166,11 @@ Return ONLY valid JSON matching this exact structure:
             })
             ->get();
 
-        // Fetch Student Attendance records
+        // Fetch Student Attendance records from TEAMS (authoritative for % and attendance marks)
+        $allLookupRegs = $students->pluck('reg_no')->concat($students->pluck('sbte_reg_no'))->filter()->unique()->toArray();
         $studentAttendance = \Illuminate\Support\Facades\DB::table('student_attendance')
             ->where('subject_code', $batchSubject->subject_code)
-            ->whereIn('reg_no', $studentRegNos)
+            ->whereIn('reg_no', $allLookupRegs)
             ->get()
             ->groupBy('reg_no');
 
@@ -3026,7 +3178,7 @@ Return ONLY valid JSON matching this exact structure:
         $shortageCount = 0;
         $totalAttnPercentSum = 0;
 
-        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalConductedHours, $studentAttendance, &$eligibleCount, &$shortageCount, &$totalAttnPercentSum) {
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalConductedHours, $studentAttendance, $studentPresentSlots, &$eligibleCount, &$shortageCount, &$totalAttnPercentSum) {
             $studMarks = $marks->where('reg_no', $student->reg_no);
 
             // Assignment Marks (CO1, CO2, CO3, CO4)
@@ -3074,22 +3226,31 @@ Return ONLY valid JSON matching this exact structure:
                 }
             }
 
-            // Attendance calculation: calculate from logs
+            // Attendance calculation: staff log hours for class roster display
             $presentHours = 0;
             if ($totalConductedHours > 0) {
-                foreach ($logs as $l) {
-                    $presList = json_decode($l->present_students ?? '[]', true) ?: [];
-                    if (in_array($student->reg_no, $presList) || in_array($student->sbte_reg_no, $presList)) {
-                        $presentHours++;
-                    }
+                $presentHours = isset($studentPresentSlots[$student->reg_no]) ? count($studentPresentSlots[$student->reg_no]) : 0;
+                if ($presentHours === 0 && !empty($student->sbte_reg_no) && isset($studentPresentSlots[$student->sbte_reg_no])) {
+                    $presentHours = count($studentPresentSlots[$student->sbte_reg_no]);
                 }
-            } elseif (isset($studentAttendance[$student->reg_no])) {
-                $attRecords = $studentAttendance[$student->reg_no];
-                $presentHours = $attRecords->where('status', 'Present')->count();
+            }
+            $absentHours = max(0, $totalConductedHours - $presentHours);
+
+            // Authoritative attendance %: TEAMS uploaded data in student_attendance is official for % and attendance marks
+            $stAtt = $studentAttendance->get($student->reg_no, collect());
+            if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
+                $stAtt = $studentAttendance->get($student->sbte_reg_no, collect());
             }
 
-            $absentHours = max(0, $totalConductedHours - $presentHours);
-            $attPercent = $totalConductedHours > 0 ? round(($presentHours / $totalConductedHours) * 100, 1) : 100.0;
+            if ($stAtt->isNotEmpty()) {
+                $offTot = $stAtt->count();
+                $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+            } else {
+                $attPercent = $totalConductedHours > 0 ? round(($presentHours / $totalConductedHours) * 100, 1) : 100.0;
+            }
+
+            $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
             $totalAttnPercentSum += $attPercent;
 
             if ($attPercent >= 75) {
@@ -3121,6 +3282,7 @@ Return ONLY valid JSON matching this exact structure:
                 'present_hours' => $presentHours,
                 'absent_hours' => $absentHours,
                 'att_percent' => $attPercent,
+                'att_marks' => $attMarks,
                 'assignments' => $assignments,
                 'tests' => $tests,
                 'attainment_level' => $attainmentLevel,
@@ -3190,9 +3352,24 @@ Return ONLY valid JSON matching this exact structure:
                 'batch_year' => '2025 - 2028'
             ];
 
-        $totalEnrolled = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+        $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where('semester', $batchSubject->semester)
-            ->count();
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, UPPER(name) ASC')
+            ->get();
+        $totalEnrolled = $students->count();
+
+        $assignedBatches = \Illuminate\Support\Facades\DB::table('r26_student_lab_batches')
+            ->where('batch_subject_id', $subjectId)
+            ->pluck('lab_batch', 'reg_no');
+
+        $b1Students = $students->filter(function($s) use ($assignedBatches, $batchSubject) {
+            $b = $assignedBatches->get($s->reg_no) ?: (((int)($s->roll_no ?? 999) <= (int)($batchSubject->lab_batch_cutoff ?: 25)) ? '1' : '2');
+            return (string)$b === '1';
+        });
+        $b2Students = $students->filter(function($s) use ($assignedBatches, $batchSubject) {
+            $b = $assignedBatches->get($s->reg_no) ?: (((int)($s->roll_no ?? 999) <= (int)($batchSubject->lab_batch_cutoff ?: 25)) ? '1' : '2');
+            return (string)$b === '2';
+        });
 
         $rawLogs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
@@ -3203,39 +3380,95 @@ Return ONLY valid JSON matching this exact structure:
         $totalHours = $rawLogs->count();
         $totalAttnPctSum = 0;
 
-        $logs = $rawLogs->map(function($l) use ($totalEnrolled, &$totalAttnPctSum) {
-            $presArr = json_decode($l->present_students ?? '[]', true) ?: [];
-            $absArr = json_decode($l->absent_students ?? '[]', true) ?: [];
+        $logs = $rawLogs->groupBy('date')->map(function($dayLogs, $date) use ($batchSubject, $students, $b1Students, $b2Students, $totalEnrolled, &$totalAttnPctSum) {
+            // Periods as sorted CSV (e.g. 1, 2, 3)
+            $periods = $dayLogs->pluck('period')
+                ->filter(fn($p) => $p !== null && $p !== '')
+                ->map(fn($p) => (int)$p)
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
 
-            $presCount = count($presArr);
-            $absCount = count($absArr);
-            $effectiveTotal = ($presCount + $absCount) > 0 ? ($presCount + $absCount) : $totalEnrolled;
+            $hoursCsv = !empty($periods) ? implode(', ', $periods) : '-';
 
-            if ($absCount === 0 && $effectiveTotal > $presCount && $presCount > 0) {
-                $absCount = max(0, $effectiveTotal - $presCount);
+            // Batch Label
+            $uniqueBatches = $dayLogs->pluck('sub_batch')
+                ->map(fn($b) => trim((string)$b))
+                ->filter(fn($b) => $b !== '' && strtolower($b) !== 'null')
+                ->unique()
+                ->values();
+
+            if ($uniqueBatches->isEmpty() || ($uniqueBatches->count() === 1 && in_array(strtolower($uniqueBatches[0]), ['whole', 'all', '']))) {
+                $batchLabel = ($batchSubject->subject_type === 'Practical' || str_contains(strtolower($batchSubject->subject_name), 'lab')) ? 'Whole' : 'All';
+            } else {
+                $formattedBatches = $uniqueBatches->map(function($b) {
+                    if ($b === '1') return 'Batch 1';
+                    if ($b === '2') return 'Batch 2';
+                    if (strtolower($b) === 'whole') return 'Whole';
+                    return 'Batch ' . $b;
+                })->sort()->values();
+                $batchLabel = $formattedBatches->implode(' & ');
+            }
+
+            // Distinct topics covered across the periods on this date
+            $topics = $dayLogs->pluck('topics_covered')
+                ->map(fn($t) => trim(preg_replace('/\s+/', ' ', (string)$t)))
+                ->filter()
+                ->unique()
+                ->values();
+            $topicsCovered = $topics->isNotEmpty() ? $topics->implode('; ') : 'Syllabus lecture session';
+
+            // Aggregate present and absent students strictly by sub-batch
+            $subBatches = $dayLogs->groupBy(fn($l) => (string)($l->sub_batch ?? 'Whole'));
+            $presCount = 0;
+            $absCount = 0;
+            $effectiveTotal = 0;
+
+            foreach ($subBatches as $sbLogs) {
+                $firstSb = $sbLogs->first();
+                $sbVal = (string)($firstSb->sub_batch ?? 'Whole');
+                $batchStudents = ($sbVal === '1') ? $b1Students : (($sbVal === '2') ? $b2Students : $students);
+                $expTot = $batchStudents->count();
+
+                $pList = array_unique(json_decode($firstSb->present_students ?? '[]', true) ?: []);
+                $presSt = $batchStudents->whereIn('reg_no', $pList);
+                $pCount = $presSt->count();
+                $aCount = max(0, $expTot - $pCount);
+
+                $presCount += $pCount;
+                $absCount += $aCount;
+                $effectiveTotal += $expTot;
+            }
+
+            if ($effectiveTotal === 0) {
+                $effectiveTotal = $totalEnrolled;
             }
 
             $attPct = $effectiveTotal > 0 ? round(($presCount / $effectiveTotal) * 100, 1) : 0;
             $totalAttnPctSum += $attPct;
 
             // Format date as DD-MM-YYYY
-            $formattedDate = $l->date;
-            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $l->date, $m)) {
+            $formattedDate = $date;
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $date, $m)) {
                 $formattedDate = "{$m[3]}-{$m[2]}-{$m[1]}";
             }
 
             return (object)[
-                'id' => $l->id,
-                'date' => $l->date,
+                'id' => $dayLogs->first()->id,
+                'date' => $date,
                 'formatted_date' => $formattedDate,
-                'period' => $l->period,
-                'period_label' => 'Hour ' . $l->period,
-                'topics_covered' => $l->topics_covered,
+                'batch_label' => $batchLabel,
+                'period' => $hoursCsv,
+                'period_label' => $hoursCsv,
+                'hours_csv' => $hoursCsv,
+                'hours_count' => $dayLogs->count(),
+                'topics_covered' => $topicsCovered,
                 'present_count' => $presCount,
                 'absent_count' => $absCount,
                 'attendance_pct' => $attPct,
             ];
-        });
+        })->values();
 
         $overallAvgAttn = $logs->count() > 0 ? round($totalAttnPctSum / $logs->count(), 1) : 0;
 
@@ -4654,25 +4887,49 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         // Fetch class logs attendance for dynamic percentage & hours
         $classLogs = \DB::table('class_logs_attendance')
             ->where('batch_subject_id', $batchSubject->id)
-            ->get(['present_students', 'absent_students']);
-        $totalAttendanceClasses = $classLogs->count();
-        $studentAttendanceCounts = [];
-        $studentScheduledCounts = [];
+            ->orderBy('date', 'asc')
+            ->orderBy('period', 'asc')
+            ->get(['date', 'period', 'sub_batch', 'present_students']);
+
+        $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+        $allUniqueSlots = [];
+        $studentPresentSlots = [];
+
         foreach ($classLogs as $log) {
-            $pList = json_decode($log->present_students ?? '[]', true);
-            $aList = json_decode($log->absent_students ?? '[]', true);
+            $slotKey = $log->date . '_P' . $log->period;
+            $allUniqueSlots[$slotKey] = true;
+            $sb = (string)($log->sub_batch ?? 'Whole');
+            if ($sb === '1' || $sb === 1) {
+                $batchUniqueSlots['1'][$slotKey] = true;
+            } elseif ($sb === '2' || $sb === 2) {
+                $batchUniqueSlots['2'][$slotKey] = true;
+            } else {
+                $batchUniqueSlots['Whole'][$slotKey] = true;
+            }
+
+            $pList = json_decode($log->present_students ?? '[]', true) ?: [];
             if (is_array($pList)) {
                 foreach ($pList as $rNo) {
-                    $studentAttendanceCounts[$rNo] = ($studentAttendanceCounts[$rNo] ?? 0) + 1;
-                    $studentScheduledCounts[$rNo] = ($studentScheduledCounts[$rNo] ?? 0) + 1;
-                }
-            }
-            if (is_array($aList)) {
-                foreach ($aList as $rNo) {
-                    $studentScheduledCounts[$rNo] = ($studentScheduledCounts[$rNo] ?? 0) + 1;
+                    $studentPresentSlots[$rNo][$slotKey] = true;
                 }
             }
         }
+
+        $b1Scheduled = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+        $b2Scheduled = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+        $wholeScheduled = count($allUniqueSlots);
+        $totalAttendanceClasses = $wholeScheduled ?: $classLogs->count();
+
+        $assignedBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->pluck('lab_batch', 'reg_no');
+
+        // Authoritative official attendance from TEAMS upload in student_attendance
+        $officialAttendance = \DB::table('student_attendance')
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
 
         $conductedExpIds = $experiments->filter(function($e) use ($experimentMarks) {
             return !empty($e->conducted_date) || $experimentMarks->where('practical_experiment_id', $e->id)->where('total_mark', '>', 0)->count() > 0;
@@ -4680,26 +4937,54 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $conductedExperimentsCount = $conductedExpIds->count();
         $totalCompletedExps = ($conductedExperimentsCount > 0) ? $conductedExperimentsCount : ($experiments->count() > 0 ? $experiments->count() : 1);
 
-        $students = $students->map(function ($student) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentAttendanceCounts, $studentScheduledCounts, $totalCompletedExps) {
+        $students = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance) {
             $regNo = $student->reg_no;
 
-            // Compute dynamic attendance percentage & suggested mark
-            $presentClasses = $studentAttendanceCounts[$regNo] ?? 0;
-            $scheduledClasses = $studentScheduledCounts[$regNo] ?? 0;
-            $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalAttendanceClasses;
-            if ($totalForStudent > 0) {
-                $attendancePercentage = ($presentClasses / $totalForStudent) * 100;
+            $labBatch = null;
+            if (isset($assignedBatches[$regNo])) {
+                $labBatch = (string)$assignedBatches[$regNo];
+            } elseif ($batchSubject->lab_batch_cutoff && $student->roll_no !== null) {
+                $labBatch = ((int)$student->roll_no <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+            } elseif ($batchSubject->lab_batch_mode === 'full') {
+                $labBatch = '1';
             } else {
-                $attendancePercentage = 100.00;
+                $mid = (int)ceil($student->count ?? 25);
+                $labBatch = ($sIdx < $mid) ? '1' : '2';
+            }
+
+            // Fixed batch-based conducted hours
+            if ($batchSubject->subject_type === 'Theory') {
+                $totalForStudent = $wholeScheduled ?: $totalAttendanceClasses;
+            } elseif ($labBatch === '1') {
+                $totalForStudent = $b1Scheduled > 0 ? $b1Scheduled : ($wholeScheduled ?: $totalAttendanceClasses);
+            } elseif ($labBatch === '2') {
+                $totalForStudent = $b2Scheduled > 0 ? $b2Scheduled : ($wholeScheduled ?: $totalAttendanceClasses);
+            } else {
+                $totalForStudent = $wholeScheduled ?: $totalAttendanceClasses;
+            }
+
+            // Student attended hours capped at batch conducted hours (for log display)
+            $rawPresent = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
+            $presentClasses = min($totalForStudent, $rawPresent);
+            $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.00;
+
+            // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
+            $stOfficial = $officialAttendance->get($regNo, collect());
+            if ($stOfficial->isNotEmpty()) {
+                $offTot = $stOfficial->count();
+                $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;
+            } else {
+                $attendancePercentage = $logAttPct;
             }
             
-            // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+            // Attendance mark out of 15 based on official attendance percentage (R2021)
             $suggestedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
             // Consolidated eval
             $eval = $evaluations->where('reg_no', $regNo)->first();
             $microProject = $eval ? (float)$eval->micro_project : 0.00;
-            $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0) ? (float)$eval->attendance_marks : $suggestedAttendanceMarks;
+            $attendanceMarks = $suggestedAttendanceMarks;
             $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
             if ($boardExam === null) {
                 $bGrade = \DB::table('student_board_grades')
@@ -4778,7 +5063,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $student->micro_project = $microProject;
             $student->attendance_marks = $attendanceMarks;
             $student->attendance_percentage = round($attendancePercentage, 2);
-            $student->total_classes = $totalAttendanceClasses;
+            $student->total_classes = $totalForStudent;
             $student->present_classes = $presentClasses;
             $student->total_internal = $totalInternal;
             $student->board_exam_marks = $boardExam;
@@ -5079,32 +5364,35 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->get(['id', 'date', 'period', 'sub_batch', 'topics_covered', 'lesson_plan_id', 'present_students', 'absent_students']);
 
         // Normalize student attendance slots and actual engaged hours
-        $studentPresentSlots = [];    // [reg_no => [slotKey => true]]
-        $studentScheduledSlots = [];  // [reg_no => [slotKey => true]]
-        $actualSlotKeys = [];         // unique slots for the batch
+        $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+        $allUniqueSlots = [];
+        $studentPresentSlots = [];
 
         foreach ($classLogs as $log) {
             $slotKey = $log->date . '_P' . $log->period;
-            $batchSlotKey = $slotKey . '_' . ($log->sub_batch ?? 'Whole');
-            $actualSlotKeys[$batchSlotKey] = true;
+            $allUniqueSlots[$slotKey] = true;
+            $sb = (string)($log->sub_batch ?? 'Whole');
+            if ($sb === '1' || $sb === 1) {
+                $batchUniqueSlots['1'][$slotKey] = true;
+            } elseif ($sb === '2' || $sb === 2) {
+                $batchUniqueSlots['2'][$slotKey] = true;
+            } else {
+                $batchUniqueSlots['Whole'][$slotKey] = true;
+            }
 
-            $pList = json_decode($log->present_students ?? '[]', true);
-            $aList = json_decode($log->absent_students ?? '[]', true);
+            $pList = json_decode($log->present_students ?? '[]', true) ?: [];
             if (is_array($pList)) {
                 foreach ($pList as $rNo) {
                     $studentPresentSlots[$rNo][$slotKey] = true;
-                    $studentScheduledSlots[$rNo][$slotKey] = true;
-                }
-            }
-            if (is_array($aList)) {
-                foreach ($aList as $rNo) {
-                    $studentScheduledSlots[$rNo][$slotKey] = true;
                 }
             }
         }
 
-        $totalAttendanceClasses = count($actualSlotKeys);
-        $actualHoursConducted = count(array_unique(array_map(fn($l) => $l->date . '_P' . $l->period, $classLogs->toArray())));
+        $b1Scheduled = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+        $b2Scheduled = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+        $wholeScheduled = count($allUniqueSlots);
+        $totalAttendanceClasses = $wholeScheduled ?: $classLogs->count();
+        $actualHoursConducted = $wholeScheduled;
 
         $assignedBatches = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
             ->whereIn('reg_no', $students->pluck('reg_no'))
@@ -5317,7 +5605,14 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             });
         }
 
-        $data = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $studentPresentSlots, $studentScheduledSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs, $assignedBatches) {
+        // Authoritative official attendance from TEAMS upload in student_attendance
+        $officialAttendance = \DB::table('student_attendance')
+            ->whereIn('reg_no', $students->pluck('reg_no'))
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
+        $data = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs, $assignedBatches, $officialAttendance) {
             $regNo = $student->reg_no;
 
             $labBatch = null;
@@ -5332,27 +5627,41 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 $labBatch = ($sIdx < $mid) ? '1' : '2';
             }
 
-            // Compute dynamic attendance percentage & R2021 slab mark (out of 15) using actual unique slots
-            $presentClasses = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
-            $scheduledClasses = isset($studentScheduledSlots[$regNo]) ? count($studentScheduledSlots[$regNo]) : 0;
-            $totalForStudent = $scheduledClasses > 0 ? $scheduledClasses : $totalAttendanceClasses;
-            if ($totalForStudent > 0) {
-                $attendancePercentage = ($presentClasses / $totalForStudent) * 100;
+            // Fixed batch-based conducted hours
+            if ($batchSubject->subject_type === 'Theory') {
+                $totalForStudent = $wholeScheduled ?: $totalAttendanceClasses;
+            } elseif ($labBatch === '1') {
+                $totalForStudent = $b1Scheduled > 0 ? $b1Scheduled : ($wholeScheduled ?: $totalAttendanceClasses);
+            } elseif ($labBatch === '2') {
+                $totalForStudent = $b2Scheduled > 0 ? $b2Scheduled : ($wholeScheduled ?: $totalAttendanceClasses);
             } else {
-                $attendancePercentage = 100.00;
+                $totalForStudent = $wholeScheduled ?: $totalAttendanceClasses;
             }
 
-            // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+            // Student attended hours capped at batch conducted hours (for log display)
+            $rawPresent = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
+            $presentClasses = min($totalForStudent, $rawPresent);
+            $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.00;
+
+            // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
+            $stOfficial = $officialAttendance->get($regNo, collect());
+            if ($stOfficial->isNotEmpty()) {
+                $offTot = $stOfficial->count();
+                $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;
+            } else {
+                $attendancePercentage = $logAttPct;
+            }
+
+            // Attendance mark out of 15 based on official attendance percentage (R2021)
             $calculatedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
             // Consolidated eval
             $eval = $evaluations->where('reg_no', $regNo)->first();
             $microProject = $eval ? (float)$eval->micro_project : 0.00;
             $openEndedTopic = $eval ? $eval->open_ended_topic : '';
-            // If faculty explicitly entered a mark > 0, use it; otherwise use the calculated proportional mark!
-            $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
-                ? (float)$eval->attendance_marks
-                : $calculatedAttendanceMarks;
+            // For R2021 CIA, attendance mark is calculated directly from official attendance percentage
+            $attendanceMarks = $calculatedAttendanceMarks;
             $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
             if ($boardExam === null && \Schema::hasTable('student_board_grades')) {
                 $bgRow = \DB::table('student_board_grades')->where('reg_no', $regNo)->where('subject_code', $batchSubject->subject_code)->first();
@@ -6162,26 +6471,81 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->sum('marks_obtained');
         $avgTests = ($sumTestMarks / 2); // (Test 1 score + Test 2 score) / 2
 
-        // Retrieve attendance percentage to keep synced from class_logs_attendance
+        // Retrieve attendance percentage to keep synced from class_logs_attendance using fixed batch scheduled hours
         $classLogs = \DB::table('class_logs_attendance')
             ->where('batch_subject_id', $batchSubject->id)
-            ->get(['present_students', 'absent_students']);
-        $totalAttendanceClasses = $classLogs->count();
-        $presentClasses = 0;
-        $absentClasses = 0;
+            ->orderBy('date', 'asc')
+            ->orderBy('period', 'asc')
+            ->get(['date', 'period', 'sub_batch', 'present_students']);
+
+        $assignedBatch = \App\Models\R26StudentLabBatch::where('batch_subject_id', $subjectId)
+            ->where('reg_no', $regNo)
+            ->value('lab_batch');
+        $student = \App\Models\Student::where('reg_no', $regNo)->first();
+        if ($assignedBatch) {
+            $labBatch = (string)$assignedBatch;
+        } elseif ($batchSubject->lab_batch_cutoff && $student && $student->roll_no !== null) {
+            $labBatch = ((int)$student->roll_no <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+        } elseif ($batchSubject->lab_batch_mode === 'full') {
+            $labBatch = '1';
+        } else {
+            $labBatch = '1';
+        }
+
+        $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+        $allUniqueSlots = [];
+        $studentPresentSlots = [];
+
         foreach ($classLogs as $log) {
-            $pList = json_decode($log->present_students ?? '[]', true);
-            $aList = json_decode($log->absent_students ?? '[]', true);
+            $slotKey = $log->date . '_P' . $log->period;
+            $allUniqueSlots[$slotKey] = true;
+            $sb = (string)($log->sub_batch ?? 'Whole');
+            if ($sb === '1' || $sb === 1) {
+                $batchUniqueSlots['1'][$slotKey] = true;
+            } elseif ($sb === '2' || $sb === 2) {
+                $batchUniqueSlots['2'][$slotKey] = true;
+            } else {
+                $batchUniqueSlots['Whole'][$slotKey] = true;
+            }
+
+            $pList = json_decode($log->present_students ?? '[]', true) ?: [];
             if (is_array($pList) && in_array($regNo, $pList)) {
-                $presentClasses++;
-            } elseif (is_array($aList) && in_array($regNo, $aList)) {
-                $absentClasses++;
+                $studentPresentSlots[$slotKey] = true;
             }
         }
-        $totalForStudent = ($presentClasses + $absentClasses) > 0 ? ($presentClasses + $absentClasses) : $totalAttendanceClasses;
-        $attendancePercentage = $totalForStudent > 0 ? (($presentClasses / $totalForStudent) * 100) : 100.00;
 
-        // Attendance mark out of 15 based on actual conducted & attended classes (R2021)
+        $b1Scheduled = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+        $b2Scheduled = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+        $wholeScheduled = count($allUniqueSlots);
+
+        if ($batchSubject->subject_type === 'Theory') {
+            $totalForStudent = $wholeScheduled ?: $classLogs->count();
+        } elseif ($labBatch === '1') {
+            $totalForStudent = $b1Scheduled > 0 ? $b1Scheduled : ($wholeScheduled ?: $classLogs->count());
+        } elseif ($labBatch === '2') {
+            $totalForStudent = $b2Scheduled > 0 ? $b2Scheduled : ($wholeScheduled ?: $classLogs->count());
+        } else {
+            $totalForStudent = $wholeScheduled ?: $classLogs->count();
+        }
+
+        $rawPresent = count($studentPresentSlots);
+        $presentClasses = min($totalForStudent, $rawPresent);
+        $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.00;
+
+        // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
+        $stOfficial = \DB::table('student_attendance')
+            ->where('reg_no', $regNo)
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get();
+        if ($stOfficial->isNotEmpty()) {
+            $offTot = $stOfficial->count();
+            $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+            $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;
+        } else {
+            $attendancePercentage = $logAttPct;
+        }
+
+        // Attendance mark out of 15 based on official attendance percentage (R2021)
         $calculatedAttendanceMarks = \App\Services\AttainmentService::calculateR21AttendanceMark($attendancePercentage, 15.0);
 
         // Consolidated
@@ -6190,9 +6554,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgLabWork = (float)$eval->lab_work_marks;
         }
         $microProject = $eval ? (float)$eval->micro_project : 0.00;
-        $attendanceMarks = ($eval && $eval->attendance_marks !== null && (float)$eval->attendance_marks > 0)
-            ? (float)$eval->attendance_marks
-            : $calculatedAttendanceMarks;
+        $attendanceMarks = $calculatedAttendanceMarks;
         $boardExam = $eval ? $eval->board_exam_marks : null;
 
         $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);

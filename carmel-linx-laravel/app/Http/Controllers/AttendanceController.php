@@ -481,9 +481,16 @@ class AttendanceController extends Controller
 
         DB::transaction(function () use ($request, $recordedBy, $subBatch, $submittedTopics, $isAdditionalLog, $explicitLogIds, $presentStudents, $absentStudents) {
             if (!empty($explicitLogIds)) {
-                // Bulk update the specific log IDs being edited
+                // Delete any logs from this edited session whose periods were unselected
                 DB::table('class_logs_attendance')
                     ->whereIn('id', $explicitLogIds)
+                    ->whereNotIn('period', $request->periods)
+                    ->delete();
+
+                // Update surviving logs from this edited session
+                DB::table('class_logs_attendance')
+                    ->whereIn('id', $explicitLogIds)
+                    ->whereIn('period', $request->periods)
                     ->update([
                         'date' => $request->date,
                         'sub_batch' => $subBatch,
@@ -496,13 +503,13 @@ class AttendanceController extends Controller
                     ]);
 
                 // Ensure all requested periods exist in database
-                $existingLoggedPeriods = DB::table('class_logs_attendance')
+                $survivingLoggedPeriods = DB::table('class_logs_attendance')
                     ->whereIn('id', $explicitLogIds)
                     ->pluck('period')
                     ->toArray();
 
                 foreach ($request->periods as $period) {
-                    if (!in_array($period, $existingLoggedPeriods)) {
+                    if (!in_array($period, $survivingLoggedPeriods)) {
                         DB::table('class_logs_attendance')->insert([
                             'batch_subject_id' => $request->batch_subject_id,
                             'date' => $request->date,
@@ -884,6 +891,11 @@ class AttendanceController extends Controller
         $classLogs = $classLogsQuery->get();
         $classLogsBySubject = $classLogs->groupBy('batch_subject_id');
 
+        $assignedLabBatches = DB::table('r26_student_lab_batches')
+            ->whereIn('batch_subject_id', $subjectIds)
+            ->get()
+            ->groupBy('batch_subject_id');
+
         $reportRows = [];
         $totalEligible = 0;
         $totalCondonation = 0;
@@ -903,52 +915,82 @@ class AttendanceController extends Controller
                 $sLogs = $classLogsBySubject->get($subj->id, collect());
                 $stSubjAtt = $stRecords->where('subject_code', $sCode);
 
-                $conducted = $sLogs->count();
-                if ($conducted == 0) {
-                    $conducted = $stSubjAtt->count();
-                }
-
-                $attended = 0;
-                if ($sLogs->isNotEmpty()) {
-                    foreach ($sLogs as $log) {
-                        $pArr = json_decode($log->present_students ?? '[]', true) ?: [];
-                        if (in_array($regNo, $pArr)) {
-                            $attended++;
-                        }
-                    }
-                } else {
-                    $attended = $stSubjAtt->whereIn('status', ['Present', 'Late'])->count();
-                }
-
-                $pct = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
-
                 $isPractical = stripos($subj->subject_type ?? '', 'pract') !== false || stripos($subj->subject_type ?? '', 'lab') !== false;
                 $isSeminar = stripos($subj->subject_type ?? '', 'seminar') !== false;
                 $isProject = stripos($subj->subject_type ?? '', 'project') !== false;
 
-                $ciaAttMark = 0.0;
-                if ($isPractical || $isProject) {
-                    if ($pct >= 90) $ciaAttMark = 15.0;
-                    elseif ($pct >= 80) $ciaAttMark = 12.0;
-                    elseif ($pct >= 75) $ciaAttMark = 9.0;
-                    elseif ($pct >= 70) $ciaAttMark = 6.0;
-                    elseif ($pct >= 65) $ciaAttMark = 3.0;
-                    else $ciaAttMark = 0.0;
-                } elseif ($isSeminar) {
-                    if ($pct >= 90) $ciaAttMark = 7.5;
-                    elseif ($pct >= 80) $ciaAttMark = 6.0;
-                    elseif ($pct >= 75) $ciaAttMark = 4.5;
-                    elseif ($pct >= 70) $ciaAttMark = 3.0;
-                    elseif ($pct >= 65) $ciaAttMark = 1.5;
-                    else $ciaAttMark = 0.0;
+                // Resolve student's lab batch (1 or 2)
+                $labBatch = null;
+                $sBatches = $assignedLabBatches->get($subj->id, collect())->keyBy('reg_no');
+                if ($sBatches->has($regNo)) {
+                    $labBatch = (string)$sBatches->get($regNo)->lab_batch;
+                } elseif (!empty($subj->lab_batch_cutoff) && $stud->roll_no !== null) {
+                    $labBatch = ((int)$stud->roll_no <= (int)$subj->lab_batch_cutoff) ? '1' : '2';
                 } else {
-                    if ($pct >= 90) $ciaAttMark = 10.0;
-                    elseif ($pct >= 80) $ciaAttMark = 8.0;
-                    elseif ($pct >= 75) $ciaAttMark = 6.0;
-                    elseif ($pct >= 70) $ciaAttMark = 4.0;
-                    elseif ($pct >= 65) $ciaAttMark = 2.0;
-                    else $ciaAttMark = 0.0;
+                    $labBatch = '1';
                 }
+
+                $conducted = 0;
+                $attended = 0;
+
+                if ($sLogs->isNotEmpty()) {
+                    $slots1 = [];
+                    $slots2 = [];
+                    $slotsWhole = [];
+                    $studentSlots = [];
+
+                    foreach ($sLogs as $log) {
+                        $slotKey = $log->date . '_P' . $log->period;
+                        $sb = (string)($log->sub_batch ?? 'Whole');
+                        if ($sb === '1' || $sb === 1) {
+                            $slots1[$slotKey] = true;
+                        } elseif ($sb === '2' || $sb === 2) {
+                            $slots2[$slotKey] = true;
+                        } else {
+                            $slotsWhole[$slotKey] = true;
+                        }
+
+                        $pArr = json_decode($log->present_students ?? '[]', true) ?: [];
+                        if (in_array($regNo, $pArr)) {
+                            $studentSlots[$slotKey] = true;
+                        }
+                    }
+
+                    if ($isPractical) {
+                        $b1Count = count($slots1) + count($slotsWhole);
+                        $b2Count = count($slots2) + count($slotsWhole);
+                        $conducted = ($labBatch === '2') ? ($b2Count ?: $sLogs->count()) : ($b1Count ?: $sLogs->count());
+                    } else {
+                        $conducted = (count($slots1) + count($slots2) + count($slotsWhole)) ?: $sLogs->count();
+                    }
+                    $attended = min($conducted, count($studentSlots));
+                } elseif ($stSubjAtt->isNotEmpty()) {
+                    $conducted = $stSubjAtt->count();
+                    $attended = $stSubjAtt->whereIn('status', ['Present', 'Late'])->count();
+                }
+
+                // Authoritative attendance percentage:
+                // Teams uploaded attendance in student_attendance is purely official for attendance percentage & CIA
+                if ($stSubjAtt->isNotEmpty()) {
+                    $offTot = $stSubjAtt->count();
+                    $offPres = $stSubjAtt->whereIn('status', ['Present', 'Late'])->count();
+                    $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+                    if ($conducted == 0) {
+                        $conducted = $offTot;
+                        $attended = $offPres;
+                    }
+                } else {
+                    $pct = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
+                }
+
+                $maxAttMark = 10.0;
+                if ($isPractical || $isProject) {
+                    $maxAttMark = 15.0;
+                } elseif ($isSeminar) {
+                    $maxAttMark = 7.5;
+                }
+
+                $ciaAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, $maxAttMark);
 
                 $subjectBreakdown[$subj->id] = [
                     'subject_id' => $subj->id,
@@ -1084,8 +1126,12 @@ class AttendanceController extends Controller
     /**
      * Print Individual Student Attendance & Condonation Statement
      */
-    public function printStudentAttendanceReport(Request $request, $regNo)
+    public function printStudentAttendanceReport(Request $request, $regNo = null)
     {
+        $regNo = $regNo ?: $request->input('reg_no') ?: $request->input('student');
+        if ($regNo) {
+            $regNo = urldecode(trim((string)$regNo));
+        }
         $request->merge(['student' => $regNo, 'mode' => 'single']);
         return $this->printTutorAttendanceReport($request);
     }

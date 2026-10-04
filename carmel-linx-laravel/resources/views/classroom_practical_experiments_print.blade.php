@@ -280,21 +280,27 @@
     </table>
 
     <div class="summary-container">
+        @if(($batch1SessionsCount ?? 0) > 0 || ($batch2SessionsCount ?? 0) > 0)
         <div class="summary-card">
-            <div class="num">{{ $conductedCount }}</div>
-            <div class="lbl">Experiments Conducted</div>
+            <div class="num">{{ $batch1SessionsCount ?? 0 }} <span style="font-size: 11px; font-weight: normal; color: #4b5563;">({{ $batch1StudentCount ?? 25 }} Students)</span></div>
+            <div class="lbl">Batch 1 Sessions</div>
         </div>
         <div class="summary-card">
-            <div class="num">{{ $totalExperiments }}</div>
-            <div class="lbl">Total Syllabus Experiments</div>
+            <div class="num">{{ $batch2SessionsCount ?? 0 }} <span style="font-size: 11px; font-weight: normal; color: #4b5563;">({{ $batch2StudentCount ?? 26 }} Students)</span></div>
+            <div class="lbl">Batch 2 Sessions</div>
+        </div>
+        @endif
+        <div class="summary-card">
+            <div class="num">{{ count($conductedDetails) }}</div>
+            <div class="lbl">Total Log Sessions</div>
         </div>
         <div class="summary-card">
-            <div class="num">{{ $coveragePct }}%</div>
+            <div class="num">{{ $conductedCount }} / {{ $totalExperiments }} ({{ $coveragePct }}%)</div>
             <div class="lbl">Syllabus Coverage</div>
         </div>
         <div class="summary-card">
             <div class="num">{{ $actualLabHours }} hrs</div>
-            <div class="lbl">Actual Lab Hours Covered</div>
+            <div class="lbl">Actual Lab Hours</div>
         </div>
     </div>
 
@@ -302,13 +308,13 @@
         <thead>
             <tr>
                 <th style="width: 4%">Sl.</th>
-                <th style="width: 8%">Exp No</th>
+                <th style="width: 10%">Session / Exp No</th>
                 <th style="width: 22%">Title &amp; Topics Covered</th>
                 <th style="width: 5%">CO</th>
                 <th style="width: 8%">Batch</th>
                 <th style="width: 10%">Conducted Date</th>
-                <th style="width: 10%">Hours / Periods</th>
-                <th style="width: 9%">Attendance (%)</th>
+                <th style="width: 11%">Hours / Periods</th>
+                <th style="width: 6%">Present</th>
                 <th style="width: 6%">Absent</th>
                 <th style="width: 18%">Absentee Roll Nos</th>
             </tr>
@@ -327,14 +333,23 @@
                     }
                     $abCount = $exp['absent_count'] ?? max(0, ($exp['total_count'] ?? 0) - ($exp['present_count'] ?? 0));
                     $abRolls = $exp['absent_roll_nos'] ?? '-';
-                    $attPct = isset($exp['attendance_pct']) ? ($exp['attendance_pct'] . '%') : '-';
                 @endphp
 
                 @if($currentBatchHeader !== $thisBatch)
-                    @php $currentBatchHeader = $thisBatch; @endphp
+                    @php
+                        $currentBatchHeader = $thisBatch;
+                        $isB1 = str_contains(strtolower($thisBatch), 'batch 1');
+                        $isB2 = str_contains(strtolower($thisBatch), 'batch 2');
+                        $thisBatchCount = $isB1
+                            ? ($batch1SessionsCount ?? 0)
+                            : ($isB2 ? ($batch2SessionsCount ?? 0) : count($conductedDetails));
+                        $thisBatchStudents = $isB1
+                            ? ($batch1StudentCount ?? 25)
+                            : ($isB2 ? ($batch2StudentCount ?? 26) : $students->count());
+                    @endphp
                     <tr class="batch-header-row">
                         <td colspan="10">
-                            {{ $thisBatch }} — Practical Experiments &amp; Conducted Log Sessions
+                            {{ $thisBatch }} — Practical Experiments &amp; Conducted Log Sessions ({{ $thisBatchCount }} Sessions • {{ $thisBatchStudents }} Students)
                         </td>
                     </tr>
                 @endif
@@ -354,11 +369,10 @@
                     <td class="align-center" style="font-size: 9.5px;">
                         {{ $exp['hours_text'] }}
                     </td>
-                    <td class="align-center" style="font-size: 9.5px;">
-                        <span style="color: #166534; font-weight: bold;">{{ $exp['present_count'] }}</span> / {{ $exp['total_count'] }}
-                        <div style="color: #1d4ed8; font-weight: bold; font-size: 8.5px;">({{ $attPct }})</div>
+                    <td class="align-center" style="font-size: 10.5px;">
+                        <span style="color: #166534; font-weight: bold;">{{ $exp['present_count'] }}</span>
                     </td>
-                    <td class="align-center" style="font-size: 9.5px;">
+                    <td class="align-center" style="font-size: 10.5px;">
                         @if($abCount > 0)
                             <span style="color: #dc2626; font-weight: bold;">{{ $abCount }}</span>
                         @else

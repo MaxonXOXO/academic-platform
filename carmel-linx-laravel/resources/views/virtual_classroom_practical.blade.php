@@ -2509,7 +2509,7 @@
 
             const btnPrint = document.getElementById('btnDetailModalPrintStudent');
             if (btnPrint) {
-                btnPrint.href = `/classroom/practical/{{ $batchSubject->id }}/student/${encodeURIComponent(regNo)}/print`;
+                btnPrint.href = `/classroom/practical/{{ $batchSubject->id }}/student-print?reg_no=${encodeURIComponent(regNo)}`;
             }
 
             // Reset att log

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Roster & Attainment Register - {{ $subject->subject_code }}</title>
+    <title>Consolidated Lab Internal Mark Report - {{ $subject->subject_code }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -113,13 +113,13 @@
             background: #f8fafc;
             font-weight: 700;
             color: #334155;
-            width: 14%;
+            width: 15%;
         }
 
         .meta-table .val {
             color: #0f172a;
             font-weight: 600;
-            width: 36%;
+            width: 35%;
         }
 
         .roster-table {
@@ -132,7 +132,7 @@
         .roster-table th,
         .roster-table td {
             border: 1px solid #64748b;
-            padding: 3px 2px;
+            padding: 3.5px 2px;
             text-align: center;
             vertical-align: middle;
         }
@@ -162,12 +162,12 @@
 
         .roster-table td.name-cell {
             text-align: left;
-            padding-left: 4px;
+            padding-left: 5px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 120px;
+            max-width: 135px;
         }
 
         .roster-table td.reg-cell {
@@ -181,6 +181,10 @@
             background-color: #f8fafc;
         }
 
+        .font-mono {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
         .pct-high {
             font-weight: 700;
             color: #047857;
@@ -190,24 +194,6 @@
             font-weight: 800;
             color: #b91c1c;
             background-color: #fee2e2 !important;
-        }
-
-        .status-badge {
-            font-size: 7.5px;
-            font-weight: 800;
-            padding: 1px 3px;
-            border-radius: 2px;
-            display: inline-block;
-        }
-
-        .status-eligible {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-shortage {
-            background: #fee2e2;
-            color: #991b1b;
         }
 
         .summary-card {
@@ -262,12 +248,13 @@
             margin-top: 24px;
             padding-top: 10px;
             page-break-inside: avoid;
+            gap: 12px;
         }
 
         .sig-block {
             text-align: center;
-            width: 28%;
             font-size: 9px;
+            flex: 1;
         }
 
         .sig-line {
@@ -312,7 +299,7 @@
     <div class="header">
         <div class="college-name">Carmel Polytechnic College, Alappuzha</div>
         <div class="college-sub">Government Aided Polytechnic College • Approved by AICTE • Affiliated to SBTE Kerala</div>
-        <div class="report-badge">Consolidated Theory Class Roster & Attainment Register</div>
+        <div class="report-badge">Consolidated Lab Internal Mark Report</div>
     </div>
 
     <!-- Meta Details Grid -->
@@ -327,13 +314,13 @@
             <td class="lbl">Course:</td>
             <td class="val"><strong>{{ $subject->subject_code }}</strong> - {{ $subject->subject_name }}</td>
             <td class="lbl">Faculty In-Charge:</td>
-            <td class="val">{{ $lecturerName }}</td>
+            <td class="val"><strong>{{ $facultyNames }}</strong></td>
         </tr>
         <tr>
             <td class="lbl">Conducted Hours:</td>
-            <td class="val"><strong>{{ $totalConductedHours }}</strong> Hours (Total Sessions)</td>
-            <td class="lbl">Students Enrolled:</td>
-            <td class="val"><strong>{{ $students->count() }}</strong> Candidates</td>
+            <td class="val"><strong>{{ $conductedHoursText }}</strong></td>
+            <td class="lbl">Date of Preparation:</td>
+            <td class="val"><strong>{{ $dateOfPreparation }}</strong> ({{ $students->count() }} Candidates)</td>
         </tr>
     </table>
 
@@ -341,37 +328,28 @@
     <table class="roster-table">
         <thead>
             <tr>
-                <th rowspan="2" style="width: 20px;">Roll</th>
-                <th rowspan="2" style="width: 110px;">Student Name</th>
-                <th rowspan="2" style="width: 65px;">SBTE Reg No</th>
-                <th colspan="5" class="grp-hdr" style="background:#e0e7ff;">Attendance Hours & Marks</th>
-                <th colspan="4" class="grp-hdr" style="background:#fef3c7;">Assignment Marks (Max 20)</th>
-                <th colspan="4" class="grp-hdr" style="background:#e0f2fe;">Summative Tests (Max 20)</th>
-                <th colspan="2" class="grp-hdr" style="background:#dcfce7;">Attainment & Status</th>
+                <th rowspan="2" style="width: 22px;">Roll</th>
+                <th rowspan="2" style="width: 135px;">Student Name</th>
+                <th rowspan="2" style="width: 70px;">SBTE Reg No</th>
+                <th colspan="3" class="grp-hdr" style="background:#e0e7ff;">Attendance (Max 15)</th>
+                <th colspan="2" class="grp-hdr" style="background:#fef3c7;">Formative Assessment</th>
+                <th colspan="3" class="grp-hdr" style="background:#e0f2fe;">Summative Tests</th>
+                <th rowspan="2" class="grp-hdr" style="width: 48px; background:#dcfce7; color:#065f46;">Final CIA<br>(75 Marks)</th>
             </tr>
             <tr>
-                <!-- Attendance Sub-headers -->
-                <th style="width: 22px; background:#eef2ff;">Tot</th>
-                <th style="width: 22px; background:#eef2ff;">Pres</th>
-                <th style="width: 22px; background:#eef2ff;">Abs</th>
-                <th style="width: 26px; background:#eef2ff;">Attn %</th>
-                <th style="width: 26px; background:#eef2ff;">Mark<br>(10M)</th>
+                <!-- Attendance Sub-headers (No TOT, No ABS) -->
+                <th style="width: 26px; background:#eef2ff;" title="Attended Sessions">Pres</th>
+                <th style="width: 36px; background:#eef2ff;" title="Official TEAMS Attendance Percentage">Attn %</th>
+                <th style="width: 34px; background:#eef2ff; font-weight: bold; color: #047857;" title="Attendance Marks out of 15">Mark<br>(15M)</th>
 
-                <!-- Assignment Sub-headers -->
-                <th style="width: 22px; background:#fffbeb;">CO1</th>
-                <th style="width: 22px; background:#fffbeb;">CO2</th>
-                <th style="width: 22px; background:#fffbeb;">CO3</th>
-                <th style="width: 22px; background:#fffbeb;">CO4</th>
+                <!-- Formative Assessment Sub-headers -->
+                <th style="width: 44px; background:#fffbeb;" title="Continuous Lab Work (5 Rubrics, Max 37.5)">Lab Work<br>(37.5)</th>
+                <th style="width: 44px; background:#fffbeb;" title="Open Ended / Micro Project (Max 7.5)">Open Ended<br>(7.5)</th>
 
                 <!-- Summative Tests Sub-headers -->
-                <th style="width: 22px; background:#f0f9ff;">T1</th>
-                <th style="width: 22px; background:#f0f9ff;">T2</th>
-                <th style="width: 22px; background:#f0f9ff;">T3</th>
-                <th style="width: 22px; background:#f0f9ff;">T4</th>
-
-                <!-- Attainment & Status Sub-headers -->
-                <th style="width: 32px; background:#f0fdf4;">CO Lvl</th>
-                <th style="width: 48px; background:#f0fdf4;">CIE Status</th>
+                <th style="width: 40px; background:#f0f9ff;" title="Practical Series Test 1 (CO1 & CO2, Max 15)">Test 1<br>(CO1 & 2)</th>
+                <th style="width: 40px; background:#f0f9ff;" title="Practical Series Test 2 (CO3 & CO4, Max 15)">Test 2<br>(CO3 & 4)</th>
+                <th style="width: 38px; background:#f0f9ff; font-weight: bold;" title="Average of Series Tests (Max 15)">Test Avg<br>(15M)</th>
             </tr>
         </thead>
         <tbody>
@@ -379,44 +357,34 @@
             <tr>
                 <td style="font-weight:700;">{{ $stud->roll_no ?: '-' }}</td>
                 <td class="name-cell" title="{{ $stud->name }}">{{ $stud->name }}</td>
-                <td class="reg-cell">{{ $stud->sbte_reg_no ?: $stud->reg_no }}</td>
+                <td class="reg-cell">{{ !empty($stud->sbte_reg_no) ? $stud->sbte_reg_no : $stud->reg_no }}</td>
 
-                <!-- Attendance -->
-                <td>{{ $stud->total_hours }}</td>
-                <td style="font-weight:700; color:#047857;">{{ $stud->present_hours }}</td>
-                <td style="color:#b91c1c;">{{ $stud->absent_hours }}</td>
-                <td class="{{ $stud->att_percent < 75 ? 'pct-short' : 'pct-high' }}">
-                    {{ number_format($stud->att_percent, 1) }}%
+                <!-- Attendance (Max 15) -->
+                <td style="font-weight:600; color:#047857;">{{ $stud->present_classes }}</td>
+                <td class="{{ (float)($stud->attendance_percentage ?? 100) < 75 ? 'pct-short' : 'pct-high' }}">
+                    {{ number_format($stud->attendance_percentage ?? 100, 1) }}%
                 </td>
-                <td style="font-weight:700; color:#047857;">{{ $stud->att_marks ?? 0 }}</td>
-
-                <!-- Assignment Marks -->
-                <td>{{ $stud->assignments['CO1'] ?? '-' }}</td>
-                <td>{{ $stud->assignments['CO2'] ?? '-' }}</td>
-                <td>{{ $stud->assignments['CO3'] ?? '-' }}</td>
-                <td>{{ $stud->assignments['CO4'] ?? '-' }}</td>
-
-                <!-- Summative / Series Test Marks -->
-                <td>{{ $stud->tests['T1'] ?? '-' }}</td>
-                <td>{{ $stud->tests['T2'] ?? '-' }}</td>
-                <td>{{ $stud->tests['T3'] ?? '-' }}</td>
-                <td>{{ $stud->tests['T4'] ?? '-' }}</td>
-
-                <!-- Attainment & Status -->
-                <td style="font-weight:800; color:#1e3a8a;">
-                    {{ $stud->attainment_level ?: '-' }}
+                <td style="font-weight:700; color:#047857; background:#f0fdf4;">
+                    {{ number_format($stud->attendance_marks ?? 0, 1) }}
                 </td>
-                <td>
-                    @if($stud->att_percent >= 75)
-                        <span class="status-badge status-eligible">ELIGIBLE</span>
-                    @else
-                        <span class="status-badge status-shortage">SHORTAGE</span>
-                    @endif
+
+                <!-- Formative Assessment -->
+                <td class="font-mono">{{ number_format($stud->avg_lab_work ?? 0, 2) }}</td>
+                <td class="font-mono">{{ number_format($stud->micro_project ?? 0, 1) }}</td>
+
+                <!-- Summative Tests -->
+                <td class="font-mono">{{ (isset($stud->tests['Test 1']['total']) && $stud->tests['Test 1']['total'] > 0) ? number_format($stud->tests['Test 1']['total'], 1) : '-' }}</td>
+                <td class="font-mono">{{ (isset($stud->tests['Test 2']['total']) && $stud->tests['Test 2']['total'] > 0) ? number_format($stud->tests['Test 2']['total'], 1) : '-' }}</td>
+                <td class="font-mono" style="font-weight:700; background:#f8fafc;">{{ (isset($stud->tests['average']) && $stud->tests['average'] > 0) ? number_format($stud->tests['average'], 2) : '-' }}</td>
+
+                <!-- Internal Assessment (Final CIA 75) -->
+                <td style="font-weight:800; font-size:11px; color:#0f766e; background:#f0fdfa;">
+                    {{ round($stud->total_internal) }}
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="18" style="padding: 16px; text-align: center; color: #64748b;">
+                <td colspan="12" style="padding: 16px; text-align: center; color: #64748b;">
                     No enrolled students found for this classroom.
                 </td>
             </tr>
@@ -426,14 +394,14 @@
 
     <!-- Consolidated Summary Card -->
     <div class="summary-card">
-        <div class="summary-title">Class Roster & Outcome Attainment Summary</div>
+        <div class="summary-title">Consolidated Lab Outcome Attainment & Attendance Summary</div>
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="val">{{ $students->count() }}</div>
                 <div class="desc">Total Enrolled</div>
             </div>
             <div class="stat-box">
-                <div class="val">{{ $totalConductedHours }}</div>
+                <div class="val">{{ $conductedHoursSummary }}</div>
                 <div class="desc">Hours Conducted</div>
             </div>
             <div class="stat-box">
@@ -462,11 +430,21 @@
 
     <!-- Official Signatures Row -->
     <div class="signatures">
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $lecturerName }}</div>
-            <div class="sig-title">Faculty In-Charge</div>
-        </div>
+        @if(count($assignedStaffList) > 1)
+            @foreach($assignedStaffList as $staffMember)
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-name">{{ $staffMember }}</div>
+                <div class="sig-title">Faculty In-Charge</div>
+            </div>
+            @endforeach
+        @else
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-name">{{ $facultyNames ?: $lecturerName }}</div>
+                <div class="sig-title">Faculty In-Charge</div>
+            </div>
+        @endif
         <div class="sig-block">
             <div class="sig-line"></div>
             <div class="sig-name">Head of Department</div>

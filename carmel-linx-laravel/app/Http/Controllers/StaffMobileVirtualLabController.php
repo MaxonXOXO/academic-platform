@@ -206,6 +206,16 @@ class StaffMobileVirtualLabController extends Controller
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
             if ($stOfficial->isNotEmpty()) {
+                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                        $sb = (string)($att->sub_batch ?? 'Whole');
+                        if ($sb === $labBatch || $sb === 'Whole') return true;
+                        return in_array($att->status, ['Present', 'Late']);
+                    });
+                    if ($stFiltered->isNotEmpty()) {
+                        $stOfficial = $stFiltered;
+                    }
+                }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                 $attPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;

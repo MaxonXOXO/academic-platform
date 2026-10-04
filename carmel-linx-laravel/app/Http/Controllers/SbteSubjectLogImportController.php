@@ -10,6 +10,7 @@ use App\Models\BatchSubject;
 use App\Models\Student;
 use App\Models\LessonPlan;
 use App\Models\PracticalExperiment;
+use App\Models\PracticalEvaluation;
 use App\Models\AuditLog;
 use Smalot\PdfParser\Parser as PdfParser;
 
@@ -151,41 +152,66 @@ class SbteSubjectLogImportController extends Controller
         }
         $sessionCount = count($sessionDates);
 
-        // Extract Hours row
+        // Extract Hours row (e.g. 1,2,3 or 4,5,6 per date session)
         preg_match('/Total\s*\n\s*([\d\s,]+)\n/i', $fullText, $hoursM);
-        $hoursRaw = preg_split('/\s+/', trim($hoursM[1] ?? ''));
+        $rawHoursStr = trim($hoursM[1] ?? '');
         $hoursList = [];
-        foreach ($hoursRaw as $hr) {
-            preg_match_all('/\d+/', $hr, $hm);
-            if (!empty($hm[0])) {
-                $cleanedHours = [];
-                foreach ($hm[0] as $numStr) {
-                    $num = (int)$numStr;
-                    // If multiple period numbers were concatenated without delimiter, e.g. 23 -> [2, 3]
-                    if ($num > 7) {
-                        $digits = str_split((string)$num);
-                        foreach ($digits as $d) {
-                            $di = (int)$d;
-                            if ($di >= 1 && $di <= 7 && !in_array($di, $cleanedHours)) {
-                                $cleanedHours[] = $di;
-                            }
-                        }
-                    } elseif ($num >= 1 && $num <= 7 && !in_array($num, $cleanedHours)) {
-                        $cleanedHours[] = $num;
+
+        if (!empty($rawHoursStr)) {
+            $cleanedHoursStr = preg_replace('/\s*,\s*/', ',', $rawHoursStr);
+            preg_match_all('/([1-7](?:,[1-7])*?)(?=[1-7],|\s|\$)/', $cleanedHoursStr, $sessionHourMatches);
+            if (!empty($sessionHourMatches[0])) {
+                foreach ($sessionHourMatches[0] as $shStr) {
+                    $parts = array_map('intval', explode(',', $shStr));
+                    $validParts = array_values(array_filter($parts, fn($p) => $p >= 1 && $p <= 7));
+                    if (!empty($validParts)) {
+                        $hoursList[] = $validParts;
                     }
                 }
-                $hoursList[] = !empty($cleanedHours) ? $cleanedHours : [1];
             }
         }
 
-        // Fill default hours if needed
+        // Fill default hours if needed (practical sessions default to 3 hours, theory to 1 hour)
+        $defaultSessionPeriods = ($batchSubject->subject_type !== 'Theory') ? [1, 2, 3] : [1];
         while (count($hoursList) < $sessionCount) {
-            $hoursList[] = [1];
+            $hoursList[] = $defaultSessionPeriods;
         }
 
         // Extract Students attendance rows: Roll. No. Name [Marks...] Total
-        // Match flexibly with uppercase letters, numbers, hyphens, slashes for attendance marks
-        preg_match_all('/(?m)^(\d+)\.\s+([A-Za-z\s\.\'\-]+?)\t?\s+([A-Z0-9\-\s\.\/]+?)\s+(\d+)\s*$/', $fullText, $studMatches, PREG_SET_ORDER);
+        // Line-based token extraction: Last token is Total hours, preceding $sessionCount tokens are exact session marks, and preceding tokens are Roll & Name.
+        $studMatches = [];
+        $lines = preg_split('/\r\n|\r|\n/', $fullText);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            if (!preg_match('/^(\d+)[\.\s]+(.*)$/', $line)) continue;
+            $tokens = preg_split('/\s+/', $line);
+            if (count($tokens) < $sessionCount + 3) continue;
+            $lastToken = end($tokens);
+            if (!is_numeric($lastToken)) continue;
+
+            $rollNo = (int)rtrim($tokens[0], '.');
+            $totalVal = (int)$lastToken;
+            $marks = array_slice($tokens, -($sessionCount + 1), $sessionCount);
+            $nameTokens = array_slice($tokens, 1, count($tokens) - $sessionCount - 2);
+            $rawName = implode(' ', $nameTokens);
+
+            $studMatches[] = [
+                0 => $line,
+                1 => (string)$rollNo,
+                2 => $rawName,
+                3 => implode(' ', $marks),
+                'roll_no' => $rollNo,
+                'name' => $rawName,
+                'marks' => $marks,
+                'total' => $totalVal
+            ];
+        }
+
+        // Fallback to regex if line token parsing found nothing
+        if (empty($studMatches)) {
+            preg_match_all('/(?m)^(\d+)\.\s+([A-Za-z\s\.\'\-]+?)\t?\s+([A-Z0-9\-\s\.\/]+?)\s+(\d+)\s*$/', $fullText, $studMatches, PREG_SET_ORDER);
+        }
 
         if (empty($studMatches)) {
             // Fallback: match without requiring leading dot or strict total
@@ -222,7 +248,7 @@ class SbteSubjectLogImportController extends Controller
             $rollNo = (int)$sm[1];
             $rawName = trim($sm[2]);
             $cleanName = strtoupper(preg_replace('/[^A-Z]/', '', $rawName));
-            $marks = preg_split('/\s+/', trim($sm[3]));
+            $marks = is_array($sm['marks'] ?? null) ? $sm['marks'] : preg_split('/\s+/', trim($sm[3]));
 
             $studentObj = $studentsByRoll[$rollNo] ?? ($studentsByName[$cleanName] ?? null);
             if (!$studentObj) {
@@ -273,6 +299,12 @@ class SbteSubjectLogImportController extends Controller
             ->orderByRaw('CAST(experiment_no AS UNSIGNED), experiment_no ASC')
             ->get();
 
+        $labBatches = DB::table('r26_student_lab_batches')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->pluck('lab_batch', 'reg_no')
+            ->toArray();
+        $isSplitLab = ($batchSubject->subject_type !== 'Theory') && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff) || !empty($labBatches));
+
         $importedSessions = 0;
         $totalHoursLogged = 0;
         $mappedLpCount = 0;
@@ -286,6 +318,40 @@ class SbteSubjectLogImportController extends Controller
                 $periods = $hoursList[$i] ?? [1];
                 $presentRegNos = array_values(array_unique($sessionAttendance[$i]['present']));
                 $absentRegNos = array_values(array_unique($sessionAttendance[$i]['absent']));
+
+                $sessionSubBatch = $subBatch;
+                if ($isSplitLab && $subBatch === 'Whole') {
+                    $b1PresCount = 0;
+                    $b2PresCount = 0;
+                    foreach ($presentRegNos as $rNo) {
+                        $b = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && ($st = $studentsByRoll[$rNo] ?? null) ? ((int)$st->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                        if ($b === '1') $b1PresCount++;
+                        elseif ($b === '2') $b2PresCount++;
+                    }
+                    if ($b1PresCount > 0 && $b2PresCount === 0) {
+                        $sessionSubBatch = '1';
+                    } elseif ($b2PresCount > 0 && $b1PresCount === 0) {
+                        $sessionSubBatch = '2';
+                    } elseif ($b1PresCount >= 10 && $b2PresCount < 5) {
+                        $sessionSubBatch = '1';
+                    } elseif ($b2PresCount >= 10 && $b1PresCount < 5) {
+                        $sessionSubBatch = '2';
+                    } else {
+                        $sessionSubBatch = 'Whole';
+                    }
+                }
+
+                // If this is a split lab session (Batch 1 or Batch 2), scope student present/absent lists strictly to this batch
+                if ($isSplitLab && ($sessionSubBatch === '1' || $sessionSubBatch === '2')) {
+                    $presentRegNos = array_values(array_filter($presentRegNos, function($rNo) use ($labBatches, $sessionSubBatch, $studentsByRoll, $batchSubject) {
+                        $stBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && ($st = $studentsByRoll[$rNo] ?? null) ? ((int)$st->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                        return $stBatch === $sessionSubBatch;
+                    }));
+                    $absentRegNos = array_values(array_filter($absentRegNos, function($rNo) use ($labBatches, $sessionSubBatch, $studentsByRoll, $batchSubject) {
+                        $stBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && ($st = $studentsByRoll[$rNo] ?? null) ? ((int)$st->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                        return $stBatch === $sessionSubBatch;
+                    }));
+                }
 
                 // Create distinct period logs for exact hour calculations
                 foreach ($periods as $period) {
@@ -332,7 +398,9 @@ class SbteSubjectLogImportController extends Controller
                         ->where('batch_subject_id', $batchSubject->id)
                         ->where('date', $date)
                         ->where('period', $period)
-                        ->where('sub_batch', $subBatch)
+                        ->where(function($q) use ($sessionSubBatch) {
+                            $q->where('sub_batch', $sessionSubBatch)->orWhere('sub_batch', 'Whole');
+                        })
                         ->first();
 
                     if ($existingLog) {
@@ -343,6 +411,7 @@ class SbteSubjectLogImportController extends Controller
                                 'topics_covered' => $assignedTopic ?: $existingLog->topics_covered,
                                 'present_students' => json_encode($presentRegNos),
                                 'absent_students' => json_encode($absentRegNos),
+                                'sub_batch' => $sessionSubBatch,
                                 'recorded_by' => $recordedBy,
                                 'updated_at' => now(),
                             ]);
@@ -355,48 +424,67 @@ class SbteSubjectLogImportController extends Controller
                             'topics_covered' => $assignedTopic,
                             'present_students' => json_encode($presentRegNos),
                             'absent_students' => json_encode($absentRegNos),
-                            'sub_batch' => $subBatch,
+                            'sub_batch' => $sessionSubBatch,
                             'recorded_by' => $recordedBy,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
                     }
 
-                    // Sync student_attendance table
-                    if (Schema::hasTable('student_attendance')) {
-                        foreach ($presentRegNos as $rNo) {
-                            DB::table('student_attendance')->updateOrInsert(
-                                [
-                                    'reg_no' => $rNo,
-                                    'subject_code' => $batchSubject->subject_code,
-                                    'date' => $date,
-                                ],
-                                [
-                                    'status' => 'Present',
-                                    'sub_batch' => $subBatch,
-                                    'lesson_plan_id' => $assignedLpId,
-                                    'updated_at' => now(),
-                                ]
-                            );
-                        }
-                        foreach ($absentRegNos as $rNo) {
-                            DB::table('student_attendance')->updateOrInsert(
-                                [
-                                    'reg_no' => $rNo,
-                                    'subject_code' => $batchSubject->subject_code,
-                                    'date' => $date,
-                                ],
-                                [
-                                    'status' => 'Absent',
-                                    'sub_batch' => $subBatch,
-                                    'lesson_plan_id' => $assignedLpId,
-                                    'updated_at' => now(),
-                                ]
-                            );
+                    $totalHoursLogged++;
+                }
+
+                // Sync student_attendance table once per session date
+                if (Schema::hasTable('student_attendance')) {
+                    foreach ($presentRegNos as $rNo) {
+                        DB::table('student_attendance')->updateOrInsert(
+                            [
+                                'reg_no' => $rNo,
+                                'subject_code' => $batchSubject->subject_code,
+                                'date' => $date,
+                            ],
+                            [
+                                'status' => 'Present',
+                                'sub_batch' => $sessionSubBatch,
+                                'lesson_plan_id' => $assignedLpId,
+                                'updated_at' => now(),
+                            ]
+                        );
+                    }
+
+                    // For absent students: In split lab sessions, only record absent if student was scheduled for this batch!
+                    $absentsToRecord = $absentRegNos;
+                    if ($isSplitLab && ($sessionSubBatch === '1' || $sessionSubBatch === '2')) {
+                        // Safely clean up any erroneous absent records for students of the other batch on this date
+                        $otherBatchStudents = array_filter($classroomStudents->pluck('reg_no')->toArray(), function($rNo) use ($labBatches, $sessionSubBatch, $studentsByRoll, $batchSubject) {
+                            $stBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && ($st = $studentsByRoll[$rNo] ?? null) ? ((int)$st->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                            return $stBatch !== null && $stBatch !== $sessionSubBatch;
+                        });
+                        if (!empty($otherBatchStudents)) {
+                            DB::table('student_attendance')
+                                ->where('subject_code', $batchSubject->subject_code)
+                                ->where('date', $date)
+                                ->whereIn('reg_no', $otherBatchStudents)
+                                ->where('status', 'Absent')
+                                ->delete();
                         }
                     }
 
-                    $totalHoursLogged++;
+                    foreach ($absentsToRecord as $rNo) {
+                        DB::table('student_attendance')->updateOrInsert(
+                            [
+                                'reg_no' => $rNo,
+                                'subject_code' => $batchSubject->subject_code,
+                                'date' => $date,
+                            ],
+                            [
+                                'status' => 'Absent',
+                                'sub_batch' => $sessionSubBatch,
+                                'lesson_plan_id' => $assignedLpId,
+                                'updated_at' => now(),
+                            ]
+                        );
+                    }
                 }
 
                 $importedSessions++;
@@ -414,6 +502,47 @@ class SbteSubjectLogImportController extends Controller
                     'ip_address' => $request->ip()
                 ]);
             } catch (\Exception $logEx) {}
+
+            // For practical courses in Revision 2021, synchronize official attendance marks (out of 15) to PracticalEvaluation
+            if ($batchSubject->subject_type !== 'Theory') {
+                foreach ($classroomStudents as $cs) {
+                    $rNo = $cs->reg_no;
+                    $labBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $cs->roll_no !== null ? ((int)$cs->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+
+                    $stOfficial = DB::table('student_attendance')
+                        ->where('reg_no', $rNo)
+                        ->where('subject_code', $batchSubject->subject_code)
+                        ->get();
+
+                    if ($stOfficial->isNotEmpty()) {
+                        if ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch)) {
+                            $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                                $sb = (string)($att->sub_batch ?? 'Whole');
+                                if ($sb === $labBatch || $sb === 'Whole') return true;
+                                return in_array($att->status, ['Present', 'Late']);
+                            });
+                            if ($stFiltered->isNotEmpty()) {
+                                $stOfficial = $stFiltered;
+                            }
+                        }
+                        $offTot = $stOfficial->count();
+                        $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                        $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                        $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
+
+                        PracticalEvaluation::updateOrCreate(
+                            [
+                                'batch_subject_id' => $batchSubject->id,
+                                'reg_no' => $rNo,
+                            ],
+                            [
+                                'attendance_marks' => $attMark,
+                                'updated_at' => now(),
+                            ]
+                        );
+                    }
+                }
+            }
 
             DB::commit();
 
@@ -461,7 +590,21 @@ class SbteSubjectLogImportController extends Controller
 
         $facultyName = trim($facM[1] ?? '');
         $recordedBy = $staffMobile ?: ($facultyName ?: 'Faculty Staff');
-        $studentRegNos = $classroomStudents->pluck('reg_no')->toArray();
+
+        $labBatches = DB::table('r26_student_lab_batches')
+            ->where('batch_subject_id', $batchSubject->id)
+            ->pluck('lab_batch', 'reg_no')
+            ->toArray();
+        $isSplitLab = ($batchSubject->subject_type !== 'Theory') && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff) || !empty($labBatches));
+
+        if ($isSplitLab && ($subBatch === '1' || $subBatch === '2')) {
+            $studentRegNos = $classroomStudents->filter(function($st) use ($labBatches, $subBatch, $batchSubject) {
+                $stBatch = $labBatches[$st->reg_no] ?? ($batchSubject->lab_batch_cutoff && $st->roll_no !== null ? ((int)$st->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                return $stBatch === $subBatch;
+            })->pluck('reg_no')->toArray();
+        } else {
+            $studentRegNos = $classroomStudents->pluck('reg_no')->toArray();
+        }
 
         preg_match_all('/(?ms)^(\d+)\.\s+(\d{2}-\d{2}-\d{4})\s+([\d,\s]+?)\s*(.*?)(?=\n\d+\.|\Z)/', $fullText, $matches, PREG_SET_ORDER);
 
@@ -600,6 +743,47 @@ class SbteSubjectLogImportController extends Controller
                 }
 
                 $importedSessionsCount++;
+            }
+
+            // For practical courses in Revision 2021, synchronize official attendance marks (out of 15) to PracticalEvaluation
+            if ($batchSubject->subject_type !== 'Theory') {
+                foreach ($classroomStudents as $cs) {
+                    $rNo = $cs->reg_no;
+                    $labBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $cs->roll_no !== null ? ((int)$cs->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+
+                    $stOfficial = DB::table('student_attendance')
+                        ->where('reg_no', $rNo)
+                        ->where('subject_code', $batchSubject->subject_code)
+                        ->get();
+
+                    if ($stOfficial->isNotEmpty()) {
+                        if ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch)) {
+                            $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                                $sb = (string)($att->sub_batch ?? 'Whole');
+                                if ($sb === $labBatch || $sb === 'Whole') return true;
+                                return in_array($att->status, ['Present', 'Late']);
+                            });
+                            if ($stFiltered->isNotEmpty()) {
+                                $stOfficial = $stFiltered;
+                            }
+                        }
+                        $offTot = $stOfficial->count();
+                        $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                        $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                        $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
+
+                        PracticalEvaluation::updateOrCreate(
+                            [
+                                'batch_subject_id' => $batchSubject->id,
+                                'reg_no' => $rNo,
+                            ],
+                            [
+                                'attendance_marks' => $attMark,
+                                'updated_at' => now(),
+                            ]
+                        );
+                    }
+                }
             }
 
             DB::commit();

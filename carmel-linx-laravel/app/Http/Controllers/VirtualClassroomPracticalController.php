@@ -207,6 +207,16 @@ class VirtualClassroomPracticalController extends Controller
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($rNo, collect());
             if ($stOfficial->isNotEmpty()) {
+                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                        $sb = (string)($att->sub_batch ?? 'Whole');
+                        if ($sb === $labBatch || $sb === 'Whole') return true;
+                        return in_array($att->status, ['Present', 'Late']);
+                    });
+                    if ($stFiltered->isNotEmpty()) {
+                        $stOfficial = $stFiltered;
+                    }
+                }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                 $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
@@ -215,7 +225,12 @@ class VirtualClassroomPracticalController extends Controller
             }
             $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
-            $attendanceMarks[$rNo] = $attMark;
+            $attendanceMarks[$rNo] = [
+                'percentage' => $pct,
+                'mark' => $attMark,
+                'total_classes' => $totalForStudent,
+                'present_classes' => $present,
+            ];
         }
 
         // ── Conducted Experiments / Class Logs ─────────────────────────────────
@@ -761,6 +776,23 @@ class VirtualClassroomPracticalController extends Controller
                     ->where('subject_code', $batchSubj->subject_code)
                     ->get();
                 if ($stOfficial->isNotEmpty()) {
+                    $labBatch = \App\Models\R26StudentLabBatch::where('batch_subject_id', $batchSubjectId)->where('reg_no', $regNo)->value('lab_batch');
+                    if (!$labBatch && $batchSubj->lab_batch_cutoff) {
+                        $stObj = \App\Models\Student::where('reg_no', $regNo)->first();
+                        if ($stObj && $stObj->roll_no !== null) {
+                            $labBatch = ((int)$stObj->roll_no <= (int)$batchSubj->lab_batch_cutoff) ? '1' : '2';
+                        }
+                    }
+                    if ($batchSubj->subject_type !== 'Theory' && ($batchSubj->lab_batch_mode === 'split' || !empty($labBatch))) {
+                        $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                            $sb = (string)($att->sub_batch ?? 'Whole');
+                            if ($sb === $labBatch || $sb === 'Whole') return true;
+                            return in_array($att->status, ['Present', 'Late']);
+                        });
+                        if ($stFiltered->isNotEmpty()) {
+                            $stOfficial = $stFiltered;
+                        }
+                    }
                     $offTot = $stOfficial->count();
                     $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                     $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
@@ -984,6 +1016,16 @@ class VirtualClassroomPracticalController extends Controller
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
             if ($stOfficial->isNotEmpty()) {
+                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                        $sb = (string)($att->sub_batch ?? 'Whole');
+                        if ($sb === $labBatch || $sb === 'Whole') return true;
+                        return in_array($att->status, ['Present', 'Late']);
+                    });
+                    if ($stFiltered->isNotEmpty()) {
+                        $stOfficial = $stFiltered;
+                    }
+                }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                 $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
@@ -1449,6 +1491,16 @@ class VirtualClassroomPracticalController extends Controller
             ->where('subject_code', $batchSubject->subject_code)
             ->get();
         if ($stOfficial->isNotEmpty()) {
+            if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                    $sb = (string)($att->sub_batch ?? 'Whole');
+                    if ($sb === $labBatch || $sb === 'Whole') return true;
+                    return in_array($att->status, ['Present', 'Late']);
+                });
+                if ($stFiltered->isNotEmpty()) {
+                    $stOfficial = $stFiltered;
+                }
+            }
             $offTot = $stOfficial->count();
             $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
             $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;

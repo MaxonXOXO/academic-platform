@@ -306,6 +306,16 @@ class TutorController extends Controller
                 // Authoritative attendance percentage:
                 // Teams uploaded attendance in student_attendance is purely official for attendance percentage & CIA
                 if ($stSubjAttRecords->isNotEmpty()) {
+                    if ($isPractical && !empty($labBatch)) {
+                        $stSubjAttRecordsFiltered = $stSubjAttRecords->filter(function($att) use ($labBatch) {
+                            $sb = (string)($att->sub_batch ?? 'Whole');
+                            if ($sb === $labBatch || $sb === 'Whole') return true;
+                            return in_array($att->status, ['Present', 'Late']);
+                        });
+                        if ($stSubjAttRecordsFiltered->isNotEmpty()) {
+                            $stSubjAttRecords = $stSubjAttRecordsFiltered;
+                        }
+                    }
                     $offTot = $stSubjAttRecords->count();
                     $offPres = $stSubjAttRecords->whereIn('status', ['Present', 'Late'])->count();
                     $subjAttPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;

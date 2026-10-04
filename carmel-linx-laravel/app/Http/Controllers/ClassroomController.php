@@ -4971,6 +4971,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
             if ($stOfficial->isNotEmpty()) {
+                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                        $sb = (string)($att->sub_batch ?? 'Whole');
+                        if ($sb === $labBatch || $sb === 'Whole') return true;
+                        return in_array($att->status, ['Present', 'Late']);
+                    });
+                    if ($stFiltered->isNotEmpty()) {
+                        $stOfficial = $stFiltered;
+                    }
+                }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                 $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;
@@ -5646,6 +5656,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
             if ($stOfficial->isNotEmpty()) {
+                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                        $sb = (string)($att->sub_batch ?? 'Whole');
+                        if ($sb === $labBatch || $sb === 'Whole') return true;
+                        return in_array($att->status, ['Present', 'Late']);
+                    });
+                    if ($stFiltered->isNotEmpty()) {
+                        $stOfficial = $stFiltered;
+                    }
+                }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
                 $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;
@@ -6538,6 +6558,16 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->where('subject_code', $batchSubject->subject_code)
             ->get();
         if ($stOfficial->isNotEmpty()) {
+            if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                    $sb = (string)($att->sub_batch ?? 'Whole');
+                    if ($sb === $labBatch || $sb === 'Whole') return true;
+                    return in_array($att->status, ['Present', 'Late']);
+                });
+                if ($stFiltered->isNotEmpty()) {
+                    $stOfficial = $stFiltered;
+                }
+            }
             $offTot = $stOfficial->count();
             $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
             $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.00;

@@ -732,10 +732,12 @@ class R26VirtualClassroomDrawingController extends Controller
         $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
         $lessonPlans = LessonPlan::where('batch_subject_id', $subjectId)->orderBy('day_no', 'asc')->get();
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
         $staffMobile = Session::get('mobileNo') ?: Session::get('userId');
         $staff = StaffProfile::where('mobile_no', $staffMobile)->first();
 
-        return view('r26_drawing.lesson_plan_print', compact('batchSubject', 'classroom', 'drawingCourseFile', 'lessonPlans', 'staff'));
+        return view('r26_drawing.lesson_plan_print', compact('batchSubject', 'classroom', 'drawingCourseFile', 'lessonPlans', 'staff', 'assignedStaffList', 'facultyNames'));
     }
 
     /**

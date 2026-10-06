@@ -618,6 +618,9 @@ class R21VirtualClassroomDrawingController extends Controller
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $lessonPlans = LessonPlan::where('batch_subject_id', $subjectId)->orderBy('day_no')->get();
 
-        return view('r21_drawing.lesson_plan_print', compact('batchSubject', 'courseFile', 'classroom', 'lessonPlans'));
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
+        return view('r21_drawing.lesson_plan_print', compact('batchSubject', 'courseFile', 'classroom', 'lessonPlans', 'assignedStaffList', 'facultyNames'));
     }
 }

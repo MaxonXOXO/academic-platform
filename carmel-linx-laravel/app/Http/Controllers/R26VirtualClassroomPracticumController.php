@@ -1830,7 +1830,13 @@ class R26VirtualClassroomPracticumController extends Controller
             ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
             ->get();
 
-        return view('r26_practicum.lesson_plan_print', compact('batchSubject', 'classroom', 'practicumCourseFile', 'lessonPlans', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName'));
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+        if (!empty($facultyNames)) {
+            $lecturerName = $facultyNames;
+        }
+
+        return view('r26_practicum.lesson_plan_print', compact('batchSubject', 'classroom', 'practicumCourseFile', 'lessonPlans', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName', 'assignedStaffList', 'facultyNames'));
     }
 
     /**

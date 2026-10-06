@@ -31,6 +31,73 @@ class BatchSubject extends Model
     }
 
     /**
+     * Get sorted list of assigned staff names for practical reports in Revision 2021.
+     * Order: Lecturer, Demonstrator, Workshop Instructor, Trade Instructor, Tradesman, etc.
+     * Only names, no designations.
+     */
+    public static function getFacultyListForSubject($batchSubjectId): array
+    {
+        $assignments = \Illuminate\Support\Facades\DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $batchSubjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation')
+            ->get();
+
+        if ($assignments->isEmpty()) {
+            $fallback = \Illuminate\Support\Facades\Session::get('userName');
+            return $fallback ? [trim($fallback)] : [];
+        }
+
+        $getRank = function (?string $designation): int {
+            $d = strtolower(trim(str_replace(['_', '-'], ' ', $designation ?? '')));
+            if (str_contains($d, 'hod') || str_contains($d, 'head of department')) return 1;
+            if (str_contains($d, 'lecturer') || str_contains($d, 'professor')) return 2;
+            if (str_contains($d, 'demonstrator')) return 3;
+            if (str_contains($d, 'workshop instructor') || str_contains($d, 'workshop superintendent')) return 4;
+            if (str_contains($d, 'trade instructor') || str_contains($d, 'tradesman') || str_contains($d, 'instructor')) return 5;
+            return 6;
+        };
+
+        $formatName = function ($name): string {
+            $name = trim($name ?? '');
+            if (strtoupper($name) === $name && strlen($name) > 2) {
+                return ucwords(mb_strtolower($name));
+            }
+            return $name;
+        };
+
+        $sorted = $assignments->sortBy(function ($item) use ($getRank) {
+            return $getRank($item->designation);
+        });
+
+        $names = [];
+        foreach ($sorted as $item) {
+            $formatted = $formatName($item->name);
+            if (!empty($formatted) && !in_array($formatted, $names)) {
+                $names[] = $formatted;
+            }
+        }
+
+        return !empty($names) ? $names : [(\Illuminate\Support\Facades\Session::get('userName') ?? 'Faculty In-Charge')];
+    }
+
+    public static function getFacultyNamesForSubject($batchSubjectId): string
+    {
+        $list = self::getFacultyListForSubject($batchSubjectId);
+        return implode(', ', $list);
+    }
+
+    public function getAssignedFacultyList(): array
+    {
+        return self::getFacultyListForSubject($this->id);
+    }
+
+    public function getAssignedFacultyNames(): string
+    {
+        return self::getFacultyNamesForSubject($this->id);
+    }
+
+    /**
      * Universal Branch-Prefixed Subject Code Accessor
      * e.g. "1003" -> "ME-1003" or "CE-1003"
      */

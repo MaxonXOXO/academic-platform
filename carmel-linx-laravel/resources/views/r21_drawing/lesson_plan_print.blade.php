@@ -73,8 +73,12 @@
     <tr>
       <td class="lbl">Semester & Class</td>
       <td class="val">Semester {{ $classroom->current_semester ?? $courseFile->semester ?? 'I' }} ({{ $classroom->classroom_id ?? $batchSubject->classroom_id }})</td>
+      <td class="lbl">Faculty In-Charge</td>
+      <td class="val"><strong>{{ $facultyNames ?? ($batchSubject->getAssignedFacultyNames() ?? '-') }}</strong></td>
+    </tr>
+    <tr>
       <td class="lbl">Total Planned Hours</td>
-      <td class="val"><strong>60 Contact Hours (30 Sessions)</strong></td>
+      <td class="val" colspan="3"><strong>60 Contact Hours (30 Sessions)</strong></td>
     </tr>
   </table>
 
@@ -103,11 +107,25 @@
     </tbody>
   </table>
 
+  @php
+    $staffList = $assignedStaffList ?? ($batchSubject->getAssignedFacultyList() ?? []);
+  @endphp
   <div class="sig-row">
-    <div class="sig-box">
-      <div class="sig-line"></div>
-      <div class="sig-lbl">Course Faculty Signature</div>
-    </div>
+    @if(count($staffList) > 1)
+      @foreach($staffList as $staffMember)
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-lbl">{{ $staffMember }}</div>
+          <div style="font-size: 9px; color: #64748b; text-transform: uppercase;">Faculty In-Charge</div>
+        </div>
+      @endforeach
+    @else
+      <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-lbl">{{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? 'Course Faculty') }}</div>
+        <div style="font-size: 9px; color: #64748b; text-transform: uppercase;">Course Faculty</div>
+      </div>
+    @endif
     <div class="sig-box">
       <div class="sig-line"></div>
       <div class="sig-lbl">Head of Department (HOD)</div>

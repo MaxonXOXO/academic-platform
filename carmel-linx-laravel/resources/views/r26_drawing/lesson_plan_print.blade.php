@@ -255,7 +255,7 @@
             </tr>
             <tr>
                 <td class="lbl">Faculty In-Charge:</td>
-                <td class="val">{{ $staff->name ?? 'Lecturer In Charge' }}</td>
+                <td class="val"><strong>{{ $facultyNames ?? ($staff->name ?? 'Lecturer In Charge') }}</strong></td>
                 <td class="lbl">Semester / Duration:</td>
                 <td class="val">Semester {{ $classroom?->current_semester ?? $batchSubject->semester ?? 'I' }} • {{ $drawingCourseFile?->contact_hours ?? 45 }} Contact Hours</td>
             </tr>
@@ -297,10 +297,23 @@
             </tbody>
         </table>
 
+        @php
+            $staffList = $assignedStaffList ?? ($batchSubject->getAssignedFacultyList() ?? []);
+        @endphp
         <div class="footer">
-            <div class="signature-line">
-                Faculty In-Charge
-            </div>
+            @if(count($staffList) > 1)
+                @foreach($staffList as $staffMember)
+                    <div class="signature-line">
+                        {{ $staffMember }}<br>
+                        <span style="font-size: 8px; font-weight: normal; text-transform: uppercase;">Faculty In-Charge</span>
+                    </div>
+                @endforeach
+            @else
+                <div class="signature-line">
+                    {{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? ($staff->name ?? 'Faculty In-Charge')) }}<br>
+                    <span style="font-size: 8px; font-weight: normal; text-transform: uppercase;">Faculty In-Charge</span>
+                </div>
+            @endif
             <div class="signature-line">
                 Head of Department (HOD)
             </div>

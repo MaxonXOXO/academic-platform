@@ -314,7 +314,7 @@
             <td class="lbl">Course:</td>
             <td class="val"><strong>{{ $subject->subject_code }}</strong> - {{ $subject->subject_name }}</td>
             <td class="lbl">Faculty In-Charge:</td>
-            <td class="val"><strong>{{ $facultyNames }}</strong></td>
+            <td class="val"><strong>{{ $facultyNames ?? ($subject->getAssignedFacultyNames() ?? '-') }}</strong></td>
         </tr>
         <tr>
             <td class="lbl">Conducted Hours:</td>
@@ -429,9 +429,12 @@
     </div>
 
     <!-- Official Signatures Row -->
+    @php
+        $staffList = $assignedStaffList ?? ($subject->getAssignedFacultyList() ?? []);
+    @endphp
     <div class="signatures">
-        @if(count($assignedStaffList) > 1)
-            @foreach($assignedStaffList as $staffMember)
+        @if(count($staffList) > 1)
+            @foreach($staffList as $staffMember)
             <div class="sig-block">
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $staffMember }}</div>
@@ -441,7 +444,7 @@
         @else
             <div class="sig-block">
                 <div class="sig-line"></div>
-                <div class="sig-name">{{ $facultyNames ?: $lecturerName }}</div>
+                <div class="sig-name">{{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? ($lecturerName ?? 'Faculty In-Charge')) }}</div>
                 <div class="sig-title">Faculty In-Charge</div>
             </div>
         @endif

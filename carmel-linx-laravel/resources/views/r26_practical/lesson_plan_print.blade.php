@@ -80,7 +80,7 @@
         </div>
         <div style="text-align: right;">
             <strong>Academic Year:</strong> 2026-2027<br>
-            <strong>Faculty:</strong> Lecturer In Charge
+            <strong>Faculty:</strong> {{ $facultyNames ?? ($batchSubject->getAssignedFacultyNames() ?? 'Faculty In Charge') }}
         </div>
     </div>
 
@@ -115,10 +115,23 @@
         </tbody>
     </table>
 
+    @php
+        $staffList = $assignedStaffList ?? ($batchSubject->getAssignedFacultyList() ?? []);
+    @endphp
     <div class="footer">
-        <div class="signature-line">
-            Faculty In Charge
-        </div>
+        @if(count($staffList) > 1)
+            @foreach($staffList as $staffMember)
+                <div class="signature-line">
+                    {{ $staffMember }}<br>
+                    <span style="font-size: 8px; font-weight: normal; text-transform: uppercase;">Faculty In-Charge</span>
+                </div>
+            @endforeach
+        @else
+            <div class="signature-line">
+                {{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? 'Faculty In Charge') }}<br>
+                <span style="font-size: 8px; font-weight: normal; text-transform: uppercase;">Faculty In Charge</span>
+            </div>
+        @endif
         <div class="signature-line">
             Head of Department
         </div>

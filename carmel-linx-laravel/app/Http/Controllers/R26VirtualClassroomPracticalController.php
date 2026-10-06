@@ -885,7 +885,9 @@ class R26VirtualClassroomPracticalController extends Controller
         }
 
         if ($type === 'plan') {
-            return view('r26_practical.lesson_plan_print', compact('batchSubject', 'classroom', 'lessonPlans'));
+            $assignedStaffList = $batchSubject->getAssignedFacultyList();
+            $facultyNames = $batchSubject->getAssignedFacultyNames();
+            return view('r26_practical.lesson_plan_print', compact('batchSubject', 'classroom', 'lessonPlans', 'assignedStaffList', 'facultyNames'));
         }
 
         if ($type === 'attainment') {

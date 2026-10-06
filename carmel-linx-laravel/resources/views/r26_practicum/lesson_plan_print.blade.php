@@ -61,7 +61,7 @@
         </div>
         <div class="space-y-1">
             <div><span class="font-bold">Syllabus Revision:</span> {{ $batchSubject->syllabus_revision_code ?? 'Revision 2026 Practicum' }}</div>
-            <div><span class="font-bold">Lecturer Name:</span> {{ $lecturerName }}</div>
+            <div><span class="font-bold">Faculty:</span> {{ $facultyNames ?? ($lecturerName ?: ($batchSubject->getAssignedFacultyNames() ?? 'Faculty In-Charge')) }}</div>
             <div><span class="font-bold">Assessment Academic Year:</span> {{ $batchYear . ' - ' . ($batchYear + 1) }}</div>
             <div><span class="font-bold">Generated Date:</span> {{ date('d/m/Y') }}</div>
         </div>
@@ -104,14 +104,25 @@
     </table>
 
     <!-- Signatures -->
-    <div class="grid grid-cols-3 gap-8 pt-12 text-center font-bold text-sm">
-        <div>
-            <div class="border-t border-slate-800 pt-2">Faculty In-Charge</div>
-        </div>
-        <div>
+    @php
+        $staffList = $assignedStaffList ?? ($batchSubject->getAssignedFacultyList() ?? []);
+    @endphp
+    <div class="flex justify-between gap-8 pt-12 text-center font-bold text-sm">
+        @if(count($staffList) > 1)
+            @foreach($staffList as $staffMember)
+                <div class="flex-1">
+                    <div class="border-t border-slate-800 pt-2">{{ $staffMember }}<br><span class="text-xs font-normal text-slate-600 uppercase">Faculty In-Charge</span></div>
+                </div>
+            @endforeach
+        @else
+            <div class="flex-1">
+                <div class="border-t border-slate-800 pt-2">{{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? ($lecturerName ?? 'Faculty In-Charge')) }}<br><span class="text-xs font-normal text-slate-600 uppercase">Faculty In-Charge</span></div>
+            </div>
+        @endif
+        <div class="flex-1">
             <div class="border-t border-slate-800 pt-2">Course Coordinator</div>
         </div>
-        <div>
+        <div class="flex-1">
             <div class="border-t border-slate-800 pt-2">Head of Department (HOD)</div>
         </div>
     </div>

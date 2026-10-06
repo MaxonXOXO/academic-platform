@@ -2546,17 +2546,13 @@ Return ONLY valid JSON matching this exact structure:
         // Get class logs to verify actual dates
         $classLogs = \DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
+            ->whereNotNull('lesson_plan_id')
             ->get()
             ->keyBy('lesson_plan_id');
 
-        $staff = \DB::table('subject_staff_assignments')
-            ->where('batch_subject_id', $subjectId)
-            ->first();
-        $staffName = '';
-        if ($staff) {
-            $s = \DB::table('staff_profiles')->where('mobile_no', $staff->staff_mobile_no)->first();
-            if ($s) $staffName = $s->name;
-        }
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+        $staffName = $facultyNames;
 
         $branchMap = [
             'EL' => 'Electronics Engineering',
@@ -2575,6 +2571,8 @@ Return ONLY valid JSON matching this exact structure:
             'plans' => $plans,
             'classLogs' => $classLogs,
             'staffName' => $staffName,
+            'assignedStaffList' => $assignedStaffList,
+            'facultyNames' => $facultyNames,
             'fullDepartment' => $fullDepartment,
             'currentDate' => date('d-m-Y')
         ]);
@@ -3018,21 +3016,9 @@ Return ONLY valid JSON matching this exact structure:
         $fullDepartment = $reportData['fullDepartment'];
         $cleanedBatch = $reportData['cleanedBatch'];
 
-        // Retrieve all assigned staff names
-        $assignedStaffList = \Illuminate\Support\Facades\DB::table('subject_staff_assignments')
-            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
-            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
-            ->pluck('staff_profiles.name')
-            ->unique()
-            ->filter()
-            ->values()
-            ->toArray();
-
-        if (empty($assignedStaffList)) {
-            $defaultName = \Illuminate\Support\Facades\Session::get('userName') ?? 'Faculty Member';
-            $assignedStaffList = [$defaultName];
-        }
-        $facultyNames = implode(', ', $assignedStaffList);
+        // Retrieve all assigned staff names ordered by designation (Lecturer, Demonstrator, Workshop Instructor, etc.)
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
 
         // Fetch class logs to get batch conducted hours breakdown
         $classLogs = \Illuminate\Support\Facades\DB::table('class_logs_attendance')
@@ -5099,13 +5085,18 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $cleanedBatch = preg_replace('/^[A-Z]+_/', '', $batchSubject->classroom_id);
         $cleanedBatch = str_replace('_', ' - ', $cleanedBatch);
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
         return view('classroom_practical_report_print', [
             'subject' => $batchSubject,
             'fullDepartment' => $fullDepartment,
             'cleanedBatch' => $cleanedBatch,
             'students' => $students,
             'totalStudents' => $students->count(),
-            'currentYear' => date('Y')
+            'currentYear' => date('Y'),
+            'assignedStaffList' => $assignedStaffList,
+            'facultyNames' => $facultyNames,
         ]);
     }
 
@@ -7108,6 +7099,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->where('subject_code', $batchSubject->subject_code)
             ->get();
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
         return view('classroom_practical_reports_print', [
             'subject' => $batchSubject,
             'fullDepartment' => $fullDepartment,
@@ -7119,7 +7113,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             'evaluations' => $evaluations,
             'attendanceLogs' => $attendanceLogs,
             'studentAttendance' => $studentAttendance,
-            'currentYear' => date('Y')
+            'currentYear' => date('Y'),
+            'assignedStaffList' => $assignedStaffList,
+            'facultyNames' => $facultyNames,
         ]);
     }
 }

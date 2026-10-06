@@ -164,8 +164,12 @@
         <tr>
             <td>Subject Name:</td>
             <td>{{ $subject->subject_name }} ({{ $subject->subject_code }})</td>
+            <td>Faculty In-Charge:</td>
+            <td>{{ $facultyNames ?? ($subject->getAssignedFacultyNames() ?? '-') }}</td>
+        </tr>
+        <tr>
             <td>Date of Report:</td>
-            <td>{{ date('d-m-Y') }}</td>
+            <td colspan="3">{{ date('d-m-Y') }}</td>
         </tr>
     </table>
 
@@ -337,11 +341,36 @@
         </table>
     @endif
 
+    @php
+        $staffList = $assignedStaffList ?? ($subject->getAssignedFacultyList() ?? []);
+    @endphp
     <table class="footer-signatures">
         <tr>
-            <td>Name & Signature of Lab Assessor</td>
-            <td>Name & Signature of Coordinator</td>
-            <td>Head of Department</td>
+            @if(count($staffList) > 1)
+                @foreach($staffList as $staffMember)
+                    <td style="width: {{ round(100 / (count($staffList) + 2), 1) }}%;">
+                        <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                        {{ $staffMember }}<br>
+                        <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Faculty In-Charge</span>
+                    </td>
+                @endforeach
+            @else
+                <td style="width: 33.33%;">
+                    <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                    {{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? 'Faculty In-Charge') }}<br>
+                    <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Faculty In-Charge</span>
+                </td>
+            @endif
+            <td style="width: {{ count($staffList) > 1 ? round(100 / (count($staffList) + 2), 1) : 33.33 }}%;">
+                <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                Lab Coordinator<br>
+                <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Name &amp; Signature</span>
+            </td>
+            <td style="width: {{ count($staffList) > 1 ? round(100 / (count($staffList) + 2), 1) : 33.33 }}%;">
+                <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                Head of Department<br>
+                <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">{{ $fullDepartment }}</span>
+            </td>
         </tr>
     </table>
 

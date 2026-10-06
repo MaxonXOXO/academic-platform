@@ -272,16 +272,20 @@
         <tr>
             <td class="meta-label">Subject / Course:</td>
             <td class="meta-val">{{ $batchSubject->subject_name }} ({{ $batchSubject->subject_code }})</td>
-            <td class="meta-label">Class &amp; Semester:</td>
-            <td class="meta-val">{{ $cleanedBatch }} &bull; Semester {{ $batchSubject->semester }}</td>
+            <td class="meta-label">Faculty In-Charge:</td>
+            <td class="meta-val"><strong>{{ $facultyNames ?? ($batchSubject->getAssignedFacultyNames() ?? '-') }}</strong></td>
         </tr>
         <tr>
-            <td class="meta-label">Curriculum / Scheme:</td>
-            <td class="meta-val">Revision 2021 (Outcome Based Education)</td>
+            <td class="meta-label">Class &amp; Semester:</td>
+            <td class="meta-val">{{ $cleanedBatch }} &bull; Semester {{ $batchSubject->semester }}</td>
             <td class="meta-label">Conducted Exps:</td>
             <td class="meta-val">
                 <strong>{{ $attendedCount }} Done</strong> / {{ $totalCompletedExps }} Total Conducted ({{ $totalExperiments }} in syllabus)
             </td>
+        </tr>
+        <tr>
+            <td class="meta-label">Curriculum / Scheme:</td>
+            <td class="meta-val" colspan="3">Revision 2021 (Outcome Based Education)</td>
         </tr>
     </table>
 
@@ -463,19 +467,35 @@
     </table>
 
     <!-- Signature Block -->
+    @php
+        $staffList = $assignedStaffList ?? ($batchSubject->getAssignedFacultyList() ?? []);
+    @endphp
     <table class="footer-signatures">
         <tr>
-            <td>
-                ____________________________<br>
-                Signature of Student
+            <td style="width: {{ count($staffList) > 1 ? round(100 / (count($staffList) + 2), 1) : 33.33 }}%;">
+                <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                Signature of Student<br>
+                <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Candidate</span>
             </td>
-            <td>
-                ____________________________<br>
-                Signature of Lab Assessor / Faculty
-            </td>
-            <td>
-                ____________________________<br>
-                Head of Department
+            @if(count($staffList) > 1)
+                @foreach($staffList as $staffMember)
+                    <td style="width: {{ round(100 / (count($staffList) + 2), 1) }}%;">
+                        <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                        {{ $staffMember }}<br>
+                        <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Faculty In-Charge</span>
+                    </td>
+                @endforeach
+            @else
+                <td style="width: 33.33%;">
+                    <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                    {{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? 'Faculty In-Charge') }}<br>
+                    <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">Faculty In-Charge</span>
+                </td>
+            @endif
+            <td style="width: {{ count($staffList) > 1 ? round(100 / (count($staffList) + 2), 1) : 33.33 }}%;">
+                <div style="border-top: 1px dashed #333; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                Head of Department<br>
+                <span style="font-size: 9px; font-weight: normal; text-transform: uppercase; color: #555;">{{ $fullDepartment }}</span>
             </td>
         </tr>
     </table>

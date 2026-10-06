@@ -520,9 +520,11 @@ class R26ClassroomController extends Controller
 
         $branchName = $this->getDepartmentName($subject, $classroom);
         $departmentName = $branchName;
-        $lecturerName = Session::get('userName', 'Assigned Faculty');
+        $assignedStaffList = $subject->getAssignedFacultyList();
+        $facultyNames = $subject->getAssignedFacultyNames();
+        $lecturerName = $facultyNames ?: Session::get('userName', 'Assigned Faculty');
 
-        return view('r26.lesson_plan_print', compact('subject', 'plans', 'branchName', 'departmentName', 'lecturerName', 'classroom'));
+        return view('r26.lesson_plan_print', compact('subject', 'plans', 'branchName', 'departmentName', 'lecturerName', 'classroom', 'assignedStaffList', 'facultyNames'));
     }
 
     /**

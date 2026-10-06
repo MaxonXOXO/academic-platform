@@ -157,11 +157,13 @@
             display: flex;
             justify-content: space-between;
             page-break-inside: avoid;
+            gap: 20px;
         }
 
         .signature-box {
             text-align: center;
-            width: 200px;
+            flex: 1;
+            max-width: 240px;
         }
 
         .signature-line {
@@ -233,7 +235,7 @@
             </tr>
             <tr>
                 <td class="meta-label">Faculty:</td>
-                <td class="meta-value">{{ $staffName ?: 'Assigned Faculty' }}</td>
+                <td class="meta-value"><strong>{{ $facultyNames ?? ($staffName ?: ($subject->getAssignedFacultyNames() ?? 'Assigned Faculty')) }}</strong></td>
                 <td class="meta-label">Report Date:</td>
                 <td class="meta-value">{{ $currentDate }}</td>
             </tr>
@@ -298,14 +300,29 @@
             </tbody>
         </table>
 
+        @php
+            $staffList = $assignedStaffList ?? ($subject->getAssignedFacultyList() ?? []);
+        @endphp
         <div class="signature-section">
+            @if(count($staffList) > 1)
+                @foreach($staffList as $staffMember)
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p style="font-weight: bold; margin-bottom: 2px;">{{ $staffMember }}</p>
+                        <p style="font-size: 10px; color: #555; text-transform: uppercase;">Faculty In-Charge</p>
+                    </div>
+                @endforeach
+            @else
+                <div class="signature-box">
+                    <div class="signature-line"></div>
+                    <p style="font-weight: bold; margin-bottom: 2px;">{{ !empty($staffList) ? $staffList[0] : ($facultyNames ?? ($staffName ?: 'Faculty Member')) }}</p>
+                    <p style="font-size: 10px; color: #555; text-transform: uppercase;">Course Faculty</p>
+                </div>
+            @endif
             <div class="signature-box">
                 <div class="signature-line"></div>
-                <p>Signature of Faculty Member</p>
-            </div>
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <p>Signature of HOD</p>
+                <p style="font-weight: bold; margin-bottom: 2px;">Head of Department</p>
+                <p style="font-size: 10px; color: #555; text-transform: uppercase;">{{ $fullDepartment }}</p>
             </div>
         </div>
     </div>

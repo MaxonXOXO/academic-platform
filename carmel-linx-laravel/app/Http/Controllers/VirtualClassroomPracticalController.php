@@ -1119,13 +1119,18 @@ class VirtualClassroomPracticalController extends Controller
         $cleanedBatch = preg_replace('/^[A-Z]+_/', '', $batchSubject->classroom_id);
         $cleanedBatch = str_replace('_', ' - ', $cleanedBatch);
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
         return [
             'subject' => $batchSubject,
             'fullDepartment' => $fullDepartment,
             'cleanedBatch' => $cleanedBatch,
             'students' => $mappedStudents,
             'totalStudents' => $mappedStudents->count(),
-            'currentYear' => date('Y')
+            'currentYear' => date('Y'),
+            'assignedStaffList' => $assignedStaffList,
+            'facultyNames' => $facultyNames,
         ];
     }
 
@@ -1379,10 +1384,14 @@ class VirtualClassroomPracticalController extends Controller
         ];
         $fullDepartment = $deptMap[$branch] ?? ($branch . ' Department');
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
         return view('classroom_practical_experiments_print', compact(
             'batchSubject', 'students', 'conductedDetails', 'totalExperiments',
             'conductedCount', 'actualLabHours', 'coveragePct', 'cleanedBatch', 'fullDepartment',
-            'batch1SessionsCount', 'batch2SessionsCount', 'batch1StudentCount', 'batch2StudentCount'
+            'batch1SessionsCount', 'batch2SessionsCount', 'batch1StudentCount', 'batch2StudentCount',
+            'assignedStaffList', 'facultyNames'
         ));
     }
 
@@ -1690,6 +1699,9 @@ class VirtualClassroomPracticalController extends Controller
         $fullDepartment = $branchMap[$branchKey] ?? ($branchKey . ' Department');
         $cleanedBatch = preg_replace('/^([A-Z]+)_(\d{4})_(\d{4})$/', '$1 ($2-$3)', $batchSubject->classroom_id ?? '');
 
+        $assignedStaffList = $batchSubject->getAssignedFacultyList();
+        $facultyNames = $batchSubject->getAssignedFacultyNames();
+
         return view('classroom_practical_student_report_print', compact(
             'batchSubject',
             'student',
@@ -1726,7 +1738,9 @@ class VirtualClassroomPracticalController extends Controller
             'totalInternal',
             'boardExam',
             'eseDisplay',
-            'finalResultDisplay'
+            'finalResultDisplay',
+            'assignedStaffList',
+            'facultyNames'
         ));
     }
 }

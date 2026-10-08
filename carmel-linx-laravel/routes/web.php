@@ -51,10 +51,12 @@ if (!function_exists('noCacheView')) {
     }
 }
 
-Route::get('/api/system/session-check', function() {
+Route::get('/api/system/session-check', function(\Illuminate\Http\Request $request) {
     if (Session::has('userId')) {
         $userId = Session::get('userId');
         Cache::put('user_online_' . $userId, true, now()->addMinutes(5));
+        Cache::put('user_ip_' . $userId, $request->ip(), now()->addMinutes(15));
+        Cache::put('user_last_seen_' . $userId, now()->timestamp, now()->addMinutes(15));
         return response()->json(['status' => 'ACTIVE', 'userId' => $userId, 'is_online' => true])->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',
@@ -510,6 +512,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/admin/user/change-role', [DataController::class, 'changeUserRole']);
     Route::post('/api/admin/user/delete', [DataController::class, 'deleteUser']);
     Route::get('/api/audit-logs', [DataController::class, 'getAuditLogs']);
+    Route::get('/api/admin/online-staff-log', [DataController::class, 'getOnlineStaffStatusLog']);
 
     // Live Remote Support Desk (Beta) Endpoints
     Route::post('/api/support/request', [SupportDeskController::class, 'requestAssist']);

@@ -586,6 +586,8 @@ class AuthController extends Controller
         $userId = Session::get('userId');
         if ($userId) {
             Cache::forget('user_online_' . $userId);
+            Cache::forget('user_ip_' . $userId);
+            Cache::forget('user_last_seen_' . $userId);
             StaffProfile::where('mobile_no', $userId)->update(['remember_token' => null]);
             Student::where('reg_no', $userId)->orWhere('adm_no', $userId)->update(['remember_token' => null]);
         }

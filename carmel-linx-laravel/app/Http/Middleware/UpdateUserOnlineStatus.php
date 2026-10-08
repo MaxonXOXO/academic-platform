@@ -21,6 +21,8 @@ class UpdateUserOnlineStatus
         $userId = Session::get('userId');
         if ($userId) {
             Cache::put('user_online_' . $userId, true, now()->addMinutes(5));
+            Cache::put('user_ip_' . $userId, $request->ip(), now()->addMinutes(15));
+            Cache::put('user_last_seen_' . $userId, now()->timestamp, now()->addMinutes(15));
         }
 
         return $next($request);

@@ -1239,14 +1239,18 @@ class DataController extends Controller
         }
 
         $targetId = trim($request->query('targetId', ''));
+        $performedBy = trim($request->query('performedBy', ''));
 
         try {
             $query = AuditLog::query();
 
             // Scope query according to credentials:
-            if (in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Workshop_Superintendent'])) {
+            if (in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Workshop_Superintendent', 'Chairman'])) {
                 if (!empty($targetId)) {
                     $query->where('target_id', $targetId);
+                }
+                if (!empty($performedBy)) {
+                    $query->where('performed_by', $performedBy);
                 }
             } elseif ($currentRole === 'HOD') {
                 $query->where(function($q) use ($currentBranch, $currentUserId) {
@@ -1261,6 +1265,9 @@ class DataController extends Controller
 
                 if (!empty($targetId)) {
                     $query->where('target_id', $targetId);
+                }
+                if (!empty($performedBy)) {
+                    $query->where('performed_by', $performedBy);
                 }
             } else {
                 $supervisedClass = ClassManagement::where('tutor_mobile_no', $currentUserId)
@@ -1296,6 +1303,205 @@ class DataController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => 'Failed to query audit logs: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Dedicated Live Online Staff & Real-Time Activity Log API
+     * Returns:
+     * - online_staff: currently online staff based on active heartbeat cache (< 5 min TTL)
+     * - recent_staff: staff active earlier today with their action counts and last action
+     * - summary: counts, departments online, server timestamp in IST
+     */
+    public function getOnlineStaffStatusLog(Request $request)
+    {
+        $currentUserId = Session::get('userId');
+        $currentRole = Session::get('userRole');
+        $currentBranch = Session::get('userBranch');
+
+        if (!$currentUserId || !in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Chairman', 'HOD'])) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Unauthorized access to live staff monitor.'
+            ], 403);
+        }
+
+        try {
+            $now = now();
+            $nowTimestamp = time();
+            $today = $now->format('Y-m-d');
+
+            // 1. Fetch active online session keys from cache table
+            $cacheRows = DB::table('cache')
+                ->where('key', 'like', '%user_online_%')
+                ->where('expiration', '>', $nowTimestamp)
+                ->get(['key', 'expiration']);
+
+            $onlineMobiles = [];
+            $expirationMap = [];
+            foreach ($cacheRows as $r) {
+                $mobile = preg_replace('/^.*user_online_/', '', $r->key);
+                if (!empty($mobile)) {
+                    $onlineMobiles[] = $mobile;
+                    $expirationMap[$mobile] = (int)$r->expiration;
+                }
+            }
+
+            // 2. Fetch staff audit actions for today
+            $todayActionsQuery = DB::table('audit_logs')
+                ->whereDate('created_at', $today)
+                ->whereNotNull('performed_by')
+                ->select('performed_by', DB::raw('COUNT(*) as cnt'))
+                ->groupBy('performed_by');
+
+            if ($currentRole === 'HOD' && !empty($currentBranch)) {
+                $todayActionsQuery->whereIn('performed_by', function($sub) use ($currentBranch) {
+                    $sub->select('mobile_no')->from('staff_profiles')->where('branch', strtoupper($currentBranch));
+                });
+            }
+
+            $todayActions = $todayActionsQuery->pluck('cnt', 'performed_by')->toArray();
+
+            // 3. Union of all online mobiles + staff who were active today
+            $allStaffMobiles = array_values(array_unique(array_merge($onlineMobiles, array_keys($todayActions))));
+
+            // 4. Query staff profiles
+            $staffQuery = DB::table('staff_profiles')
+                ->select('id', 'name', 'mobile_no', 'branch', 'designation', 'email', 'photo_url', 'account_status');
+
+            if ($currentRole === 'HOD' && !empty($currentBranch)) {
+                $staffQuery->where('branch', strtoupper($currentBranch));
+            }
+
+            $staffProfiles = $staffQuery->whereIn('mobile_no', $allStaffMobiles)->get()->keyBy('mobile_no');
+
+            // 5. Query latest audit log for each staff member
+            $relevantMobiles = $staffProfiles->keys()->toArray();
+            $latestLogs = collect();
+            if (!empty($relevantMobiles)) {
+                $latestLogs = DB::table('audit_logs')
+                    ->whereIn('id', function($q) use ($relevantMobiles) {
+                        $q->select(DB::raw('MAX(id)'))
+                          ->from('audit_logs')
+                          ->whereIn('performed_by', $relevantMobiles)
+                          ->groupBy('performed_by');
+                    })
+                    ->get()
+                    ->keyBy('performed_by');
+            }
+
+            $onlineList = [];
+            $recentList = [];
+            $activeDepts = [];
+
+            foreach ($staffProfiles as $mobile => $s) {
+                $isOnline = isset($expirationMap[$mobile]) && $expirationMap[$mobile] > $nowTimestamp;
+                $log = $latestLogs->get($mobile);
+                $exp = $expirationMap[$mobile] ?? 0;
+                $remaining = max(0, $exp - $nowTimestamp);
+                $elapsed = max(0, 300 - $remaining);
+
+                // Fetch cached IP and last seen if available
+                $cachedIp = Cache::get('user_ip_' . $mobile);
+                $ipAddress = $cachedIp ?: ($log ? $log->ip_address : '127.0.0.1');
+
+                $lastSeenHuman = 'Offline';
+                if ($isOnline) {
+                    $lastSeenHuman = $elapsed < 60 ? 'Just now (' . $elapsed . 's ago)' : round($elapsed / 60) . 'm ago';
+                    if (!in_array($s->branch, $activeDepts)) {
+                        $activeDepts[] = $s->branch;
+                    }
+                } elseif ($log && $log->created_at) {
+                    $lastSeenHuman = \Carbon\Carbon::parse($log->created_at)->diffForHumans();
+                }
+
+                $actionData = null;
+                if ($log) {
+                    $logTime = \Carbon\Carbon::parse($log->created_at);
+                    $actionData = [
+                        'id' => $log->id,
+                        'action' => $log->action,
+                        'target_name' => $log->target_name,
+                        'target_id' => $log->target_id,
+                        'details' => $log->details,
+                        'ip_address' => $log->ip_address ?: $ipAddress,
+                        'created_at' => $log->created_at,
+                        'time_human' => $logTime->diffForHumans(),
+                        'time_ist' => $logTime->format('h:i:s A'),
+                        'date_ist' => $logTime->format('d M Y'),
+                    ];
+                } else {
+                    $actionData = [
+                        'id' => null,
+                        'action' => 'Session Active',
+                        'target_name' => 'Carmel Linx Portal',
+                        'target_id' => '-',
+                        'details' => 'Staff session active with regular heartbeat',
+                        'ip_address' => $ipAddress,
+                        'created_at' => $now->toDateTimeString(),
+                        'time_human' => 'Active now',
+                        'time_ist' => $now->format('h:i:s A'),
+                        'date_ist' => $now->format('d M Y'),
+                    ];
+                }
+
+                $item = [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'mobile_no' => $s->mobile_no,
+                    'designation' => $s->designation,
+                    'branch' => $s->branch,
+                    'email' => $s->email,
+                    'photo_url' => $s->photo_url,
+                    'is_online' => $isOnline,
+                    'ip_address' => $ipAddress,
+                    'elapsed_seconds' => $elapsed,
+                    'remaining_seconds' => $remaining,
+                    'last_seen_human' => $lastSeenHuman,
+                    'actions_today' => (int)($todayActions[$mobile] ?? 0),
+                    'latest_action' => $actionData,
+                ];
+
+                if ($isOnline) {
+                    $onlineList[] = $item;
+                } else {
+                    $recentList[] = $item;
+                }
+            }
+
+            // Sort online staff: most recent ping first
+            usort($onlineList, function($a, $b) {
+                return $a['elapsed_seconds'] <=> $b['elapsed_seconds'];
+            });
+
+            // Sort recent staff: latest action time descending
+            usort($recentList, function($a, $b) {
+                $timeA = $a['latest_action']['created_at'] ?? '2000-01-01';
+                $timeB = $b['latest_action']['created_at'] ?? '2000-01-01';
+                return strcmp($timeB, $timeA);
+            });
+
+            $totalActionsToday = DB::table('audit_logs')->whereDate('created_at', $today)->count();
+
+            return response()->json([
+                'status' => 'SUCCESS',
+                'summary' => [
+                    'online_count' => count($onlineList),
+                    'recent_count' => count($recentList),
+                    'total_active_today' => count($onlineList) + count($recentList),
+                    'total_actions_today' => $totalActionsToday,
+                    'active_departments' => $activeDepts,
+                    'server_time_ist' => $now->format('d M Y, h:i:s A') . ' IST',
+                    'timestamp' => $nowTimestamp,
+                ],
+                'online_staff' => $onlineList,
+                'recent_staff' => $recentList,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Failed to retrieve live online staff log: ' . $e->getMessage()
+            ], 500);
         }
     }
 

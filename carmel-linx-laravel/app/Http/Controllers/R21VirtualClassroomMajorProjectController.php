@@ -291,6 +291,13 @@ class R21VirtualClassroomMajorProjectController extends Controller
      */
     public function saveEvaluation(Request $request, $subjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($subjectId)) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $userId = Session::get('userId');
         if (!$userId) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 401);
@@ -1210,7 +1217,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 $conducted = $stAtt->count();
                 $attended = $stAtt->whereIn('status', ['Present', 'Late'])->count();
             }
-            $attPercentage = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
+            $attPercentage = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 0.0;
 
             // Suggested Attendance Marks (Max 15M, Rev 2021)
             $calcAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 15.0);

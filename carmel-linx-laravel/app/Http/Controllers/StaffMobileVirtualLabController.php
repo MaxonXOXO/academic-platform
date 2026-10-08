@@ -203,7 +203,7 @@ class StaffMobileVirtualLabController extends Controller
             // ── Attendance ─────────────────────────────────────────────────────
             $rawPresent = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
             $presentAtt = min($totalForStudent, $rawPresent);
-            $logAttPct = $totalForStudent > 0 ? round(($presentAtt / $totalForStudent) * 100, 2) : 100.0;
+            $logAttPct = $totalForStudent > 0 ? round(($presentAtt / $totalForStudent) * 100, 2) : 0.0;
 
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
@@ -220,7 +220,7 @@ class StaffMobileVirtualLabController extends Controller
                 }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                $attPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                $attPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
             } else {
                 $attPct = $logAttPct;
             }

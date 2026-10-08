@@ -117,7 +117,7 @@
                 <td>{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
                 <td>{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                 <td>{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
-                <td>{{ $attendanceMarks[$student->reg_no]['mark'] ?? 5 }}</td>
+                <td>{{ $attendanceMarks[$student->reg_no]['mark'] ?? 0 }}</td>
                 <td class="bold">{{ $score['total_cia_60'] ?? '0.00' }}</td>
                 <td>{{ $score['ese_score_40'] ?? '0.00' }}</td>
                 <td class="bold" style="background-color: #fcfcfc;">{{ $score['grand_total_100'] ?? '0.00' }}</td>

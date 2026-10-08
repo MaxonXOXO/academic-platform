@@ -255,6 +255,9 @@
       <button id="navProgressReport" onclick="switchPanel('progressReport')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg text-indigo-400">trending_up</span> Student Progress Report
       </button>
+      <button id="navConsolidatedCia" onclick="switchPanel('consolidatedCia')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
+        <span class="material-symbols-rounded text-lg text-amber-400">fact_check</span> Consolidated CIA Report
+      </button>
 
       <button id="navMentoring" onclick="switchPanel('mentoring')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer text-xs mobile-link">
         <span class="material-symbols-rounded text-lg">diversity_3</span> Mentoring Batches
@@ -773,6 +776,88 @@
         </div>
       </div>
 
+      <!-- PANEL: CONSOLIDATED CIA MARK REPORT (A4 LANDSCAPE) -->
+      <div id="panelConsolidatedCia" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs font-bold uppercase">SBTE Kerala Regulation</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">A4 Landscape Broadsheet</span>
+                <span id="tutorCiaLockBadge" class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 rounded text-xs font-bold">Checking Lock...</span>
+                <h3 class="font-black text-white text-lg">Consolidated CIA Mark Report</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Continuous internal assessment broadsheet covering all semester subjects (Theory, Practical, Drawing, Seminar &amp; Project) with whole-number CIA marks, attendance percentage, and HOD approval.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadConsolidatedCiaReport()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh
+              </button>
+              <button id="btnTutorSubmitCia" onclick="submitCiaToHod()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">send</span> Submit to HOD
+              </button>
+              <a id="btnPrintConsolidatedCia" href="/consolidated-cia/print" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4 Landscape)
+              </a>
+            </div>
+          </div>
+
+          <!-- Semester Selector & Context Strip -->
+          <div class="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="text-xs font-bold text-slate-400">Select Semester:</span>
+              <div id="tutorCiaSemSwitcher" class="flex items-center gap-1.5">
+                <!-- Dynamically populated buttons -->
+              </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-300">
+              <div><strong>Class:</strong> <span id="tutorCiaClassLabel">-</span></div>
+              <div><strong>Scheme:</strong> <span id="tutorCiaSchemeLabel" class="text-sky-400 font-bold">-</span></div>
+              <div><strong>HOD:</strong> <span id="tutorCiaHodLabel">-</span></div>
+            </div>
+          </div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Students</div>
+              <div class="text-xl font-black text-white font-mono" id="tutorCiaTotalStudents">0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Semester Subjects</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="tutorCiaTotalSubjects">0</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">All Subjects Cleared</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="tutorCiaPassedCount">0</div>
+            </div>
+            <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-rose-400">Arrear / Fail in CIA</div>
+              <div class="text-xl font-black text-rose-400 font-mono" id="tutorCiaFailedCount">0</div>
+            </div>
+            <div class="p-3 bg-purple-950/20 border border-purple-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-purple-400">HOD Sanction Status</div>
+              <div class="text-xs font-black text-purple-300 uppercase mt-1 truncate" id="tutorCiaLockStatusText">DRAFT</div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="tutorCiaTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-amber-400">progress_activity</span>
+              <div class="text-xs mt-2">Loading consolidated CIA mark report...</div>
+            </div>
+          </div>
+
+          <!-- Faculty In-Charge Directory -->
+          <div id="tutorCiaFacultyDirectory" class="mt-6 pt-4 border-t border-slate-800">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- PANEL 2: AUDIT TRAIL -->
       <div id="panelAudit" class="hidden space-y-6">
         <!-- Audit Logs Controls -->
@@ -1276,7 +1361,7 @@
     function switchPanel(panelId) {
       activePanel = panelId;
       
-      const panels = ['roster', 'rollNumbers', 'attendanceReport', 'progressReport', 'audit', 'profile', 'mentoring', 'activity', 'leaveApproval'];
+      const panels = ['roster', 'rollNumbers', 'attendanceReport', 'progressReport', 'consolidatedCia', 'audit', 'profile', 'mentoring', 'activity', 'leaveApproval'];
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
         const nav = document.getElementById('nav' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -1295,6 +1380,7 @@
         'rollNumbers': 'Student Roll Numbers',
         'attendanceReport': 'Consolidated Semester Attendance Register (Clause 10)',
         'progressReport': 'Student Progress Report (Series Exam Marks CO1-CO4, Attendance & Class Rank)',
+        'consolidatedCia': 'Consolidated CIA Mark Report (SBTE Kerala A4 Landscape)',
         'audit': 'Classroom Audit Trail',
         'profile': 'My Tutor Profile',
         'mentoring': 'Mentoring Batches',
@@ -1309,6 +1395,7 @@
       if (panelId === 'roster') loadUsers();
       if (panelId === 'attendanceReport') loadConsolidatedAttendance();
       if (panelId === 'progressReport') loadStudentProgressReport();
+      if (panelId === 'consolidatedCia') loadConsolidatedCiaReport();
       if (panelId === 'rollNumbers') loadTutorStudents();
       if (panelId === 'audit') loadAuditTrail();
       if (panelId === 'profile') loadSelfSecurityLogs();
@@ -3976,6 +4063,284 @@
           </tbody>
         </table>
       `;
+    }
+
+    // ============================================================
+    // CONSOLIDATED CIA MARK REPORT (SBTE KERALA A4 LANDSCAPE)
+    // ============================================================
+    let consolidatedCiaDataCache = null;
+    let selectedCiaSemester = null;
+
+    function loadConsolidatedCiaReport(sem = null) {
+      const wrapper = document.getElementById('tutorCiaTableWrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <span class="material-symbols-rounded text-3xl animate-spin text-amber-400">progress_activity</span>
+          <div class="text-xs mt-2">Compiling live consolidated CIA marks across all semester courses...</div>
+        </div>
+      `;
+
+      let url = '/api/consolidated-cia';
+      if (sem) {
+        url += '?semester=' + encodeURIComponent(sem);
+        selectedCiaSemester = sem;
+      } else if (selectedCiaSemester) {
+        url += '?semester=' + encodeURIComponent(selectedCiaSemester);
+      }
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            consolidatedCiaDataCache = res;
+            const cls = res.classroom || {};
+            const app = res.approval || {};
+            selectedCiaSemester = cls.semester;
+
+            // Metadata banner
+            if (document.getElementById('tutorCiaClassLabel')) document.getElementById('tutorCiaClassLabel').innerText = (cls.batch || cls.id) + ' (S' + cls.semester + ')';
+            if (document.getElementById('tutorCiaSchemeLabel')) document.getElementById('tutorCiaSchemeLabel').innerText = cls.scheme_name || '-';
+            if (document.getElementById('tutorCiaHodLabel')) document.getElementById('tutorCiaHodLabel').innerText = app.hod_name || cls.hod_name || '-';
+
+            // Print button href
+            const printBtn = document.getElementById('btnPrintConsolidatedCia');
+            if (printBtn) {
+              printBtn.href = '/consolidated-cia/print?classroom_id=' + encodeURIComponent(cls.id) + '&semester=' + encodeURIComponent(cls.semester);
+            }
+
+            // Lock status & Submit button
+            const lockBadge = document.getElementById('tutorCiaLockBadge');
+            const lockStatusText = document.getElementById('tutorCiaLockStatusText');
+            const submitBtn = document.getElementById('btnTutorSubmitCia');
+
+            if (app.is_locked) {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '🔒 Locked &amp; Approved by HOD';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'LOCKED (OFFICIAL)';
+                lockStatusText.className = 'text-xs font-black text-emerald-400 uppercase mt-1 truncate';
+              }
+              if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.className = 'px-4 py-2 bg-slate-800 text-slate-500 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60';
+                submitBtn.title = 'Report is already approved & locked by HOD.';
+              }
+            } else if (app.submitted_by_tutor) {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-sky-500/20 border border-sky-500/40 text-sky-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '⏳ Submitted to HOD';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'SUBMITTED TO HOD';
+                lockStatusText.className = 'text-xs font-black text-sky-400 uppercase mt-1 truncate';
+              }
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.className = 'px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer';
+                submitBtn.title = 'Re-submit to HOD';
+              }
+            } else {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '✍️ Draft (Staff Editable)';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'DRAFT (EDITABLE)';
+                lockStatusText.className = 'text-xs font-black text-amber-400 uppercase mt-1 truncate';
+              }
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.className = 'px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer';
+                submitBtn.title = 'Submit to HOD for final approval';
+              }
+            }
+
+            // Stats Cards
+            const stats = res.stats || {};
+            if (document.getElementById('tutorCiaTotalStudents')) document.getElementById('tutorCiaTotalStudents').innerText = stats.total_students || 0;
+            if (document.getElementById('tutorCiaTotalSubjects')) document.getElementById('tutorCiaTotalSubjects').innerText = stats.total_subjects || 0;
+            if (document.getElementById('tutorCiaPassedCount')) document.getElementById('tutorCiaPassedCount').innerText = stats.passed_students || 0;
+            if (document.getElementById('tutorCiaFailedCount')) document.getElementById('tutorCiaFailedCount').innerText = stats.failed_students || 0;
+
+            // Semester Switcher
+            renderTutorCiaSemSwitcher(res.available_semesters || [1,2,3,4,5,6], cls.semester);
+
+            // Render Table & Directory
+            renderConsolidatedCiaTable(res);
+          } else {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                <div>${res.message || 'Failed to load consolidated CIA report.'}</div>
+              </div>
+            `;
+          }
+        })
+        .catch(err => {
+          wrapper.innerHTML = `
+            <div class="py-8 text-center text-rose-400 text-xs">
+              <span class="material-symbols-rounded text-2xl mb-1">error</span>
+              <div>Server communication failed. Please refresh.</div>
+            </div>
+          `;
+          console.error(err);
+        });
+    }
+
+    function renderTutorCiaSemSwitcher(semesters, activeSem) {
+      const container = document.getElementById('tutorCiaSemSwitcher');
+      if (!container) return;
+      container.innerHTML = semesters.map(s => {
+        const isActive = (parseInt(s) === parseInt(activeSem));
+        return `
+          <button onclick="loadConsolidatedCiaReport(${s})" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            isActive ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+          }">
+            S${s}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderConsolidatedCiaTable(data) {
+      const wrapper = document.getElementById('tutorCiaTableWrapper');
+      if (!wrapper) return;
+
+      const subjects = data.subjects || [];
+      const students = data.students || [];
+
+      if (subjects.length === 0) {
+        wrapper.innerHTML = `<div class="py-12 text-center text-slate-400 text-xs">No curriculum subjects registered for Semester ${data.classroom.semester}.</div>`;
+        return;
+      }
+
+      let theadHtml = `
+        <tr class="border-b border-slate-800 bg-slate-950 text-[0.68rem] text-slate-400 uppercase tracking-wider font-extrabold">
+          <th class="p-2.5 text-center w-10 border-r border-slate-800">Sl</th>
+          <th class="p-2.5 text-center w-12 border-r border-slate-800">Roll</th>
+          <th class="p-2.5 text-center w-28 border-r border-slate-800">Reg No</th>
+          <th class="p-2.5 text-left min-w-[160px] border-r border-slate-800 text-white">Student Name</th>
+      `;
+
+      subjects.forEach(s => {
+        theadHtml += `
+          <th class="p-2 text-center border-r border-slate-800 min-w-[85px]" title="${s.subject_name}">
+            <span class="font-mono font-bold text-xs text-sky-400 block">${s.subject_code}</span>
+            <span class="text-[0.60rem] text-slate-400 block truncate max-w-[100px] mx-auto font-normal">${s.subject_name}</span>
+            <span class="text-[0.62rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
+          </th>
+        `;
+      });
+
+      theadHtml += `
+          <th class="p-2.5 text-center w-20 border-r border-slate-800 text-emerald-400">Attn (%)</th>
+          <th class="p-2.5 text-center w-20 text-indigo-400">Result</th>
+        </tr>
+      `;
+
+      let tbodyHtml = '';
+      students.forEach((st, idx) => {
+        tbodyHtml += `
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-xs font-medium">
+            <td class="p-2 text-center border-r border-slate-800 text-slate-500 font-mono">${idx + 1}</td>
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-300 font-bold">${st.roll_no || '-'}</td>
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-400 text-[11px]">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2 text-left border-r border-slate-800 font-bold text-slate-200 truncate max-w-[180px]">${st.name}</td>
+        `;
+
+        subjects.forEach(s => {
+          const mData = st.subject_marks[s.id] || {};
+          const val = mData.mark;
+          const isGen = mData.is_generated;
+          const isPass = mData.is_pass;
+
+          let markHtml = '<span class="text-slate-600">-</span>';
+          if (isGen && val !== null) {
+            markHtml = isPass
+              ? `<span class="font-mono font-bold text-slate-200">${val}</span>`
+              : `<span class="font-mono font-black text-rose-400 underline" title="Below 40% Pass Mark">${val}</span>`;
+          }
+
+          tbodyHtml += `<td class="p-2 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
+        });
+
+        const attPct = parseFloat(st.overall_attendance || 100);
+        const attColor = attPct >= 75 ? 'text-emerald-400 font-bold' : (attPct >= 65 ? 'text-amber-400 font-bold' : 'text-rose-400 font-black');
+
+        let resBadge = '<span class="text-slate-500">-</span>';
+        if (st.overall_result === 'PASSED') {
+          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
+        } else if (st.overall_result === 'FAILED') {
+          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
+        }
+
+        tbodyHtml += `
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-xs ${attColor}">${attPct.toFixed(1)}%</td>
+            <td class="p-2 text-center">${resBadge}</td>
+          </tr>
+        `;
+      });
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse min-w-[950px]">
+          <thead>${theadHtml}</thead>
+          <tbody>${tbodyHtml}</tbody>
+        </table>
+      `;
+
+      // Render Faculty Directory below table
+      const dirContainer = document.getElementById('tutorCiaFacultyDirectory');
+      if (dirContainer && data.staff_list) {
+        let cardsHtml = data.staff_list.map(fac => `
+          <div class="p-3 bg-slate-900/60 border border-slate-800/80 rounded-xl">
+            <div class="font-bold text-xs text-white">${fac.name} <span class="text-[10px] text-slate-400 font-normal">(${fac.designation})</span></div>
+            <div class="text-[10.5px] text-sky-400 mt-1 font-mono">${fac.subjects.join(', ')}</div>
+          </div>
+        `).join('');
+
+        dirContainer.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-extrabold text-xs text-slate-300 uppercase tracking-wider">Faculty Course In-Charge Directory</h4>
+            <span class="text-[10px] text-slate-500">${data.staff_list.length} Faculty Members Assigned</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            ${cardsHtml}
+          </div>
+        `;
+      }
+    }
+
+    function submitCiaToHod() {
+      if (!consolidatedCiaDataCache) return;
+      const cls = consolidatedCiaDataCache.classroom || {};
+      if (!confirm(`Are you sure you want to submit the Consolidated CIA Report for Semester ${cls.semester} to the Head of Department for official approval and locking?`)) {
+        return;
+      }
+
+      fetch('/api/consolidated-cia/submit', {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify({
+          classroom_id: cls.id,
+          semester: cls.semester
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          alert(res.message);
+          loadConsolidatedCiaReport(cls.semester);
+        } else {
+          alert(res.message || 'Failed to submit report to HOD.');
+        }
+      })
+      .catch(err => {
+        alert('Server error while submitting to HOD.');
+        console.error(err);
+      });
     }
 
     // Sidebar folding logic for widescreen table views

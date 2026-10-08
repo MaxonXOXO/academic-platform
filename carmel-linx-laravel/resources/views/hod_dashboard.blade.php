@@ -293,6 +293,9 @@
       <button id="navAudit" onclick="switchPanel('audit')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-base">receipt_long</span> Department Audit Trail
       </button>
+      <button id="navConsolidatedCia" onclick="switchPanel('consolidatedCia')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
+        <span class="material-symbols-rounded text-base text-amber-400">assignment_turned_in</span> Consolidated CIA
+      </button>
       <a href="/dashboard/lecturer" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block mobile-link">
          <span class="material-symbols-rounded text-base">calendar_view_week</span> My Batches
       </a>
@@ -601,6 +604,104 @@
         </div>
       </div>
 
+      <!-- PANEL: CONSOLIDATED CIA MARK REPORT (A4 LANDSCAPE & HOD LOCK) -->
+      <div id="panelConsolidatedCia" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs font-bold uppercase">SBTE Kerala Regulation</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">A4 Landscape Broadsheet</span>
+                <span id="hodCiaLockBadge" class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 rounded text-xs font-bold">Checking Lock...</span>
+                <h3 class="font-black text-white text-lg">Consolidated CIA Mark Report</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Continuous internal assessment broadsheet covering all semester subjects (Theory, Practical, Drawing, Seminar &amp; Project) with whole-number CIA marks, attendance percentage, and HOD approval locking.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadHodConsolidatedCia()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh
+              </button>
+              
+              <!-- Lock / Unlock Buttons -->
+              <button id="btnHodLockCia" onclick="toggleHodCiaLock('lock')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">lock</span> Approve &amp; Lock CIA
+              </button>
+              <button id="btnHodUnlockCia" onclick="toggleHodCiaLock('unlock')" class="hidden px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">lock_open</span> Unlock for Re-editing
+              </button>
+
+              <a id="btnHodPrintCia" href="/consolidated-cia/print" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer no-underline">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4 Landscape)
+              </a>
+            </div>
+          </div>
+
+          <!-- Batch & Semester Selector Strip -->
+          <div class="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400">Classroom Batch:</span>
+                <select id="hodCiaBatchSelect" onchange="onHodCiaBatchChange()" class="bg-slate-950 border border-slate-700 text-white text-xs rounded-lg px-3 py-1.5 focus:border-amber-500 outline-none">
+                  <option value="">-- Select Classroom --</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400">Semester:</span>
+                <div id="hodCiaSemSwitcher" class="flex items-center gap-1.5">
+                  <!-- Dynamically populated buttons -->
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 text-xs text-slate-300">
+              <div><strong>Class:</strong> <span id="hodCiaClassLabel">-</span></div>
+              <div><strong>Scheme:</strong> <span id="hodCiaSchemeLabel" class="text-sky-400 font-bold">-</span></div>
+              <div><strong>Tutor:</strong> <span id="hodCiaTutorLabel">-</span></div>
+            </div>
+          </div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Students</div>
+              <div class="text-xl font-black text-white font-mono" id="hodCiaTotalStudents">0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Semester Subjects</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="hodCiaTotalSubjects">0</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">All Subjects Cleared</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="hodCiaPassedCount">0</div>
+            </div>
+            <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-rose-400">Arrear / Fail in CIA</div>
+              <div class="text-xl font-black text-rose-400 font-mono" id="hodCiaFailedCount">0</div>
+            </div>
+            <div class="p-3 bg-purple-950/20 border border-purple-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-purple-400">HOD Sanction Status</div>
+              <div class="text-xs font-black text-purple-300 uppercase mt-1 truncate" id="hodCiaLockStatusText">DRAFT</div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="hodCiaTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-amber-400">progress_activity</span>
+              <div class="text-xs mt-2">Select a classroom to compile consolidated CIA mark report...</div>
+            </div>
+          </div>
+
+          <!-- Faculty In-Charge Directory -->
+          <div id="hodCiaFacultyDirectory" class="mt-6 pt-4 border-t border-slate-800">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- PANEL 3: MY PROFILE -->
       <div id="panelProfile" class="hidden space-y-6">
         @include('partials.staff_profile_panel')
@@ -710,6 +811,9 @@
           <a id="btnBatchPrintCredentials" href="#" target="_blank" class="px-3.5 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5 no-underline" title="Print Student Credentials List">
             <span class="material-symbols-rounded text-sm">badge</span> Print Credential List
           </a>
+          <button id="btnBatchConsolidatedCia" onclick="openBatchCiaFromModal()" class="px-3.5 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5" title="Consolidated CIA Mark Report">
+            <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Consolidated CIA
+          </button>
           <button onclick="closeBatchDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-premium cursor-pointer" title="Close Modal">
             <span class="material-symbols-rounded text-sm">close</span>
           </button>
@@ -1277,6 +1381,9 @@
     let selectedUserForReset = null;
     let activeBatchId = null;
     let deptStaffCache = [];
+    let selectedHodCiaClassroom = null;
+    let selectedHodCiaSemester = null;
+    let hodCiaDataCache = null;
 
     function syncSubjectTypeOptions(revision, preselectedValue = null) {
       const typeSelect = document.getElementById('subjectType');
@@ -1320,6 +1427,16 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPanel = urlParams.get('panel');
+      const urlClassroom = urlParams.get('classroom') || urlParams.get('classroom_id');
+      const urlSem = urlParams.get('semester');
+      if (urlPanel === 'consolidatedCia') {
+        activePanel = 'consolidatedCia';
+        if (urlClassroom) selectedHodCiaClassroom = urlClassroom;
+        if (urlSem) selectedHodCiaSemester = urlSem;
+      }
+
       switchPanel(activePanel);
       // Pre-load dept staff for batch modals
       loadDeptStaffCache();
@@ -1341,7 +1458,7 @@
 
     function switchPanel(panelId) {
       activePanel = panelId;
-      const panels = ['directory', 'batches', 'subjects', 'audit', 'profile'];
+      const panels = ['directory', 'batches', 'subjects', 'audit', 'profile', 'consolidatedCia'];
       
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -1361,7 +1478,8 @@
         'batches': 'Batch & Class Management',
         'subjects': 'Curriculum & Staff Allocation',
         'audit': 'Department Audit Trail',
-        'profile': 'My HOD Profile'
+        'profile': 'My HOD Profile',
+        'consolidatedCia': 'Consolidated CIA Mark Report'
       };
       document.getElementById('panelTitle').innerText = titles[panelId] || 'Overview';
 
@@ -1370,6 +1488,7 @@
       if (panelId === 'subjects') loadBatchesForSubjects();
       if (panelId === 'audit') loadAuditTrail();
       if (panelId === 'profile') loadSelfSecurityLogs();
+      if (panelId === 'consolidatedCia') loadHodConsolidatedCia();
     }
 
     function loadBatchesForSubjects() {
@@ -4808,6 +4927,422 @@
           alertEl.innerText = 'Network error during file upload. Please check connection.';
         });
       }
+    }
+
+    // ============================================================
+    // CONSOLIDATED CIA MARK REPORT (HOD FUNCTIONS)
+    // ============================================================
+    function openBatchCiaFromModal() {
+      const cid = activeBatchId;
+      closeBatchDetailModal();
+      switchPanel('consolidatedCia');
+      if (cid) {
+        selectedHodCiaClassroom = cid;
+        loadHodBatchesForCia(cid).then(() => {
+          loadHodConsolidatedCia(cid);
+        });
+      }
+    }
+
+    function loadHodBatchesForCia(preselectClassroomId = null) {
+      const select = document.getElementById('hodCiaBatchSelect');
+      if (!select) return Promise.resolve(null);
+
+      const p1 = fetch('/api/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+      const p2 = fetch('/api/r26/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+
+      return Promise.all([p1, p2])
+        .then(([res1, res2]) => {
+          let b1 = (res1.status === 'SUCCESS' && Array.isArray(res1.batches)) ? res1.batches : [];
+          let b2 = (res2.status === 'SUCCESS' && Array.isArray(res2.batches)) ? res2.batches : [];
+          
+          const map = new Map();
+          b1.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          b2.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          let combined = Array.from(map.values());
+
+          combined.sort((x, y) => {
+            if ((y.batch_year || 0) !== (x.batch_year || 0)) {
+              return (y.batch_year || 0) - (x.batch_year || 0);
+            }
+            return (x.classroom_id || '').localeCompare(y.classroom_id || '');
+          });
+
+          select.innerHTML = '<option value="">-- Choose a Classroom --</option>';
+          combined.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.classroom_id;
+            opt.textContent = `${b.classroom_id} (Sem ${b.current_semester || 1})${b.is_r26 || b.batch_year === 2026 ? ' [REV2026]' : ''}`;
+            select.appendChild(opt);
+          });
+
+          if (preselectClassroomId && map.has(preselectClassroomId)) {
+            select.value = preselectClassroomId;
+          } else if (selectedHodCiaClassroom && map.has(selectedHodCiaClassroom)) {
+            select.value = selectedHodCiaClassroom;
+          } else if (combined.length > 0 && !select.value) {
+            select.value = combined[0].classroom_id;
+          }
+
+          selectedHodCiaClassroom = select.value;
+          return select.value;
+        });
+    }
+
+    function onHodCiaBatchChange() {
+      const select = document.getElementById('hodCiaBatchSelect');
+      if (!select) return;
+      selectedHodCiaClassroom = select.value;
+      selectedHodCiaSemester = null; // reset to active classroom semester
+      loadHodConsolidatedCia(selectedHodCiaClassroom, null);
+    }
+
+    function loadHodConsolidatedCia(classroomId = null, sem = null) {
+      const wrapper = document.getElementById('hodCiaTableWrapper');
+      const batchSelect = document.getElementById('hodCiaBatchSelect');
+
+      // If dropdown not loaded yet
+      if (!batchSelect || batchSelect.options.length <= 1) {
+        loadHodBatchesForCia(classroomId || selectedHodCiaClassroom).then(chosenCid => {
+          if (chosenCid) {
+            loadHodConsolidatedCia(chosenCid, sem);
+          } else if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-12 text-center text-slate-400 text-xs">
+                No active classrooms found for your department.
+              </div>
+            `;
+          }
+        });
+        return;
+      }
+
+      let cid = classroomId || batchSelect.value || selectedHodCiaClassroom;
+      if (!cid) {
+        if (wrapper) {
+          wrapper.innerHTML = `
+            <div class="py-12 text-center text-slate-400 text-xs">
+              Please choose a classroom from the dropdown above.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      selectedHodCiaClassroom = cid;
+      if (batchSelect.value !== cid) batchSelect.value = cid;
+      if (sem !== null) selectedHodCiaSemester = sem;
+
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <span class="material-symbols-rounded text-3xl animate-spin text-amber-400">progress_activity</span>
+            <div class="text-xs mt-2">Compiling live consolidated CIA marks across all semester courses...</div>
+          </div>
+        `;
+      }
+
+      let url = '/api/consolidated-cia?classroom_id=' + encodeURIComponent(cid);
+      if (selectedHodCiaSemester) {
+        url += '&semester=' + encodeURIComponent(selectedHodCiaSemester);
+      }
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            hodCiaDataCache = res;
+            const cls = res.classroom || {};
+            const app = res.approval || {};
+            selectedHodCiaSemester = cls.semester;
+
+            // Metadata banner
+            if (document.getElementById('hodCiaClassLabel')) document.getElementById('hodCiaClassLabel').innerText = (cls.batch || cls.id) + ' (S' + cls.semester + ')';
+            if (document.getElementById('hodCiaSchemeLabel')) document.getElementById('hodCiaSchemeLabel').innerText = cls.scheme_name || '-';
+            if (document.getElementById('hodCiaTutorLabel')) document.getElementById('hodCiaTutorLabel').innerText = cls.tutor_name || '-';
+
+            // Print button href
+            const printBtn = document.getElementById('btnHodPrintCia');
+            if (printBtn) {
+              printBtn.href = '/consolidated-cia/print?classroom_id=' + encodeURIComponent(cls.id) + '&semester=' + encodeURIComponent(cls.semester);
+            }
+
+            // Lock / Unlock controls
+            const lockBadge = document.getElementById('hodCiaLockBadge');
+            const lockStatusText = document.getElementById('hodCiaLockStatusText');
+            const btnLock = document.getElementById('btnHodLockCia');
+            const btnUnlock = document.getElementById('btnHodUnlockCia');
+
+            if (app.is_locked) {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '🔒 Locked &amp; Approved by HOD';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'LOCKED (OFFICIAL)';
+                lockStatusText.className = 'text-xs font-black text-emerald-400 uppercase mt-1 truncate';
+              }
+              if (btnLock) btnLock.classList.add('hidden');
+              if (btnUnlock) btnUnlock.classList.remove('hidden');
+            } else if (app.submitted_by_tutor) {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-sky-500/20 border border-sky-500/40 text-sky-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '⏳ Submitted by Tutor';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'SUBMITTED BY TUTOR';
+                lockStatusText.className = 'text-xs font-black text-sky-400 uppercase mt-1 truncate';
+              }
+              if (btnLock) {
+                btnLock.classList.remove('hidden');
+                btnLock.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer animate-pulse';
+              }
+              if (btnUnlock) btnUnlock.classList.add('hidden');
+            } else {
+              if (lockBadge) {
+                lockBadge.className = 'px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded text-xs font-bold';
+                lockBadge.innerHTML = '✍️ Draft (Staff Editable)';
+              }
+              if (lockStatusText) {
+                lockStatusText.innerText = 'DRAFT (EDITABLE)';
+                lockStatusText.className = 'text-xs font-black text-amber-400 uppercase mt-1 truncate';
+              }
+              if (btnLock) {
+                btnLock.classList.remove('hidden');
+                btnLock.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer';
+              }
+              if (btnUnlock) btnUnlock.classList.add('hidden');
+            }
+
+            // Stats Cards
+            const stats = res.stats || {};
+            if (document.getElementById('hodCiaTotalStudents')) document.getElementById('hodCiaTotalStudents').innerText = stats.total_students || 0;
+            if (document.getElementById('hodCiaTotalSubjects')) document.getElementById('hodCiaTotalSubjects').innerText = stats.total_subjects || 0;
+            if (document.getElementById('hodCiaPassedCount')) document.getElementById('hodCiaPassedCount').innerText = stats.passed_students || 0;
+            if (document.getElementById('hodCiaFailedCount')) document.getElementById('hodCiaFailedCount').innerText = stats.failed_students || 0;
+
+            // Semester Switcher
+            renderHodCiaSemSwitcher(res.available_semesters || [1,2,3,4,5,6], cls.semester);
+
+            // Render Table & Directory
+            renderHodCiaTable(res);
+          } else {
+            if (wrapper) {
+              wrapper.innerHTML = `
+                <div class="py-8 text-center text-rose-400 text-xs">
+                  <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                  <div>${res.message || 'Failed to load consolidated CIA report.'}</div>
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(err => {
+          if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                <div>Server communication failed. Please refresh.</div>
+              </div>
+            `;
+          }
+          console.error(err);
+        });
+    }
+
+    function renderHodCiaSemSwitcher(semesters, activeSem) {
+      const container = document.getElementById('hodCiaSemSwitcher');
+      if (!container) return;
+      container.innerHTML = semesters.map(s => {
+        const isActive = (parseInt(s) === parseInt(activeSem));
+        return `
+          <button onclick="loadHodConsolidatedCia('${selectedHodCiaClassroom}', ${s})" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            isActive ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+          }">
+            S${s}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderHodCiaTable(data) {
+      const wrapper = document.getElementById('hodCiaTableWrapper');
+      if (!wrapper) return;
+
+      const subjects = data.subjects || [];
+      const students = data.students || [];
+
+      if (subjects.length === 0) {
+        wrapper.innerHTML = `<div class="py-12 text-center text-slate-400 text-xs">No curriculum subjects registered for Semester ${data.classroom.semester}.</div>`;
+        return;
+      }
+
+      let theadHtml = `
+        <tr class="border-b border-slate-800 bg-slate-950 text-[0.68rem] text-slate-400 uppercase tracking-wider font-extrabold">
+          <th class="p-2.5 text-center w-10 border-r border-slate-800">Sl</th>
+          <th class="p-2.5 text-center w-12 border-r border-slate-800">Roll</th>
+          <th class="p-2.5 text-center w-28 border-r border-slate-800">Reg No</th>
+          <th class="p-2.5 text-left min-w-[160px] border-r border-slate-800 text-white">Student Name</th>
+      `;
+
+      subjects.forEach(s => {
+        theadHtml += `
+          <th class="p-2 text-center border-r border-slate-800 min-w-[85px]" title="${s.subject_name}">
+            <span class="font-mono font-bold text-xs text-sky-400 block">${s.subject_code}</span>
+            <span class="text-[0.60rem] text-slate-400 block truncate max-w-[100px] mx-auto font-normal">${s.subject_name}</span>
+            <span class="text-[0.62rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
+          </th>
+        `;
+      });
+
+      theadHtml += `
+          <th class="p-2.5 text-center w-20 border-r border-slate-800 text-emerald-400">Attn (%)</th>
+          <th class="p-2.5 text-center w-20 text-indigo-400">Result</th>
+        </tr>
+      `;
+
+      let tbodyHtml = '';
+      students.forEach((st, idx) => {
+        tbodyHtml += `
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-xs font-medium">
+            <td class="p-2 text-center border-r border-slate-800 text-slate-500 font-mono">${idx + 1}</td>
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-300 font-bold">${st.roll_no || '-'}</td>
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-400 text-[11px]">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2 text-left border-r border-slate-800 font-bold text-slate-200 truncate max-w-[180px]">${st.name}</td>
+        `;
+
+        subjects.forEach(s => {
+          const mData = st.subject_marks[s.id] || {};
+          const val = mData.mark;
+          const isGen = mData.is_generated;
+          const isPass = mData.is_pass;
+
+          let markHtml = '<span class="text-slate-600">-</span>';
+          if (isGen && val !== null) {
+            markHtml = isPass
+              ? `<span class="font-mono font-bold text-slate-200">${val}</span>`
+              : `<span class="font-mono font-black text-rose-400 underline" title="Below 40% Pass Mark">${val}</span>`;
+          }
+
+          tbodyHtml += `<td class="p-2 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
+        });
+
+        const attPct = parseFloat(st.overall_attendance || 100);
+        const attColor = attPct >= 75 ? 'text-emerald-400 font-bold' : (attPct >= 65 ? 'text-amber-400 font-bold' : 'text-rose-400 font-black');
+
+        let resBadge = '<span class="text-slate-500">-</span>';
+        if (st.overall_result === 'PASSED') {
+          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
+        } else if (st.overall_result === 'FAILED') {
+          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
+        }
+
+        tbodyHtml += `
+            <td class="p-2 text-center border-r border-slate-800 font-mono text-xs ${attColor}">${attPct.toFixed(1)}%</td>
+            <td class="p-2 text-center">${resBadge}</td>
+          </tr>
+        `;
+      });
+
+      // Course Average CIA Marks row
+      let tfootHtml = `
+        <tr class="bg-slate-950 font-black text-xs border-t-2 border-slate-700">
+          <td colspan="4" class="p-2.5 text-right uppercase tracking-wider text-amber-400 border-r border-slate-800">Course Average CIA Mark:</td>
+      `;
+      subjects.forEach(s => {
+        let sum = 0;
+        let count = 0;
+        students.forEach(st => {
+          const mData = st.subject_marks[s.id] || {};
+          if (mData.is_generated && mData.mark !== null) {
+            sum += mData.mark;
+            count++;
+          }
+        });
+        const avg = count > 0 ? (sum / count).toFixed(1) : '-';
+        tfootHtml += `<td class="p-2 text-center border-r border-slate-800 text-amber-300 font-mono font-bold">${avg}</td>`;
+      });
+      tfootHtml += `
+          <td class="p-2 text-center border-r border-slate-800 text-slate-500 font-mono">-</td>
+          <td class="p-2 text-center text-slate-500">-</td>
+        </tr>
+      `;
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse min-w-[950px]">
+          <thead>${theadHtml}</thead>
+          <tbody>${tbodyHtml}</tbody>
+          <tfoot>${tfootHtml}</tfoot>
+        </table>
+      `;
+
+      // Render Faculty Directory below table
+      const dirContainer = document.getElementById('hodCiaFacultyDirectory');
+      if (dirContainer && data.staff_list) {
+        let cardsHtml = data.staff_list.map(fac => `
+          <div class="p-3 bg-slate-900/60 border border-slate-800/80 rounded-xl">
+            <div class="font-bold text-xs text-white">${fac.name} <span class="text-[10px] text-slate-400 font-normal">(${fac.designation})</span></div>
+            <div class="text-[10.5px] text-sky-400 mt-1 font-mono">${fac.subjects.join(', ')}</div>
+          </div>
+        `).join('');
+
+        dirContainer.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-extrabold text-xs text-slate-300 uppercase tracking-wider">Faculty Course In-Charge Directory</h4>
+            <span class="text-[10px] text-slate-500">${data.staff_list.length} Faculty Members Assigned</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            ${cardsHtml}
+          </div>
+        `;
+      }
+    }
+
+    function toggleHodCiaLock(action) {
+      if (!hodCiaDataCache) return;
+      const cls = hodCiaDataCache.classroom || {};
+      const sem = cls.semester || selectedHodCiaSemester;
+      const cid = cls.id || selectedHodCiaClassroom;
+
+      if (!cid || !sem) {
+        alert('Please select a valid classroom and semester first.');
+        return;
+      }
+
+      let promptMsg = '';
+      if (action === 'lock') {
+        promptMsg = `Approve and LOCK Consolidated CIA Marks for ${cid} (Semester ${sem})?\n\n` +
+          `• Once locked, all subject teachers are immediately blocked from modifying marks.\n` +
+          `• This report will become the official broadsheet record.\n\nProceed to approve and lock?`;
+      } else {
+        promptMsg = `UNLOCK Consolidated CIA Marks for ${cid} (Semester ${sem})?\n\n` +
+          `• This will permit subject teachers to re-edit CIA marks.\n\nProceed to unlock?`;
+      }
+
+      if (!confirm(promptMsg)) return;
+
+      fetch('/api/consolidated-cia/lock', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          classroom_id: cid,
+          semester: sem,
+          action: action
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          alert(res.message || (action === 'lock' ? 'CIA marks approved and locked successfully!' : 'CIA marks unlocked successfully!'));
+          loadHodConsolidatedCia(cid, sem);
+        } else {
+          alert(res.message || 'Action failed.');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Server communication failed.');
+      });
     }
 
     // Live AI Status Indicator for HOD

@@ -286,8 +286,8 @@
             <td class="val">{{ $lecturerName }}</td>
         </tr>
         <tr>
-            <td class="lbl">Sessions Recorded:</td>
-            <td class="val"><strong>{{ $logs->count() }}</strong> Sessions ({{ $totalHours }} Conducted Hours)</td>
+            <td class="lbl">Conducted Hours:</td>
+            <td class="val"><strong>{{ $totalHours }}</strong> Hours Conducted ({{ $uniqueDatesCount ?? $logs->count() }} Teaching Days)</td>
             <td class="lbl">Enrolled Students:</td>
             <td class="val"><strong>{{ $totalEnrolled }}</strong> Students</td>
         </tr>
@@ -300,7 +300,7 @@
                 <th style="width: 25px;">Sl</th>
                 <th style="width: 62px;">Date</th>
                 <th style="width: 50px;">Batch</th>
-                <th style="width: 48px;">Hours</th>
+                <th style="width: 48px;">Period</th>
                 <th>Syllabus Topic Covered / Log Entry</th>
                 <th style="width: 32px;">Pres</th>
                 <th style="width: 32px;">Abs</th>
@@ -314,7 +314,7 @@
                 <td class="text-center" style="font-weight: 700;">{{ $idx + 1 }}</td>
                 <td class="text-center font-mono">{{ $log->formatted_date }}</td>
                 <td class="text-center" style="font-weight: 700; color: #1e3a8a; font-size: 8.5px;">{{ $log->batch_label }}</td>
-                <td class="text-center font-mono" style="color: #334155; font-weight: 600;">{{ $log->hours_csv ?? $log->period_label }}</td>
+                <td class="text-center font-mono" style="color: #334155; font-weight: 700;">{{ $log->period_label ?? ('P' . $log->period) }}</td>
                 <td style="white-space: pre-line;">{{ $log->topics_covered ?: 'Syllabus lecture session' }}</td>
                 <td class="text-center" style="font-weight: 700; color: #047857;">{{ $log->present_count }}</td>
                 <td class="text-center" style="color: #b91c1c;">{{ $log->absent_count }}</td>
@@ -338,12 +338,12 @@
         <div class="summary-title">Class Log & Coverage Summary</div>
         <div class="stats-grid">
             <div class="stat-box">
-                <div class="val">{{ $logs->count() }}</div>
-                <div class="desc">Sessions Recorded</div>
-            </div>
-            <div class="stat-box">
                 <div class="val">{{ $totalHours }}</div>
                 <div class="desc">Total Hours Conducted</div>
+            </div>
+            <div class="stat-box">
+                <div class="val">{{ $uniqueDatesCount ?? $logs->count() }}</div>
+                <div class="desc">Teaching Days / Sessions</div>
             </div>
             <div class="stat-box">
                 <div class="val">{{ number_format($overallAvgAttn, 1) }}%</div>

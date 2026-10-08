@@ -75,7 +75,7 @@ class SbteSubjectLogImportController extends Controller
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
-            ->get(['roll_no', 'name', 'reg_no']);
+            ->get(['roll_no', 'name', 'reg_no', 'admission_type', 'date_of_joining']);
 
         if ($classroomStudents->isEmpty()) {
             return response()->json([
@@ -268,7 +268,13 @@ class SbteSubjectLogImportController extends Controller
             $matchedStudentsCount++;
             $matchedRegNos[] = $regNo;
 
+            $doj = $studentObj->date_of_joining ?: (($studentObj->admission_type === 'LET') ? '2026-07-15' : null);
             for ($i = 0; $i < $sessionCount; $i++) {
+                $sessDate = $sessionDates[$i] ?? null;
+                if ($doj && $sessDate && $sessDate < $doj) {
+                    continue; // Skip pre-admission dates for this student
+                }
+
                 $mark = strtoupper(trim($marks[$i] ?? 'A'));
                 if ($mark === 'A' || $mark === '0' || $mark === '-' || $mark === 'AB') {
                     $sessionAttendance[$i]['absent'][] = $regNo;
@@ -281,7 +287,12 @@ class SbteSubjectLogImportController extends Controller
         // Safety fallback: Ensure any enrolled classroom student not explicitly in the absent list is counted present
         foreach ($classroomStudents as $cs) {
             $rNo = $cs->reg_no;
+            $doj = $cs->date_of_joining ?: (($cs->admission_type === 'LET') ? '2026-07-15' : null);
             for ($i = 0; $i < $sessionCount; $i++) {
+                $sessDate = $sessionDates[$i] ?? null;
+                if ($doj && $sessDate && $sessDate < $doj) {
+                    continue; // Skip pre-admission dates
+                }
                 if (!in_array($rNo, $sessionAttendance[$i]['absent']) && !in_array($rNo, $sessionAttendance[$i]['present'])) {
                     $sessionAttendance[$i]['present'][] = $rNo;
                 }
@@ -310,6 +321,7 @@ class SbteSubjectLogImportController extends Controller
         $mappedLpCount = 0;
         $usedLpIds = [];
         $lpSeqIndex = 0;
+        $processedSlotsInRun = [];
 
         DB::beginTransaction();
         try {
@@ -353,9 +365,29 @@ class SbteSubjectLogImportController extends Controller
                     }));
                 }
 
+                // Filter out students who had not yet joined on this date (LET / late joiners)
+                $presentRegNos = array_values(array_filter($presentRegNos, function($rNo) use ($studentsByRoll, $classroomStudents, $date) {
+                    $cs = $studentsByRoll[$rNo] ?? $classroomStudents->firstWhere('reg_no', $rNo);
+                    $doj = $cs ? ($cs->date_of_joining ?: (($cs->admission_type === 'LET') ? '2026-07-15' : null)) : null;
+                    return !$doj || $date >= $doj;
+                }));
+                $absentRegNos = array_values(array_filter($absentRegNos, function($rNo) use ($studentsByRoll, $classroomStudents, $date) {
+                    $cs = $studentsByRoll[$rNo] ?? $classroomStudents->firstWhere('reg_no', $rNo);
+                    $doj = $cs ? ($cs->date_of_joining ?: (($cs->admission_type === 'LET') ? '2026-07-15' : null)) : null;
+                    return !$doj || $date >= $doj;
+                }));
+
                 // Create distinct period logs for exact hour calculations
                 foreach ($periods as $period) {
                     $period = (int)$period;
+
+                    // Prevent same-date collision if multiple sessions appear on the same date with the same period
+                    $slotKey = $date . '_' . $sessionSubBatch . '_' . $period;
+                    while (isset($processedSlotsInRun[$slotKey])) {
+                        $period++;
+                        $slotKey = $date . '_' . $sessionSubBatch . '_' . $period;
+                    }
+                    $processedSlotsInRun[$slotKey] = true;
 
                     // Topic assignment per period hour
                     $assignedLpId = null;
@@ -374,6 +406,29 @@ class SbteSubjectLogImportController extends Controller
                             $assignedLp->actual_date = $date;
                             $assignedLp->actual_hours = 1;
                             $assignedLp->save();
+                            $mappedLpCount++;
+                            $lpSeqIndex++;
+                        } elseif ($batchSubject->subject_type === 'Theory') {
+                            $maxDayNo = DB::table('lesson_plans')->where('batch_subject_id', $batchSubject->id)->max('day_no') ?: 0;
+                            $newDayNo = $maxDayNo + 1;
+                            $newLp = LessonPlan::create([
+                                'batch_subject_id' => $batchSubject->id,
+                                'day_no' => $newDayNo,
+                                'co_id' => 'CO4',
+                                'topic_content' => "Extra Class / Revision Session {$newDayNo}",
+                                'allocated_hours' => 1,
+                                'proposed_date' => null,
+                                'actual_date' => $date,
+                                'actual_hours' => 1,
+                                'pedagogy' => 'Lecture',
+                                'mode' => 'L',
+                                'sub_batch' => $sessionSubBatch,
+                                'remarks' => 'Auto-created from SBTE Attendance Import',
+                                'status' => 'Completed',
+                            ]);
+                            $assignedTopic = $newLp->topic_content;
+                            $assignedLpId = $newLp->id;
+                            $usedLpIds[] = $newLp->id;
                             $mappedLpCount++;
                             $lpSeqIndex++;
                         } elseif ($practicalExperiments->isNotEmpty()) {
@@ -520,6 +575,11 @@ class SbteSubjectLogImportController extends Controller
                         ->where('reg_no', $rNo)
                         ->where('subject_code', $batchSubject->subject_code)
                         ->get();
+
+                    $doj = $cs->date_of_joining ?: (($cs->admission_type === 'LET') ? '2026-07-15' : null);
+                    if ($doj) {
+                        $stOfficial = $stOfficial->filter(fn($att) => $att->date >= $doj);
+                    }
 
                     if ($stOfficial->isNotEmpty()) {
                         if ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch)) {
@@ -701,6 +761,13 @@ class SbteSubjectLogImportController extends Controller
                     $assignedTopic = "Topic pending manual update";
                 }
 
+                // Filter out students who had not yet joined on this date (LET / late joiners)
+                $sessionStudentRegNos = array_values(array_filter($studentRegNos, function($rNo) use ($classroomStudents, $date) {
+                    $cs = $classroomStudents->firstWhere('reg_no', $rNo);
+                    $doj = $cs ? ($cs->date_of_joining ?: (($cs->admission_type === 'LET') ? '2026-07-15' : null)) : null;
+                    return !$doj || $date >= $doj;
+                }));
+
                 foreach ($hours as $period) {
                     $period = (int)$period;
                     $existingLog = DB::table('class_logs_attendance')
@@ -716,7 +783,7 @@ class SbteSubjectLogImportController extends Controller
                             ->update([
                                 'lesson_plan_id' => $assignedLpId ?: $existingLog->lesson_plan_id,
                                 'topics_covered' => $assignedTopic ?: $existingLog->topics_covered,
-                                'present_students' => json_encode($studentRegNos),
+                                'present_students' => json_encode($sessionStudentRegNos),
                                 'absent_students' => json_encode([]),
                                 'recorded_by' => $recordedBy,
                                 'updated_at' => now(),
@@ -728,7 +795,7 @@ class SbteSubjectLogImportController extends Controller
                             'period' => $period,
                             'lesson_plan_id' => $assignedLpId,
                             'topics_covered' => $assignedTopic,
-                            'present_students' => json_encode($studentRegNos),
+                            'present_students' => json_encode($sessionStudentRegNos),
                             'absent_students' => json_encode([]),
                             'sub_batch' => $subBatch,
                             'recorded_by' => $recordedBy,
@@ -738,7 +805,7 @@ class SbteSubjectLogImportController extends Controller
                     }
 
                     if (Schema::hasTable('student_attendance')) {
-                        foreach ($studentRegNos as $regNo) {
+                        foreach ($sessionStudentRegNos as $regNo) {
                             DB::table('student_attendance')->updateOrInsert(
                                 [
                                     'reg_no' => $regNo,

@@ -1447,7 +1447,10 @@
         .then(data => {
           if (data.status === 'SUCCESS') {
             window.attPastLogsCache = data.logs || [];
-            if (badge) badge.innerText = `${window.attPastLogsCache.length} Records`;
+            if (badge) {
+              const totHrs = data.total_hours || window.attPastLogsCache.length;
+              badge.innerText = `${totHrs} Conducted Hours (${window.attPastLogsCache.length} Sessions)`;
+            }
             renderDesktopPastLogsTable();
 
             // Check if there is an edit request pending from URL

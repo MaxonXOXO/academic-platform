@@ -1320,6 +1320,8 @@ class AttendanceController extends Controller
         return response()->json([
             'status' => 'SUCCESS',
             'logs' => $logs,
+            'total_hours' => $rawLogs->count(),
+            'total_sessions' => count($sessionList),
             'dates' => $dates,
             'matrix' => $matrix,
             'experiments' => $practicalExperiments

@@ -169,7 +169,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 100.00;
+            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 0.00;
 
             if ($attPercentage >= 90) { $attMarks = 5; }
             elseif ($attPercentage >= 80) { $attMarks = 4; }
@@ -451,7 +451,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 0.0;
 
             if ($attPercentage >= 90) { $attMarks = 5.0; }
             elseif ($attPercentage >= 80) { $attMarks = 4.0; }

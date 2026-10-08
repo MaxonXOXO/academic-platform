@@ -349,9 +349,80 @@
         </div>
       </div>
 
+      <!-- Card 12: Consolidated CIA Mark Report (SBTE Regulation) -->
+      <div class="card-gradient border border-amber-500/40 bg-amber-950/10 rounded-xl p-3 space-y-2 hover:border-amber-400 transition-premium shadow-md flex flex-col justify-between">
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="material-symbols-rounded text-amber-400 text-lg">assignment_turned_in</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">Official</span>
+              <span class="w-6 h-6 flex items-center justify-center rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs">CIA</span>
+            </div>
+          </div>
+          <h3 class="text-white text-xs font-bold m-0">Consolidated CIA Mark Report</h3>
+          <p class="text-slate-400 text-[11px] leading-snug m-0">
+            A4 Landscape continuous internal assessment broadsheet across all semester courses with attendance %, tutor submission, and HOD approval locking.
+          </p>
+        </div>
+        <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between mt-1">
+          <span class="text-[10px] text-amber-400 font-medium">A4 Landscape</span>
+          <button onclick="openConsolidatedCiaModal()" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 hover:text-white border border-amber-500/40 rounded-lg font-bold transition-premium cursor-pointer text-xs">
+            Open Broadsheet
+          </button>
+        </div>
+      </div>
+
     </div>
 
   </main>
+
+  <!-- CONSOLIDATED CIA MODAL -->
+  <div id="consolidatedCiaModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 transition-premium">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
+        <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+          <span class="material-symbols-rounded text-amber-400 text-base">assignment_turned_in</span> Consolidated CIA Broadsheet
+        </h3>
+        <button onclick="closeConsolidatedCiaModal()" class="text-slate-400 hover:text-white cursor-pointer"><span class="material-symbols-rounded text-xs">close</span></button>
+      </div>
+
+      <div class="space-y-4">
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Select a semester classroom to preview live marks, sanction official HOD approval &amp; lock, or print the standard A4 Landscape continuous internal assessment broadsheet.
+        </p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 font-bold">Select Classroom Batch</label>
+            <select id="selectCiaBatch" onchange="updateCiaSemesterOptions()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
+              @foreach($batches as $batch)
+                <option value="{{ $batch->classroom_id }}" data-semester="{{ $batch->current_semester }}">{{ $batch->classroom_id }} (Current Sem {{ $batch->current_semester }})</option>
+              @endforeach
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 font-bold">Select Semester</label>
+            <select id="selectCiaSemester" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none text-sm">
+              <option value="1">Semester 1 (S1)</option>
+              <option value="2">Semester 2 (S2)</option>
+              <option value="3">Semester 3 (S3)</option>
+              <option value="4">Semester 4 (S4)</option>
+              <option value="5">Semester 5 (S5)</option>
+              <option value="6">Semester 6 (S6)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="openCiaInHodConsole()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-bold transition-premium text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-rounded text-sm">edit_note</span> Open in Editor
+          </button>
+          <button type="button" onclick="printCiaFromReportCentre()" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-bold shadow-lg transition-premium flex items-center justify-center gap-1.5 text-xs cursor-pointer">
+            <span class="material-symbols-rounded text-sm">print</span> Print (A4 Landscape)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ATTENDANCE MODAL -->
   <div id="attendanceModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 transition-premium">
@@ -685,6 +756,63 @@
       }
       closeActivityPointsModal();
       window.open('/hod/activity-points-report/print?classroom_id=' + encodeURIComponent(batchId) + '&semester=' + encodeURIComponent(sem), '_blank');
+    }
+
+    // Consolidated CIA Report Helpers
+    function openConsolidatedCiaModal() {
+      const modal = document.getElementById('consolidatedCiaModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      updateCiaSemesterOptions();
+    }
+
+    function closeConsolidatedCiaModal() {
+      const modal = document.getElementById('consolidatedCiaModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function updateCiaSemesterOptions() {
+      const batchSelect = document.getElementById('selectCiaBatch');
+      const semSelect = document.getElementById('selectCiaSemester');
+      if (!batchSelect || !semSelect) return;
+
+      const selectedOpt = batchSelect.options[batchSelect.selectedIndex];
+      if (!selectedOpt) return;
+
+      const rawSem = parseInt(selectedOpt.getAttribute('data-semester') || '1', 10);
+      const activeSem = Math.max(1, Math.min(isNaN(rawSem) ? 1 : rawSem, 6));
+
+      semSelect.innerHTML = '';
+      for (let s = 1; s <= 6; s++) {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `Semester ${s} (S${s})${s === activeSem ? ' [Current]' : ''}`;
+        if (s === activeSem) opt.selected = true;
+        semSelect.appendChild(opt);
+      }
+    }
+
+    function openCiaInHodConsole() {
+      const batchId = document.getElementById('selectCiaBatch').value;
+      const sem = document.getElementById('selectCiaSemester').value;
+      if (!batchId) {
+        alert('Please select a batch.');
+        return;
+      }
+      closeConsolidatedCiaModal();
+      window.location.href = `/dashboard/hod?panel=consolidatedCia&classroom=${encodeURIComponent(batchId)}&semester=${encodeURIComponent(sem)}`;
+    }
+
+    function printCiaFromReportCentre() {
+      const batchId = document.getElementById('selectCiaBatch').value;
+      const sem = document.getElementById('selectCiaSemester').value;
+      if (!batchId) {
+        alert('Please select a batch.');
+        return;
+      }
+      closeConsolidatedCiaModal();
+      window.open(`/consolidated-cia/print?classroom_id=${encodeURIComponent(batchId)}&semester=${encodeURIComponent(sem)}`, '_blank');
     }
   </script>
 

@@ -126,7 +126,7 @@ class R26ClassroomController extends Controller
             $studentAttendance = $attendanceData->get($student->reg_no, collect());
             $totalAttendance = $studentAttendance->count();
             $present = $studentAttendance->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 100.00;
+            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 0.00;
             $attPercentage = round($attPercentage, 2);
             
             // Table 2.1 Attendance Marks Conversion
@@ -1924,7 +1924,7 @@ class R26ClassroomController extends Controller
             $studentAttendance = $attendanceData->get($student->reg_no, collect());
             $totalAttendance = $studentAttendance->count();
             $present = $studentAttendance->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 100.00;
+            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 0.00;
             $attPercentage = round($attPercentage, 2);
             
             // Table 2.1 Attendance Marks Conversion
@@ -2103,7 +2103,7 @@ class R26ClassroomController extends Controller
             $studentAttendance = $attendanceData->get($student->reg_no, collect());
             $totalAttendance = $studentAttendance->count();
             $present = $studentAttendance->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 100.00;
+            $attPercentage = $totalAttendance > 0 ? ($present / $totalAttendance) * 100 : 0.00;
             $attPercentage = round($attPercentage, 2);
             
             // Table 2.1 Attendance Marks Conversion

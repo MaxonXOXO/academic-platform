@@ -1300,7 +1300,7 @@
                                 <td class="p-3 text-center font-mono text-slate-500" id="cia-lab-work-{{ $student->reg_no }}">{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
                                 <td class="p-3 text-center font-mono text-purple-400" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                                 <td class="p-3 text-center font-mono text-amber-400" id="cia-open-{{ $student->reg_no }}">{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
-                                <td class="p-3 text-center font-mono text-emerald-400">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 5 }}</td>
+                                <td class="p-3 text-center font-mono text-emerald-400">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 0 }}</td>
                                 <td class="p-3 text-center font-mono font-bold text-white" id="cia-total-{{ $student->reg_no }}">{{ $score['total_cia_60'] ?? '0.00' }}</td>
                                 <td class="p-3 text-center font-mono text-emerald-400 font-bold" id="cia-ese-{{ $student->reg_no }}">{{ $score['ese_score_40'] ?? '0.00' }}</td>
                                 <td class="p-3 text-center font-mono font-black text-sm text-emerald-400" id="cia-grand-{{ $student->reg_no }}">{{ $score['grand_total_100'] ?? '0.00' }}</td>

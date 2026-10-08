@@ -361,8 +361,8 @@
 
                 <!-- Attendance (Max 15) -->
                 <td style="font-weight:600; color:#047857;">{{ $stud->present_classes }}</td>
-                <td class="{{ (float)($stud->attendance_percentage ?? 100) < 75 ? 'pct-short' : 'pct-high' }}">
-                    {{ number_format($stud->attendance_percentage ?? 100, 1) }}%
+                <td class="{{ (float)($stud->attendance_percentage ?? 0) < 75 ? 'pct-short' : 'pct-high' }}">
+                    {{ number_format($stud->attendance_percentage ?? 0, 1) }}%
                 </td>
                 <td style="font-weight:700; color:#047857; background:#f0fdf4;">
                     {{ number_format($stud->attendance_marks ?? 0, 1) }}

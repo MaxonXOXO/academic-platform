@@ -1084,11 +1084,44 @@ Route::middleware(['web'])->group(function () {
             ];
         }
 
+        $assignedLabBatches = collect();
+        if (Schema::hasTable('r26_student_lab_batches')) {
+            $assignedLabBatches = DB::table('r26_student_lab_batches')
+                ->whereIn('batch_subject_id', $subjects->pluck('id'))
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        $specialAttendanceRecords = collect();
+        if (Schema::hasTable('tutor_special_attendances')) {
+            $specialAttendanceRecords = DB::table('tutor_special_attendances')
+                ->where('classroom_id', $classroomId)
+                ->get()
+                ->groupBy('reg_no');
+        }
+
         foreach ($subjects as $subject) {
-            // Count total conducted classes for this subject
-            $totalConducted = DB::table('class_logs_attendance')
+            $isPractical = stripos($subject->subject_type ?? '', 'pract') !== false || stripos($subject->subject_type ?? '', 'lab') !== false;
+
+            // Fetch all logs for this subject
+            $logs = DB::table('class_logs_attendance')
                 ->where('batch_subject_id', $subject->id)
-                ->count();
+                ->get(['present_students', 'date', 'period', 'sub_batch']);
+
+            $totalConducted = $logs->count();
+            if ($isPractical) {
+                $batchUniqueSlots = ['1' => [], '2' => [], 'Whole' => []];
+                foreach ($logs as $l) {
+                    $slotKey = $l->date . '_P' . $l->period;
+                    $sb = (string)($l->sub_batch ?? 'Whole');
+                    if ($sb === '1' || $sb === 1) $batchUniqueSlots['1'][$slotKey] = true;
+                    elseif ($sb === '2' || $sb === 2) $batchUniqueSlots['2'][$slotKey] = true;
+                    else $batchUniqueSlots['Whole'][$slotKey] = true;
+                }
+                $b1 = count($batchUniqueSlots['1']) + count($batchUniqueSlots['Whole']);
+                $b2 = count($batchUniqueSlots['2']) + count($batchUniqueSlots['Whole']);
+                $totalConducted = max($b1, $b2) ?: $logs->count();
+            }
 
             // Calculate lesson plan coverage rate
             $totalTopics = DB::table('lesson_plans')
@@ -1124,38 +1157,71 @@ Route::middleware(['web'])->group(function () {
                 'coverage' => $coverageRate
             ];
 
-            // Fetch all logs for this subject
-            $logs = DB::table('class_logs_attendance')
-                ->where('batch_subject_id', $subject->id)
-                ->get(['present_students']);
+            $sBatches = $assignedLabBatches->get($subject->id, collect())->keyBy('reg_no');
 
             // Calculate attendance for each student in this subject
             foreach ($students as $student) {
-                $presentCount = 0;
+                $doj = $student->date_of_joining ?: (($student->admission_type === 'LET') ? '2026-07-15' : null);
+                $labBatch = null;
+                if ($sBatches->has($student->reg_no)) {
+                    $labBatch = (string)$sBatches->get($student->reg_no)->lab_batch;
+                } elseif (!empty($subject->lab_batch_cutoff) && $student->roll_no !== null) {
+                    $labBatch = ((int)$student->roll_no <= (int)$subject->lab_batch_cutoff) ? '1' : '2';
+                } else {
+                    $labBatch = '1';
+                }
+
+                $slots1 = [];
+                $slots2 = [];
+                $slotsWhole = [];
+                $studentSlots = [];
+
                 foreach ($logs as $log) {
-                    $presentList = json_decode($log->present_students ?? '[]', true);
-                    if (is_array($presentList) && in_array($student->reg_no, $presentList)) {
-                        $presentCount++;
+                    if (!empty($doj) && $log->date < $doj) continue;
+                    $slotKey = $log->date . '_P' . $log->period;
+                    $sb = (string)($log->sub_batch ?? 'Whole');
+                    if ($sb === '1' || $sb === 1) $slots1[$slotKey] = true;
+                    elseif ($sb === '2' || $sb === 2) $slots2[$slotKey] = true;
+                    else $slotsWhole[$slotKey] = true;
+
+                    $pList = json_decode($log->present_students ?? '[]', true) ?: [];
+                    if (in_array($student->reg_no, $pList) || (!empty($student->sbte_reg_no) && in_array($student->sbte_reg_no, $pList))) {
+                        $studentSlots[$slotKey] = true;
                     }
                 }
 
-                $percentage = $totalConducted > 0 ? round(($presentCount / $totalConducted) * 100) : 0;
+                if ($isPractical) {
+                    $b1Count = count($slots1) + count($slotsWhole);
+                    $b2Count = count($slots2) + count($slotsWhole);
+                    $studentConducted = ($labBatch === '2') ? ($b2Count ?: $logs->count()) : ($b1Count ?: $logs->count());
+                } else {
+                    $studentConducted = (count($slots1) + count($slots2) + count($slotsWhole)) ?: $logs->count();
+                }
+                $presentCount = min($studentConducted, count($studentSlots));
+                $percentage = $studentConducted > 0 ? round(($presentCount / $studentConducted) * 100) : 0;
 
                 $studentAttendance[$student->reg_no]['subjects'][$subject->id] = [
                     'present' => $presentCount,
-                    'conducted' => $totalConducted,
+                    'conducted' => $studentConducted,
                     'percentage' => $percentage
                 ];
 
-                $studentAttendance[$student->reg_no]['total_conducted'] += $totalConducted;
+                $studentAttendance[$student->reg_no]['total_conducted'] += $studentConducted;
                 $studentAttendance[$student->reg_no]['total_present'] += $presentCount;
             }
         }
 
-        // Calculate overall percentage
+        // Calculate overall percentage with special duty credits
         foreach ($studentAttendance as $regNo => &$data) {
+            $stSpecial = $specialAttendanceRecords->get($regNo, collect());
+            if ($stSpecial->isEmpty() && !empty($data['sbte_reg_no'])) {
+                $stSpecial = $specialAttendanceRecords->get($data['sbte_reg_no'], collect());
+            }
+            $duty = (float)$stSpecial->sum('hours');
+            $data['special_duty_hours'] = $duty;
+            $effectivePresent = min($data['total_conducted'], $data['total_present'] + $duty);
             $data['overall_percentage'] = $data['total_conducted'] > 0 
-                ? round(($data['total_present'] / $data['total_conducted']) * 100) 
+                ? round(($effectivePresent / $data['total_conducted']) * 100) 
                 : 0;
         }
         unset($data);
@@ -1784,6 +1850,13 @@ Route::middleware(['web'])->group(function () {
     Route::get('/tutor/progress-report/print', [App\Http\Controllers\TutorController::class, 'printProgressReport']);
     Route::get('/tutor/progress-report/student-print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);
     Route::get('/tutor/progress-report/student/{regNo}/print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard'])->where('regNo', '.*');
+
+    // Consolidated CIA Mark Report (SBTE Kerala A4 Landscape, HOD Lock, Tutor Desk)
+    Route::get('/api/consolidated-cia', [App\Http\Controllers\ConsolidatedCiaReportController::class, 'getConsolidatedCiaData']);
+    Route::post('/api/consolidated-cia/lock', [App\Http\Controllers\ConsolidatedCiaReportController::class, 'toggleLock']);
+    Route::post('/api/consolidated-cia/submit', [App\Http\Controllers\ConsolidatedCiaReportController::class, 'submitToHod']);
+    Route::get('/consolidated-cia/print', [App\Http\Controllers\ConsolidatedCiaReportController::class, 'printReport']);
+
     Route::get('/api/staff/attendance/subjects/{id}/reports', [App\Http\Controllers\AttendanceController::class, 'getReports']);
 
     // SBTE Compliance Console Routes

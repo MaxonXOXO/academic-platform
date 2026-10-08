@@ -266,7 +266,7 @@ class TutorSpecialAttendanceController extends Controller
 
             // Revised calculations for Exam Eligibility only (CIA marks untouched)
             $revisedAttended = min($origConducted, $origAttended + $specialHours);
-            $revisedPct = $origConducted > 0 ? round(($revisedAttended / $origConducted) * 100, 1) : 100.0;
+            $revisedPct = $origConducted > 0 ? round(($revisedAttended / $origConducted) * 100, 1) : 0.0;
 
             $revisedEvaluation = self::evaluateEligibility($revisedPct, $scheme, $relaxations);
             $revisedStatus = $revisedEvaluation['status'];
@@ -715,9 +715,9 @@ class TutorSpecialAttendanceController extends Controller
         }
 
         // Compute Condonation Statistics
-        $origPct = $totalConductedHours > 0 ? round(($totalAttendedHours / $totalConductedHours) * 100, 1) : 100.0;
+        $origPct = $totalConductedHours > 0 ? round(($totalAttendedHours / $totalConductedHours) * 100, 1) : 0.0;
         $effectiveAttended = min($totalConductedHours, $totalAttendedHours + $specialHoursCredited);
-        $effectivePct = $totalConductedHours > 0 ? round(($effectiveAttended / $totalConductedHours) * 100, 1) : 100.0;
+        $effectivePct = $totalConductedHours > 0 ? round(($effectiveAttended / $totalConductedHours) * 100, 1) : 0.0;
 
         $relaxations = $specialRecords->pluck('category')->filter(fn($c) => in_array($c, ['Menstrual Leave', 'PWD']))->unique()->toArray();
         $evaluation = self::evaluateEligibility($effectivePct, $scheme, $relaxations);

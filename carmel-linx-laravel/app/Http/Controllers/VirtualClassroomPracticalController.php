@@ -202,7 +202,7 @@ class VirtualClassroomPracticalController extends Controller
 
             $rawPresent = isset($studentPresentSlots[$rNo]) ? count($studentPresentSlots[$rNo]) : 0;
             $present = min($totalForStudent, $rawPresent);
-            $logAttPct = $totalForStudent > 0 ? round(($present / $totalForStudent) * 100, 2) : 100.0;
+            $logAttPct = $totalForStudent > 0 ? round(($present / $totalForStudent) * 100, 2) : 0.0;
 
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($rNo, collect());
@@ -219,7 +219,7 @@ class VirtualClassroomPracticalController extends Controller
                 }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
             } else {
                 $pct = $logAttPct;
             }
@@ -277,7 +277,7 @@ class VirtualClassroomPracticalController extends Controller
                 'absent_count'  => $absentCount,
                 'absent_roll_nos' => $absentRollsStr,
                 'total_count' => $totalInLog > 0 ? $totalInLog : $students->count(),
-                'attendance_pct'=> $totalInLog > 0 ? round(($presentCount / $totalInLog) * 100, 1) : 100.0,
+                'attendance_pct'=> $totalInLog > 0 ? round(($presentCount / $totalInLog) * 100, 1) : 0.0,
             ];
         }
 
@@ -375,7 +375,7 @@ class VirtualClassroomPracticalController extends Controller
                         'absent_count'  => $mSession ? $mSession['absent_count'] : 0,
                         'absent_roll_nos' => $mSession ? $mSession['absent_roll_nos'] : 'None',
                         'total_count'   => $mSession ? $mSession['total_count'] : $students->count(),
-                        'attendance_pct'=> $mSession ? $mSession['attendance_pct'] : ($students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 100.0),
+                        'attendance_pct'=> $mSession ? $mSession['attendance_pct'] : ($students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 0.0),
                     ];
                 }
             }
@@ -558,6 +558,13 @@ class VirtualClassroomPracticalController extends Controller
      */
     public function saveExperimentMarks(Request $request, $batchSubjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($batchSubjectId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $staff  = $this->getStaff();
         $expNo  = $request->input('experiment_no', 'Exp 1');
         $title  = $request->input('title', '');
@@ -628,6 +635,13 @@ class VirtualClassroomPracticalController extends Controller
      */
     public function saveOpenEndedMarks(Request $request, $batchSubjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($batchSubjectId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $staff = $this->getStaff();
         $marksData = $request->input('marks', []);
 
@@ -656,6 +670,13 @@ class VirtualClassroomPracticalController extends Controller
      */
     public function saveSeriesExamMarks(Request $request, $batchSubjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($batchSubjectId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $staff    = $this->getStaff();
         $seriesNo = $request->input('series_no', 'Series 1');
         $testName = $seriesNo === 'Series 2' ? 'Test 2' : 'Test 1';
@@ -801,7 +822,7 @@ class VirtualClassroomPracticalController extends Controller
                     }
                     $offTot = $stOfficial->count();
                     $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                    $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                    $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
                     $eval->attendance_marks = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
                 }
             }
@@ -1024,7 +1045,7 @@ class VirtualClassroomPracticalController extends Controller
             // Student attended hours capped at batch conducted hours (for log display)
             $rawPresent = isset($studentPresentSlots[$regNo]) ? count($studentPresentSlots[$regNo]) : 0;
             $presentClasses = min($totalForStudent, $rawPresent);
-            $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.0;
+            $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 0.0;
 
             // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
             $stOfficial = $officialAttendance->get($regNo, collect());
@@ -1041,7 +1062,7 @@ class VirtualClassroomPracticalController extends Controller
                 }
                 $offTot = $stOfficial->count();
                 $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
             } else {
                 $pct = $logAttPct;
             }
@@ -1283,7 +1304,7 @@ class VirtualClassroomPracticalController extends Controller
                 'absent_count'  => $absentCount,
                 'absent_roll_nos' => $absentRollsStr,
                 'total_count' => $expectedTotal,
-                'attendance_pct' => $expectedTotal > 0 ? round(($presentCount / $expectedTotal) * 100, 1) : 100.0,
+                'attendance_pct' => $expectedTotal > 0 ? round(($presentCount / $expectedTotal) * 100, 1) : 0.0,
             ];
         }
 
@@ -1524,7 +1545,7 @@ class VirtualClassroomPracticalController extends Controller
 
         $rawPresent = count($studentPresentSlots);
         $presentClasses = min($totalForStudent, $rawPresent);
-        $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 100.0;
+        $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 0.0;
 
         // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
         $stOfficial = DB::table('student_attendance')
@@ -1544,7 +1565,7 @@ class VirtualClassroomPracticalController extends Controller
             }
             $offTot = $stOfficial->count();
             $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-            $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
+            $attendancePercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
         } else {
             $attendancePercentage = $logAttPct;
         }

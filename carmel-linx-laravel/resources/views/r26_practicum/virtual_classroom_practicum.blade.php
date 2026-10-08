@@ -1520,7 +1520,7 @@
                                 <tbody class="divide-y divide-slate-800/60">
                                     @forelse($studentResults as $st)
                                     @php
-                                        $pct = floatval($st['att_percentage'] ?? 100);
+                                        $pct = floatval($st['att_percentage'] ?? 0);
                                         $short = ($pct < 75);
                                         $cond = ($pct >= 65 && $pct < 75);
                                     @endphp
@@ -1534,7 +1534,7 @@
                                             </span>
                                         </td>
                                         <td class="p-3 text-center font-bold text-blue-300">
-                                            {{ number_format($st['att_marks'] ?? 5, 1) }} / 5
+                                            {{ number_format($st['att_marks'] ?? 0, 1) }} / 5
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($pct >= 75)
@@ -1903,7 +1903,7 @@
                                 <tbody class="divide-y divide-slate-800/60">
                                     @forelse($studentResults as $st)
                                     @php
-                                        $pct = floatval($st['att_percentage'] ?? 100);
+                                        $pct = floatval($st['att_percentage'] ?? 0);
                                         $short = ($pct < 75);
                                         $cond = ($pct >= 65 && $pct < 75);
                                     @endphp
@@ -1917,7 +1917,7 @@
                                             </span>
                                         </td>
                                         <td class="p-3 text-center font-bold text-blue-300">
-                                            {{ number_format($st['att_marks'] ?? 5, 1) }} / 5
+                                            {{ number_format($st['att_marks'] ?? 0, 1) }} / 5
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($pct >= 75)

@@ -161,7 +161,7 @@ class R21VirtualClassroomSeminarController extends Controller
             if ($stAtt->isNotEmpty()) {
                 $totalAtt = $stAtt->count();
                 $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } elseif ($classLogs->isNotEmpty()) {
                 $totalAtt = $classLogs->count();
                 $present = 0;
@@ -171,9 +171,9 @@ class R21VirtualClassroomSeminarController extends Controller
                         $present++;
                     }
                 }
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } else {
-                $attPercentage = 100.0;
+                $attPercentage = 0.0;
             }
 
             // Rev 2021: Attendance mark directly converted to max marks (Max 7.5M per Clause 11.2.6)
@@ -329,6 +329,13 @@ class R21VirtualClassroomSeminarController extends Controller
      */
     public function saveEvaluation(Request $request, $subjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($subjectId)) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $userId = Session::get('userId');
         if (!$userId) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
@@ -362,7 +369,7 @@ class R21VirtualClassroomSeminarController extends Controller
         if ($officialAttendance->isNotEmpty()) {
             $offTot = $officialAttendance->count();
             $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+            $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
         } else {
             $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
             if ($classLogs->isNotEmpty()) {
@@ -372,9 +379,9 @@ class R21VirtualClassroomSeminarController extends Controller
                     $pList = json_decode($cl->present_students, true) ?: [];
                     if (in_array($regNo, $pList)) $offPres++;
                 }
-                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
             } else {
-                $attPercentage = 100.0;
+                $attPercentage = 0.0;
             }
         }
 
@@ -590,7 +597,7 @@ class R21VirtualClassroomSeminarController extends Controller
             if ($officialAttendance->isNotEmpty()) {
                 $offTot = $officialAttendance->count();
                 $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
             } else {
                 $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
                 if ($classLogs->isNotEmpty()) {
@@ -600,9 +607,9 @@ class R21VirtualClassroomSeminarController extends Controller
                         $pList = json_decode($cl->present_students, true) ?: [];
                         if (in_array($regNo, $pList)) $offPres++;
                     }
-                    $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+                    $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
                 } else {
-                    $attPercentage = 100.0;
+                    $attPercentage = 0.0;
                 }
             }
 
@@ -781,7 +788,7 @@ class R21VirtualClassroomSeminarController extends Controller
             if ($stAtt->isNotEmpty()) {
                 $totalAtt = $stAtt->count();
                 $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } elseif ($classLogs->isNotEmpty()) {
                 $totalAtt = $classLogs->count();
                 $present = 0;
@@ -789,9 +796,9 @@ class R21VirtualClassroomSeminarController extends Controller
                     $pList = json_decode($cl->present_students, true) ?: [];
                     if (in_array($regNo, $pList)) $present++;
                 }
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } else {
-                $attPercentage = 100.0;
+                $attPercentage = 0.0;
             }
 
             // Rev 2021: Statutory Attendance mark (Max 7.5M per Clause 11.2.6)

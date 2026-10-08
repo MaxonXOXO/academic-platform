@@ -173,7 +173,7 @@ class R21VirtualClassroomDrawingController extends Controller
 
             // A. Attendance Marks (15.0 Marks Max)
             $attInfo = $attMap[$regNo] ?? [
-                'total' => 0, 'attended' => 0, 'percentage' => 100.0, 'source' => 'Default', 'calc_mark' => $attMax
+                'total' => 0, 'attended' => 0, 'percentage' => 0.0, 'source' => 'None', 'calc_mark' => 0.0
             ];
             $totalAtt = $attInfo['total'];
             $presentAtt = $attInfo['attended'];
@@ -339,6 +339,13 @@ class R21VirtualClassroomDrawingController extends Controller
      */
     public function saveFastCiaRegister(Request $request, $subjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($subjectId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $records = $request->input('records', []);
         if (!is_array($records)) {
             return response()->json(['success' => false, 'message' => 'Invalid data payload.'], 400);
@@ -639,7 +646,7 @@ class R21VirtualClassroomDrawingController extends Controller
                     'reg_no'           => $regNo,
                 ],
                 [
-                    'attendance_percentage' => floatval($rec['attendance_percentage'] ?? 100),
+                    'attendance_percentage' => floatval($rec['attendance_percentage'] ?? 0),
                     'attendance_mark'       => $attMark,
                     'override_mark'         => $override,
                     'final_attendance_mark' => $finalMark,
@@ -973,7 +980,7 @@ class R21VirtualClassroomDrawingController extends Controller
             if ($stAtt->isNotEmpty()) {
                 $totalAtt = $stAtt->count();
                 $presentAtt = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = $totalAtt > 0 ? round(($presentAtt / $totalAtt) * 100, 2) : 100.00;
+                $attPercentage = $totalAtt > 0 ? round(($presentAtt / $totalAtt) * 100, 2) : 0.00;
                 $attSource = 'Subject TEAMS Log';
             } elseif ($classLogs->isNotEmpty()) {
                 $presLogs = 0;
@@ -982,34 +989,15 @@ class R21VirtualClassroomDrawingController extends Controller
                     $pList = json_decode($cl->present_students ?? '[]', true) ?: [];
                     if (in_array($regNo, $pList)) $presLogs++;
                 }
-                $attPercentage = $totLogs > 0 ? round(($presLogs / $totLogs) * 100, 2) : 100.00;
+                $attPercentage = $totLogs > 0 ? round(($presLogs / $totLogs) * 100, 2) : 0.00;
                 $totalAtt = $totLogs;
                 $presentAtt = $presLogs;
                 $attSource = 'Subject Class Log';
             } else {
-                $stCommon = $commonAttendanceData->get($regNo, collect());
-                if ($stCommon->isNotEmpty()) {
-                    $totalAtt = $stCommon->count();
-                    $presentAtt = $stCommon->whereIn('status', ['Present', 'Late'])->count();
-                    $attPercentage = $totalAtt > 0 ? round(($presentAtt / $totalAtt) * 100, 2) : 100.00;
-                    $attSource = 'Common TEAMS Log';
-                } elseif ($commonClassLogs->isNotEmpty()) {
-                    $presLogs = 0;
-                    $totLogs = $commonClassLogs->count();
-                    foreach ($commonClassLogs as $cl) {
-                        $pList = json_decode($cl->present_students ?? '[]', true) ?: [];
-                        if (in_array($regNo, $pList)) $presLogs++;
-                    }
-                    $attPercentage = $totLogs > 0 ? round(($presLogs / $totLogs) * 100, 2) : 100.00;
-                    $totalAtt = $totLogs;
-                    $presentAtt = $presLogs;
-                    $attSource = 'Common Class Log';
-                } else {
-                    $totalAtt = 0;
-                    $presentAtt = 0;
-                    $attPercentage = 100.00;
-                    $attSource = 'Default';
-                }
+                $totalAtt = 0;
+                $presentAtt = 0;
+                $attPercentage = 0.00;
+                $attSource = 'None';
             }
 
             $calcAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, $attMax);

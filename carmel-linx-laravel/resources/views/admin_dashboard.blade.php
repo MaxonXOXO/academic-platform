@@ -179,14 +179,6 @@
         <span class="material-symbols-rounded text-lg">security</span> My Security Log
       </button>
 
-      <!-- Live Online Staff Monitor Sidebar Button -->
-      <button id="navLiveStaff" onclick="openLiveOnlineStaffDesk()" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-rounded text-lg text-emerald-400">sensors</span> Live Online Staff
-        </div>
-        <span id="sidebarOnlineStaffBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">0</span>
-      </button>
-
       <a href="/sf-attendance/attendance-report" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
          <span class="material-symbols-rounded text-lg">how_to_reg</span> SF staff punching Log
       </a>
@@ -221,7 +213,13 @@
       
       <!-- PANEL 1: DASHBOARD -->
       <div id="panelDashboard" class="space-y-6">
-        @include('partials.live_online_staff_widget')
+        <div class="bg-slate-950/40 border border-slate-800/60 p-8 rounded-2xl text-center shadow-sm max-w-2xl mx-auto">
+          <span class="material-symbols-rounded text-blue-500 block mb-3 text-5xl">shield_person</span>
+          <h3 class="font-black text-slate-200 text-lg">Academic Admin Console Connected</h3>
+          <p class="text-slate-400 text-[10px] mt-2 font-medium text-sm">
+            This workspace is ready. You can manage course allocation schemas, view system-wide statistics, and verify academic term calendars.
+          </p>
+        </div>
       </div>
 
       <!-- PANEL 2: SECURITY LOG -->
@@ -300,19 +298,6 @@
       document.getElementById('panelTitle').innerText = titles[panelId];
 
       if (panelId === 'security') loadSecurityLogs();
-    }
-
-    function openLiveOnlineStaffDesk() {
-      switchPanel('dashboard');
-      const card = document.getElementById('liveOnlineStaffWidgetCard');
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        card.classList.add('ring-2', 'ring-emerald-400');
-        setTimeout(() => card.classList.remove('ring-2', 'ring-emerald-400'), 2500);
-      }
-      if (typeof refreshLiveStaffWidget === 'function') {
-        refreshLiveStaffWidget(true);
-      }
     }
 
     function loadSecurityLogs() {

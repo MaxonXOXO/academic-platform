@@ -215,13 +215,15 @@
         <span class="material-symbols-rounded text-lg">receipt_long</span> Audit Trail
       </button>
 
-      <!-- Live Online Staff Monitor Desk Link -->
+      @if(session('userRole') === 'Super_Admin')
+      <!-- Live Online Staff Monitor Desk Link (Super Admin Only) -->
       <button id="navLiveStaff" onclick="openLiveOnlineStaffDesk()" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <div class="flex items-center gap-3">
           <span class="material-symbols-rounded text-lg text-emerald-400">sensors</span> Live Online Staff
         </div>
         <span id="sidebarOnlineStaffBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">0</span>
       </button>
+      @endif
 
       <button id="navProfile" onclick="openExecutiveProfileModal()" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-lg">manage_accounts</span> My Profile &amp; Security
@@ -541,8 +543,10 @@
           </div>
         </div>
 
-        <!-- DEDICATED LIVE ONLINE STAFF MONITOR & ACTIVITY AUDIT WIDGET -->
+        @if(session('userRole') === 'Super_Admin')
+        <!-- DEDICATED LIVE ONLINE STAFF MONITOR & ACTIVITY AUDIT WIDGET (Super Admin Only) -->
         @include('partials.live_online_staff_widget')
+        @endif
 
         <!-- Executive Dashboard Actions & Broadcast Desks (3 Cards Row) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1022,9 +1026,11 @@
             <p class="text-[10px] text-slate-400 mt-1 text-[10px] text-xs">Lifecycle events, password resets, status changes, and registration records.</p>
           </div>
           <div class="flex items-center gap-2">
+            @if(session('userRole') === 'Super_Admin')
             <button onclick="openLiveOnlineStaffDesk()" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
               <span class="material-symbols-rounded text-sm">sensors</span> Live Online Staff
             </button>
+            @endif
             <button onclick="loadAuditTrail()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-2">
               <span class="material-symbols-rounded text-sm">sync</span> Refresh Log
             </button>
@@ -1552,6 +1558,7 @@
       if (panelId === 'settings') loadSettings();
     }
 
+    @if(session('userRole') === 'Super_Admin')
     function openLiveOnlineStaffDesk() {
       switchPanel('dashboard');
       const card = document.getElementById('liveOnlineStaffWidgetCard');
@@ -1564,6 +1571,7 @@
         refreshLiveStaffWidget(true);
       }
     }
+    @endif
 
     // Update top header AI status badge
     function updateAiStatusBadge(enabled) {

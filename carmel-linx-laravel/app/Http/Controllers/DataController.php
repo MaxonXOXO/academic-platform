@@ -1319,10 +1319,10 @@ class DataController extends Controller
         $currentRole = Session::get('userRole');
         $currentBranch = Session::get('userBranch');
 
-        if (!$currentUserId || !in_array($currentRole, ['Super_Admin', 'Principal', 'Admin', 'Chairman', 'HOD'])) {
+        if (!$currentUserId || $currentRole !== 'Super_Admin') {
             return response()->json([
                 'status' => 'ERROR',
-                'message' => 'Unauthorized access to live staff monitor.'
+                'message' => 'Unauthorized access. Only Super Admin can access live online staff monitor.'
             ], 403);
         }
 

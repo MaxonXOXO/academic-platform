@@ -217,7 +217,7 @@
 
       @if(session('userRole') === 'Super_Admin')
       <!-- Live Online Staff Monitor Desk Link (Super Admin Only) -->
-      <button id="navLiveStaff" onclick="openLiveOnlineStaffDesk()" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
+      <button id="navLiveStaff" onclick="switchPanel('liveStaff')" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer">
         <div class="flex items-center gap-3">
           <span class="material-symbols-rounded text-lg text-emerald-400">sensors</span> Live Online Staff
         </div>
@@ -542,11 +542,6 @@
             </div>
           </div>
         </div>
-
-        @if(session('userRole') === 'Super_Admin')
-        <!-- DEDICATED LIVE ONLINE STAFF MONITOR & ACTIVITY AUDIT WIDGET (Super Admin Only) -->
-        @include('partials.live_online_staff_widget')
-        @endif
 
         <!-- Executive Dashboard Actions & Broadcast Desks (3 Cards Row) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1093,6 +1088,25 @@
         </div>
       </div>
 
+      @if(session('userRole') === 'Super_Admin')
+      <!-- PANEL 6: LIVE ONLINE STAFF MONITOR (Super Admin Only) -->
+      <div id="panelLiveStaff" class="hidden space-y-6">
+        <div class="flex items-center justify-between bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl">
+          <div>
+            <h3 class="font-black text-slate-200 text-sm flex items-center gap-2">
+              <span class="material-symbols-rounded text-emerald-400 text-lg">sensors</span> Live Staff Presence Console
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time session heartbeats (5-min rolling window), IP tracking, and audit action logs.</p>
+          </div>
+          <button onclick="switchPanel('dashboard')" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700">
+            <span class="material-symbols-rounded text-sm">arrow_back</span> Back to Dashboard
+          </button>
+        </div>
+
+        @include('partials.live_online_staff_widget')
+      </div>
+      @endif
+
     </div>
   </main>
 
@@ -1528,16 +1542,22 @@
     function switchPanel(panelId) {
       activePanel = panelId;
       
-      const panels = ['dashboard', 'directory', 'backups', 'audit', 'settings'];
+      const panels = ['dashboard', 'directory', 'backups', 'audit', 'settings', 'liveStaff'];
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
         const nav = document.getElementById('nav' + id.charAt(0).toUpperCase() + id.slice(1));
         
         if (id === panelId) {
           if (el) el.classList.remove('hidden');
-          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500";
+          if (nav) {
+            const hasBadge = nav.querySelector('#sidebarOnlineStaffBadge') !== null;
+            nav.className = `w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold text-xs flex items-center ${hasBadge ? 'justify-between' : 'gap-2.5'} transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500`;
+          }
         } else {
-          if (nav) nav.className = "w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-white hover:bg-slate-800 cursor-pointer";
+          if (nav) {
+            const hasBadge = nav.querySelector('#sidebarOnlineStaffBadge') !== null;
+            nav.className = `w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center ${hasBadge ? 'justify-between' : 'gap-2.5'} transition-premium text-white hover:bg-slate-800 cursor-pointer`;
+          }
           if (el) el.classList.add('hidden');
         }
       });
@@ -1548,28 +1568,25 @@
         'directory': 'User Accounts Directory',
         'backups': 'Database Sync & Backup',
         'audit': 'System Audit Trail',
-        'settings': 'System Settings & Controls'
+        'settings': 'System Settings & Controls',
+        'liveStaff': 'Live Online Staff & Activity Monitor'
       };
-      document.getElementById('panelTitle').innerText = titles[panelId];
+      if (document.getElementById('panelTitle')) {
+        document.getElementById('panelTitle').innerText = titles[panelId] || 'Dashboard Overview';
+      }
 
       if (panelId === 'dashboard') loadStats();
       if (panelId === 'directory') loadUsers();
       if (panelId === 'audit') loadAuditTrail();
       if (panelId === 'settings') loadSettings();
+      if (panelId === 'liveStaff' && typeof refreshLiveStaffWidget === 'function') {
+        refreshLiveStaffWidget(true);
+      }
     }
 
     @if(session('userRole') === 'Super_Admin')
     function openLiveOnlineStaffDesk() {
-      switchPanel('dashboard');
-      const card = document.getElementById('liveOnlineStaffWidgetCard');
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        card.classList.add('ring-2', 'ring-emerald-400');
-        setTimeout(() => card.classList.remove('ring-2', 'ring-emerald-400'), 2500);
-      }
-      if (typeof refreshLiveStaffWidget === 'function') {
-        refreshLiveStaffWidget(true);
-      }
+      switchPanel('liveStaff');
     }
     @endif
 

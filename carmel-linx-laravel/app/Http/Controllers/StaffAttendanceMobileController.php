@@ -64,7 +64,8 @@ class StaffAttendanceMobileController extends Controller
             || in_array($staffRole, ['SUPER_ADMIN', 'PRINCIPAL', 'ADMIN', 'CHAIRMAN']);
 
         if (!$isSfStaff) {
-            return redirect('/dashboard/staff/mobile')->with('error', 'Biometric attendance is only applicable for EL, CT, AU, and General SF staff.');
+            $returnUrl = (Session::get('userRole') === 'HOD') ? '/dashboard/hod' : '/dashboard/staff/mobile';
+            return redirect($returnUrl)->with('error', 'Biometric attendance is only applicable for EL, CT, AU, and General SF staff.');
         }
 
         $registration = SfStaffFaceRegistration::where('staff_id', $staffId)
@@ -77,7 +78,7 @@ class StaffAttendanceMobileController extends Controller
         $geofence = SfCampusGeofenceSetting::where('is_active', true)->first();
         if (!$geofence) {
             $geofence = (object)[
-                'campus_name' => 'Carmel College Campus',
+                'campus_name' => 'Carmel Polytechnic College Campus',
                 'centroid_lat' => 10.23120000,
                 'centroid_lng' => 76.20450000,
                 'radius_meters' => 150,
@@ -241,7 +242,7 @@ class StaffAttendanceMobileController extends Controller
                 $distLabel = $distance >= 1000 ? number_format($distance / 1000, 2) . ' km' : $distance . ' meters';
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Attendance Rejected: You are currently {$distLabel} outside Carmel College Campus. Biometric punch is restricted to campus premises."
+                    'message' => "❌ Attendance Rejected: You are currently {$distLabel} outside Carmel Polytechnic College Campus. Biometric punch is restricted to campus premises."
                 ], 422);
             }
 
@@ -359,7 +360,7 @@ class StaffAttendanceMobileController extends Controller
         $geofence = SfCampusGeofenceSetting::first();
         if (!$geofence) {
             $geofence = SfCampusGeofenceSetting::create([
-                'campus_name' => 'Carmel College Campus',
+                'campus_name' => 'Carmel Polytechnic College Campus',
                 'centroid_lat' => 10.23120000,
                 'centroid_lng' => 76.20450000,
                 'radius_meters' => 150,
@@ -390,7 +391,7 @@ class StaffAttendanceMobileController extends Controller
             $geofence = new SfCampusGeofenceSetting();
         }
 
-        $geofence->campus_name = $request->input('campus_name', 'Carmel College Campus');
+        $geofence->campus_name = $request->input('campus_name', 'Carmel Polytechnic College Campus');
         $geofence->centroid_lat = $request->input('centroid_lat');
         $geofence->centroid_lng = $request->input('centroid_lng');
         $geofence->radius_meters = $request->input('radius_meters');
@@ -411,37 +412,80 @@ class StaffAttendanceMobileController extends Controller
 
     /**
      * Master Attendance Report View (Super Admin, Admin, Principal, SF Academic Coordinator)
+     * Supports:
+     *  1. Registered Users List
+     *  2. Daily Log date-wise using date selection
+     *  3. Monthly Log of all staff
+     *  4. User-wise Individual Report (Monthly & All-time)
      */
     public function showAttendanceReport(Request $request)
     {
+        $userRole = Session::get('userRole');
+        $allowedRoles = [
+            'SUPER_ADMIN', 'Super_Admin',
+            'PRINCIPAL', 'Principal',
+            'ADMIN', 'Admin',
+            'CHAIRMAN', 'Chairman',
+            'ACADEMIC_COORDINATOR_SF', 'Academic_Coordinator_SF',
+            'GEN_DEPT_COORDINATOR_SELF_FINANCE', 'Gen_Dept_Coordinator_Self_Finance'
+        ];
+        if ($userRole && !in_array($userRole, $allowedRoles)) {
+            return redirect('/dashboard/staff/mobile')->with('error', 'Unauthorized access to SF Attendance Reports.');
+        }
+
         $today = now()->format('Y-m-d');
-        $startDate = $request->input('start_date', $today);
-        $endDate = $request->input('end_date', $today);
-        $search = $request->input('search');
-        $premisesFilter = $request->input('premises_status');
+        $currentMonth = now()->format('Y-m');
 
-        $query = SfStaffTimePunch::whereBetween('punch_date', [$startDate, $endDate]);
-
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('staff_id', 'like', "%{$search}%")
-                  ->orWhere('staff_name', 'like', "%{$search}%");
-            });
+        // Determine active tab: 'daily', 'monthly', 'individual', 'registered'
+        $activeTab = $request->input('tab');
+        if (!$activeTab) {
+            if ($request->has('staff_id')) {
+                $activeTab = 'individual';
+            } elseif ($request->has('month')) {
+                $activeTab = 'monthly';
+            } elseif ($request->has('registered')) {
+                $activeTab = 'registered';
+            } else {
+                $activeTab = 'daily';
+            }
         }
 
-        if ($premisesFilter) {
-            $query->where(function($q) use ($premisesFilter) {
-                $q->where('in_premises_status', $premisesFilter)
-                  ->orWhere('out_premises_status', $premisesFilter);
-            });
+        // 1. Registered Staff List (with staff profiles)
+        $registeredStaff = SfStaffFaceRegistration::orderBy('created_at', 'desc')->get();
+        $staffMobileNos = $registeredStaff->pluck('mobile_no')->merge($registeredStaff->pluck('staff_id'))->unique()->filter();
+        $profiles = StaffProfile::whereIn('mobile_no', $staffMobileNos)
+            ->orWhereIn('id', $staffMobileNos)
+            ->get();
+
+        $profileMap = [];
+        foreach ($profiles as $prof) {
+            $profileMap[$prof->mobile_no] = $prof;
+            $profileMap[$prof->id] = $prof;
         }
 
-        $punches = $query->orderBy('punch_date', 'desc')->orderBy('created_at', 'desc')->get();
+        $punchCounts = SfStaffTimePunch::select(
+            'staff_id',
+            DB::raw('count(*) as total_punches'),
+            DB::raw('max(punch_date) as latest_punch'),
+            DB::raw('min(punch_date) as first_punch')
+        )->groupBy('staff_id')->get()->keyBy('staff_id');
 
+        foreach ($registeredStaff as $staff) {
+            $staffProf = $profileMap[$staff->mobile_no] ?? $profileMap[$staff->staff_id] ?? null;
+            $staff->branch = $staffProf->branch ?? 'SF';
+            $staff->designation = $staffProf->designation ?? 'Faculty';
+            $staff->email = $staffProf->email ?? null;
+            $punchMeta = $punchCounts->get($staff->staff_id);
+            $staff->total_punches = $punchMeta ? $punchMeta->total_punches : 0;
+            $staff->latest_punch = $punchMeta ? $punchMeta->latest_punch : null;
+            $staff->first_punch = $punchMeta ? $punchMeta->first_punch : null;
+        }
+
+        // Geofence settings
         $geofence = SfCampusGeofenceSetting::first();
         if (!$geofence) {
             $geofence = (object)[
-                'campus_name' => 'Carmel College Campus',
+                'campus_name' => 'Carmel Polytechnic College Campus',
                 'centroid_lat' => 10.23120000,
                 'centroid_lng' => 76.20450000,
                 'radius_meters' => 150,
@@ -449,17 +493,284 @@ class StaffAttendanceMobileController extends Controller
             ];
         }
 
-        $registeredStaff = SfStaffFaceRegistration::all();
+        // TAB 1: DAILY LOG
+        $selectedDate = $request->input('date', $request->input('start_date', $today));
+        $dailySearch = $request->input('daily_search', $request->input('search'));
+        $premisesFilter = $request->input('premises_status');
+
+        $dailyQuery = SfStaffTimePunch::where('punch_date', $selectedDate);
+        if ($dailySearch) {
+            $dailyQuery->where(function($q) use ($dailySearch) {
+                $q->where('staff_id', 'like', "%{$dailySearch}%")
+                  ->orWhere('staff_name', 'like', "%{$dailySearch}%");
+            });
+        }
+        if ($premisesFilter) {
+            $dailyQuery->where(function($q) use ($premisesFilter) {
+                $q->where('in_premises_status', $premisesFilter)
+                  ->orWhere('out_premises_status', $premisesFilter);
+            });
+        }
+        $dailyPunches = $dailyQuery->orderBy('in_time', 'asc')->get();
+
+        $dailyTotalPresent = $dailyPunches->whereNotNull('in_time')->count();
+        $dailyInside = $dailyPunches->where('in_premises_status', 'INSIDE_PREMISES')->count();
+        $dailyOutside = $dailyPunches->where('in_premises_status', 'OUTSIDE_PREMISES')->count();
+        $dailyLate = $dailyPunches->filter(function($p) {
+            return str_contains($p->punch_status ?? '', 'LATE_IN');
+        })->count();
+        $dailyEarlyIn = $dailyPunches->filter(function($p) {
+            return str_contains($p->punch_status ?? '', 'EARLY_IN');
+        })->count();
+        $dailyCompleted = $dailyPunches->whereNotNull('out_time')->count();
+
+        // TAB 2: MONTHLY LOG OF ALL
+        $selectedMonth = $request->input('month', $currentMonth);
+        $monthlyViewType = $request->input('monthly_view_type', 'summary'); // 'summary' or 'detailed'
+        $startOfMonth = $selectedMonth . '-01';
+        $endOfMonth = date('Y-m-t', strtotime($startOfMonth));
+
+        $monthlyPunchesQuery = SfStaffTimePunch::whereBetween('punch_date', [$startOfMonth, $endOfMonth]);
+        if ($request->filled('monthly_search')) {
+            $mSearch = $request->input('monthly_search');
+            $monthlyPunchesQuery->where(function($q) use ($mSearch) {
+                $q->where('staff_id', 'like', "%{$mSearch}%")
+                  ->orWhere('staff_name', 'like', "%{$mSearch}%");
+            });
+        }
+        $allMonthlyPunches = $monthlyPunchesQuery->orderBy('punch_date', 'desc')->orderBy('in_time', 'asc')->get();
+
+        $groupedMonthlyPunches = $allMonthlyPunches->groupBy('staff_id');
+        $monthlyStaffSummary = [];
+
+        // Iterate through registered staff first
+        foreach ($registeredStaff as $rs) {
+            $sId = $rs->staff_id;
+            $staffPunches = $groupedMonthlyPunches->get($sId, collect());
+            
+            $daysPresent = $staffPunches->whereNotNull('in_time')->count();
+            $insidePremisesDays = $staffPunches->where('in_premises_status', 'INSIDE_PREMISES')->count();
+            $lateCount = $staffPunches->filter(function($p) {
+                return str_contains($p->punch_status ?? '', 'LATE_IN');
+            })->count();
+            $earlyOutCount = $staffPunches->filter(function($p) {
+                return str_contains($p->punch_status ?? '', 'EARLY_OUT');
+            })->count();
+
+            $totalMinutes = 0;
+            foreach ($staffPunches as $sp) {
+                if ($sp->in_time && $sp->out_time) {
+                    $totalMinutes += round(abs(strtotime($sp->out_time) - strtotime($sp->in_time)) / 60);
+                }
+            }
+            $totHrs = floor($totalMinutes / 60);
+            $totMins = $totalMinutes % 60;
+
+            $avgMinutes = $daysPresent > 0 ? round($totalMinutes / $daysPresent) : 0;
+            $avgHrs = floor($avgMinutes / 60);
+            $avgMins = $avgMinutes % 60;
+
+            $monthlyStaffSummary[] = (object)[
+                'staff_id' => $sId,
+                'staff_name' => $rs->staff_name,
+                'branch' => $rs->branch,
+                'designation' => $rs->designation,
+                'photo_url' => $rs->photo_url,
+                'days_present' => $daysPresent,
+                'inside_premises_days' => $insidePremisesDays,
+                'late_count' => $lateCount,
+                'early_out_count' => $earlyOutCount,
+                'total_minutes' => $totalMinutes,
+                'total_hours_formatted' => "{$totHrs}h {$totMins}m",
+                'avg_hours_formatted' => "{$avgHrs}h {$avgMins}m",
+                'punches' => $staffPunches,
+            ];
+        }
+
+        // Also include any staff who have punches but no registration record
+        foreach ($groupedMonthlyPunches as $sId => $staffPunches) {
+            if (!$registeredStaff->contains('staff_id', $sId)) {
+                $firstP = $staffPunches->first();
+                $daysPresent = $staffPunches->whereNotNull('in_time')->count();
+                $insidePremisesDays = $staffPunches->where('in_premises_status', 'INSIDE_PREMISES')->count();
+                $lateCount = $staffPunches->filter(function($p) {
+                    return str_contains($p->punch_status ?? '', 'LATE_IN');
+                })->count();
+                $earlyOutCount = $staffPunches->filter(function($p) {
+                    return str_contains($p->punch_status ?? '', 'EARLY_OUT');
+                })->count();
+
+                $totalMinutes = 0;
+                foreach ($staffPunches as $sp) {
+                    if ($sp->in_time && $sp->out_time) {
+                        $totalMinutes += round(abs(strtotime($sp->out_time) - strtotime($sp->in_time)) / 60);
+                    }
+                }
+                $totHrs = floor($totalMinutes / 60);
+                $totMins = $totalMinutes % 60;
+
+                $avgMinutes = $daysPresent > 0 ? round($totalMinutes / $daysPresent) : 0;
+                $avgHrs = floor($avgMinutes / 60);
+                $avgMins = $avgMinutes % 60;
+
+                $staffProf = $profileMap[$sId] ?? null;
+
+                $monthlyStaffSummary[] = (object)[
+                    'staff_id' => $sId,
+                    'staff_name' => $firstP->staff_name ?? 'SF Staff',
+                    'branch' => $staffProf->branch ?? 'SF',
+                    'designation' => $staffProf->designation ?? 'Faculty',
+                    'photo_url' => null,
+                    'days_present' => $daysPresent,
+                    'inside_premises_days' => $insidePremisesDays,
+                    'late_count' => $lateCount,
+                    'early_out_count' => $earlyOutCount,
+                    'total_minutes' => $totalMinutes,
+                    'total_hours_formatted' => "{$totHrs}h {$totMins}m",
+                    'avg_hours_formatted' => "{$avgHrs}h {$avgMins}m",
+                    'punches' => $staffPunches,
+                ];
+            }
+        }
+
+        usort($monthlyStaffSummary, function($a, $b) {
+            return strcmp($a->staff_name, $b->staff_name);
+        });
+
+        $monthlyTotalHoursMins = 0;
+        $monthlyTotalLateEntries = 0;
+        foreach ($monthlyStaffSummary as $mss) {
+            $monthlyTotalHoursMins += $mss->total_minutes;
+            $monthlyTotalLateEntries += $mss->late_count;
+        }
+        $monthTotHrs = floor($monthlyTotalHoursMins / 60);
+        $monthTotMins = $monthlyTotalHoursMins % 60;
+        $monthlyTotalHoursFormatted = "{$monthTotHrs}h {$monthTotMins}m";
+        $monthlyActiveStaffCount = collect($monthlyStaffSummary)->where('days_present', '>', 0)->count();
+
+        // TAB 3: USERWISE INDIVIDUAL REPORT
+        $selectedStaffId = $request->input('staff_id');
+        if (!$selectedStaffId && $registeredStaff->isNotEmpty()) {
+            $selectedStaffId = $registeredStaff->first()->staff_id;
+        }
+        $individualPeriod = $request->input('period', 'month'); // 'month' or 'all'
+        $individualMonth = $request->input('individual_month', $selectedMonth);
+
+        $individualStaff = null;
+        $individualPunches = collect();
+        $individualStats = (object)[
+            'days_present' => 0,
+            'total_hours_formatted' => '0h 0m',
+            'avg_hours_formatted' => '0h 0m',
+            'late_count' => 0,
+            'early_out_count' => 0,
+            'inside_percentage' => 100,
+            'total_minutes' => 0,
+        ];
+
+        if ($selectedStaffId) {
+            $individualStaff = $registeredStaff->firstWhere('staff_id', $selectedStaffId);
+            if (!$individualStaff) {
+                $regObj = SfStaffFaceRegistration::where('staff_id', $selectedStaffId)->orWhere('mobile_no', $selectedStaffId)->first();
+                if ($regObj) {
+                    $staffProf = $profileMap[$regObj->mobile_no] ?? $profileMap[$regObj->staff_id] ?? null;
+                    $regObj->branch = $staffProf->branch ?? 'SF';
+                    $regObj->designation = $staffProf->designation ?? 'Faculty';
+                    $individualStaff = $regObj;
+                } else {
+                    $staffProf = $profileMap[$selectedStaffId] ?? null;
+                    $firstP = SfStaffTimePunch::where('staff_id', $selectedStaffId)->first();
+                    $individualStaff = (object)[
+                        'staff_id' => $selectedStaffId,
+                        'staff_name' => $firstP->staff_name ?? ($staffProf->name ?? 'Staff ' . $selectedStaffId),
+                        'mobile_no' => $selectedStaffId,
+                        'branch' => $staffProf->branch ?? 'SF',
+                        'designation' => $staffProf->designation ?? 'Faculty',
+                        'photo_url' => null,
+                        'created_at' => null,
+                    ];
+                }
+            }
+
+            $indQuery = SfStaffTimePunch::where('staff_id', $selectedStaffId);
+            if ($individualPeriod === 'month') {
+                $indStart = $individualMonth . '-01';
+                $indEnd = date('Y-m-t', strtotime($indStart));
+                $indQuery->whereBetween('punch_date', [$indStart, $indEnd]);
+            }
+            $individualPunches = $indQuery->orderBy('punch_date', 'desc')->get();
+
+            $daysPresent = $individualPunches->whereNotNull('in_time')->count();
+            $insideCount = $individualPunches->where('in_premises_status', 'INSIDE_PREMISES')->count();
+            $lateCount = $individualPunches->filter(function($p) {
+                return str_contains($p->punch_status ?? '', 'LATE_IN');
+            })->count();
+            $earlyOutCount = $individualPunches->filter(function($p) {
+                return str_contains($p->punch_status ?? '', 'EARLY_OUT');
+            })->count();
+
+            $totMins = 0;
+            foreach ($individualPunches as $ip) {
+                if ($ip->in_time && $ip->out_time) {
+                    $totMins += round(abs(strtotime($ip->out_time) - strtotime($ip->in_time)) / 60);
+                }
+            }
+            $h = floor($totMins / 60);
+            $m = $totMins % 60;
+            $avgM = $daysPresent > 0 ? round($totMins / $daysPresent) : 0;
+            $avgH = floor($avgM / 60);
+            $avgMin = $avgM % 60;
+            $insidePct = $daysPresent > 0 ? round(($insideCount / $daysPresent) * 100) : 100;
+
+            $individualStats = (object)[
+                'days_present' => $daysPresent,
+                'total_hours_formatted' => "{$h}h {$m}m",
+                'avg_hours_formatted' => "{$avgH}h {$avgMin}m",
+                'late_count' => $lateCount,
+                'early_out_count' => $earlyOutCount,
+                'inside_percentage' => $insidePct,
+                'total_minutes' => $totMins,
+            ];
+        }
 
         return response()
             ->view('sf_staff_attendance_report', [
-                'punches' => $punches,
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-                'search' => $search,
+                'activeTab' => $activeTab,
+                // Tab 1: Daily Log
+                'selectedDate' => $selectedDate,
+                'dailySearch' => $dailySearch,
                 'premisesFilter' => $premisesFilter,
-                'geofence' => $geofence,
+                'dailyPunches' => $dailyPunches,
+                'dailyTotalPresent' => $dailyTotalPresent,
+                'dailyInside' => $dailyInside,
+                'dailyOutside' => $dailyOutside,
+                'dailyLate' => $dailyLate,
+                'dailyEarlyIn' => $dailyEarlyIn,
+                'dailyCompleted' => $dailyCompleted,
+                // Tab 2: Monthly Log
+                'selectedMonth' => $selectedMonth,
+                'monthlyViewType' => $monthlyViewType,
+                'allMonthlyPunches' => $allMonthlyPunches,
+                'monthlyStaffSummary' => $monthlyStaffSummary,
+                'monthlyTotalHoursFormatted' => $monthlyTotalHoursFormatted,
+                'monthlyActiveStaffCount' => $monthlyActiveStaffCount,
+                'monthlyTotalLateEntries' => $monthlyTotalLateEntries,
+                // Tab 3: Individual Report
+                'selectedStaffId' => $selectedStaffId,
+                'individualPeriod' => $individualPeriod,
+                'individualMonth' => $individualMonth,
+                'individualStaff' => $individualStaff,
+                'individualPunches' => $individualPunches,
+                'individualStats' => $individualStats,
+                // Tab 4: Registered Staff
                 'registeredStaff' => $registeredStaff,
+                // Geofence & Meta
+                'geofence' => $geofence,
+                // Backwards compatibility
+                'punches' => $dailyPunches,
+                'startDate' => $selectedDate,
+                'endDate' => $selectedDate,
+                'search' => $dailySearch,
             ])
             ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
             ->header('Pragma', 'no-cache')

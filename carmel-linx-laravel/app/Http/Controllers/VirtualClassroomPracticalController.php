@@ -477,7 +477,8 @@ class VirtualClassroomPracticalController extends Controller
             }
             $totalCompletedExps = ($conductedCount > 0) ? $conductedCount : ($experiments->count() > 0 ? $experiments->count() : 1);
             $totalDivisor = max($totalCompletedExps, count($studentExpScores), 1);
-            $avgLabWork375 = round(array_sum($studentExpScores) / $totalDivisor, 2);
+            $calculatedSplit375 = round(array_sum($studentExpScores) / $totalDivisor, 2);
+            $avgLabWork375 = $calculatedSplit375;
 
             // 2. Open-Ended (max 7.5 direct — stored as micro_project in PracticalEvaluation)
             $eval = $evalMap->get($regNo);
@@ -500,21 +501,26 @@ class VirtualClassroomPracticalController extends Controller
             // 4. Attendance mark (slab, out of 15)
             $attMark = $attendanceMarks[$regNo]['mark'] ?? 0;
 
-            // CIA Total out of 75
-            $totalCIA = (float)round($avgLabWork375 + $openEndedMark + $scaledTests15 + $attMark);
+            // CIA Total out of 75 - Whole Number
+            $totalCIA = (int)round($avgLabWork375 + $openEndedMark + $scaledTests15 + $attMark);
+
+            $hasDirectOverride = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
 
             $consolidatedScores[$regNo] = [
-                'avg_lab_work_375'    => $avgLabWork375,
-                'scaled_lab_work_30'  => $avgLabWork375,   // alias for template
-                'open_ended_mark'     => $openEndedMark,
+                'avg_lab_work_375'     => $avgLabWork375,
+                'scaled_lab_work_30'   => $avgLabWork375,   // alias for template
+                'calculated_split_375' => $calculatedSplit375,
+                'open_ended_mark'      => $openEndedMark,
                 'scaled_open_ended_10' => $openEndedMark,  // alias for template
-                'test1_score'         => $t1Score,
-                'test2_score'         => $t2Score,
-                'avg_test_40'         => round($avgTest40, 2),
-                'scaled_series_15'    => $scaledTests15,
-                'att_mark_15'         => $attMark,
-                'total_cia_60'        => $totalCIA,        // alias (actually /75)
-                'total_cia_75'        => $totalCIA,
+                'test1_score'          => $t1Score,
+                'test2_score'          => $t2Score,
+                'avg_test_40'          => round($avgTest40, 2),
+                'scaled_series_15'     => $scaledTests15,
+                'att_mark_15'          => $attMark,
+                'total_cia_60'         => $totalCIA,        // alias (actually /75)
+                'total_cia_75'         => $totalCIA,
+                'has_direct_override'  => $hasDirectOverride,
+                'direct_lab_work'      => $hasDirectOverride ? (float)$eval->lab_work_marks : null,
             ];
         }
 
@@ -860,12 +866,17 @@ class VirtualClassroomPracticalController extends Controller
             }
         }
 
-        $avgTest40 = ($t1Score + $t2Score) / 2;
-        $scaledTests15 = round(($avgTest40 / 40) * 15, 2);
+        $avgTest = ($t1Score + $t2Score) / 2;
+        if ($t1Score > 15.0 || $t2Score > 15.0) {
+            $scaledTests15 = round(($avgTest / 40) * 15, 2);
+        } else {
+            $scaledTests15 = round($avgTest, 2);
+        }
+        $avgTest40 = ($t1Score > 15.0 || $t2Score > 15.0) ? $avgTest : round(($scaledTests15 / 15) * 40, 2);
 
         $attVal = $attendanceMark ?? (float)($eval->attendance_marks ?? 0);
         $oeVal  = $openEndedMark ?? (float)($eval->micro_project ?? 0);
-        $totalCIA = (float)round($avgLabWork + $oeVal + $scaledTests15 + $attVal);
+        $totalCIA = (int)round($avgLabWork + $oeVal + $scaledTests15 + $attVal);
 
         // Sync StudentSemesterMarks
         try {
@@ -898,6 +909,7 @@ class VirtualClassroomPracticalController extends Controller
                 'scaled_series_15'     => $scaledTests15,
                 'att_mark_15'          => $attVal,
                 'avg_lab_work_375'     => $avgLabWork,
+                'has_override'         => ($eval->lab_work_marks !== null && $eval->lab_work_marks !== ''),
                 'total_cia'            => $totalCIA,
                 'total_cia_75'         => $totalCIA,
             ]
@@ -982,7 +994,9 @@ class VirtualClassroomPracticalController extends Controller
         $conductedCount = $conductedExpIds->count();
         $totalCompletedExps = ($conductedCount > 0) ? $conductedCount : ($experiments->count() > 0 ? $experiments->count() : 1);
 
-        $mappedStudents = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance) {
+        $mid = (int)ceil($students->count() / 2);
+
+        $mappedStudents = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance, $mid) {
             $regNo = $student->reg_no;
 
             $labBatch = null;
@@ -993,7 +1007,6 @@ class VirtualClassroomPracticalController extends Controller
             } elseif ($batchSubject->lab_batch_mode === 'full') {
                 $labBatch = '1';
             } else {
-                $mid = (int)ceil($student->count ?? 25);
                 $labBatch = ($sIdx < $mid) ? '1' : '2';
             }
 
@@ -1073,13 +1086,32 @@ class VirtualClassroomPracticalController extends Controller
             $avgViva  = round($sumViva / $totalDivisor, 2);
             $avgLabWork = round($avgRough + $avgFair + $avgObs + $avgProc + $avgViva, 2);
 
+            // Direct 37.5 manual override check (Revision 2021 Virtual Lab)
+            $hasDirectLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
+            if ($hasDirectLabWork) {
+                $avgLabWork = (float)$eval->lab_work_marks;
+                // Discard splitup and derive standard SBTE R2021 rubrics proportionally from consolidated 37.5 mark:
+                // Weights: Rough (5), Fair (7.5), Obs (7.5), Proc (7.5), Viva (10) = Total 37.5
+                if ($avgLabWork > 0) {
+                    $avgRough = round($avgLabWork * (5.0 / 37.5), 2);
+                    $avgFair  = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgObs   = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgProc  = round($avgLabWork * (7.5 / 37.5), 2);
+                    $avgViva  = round($avgLabWork - ($avgRough + $avgFair + $avgObs + $avgProc), 2);
+                } else {
+                    $avgRough = 0.0; $avgFair = 0.0; $avgObs = 0.0; $avgProc = 0.0; $avgViva = 0.0;
+                }
+            }
+
             // Practical Series Tests (Max 15)
             $scoreT1 = $t1 ? (float)$allTestMarks->where('practical_test_id', $t1->id)->where('reg_no', $regNo)->sum('marks_obtained') : 0.0;
             $scoreT2 = $t2 ? (float)$allTestMarks->where('practical_test_id', $t2->id)->where('reg_no', $regNo)->sum('marks_obtained') : 0.0;
+            if ($scoreT1 > 15.0) $scoreT1 = round($scoreT1 / 2, 2);
+            if ($scoreT2 > 15.0) $scoreT2 = round($scoreT2 / 2, 2);
             $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
 
-            // Total Internal Assessment (Max 75)
-            $totalInternal = (float)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
+            // Total Internal Assessment (Max 75 - Whole Number)
+            $totalInternal = (int)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
 
             $student->avg_rough_record = $avgRough;
             $student->avg_fair_record  = $avgFair;
@@ -1662,8 +1694,23 @@ class VirtualClassroomPracticalController extends Controller
         $avgVivaVoce    = round($sumViva / $totalDivisor, 2);
         $avgLabWork     = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
 
-        // Total Internal CIA (Max 75)
-        $totalInternal = (float)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
+        // Direct 37.5 manual override check (Revision 2021 Virtual Lab)
+        $hasDirectLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
+        if ($hasDirectLabWork) {
+            $avgLabWork = (float)$eval->lab_work_marks;
+            if ($avgLabWork > 0) {
+                $avgRoughRecord = round($avgLabWork * (5.0 / 37.5), 2);
+                $avgFairRecord  = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgObsPrep     = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgProcPunct   = round($avgLabWork * (7.5 / 37.5), 2);
+                $avgVivaVoce    = round($avgLabWork - ($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct), 2);
+            } else {
+                $avgRoughRecord = 0.0; $avgFairRecord = 0.0; $avgObsPrep = 0.0; $avgProcPunct = 0.0; $avgVivaVoce = 0.0;
+            }
+        }
+
+        // Total Internal CIA (Max 75 - Whole Number)
+        $totalInternal = (int)round($avgLabWork + $microProject + $avgTests + $attendanceMarks);
 
         // ESE and Final Results calculation
         $eseDisplay = '-';

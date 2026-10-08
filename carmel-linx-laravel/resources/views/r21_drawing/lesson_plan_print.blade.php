@@ -78,19 +78,21 @@
     </tr>
     <tr>
       <td class="lbl">Total Planned Hours</td>
-      <td class="val" colspan="3"><strong>60 Contact Hours (30 Sessions)</strong></td>
+      <td class="val" colspan="3"><strong>{{ $lessonPlans->sum('allocated_hours') ?: 60 }} Contact Hours ({{ $lessonPlans->count() }} Sessions)</strong></td>
     </tr>
   </table>
 
   <table class="data-table">
     <thead>
       <tr>
-        <th style="width: 45px;">Day</th>
-        <th style="width: 90px;">Module</th>
+        <th style="width: 40px;">Day</th>
+        <th style="width: 80px;">Module</th>
         <th class="td-left">Topics & Drawing Exercises</th>
-        <th style="width: 60px;">Hours</th>
-        <th style="width: 70px;">CO</th>
-        <th style="width: 80px;">Status</th>
+        <th style="width: 45px;">Hours</th>
+        <th style="width: 55px;">CO</th>
+        <th style="width: 85px;">Proposed Date</th>
+        <th style="width: 85px;">Actual Date</th>
+        <th style="width: 75px;">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -101,7 +103,9 @@
           <td class="td-left">{{ $plan->topic_content }}</td>
           <td>{{ $plan->allocated_hours ?? 2 }}</td>
           <td>{{ $plan->co_id }}</td>
-          <td>{{ $plan->status ?? 'Planned' }}</td>
+          <td>{{ $plan->proposed_date ? \Carbon\Carbon::parse($plan->proposed_date)->format('d/m/Y') : '-' }}</td>
+          <td>{{ $plan->actual_date ? \Carbon\Carbon::parse($plan->actual_date)->format('d/m/Y') : '-' }}</td>
+          <td>{{ $plan->status ?? 'Pending' }}</td>
         </tr>
       @endforeach
     </tbody>

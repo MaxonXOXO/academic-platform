@@ -504,7 +504,14 @@ class SbteSubjectLogImportController extends Controller
             } catch (\Exception $logEx) {}
 
             // For practical courses in Revision 2021, synchronize official attendance marks (out of 15) to PracticalEvaluation
-            if ($batchSubject->subject_type !== 'Theory') {
+            if ($batchSubject->subject_type === 'Practical / Lab') {
+                $assessorMobile = Session::get('userId') ?: ($staffMobile ?? null);
+                if (!$assessorMobile) {
+                    $assessorMobile = DB::table('subject_staff_assignments')
+                        ->where('batch_subject_id', $batchSubject->id)
+                        ->value('staff_mobile_no');
+                }
+
                 foreach ($classroomStudents as $cs) {
                     $rNo = $cs->reg_no;
                     $labBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $cs->roll_no !== null ? ((int)$cs->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
@@ -530,16 +537,25 @@ class SbteSubjectLogImportController extends Controller
                         $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
                         $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
-                        PracticalEvaluation::updateOrCreate(
-                            [
+                        $evalRecord = PracticalEvaluation::where('batch_subject_id', $batchSubject->id)
+                            ->where('reg_no', $rNo)
+                            ->first();
+
+                        if ($evalRecord) {
+                            $evalRecord->attendance_marks = $attMark;
+                            $evalRecord->updated_at = now();
+                            $evalRecord->save();
+                        } else {
+                            PracticalEvaluation::create([
                                 'batch_subject_id' => $batchSubject->id,
                                 'reg_no' => $rNo,
-                            ],
-                            [
+                                'assessor_mobile_no' => $assessorMobile ?: '9000000000',
                                 'attendance_marks' => $attMark,
+                                'micro_project' => 0.00,
+                                'created_at' => now(),
                                 'updated_at' => now(),
-                            ]
-                        );
+                            ]);
+                        }
                     }
                 }
             }
@@ -746,7 +762,14 @@ class SbteSubjectLogImportController extends Controller
             }
 
             // For practical courses in Revision 2021, synchronize official attendance marks (out of 15) to PracticalEvaluation
-            if ($batchSubject->subject_type !== 'Theory') {
+            if ($batchSubject->subject_type === 'Practical / Lab') {
+                $assessorMobile = Session::get('userId') ?: ($staffMobile ?? null);
+                if (!$assessorMobile) {
+                    $assessorMobile = DB::table('subject_staff_assignments')
+                        ->where('batch_subject_id', $batchSubject->id)
+                        ->value('staff_mobile_no');
+                }
+
                 foreach ($classroomStudents as $cs) {
                     $rNo = $cs->reg_no;
                     $labBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $cs->roll_no !== null ? ((int)$cs->roll_no <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
@@ -772,16 +795,25 @@ class SbteSubjectLogImportController extends Controller
                         $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 100.0;
                         $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
-                        PracticalEvaluation::updateOrCreate(
-                            [
+                        $evalRecord = PracticalEvaluation::where('batch_subject_id', $batchSubject->id)
+                            ->where('reg_no', $rNo)
+                            ->first();
+
+                        if ($evalRecord) {
+                            $evalRecord->attendance_marks = $attMark;
+                            $evalRecord->updated_at = now();
+                            $evalRecord->save();
+                        } else {
+                            PracticalEvaluation::create([
                                 'batch_subject_id' => $batchSubject->id,
                                 'reg_no' => $rNo,
-                            ],
-                            [
+                                'assessor_mobile_no' => $assessorMobile ?: '9000000000',
                                 'attendance_marks' => $attMark,
+                                'micro_project' => 0.00,
+                                'created_at' => now(),
                                 'updated_at' => now(),
-                            ]
-                        );
+                            ]);
+                        }
                     }
                 }
             }

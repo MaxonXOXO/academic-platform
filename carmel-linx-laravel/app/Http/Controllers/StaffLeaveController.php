@@ -23,7 +23,7 @@ class StaffLeaveController extends Controller
         $staff = StaffProfile::where('mobile_no', $mobileNo)->first();
         $staffName = $staff ? $staff->name : Session::get('userName', 'Staff Member');
         $designation = $staff ? ($staff->designation ?? Session::get('userRole', 'Lecturer')) : Session::get('userRole', 'Lecturer');
-        $department = $staff ? ($staff->department ?? Session::get('userBranch', 'General')) : Session::get('userBranch', 'General');
+        $department = $staff ? ($staff->branch ?? $staff->department ?? Session::get('userBranch', 'General')) : Session::get('userBranch', 'General');
 
         $request->validate([
             'leave_type'        => 'required|string',
@@ -122,11 +122,22 @@ class StaffLeaveController extends Controller
         }
 
         try {
+            $isSfCoord = StaffProfile::isSfAcademicCoordinator($mobileNo);
             $query = StaffLeaveRequest::query();
 
             if ($userRole === 'HOD') {
-                $query->where('department', $department)
-                      ->where('overall_status', 'Pending_HOD');
+                if ($isSfCoord) {
+                    // Dual Role: Aided HOD (Pending_HOD for their department) + SF Coordinator (Pending_Coordinator for SF staff)
+                    $query->where(function($q) use ($department) {
+                        $q->where(function($sub) use ($department) {
+                            $sub->where('department', $department)
+                                ->where('overall_status', 'Pending_HOD');
+                        })->orWhere('overall_status', 'Pending_Coordinator');
+                    });
+                } else {
+                    $query->where('department', $department)
+                          ->where('overall_status', 'Pending_HOD');
+                }
             } elseif ($userRole === 'Academic_Coordinator' || str_contains(strtolower($userRole), 'coordinator')) {
                 $query->where('overall_status', 'Pending_Coordinator');
             } elseif (in_array($userRole, ['Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
@@ -139,11 +150,18 @@ class StaffLeaveController extends Controller
                 return response()->json(['status' => 'SUCCESS', 'approvals' => []]);
             }
 
-            $approvals = $query->orderByDesc('id')->get();
+            $approvals = $query->orderByDesc('id')->get()->map(function($req) {
+                $req->start_date = $req->from_date ? $req->from_date->format('Y-m-d') : '';
+                $req->end_date = $req->to_date ? $req->to_date->format('Y-m-d') : '';
+                $req->leave_category = $req->leave_type;
+                $req->session = $req->session_type;
+                return $req;
+            });
 
             return response()->json([
                 'status'    => 'SUCCESS',
                 'role'      => $userRole,
+                'is_sf_coordinator' => $isSfCoord,
                 'approvals' => $approvals
             ]);
         } catch (\Exception $e) {
@@ -175,7 +193,8 @@ class StaffLeaveController extends Controller
     {
         $mobileNo = Session::get('userId');
         $userRole = Session::get('userRole');
-        $actorName = Session::get('userName', 'Approver');
+        $approverStaff = StaffProfile::where('mobile_no', $mobileNo)->first();
+        $actorName = $approverStaff ? $approverStaff->name : Session::get('userName', 'Approver');
 
         if (!$mobileNo) {
             return response()->json(['status' => 'ERROR', 'message' => 'Not authenticated.'], 401);
@@ -187,6 +206,13 @@ class StaffLeaveController extends Controller
             'action'    => 'required|in:Approved,Rejected',
             'remarks'   => 'nullable|string',
         ]);
+
+        if ($request->stage === 'Coordinator') {
+            $isSfCoord = StaffProfile::isSfAcademicCoordinator($mobileNo);
+            if (!in_array($userRole, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance', 'Principal', 'Super_Admin', 'Admin']) && !$isSfCoord) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized: You are not authorized as Self-Financing Academic Coordinator.'], 403);
+            }
+        }
 
         try {
             $leave = StaffLeaveRequest::findOrFail($request->leave_id);
@@ -296,8 +322,11 @@ class StaffLeaveController extends Controller
         $status       = $request->query('status');
         $academicYear = $request->query('academic_year', date('Y'));
 
-        // If user is HOD, strictly enforce filtering by their department branch only
-        if ($userRole === 'HOD') {
+        $userId       = Session::get('userId');
+        $isSfCoord    = StaffProfile::isSfAcademicCoordinator($userId);
+
+        // If user is HOD and not SF Coordinator, strictly enforce filtering by their department branch only
+        if ($userRole === 'HOD' && !$isSfCoord) {
             $department = $userBranch;
         } else {
             $department = $request->query('department');

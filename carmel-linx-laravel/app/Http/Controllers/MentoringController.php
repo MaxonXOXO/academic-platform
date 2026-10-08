@@ -1896,6 +1896,17 @@ class MentoringController extends Controller
         $userId = Session::get('userId');
         $role = Session::get('userRole');
         if (!$userId || $role === 'Student') return redirect('/');
+
+        // If a classroom ID was passed, redirect to the first student in that classroom
+        $isClassroom = DB::table('class_management')->where('classroom_id', $regNo)->exists() ||
+                       DB::table('r26_class_management')->where('classroom_id', $regNo)->exists();
+        if ($isClassroom) {
+            $firstStudent = Student::where('classroom_id', $regNo)->orderBy('reg_no')->first();
+            if ($firstStudent) {
+                return redirect('/tutor/mentoring-diary/' . $firstStudent->reg_no);
+            }
+        }
+
         return view('tutor_student_diary_full', ['studentRegNo' => $regNo]);
     }
 
@@ -2026,6 +2037,9 @@ class MentoringController extends Controller
                     return redirect('/dashboard/tradeinstructor?mode=desktop');
                 case 'Workshop_Superintendent':
                     return redirect('/dashboard/workshop?mode=desktop');
+                case 'Workshop_Instructor':
+                case 'Workshop Instructor':
+                case 'Tradesman':
                 case 'Lecturer':
                 case 'Physical_Instructor':
                 case 'Physical Instructor':
@@ -2200,9 +2214,21 @@ class MentoringController extends Controller
         $dir = storage_path("app/timetables");
         if (is_dir($dir)) {
             $files = glob($dir . "/*.json");
+            $r21ClassroomIds = DB::table('class_management')->pluck('classroom_id')->toArray();
 
             foreach ($files as $file) {
                 $cId = str_replace(['.json', $dir . '/'], '', $file);
+
+                // Revision 2021 sem3 and sem 5 classes ended on 6 October 2026.
+                // Semester exams commence from 13 October onwards.
+                // Stop the display of 2021 timetables in staff mobile today's timetable; keep 2026 timetable as usual.
+                $isRev2021Classroom = in_array($cId, $r21ClassroomIds) ||
+                    str_contains($cId, '2024') ||
+                    str_contains($cId, '2025');
+                if ($isRev2021Classroom && !str_contains($cId, '2026')) {
+                    continue;
+                }
+
                 $ttData = json_decode(file_get_contents($file), true);
                 if ($ttData && is_array($ttData)) {
                     foreach (['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'] as $dayKey) {
@@ -2337,6 +2363,17 @@ class MentoringController extends Controller
 
                                         $staffNameDisplay = is_array($slotStaff) ? implode(', ', $slotStaff) : (string)($slotStaff ?? '');
 
+                                        // Stop display of Rev 2021 (Sem 3 & Sem 5) subjects in staff today's timetable
+                                        $subRev = strtoupper((string)($assignedSub->syllabus_revision_code ?? ''));
+                                        $subSem = (int)($assignedSub->semester ?? 0);
+                                        if (
+                                            $subRev === 'REV2021' ||
+                                            in_array($subSem, [3, 5]) ||
+                                            preg_match('/^[35]\d{3}$/', (string)$subCode)
+                                        ) {
+                                            continue;
+                                        }
+
                                         $fullTimetablesByDay[$dayKey][] = (object) [
                                             'period' => (int)$period,
                                             'classroom_id' => $cId,
@@ -2410,6 +2447,15 @@ class MentoringController extends Controller
             $remedialRooms = DB::table('remedial_rooms')
                 ->where('created_by_mobile', $userId)
                 ->get();
+            foreach ($remedialRooms as $room) {
+                $sub = DB::table('batch_subjects')
+                    ->where('classroom_id', $room->classroom_id)
+                    ->where('subject_code', $room->subject_code)
+                    ->first();
+                $room->subject_name = $sub ? $sub->subject_name : $room->subject_code;
+                $room->room_code = $room->subject_code . ($sub ? ' - ' . $sub->subject_name : '');
+                $room->id = $room->room_id;
+            }
         }
 
         // 7. Staff To-Do Items

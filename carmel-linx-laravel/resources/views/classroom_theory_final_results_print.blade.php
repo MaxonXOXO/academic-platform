@@ -315,7 +315,7 @@
                     <th style="width: 34px;">CO2</th>
                     <th style="width: 34px;">CO3</th>
                     <th style="width: 34px;">CO4</th>
-                    <th style="width: 44px; font-weight: bold; background: #e2e8f0;">Avg<br><span style="font-size: 7.5px; font-weight: normal; color: #475569;">Best 3</span></th>
+                    <th style="width: 44px; font-weight: bold; background: #e2e8f0;">Avg<br><span style="font-size: 7.5px; font-weight: normal; color: #475569;">Best 2</span></th>
                     <th style="width: 36px;">CO1<br><span style="font-size: 8px; font-weight: normal; color: #64748b;">Test 1</span></th>
                     <th style="width: 36px;">CO2<br><span style="font-size: 8px; font-weight: normal; color: #64748b;">Test 2</span></th>
                     <th style="width: 36px;">CO3<br><span style="font-size: 8px; font-weight: normal; color: #64748b;">Test 3</span></th>
@@ -344,7 +344,7 @@
                         <td style="font-weight: 700; background: #f8fafc;">{{ $s->summ_avg }}</td>
                         <td>{{ $s->att_percent }}%</td>
                         <td style="font-weight: 700;">{{ $s->att_marks }}</td>
-                        <td class="total-cie-cell">{{ $s->total_cie }}</td>
+                        <td class="total-cie-cell">{{ round($s->total_cie) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -357,7 +357,7 @@
         </table>
 
         <div style="font-size: 9px; color: #64748b; margin-top: 6px; font-style: italic;">
-            * Note: In accordance with SBTE Revision 2021 regulations, Assignment Average (Max 20) is determined from the best of the highest three assignment scores, and Written Test Average (Max 20) is determined from the best of the highest two test scores. Individual 4 CO scores are retained for NBA Course Outcome direct attainment analysis.
+            * Note: In accordance with SBTE Revision 2021 regulations, Assignment Average (Max 20) is determined from the best of the highest two assignment scores, and Written Test Average (Max 20) is determined from the best of the highest two test scores. Individual 4 CO scores are retained for NBA Course Outcome direct attainment analysis.
         </div>
 
         <div class="footer">

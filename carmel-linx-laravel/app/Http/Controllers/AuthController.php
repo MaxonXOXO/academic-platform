@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -80,6 +81,12 @@ class AuthController extends Controller
                     'semester' => $student->semester,
                 ]);
 
+                // Track online status in cache (5 minutes TTL)
+                Cache::put('user_online_' . $student->reg_no, true, now()->addMinutes(5));
+                if (!empty($student->adm_no)) {
+                    Cache::put('user_online_' . $student->adm_no, true, now()->addMinutes(5));
+                }
+
                 // Generate persistent remember token
                 $rememberToken = Str::random(60);
                 $student->update(['remember_token' => $rememberToken]);
@@ -131,6 +138,9 @@ class AuthController extends Controller
                     'userPhoto' => $staff->photo_url ?? '',
                 ]);
 
+                // Track online status in cache (5 minutes TTL)
+                Cache::put('user_online_' . $staff->mobile_no, true, now()->addMinutes(5));
+
                 // Determine redirect route based on role
                 $route = '/dashboard/lecturer';
                 if ($staff->designation === 'Super_Admin') {
@@ -157,6 +167,10 @@ class AuthController extends Controller
                     $route = '/dashboard/tradeinstructor';
                 } elseif ($staff->designation === 'Workshop_Superintendent') {
                     $route = '/dashboard/workshop';
+                } elseif (in_array($staff->designation, ['SF_Office', 'Self_Office', 'Office_SF', 'Office'])) {
+                    $route = '/dashboard/sf-office';
+                } elseif (in_array($staff->designation, ['Workshop_Instructor', 'Workshop Instructor', 'Tradesman'])) {
+                    $route = '/dashboard/lecturer';
                 }
 
                 // Generate persistent remember token
@@ -539,6 +553,7 @@ class AuthController extends Controller
                     elseif ($staff->designation === 'Demonstrator') $route = '/dashboard/demonstrator';
                     elseif ($staff->designation === 'Trade_Instructor') $route = '/dashboard/tradeinstructor';
                     elseif ($staff->designation === 'Workshop_Superintendent') $route = '/dashboard/workshop';
+                    elseif (in_array($staff->designation, ['Workshop_Instructor', 'Workshop Instructor', 'Tradesman'])) $route = '/dashboard/lecturer';
 
                     $newToken = Str::random(60);
                     $staff->update(['remember_token' => $newToken]);
@@ -570,6 +585,7 @@ class AuthController extends Controller
     {
         $userId = Session::get('userId');
         if ($userId) {
+            Cache::forget('user_online_' . $userId);
             StaffProfile::where('mobile_no', $userId)->update(['remember_token' => null]);
             Student::where('reg_no', $userId)->orWhere('adm_no', $userId)->update(['remember_token' => null]);
         }

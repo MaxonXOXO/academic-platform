@@ -10,9 +10,11 @@ use App\Http\Controllers\MidSemSurveyController;
 use App\Http\Controllers\CourseExitSurveyController;
 use App\Http\Controllers\SupportDeskController;
 use App\Http\Controllers\VirtualLearningMaterialController;
+use App\Http\Controllers\SfOfficeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 // Support registration numbers containing slashes (e.g. 25EL4460/25, 25EL4407/25)
 Route::pattern('regNo', '[A-Za-z0-9_.\-\/]+');
@@ -51,7 +53,9 @@ if (!function_exists('noCacheView')) {
 
 Route::get('/api/system/session-check', function() {
     if (Session::has('userId')) {
-        return response()->json(['status' => 'ACTIVE', 'userId' => Session::get('userId')])->withHeaders([
+        $userId = Session::get('userId');
+        Cache::put('user_online_' . $userId, true, now()->addMinutes(5));
+        return response()->json(['status' => 'ACTIVE', 'userId' => $userId, 'is_online' => true])->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
@@ -62,6 +66,22 @@ Route::get('/api/system/session-check', function() {
         'Pragma' => 'no-cache',
         'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
     ]);
+});
+
+Route::get('/api/users/online-status', function(\Illuminate\Http\Request $request) {
+    $ids = $request->query('ids', '');
+    if (empty($ids)) {
+        return response()->json(['status' => 'SUCCESS', 'online' => (object)[]]);
+    }
+    $idArray = is_array($ids) ? $ids : explode(',', $ids);
+    $result = [];
+    foreach ($idArray as $id) {
+        $id = trim($id);
+        if ($id !== '') {
+            $result[$id] = Cache::has('user_online_' . $id);
+        }
+    }
+    return response()->json(['status' => 'SUCCESS', 'online' => $result]);
 });
 
 // Auth Gates
@@ -77,10 +97,14 @@ Route::get('/', function () {
         if ($role === 'Gen_Dept_Coordinator_Aided') return redirect('/dashboard/general-coordinator-aided');
         if ($role === 'Gen_Dept_Coordinator_Self_Finance') return redirect('/dashboard/general-coordinator-sf');
         if (in_array($role, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF'])) return redirect('/dashboard/academic-coordinator');
-        if (in_array($role, ['Lecturer', 'Physical_Instructor', 'Physical Instructor'])) return redirect('/dashboard/lecturer');
+        if (in_array($role, [
+            'Lecturer', 'Physical_Instructor', 'Physical Instructor',
+            'Workshop_Instructor', 'Workshop Instructor', 'Tradesman'
+        ])) return redirect('/dashboard/lecturer');
         if ($role === 'Demonstrator') return redirect('/dashboard/demonstrator');
         if ($role === 'Trade_Instructor') return redirect('/dashboard/tradeinstructor');
         if ($role === 'Workshop_Superintendent') return redirect('/dashboard/workshop');
+        if (in_array($role, ['SF_Office', 'Self_Office', 'Office_SF', 'Office'])) return redirect('/dashboard/sf-office');
         return redirect('/dashboard/lecturer');
     }
     return view('login');
@@ -346,7 +370,9 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/dashboard/academic-coordinator', function () {
         $role = Session::get('userRole');
-        if (!in_array($role, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance', 'Super_Admin', 'Admin'])) {
+        $userId = Session::get('userId');
+        $isSfCoord = \App\Models\StaffProfile::isSfAcademicCoordinator($userId);
+        if (!in_array($role, ['Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance', 'Super_Admin', 'Admin']) && !$isSfCoord) {
             return redirect('/');
         }
         return noCacheView('academic_coordinator_dashboard');
@@ -354,7 +380,13 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/dashboard/lecturer', function () {
         $role = Session::get('userRole');
-        if (!in_array($role, ['Principal', 'Super_Admin', 'Admin', 'Chairman', 'HOD', 'Lecturer', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor'])) return redirect('/');
+        if (!in_array($role, [
+            'Principal', 'Super_Admin', 'Admin', 'Chairman', 'HOD', 
+            'Lecturer', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor',
+            'Workshop_Instructor', 'Workshop Instructor',
+            'Tradesman', 'Trade_Instructor', 'Trade Instructor',
+            'Workshop_Superintendent', 'Workshop Superintendent'
+        ])) return redirect('/');
         $ua = strtolower(request()->header('User-Agent', ''));
         if ((str_contains($ua, 'mobile') || str_contains($ua, 'android') || str_contains($ua, 'iphone')) && request()->query('mode') !== 'desktop') {
             return redirect('/staff/mobile');
@@ -423,6 +455,25 @@ Route::middleware(['web'])->group(function () {
         return noCacheView('workshop_superintendent_dashboard');
     });
 
+    Route::get('/dashboard/sf-office', [SfOfficeController::class, 'index']);
+
+    // SF Office Console APIs
+    Route::prefix('api/sf-office')->group(function () {
+        Route::get('/stats', [SfOfficeController::class, 'getStats']);
+        Route::get('/staff', [SfOfficeController::class, 'getStaffList']);
+        Route::get('/punches', [SfOfficeController::class, 'getPunchLogs']);
+        Route::get('/leaves', [SfOfficeController::class, 'getLeaveRequests']);
+        Route::post('/leaves/approve', [SfOfficeController::class, 'processOfficeApproval']);
+        Route::post('/past-leaves', [SfOfficeController::class, 'savePastLeaveEntry']);
+        Route::delete('/past-leaves/{id}', [SfOfficeController::class, 'deletePastLeaveEntry']);
+        Route::post('/ccl/credit', [SfOfficeController::class, 'creditCcl']);
+        Route::get('/ccl/ledger', [SfOfficeController::class, 'getCclLedger']);
+        Route::get('/reports/monthly', [SfOfficeController::class, 'getMonthlyReport']);
+        Route::get('/reports/yearly', [SfOfficeController::class, 'getYearlyReport']);
+        Route::get('/settings', [SfOfficeController::class, 'getSettings']);
+        Route::post('/settings', [SfOfficeController::class, 'updateSettings']);
+    });
+
     // Core Data Actions
     Route::post('/api/approve-account', [DataController::class, 'approveAccount']);
     Route::post('/api/student/update-sbte-reg', [DataController::class, 'updateSbteRegNo']);
@@ -480,7 +531,7 @@ Route::middleware(['web'])->group(function () {
     // HOD Printable Student Credentials List
     Route::get('/hod/batches/{classroomId}/credentials/print', function (Illuminate\Http\Request $request, $classroomId) {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman', 'Tutor', 'Lecturer'])) return redirect('/');
+        if (!$role || !in_array($role, ['HOD', 'Principal', 'Super_Admin', 'Admin', 'Chairman', 'Tutor', 'Lecturer', 'Demonstrator', 'Workshop_Instructor', 'Tradesman', 'Trade_Instructor'])) return redirect('/');
 
         $classroom = DB::table('class_management')->where('classroom_id', $classroomId)->first();
         if (!$classroom) {
@@ -638,21 +689,27 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/drawing/exercises/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printExerciseList']);
     Route::get('/r26/classroom/drawing/ce-consolidated/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printCeConsolidatedReport']);
 
-    // Revision 2021 Virtual Drawing Classroom (Regulation 11.2.3)
+    // Revision 2021 Virtual Drawing Classroom (Revision 2021 Drawing Lab - CIA 75, ESE 50)
     Route::get('/r21/classroom/drawing/{subjectId}', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'show']);
     Route::post('/r21/classroom/drawing/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'uploadSyllabus']);
     Route::post('/r21/classroom/drawing/{subjectId}/sheets/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSheetMarks']);
     Route::post('/r21/classroom/drawing/{subjectId}/tests/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSeriesTestMarks']);
+    Route::post('/r21/classroom/drawing/{subjectId}/series-fast/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSeriesFast']);
+    Route::post('/r21/classroom/drawing/{subjectId}/fast-cia/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveFastCiaRegister']);
+    Route::post('/r21/classroom/drawing/{subjectId}/sheets-config/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveSheetsConfig']);
     Route::post('/r21/classroom/drawing/{subjectId}/attendance/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveAttendanceMarks']);
     Route::get('/r21/classroom/drawing/{subjectId}/print/sheets', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printFormativeRegister']);
     Route::get('/r21/classroom/drawing/{subjectId}/print/tests', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printSummativeRegister']);
     Route::get('/r21/classroom/drawing/{subjectId}/print/cia', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printConsolidatedCia']);
+    Route::post('/r21/classroom/drawing/{subjectId}/sheets-bulk-average/apply', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'applySheetsAverageToCia']);
+    Route::post('/r21/classroom/drawing/{subjectId}/lesson-plans/save', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'saveLessonPlans']);
     Route::get('/r21/classroom/drawing/{subjectId}/print/lesson-plan', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'printLessonPlan']);
 
     // Revision 2021 Virtual Seminar Classroom (Regulation Clause 11.2.6)
     Route::get('/r21/classroom/seminar/{subjectId}', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'show']);
     Route::post('/r21/classroom/seminar/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'uploadSyllabus']);
     Route::post('/r21/classroom/seminar/{subjectId}/evaluate', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'saveEvaluation']);
+    Route::post('/r21/classroom/seminar/{subjectId}/evaluate-batch', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'saveBatchEvaluations']);
     Route::post('/r21/classroom/seminar/{subjectId}/schedule', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'updateSeminarSchedule']);
     Route::get('/r21/classroom/seminar/{subjectId}/print', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'printReport']);
     Route::get('/r21/classroom/seminar/{subjectId}/attainment-summary', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'getAttainmentSummary']);
@@ -900,7 +957,7 @@ Route::middleware(['web'])->group(function () {
     // Remedial Sessions
     Route::get('/remedial-sessions', function () {
         $role = Session::get('userRole');
-        if (!$role || !in_array($role, ['Lecturer', 'Tutor', 'HOD', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor'])) return redirect('/');
+        if (!$role || !in_array($role, ['Lecturer', 'Tutor', 'HOD', 'Demonstrator', 'Physical_Instructor', 'Physical Instructor', 'Workshop_Instructor', 'Workshop Instructor', 'Tradesman', 'Trade_Instructor'])) return redirect('/');
         return view('remedial_dashboard');
     });
 
@@ -1714,6 +1771,15 @@ Route::middleware(['web'])->group(function () {
     Route::get('/tutor/attendance/report/print', [App\Http\Controllers\AttendanceController::class, 'printTutorAttendanceReport']);
     Route::get('/tutor/attendance/student-print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport']);
     Route::get('/tutor/attendance/student/{regNo}/print', [App\Http\Controllers\AttendanceController::class, 'printStudentAttendanceReport'])->where('regNo', '.*');
+
+    // Tutor Special Attendance & Condonation Register (SBTE R21 Clause 10 & R26 Rule 7)
+    Route::get('/api/tutor/attendance/condonation-register', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'getCondonationRegister']);
+    Route::post('/api/tutor/attendance/special/save', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'saveSpecialAttendance']);
+    Route::post('/api/tutor/attendance/special/delete/{id}', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'deleteSpecialAttendance']);
+    Route::post('/api/tutor/attendance/special/upload-teams-log', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'uploadTeamsAttendanceLog']);
+    Route::get('/tutor/attendance/condonation-certificate', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'printCondonationCertificate']);
+    Route::get('/tutor/attendance/condonation-certificate/{regNo}', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'printCondonationCertificate'])->where('regNo', '.*');
+    Route::get('/tutor/attendance/condonation-register/print', [App\Http\Controllers\TutorSpecialAttendanceController::class, 'printCondonationRegister']);
     Route::get('/api/tutor/progress-report', [App\Http\Controllers\TutorController::class, 'getProgressReportData']);
     Route::get('/tutor/progress-report/print', [App\Http\Controllers\TutorController::class, 'printProgressReport']);
     Route::get('/tutor/progress-report/student-print', [App\Http\Controllers\TutorController::class, 'printStudentProgressCard']);

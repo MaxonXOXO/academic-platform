@@ -79,6 +79,16 @@
             background-color: #17233d !important;
         }
 
+        /* Remove up/down spinners from number inputs (No Up Down Arrows) */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
         /* Compact, Ergonomic Flat Slider */
         input[type=range] {
             -webkit-appearance: none;
@@ -202,21 +212,20 @@
                 </div>
             </div>
 
-            <!-- Right: Action Buttons & Back Button on Extreme Right Top -->
+            <!-- Right: Logged-in Faculty Name, Syllabus, Fullscreen & Direct Dashboard Back Button -->
             <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
-                <!-- Class Attendance & Log Button -->
-                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" 
-                   class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-medium text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm" 
-                   title="Open Class Attendance & Log (Returns here on exit)">
-                    <span class="material-symbols-rounded text-sm text-emerald-400">calendar_month</span>
-                    <span>Attendance &amp; Log</span>
-                </a>
+                <!-- Logged-in Faculty Name Badge (Matching 2021 Theory & Lab) -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 shadow-sm shrink-0" title="Logged in Faculty In-Charge">
+                    <span class="material-symbols-rounded text-sky-400 text-sm">person</span>
+                    <span class="text-[11px] text-slate-400 font-medium">Faculty:</span>
+                    <strong class="text-xs text-white font-bold">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong>
+                </div>
 
                 <!-- Syllabus Button -->
-                <div class="flex items-center rounded-lg border border-slate-700 bg-slate-900 overflow-hidden shadow-sm">
-                    <button type="button" onclick="openSyllabusModal()" class="px-3 py-1.5 text-slate-200 hover:bg-slate-800 font-medium text-xs transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
+                <div class="flex items-center rounded-lg border border-slate-700 bg-slate-900 overflow-hidden shadow-sm shrink-0">
+                    <button type="button" onclick="openSyllabusModal()" class="px-2.5 py-1.5 text-slate-200 hover:bg-slate-800 font-medium text-xs transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
                         <span class="material-symbols-rounded text-sm text-blue-400">cloud_upload</span>
-                        <span>Syllabus</span>
+                        <span class="hidden sm:inline">Syllabus</span>
                     </button>
                     @if(!empty($courseFile->syllabus_pdf_path))
                         <a href="{{ $courseFile->syllabus_pdf_path }}" target="_blank" id="headerViewSyllabusBtn" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition flex items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
@@ -229,46 +238,17 @@
                     @endif
                 </div>
 
-                <!-- Print Reports Dropdown -->
-                <div class="relative" id="printReportsDropdownContainer">
-                    <button type="button" onclick="togglePrintDropdown(event)" class="px-3 py-1.5 rounded-lg bg-blue-950/70 hover:bg-blue-900/80 border border-blue-700/60 text-blue-200 hover:text-white font-medium text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" id="printReportsBtn" title="Print Statutory Reports">
-                        <span class="material-symbols-rounded text-sm text-blue-400">print</span>
-                        <span>Print Reports</span>
-                        <span class="material-symbols-rounded text-xs text-slate-400">expand_more</span>
-                    </button>
-                    <div id="printDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-[#0e1628] border border-slate-700 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
-                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                            Select Statutory Report
-                        </div>
-                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline">
-                            <span class="material-symbols-rounded text-base text-blue-400 shrink-0 mt-0.5">assignment</span>
-                            <div>
-                                <div class="font-bold text-slate-100">Consolidated Evaluation Register</div>
-                                <div class="text-[10px] text-slate-400 leading-tight">6-Rubric Clause 11.2.6 Splitup (75M) with Attendance &amp; Grades</div>
-                            </div>
-                        </a>
-                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=cia_submission" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline border-t border-slate-800/80">
-                            <span class="material-symbols-rounded text-base text-emerald-400 shrink-0 mt-0.5">verified</span>
-                            <div>
-                                <div class="font-bold text-slate-100">SBTE Final CIA Mark Entry Statement</div>
-                                <div class="text-[10px] text-slate-400 leading-tight">Official mark entry sheet for Controller of Exams / SBTE portal (75M)</div>
-                            </div>
-                        </a>
-                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=schedule" target="_blank" class="flex items-start gap-2.5 px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-white transition no-underline border-t border-slate-800/80">
-                            <span class="material-symbols-rounded text-base text-amber-400 shrink-0 mt-0.5">calendar_today</span>
-                            <div>
-                                <div class="font-bold text-slate-100">Presentation Schedule &amp; Topic Log</div>
-                                <div class="text-[10px] text-slate-400 leading-tight">Topics, guides, allotted presentation dates &amp; status</div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Moderate Back Button on Extreme Right Top -->
-                <button type="button" onclick="returnToParent()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-all border border-slate-700/80 cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm shrink-0" title="Return to Caller / Dashboard">
-                    <span class="material-symbols-rounded text-sm text-rose-400">arrow_back</span>
-                    <span>Back</span>
+                <!-- Fullscreen Toggle Button -->
+                <button type="button" onclick="toggleFullscreen()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-medium text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0" title="Toggle Fullscreen">
+                    <span class="material-symbols-rounded text-sm text-slate-400">fullscreen</span>
+                    <span class="hidden sm:inline">Fullscreen</span>
                 </button>
+
+                <!-- Direct Dashboard Return Button (Amber Pill, matching Virtual Lab & Drawing Room) -->
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" onclick="handleSeminarBack(event)" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-md shadow-amber-500/20 shrink-0" title="Return to Faculty Dashboard">
+                    <span class="material-symbols-rounded text-sm">arrow_back</span>
+                    <span>Dashboard</span>
+                </a>
             </div>
 
         </div>
@@ -327,230 +307,318 @@
         </div>
     </header>
 
-    <!-- Sub-toolbar: Tabs, Batch Filter & Search -->
-    <div class="bg-[#0f172a] border-b border-slate-800 px-4 py-2.5 sm:px-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        
-        <!-- Tabs (No Horizontal Scrollbar, Responsive Wrap) -->
-        <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-hidden no-scrollbar shrink-0">
-            <button onclick="switchTab('evaluation')" id="tabBtn-evaluation" class="tab-btn px-3.5 py-2 rounded-lg font-bold text-xs transition flex items-center gap-1.5 cursor-pointer bg-blue-600 text-white shadow-sm">
-                <span class="material-symbols-rounded text-base">assignment</span>
-                <span>Evaluation Register (75M)</span>
+    <!-- CARD: Professional Horizontal Tab Strip Navigation Container (Virtual Theory Classroom R-2021 Model) -->
+    <div class="bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg my-3 mx-4 sm:mx-6">
+        <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <button onclick="switchTab('evaluation')" id="tabBtn-evaluation" class="tab-btn px-4 py-2.5 text-xs md:text-sm font-bold border-2 border-blue-500 bg-blue-600/10 text-white rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-[0_0_15px_rgba(59,130,246,0.25)]">
+                <span class="material-symbols-rounded text-base text-blue-400">school</span>
+                <span>Seminar Evaluation (75M)</span>
             </button>
-            <button onclick="switchTab('schedule')" id="tabBtn-schedule" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
-                <span class="material-symbols-rounded text-base">event_note</span>
-                <span>Schedule &amp; Log</span>
+            <button onclick="switchTab('schedule')" id="tabBtn-schedule" class="tab-btn px-4 py-2.5 text-xs md:text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-800/80 hover:bg-slate-900 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-emerald-400">calendar_month</span>
+                <span>Presentation Schedule &amp; Log</span>
             </button>
-            <button onclick="switchTab('grades')" id="tabBtn-grades" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
-                <span class="material-symbols-rounded text-base">grade</span>
-                <span>Consolidated CIA &amp; Grades</span>
+            <button onclick="switchTab('grades')" id="tabBtn-grades" class="tab-btn px-4 py-2.5 text-xs md:text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-800/80 hover:bg-slate-900 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-amber-400">emoji_events</span>
+                <span>Grades &amp; Results</span>
             </button>
-            <button onclick="switchTab('survey')" id="tabBtn-survey" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
-                <span class="material-symbols-rounded text-base text-purple-400">assignment_turned_in</span>
-                <span>Course Exit Survey &amp; Attainment</span>
+            <button onclick="switchTab('reports')" id="tabBtn-reports" class="tab-btn px-4 py-2.5 text-xs md:text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-800/80 hover:bg-slate-900 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-cyan-400">assessment</span>
+                <span>Reports Hub</span>
             </button>
-        </div>
-
-        <!-- Right Side: Batch Filters & Search -->
-        <div class="flex items-center gap-2.5 flex-wrap justify-between md:justify-end">
-            <!-- Inline Batch Filters -->
-            <div class="flex items-center gap-1.5 text-xs flex-wrap">
-                <span class="text-[10px] uppercase font-bold text-slate-400 me-1 hidden sm:inline">Batch:</span>
-                <button onclick="filterLabBatch('All')" id="batch-filter-All" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-blue-500 text-blue-400 font-bold transition">
-                    All (<span id="bFilterAllCount">{{ $totalStudents }}</span>)
-                </button>
-                <button onclick="filterLabBatch('1')" id="batch-filter-1" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition">
-                    Batch 1 (<span id="bFilter1Count">{{ $batch1Count }}</span>)
-                </button>
-                <button onclick="filterLabBatch('2')" id="batch-filter-2" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition">
-                    Batch 2 (<span id="bFilter2Count">{{ $batch2Count }}</span>)
-                </button>
-                <button onclick="filterLabBatch('Unassigned')" id="batch-filter-Unassigned" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition">
-                    Unassigned (<span id="bFilterUnCount">{{ $unassignedCount }}</span>)
-                </button>
-                <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold transition flex items-center gap-1 cursor-pointer shadow-sm" title="Configure Student Lab Batch Division">
-                    <span class="material-symbols-rounded text-sm text-blue-400">tune</span>
-                    <span>Batch split setup</span>
-                </button>
-                <button type="button" onclick="toggleRubricColumns()" id="btnToggleRubrics" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Toggle detailed 6 rubric breakdown columns">
-                    <span class="material-symbols-rounded text-sm text-blue-400">view_column</span>
-                    <span id="rubricToggleText">Full Rubrics</span>
-                </button>
-            </div>
-
-            <!-- Quick Student Search Input -->
-            <div class="relative min-w-[170px] sm:min-w-[220px]">
-                <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-base">search</span>
-                <input type="text" id="studentSearchInput" placeholder="Search student..." oninput="onStudentSearch(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
-            </div>
-        </div>
-
+            <button onclick="switchTab('survey')" id="tabBtn-survey" class="tab-btn px-4 py-2.5 text-xs md:text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-800/80 hover:bg-slate-900 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-purple-400">rate_review</span>
+                <span>Course Attainment &amp; Survey</span>
+            </button>
+        </nav>
     </div>
 
     <!-- Main Workspace -->
     <main class="flex-grow p-3 sm:p-5 relative z-10">
 
         <!-- ========================================== -->
-        <!-- TAB 1: Seminar Evaluation Register (75 Marks) -->
+        <!-- TAB 1: Seminar Continuous Assessment (75M) -->
         <!-- ========================================== -->
-        <div id="tabContent-evaluation" class="tab-pane block">
+        <div id="tabContent-evaluation" class="tab-pane block space-y-4">
             
-            <!-- Rubric Guide Banner (Clause 11.2.6) -->
-            <div class="mb-3 p-3 rounded-xl bg-[#111a2e] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-rounded text-lg">gavel</span>
+            <!-- ENTER CONTINUOUS MARKS CARD -->
+            <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner no-print mb-6">
+                <!-- Card Header: Title & Action Controls -->
+                <div class="px-4 py-3 bg-slate-900/80 border-b border-slate-800/60 flex items-center justify-between flex-wrap gap-2.5">
+                    <div class="font-bold text-sm text-slate-300 flex items-center gap-2 tracking-wider uppercase shrink-0">
+                        <span class="material-symbols-rounded text-base text-emerald-400">edit_document</span> ENTER CONTINUOUS MARKS
+                        <span class="text-xs text-slate-500 font-normal normal-case hidden sm:inline">(Clause 11.2.6 &bull; CIA = ESE 75M)</span>
                     </div>
-                    <div>
-                        <div class="text-xs font-bold text-white flex items-center gap-2">
-                            <span>Clause 11.2.6 Assessment Rubrics (100% = 75 Marks Total)</span>
-                            <span class="px-2 py-0.2 rounded bg-slate-900 text-slate-300 text-[10px] font-mono border border-slate-700">Assessed by Committee of 2 Faculty, Averaged</span>
+                    
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <!-- Batch Filter Buttons -->
+                        <div class="flex items-center gap-1.5 text-xs flex-wrap">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 me-1">Batch:</span>
+                            <button type="button" onclick="filterLabBatch('All')" id="batch-filter-All" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-blue-500 text-blue-400 font-bold transition cursor-pointer">
+                                Full Batch (<span id="bFilterAllCount">{{ $totalStudents }}</span>)
+                            </button>
+                            <button type="button" onclick="filterLabBatch('1')" id="batch-filter-1" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
+                                Batch 1 (<span id="bFilter1Count">{{ $batch1Count }}</span>)
+                            </button>
+                            <button type="button" onclick="filterLabBatch('2')" id="batch-filter-2" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
+                                Batch 2 (<span id="bFilter2Count">{{ $batch2Count }}</span>)
+                            </button>
+                            <button type="button" onclick="filterLabBatch('Unassigned')" id="batch-filter-Unassigned" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
+                                Unassigned (<span id="bFilterUnCount">{{ $unassignedCount }}</span>)
+                            </button>
+                            <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold transition flex items-center gap-1 cursor-pointer shadow-sm text-xs" title="Configure Student Lab Batch Division">
+                                <span class="material-symbols-rounded text-xs text-blue-400">tune</span>
+                                <span>Split setup</span>
+                            </button>
                         </div>
-                        <div class="text-[11px] text-slate-400 mt-0.5 flex flex-wrap gap-x-3 gap-y-1">
-                            <span>1. Relevance: <strong class="text-slate-200">7.5M</strong> (10%)</span>
-                            <span>2. Literature: <strong class="text-slate-200">7.5M</strong> (10%)</span>
-                            <span>3. Presentation: <strong class="text-slate-200">37.5M</strong> (50%)</span>
-                            <span>4. Interaction: <strong class="text-slate-200">7.5M</strong> (10%)</span>
-                            <span>5. Report: <strong class="text-slate-200">7.5M</strong> (10%)</span>
-                            <span>6. Attendance: <strong class="text-slate-200">7.5M</strong> (10%)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-700/60 text-blue-300 hover:text-white font-semibold text-[11px] transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm" title="Print Detailed Evaluation Register">
-                        <span class="material-symbols-rounded text-sm">print</span>
-                        <span>Print Register</span>
-                    </a>
-                    <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-                        Current Assessor: <strong class="text-white">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Student Table -->
-            <div class="glass-panel overflow-hidden">
+                        <!-- Student Search -->
+                        <div class="relative min-w-[150px] sm:min-w-[180px]">
+                            <span class="material-symbols-rounded absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input type="text" id="studentSearchInput" placeholder="Search student..." oninput="onStudentSearch(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Print Register Link -->
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm no-underline cursor-pointer" title="Print Consolidated Evaluation Register">
+                            <span class="material-symbols-rounded text-sm">print</span>
+                            <span>Print Report</span>
+                        </a>
+
+                        <!-- Save Marks Button -->
+                        <button type="button" id="btnSaveSeminarMarksTop" onclick="saveAllSeminarMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Save All Marks">
+                            <span class="material-symbols-rounded text-sm">save</span>
+                            <span>Save Marks</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="table-custom" id="evaluationTable">
+                    <table class="w-full text-left border-collapse min-w-[1100px] seminar-input-table" id="evaluationTable">
                         <thead>
-                            <tr>
-                                <th class="text-center w-8 sm:w-10">Roll</th>
-                                <th class="w-20 sm:w-24">Reg No</th>
-                                <th class="min-w-[120px] max-w-[150px]">Student Name</th>
-                                <th class="w-10 sm:w-12 text-center">Batch</th>
-                                <th class="min-w-[130px] max-w-[180px]">Seminar Topic &amp; Guide</th>
-                                <th class="text-center w-11 rubric-col" title="1. Relevance of the topic (Max 7.5M)">Rel.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-11 rubric-col" title="2. Literature survey (Max 7.5M)">Lit.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-12 rubric-col" title="3. Presentation slides & delivery (Max 37.5M)">Pres.<br><span class="text-[9px] text-blue-400 font-mono">37.5M</span></th>
-                                <th class="text-center w-11 rubric-col" title="4. Interaction & discussion (Max 7.5M)">Disc.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-11 rubric-col" title="5. Seminar Report (Max 7.5M)">Rep.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-11 rubric-col" title="6. Attendance (Max 7.5M)">Att.<br><span class="text-[9px] text-blue-400 font-mono">7.5M</span></th>
-                                <th class="text-center w-14" title="Score recorded by currently logged in assessor">My Score<br><span class="text-[9px] text-slate-400 font-mono">75M</span></th>
-                                <th class="text-center w-16" title="Committee Averaged Score (Click to view individual faculty marks)">Comm. Avg<br><span class="text-[9px] text-blue-400 font-mono">75M</span></th>
-                                <th class="text-center w-14">Grade</th>
-                                <th class="text-center w-24 sticky-col-action">Action</th>
+                            <tr class="bg-slate-900/60 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
+                                <th class="p-3 text-center w-12 text-slate-400 whitespace-nowrap">Roll</th>
+                                <th class="p-3 text-center w-28 text-slate-400 font-mono whitespace-nowrap">SBTE No</th>
+                                <th class="p-3 text-left min-w-[220px] text-slate-200 whitespace-nowrap">Name</th>
+                                <th class="p-3 text-center w-16 text-slate-400 whitespace-nowrap">Batch</th>
+                                <th class="p-3 text-left min-w-[180px] max-w-[240px] text-slate-400 whitespace-nowrap">Topic</th>
+                                <th class="p-3 text-left min-w-[120px] max-w-[160px] text-slate-400 whitespace-nowrap">Guide</th>
+                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Rel<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Lit<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-3 text-center w-24 text-blue-400 whitespace-nowrap">Pres<span class="block text-[10px] text-slate-400 font-normal">37.5M</span></th>
+                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Interctn<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Report<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-3 text-center w-18 text-slate-400 whitespace-nowrap">Attn %<span class="block text-[10px] text-slate-500 font-normal">TEAMS</span></th>
+                                <th class="p-3 text-center w-20 text-cyan-400 whitespace-nowrap">Attn Mark<span class="block text-[10px] text-cyan-300/70 font-normal">7.5M</span></th>
+                                <th class="p-3 text-center w-24 text-emerald-400 bg-emerald-500/10 whitespace-nowrap">CIA<span class="block text-[9px] text-emerald-300 font-normal">Max 75M</span></th>
+                                <th class="p-3 text-center w-20 text-slate-300 whitespace-nowrap">Grade</th>
+                                <th class="p-3 text-center w-24 sticky-col-action text-slate-400 whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="seminarMarksTbody">
                             @forelse($studentResults as $st)
-                            <tr class="student-row" 
+                            <tr class="student-row border-b border-slate-800/40 last:border-0 hover:bg-slate-900/30 transition-premium" 
                                 id="row-eval-{{ $st['reg_no'] }}"
                                 data-reg="{{ $st['reg_no'] }}"
                                 data-roll="{{ $st['roll_no'] }}"
                                 data-name="{{ strtolower($st['name']) }}"
                                 data-batch="{{ $st['batch'] }}">
                                 
-                                <td class="text-center font-bold text-slate-300">{{ $st['roll_no'] ?? '-' }}</td>
-                                <td class="font-mono text-slate-300 font-semibold text-[10px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
-                                <td>
-                                    <div class="font-bold text-white leading-tight truncate max-w-[140px]">{{ $st['name'] }}</div>
-                                    <div class="text-[9px] text-slate-400">Att: <span class="text-slate-300 font-semibold">{{ $st['att_percentage'] }}%</span></div>
+                                <!-- 1. Roll -->
+                                <td class="p-3 text-center font-bold text-slate-400 text-sm sm:text-base whitespace-nowrap">{{ $st['roll_no'] ?? '-' }}</td>
+                                
+                                <!-- 2. SBTE Reg No -->
+                                <td class="p-3 text-center font-mono text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
+                                
+                                <!-- 3. Name -->
+                                <td class="p-3 whitespace-nowrap">
+                                    <div class="font-bold text-slate-100 text-sm sm:text-base whitespace-nowrap tracking-wide">{{ $st['name'] }}</div>
                                 </td>
-                                <td class="text-center">
+                                
+                                <!-- 4. Batch -->
+                                <td class="p-3 text-center whitespace-nowrap">
                                     @if($st['batch'] === '1')
-                                        <span class="px-1.5 py-0.5 rounded bg-blue-900/40 border border-blue-500/40 text-blue-300 text-[10px] font-bold">B1</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-900/40 border border-blue-500/40 text-blue-300 text-xs font-bold">B1</span>
                                     @elseif($st['batch'] === '2')
-                                        <span class="px-1.5 py-0.5 rounded bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">B2</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">B2</span>
                                     @else
-                                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">Unassigned</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-xs">Unassigned</span>
                                     @endif
                                 </td>
-
-                                <!-- Seminar Topic & Guide with Direct Edit Button -->
-                                <td>
-                                    <div class="text-[11px] text-slate-200 font-semibold truncate max-w-[170px] col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
+                                
+                                <!-- 5. Topic -->
+                                <td class="p-3">
+                                    <div class="text-xs sm:text-sm text-slate-200 font-semibold truncate max-w-[220px] col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
                                         {{ $st['topic'] ?? '—' }}
                                     </div>
-                                    <div class="text-[9px] text-slate-400 flex items-center gap-1 mt-0.5 flex-wrap">
-                                        <span>Guide: <strong class="text-slate-300 col-row-guide truncate max-w-[90px]">{{ $st['guide_name'] ?? 'Not Assigned' }}</strong></span>
-                                        @if($st['presentation_date_formatted'])
-                                            <span>• <span class="text-slate-400 font-mono col-row-date">{{ $st['presentation_date_formatted'] }}</span></span>
-                                        @endif
-                                    </div>
-                                    <button type="button" onclick="openScheduleModal('{{ $st['reg_no'] }}')" class="mt-0.5 text-[9px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-0.5 cursor-pointer">
-                                        <span class="material-symbols-rounded text-[11px]">edit_note</span>
-                                        <span>{{ !empty($st['topic']) ? 'Edit' : '+ Topic' }}</span>
+                                    <button type="button" onclick="openScheduleModal('{{ $st['reg_no'] }}')" class="mt-1 text-[10px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-0.5 cursor-pointer">
+                                        <span class="material-symbols-rounded text-xs">edit_note</span>
+                                        <span>{{ !empty($st['topic']) ? 'Edit Topic' : '+ Assign Topic' }}</span>
                                     </button>
                                 </td>
-
-                                <!-- Averaged Rubrics -->
-                                <td class="text-center font-mono text-slate-300 col-avg-relevance rubric-col">{{ $st['avg_relevance'] !== null ? number_format($st['avg_relevance'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-literature rubric-col">{{ $st['avg_literature'] !== null ? number_format($st['avg_literature'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-presentation rubric-col">{{ $st['avg_presentation'] !== null ? number_format($st['avg_presentation'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-interaction rubric-col">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-report rubric-col">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
-                                <td class="text-center font-mono text-slate-300 col-avg-attendance rubric-col">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
-
-                                <!-- My Score -->
-                                <td class="text-center font-mono font-bold text-slate-200 col-my-score">
-                                    {{ $st['my_evaluation'] ? number_format($st['my_evaluation']['total_score'], 1) : '—' }}
+                                
+                                <!-- 6. Guide -->
+                                <td class="p-3">
+                                    <div class="text-xs sm:text-sm text-slate-300 font-semibold col-row-guide truncate max-w-[150px]">
+                                        {{ $st['guide_name'] ?? 'Not Assigned' }}
+                                    </div>
                                 </td>
-
-                                <!-- Committee Average Score with Clickable Breakdown -->
-                                <td class="text-center col-final-score">
-                                    @if($st['eval_count'] > 0)
-                                        <button type="button" onclick="showFacultyBreakdown('{{ $st['reg_no'] }}')" class="font-mono font-bold text-sm {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : 'text-rose-400' }} hover:underline cursor-pointer" title="Click to view all faculty marks">
-                                            {{ number_format($st['final_score'], 1) }}
-                                        </button>
-                                        <div class="text-[9px] text-slate-400 font-normal">
-                                            <button type="button" onclick="showFacultyBreakdown('{{ $st['reg_no'] }}')" class="text-blue-400 hover:text-blue-300 underline">
-                                                {{ $st['eval_count'] }} {{ $st['eval_count'] == 1 ? 'Faculty' : 'Faculty' }}
-                                            </button>
-                                        </div>
-                                    @else
-                                        <span class="text-slate-500 font-mono">—</span>
-                                    @endif
+                                
+                                <!-- 7. Relevance (7.5M) -->
+                                <td class="p-2">
+                                    <input type="number" 
+                                           step="0.5" 
+                                           min="0" 
+                                           max="7.5" 
+                                           value="{{ $st['my_evaluation'] ? $st['my_evaluation']['relevance'] : ($st['avg_relevance'] !== null ? $st['avg_relevance'] : '') }}" 
+                                           placeholder="-" 
+                                           class="seminar-mark mark-rel w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           data-reg="{{ $st['reg_no'] }}" 
+                                           data-rubric="relevance" 
+                                           onfocus="this.select()" 
+                                           oninput="onSeminarMarkInput(this)" 
+                                           onchange="onSeminarMarkChange(this)" 
+                                           onblur="onSeminarMarkBlur(this)" 
+                                           onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
-
-                                <!-- SBTE Grade -->
-                                <td class="text-center col-grade">
+                                
+                                <!-- 8. Literature (7.5M) -->
+                                <td class="p-2">
+                                    <input type="number" 
+                                           step="0.5" 
+                                           min="0" 
+                                           max="7.5" 
+                                           value="{{ $st['my_evaluation'] ? $st['my_evaluation']['literature'] : ($st['avg_literature'] !== null ? $st['avg_literature'] : '') }}" 
+                                           placeholder="-" 
+                                           class="seminar-mark mark-lit w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           data-reg="{{ $st['reg_no'] }}" 
+                                           data-rubric="literature" 
+                                           onfocus="this.select()" 
+                                           oninput="onSeminarMarkInput(this)" 
+                                           onchange="onSeminarMarkChange(this)" 
+                                           onblur="onSeminarMarkBlur(this)" 
+                                           onkeydown="handleSeminarMarkKeyDown(event, this)">
+                                </td>
+                                
+                                <!-- 9. Presentation (37.5M) -->
+                                <td class="p-2">
+                                    <input type="number" 
+                                           step="0.5" 
+                                           min="0" 
+                                           max="37.5" 
+                                           value="{{ $st['my_evaluation'] ? $st['my_evaluation']['presentation'] : ($st['avg_presentation'] !== null ? $st['avg_presentation'] : '') }}" 
+                                           placeholder="-" 
+                                           class="seminar-mark mark-pres w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           data-reg="{{ $st['reg_no'] }}" 
+                                           data-rubric="presentation" 
+                                           onfocus="this.select()" 
+                                           oninput="onSeminarMarkInput(this)" 
+                                           onchange="onSeminarMarkChange(this)" 
+                                           onblur="onSeminarMarkBlur(this)" 
+                                           onkeydown="handleSeminarMarkKeyDown(event, this)">
+                                </td>
+                                
+                                <!-- 10. Interaction (7.5M) -->
+                                <td class="p-2">
+                                    <input type="number" 
+                                           step="0.5" 
+                                           min="0" 
+                                           max="7.5" 
+                                           value="{{ $st['my_evaluation'] ? $st['my_evaluation']['interaction'] : ($st['avg_interaction'] !== null ? $st['avg_interaction'] : '') }}" 
+                                           placeholder="-" 
+                                           class="seminar-mark mark-interctn w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           data-reg="{{ $st['reg_no'] }}" 
+                                           data-rubric="interaction" 
+                                           onfocus="this.select()" 
+                                           oninput="onSeminarMarkInput(this)" 
+                                           onchange="onSeminarMarkChange(this)" 
+                                           onblur="onSeminarMarkBlur(this)" 
+                                           onkeydown="handleSeminarMarkKeyDown(event, this)">
+                                </td>
+                                
+                                <!-- 11. Report (7.5M) -->
+                                <td class="p-2">
+                                    <input type="number" 
+                                           step="0.5" 
+                                           min="0" 
+                                           max="7.5" 
+                                           value="{{ $st['my_evaluation'] ? $st['my_evaluation']['report'] : ($st['avg_report'] !== null ? $st['avg_report'] : '') }}" 
+                                           placeholder="-" 
+                                           class="seminar-mark mark-report w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           data-reg="{{ $st['reg_no'] }}" 
+                                           data-rubric="report" 
+                                           onfocus="this.select()" 
+                                           oninput="onSeminarMarkInput(this)" 
+                                           onchange="onSeminarMarkChange(this)" 
+                                           onblur="onSeminarMarkBlur(this)" 
+                                           onkeydown="handleSeminarMarkKeyDown(event, this)">
+                                </td>
+                                
+                                <!-- 12. Attn % -->
+                                <td class="p-3 text-center">
+                                    <span class="font-bold text-slate-300 text-sm">{{ $st['att_percentage'] }}%</span>
+                                </td>
+                                
+                                <!-- 13. Attn Mark (7.5M) -->
+                                <td class="p-3 text-center text-cyan-400 font-mono font-bold text-base" data-attn="{{ $st['attendance_mark'] }}">
+                                    {{ number_format($st['attendance_mark'], 1) }}
+                                </td>
+                                
+                                <!-- 14. CIA (75M) -->
+                                <td class="p-3 text-center bg-emerald-500/5">
+                                    <span class="col-row-cia font-mono font-black text-lg {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : ($st['eval_count'] > 0 ? 'text-rose-400' : 'text-slate-500') }}">
+                                        {{ $st['eval_count'] > 0 ? round($st['final_score']) : '—' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- 15. Grade -->
+                                <td class="p-3 text-center col-row-grade">
                                     @if($st['letter_grade'] !== '-')
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-black {{ $st['letter_grade'] === 'S' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : ($st['letter_grade'] === 'A' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : ($st['letter_grade'] === 'F' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-200 border border-slate-700')) }}">
+                                        <span class="grade-badge-cell font-black text-xs {{ $st['letter_grade'] === 'S' ? 'text-amber-400' : ($st['letter_grade'] === 'F' ? 'text-rose-400' : 'text-slate-200') }}">
                                             Grade {{ $st['letter_grade'] }}
                                         </span>
                                     @else
-                                        <span class="text-slate-500 font-mono text-[10px]">Pending</span>
+                                        <span class="grade-badge-cell font-bold text-slate-500 text-xs">—</span>
                                     @endif
                                 </td>
-
-                                <!-- Action Button -->
-                                <td class="text-center sticky-col-action">
+                                
+                                <!-- 16. Action -->
+                                <td class="p-3 text-center sticky-col-action">
                                     <button type="button" 
                                             onclick="openEvaluationModal('{{ $st['reg_no'] }}')" 
-                                            class="px-2 sm:px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm whitespace-nowrap">
-                                        <span class="material-symbols-rounded text-xs">{{ $st['my_evaluation'] ? 'edit' : 'add' }}</span>
-                                        <span>{{ $st['my_evaluation'] ? 'Edit' : 'Evaluate' }}</span>
+                                            class="px-2.5 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm whitespace-nowrap" 
+                                            title="Open evaluation details / breakdown modal">
+                                        <span class="material-symbols-rounded text-sm">tune</span>
+                                        <span>Details</span>
                                     </button>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="15" class="text-center py-8 text-slate-500">
-                                    <span class="material-symbols-rounded text-4xl block mb-2 opacity-50">school</span>
+                                <td colspan="16" class="p-6 text-center text-slate-500 text-sm font-bold">
                                     No students enrolled in this classroom.
                                 </td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Bottom Action Bar -->
+                <div class="px-4 py-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-2.5">
+                    <div class="flex items-center gap-2">
+                        <span id="seminarSaveStatus" class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Auto-save ready
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm no-underline cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">print</span> Print Report
+                        </a>
+                        <button type="button" id="btnSaveSeminarMarksBottom" onclick="saveAllSeminarMarks()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">save</span> Save Marks
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -798,20 +866,20 @@
                         </thead>
                         <tbody>
                             @forelse($studentResults as $st)
-                            <tr class="student-row" data-batch="{{ $st['batch'] }}" data-reg="{{ $st['reg_no'] }}" data-name="{{ strtolower($st['name']) }}">
+                            <tr id="row-grade-{{ $st['reg_no'] }}" class="student-row" data-batch="{{ $st['batch'] }}" data-reg="{{ $st['reg_no'] }}" data-name="{{ strtolower($st['name']) }}">
                                 <td class="text-center font-bold text-slate-300">{{ $st['roll_no'] ?? '-' }}</td>
                                 <td class="font-mono text-slate-300 font-semibold">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
                                 <td class="font-bold text-white">{{ $st['name'] }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_relevance'] !== null ? number_format($st['avg_relevance'], 1) : '—' }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_literature'] !== null ? number_format($st['avg_literature'], 1) : '—' }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_presentation'] !== null ? number_format($st['avg_presentation'], 1) : '—' }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
-                                <td class="text-center font-mono">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
-                                <td class="text-center font-mono font-bold text-sm {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : ($st['eval_count'] > 0 ? 'text-rose-400' : 'text-slate-500') }}">
-                                    {{ $st['eval_count'] > 0 ? number_format($st['final_score'], 1) : '—' }}
+                                <td class="text-center font-mono col-grade-relevance">{{ $st['avg_relevance'] !== null ? number_format($st['avg_relevance'], 1) : '—' }}</td>
+                                <td class="text-center font-mono col-grade-literature">{{ $st['avg_literature'] !== null ? number_format($st['avg_literature'], 1) : '—' }}</td>
+                                <td class="text-center font-mono col-grade-presentation">{{ $st['avg_presentation'] !== null ? number_format($st['avg_presentation'], 1) : '—' }}</td>
+                                <td class="text-center font-mono col-grade-interaction">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
+                                <td class="text-center font-mono col-grade-report">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
+                                <td class="text-center font-mono col-grade-attendance">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
+                                <td class="text-center font-mono font-bold text-sm col-grade-final {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : ($st['eval_count'] > 0 ? 'text-rose-400' : 'text-slate-500') }}">
+                                    {{ $st['eval_count'] > 0 ? round($st['final_score']) : '—' }}
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center col-grade-letter">
                                     @if($st['letter_grade'] !== '-')
                                         <span class="font-bold text-xs {{ $st['letter_grade'] === 'S' ? 'text-amber-400' : ($st['letter_grade'] === 'F' ? 'text-rose-400' : 'text-slate-200') }}">
                                             {{ $st['letter_grade'] }}
@@ -820,8 +888,8 @@
                                         <span class="text-slate-500">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center font-mono text-slate-300">{{ $st['grade_point'] }}</td>
-                                <td class="text-center">
+                                <td class="text-center font-mono text-slate-300 col-grade-point">{{ $st['grade_point'] }}</td>
+                                <td class="text-center col-grade-result">
                                     @if($st['result'] === 'Pass')
                                         <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>
                                     @elseif($st['result'] === 'Failed')
@@ -843,7 +911,131 @@
 
         </div>
 
-        <!-- TAB 4: Course Exit Survey & Attainment -->
+        <!-- ========================================== -->
+        <!-- ========================================== -->
+        <!-- TAB 4: Statutory Reports & Print Hub       -->
+        <!-- ========================================== -->
+        <div id="tabContent-reports" class="tab-pane hidden space-y-4">
+            
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center">
+                            <span class="material-symbols-rounded text-xl">print</span>
+                        </div>
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-white">Reports &amp; Print Hub</h2>
+                            <p class="text-xs text-slate-400">Official Seminar Statements &bull; Revision 2021 (Clause 11.2.6)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" 
+                           class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer no-underline">
+                            <span class="material-symbols-rounded text-sm text-emerald-400">calendar_month</span>
+                            <span>Class Attendance Log</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Clean Print Buttons Grid (No Big Cards) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    
+                    <!-- 1. CIA Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=cia" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-emerald-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">verified</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition-colors flex items-center justify-between">
+                                <span>CIA Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-emerald-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">SBTE Final CIA Entry Statement (75M)</div>
+                        </div>
+                    </a>
+
+                    <!-- 2. Attendance Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=attendance" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">how_to_reg</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors flex items-center justify-between">
+                                <span>Attendance Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-cyan-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">TEAMS Log &amp; Attendance Marks (7.5M)</div>
+                        </div>
+                    </a>
+
+                    <!-- 3. Consolidated Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-blue-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">assignment</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-blue-300 transition-colors flex items-center justify-between">
+                                <span>Consolidated Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-blue-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">Full 6-Rubrics Clause 11.2.6 Register (75M)</div>
+                        </div>
+                    </a>
+
+                    <!-- 4. Seminar Topic Splitup Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=topic_splitup" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-purple-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">category</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-purple-300 transition-colors flex items-center justify-between">
+                                <span>Topic Splitup Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-purple-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">Seminar Topic Allocation &amp; Technical Domain</div>
+                        </div>
+                    </a>
+
+                    <!-- 5. ESE Grade Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=ese" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">emoji_events</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors flex items-center justify-between">
+                                <span>ESE Grade Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-amber-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">Final SBTE Grades (S–F) &amp; Result Statement</div>
+                        </div>
+                    </a>
+
+                    <!-- 6. Print Schedule Report -->
+                    <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=schedule" target="_blank" 
+                       class="p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-rose-500/60 transition group flex items-center gap-3.5 no-underline shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-rose-600/20 border border-rose-500/40 text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-rounded text-2xl">calendar_month</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-rose-300 transition-colors flex items-center justify-between">
+                                <span>Print Schedule Report</span>
+                                <span class="material-symbols-rounded text-sm text-slate-500 group-hover:text-rose-400 transition-colors">open_in_new</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 truncate mt-0.5">Presentation Schedule &amp; Guide Log Register</div>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 5: Course Exit Survey & Attainment -->
         <div id="tabContent-survey" class="tab-pane hidden space-y-5">
             <!-- Header Panel -->
             <div class="glass-panel p-4 border border-purple-500/30 bg-gradient-to-r from-slate-900/95 via-purple-950/20 to-slate-900/95 space-y-4">
@@ -1123,24 +1315,24 @@
                             <input type="range" min="0" max="7.5" step="0.25" id="range_report" class="w-full cursor-pointer" oninput="syncEvalInput('report')">
                         </div>
 
-                        <!-- Criterion 6: Attendance (Max 7.5 with 1-click Auto) -->
-                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
+                        <!-- Criterion 6: Attendance (Max 7.5 - Authoritative TEAMS Attendance) -->
+                        <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-800/60 transition space-y-1.5">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">6</span>
-                                    <span class="font-bold text-slate-200 text-xs">Attendance</span>
-                                    <button type="button" onclick="applySuggestedAttendance()" id="btnApplySuggestedAtt" class="px-1.5 py-0.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/50 text-emerald-300 rounded font-bold text-[9px] transition flex items-center gap-1 cursor-pointer shrink-0" title="Apply Auto Attendance Score">
-                                        <span class="material-symbols-rounded text-[11px]">auto_fix_high</span>
-                                        <span>Auto (<span id="modalSuggestedAttVal">7.5</span>M)</span>
-                                    </button>
-                                    <span id="modalAttHelpText" class="hidden"></span>
+                                    <span class="w-5 h-5 rounded-full bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">6</span>
+                                    <span class="font-bold text-emerald-300 text-xs">Attendance (10% = 7.5M)</span>
+                                    <span class="px-1.5 py-0.2 rounded bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-[9px] font-mono font-bold" id="modalAttBadge">TEAMS Log</span>
                                 </div>
                                 <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_attendance" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-emerald-400 font-bold text-xs focus:border-emerald-400 outline-none" oninput="syncEvalSlider('attendance')">
+                                    <input type="number" step="0.5" min="0" max="7.5" id="input_attendance" readonly class="w-14 bg-slate-950 border border-emerald-600/50 rounded px-1.5 py-0.5 text-center text-emerald-300 font-black text-xs outline-none cursor-not-allowed">
                                     <span class="text-slate-500 text-[10px]">/ 7.5</span>
                                 </div>
                             </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_attendance" class="w-full cursor-pointer accent-emerald-500" oninput="syncEvalInput('attendance')">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400">
+                                <span id="modalAttHelpText">Calculated from official TEAMS attendance log</span>
+                                <span class="font-bold text-emerald-400 font-mono" id="modalSuggestedAttVal">7.5 M</span>
+                            </div>
+                            <input type="range" min="0" max="7.5" step="0.25" id="range_attendance" class="w-full cursor-not-allowed accent-emerald-500 opacity-60" disabled>
                         </div>
 
                     </div>
@@ -1340,25 +1532,29 @@
         let activeBatchFilter = 'All';
 
         // ---------------- BACK NAVIGATION ----------------
-        function returnToParent() {
+        function handleSeminarBack(e) {
+            if (e) e.preventDefault();
             // 1. If opened by a parent window (window.open), close and focus caller
             if (window.opener && !window.opener.closed) {
-                window.opener.focus();
                 window.close();
                 return;
             }
-            // 2. If referrer exists and is not this same URL, navigate there
-            if (document.referrer && document.referrer !== window.location.href) {
-                window.location.href = document.referrer;
-                return;
+            // 2. Direct clean return to Faculty Dashboard
+            window.location.href = "{{ $dashboardUrl ?? '/dashboard/lecturer' }}";
+        }
+
+        function returnToParent() {
+            handleSeminarBack();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Fullscreen request failed: ", err);
+                });
+            } else {
+                document.exitFullscreen();
             }
-            // 3. Fallback to browser history back
-            if (window.history.length > 1) {
-                window.history.back();
-                return;
-            }
-            // 4. Default to dashboard
-            window.location.href = '{{ $dashboardUrl }}';
         }
 
         // ---------------- PRINT REPORTS DROPDOWN ----------------
@@ -1380,16 +1576,16 @@
         function switchTab(tabKey) {
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-                btn.classList.add('text-slate-400');
+                btn.classList.remove('border-2', 'border-blue-500', 'bg-blue-600/10', 'text-white', 'shadow-[0_0_15px_rgba(59,130,246,0.25)]', 'font-bold');
+                btn.classList.add('border-transparent', 'text-slate-400', 'font-medium');
             });
 
             const targetPane = document.getElementById(`tabContent-${tabKey}`);
             const targetBtn = document.getElementById(`tabBtn-${tabKey}`);
             if (targetPane) targetPane.classList.remove('hidden');
             if (targetBtn) {
-                targetBtn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
-                targetBtn.classList.remove('text-slate-400');
+                targetBtn.classList.add('border-2', 'border-blue-500', 'bg-blue-600/10', 'text-white', 'shadow-[0_0_15px_rgba(59,130,246,0.25)]', 'font-bold');
+                targetBtn.classList.remove('border-transparent', 'text-slate-400', 'font-medium');
             }
 
             if (tabKey === 'survey') {
@@ -1648,9 +1844,10 @@
                 setVal('evalGuideSelect', st.guide_mobile_no || '');
                 setVal('evalPresentationDateInput', st.presentation_date || '');
 
-                // Attendance help
-                setText('modalSuggestedAttVal', st.suggested_att_mark);
-                setText('modalAttHelpText', `Class attendance percentage: ${st.att_percentage}% -> Auto Suggested: ${st.suggested_att_mark} / 7.5 M`);
+                // Attendance help & value
+                const attVal = st.attendance_mark !== undefined ? st.attendance_mark : st.suggested_att_mark;
+                setText('modalSuggestedAttVal', `${Number(attVal).toFixed(1)} M`);
+                setText('modalAttHelpText', `TEAMS class attendance: ${st.att_percentage}% → Authoritative: ${Number(attVal).toFixed(1)} / 7.5 M`);
 
                 // Reset Assessor Selector to current logged-in user or first assessor
                 const assessorSel = document.getElementById('evalAssessorMobile');
@@ -1686,8 +1883,9 @@
 
         function populateRubricsForAssessor(st, assessorMobile) {
             const evalObj = (st.assessors_list || []).find(e => e.assessor_mobile === assessorMobile);
+            const attVal = st.attendance_mark !== undefined ? st.attendance_mark : st.suggested_att_mark;
             for (let c in criteriaConfig) {
-                let val = evalObj ? evalObj[c] : (c === 'attendance' ? st.suggested_att_mark : 0);
+                let val = (c === 'attendance') ? attVal : (evalObj ? evalObj[c] : 0);
                 const inp = document.getElementById(`input_${c}`);
                 const rng = document.getElementById(`range_${c}`);
                 if (inp) inp.value = val;
@@ -1707,7 +1905,7 @@
             }
 
             box.classList.remove('hidden');
-            avgText.textContent = `Committee Average: ${st.final_score.toFixed(1)} / 75 (Grade ${st.letter_grade})`;
+            avgText.textContent = `Committee Average: ${Math.round(st.final_score)} / 75 (Grade ${st.letter_grade})`;
 
             let html = '';
             st.assessors_list.forEach((ev, idx) => {
@@ -1721,7 +1919,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-xs font-bold text-blue-400 font-mono">${ev.total_score.toFixed(1)} M</span>
+                            <span class="text-xs font-bold text-blue-400 font-mono">${Math.round(ev.total_score)} M</span>
                         </div>
                     </div>
                 `;
@@ -1844,24 +2042,31 @@
                     // Update UI Row in Evaluation Table
                     const row = document.getElementById(`row-eval-${payload.reg_no}`);
                     if (row) {
-                        row.querySelector('.col-my-score').textContent = Number(data.data.my_total).toFixed(1);
-                        const finalEl = row.querySelector('.col-final-score');
-                        finalEl.innerHTML = `
-                            <button type="button" onclick="showFacultyBreakdown('${payload.reg_no}')" class="font-mono font-bold text-sm ${data.data.average_score >= 30 ? 'text-emerald-400' : 'text-rose-400'} hover:underline cursor-pointer">
-                                ${Number(data.data.average_score).toFixed(1)}
-                            </button>
-                            <div class="text-[9px] text-slate-400 font-normal">
-                                <button type="button" onclick="showFacultyBreakdown('${payload.reg_no}')" class="text-blue-400 hover:text-blue-300 underline">
-                                    ${data.data.eval_count} Faculty
-                                </button>
-                            </div>
-                        `;
+                        const relInput = row.querySelector('.mark-rel');
+                        if (relInput) relInput.value = payload.relevance;
+                        const litInput = row.querySelector('.mark-lit');
+                        if (litInput) litInput.value = payload.literature;
+                        const presInput = row.querySelector('.mark-pres');
+                        if (presInput) presInput.value = payload.presentation;
+                        const intInput = row.querySelector('.mark-interctn');
+                        if (intInput) intInput.value = payload.interaction;
+                        const repInput = row.querySelector('.mark-report');
+                        if (repInput) repInput.value = payload.report;
 
-                        const gradeEl = row.querySelector('.col-grade');
-                        gradeEl.innerHTML = `<span class="inline-block px-2 py-0.5 rounded text-[11px] font-black ${data.data.letter_grade === 'S' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : (data.data.letter_grade === 'A' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : (data.data.letter_grade === 'F' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-200 border border-slate-700'))}">Grade ${data.data.letter_grade}</span>`;
+                        const ciaEl = row.querySelector('.col-row-cia');
+                        if (ciaEl) {
+                            ciaEl.textContent = Number(data.data.average_score).toFixed(1);
+                            ciaEl.className = `col-row-cia font-mono font-black text-lg ${data.data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                        }
 
-                        if (data.data.topic) row.querySelector('.col-row-topic').textContent = data.data.topic;
-                        if (data.data.guide_name) row.querySelector('.col-row-guide').textContent = data.data.guide_name;
+                        const gradeEl = row.querySelector('.col-row-grade');
+                        if (gradeEl) {
+                            const colorClass = data.data.letter_grade === 'S' ? 'text-amber-400' : (data.data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
+                            gradeEl.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${data.data.letter_grade}</span>`;
+                        }
+
+                        if (data.data.topic && row.querySelector('.col-row-topic')) row.querySelector('.col-row-topic').textContent = data.data.topic;
+                        if (data.data.guide_name && row.querySelector('.col-row-guide')) row.querySelector('.col-row-guide').textContent = data.data.guide_name;
                         if (data.data.presentation_date_formatted && row.querySelector('.col-row-date')) row.querySelector('.col-row-date').textContent = data.data.presentation_date_formatted;
                     }
 
@@ -1872,6 +2077,43 @@
                         if (data.data.guide_name) schedRow.querySelector('.col-sched-guide').innerHTML = `<div class="font-bold text-slate-200 flex items-center gap-1"><span class="material-symbols-rounded text-xs text-blue-400">supervisor_account</span> ${data.data.guide_name}</div>`;
                         if (data.data.presentation_date_formatted) {
                             schedRow.querySelector('.col-sched-date').innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-900 border border-slate-700 font-mono text-[11px] font-bold text-slate-200"><span class="material-symbols-rounded text-xs text-blue-400">calendar_today</span> ${data.data.presentation_date_formatted}</span>`;
+                        }
+                    }
+
+                    // Also update Grades & Results Table row if exists
+                    const gradeRow = document.getElementById(`row-grade-${payload.reg_no}`);
+                    if (gradeRow) {
+                        if (data.data.avg_relevance !== undefined) gradeRow.querySelector('.col-grade-relevance').textContent = Number(data.data.avg_relevance).toFixed(1);
+                        if (data.data.avg_literature !== undefined) gradeRow.querySelector('.col-grade-literature').textContent = Number(data.data.avg_literature).toFixed(1);
+                        if (data.data.avg_presentation !== undefined) gradeRow.querySelector('.col-grade-presentation').textContent = Number(data.data.avg_presentation).toFixed(1);
+                        if (data.data.avg_interaction !== undefined) gradeRow.querySelector('.col-grade-interaction').textContent = Number(data.data.avg_interaction).toFixed(1);
+                        if (data.data.avg_report !== undefined) gradeRow.querySelector('.col-grade-report').textContent = Number(data.data.avg_report).toFixed(1);
+                        if (data.data.attendance_mark !== undefined) gradeRow.querySelector('.col-grade-attendance').textContent = Number(data.data.attendance_mark).toFixed(1);
+
+                        const finalScoreEl = gradeRow.querySelector('.col-grade-final');
+                        if (finalScoreEl) {
+                            finalScoreEl.textContent = Number(data.data.average_score).toFixed(1);
+                            finalScoreEl.className = `text-center font-mono font-bold text-sm col-grade-final ${data.data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                        }
+
+                        const letterEl = gradeRow.querySelector('.col-grade-letter');
+                        if (letterEl) {
+                            const colorClass = data.data.letter_grade === 'S' ? 'text-amber-400' : (data.data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
+                            letterEl.innerHTML = `<span class="font-bold text-xs ${colorClass}">${data.data.letter_grade}</span>`;
+                        }
+
+                        const pointEl = gradeRow.querySelector('.col-grade-point');
+                        if (pointEl) pointEl.textContent = data.data.grade_point;
+
+                        const resultEl = gradeRow.querySelector('.col-grade-result');
+                        if (resultEl) {
+                            if (data.data.result === 'Pass') {
+                                resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>`;
+                            } else if (data.data.result === 'Failed') {
+                                resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>`;
+                            } else {
+                                resultEl.innerHTML = `<span class="text-slate-500 text-[10px]">Pending</span>`;
+                            }
                         }
                     }
 
@@ -1902,7 +2144,7 @@
 
             document.getElementById('breakdownModalStudentName').textContent = st.name;
             document.getElementById('breakdownModalStudentMeta').textContent = `Reg: ${st.sbte_reg_no || st.reg_no} | Roll: ${st.roll_no || '-'}`;
-            document.getElementById('breakdownFinalAvg').innerHTML = `${st.final_score.toFixed(1)} <span class="text-xs text-slate-400 font-normal">/ 75.0</span>`;
+            document.getElementById('breakdownFinalAvg').innerHTML = `${Math.round(st.final_score)} <span class="text-xs text-slate-400 font-normal">/ 75</span>`;
             document.getElementById('breakdownFinalGrade').textContent = `Grade ${st.letter_grade} (${st.result})`;
 
             const container = document.getElementById('breakdownCardsContainer');
@@ -1918,7 +2160,7 @@
                                     <span class="font-bold text-white text-xs">${ev.assessor_name}</span>
                                     <span class="text-slate-400 text-[10px] ml-1">(${ev.designation})</span>
                                 </div>
-                                <span class="font-bold text-sm text-blue-400 font-mono">${ev.total_score.toFixed(1)} / 75</span>
+                                <span class="font-bold text-sm text-blue-400 font-mono">${Math.round(ev.total_score)} / 75</span>
                             </div>
                             <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 text-[10px] text-center pt-1 border-t border-slate-800">
                                 <div class="bg-slate-950 p-1 rounded"><span class="text-slate-400 block">Relevance</span><span class="font-bold text-white">${ev.relevance}</span></div>
@@ -2090,56 +2332,350 @@
             }
         }
 
-        // ---------------- RUBRIC VIEW TOGGLE (RESPONSIVE) ----------------
-        // Default to compact if screen is narrower than 1280px (e.g. standard laptops or tablets)
-        let isRubricsExpanded = window.innerWidth >= 1280;
-        let userManuallyToggledRubrics = false;
+        // ---------------- SEMINAR DIRECT TABLE EDITING & AUTO-SAVE ----------------
+        const autoSaveTimers = {};
 
-        function toggleRubricColumns() {
-            isRubricsExpanded = !isRubricsExpanded;
-            userManuallyToggledRubrics = true;
-            applyRubricVisibility();
+        function onSeminarMarkInput(input) {
+            validateSeminarMark(input);
+            calculateRowCia(input);
+            triggerSeminarAutoSave(input, false);
         }
 
-        function applyRubricVisibility() {
-            const cols = document.querySelectorAll('.rubric-col');
-            const txt = document.getElementById('rubricToggleText');
-            const btn = document.getElementById('btnToggleRubrics');
+        function onSeminarMarkChange(input) {
+            validateSeminarMark(input);
+            calculateRowCia(input);
+            triggerSeminarAutoSave(input, true);
+        }
 
-            cols.forEach(el => {
-                if (isRubricsExpanded) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
+        function onSeminarMarkBlur(input) {
+            if (input.value !== '') {
+                const num = parseFloat(input.value);
+                if (!isNaN(num)) {
+                    input.value = num;
                 }
+            }
+            triggerSeminarAutoSave(input, true);
+        }
+
+        function validateSeminarMark(input) {
+            const rubric = input.getAttribute('data-rubric');
+            const maxVal = (rubric === 'presentation') ? 37.5 : 7.5;
+            let val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                if (val > maxVal) input.value = maxVal;
+                if (val < 0) input.value = 0;
+            }
+        }
+
+        function calculateRowCia(input) {
+            const regNo = input.getAttribute('data-reg');
+            const row = document.getElementById(`row-eval-${regNo}`);
+            if (!row) return;
+
+            const rel = parseFloat(row.querySelector('.mark-rel')?.value) || 0;
+            const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
+            const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
+            const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
+            const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+            
+            // Attendance mark from authoritative TEAMS attendance cell
+            const attnCell = row.querySelector('[data-attn]');
+            const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
+
+            const total = Math.min(75.0, Math.round((rel + lit + pres + interctn + rep + attn) * 10) / 10);
+
+            // Update row CIA
+            const ciaEl = row.querySelector('.col-row-cia');
+            if (ciaEl) {
+                ciaEl.textContent = total.toFixed(1);
+                ciaEl.className = `col-row-cia font-mono font-black text-lg ${total >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            }
+
+            // Calculate letter grade
+            const pct = (total / 75.0) * 100.0;
+            let grade = 'F';
+            let colorClass = 'text-rose-400';
+            if (pct >= 90) { grade = 'S'; colorClass = 'text-amber-400'; }
+            else if (pct >= 80) { grade = 'A'; colorClass = 'text-blue-400'; }
+            else if (pct >= 70) { grade = 'B'; colorClass = 'text-sky-400'; }
+            else if (pct >= 60) { grade = 'C'; colorClass = 'text-teal-400'; }
+            else if (pct >= 50) { grade = 'D'; colorClass = 'text-emerald-400'; }
+            else if (pct >= 40) { grade = 'E'; colorClass = 'text-slate-200'; }
+            else { grade = 'F'; colorClass = 'text-rose-400'; }
+
+            const gradeCell = row.querySelector('.col-row-grade');
+            if (gradeCell) {
+                gradeCell.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${grade}</span>`;
+            }
+        }
+
+        function setAutoSaveStatus(status, text) {
+            const statusEl = document.getElementById('seminarSaveStatus');
+            if (!statusEl) return;
+            if (status === 'saving') {
+                statusEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Saving changes...</span></span>`;
+            } else if (status === 'saved') {
+                statusEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-400"><span class="material-symbols-rounded text-sm">check_circle</span><span>${text || 'All changes saved'}</span></span>`;
+            } else if (status === 'error') {
+                statusEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-rose-400"><span class="material-symbols-rounded text-sm">error</span><span>${text || 'Failed to auto-save'}</span></span>`;
+            } else {
+                statusEl.innerHTML = `<span class="text-slate-400">Auto-save ready</span>`;
+            }
+        }
+
+        function triggerSeminarAutoSave(input, immediate = false) {
+            const regNo = input.getAttribute('data-reg');
+            if (!regNo) return;
+
+            setAutoSaveStatus('saving');
+
+            if (autoSaveTimers[regNo]) {
+                clearTimeout(autoSaveTimers[regNo]);
+            }
+
+            if (immediate) {
+                saveStudentSeminarMarks(regNo);
+            } else {
+                autoSaveTimers[regNo] = setTimeout(() => {
+                    saveStudentSeminarMarks(regNo);
+                }, 750);
+            }
+        }
+
+        async function saveStudentSeminarMarks(regNo) {
+            const row = document.getElementById(`row-eval-${regNo}`);
+            if (!row) return;
+
+            const rel = parseFloat(row.querySelector('.mark-rel')?.value) || 0;
+            const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
+            const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
+            const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
+            const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+            
+            const attnCell = row.querySelector('[data-attn]');
+            const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
+
+            const st = studentDataset.find(s => s.reg_no === regNo);
+
+            const payload = {
+                reg_no: regNo,
+                assessor_mobile_no: currentLoggedInMobile,
+                topic: st?.topic || null,
+                guide_mobile_no: st?.guide_mobile_no || null,
+                presentation_date: st?.presentation_date || null,
+                relevance: rel,
+                literature: lit,
+                presentation: pres,
+                interaction: interctn,
+                report: rep,
+                attendance: attn
+            };
+
+            try {
+                const res = await fetch(`/r21/classroom/seminar/${subjectId}/evaluate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    setAutoSaveStatus('saved', 'All changes saved');
+
+                    // Update cached dataset
+                    if (st) {
+                        st.my_evaluation = { ...payload, total_score: data.data.my_total };
+                        st.final_score = data.data.average_score;
+                        st.letter_grade = data.data.letter_grade;
+                        st.eval_count = data.data.eval_count;
+                        st.is_completed = true;
+                        st.assessors_list = data.data.assessors_list || st.assessors_list;
+                    }
+
+                    // Update Grades table row if it exists
+                    syncGradeRow(payload.reg_no, data.data);
+
+                    // Update stats
+                    if (data.data.completed_count) {
+                        document.getElementById('statCompletedCount').textContent = data.data.completed_count;
+                        const total = parseInt(document.getElementById('statTotalCount').textContent) || 0;
+                        document.getElementById('statPendingCount').textContent = Math.max(0, total - data.data.completed_count);
+                    }
+                } else {
+                    setAutoSaveStatus('error', data.message || 'Auto-save failed');
+                }
+            } catch (err) {
+                console.error('Auto-save error:', err);
+                setAutoSaveStatus('error', 'Network error saving marks');
+            }
+        }
+
+        async function saveAllSeminarMarks() {
+            const rows = document.querySelectorAll('.student-row');
+            if (!rows.length) return;
+
+            const btnTop = document.getElementById('btnSaveAllSeminar');
+            const btnBtm = document.getElementById('btnSaveAllSeminarBottom');
+            
+            const setButtonsLoading = (isLoading) => {
+                [btnTop, btnBtm].forEach(btn => {
+                    if (!btn) return;
+                    btn.disabled = isLoading;
+                    if (isLoading) {
+                        btn.innerHTML = `<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span><span>Saving All...</span>`;
+                    } else {
+                        btn.innerHTML = `<span class="material-symbols-rounded text-sm">save</span><span>Save Marks</span>`;
+                    }
+                });
+            };
+
+            setButtonsLoading(true);
+            setAutoSaveStatus('saving');
+
+            const evaluations = [];
+            rows.forEach(row => {
+                const regNo = row.getAttribute('data-reg');
+                if (!regNo) return;
+
+                const rel = parseFloat(row.querySelector('.mark-rel')?.value) || 0;
+                const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
+                const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
+                const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
+                const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+                
+                const attnCell = row.querySelector('[data-attn]');
+                const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
+
+                const st = studentDataset.find(s => s.reg_no === regNo);
+
+                evaluations.push({
+                    reg_no: regNo,
+                    topic: st?.topic || null,
+                    guide_mobile_no: st?.guide_mobile_no || null,
+                    presentation_date: st?.presentation_date || null,
+                    relevance: rel,
+                    literature: lit,
+                    presentation: pres,
+                    interaction: interctn,
+                    report: rep,
+                    attendance: attn
+                });
             });
 
-            if (txt) {
-                txt.textContent = isRubricsExpanded ? 'Compact View' : 'Full Rubrics';
-            }
-            if (btn) {
-                if (isRubricsExpanded) {
-                    btn.classList.add('border-blue-500', 'text-blue-300');
-                    btn.classList.remove('border-slate-700', 'text-slate-300');
+            try {
+                const res = await fetch(`/r21/classroom/seminar/${subjectId}/evaluate-batch`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        assessor_mobile_no: currentLoggedInMobile,
+                        evaluations: evaluations
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    setAutoSaveStatus('saved', `All ${data.saved_count || evaluations.length} students saved successfully!`);
+                    alert(`✓ Successfully saved marks for ${data.saved_count || evaluations.length} students.`);
+                    location.reload();
                 } else {
-                    btn.classList.remove('border-blue-500', 'text-blue-300');
-                    btn.classList.add('border-slate-700', 'text-slate-300');
+                    setAutoSaveStatus('error', data.message || 'Failed to save batch marks.');
+                    alert(data.message || 'Failed to save batch marks.');
+                }
+            } catch (err) {
+                console.error('Batch save error:', err);
+                setAutoSaveStatus('error', 'Server error saving marks.');
+                alert('Server error saving batch marks.');
+            } finally {
+                setButtonsLoading(false);
+            }
+        }
+
+        function syncGradeRow(regNo, data) {
+            const gradeRow = document.getElementById(`row-grade-${regNo}`);
+            if (!gradeRow) return;
+
+            if (data.avg_relevance !== undefined) gradeRow.querySelector('.col-grade-relevance').textContent = Number(data.avg_relevance).toFixed(1);
+            if (data.avg_literature !== undefined) gradeRow.querySelector('.col-grade-literature').textContent = Number(data.avg_literature).toFixed(1);
+            if (data.avg_presentation !== undefined) gradeRow.querySelector('.col-grade-presentation').textContent = Number(data.avg_presentation).toFixed(1);
+            if (data.avg_interaction !== undefined) gradeRow.querySelector('.col-grade-interaction').textContent = Number(data.avg_interaction).toFixed(1);
+            if (data.avg_report !== undefined) gradeRow.querySelector('.col-grade-report').textContent = Number(data.avg_report).toFixed(1);
+            if (data.attendance_mark !== undefined) gradeRow.querySelector('.col-grade-attendance').textContent = Number(data.attendance_mark).toFixed(1);
+
+            const finalScoreEl = gradeRow.querySelector('.col-grade-final');
+            if (finalScoreEl) {
+                finalScoreEl.textContent = Number(data.average_score).toFixed(1);
+                finalScoreEl.className = `text-center font-mono font-bold text-sm col-grade-final ${data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            }
+
+            const letterEl = gradeRow.querySelector('.col-grade-letter');
+            if (letterEl) {
+                const colorClass = data.letter_grade === 'S' ? 'text-amber-400' : (data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
+                letterEl.innerHTML = `<span class="font-bold text-xs ${colorClass}">${data.letter_grade}</span>`;
+            }
+
+            const pointEl = gradeRow.querySelector('.col-grade-point');
+            if (pointEl) pointEl.textContent = data.grade_point;
+
+            const resultEl = gradeRow.querySelector('.col-grade-result');
+            if (resultEl) {
+                if (data.result === 'Pass') {
+                    resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>`;
+                } else if (data.result === 'Failed') {
+                    resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>`;
+                } else {
+                    resultEl.innerHTML = `<span class="text-slate-500 text-[10px]">Pending</span>`;
                 }
             }
         }
 
-        window.addEventListener('resize', function() {
-            if (!userManuallyToggledRubrics) {
-                const shouldBeExpanded = window.innerWidth >= 1280;
-                if (shouldBeExpanded !== isRubricsExpanded) {
-                    isRubricsExpanded = shouldBeExpanded;
-                    applyRubricVisibility();
+        // ---------------- RAPID KEYBOARD NAVIGATION ----------------
+        function handleSeminarMarkKeyDown(event, input) {
+            const rubric = input.getAttribute('data-rubric');
+            const currentRow = input.closest('tr');
+            if (!currentRow) return;
+
+            if (event.key === 'ArrowDown' || event.key === 'Enter') {
+                event.preventDefault();
+                let nextRow = currentRow.nextElementSibling;
+                while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
+                    nextRow = nextRow.nextElementSibling;
+                }
+                if (nextRow) {
+                    const target = nextRow.querySelector(`[data-rubric="${rubric}"]`);
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
+                }
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                let prevRow = currentRow.previousElementSibling;
+                while (prevRow && (prevRow.classList.contains('hidden') || !prevRow.classList.contains('student-row'))) {
+                    prevRow = prevRow.previousElementSibling;
+                }
+                if (prevRow) {
+                    const target = prevRow.querySelector(`[data-rubric="${rubric}"]`);
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
                 }
             }
-        });
+        }
+
+        // Dummy stubs for legacy calls if any
+        function toggleRubricColumns() {}
+        function applyRubricVisibility() {}
 
         document.addEventListener('DOMContentLoaded', function() {
-            applyRubricVisibility();
             loadSeminarSurveyData();
         });
 

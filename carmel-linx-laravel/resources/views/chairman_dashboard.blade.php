@@ -177,6 +177,7 @@
           <span class="material-symbols-rounded text-sm">photo_camera</span>
         </label>
         <input type="file" id="staffPhotoUploadInput" accept="image/*" class="hidden" onchange="handleStaffPhotoUpload(event)">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40 pointer-events-none" title="Online"></span>
       </div>
       <div class="overflow-hidden">
         <span class="font-bold text-sm block truncate text-slate-100">{{ session('userName', 'Chairman') }}</span>
@@ -1239,7 +1240,10 @@
 
               tr.innerHTML = `
                 <td class="p-3 flex items-center gap-3">
-                  <img src="${user.photo_url || defaultPhoto}" class="w-8 h-8 rounded-full border border-slate-700 object-cover">
+                  <div class="relative shrink-0">
+                    <img src="${user.photo_url || defaultPhoto}" class="w-8 h-8 rounded-full border border-slate-700 object-cover">
+                    ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+                  </div>
                   <div>
                     <span class="font-bold text-slate-100 block">${user.name}</span>
                     <span class="text-[10px] text-slate-400 block">${user.email}</span>

@@ -156,7 +156,10 @@
 
     <!-- Active Profile Info -->
     <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3">
-      <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+      <div class="relative shrink-0">
+        <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+      </div>
       <div class="overflow-hidden">
         <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
         <span class="text-xs font-bold text-teal-400 block uppercase tracking-wider">Academic Admin</span>

@@ -286,6 +286,8 @@ class WebAuthnController extends Controller
             $route = '/dashboard/tradeinstructor';
         } elseif ($staff->designation === 'Workshop_Superintendent') {
             $route = '/dashboard/workshop';
+        } elseif (in_array($staff->designation, ['Workshop_Instructor', 'Workshop Instructor', 'Tradesman'])) {
+            $route = '/dashboard/lecturer';
         }
 
         AuditLog::create([

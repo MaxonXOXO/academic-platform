@@ -39,6 +39,80 @@ class HodMobileController extends Controller
 
         $dept = $staff->branch ?? Session::get('userBranch', 'Engineering');
 
+        // Determine if HOD belongs to Self-Financing department: AU, EL, CT, GEN_SF
+        $deptUpper = strtoupper(trim($dept));
+        $sfBranches = ['AU', 'EL', 'CT', 'GEN_SF', 'SF', 'AUTOMOBILE', 'ELECTRONICS', 'COMPUTER', 'COMPUTER TECH'];
+        $isSfHod = in_array($deptUpper, $sfBranches) || str_contains($deptUpper, 'SF') || str_contains($deptUpper, 'SELF');
+
+        // Fetch Today's Biometric Attendance Punch Record for SF HOD
+        $todayPunch = null;
+        $inTimeFormatted = null;
+        $outTimeFormatted = null;
+        $isPunchedIn = false;
+        $isPunchedOut = false;
+        $isCompleted = false;
+        $inStatusLabel = 'PRESENT';
+        $outStatusLabel = 'OUT RECORDED';
+        $campusHours = null;
+
+        if ($isSfHod && \Illuminate\Support\Facades\Schema::hasTable('sf_staff_time_punches')) {
+            $staffId = Session::get('userStaffId') ?? Session::get('mobileNo') ?? $userId;
+            $todayPunch = \App\Models\SfStaffTimePunch::where(function($q) use ($staffId, $userId) {
+                $q->where('staff_id', $staffId);
+                if ($userId) {
+                    $q->orWhere('staff_id', $userId);
+                }
+            })
+            ->where('punch_date', now()->format('Y-m-d'))
+            ->first();
+
+            if ($todayPunch) {
+                $inTimeFormatted = !empty($todayPunch->in_time) ? date('h:i A', strtotime($todayPunch->in_time)) : null;
+                $outTimeFormatted = !empty($todayPunch->out_time) ? date('h:i A', strtotime($todayPunch->out_time)) : null;
+
+                $isPunchedIn = !empty($inTimeFormatted);
+                $isPunchedOut = !empty($outTimeFormatted);
+                $isCompleted = $isPunchedIn && $isPunchedOut;
+
+                if ($isPunchedIn && !empty($todayPunch->in_time)) {
+                    $inHi = date('H:i', strtotime($todayPunch->in_time));
+                    if ($inHi < '08:45') {
+                        $inStatusLabel = 'EARLY IN';
+                    } elseif ($inHi > '09:15') {
+                        $inStatusLabel = 'LATE IN';
+                    } else {
+                        $inStatusLabel = 'PRESENT';
+                    }
+                }
+
+                if ($isPunchedOut && !empty($todayPunch->out_time)) {
+                    $outHi = date('H:i', strtotime($todayPunch->out_time));
+                    if ($outHi < '16:00') {
+                        $outStatusLabel = 'EARLY OUT';
+                    } elseif ($outHi > '16:30') {
+                        $outStatusLabel = 'LATE OUT';
+                    } else {
+                        $outStatusLabel = 'ON TIME OUT';
+                    }
+                }
+
+                if ($isCompleted && !empty($todayPunch->in_time) && !empty($todayPunch->out_time)) {
+                    $tIn = strtotime($todayPunch->punch_date . ' ' . $todayPunch->in_time);
+                    $tOut = strtotime($todayPunch->punch_date . ' ' . $todayPunch->out_time);
+                    $diffSec = max(0, $tOut - $tIn);
+                    $hrs = floor($diffSec / 3600);
+                    $mins = round(($diffSec % 3600) / 60);
+                    $campusHours = "{$hrs}h {$mins}m in Campus";
+                } elseif ($isPunchedIn && !empty($todayPunch->in_time)) {
+                    $tIn = strtotime(($todayPunch->punch_date ?? date('Y-m-d')) . ' ' . $todayPunch->in_time);
+                    $diffSec = max(0, time() - $tIn);
+                    $hrs = floor($diffSec / 3600);
+                    $mins = round(($diffSec % 3600) / 60);
+                    $campusHours = "{$hrs}h {$mins}m in Campus";
+                }
+            }
+        }
+
         // 1. My Teaching Subjects (HOD acting as Faculty)
         $mySubjects = DB::table('subject_staff_assignments')
             ->join('batch_subjects', 'subject_staff_assignments.batch_subject_id', '=', 'batch_subjects.id')
@@ -81,20 +155,74 @@ class HodMobileController extends Controller
             $batch->student_count = Student::where('classroom_id', $batch->classroom_id)->where('status', 'Approved')->count();
         }
 
-        // 3. Pending Staff Leave Applications for HOD's Department
-        $pendingStaffLeaves = StaffLeaveRequest::where(function($q) use ($dept) {
-                $q->where('department', $dept)->orWhere('department', 'like', "%{$dept}%");
+        // 3. Pending & Recent Staff Leave Applications for HOD's Department
+        $deptStaffMobiles = StaffProfile::where('branch', $dept)->pluck('mobile_no')->toArray();
+        $pendingStaffLeaves = StaffLeaveRequest::where(function($q) use ($dept, $deptStaffMobiles) {
+                $q->where('department', $dept)
+                  ->orWhere('department', 'like', "%{$dept}%");
+                if (!empty($deptStaffMobiles)) {
+                    $q->orWhereIn('staff_mobile', $deptStaffMobiles);
+                }
             })
             ->where('overall_status', 'Pending_HOD')
             ->orderByDesc('id')
             ->get();
 
-        // 4. Pending Student Leaves across Department Classrooms
+        $recentStaffLeaves = StaffLeaveRequest::where(function($q) use ($dept, $deptStaffMobiles) {
+                $q->where('department', $dept)
+                  ->orWhere('department', 'like', "%{$dept}%");
+                if (!empty($deptStaffMobiles)) {
+                    $q->orWhereIn('staff_mobile', $deptStaffMobiles);
+                }
+            })
+            ->where('overall_status', '!=', 'Pending_HOD')
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        // 3b. Self-Financing Coordinator Pending Leaves (for Jacob Kurian or designated SF Coordinator)
+        $isSfCoordinator = StaffProfile::isSfAcademicCoordinator($userId);
+        $pendingSfCoordinatorLeaves = collect();
+        $recentSfCoordinatorLeaves = collect();
+
+        if ($isSfCoordinator) {
+            $pendingSfCoordinatorLeaves = StaffLeaveRequest::where('overall_status', 'Pending_Coordinator')
+                ->orderByDesc('id')
+                ->get();
+
+            $recentSfCoordinatorLeaves = StaffLeaveRequest::where(function($q) use ($userId) {
+                    $q->where('coordinator_mobile', $userId)
+                      ->orWhere(function($sub) {
+                          $sub->where('coordinator_status', '!=', 'Pending')
+                              ->whereNotNull('coordinator_action_at');
+                      });
+                })
+                ->orderByDesc('coordinator_action_at')
+                ->take(8)
+                ->get();
+        }
+
+        // 4. Pending & Recent Student Leaves across Department Classrooms
         $deptClassroomIds = $deptBatches->pluck('classroom_id')->toArray();
-        $deptStudentRegNos = Student::whereIn('classroom_id', $deptClassroomIds)->pluck('reg_no');
+        $deptStudentRegNos = Student::where(function($q) use ($dept, $deptClassroomIds) {
+                $q->whereIn('classroom_id', $deptClassroomIds)
+                  ->orWhere('branch', $dept)
+                  ->orWhere('classroom_id', 'like', "{$dept}%");
+            })->pluck('reg_no');
+
         $pendingStudentLeaves = LeaveRecord::whereIn('reg_no', $deptStudentRegNos)
             ->where('status', 'Pending')
             ->orderByDesc('leave_date')
+            ->get()
+            ->map(function ($l) {
+                $l->student_name = Student::where('reg_no', $l->reg_no)->value('name') ?? $l->reg_no;
+                return $l;
+            });
+
+        $recentStudentLeaves = LeaveRecord::whereIn('reg_no', $deptStudentRegNos)
+            ->where('status', '!=', 'Pending')
+            ->orderByDesc('leave_date')
+            ->take(8)
             ->get()
             ->map(function ($l) {
                 $l->student_name = Student::where('reg_no', $l->reg_no)->value('name') ?? $l->reg_no;
@@ -176,7 +304,13 @@ class HodMobileController extends Controller
             // Load saved timetable JSON file for this classroom if available
             $dayTt = null;
             $dayMap = ['Monday' => 'Day 1', 'Tuesday' => 'Day 2', 'Wednesday' => 'Day 3', 'Thursday' => 'Day 4', 'Friday' => 'Day 5'];
-            if ($classroom && !empty($classroom->classroom_id)) {
+            // Revision 2021 Sem 3 and Sem 5 regular classes concluded on 6 October 2026.
+            // Semester exams commence 13 October onwards.
+            // Stop display of 2021 timetables; keep 2026 (Sem 1) timetable as usual.
+            $isRev2021Sem = in_array((int)$sem, [3, 5]) ||
+                ($classroom && (str_contains($classroom->classroom_id, '2024') || str_contains($classroom->classroom_id, '2025')));
+
+            if (!$isRev2021Sem && $classroom && !empty($classroom->classroom_id)) {
                 $cIdClean = preg_replace('/[^a-zA-Z0-9_-]/', '', $classroom->classroom_id);
                 $ttFile = storage_path("app/timetables/{$cIdClean}.json");
                 if (file_exists($ttFile)) {
@@ -253,15 +387,15 @@ class HodMobileController extends Controller
                             'badge_class'  => 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         ];
                     } else {
-                        // NO timetable created by HOD for this slot or timetable file missing
+                        // NO timetable or classes concluded
                         $periodsData[$p] = [
                             'period'       => $p,
                             'time_slot'    => $periodTimings[$p],
-                            'subject_code' => 'FREE',
-                            'subject_name' => 'Free Period',
+                            'subject_code' => $isRev2021Sem ? '—' : 'FREE',
+                            'subject_name' => $isRev2021Sem ? 'Classes Concluded (Exams 13 Oct)' : 'Free Period',
                             'staff_name'   => '—',
-                            'topic'        => 'No Class Scheduled',
-                            'status'       => 'Free',
+                            'topic'        => $isRev2021Sem ? 'Rev 2021 regular classes concluded on 06 Oct 2026' : 'No Class Scheduled',
+                            'status'       => $isRev2021Sem ? 'Concluded' : 'Free',
                             'badge_class'  => 'bg-slate-800/80 text-slate-400 border border-slate-700/60'
                         ];
                     }
@@ -282,12 +416,27 @@ class HodMobileController extends Controller
             'mySubjects',
             'deptBatches',
             'pendingStaffLeaves',
+            'recentStaffLeaves',
             'pendingStudentLeaves',
+            'recentStudentLeaves',
             'deptStaff',
             'notices',
             'upcomingSeminars',
             'defaultDayOrder',
-            'semesterSchedules'
+            'semesterSchedules',
+            'isSfHod',
+            'todayPunch',
+            'inTimeFormatted',
+            'outTimeFormatted',
+            'isPunchedIn',
+            'isPunchedOut',
+            'isCompleted',
+            'inStatusLabel',
+            'outStatusLabel',
+            'campusHours',
+            'isSfCoordinator',
+            'pendingSfCoordinatorLeaves',
+            'recentSfCoordinatorLeaves'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',

@@ -221,7 +221,7 @@
                     <th style="text-align: center; width: 65px;">CO2</th>
                     <th style="text-align: center; width: 65px;">CO3</th>
                     <th style="text-align: center; width: 65px;">CO4</th>
-                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Assign Avg<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Best 3 (/20)</span></th>
+                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Assign Avg<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">{{ ($isR21 ?? true) ? 'Best 2 (/20)' : 'Best 3 (/20)' }}</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -235,7 +235,7 @@
                         <td style="text-align: center; font-weight: bold;">{{ $s->assignment_marks['CO2'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $s->assignment_marks['CO3'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $s->assignment_marks['CO4'] }}</td>
-                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;">{{ $s->best3_avg !== '-' ? $s->best3_avg . ' / 20' : '-' }}</td>
+                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;">{{ ($s->best_avg ?? $s->best2_avg ?? $s->best3_avg) !== '-' ? ($s->best_avg ?? $s->best2_avg ?? $s->best3_avg) . ' / 20' : '-' }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -246,7 +246,7 @@
         </table>
 
         <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 6px; font-style: italic;">
-            * Note: In accordance with SBTE Revision 2021 regulations, Assignment Average (Max 20) is determined from the best of the highest three assignment scores. Individual 4 CO scores are retained for NBA Course Outcome attainment analysis.
+            * Note: In accordance with SBTE Revision 2021 regulations, Assignment Average (Max 20) is determined from the best of the highest two assignment scores. Individual 4 CO scores are retained for NBA Course Outcome attainment analysis.
         </div>
 
         <div style="margin-top: 80px; display: flex; justify-content: space-between;">

@@ -29,6 +29,15 @@ class StaffProfile extends Model
         'password',
     ];
 
+    protected $appends = [
+        'is_online',
+    ];
+
+    public function getIsOnlineAttribute(): bool
+    {
+        return !empty($this->mobile_no) && \Illuminate\Support\Facades\Cache::has('user_online_' . $this->mobile_no);
+    }
+
     /**
      * Relationship: Classes where this staff member is the primary tutor.
      */
@@ -51,5 +60,23 @@ class StaffProfile extends Model
     public function mentoredStudents(): HasMany
     {
         return $this->hasMany(Student::class, 'mentor_mobile_no', 'mobile_no');
+    }
+
+    /**
+     * Check if a staff mobile number is the designated Self-Financing Academic Coordinator.
+     */
+    public static function isSfAcademicCoordinator($mobileNo): bool
+    {
+        if (empty($mobileNo)) return false;
+        $cleanMobile = preg_replace('/[^0-9]/', '', (string)$mobileNo);
+        $coordMobile = \Illuminate\Support\Facades\DB::table('system_settings')
+            ->where('key', 'sf_academic_coordinator_mobile')
+            ->value('value');
+        if (!empty($coordMobile)) {
+            $cleanCoord = preg_replace('/[^0-9]/', '', (string)$coordMobile);
+            if ($cleanMobile === $cleanCoord) return true;
+        }
+        // Configured default: Jacob Kurian (9495314331 - EEE HOD)
+        return $cleanMobile === '9495314331';
     }
 }

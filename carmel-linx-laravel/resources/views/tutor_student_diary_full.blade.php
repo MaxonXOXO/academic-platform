@@ -118,13 +118,16 @@
     <!-- Mentor Profile Card -->
     <div class="p-3 bg-slate-900/40 border-b border-slate-800/40">
       <div class="flex items-center gap-2.5">
-        @if(session('userPhoto'))
-          <img src="{{ session('userPhoto') }}" class="w-8 h-8 rounded-full border border-blue-700 object-cover shadow-inner">
-        @else
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center font-black shadow text-xs">
-            {{ strtoupper(substr(session('userName','M'), 0, 2)) }}
-          </div>
-        @endif
+        <div class="relative shrink-0">
+          @if(session('userPhoto'))
+            <img src="{{ session('userPhoto') }}" class="w-8 h-8 rounded-full border border-blue-700 object-cover shadow-inner">
+          @else
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center font-black shadow text-xs">
+              {{ strtoupper(substr(session('userName','M'), 0, 2)) }}
+            </div>
+          @endif
+          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+        </div>
         <div class="overflow-hidden">
           <span class="font-bold text-xs block truncate text-slate-200">{{ session('userName') }}</span>
           <span class="text-[11px] font-bold text-blue-400 block font-mono">{{ session('userId') }}</span>

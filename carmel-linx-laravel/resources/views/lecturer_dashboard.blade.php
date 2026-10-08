@@ -904,10 +904,13 @@
 
     <!-- Active Profile Info -->
     <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3" id="sidebarAvatarContainer">
-      <img id="sidebarStaffImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+      <div class="relative shrink-0">
+        <img id="sidebarStaffImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+      </div>
       <div class="overflow-hidden">
         <span class="font-bold text-[10px] block truncate text-slate-200 text-[10px] text-xs">{{ session('userName') }}</span>
-        <span class="text-[10px] font-bold text-teal-400 block uppercase tracking-wider">{{ session('userBranch') }} Lecturer</span>
+        <span class="text-[10px] font-bold text-teal-400 block uppercase tracking-wider">{{ session('userBranch') }} {{ str_replace('_', ' ', session('userRole') ?: 'Lecturer') }}</span>
       </div>
     </div>
 
@@ -1567,11 +1570,11 @@
                 <div class="shrink-0">
                   <h4 class="text-base font-black text-white tracking-wide">Practical / Lab Evaluation Register</h4>
                 </div>
-                <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto whitespace-nowrap pb-1 lg:pb-0 scrollbar-none">
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto pb-1 lg:pb-0">
                   <a id="btnVirtualLabAttendanceLog" href="/staff/attendance-log" onclick="openClassAttendanceLogFromVirtualLab(event)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer no-underline" title="Open Class Attendance & Log for this subject">
                     <span class="material-symbols-rounded text-sm text-emerald-400">co_present</span> Class Attendance &amp; Log
                   </a>
-                  <button type="button" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
+                  <button type="button" id="btnToolbarLwGrade" onclick="openLwModal(labStudentsData[0]?.reg_no)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Grade continuous lab work experiments with student navigation">
                     <span class="material-symbols-rounded text-sm text-sky-400">science</span> Lab Work Grade
                   </button>
                   <button type="button" onclick="openOeModal(labStudentsData[0]?.reg_no)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer" title="Grade open-ended project with student navigation">
@@ -1643,7 +1646,15 @@
                         <th class="p-2 text-center">Obs/Rec (7.5)</th>
                         <th class="p-2 text-center">Proc/Punct (7.5)</th>
                         <th class="p-2 text-center text-rose-400">Viva (10)</th>
-                        <th class="p-2 text-center text-blue-400 font-bold bg-blue-500/10">Lab Work (37.5)</th>
+                        <th class="p-2 text-center text-blue-400 font-bold bg-blue-500/10 min-w-[125px]">
+                          <div class="flex flex-col items-center justify-center gap-1">
+                            <span class="text-[11px] font-bold">Lab Work (37.5)</span>
+                            <button type="button" id="btnDashboardDirectLw" onclick="toggleDashboardDirectLwMode()" class="px-2 py-0.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 hover:text-amber-200 rounded text-[10px] font-bold transition flex items-center gap-1 shadow-sm cursor-pointer whitespace-nowrap" title="Direct 37.5 Manual Override from Physical Log Book">
+                              <span class="material-symbols-rounded text-xs text-amber-400">edit_note</span>
+                              <span id="btnDashboardDirectLwText">37.5 Override</span>
+                            </button>
+                          </div>
+                        </th>
                         <th class="p-2 text-center text-amber-400">Open Ended (7.5)</th>
                         <th class="p-2 text-center text-emerald-400">Attendance (15)</th>
                         <th class="p-2 text-center text-slate-300">Test 1 (15)</th>
@@ -3810,7 +3821,7 @@
                   <th class="p-3 text-center w-20">CO2 (20)</th>
                   <th class="p-3 text-center w-20">CO3 (20)</th>
                   <th class="p-3 text-center w-20">CO4 (20)</th>
-                  <th class="p-3 text-center w-32 text-emerald-400 bg-emerald-500/10">Assign Avg (/20)<span class="block text-[9px] text-emerald-300 font-normal">Best 3 Assignments</span></th>
+                  <th class="p-3 text-center w-32 text-emerald-400 bg-emerald-500/10">Assign Avg (/20)<span class="block text-[9px] text-emerald-300 font-normal">Best 2 Assignments</span></th>
                 </tr>
               </thead>
               <tbody id="markEntryTbody">
@@ -3829,9 +3840,7 @@
           });
           aScores.sort((a, b) => b - a);
           let rowAssignAvgText = '-';
-          if (aScores.length >= 3) {
-            rowAssignAvgText = ((aScores[0] + aScores[1] + aScores[2]) / 3).toFixed(1) + ' / 20';
-          } else if (aScores.length === 2) {
+          if (aScores.length >= 2) {
             rowAssignAvgText = ((aScores[0] + aScores[1]) / 2).toFixed(1) + ' / 20';
           } else if (aScores.length === 1) {
             rowAssignAvgText = aScores[0].toFixed(1) + ' / 20';
@@ -4489,9 +4498,7 @@
       scores.sort((a, b) => b - a);
       const displaySpan = row.querySelector('.theory-assign-avg-display');
       if (!displaySpan) return;
-      if (scores.length >= 3) {
-        displaySpan.innerText = ((scores[0] + scores[1] + scores[2]) / 3).toFixed(1) + ' / 20';
-      } else if (scores.length === 2) {
+      if (scores.length >= 2) {
         displaySpan.innerText = ((scores[0] + scores[1]) / 2).toFixed(1) + ' / 20';
       } else if (scores.length === 1) {
         displaySpan.innerText = scores[0].toFixed(1) + ' / 20';
@@ -9985,7 +9992,7 @@
         const expAverage = student.avg_lab_work !== undefined && student.avg_lab_work !== null ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00';
         const hasDirectLw = (student.lab_work_marks !== undefined && student.lab_work_marks !== null && student.lab_work_marks !== '');
         const directLwDisplay = hasDirectLw ? student.lab_work_marks : '';
-        const calculatedSplit = (student.calculated_split_avg !== undefined) ? student.calculated_split_avg : expAverage;
+        const calculatedSplit = (student.calculated_split_avg !== undefined) ? parseFloat(student.calculated_split_avg).toFixed(2) : (student.avg_lab_work !== undefined && !hasDirectLw ? parseFloat(student.avg_lab_work).toFixed(2) : '0.00');
         const t1Val = (student.tests && student.tests['Test 1'] && student.tests['Test 1'].total !== undefined) ? parseFloat(student.tests['Test 1'].total).toFixed(1) : '0.0';
         const t2Val = (student.tests && student.tests['Test 2'] && student.tests['Test 2'].total !== undefined) ? parseFloat(student.tests['Test 2'].total).toFixed(1) : '0.0';
         const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
@@ -10014,18 +10021,19 @@
           <td class="p-1.5 text-center bg-blue-500/5">
             <div class="inline-flex items-center justify-center gap-1">
               <input type="number" step="0.25" min="0" max="37.5"
+                ${!dashboardDirectLwMode ? 'disabled="disabled"' : ''}
                 value="${directLwDisplay}"
-                placeholder="${expAverage > 0 ? expAverage : '0-37.5'}"
+                placeholder="${calculatedSplit}"
                 data-reg="${student.reg_no}"
                 data-calc-split="${calculatedSplit}"
-                title="Direct Lab Work mark out of 37.5 (leave empty to use split-up calculation)"
-                class="prac-lw-direct-input no-spinner w-20 bg-slate-900 border ${hasDirectLw ? 'border-sky-500/80 font-bold text-sky-300' : 'border-slate-700/60 font-semibold text-blue-400'} rounded px-2 py-1 text-center font-mono focus:text-white focus:border-sky-400 outline-none text-xs transition-colors"
+                title="${dashboardDirectLwMode ? 'Direct Lab Work mark out of 37.5 (leave empty to use split-up calculation)' : 'Direct 37.5 entry is locked. Click 37.5 Override in header to edit.'}"
+                class="prac-lw-direct-input no-spinner w-20 rounded px-2 py-1 text-center font-mono outline-none text-xs transition-colors ${dashboardDirectLwMode ? 'bg-slate-950 border border-amber-400 text-amber-300 ring-2 ring-amber-500/70 font-bold cursor-text pointer-events-auto' : (hasDirectLw ? 'bg-slate-900/80 border border-amber-500/40 text-amber-300 font-bold cursor-not-allowed opacity-80 pointer-events-none' : 'bg-slate-900/60 border border-slate-700/60 text-blue-400 font-semibold cursor-not-allowed opacity-75 pointer-events-none')}"
                 style="-moz-appearance: textfield; -webkit-appearance: none; appearance: none; margin: 0;"
                 onfocus="this.select()"
                 oninput="handlePracLwDirectInput(this, '${student.reg_no}')"
                 onchange="triggerPracLwDirectSave(this, '${student.reg_no}', true)"
                 onkeydown="handlePracMarkKeyDown(event, this)">
-              <button type="button" onclick="openLwModal('${student.reg_no}')" title="Configure / View Split-up Rubrics" class="text-slate-500 hover:text-blue-400 p-0.5 rounded cursor-pointer transition-colors" tabindex="-1">
+              <button type="button" onclick="if(!dashboardDirectLwMode){ openLwModal('${student.reg_no}'); } event.stopPropagation();" title="${dashboardDirectLwMode ? 'Disabled while Direct 37.5 Override is active' : 'Configure / View Split-up Rubrics'}" class="prac-lw-tune-btn text-slate-500 hover:text-blue-400 p-0.5 rounded cursor-pointer transition-colors ${dashboardDirectLwMode ? 'opacity-20 pointer-events-none' : ''}" tabindex="-1">
                 <span class="material-symbols-rounded text-sm">tune</span>
               </button>
             </div>
@@ -10196,26 +10204,29 @@
           const rViva  = row.querySelector('.prac-rubric-viva');
 
           if (isDirect) {
-            const hasExistingExpMarks = student.experiments_marks && Object.values(student.experiments_marks).some(m => m && (m.total > 0 || m.rough_record > 0));
-            if (!hasExistingExpMarks) {
-              const rVal = (effectiveLw * (5.0 / 37.5)).toFixed(2);
-              const fVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
-              const oVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
-              const pVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
-              const vVal = (effectiveLw - (parseFloat(rVal) + parseFloat(fVal) + parseFloat(oVal) + parseFloat(pVal))).toFixed(2);
-              if (rRough) rRough.innerText = rVal;
-              if (rFair)  rFair.innerText  = fVal;
-              if (rObs)   rObs.innerText   = oVal;
-              if (rProc)  rProc.innerText  = pVal;
-              if (rViva)  rViva.innerText  = vVal;
-            }
+            const rVal = (effectiveLw * (5.0 / 37.5)).toFixed(2);
+            const fVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+            const oVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+            const pVal = (effectiveLw * (7.5 / 37.5)).toFixed(2);
+            const vVal = (effectiveLw - (parseFloat(rVal) + parseFloat(fVal) + parseFloat(oVal) + parseFloat(pVal))).toFixed(2);
+            if (rRough) rRough.innerText = rVal;
+            if (rFair)  rFair.innerText  = fVal;
+            if (rObs)   rObs.innerText   = oVal;
+            if (rProc)  rProc.innerText  = pVal;
+            if (rViva)  rViva.innerText  = vVal;
           } else {
             // Revert back to original calculated split averages
-            if (rRough) rRough.innerText = student.avg_rough_record !== undefined ? parseFloat(student.avg_rough_record).toFixed(2) : '0.00';
-            if (rFair)  rFair.innerText  = student.avg_fair_record !== undefined ? parseFloat(student.avg_fair_record).toFixed(2) : '0.00';
-            if (rObs)   rObs.innerText   = student.avg_obs_prep !== undefined ? parseFloat(student.avg_obs_prep).toFixed(2) : '0.00';
-            if (rProc)  rProc.innerText  = student.avg_proc_punct !== undefined ? parseFloat(student.avg_proc_punct).toFixed(2) : '0.00';
-            if (rViva)  rViva.innerText  = student.avg_viva_voce !== undefined ? parseFloat(student.avg_viva_voce).toFixed(2) : '0.00';
+            const defRough = student.orig_rough_record !== undefined ? student.orig_rough_record : (student.avg_rough_record !== undefined ? student.avg_rough_record : 0);
+            const defFair  = student.orig_fair_record !== undefined ? student.orig_fair_record : (student.avg_fair_record !== undefined ? student.avg_fair_record : 0);
+            const defObs   = student.orig_obs_prep !== undefined ? student.orig_obs_prep : (student.avg_obs_prep !== undefined ? student.avg_obs_prep : 0);
+            const defProc  = student.orig_proc_punct !== undefined ? student.orig_proc_punct : (student.avg_proc_punct !== undefined ? student.avg_proc_punct : 0);
+            const defViva  = student.orig_viva_voce !== undefined ? student.orig_viva_voce : (student.avg_viva_voce !== undefined ? student.avg_viva_voce : 0);
+
+            if (rRough) rRough.innerText = parseFloat(defRough).toFixed(2);
+            if (rFair)  rFair.innerText  = parseFloat(defFair).toFixed(2);
+            if (rObs)   rObs.innerText   = parseFloat(defObs).toFixed(2);
+            if (rProc)  rProc.innerText  = parseFloat(defProc).toFixed(2);
+            if (rViva)  rViva.innerText  = parseFloat(defViva).toFixed(2);
           }
         }
       }
@@ -10281,6 +10292,18 @@
                 inputEl.classList.add('border-slate-700/60');
               }
             }, 1200);
+
+            const st = (typeof labStudentsData !== 'undefined' && labStudentsData)
+              ? labStudentsData.find(s => String(s.reg_no).trim() === String(regNo).trim())
+              : null;
+            if (st) {
+              st.lab_work_marks = lwPayload;
+              st.is_direct_lab_work = (lwPayload !== null);
+              if (lwPayload === null) {
+                const cSplit = parseFloat(inputEl.getAttribute('data-calc-split')) || 0;
+                st.avg_lab_work = cSplit;
+              }
+            }
           } else {
             inputEl.classList.remove('border-amber-400');
             inputEl.classList.add('border-rose-500');
@@ -10292,6 +10315,105 @@
           inputEl.classList.add('border-rose-500');
         });
       }, delay);
+    }
+
+    let dashboardDirectLwMode = false;
+
+    function toggleDashboardDirectLwMode() {
+      const modal = document.getElementById('dashboardDirectLwConfirmModal');
+      if (!dashboardDirectLwMode) {
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      } else {
+        setDashboardDirectLwMode(false);
+      }
+    }
+
+    function closeDashboardDirectLwModal() {
+      const modal = document.getElementById('dashboardDirectLwConfirmModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function confirmEnableDashboardDirectLwMode() {
+      closeDashboardDirectLwModal();
+      setDashboardDirectLwMode(true);
+    }
+
+    function setDashboardDirectLwMode(active) {
+      dashboardDirectLwMode = active;
+      const btn = document.getElementById('btnDashboardDirectLw');
+      const btnText = document.getElementById('btnDashboardDirectLwText');
+      const btnLwGrade = document.getElementById('btnToolbarLwGrade');
+      const inputs = document.querySelectorAll('.prac-lw-direct-input');
+      const tuneBtns = document.querySelectorAll('.prac-lw-tune-btn');
+
+      if (active) {
+        if (btn) {
+          btn.className = "px-2 py-0.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded text-[10px] font-black transition flex items-center gap-1 shadow-md shadow-amber-500/40 cursor-pointer whitespace-nowrap";
+        }
+        if (btnText) btnText.innerHTML = 'Lock 37.5';
+
+        // Disable "Lab Work Grade" in toolbar while direct override is active
+        if (btnLwGrade) {
+          btnLwGrade.disabled = true;
+          btnLwGrade.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+          btnLwGrade.setAttribute('title', 'Lab Work Grade is disabled while Direct 37.5 Override is active');
+        }
+
+        // Disable row tune buttons
+        tuneBtns.forEach(b => {
+          b.classList.add('opacity-20', 'pointer-events-none');
+          b.setAttribute('tabindex', '-1');
+        });
+
+        // Enable inputs for manual entry
+        inputs.forEach(inp => {
+          inp.disabled = false;
+          inp.removeAttribute('disabled');
+          inp.classList.remove('cursor-not-allowed', 'pointer-events-none', 'opacity-75', 'opacity-80', 'bg-slate-900/60', 'bg-slate-900/80');
+          inp.classList.add('cursor-text', 'pointer-events-auto', 'bg-slate-950', 'ring-2', 'ring-amber-500/70', 'border-amber-400', 'text-amber-300', 'font-bold');
+          inp.setAttribute('title', 'Direct Lab Work mark out of 37.5 (leave empty to use split-up calculation)');
+        });
+        if (inputs.length > 0) inputs[0].focus();
+      } else {
+        if (btn) {
+          btn.className = "px-2 py-0.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 hover:text-amber-200 rounded text-[10px] font-bold transition flex items-center gap-1 shadow-sm cursor-pointer whitespace-nowrap";
+        }
+        if (btnText) btnText.innerHTML = '37.5 Override';
+
+        // Re-enable "Lab Work Grade" in toolbar
+        if (btnLwGrade) {
+          btnLwGrade.disabled = false;
+          btnLwGrade.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+          btnLwGrade.setAttribute('title', 'Grade continuous lab work experiments with student navigation');
+        }
+
+        // Re-enable row tune buttons
+        tuneBtns.forEach(b => {
+          b.classList.remove('opacity-20', 'pointer-events-none');
+          b.removeAttribute('tabindex');
+        });
+
+        // Lock inputs
+        inputs.forEach(inp => {
+          inp.disabled = true;
+          inp.setAttribute('disabled', 'disabled');
+          inp.classList.remove('cursor-text', 'pointer-events-auto', 'bg-slate-950', 'ring-2', 'ring-amber-500/70', 'border-amber-400');
+          inp.classList.add('cursor-not-allowed', 'pointer-events-none');
+          const hasDirect = inp.value.trim() !== '';
+          if (hasDirect) {
+            inp.classList.add('bg-slate-900/80', 'border-amber-500/40', 'text-amber-300', 'font-bold', 'opacity-80');
+          } else {
+            inp.classList.add('bg-slate-900/60', 'border-slate-700/60', 'text-blue-400', 'font-semibold', 'opacity-75');
+          }
+          inp.setAttribute('title', 'Direct 37.5 entry is locked. Click 37.5 Override in header to edit.');
+        });
+      }
     }
 
     function filterLabGridByBatch() {
@@ -13262,6 +13384,47 @@
         </button>
         <button onclick="saveEseMarks()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-premium cursor-pointer shadow-lg shadow-indigo-900/30 flex items-center gap-1.5">
           <span class="material-symbols-rounded text-sm">save</span> Save ESE Evaluation & Calculate Attainment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direct 37.5 Lab Work Override Confirmation Modal (Lecturer Dashboard) -->
+  <div id="dashboardDirectLwConfirmModal" onclick="if(event.target === this) closeDashboardDirectLwModal()" class="fixed inset-0 z-[120] bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+          <span class="material-symbols-rounded text-xl">edit_note</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Direct 37.5 Lab Work Manual Override</h3>
+          <p class="text-[11px] text-amber-300 font-medium">Revision 2021 Virtual Lab Special Entry Mode</p>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+        <p>
+          This mode allows you to directly enter the consolidated <strong class="text-amber-300">Continuous Lab Work average (out of 37.5 marks)</strong> for each student from your physical log book, without entering digital marks for each individual experiment.
+        </p>
+        <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-[11px] space-y-2">
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-rounded text-amber-400 text-sm mt-0.5 shrink-0">error</span>
+            <span><strong>Official Reports:</strong> All printable registers (CIA 75M, Final Marksheet 125M, and Student Cards) will use this entered 37.5 mark. For official SBTE compliance, the 5 rubric columns (Rough 5, Fair 7.5, Obs 7.5, Proc 7.5, Viva 10) will be derived proportionally so they sum up cleanly to your 37.5 mark.</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-rounded text-sky-400 text-sm mt-0.5 shrink-0">undo</span>
+            <span><strong>Revertibility:</strong> If you ever need to restore calculated per-experiment averages, simply clear the mark field for that student.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button type="button" onclick="closeDashboardDirectLwModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmEnableDashboardDirectLwMode()" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-600/30 cursor-pointer">
+          <span class="material-symbols-rounded text-sm">check</span>
+          <span>Proceed &amp; Enable Direct Entry</span>
         </button>
       </div>
     </div>

@@ -506,7 +506,7 @@
                                 <td>{{ number_format($st['formative_diary'], 1) }}</td>
                                 <td>{{ number_format($st['summative_dept'], 1) }}</td>
                                 <td>{{ number_format($st['attendance_marks'], 1) }}</td>
-                                <td class="font-mono-bold" style="background-color: #f1f5f9;">{{ number_format($st['total_cia_75'], 1) }}</td>
+                                <td class="font-mono-bold" style="background-color: #f1f5f9;">{{ round($st['total_cia_75']) }}</td>
 
                                 <!-- ESE Rubrics -->
                                 <td>{{ number_format($st['ese_prototype'], 1) }}</td>
@@ -644,7 +644,7 @@
                             <td>{{ number_format($st['attendance_marks'] ?? 0, 1) }}</td>
                             <td>{{ number_format($st['formative_diary_marks'] ?? $st['formative_diary'] ?? 0, 1) }}</td>
                             <td>{{ number_format($st['summative_dept_marks'] ?? $st['summative_dept'] ?? 0, 1) }}</td>
-                            <td class="font-mono-bold" style="background-color: #e0f2fe; font-size: 9.5px;">{{ number_format($st['total_cia_75'] ?? 0, 1) }}</td>
+                            <td class="font-mono-bold" style="background-color: #e0f2fe; font-size: 9.5px;">{{ round($st['total_cia_75'] ?? 0) }}</td>
                             <td class="align-left" style="font-size: 7.5px; font-weight: 600; text-transform: capitalize;">
                                 {{ $st['cia_in_words'] ?? '—' }}
                             </td>
@@ -756,7 +756,7 @@
                             <td class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
                             <td>{{ $st['group_name'] }}</td>
                             <td>{{ $st['att_percentage'] }}%</td>
-                            <td>{{ number_format($st['total_cia_75'], 1) }}</td>
+                            <td>{{ round($st['total_cia_75']) }}</td>
                             <td>{{ number_format($st['total_ese_50'], 1) }}</td>
                             <td class="font-mono-bold" style="background-color: #e0f2fe; font-size: 9.5px;">{{ number_format($st['grand_total_125'], 1) }}</td>
                             <td class="align-left" style="font-size: 7.5px; font-weight: 600; text-transform: capitalize;">
@@ -984,7 +984,7 @@
                             <td>{{ $st['group_name'] }}</td>
                             <td class="align-left" style="font-size: 8px;">{{ $st['project_title'] }}</td>
                             <td>{{ $st['att_percentage'] }}%</td>
-                            <td>{{ number_format($st['total_cia_75'], 1) }}</td>
+                            <td>{{ round($st['total_cia_75']) }}</td>
                             <td>{{ number_format($st['total_ese_50'], 1) }}</td>
                             <td class="font-mono-bold" style="background-color: #e0f2fe;">{{ number_format($st['grand_total_125'], 1) }}</td>
                             <td><span class="grade-badge">{{ $st['final_grade'] }}</span></td>

@@ -344,11 +344,14 @@
 
         <!-- Lecturer Profile -->
         <div class="flex items-center gap-1.5 border-l border-slate-700/60 pl-1.5">
-          @if(Session::get('userPhoto'))
-            <img src="{{ Session::get('userPhoto') }}" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
-          @else
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
-          @endif
+          <div class="relative shrink-0">
+            @if(Session::get('userPhoto'))
+              <img src="{{ Session::get('userPhoto') }}" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
+            @else
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="w-5 h-5 rounded-full object-cover border border-slate-700 shadow-xs" alt="{{ Session::get('userName', 'Antony Varghese') }}">
+            @endif
+            <span class="absolute bottom-0 right-0 w-1.5 h-1.5 bg-emerald-500 border border-slate-900 rounded-full shadow-xs" title="Online"></span>
+          </div>
           <div class="hidden sm:block text-left">
             <p class="text-[10px] font-bold text-title leading-tight">{{ Session::get('userName', 'Antony Varghese') }}</p>
           </div>

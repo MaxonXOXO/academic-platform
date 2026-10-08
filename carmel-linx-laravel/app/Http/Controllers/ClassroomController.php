@@ -32,8 +32,8 @@ class ClassroomController extends Controller
             ->where('staff_mobile_no', $userId)
             ->first();
 
-        // Also allow upload if the staff is a Lecturer or Demonstrator belonging to the same department/branch
-        $isBranchStaff = (in_array($userRole, ['Lecturer', 'Demonstrator']) && strtoupper($userBranch) === strtoupper($batchSubject->classroom->branch));
+        // Also allow upload if the staff is a Lecturer, Demonstrator, Workshop Instructor, or Trade Instructor belonging to the same department/branch
+        $isBranchStaff = (in_array($userRole, ['Lecturer', 'Demonstrator', 'Workshop_Instructor', 'Tradesman', 'Trade_Instructor', 'Physical_Instructor']) && strtoupper($userBranch) === strtoupper($batchSubject->classroom->branch));
 
         if (!$assignment && !in_array($userRole, ['HOD', 'Principal']) && !$isBranchStaff) {
             return response()->json(['status' => 'ERROR', 'message' => 'You are not assigned to this subject.']);
@@ -2489,7 +2489,9 @@ Return ONLY valid JSON matching this exact structure:
                     ->where('category', 'Assignment')
                     ->get();
         
-        $students = $students->map(function ($student) use ($marks) {
+        $isR21 = str_contains($batchSubject->syllabus_revision_code ?? '', '2021') || (!str_contains($batchSubject->syllabus_revision_code ?? '', '2026') && !str_contains($batchSubject->classroom_id ?? '', '2026'));
+        
+        $students = $students->map(function ($student) use ($marks, $isR21) {
             $studentMarks = $marks->where('reg_no', $student->reg_no);
             $coMarks = [];
             $scores = [];
@@ -2503,9 +2505,16 @@ Return ONLY valid JSON matching this exact structure:
                 }
             }
             rsort($scores);
-            $best3Avg = count($scores) >= 3 ? round(($scores[0] + $scores[1] + $scores[2]) / 3.0, 1) : (count($scores) === 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-'));
+            if ($isR21) {
+                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA
+                $bestAvg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-');
+            } else {
+                $bestAvg = count($scores) >= 3 ? round(($scores[0] + $scores[1] + $scores[2]) / 3.0, 1) : (count($scores) === 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-'));
+            }
             $student->assignment_marks = $coMarks;
-            $student->best3_avg = $best3Avg;
+            $student->best3_avg = $bestAvg;
+            $student->best2_avg = $bestAvg;
+            $student->best_avg = $bestAvg;
             return $student;
         });
 
@@ -2530,7 +2539,8 @@ Return ONLY valid JSON matching this exact structure:
             'cleanedBatch' => $cleanedBatch,
             'students' => $students,
             'totalStudents' => $students->count(),
-            'currentYear' => date('Y')
+            'currentYear' => date('Y'),
+            'isR21' => $isR21
         ]);
     }
 
@@ -2880,11 +2890,9 @@ Return ONLY valid JSON matching this exact structure:
             }
 
             if ($isR21) {
-                // SBTE Revision 2021 Regulation: Best 3 out of highest assignment marks
+                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA
                 rsort($assignScores);
-                if (count($assignScores) >= 3) {
-                    $assignAvg = round(($assignScores[0] + $assignScores[1] + $assignScores[2]) / 3.0, 1);
-                } elseif (count($assignScores) === 2) {
+                if (count($assignScores) >= 2) {
                     $assignAvg = round(($assignScores[0] + $assignScores[1]) / 2.0, 1);
                 } elseif (count($assignScores) === 1) {
                     $assignAvg = round($assignScores[0], 1);
@@ -2944,9 +2952,9 @@ Return ONLY valid JSON matching this exact structure:
             // Attendance Marks out of 10 (Rev 2021: Actual % directly converted to max 10, >= .5 rounded up, < .5 rounded down)
             $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
 
-            // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10)
-            $totalCie = round($assignAvg + $summAvg + $attMarks, 1);
-            $status = ($totalCie >= 20.0) ? 'PASSED' : '-';
+            // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10) - Whole Number
+            $totalCie = (int)round($assignAvg + $summAvg + $attMarks);
+            $status = ($totalCie >= 20) ? 'PASSED' : '-';
 
             return (object)[
                 'reg_no' => $student->reg_no,
@@ -4675,7 +4683,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->where('reg_no', $regNo)
             ->get();
 
-        $averageScore = $studentAllEvals->count() > 0 ? round($studentAllEvals->avg('total_score'), 2) : 0;
+        $averageScore = $studentAllEvals->count() > 0 ? (int)round($studentAllEvals->avg('total_score')) : 0;
 
         // 3. Upsert as a Continuous Internal Assessment (CIA) AcademicMark of category 'Seminar' out of 75
         \App\Models\AcademicMark::updateOrCreate(
@@ -4735,7 +4743,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $student = \App\Models\Student::where('reg_no', $regNo)->first();
         if ($student) {
             $staffList = \App\Models\StaffProfile::where('branch', $student->branch)
-                ->whereIn('designation', ['HOD', 'Lecturer', 'Demonstrator'])
+                ->whereIn('designation', ['HOD', 'Lecturer', 'Demonstrator', 'Workshop_Instructor', 'Tradesman', 'Trade_Instructor'])
                 ->get();
 
             foreach ($staffList as $staff) {
@@ -4799,7 +4807,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $interactionAvg = $studentAllEvals->count() > 0 ? round($studentAllEvals->avg('interaction'), 2) : 0;
             $reportAvg = $studentAllEvals->count() > 0 ? round($studentAllEvals->avg('report'), 2) : 0;
             $attendanceAvg = $studentAllEvals->count() > 0 ? round($studentAllEvals->avg('attendance'), 2) : 0;
-            $totalScoreAvg = $studentAllEvals->count() > 0 ? round($studentAllEvals->avg('total_score'), 2) : 0;
+            $totalScoreAvg = $studentAllEvals->count() > 0 ? (int)round($studentAllEvals->avg('total_score')) : 0;
 
             $student->seminar_details = [
                 'topic' => $semReg ? $semReg->topic : '-',
@@ -4923,7 +4931,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $conductedExperimentsCount = $conductedExpIds->count();
         $totalCompletedExps = ($conductedExperimentsCount > 0) ? $conductedExperimentsCount : ($experiments->count() > 0 ? $experiments->count() : 1);
 
-        $students = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance) {
+        $mid = (int)ceil($students->count() / 2);
+
+        $students = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance, $mid) {
             $regNo = $student->reg_no;
 
             $labBatch = null;
@@ -4934,7 +4944,6 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             } elseif ($batchSubject->lab_batch_mode === 'full') {
                 $labBatch = '1';
             } else {
-                $mid = (int)ceil($student->count ?? 25);
                 $labBatch = ($sIdx < $mid) ? '1' : '2';
             }
 
@@ -5013,22 +5022,31 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 }
             }
             $totalDivisor = max($totalCompletedExps, $countExpMarks, 1);
-            $avgRoughRecord = round($sumRough / $totalDivisor, 2);
-            $avgFairRecord = round($sumFair / $totalDivisor, 2);
-            $avgObsPrep = round($sumObsPrep / $totalDivisor, 2);
-            $avgProcPunct = round($sumProcPunct / $totalDivisor, 2);
-            $avgVivaVoce = round($sumViva / $totalDivisor, 2);
-            $avgLabWork = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
+            $origRoughRecord = round($sumRough / $totalDivisor, 2);
+            $origFairRecord  = round($sumFair / $totalDivisor, 2);
+            $origObsPrep     = round($sumObsPrep / $totalDivisor, 2);
+            $origProcPunct   = round($sumProcPunct / $totalDivisor, 2);
+            $origVivaVoce    = round($sumViva / $totalDivisor, 2);
+            $calculatedSplitAvg = round($origRoughRecord + $origFairRecord + $origObsPrep + $origProcPunct + $origVivaVoce, 2);
+
+            $avgRoughRecord = $origRoughRecord;
+            $avgFairRecord  = $origFairRecord;
+            $avgObsPrep     = $origObsPrep;
+            $avgProcPunct   = $origProcPunct;
+            $avgVivaVoce    = $origVivaVoce;
+            $avgLabWork     = $calculatedSplitAvg;
 
             $hasDirectLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
             if ($hasDirectLabWork) {
                 $avgLabWork = (float)$eval->lab_work_marks;
-                if ($sumRough == 0 && $sumFair == 0 && $sumObsPrep == 0 && $sumProcPunct == 0 && $sumViva == 0 && $avgLabWork > 0) {
+                if ($avgLabWork > 0) {
                     $avgRoughRecord = round($avgLabWork * (5.0 / 37.5), 2);
                     $avgFairRecord  = round($avgLabWork * (7.5 / 37.5), 2);
                     $avgObsPrep     = round($avgLabWork * (7.5 / 37.5), 2);
                     $avgProcPunct   = round($avgLabWork * (7.5 / 37.5), 2);
                     $avgVivaVoce    = round($avgLabWork - ($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct), 2);
+                } else {
+                    $avgRoughRecord = 0.0; $avgFairRecord = 0.0; $avgObsPrep = 0.0; $avgProcPunct = 0.0; $avgVivaVoce = 0.0;
                 }
             }
 
@@ -5042,8 +5060,8 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             if ($scoreT2 > 15.0) $scoreT2 = round($scoreT2 / 2, 2);
             $avgTests = round(($scoreT1 + $scoreT2) / 2, 2);
 
-            // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15]
-            $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
+            // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15] - Whole Number
+            $totalInternal = (int)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
 
             $student->avg_rough_record = $avgRoughRecord;
             $student->avg_fair_record = $avgFairRecord;
@@ -5051,6 +5069,12 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $student->avg_proc_punct = $avgProcPunct;
             $student->avg_viva_voce = $avgVivaVoce;
             $student->avg_lab_work = $avgLabWork;
+            $student->calculated_split_avg = $calculatedSplitAvg;
+            $student->orig_rough_record = $origRoughRecord;
+            $student->orig_fair_record = $origFairRecord;
+            $student->orig_obs_prep = $origObsPrep;
+            $student->orig_proc_punct = $origProcPunct;
+            $student->orig_viva_voce = $origVivaVoce;
             $student->tests = [
                 'Test 1' => ['total' => $scoreT1],
                 'Test 2' => ['total' => $scoreT2],
@@ -5152,7 +5176,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
     {
         $userId = Session::get('userId');
         $role = Session::get('userRole');
-        if (!$userId || !in_array($role, ['HOD', 'Lecturer', 'Demonstrator'])) {
+        if (!$userId || !in_array($role, ['HOD', 'Lecturer', 'Demonstrator', 'Workshop_Instructor', 'Tradesman', 'Trade_Instructor'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Only staff members can accept seminar invitations.']);
         }
 
@@ -5613,7 +5637,9 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             ->get()
             ->groupBy('reg_no');
 
-        $data = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs, $assignedBatches, $officialAttendance) {
+        $mid = (int)ceil($students->count() / 2);
+
+        $data = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $experimentMarks, $evaluations, $tests, $testMarks, $totalAttendanceClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $classLogs, $expMatchingLogs, $assignedBatches, $officialAttendance, $mid) {
             $regNo = $student->reg_no;
 
             $labBatch = null;
@@ -5624,7 +5650,6 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             } elseif ($batchSubject->lab_batch_mode === 'full') {
                 $labBatch = '1';
             } else {
-                $mid = (int)ceil($students->count() / 2);
                 $labBatch = ($sIdx < $mid) ? '1' : '2';
             }
 
@@ -5771,23 +5796,31 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $totalCompletedExps = ($conductedExperimentsCount > 0) ? $conductedExperimentsCount : ($experiments->count() > 0 ? $experiments->count() : 1);
             $totalDivisor = max($totalCompletedExps, $attendedExperimentsCount, 1);
 
-            $avgRoughRecord = round($sumRough / $totalDivisor, 2);
-            $avgFairRecord  = round($sumFair / $totalDivisor, 2);
-            $avgObsPrep     = round($sumObsPrep / $totalDivisor, 2);
-            $avgProcPunct   = round($sumProcPunct / $totalDivisor, 2);
-            $avgVivaVoce    = round($sumViva / $totalDivisor, 2);
-            $calculatedSplitAvg = round($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct + $avgVivaVoce, 2);
+            $origRoughRecord = round($sumRough / $totalDivisor, 2);
+            $origFairRecord  = round($sumFair / $totalDivisor, 2);
+            $origObsPrep     = round($sumObsPrep / $totalDivisor, 2);
+            $origProcPunct   = round($sumProcPunct / $totalDivisor, 2);
+            $origVivaVoce    = round($sumViva / $totalDivisor, 2);
+            $calculatedSplitAvg = round($origRoughRecord + $origFairRecord + $origObsPrep + $origProcPunct + $origVivaVoce, 2);
+
+            $avgRoughRecord = $origRoughRecord;
+            $avgFairRecord  = $origFairRecord;
+            $avgObsPrep     = $origObsPrep;
+            $avgProcPunct   = $origProcPunct;
+            $avgVivaVoce    = $origVivaVoce;
 
             $directLabWork = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '') ? (float)$eval->lab_work_marks : null;
             $hasDirectLabWork = ($directLabWork !== null);
             $avgLabWork = $hasDirectLabWork ? $directLabWork : $calculatedSplitAvg;
 
-            if ($hasDirectLabWork && $sumRough == 0 && $sumFair == 0 && $sumObsPrep == 0 && $sumProcPunct == 0 && $sumViva == 0 && $avgLabWork > 0) {
+            if ($hasDirectLabWork && $avgLabWork > 0) {
                 $avgRoughRecord = round($avgLabWork * (5.0 / 37.5), 2);
                 $avgFairRecord  = round($avgLabWork * (7.5 / 37.5), 2);
                 $avgObsPrep     = round($avgLabWork * (7.5 / 37.5), 2);
                 $avgProcPunct   = round($avgLabWork * (7.5 / 37.5), 2);
                 $avgVivaVoce    = round($avgLabWork - ($avgRoughRecord + $avgFairRecord + $avgObsPrep + $avgProcPunct), 2);
+            } else if ($hasDirectLabWork) {
+                $avgRoughRecord = 0.0; $avgFairRecord = 0.0; $avgObsPrep = 0.0; $avgProcPunct = 0.0; $avgVivaVoce = 0.0;
             }
 
             // Practical tests marks per CO
@@ -5839,6 +5872,11 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
                 'lab_work_marks' => $directLabWork,
                 'is_direct_lab_work' => $hasDirectLabWork,
                 'calculated_split_avg' => $calculatedSplitAvg,
+                'orig_rough_record' => $origRoughRecord,
+                'orig_fair_record' => $origFairRecord,
+                'orig_obs_prep' => $origObsPrep,
+                'orig_proc_punct' => $origProcPunct,
+                'orig_viva_voce' => $origVivaVoce,
                 'avg_rough_record' => $avgRoughRecord,
                 'avg_fair_record' => $avgFairRecord,
                 'avg_obs_prep' => $avgObsPrep,
@@ -6578,7 +6616,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
         $attendanceMarks = $calculatedAttendanceMarks;
         $boardExam = $eval ? $eval->board_exam_marks : null;
 
-        $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
+        $totalInternal = (int)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);
 
         // Update or Create semester marks record
         \App\Models\StudentSemesterMarks::updateOrCreate(

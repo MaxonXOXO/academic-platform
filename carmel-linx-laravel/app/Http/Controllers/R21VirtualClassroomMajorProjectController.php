@@ -123,7 +123,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
             $formative = $eval ? (float)$eval->formative_diary_marks : 0.0;
             $summative = $eval ? (float)$eval->summative_dept_marks : 0.0;
             $attendance = $eval ? (float)$eval->attendance_marks : $suggestedAttMark;
-            $totalCia = $eval ? (float)$eval->total_cia_75 : ($formative + $summative + $attendance);
+            $totalCia = $eval ? (int)round((float)$eval->total_cia_75) : (int)round($formative + $summative + $attendance);
 
             $esePrototype = $eval ? (float)$eval->ese_prototype : 0.0;
             $eseModernTools = $eval ? (float)$eval->ese_modern_tools : 0.0;
@@ -328,7 +328,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
             ? round((float)$request->input('attendance_marks', 0), 2)
             : (float)($existing->attendance_marks ?? 0);
 
-        $totalCia = min(75.0, round($formative + $summative + $attendance, 2));
+        $totalCia = min(75, (int)round($formative + $summative + $attendance));
 
         // ESE Rubrics
         $proto = $request->has('ese_prototype') ? (float)$request->input('ese_prototype', 0) : (float)($existing->ese_prototype ?? 0);
@@ -632,7 +632,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
                 $ev->attendance_marks = 15.0; // default full attendance if not yet recorded
             }
 
-            $totalCia = min(75.0, round($ev->formative_diary_marks + $ev->summative_dept_marks + $ev->attendance_marks, 2));
+            $totalCia = min(75, (int)round($ev->formative_diary_marks + $ev->summative_dept_marks + $ev->attendance_marks));
             $ev->total_cia_75 = $totalCia;
 
             $totalEse = (float)($ev->total_ese_50 ?? 0);
@@ -733,7 +733,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
     public static function numberToWords($num)
     {
         if ($num === null || $num === '' || !is_numeric($num)) return '—';
-        $num = round((float)$num, 2);
+        $num = (int)round((float)$num);
         
         $ones = [
             0 => 'Zero', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',
@@ -1234,7 +1234,7 @@ class R21VirtualClassroomMajorProjectController extends Controller
             // CIA Split-up
             $diaryMark = $ev ? (float)$ev->formative_diary_marks : 0.0;
             $deptMark = $ev ? (float)$ev->summative_dept_marks : 0.0;
-            $totalCia = min(75.0, round($diaryMark + $deptMark + $attendanceMark, 2));
+            $totalCia = min(75, (int)round($diaryMark + $deptMark + $attendanceMark));
 
             // ESE Rubrics Split-up
             $proto = $ev ? (float)$ev->ese_prototype : 0.0;

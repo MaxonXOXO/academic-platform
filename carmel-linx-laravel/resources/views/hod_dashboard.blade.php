@@ -1,6 +1,7 @@
 @php
   $activeBranch = $branchOverride ?? session('userBranch');
   $isPrincipalMode = isset($isPrincipalView) && $isPrincipalView;
+  $isSfCoord = \App\Models\StaffProfile::isSfAcademicCoordinator(session('userId'));
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -246,10 +247,20 @@
 
     <!-- Active Profile Info -->
     <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3" id="sidebarAvatarContainer">
-      <img id="sidebarStaffImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+      <div class="relative shrink-0">
+        <img id="sidebarStaffImg" src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+      </div>
       <div class="overflow-hidden">
         <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
-        <span class="text-xs font-bold text-teal-400 block uppercase tracking-wider">{{ $activeBranch }} {{ $isPrincipalMode ? 'Batch Status' : 'HOD' }}</span>
+        <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+          <span class="text-xs font-bold text-teal-400 block uppercase tracking-wider">{{ $activeBranch }} {{ $isPrincipalMode ? 'Batch Status' : 'HOD' }}</span>
+          @if(!empty($isSfCoord))
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 uppercase">
+              SF Coord
+            </span>
+          @endif
+        </div>
       </div>
     </div>
 
@@ -258,6 +269,16 @@
       @if($isPrincipalMode)
       <a href="/dashboard/principal" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-amber-400 hover:bg-amber-950/30 hover:text-amber-300 cursor-pointer no-underline mb-2">
          <span class="material-symbols-rounded text-base">arrow_back</span> Return to Desk
+      </a>
+      @endif
+
+      @if(!empty($isSfCoord))
+      <a href="/dashboard/academic-coordinator" class="w-full text-left px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-between transition-premium bg-gradient-to-r from-indigo-950/80 via-slate-900/90 to-purple-950/60 border border-indigo-500/40 text-indigo-200 hover:text-white hover:border-indigo-400 cursor-pointer no-underline mb-2 shadow-md shadow-indigo-950/40 group">
+         <div class="flex items-center gap-2.5">
+           <span class="material-symbols-rounded text-base text-cyan-400 group-hover:scale-110 transition-transform">school</span>
+           <span>Coordinator Desk</span>
+         </div>
+         <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-500/30 text-cyan-300 border border-indigo-400/30">SF</span>
       </a>
       @endif
       <button id="navDirectory" onclick="switchPanel('directory')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
@@ -323,6 +344,13 @@
     <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 md:px-8 z-10">
       <h1 id="panelTitle" class="font-bold text-slate-100 tracking-tight text-lg">Batch & Class Management</h1>
       <div class="flex items-center gap-3">
+        @if(!empty($isSfCoord))
+        <a href="/dashboard/academic-coordinator" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-indigo-950/60 border border-indigo-400/40 no-underline transition-premium" title="Switch directly to Self-Financing Academic Coordinator Desk">
+          <span class="material-symbols-rounded text-base text-cyan-300">school</span>
+          <span>Academic Coordinator Desk</span>
+          <span class="material-symbols-rounded text-xs">arrow_forward</span>
+        </a>
+        @endif
         @include('partials.fullscreen_btn')
         <div id="aiStatusBadge" class="hidden"></div>
         <div id="loadingIndicator" class="hidden items-center gap-2 text-sm text-slate-400 text-sm">
@@ -1138,6 +1166,8 @@
             <select id="subjectType" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
               <option value="Theory">Theory</option>
               <option value="Practical / Lab">Practical / Lab</option>
+              <option value="Drawing Lab">Drawing Lab</option>
+              <option value="Drawing Theory">Drawing Theory</option>
               <option value="Practicum">Practicum</option>
               <option value="Project Based Theory">Project Based Theory</option>
               <option value="Seminar">Seminar</option>
@@ -1255,6 +1285,8 @@
       const r21Options = [
         { value: "Theory", text: "Theory" },
         { value: "Practical / Lab", text: "Practical / Lab" },
+        { value: "Drawing Lab", text: "Drawing Lab" },
+        { value: "Drawing Theory", text: "Drawing Theory" },
         { value: "Practicum", text: "Practicum" },
         { value: "Project Based Theory", text: "Project Based Theory" },
         { value: "Seminar", text: "Seminar" },
@@ -1456,7 +1488,10 @@
         tr.innerHTML = `
           <td class="p-3 align-middle whitespace-nowrap">
             <div class="flex items-center gap-2.5">
-              <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-700 shadow shrink-0">
+              <div class="relative shrink-0">
+                <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-700 shadow shrink-0">
+                ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+              </div>
               <div class="min-w-0">
                 <span class="font-bold text-slate-100 block text-xs md:text-sm truncate">${user.name}</span>
                 <span class="text-[11px] text-slate-400 block truncate">${user.email}</span>

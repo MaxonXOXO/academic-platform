@@ -652,7 +652,7 @@
         $desktopUrl = '/dashboard/general-coordinator-aided?mode=desktop';
     } elseif (in_array($userRole, ['Super_Admin', 'Principal'])) {
         $desktopUrl = '/dashboard/principal?mode=desktop';
-    } elseif ($userRole === 'Lecturer') {
+    } elseif ($userRole === 'Lecturer' || in_array($userRole, ['Workshop_Instructor', 'Workshop Instructor', 'Tradesman'])) {
         $desktopUrl = '/dashboard/lecturer?mode=desktop';
     } elseif ($userRole === 'Demonstrator') {
         $desktopUrl = '/dashboard/demonstrator?mode=desktop';
@@ -660,6 +660,8 @@
         $desktopUrl = '/dashboard/tradeinstructor?mode=desktop';
     } elseif ($userRole === 'Workshop_Superintendent') {
         $desktopUrl = '/dashboard/workshop?mode=desktop';
+    } else {
+        $desktopUrl = '/dashboard/lecturer?mode=desktop';
     }
 @endphp
 
@@ -704,6 +706,7 @@
                                 </div>
                             @endif
                         </div>
+                        <span class="position-absolute bottom-0 end-0 rounded-circle" style="width: 12px; height: 12px; background-color: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4);" title="Online"></span>
                     </div>
                     <div class="overflow-hidden ps-1">
                         <h6 class="fw-bold text-white mb-0 text-truncate" style="font-size: 0.98rem;">{{ $staff->name ?? session('userName') }}</h6>
@@ -944,6 +947,19 @@
                         <button type="button" id="selectedDayBadge" onclick="toggleDayPicker()" class="btn text-dark fw-black px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-1.5 cursor-pointer" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); font-size: 1.05rem; font-weight: 900; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 0 14px rgba(56, 189, 248, 0.4); border: none;" title="Tap to change Day Order">
                             <i class="fa-solid fa-calendar-day fs-6"></i> <span>{{ $defaultDayOrder }}</span> <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.75rem;"></i>
                         </button>
+                    </div>
+
+                    <!-- Notice: Revision 2021 Classes Concluded (Sem 3 & Sem 5) -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-2 mb-2.5" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(56, 189, 248, 0.25);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-cyan flex-shrink-0" style="font-size: 0.82rem;"></i>
+                            <span class="text-slate-300" style="font-size: 0.72rem; line-height: 1.35;">
+                                <strong>Rev 2021 (S3 & S5)</strong> classes ended on 06 Oct. <strong>Rev 2026</strong> timetable active.
+                            </span>
+                        </div>
+                        <span class="badge text-cyan font-mono" style="font-size: 0.65rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); white-space: nowrap;">
+                            Exams: 13 Oct
+                        </span>
                     </div>
 
                     <!-- Hidden Collapsible Day Selection Panel -->
@@ -1197,8 +1213,8 @@
                         <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-2">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <div>
-                                    <strong class="text-white d-block" style="font-size: 0.88rem;">Room: {{ $room->room_code ?? $room->id }}</strong>
-                                    <small class="text-secondary" style="font-size: 0.75rem;"><strong class="text-cyan">{{ $room->classroom_id ?? 'Academic' }}</strong></small>
+                                    <strong class="text-white d-block" style="font-size: 0.88rem;">Room: {{ $room->room_code ?? $room->subject_code ?? $room->room_id ?? 'Remedial' }}</strong>
+                                    <small class="text-secondary" style="font-size: 0.75rem;"><strong class="text-cyan">{{ $room->classroom_id ?? 'Academic' }}</strong>@if(!empty($room->subject_name)) &bull; {{ $room->subject_name }}@endif</small>
                                 </div>
                                 <span class="badge badge-app" style="background-color: rgba(249, 115, 22, 0.18); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35);">{{ $room->status ?? 'Active' }}</span>
                             </div>
@@ -1344,14 +1360,17 @@
                 <div class="app-card mb-3">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="position-relative flex-shrink-0" style="width: 54px; height: 54px; overflow: hidden; border-radius: 50%; border: 2px solid var(--accent-cyan);">
-                                @if(!empty($staff->photo_url))
-                                    <img id="staffProfileTabPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.08);">
-                                @else
-                                    <div id="staffProfileTabPlaceholder" class="avatar-mobile flex items-center justify-center font-black text-white" style="width: 100%; height: 100%; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
-                                        {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
-                                    </div>
-                                @endif
+                            <div class="position-relative flex-shrink-0">
+                                <div style="width: 54px; height: 54px; overflow: hidden; border-radius: 50%; border: 2px solid var(--accent-cyan);">
+                                    @if(!empty($staff->photo_url))
+                                        <img id="staffProfileTabPhoto" src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="avatar-mobile" style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.08);">
+                                    @else
+                                        <div id="staffProfileTabPlaceholder" class="avatar-mobile flex items-center justify-center font-black text-white" style="width: 100%; height: 100%; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                            {{ strtoupper(substr($staff->name ?? 'S', 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <span class="position-absolute bottom-0 end-0 rounded-circle" style="width: 14px; height: 14px; background-color: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4);" title="Online"></span>
                             </div>
                             <div>
                                 <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">Profile Photo</h6>
@@ -2194,7 +2213,18 @@
                 }
             });
 
-            const slots = allTimetablesByDay[dayKey] || [];
+            const rawSlots = allTimetablesByDay[dayKey] || [];
+            // Stop display of Rev 2021 (Sem 3 & Sem 5) timetables in staff today's timetable; keep Rev 2026 as usual
+            const slots = rawSlots.filter(st => {
+                const rev = (st.syllabus_revision_code || '').toUpperCase();
+                const cId = st.classroom_id || '';
+                const code = String(st.subject_code || '');
+                if (rev.includes('2021') || rev.includes('R21') || rev.includes('REV2021')) return false;
+                if (cId.includes('2024') || cId.includes('2025')) return false;
+                if (/^[35]\d{3}$/.test(code)) return false;
+                return true;
+            });
+
             const container = document.getElementById('timetableScheduleContainer');
             const badgeLabel = document.getElementById('selectedDayBadge');
             if (badgeLabel) badgeLabel.innerHTML = `<i class="fa-solid fa-calendar-day fs-6 me-1"></i> <span>${dayKey}</span> <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.75rem;"></i>`;
@@ -2206,6 +2236,9 @@
                         <i class="fa-solid fa-mug-hot text-cyan mb-2" style="font-size: 1.6rem; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));"></i>
                         <strong class="text-white d-block mb-1" style="font-size: 0.92rem;">No Classes Scheduled for You Today</strong>
                         <span class="text-secondary d-block" style="font-size: 0.76rem;">You have no allotted teaching periods on <strong>${dayKey}</strong>.</span>
+                        <div class="mt-2.5 pt-2 border-top border-secondary border-opacity-25 text-slate-400" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-circle-info text-cyan me-1"></i> Rev 2021 (Sem 3 & 5) classes ended on 06 Oct. Semester board exams commence 13 Oct onwards.
+                        </div>
                     </div>`;
                 return;
             }

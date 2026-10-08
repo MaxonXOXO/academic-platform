@@ -386,13 +386,16 @@
             <!-- Student Profile Header Card -->
             <div class="app-card">
                 <div class="d-flex align-items-center gap-3">
-                    @if($student->photo_url)
-                        <img src="{{ $student->photo_url }}" alt="{{ $student->name }}" class="avatar-mobile">
-                    @else
-                        <div class="avatar-mobile bg-dark text-cyan d-flex align-items-center justify-content-center fw-extrabold fs-5">
-                            {{ strtoupper(substr($student->name, 0, 2)) }}
-                        </div>
-                    @endif
+                    <div class="position-relative flex-shrink-0">
+                        @if($student->photo_url)
+                            <img src="{{ $student->photo_url }}" alt="{{ $student->name }}" class="avatar-mobile">
+                        @else
+                            <div class="avatar-mobile bg-dark text-cyan d-flex align-items-center justify-content-center fw-extrabold fs-5">
+                                {{ strtoupper(substr($student->name, 0, 2)) }}
+                            </div>
+                        @endif
+                        <span class="position-absolute bottom-0 end-0 rounded-circle" style="width: 12px; height: 12px; background-color: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4);" title="Online"></span>
+                    </div>
                     <div class="flex-grow-1 overflow-hidden">
                         <h6 class="fw-extrabold text-white mb-0 text-truncate" style="font-size: 1rem;">{{ $student->name }}</h6>
                         <div class="d-flex align-items-center gap-1.5 mt-1 flex-wrap">

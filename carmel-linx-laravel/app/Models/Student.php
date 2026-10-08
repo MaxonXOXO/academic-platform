@@ -75,6 +75,16 @@ class Student extends Model
         'password',
     ];
 
+    protected $appends = [
+        'is_online',
+    ];
+
+    public function getIsOnlineAttribute(): bool
+    {
+        $id = $this->reg_no ?? $this->adm_no ?? null;
+        return !empty($id) && \Illuminate\Support\Facades\Cache::has('user_online_' . $id);
+    }
+
     /**
      * Relationship: The classroom this student belongs to.
      */

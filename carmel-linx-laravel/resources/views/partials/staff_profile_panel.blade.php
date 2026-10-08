@@ -30,6 +30,7 @@
               <span style="font-size:10px;">Change Photo</span>
             </label>
             <input type="file" id="staffPhotoUploadInput" accept="image/*" class="hidden" onchange="handleStaffPhotoUpload(event)">
+            <span class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-md ring-2 ring-emerald-400/40 pointer-events-none" title="Online"></span>
           </div>
 
           <!-- Avatar Zoom & Framing Controls -->

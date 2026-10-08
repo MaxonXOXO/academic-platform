@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'login',
             'api/*',
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\UpdateUserOnlineStatus::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

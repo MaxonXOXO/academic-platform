@@ -230,7 +230,10 @@
 
     <!-- Active Profile Info -->
     <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3" id="sidebarAvatarContainer">
-      <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+      <div class="relative shrink-0">
+        <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+      </div>
       <div class="overflow-hidden">
         <span class="font-bold block truncate text-slate-200 text-[10px] text-xs">{{ session('userName') }}</span>
         <span class="font-bold text-green-400 block uppercase tracking-wider">{{ session('userBranch') }} Tutor</span>
@@ -471,102 +474,215 @@
         </div>
       </div>
 
-      <!-- PANEL: CONSOLIDATED SEMESTER ATTENDANCE (CLAUSE 10) -->
+      <!-- PANEL: CONSOLIDATED SEMESTER ATTENDANCE (CLAUSE 10 / RULE 7) -->
       <div id="panelAttendanceReport" class="hidden space-y-6">
-        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
-          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
+        <!-- Sub-Navigation Switcher -->
+        <div class="flex items-center justify-between flex-wrap gap-3 bg-slate-900/70 p-2.5 rounded-2xl border border-slate-800 shadow-sm">
+          <div class="flex items-center gap-2 flex-wrap">
+            <button id="subTabCourseRegisterBtn" onclick="switchAttendanceSubTab('courseRegister')" class="px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-sky-600 text-white flex items-center gap-2 shadow-md cursor-pointer">
+              <span class="material-symbols-rounded text-sm">table_chart</span>
+              1. Course-Wise Academic Register (Staff Subject Logs)
+            </button>
+            <button id="subTabCondonationRegisterBtn" onclick="switchAttendanceSubTab('condonationRegister')" class="px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2 border border-slate-800 cursor-pointer">
+              <span class="material-symbols-rounded text-sm">verified_user</span>
+              2. SBTE Exam Eligibility & Condonation Register
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openSpecialAttendanceModal(null, 'upload')" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow cursor-pointer">
+              <span class="material-symbols-rounded text-sm">cloud_upload</span> Upload TEAMS Tutor Log
+            </button>
+            <button onclick="openSpecialAttendanceModal(null, 'manual')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow cursor-pointer">
+              <span class="material-symbols-rounded text-sm">add_circle</span> + Add Duty Leave
+            </button>
+          </div>
+        </div>
+
+        <!-- SUB-PANEL 1: COURSE-WISE REGISTER (ORIGINAL UNTOUCHED) -->
+        <div id="subPanelCourseRegister" class="space-y-6">
+          <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021 / 2026</span>
+                  <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Clause 10</span>
+                  <h3 class="font-black text-white text-lg">Consolidated Semester Attendance Register</h3>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">
+                  Aggregated student attendance across all subjects with eligibility status: 
+                  <strong class="text-emerald-400">&ge;75% Eligible</strong>, 
+                  <strong class="text-amber-400">65-74.9% Condonation Shortage</strong>, 
+                  <strong class="text-rose-400">&lt;65% Detained</strong>.
+                </p>
+              </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021</span>
-                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Clause 10</span>
-                <h3 class="font-black text-white text-lg">Consolidated Semester Attendance Register</h3>
+                <button onclick="loadConsolidatedAttendance()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">refresh</span> Refresh Data
+                </button>
+                <a id="btnPrintAttendanceReport" href="/tutor/attendance/report/print" target="_blank" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">print</span> Print Register (A4)
+                </a>
               </div>
-              <p class="text-xs text-slate-400 mt-1">
-                Aggregated student attendance across all subjects with eligibility status: 
-                <strong class="text-emerald-400">&ge;75% Eligible</strong>, 
-                <strong class="text-amber-400">65-74.9% Condonation Shortage</strong>, 
-                <strong class="text-rose-400">&lt;65% Detained</strong>.
-              </p>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <button onclick="loadConsolidatedAttendance()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
-                <span class="material-symbols-rounded text-sm">refresh</span> Refresh Data
-              </button>
-              <a id="btnPrintAttendanceReport" href="/tutor/attendance/report/print" target="_blank" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
-                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4)
-              </a>
-            </div>
-          </div>
 
-          <!-- Stats Overview Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
-              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Enrolled</div>
-              <div class="text-xl font-black text-white font-mono" id="attCardTotal">0</div>
-            </div>
-            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
-              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible (&ge;75%)</div>
-              <div class="text-xl font-black text-emerald-400 font-mono" id="attCardEligible">0</div>
-            </div>
-            <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
-              <div class="text-[0.68rem] uppercase font-bold text-amber-400">Condonation (65-74.9%)</div>
-              <div class="text-xl font-black text-amber-400 font-mono" id="attCardCondonation">0</div>
-            </div>
-            <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
-              <div class="text-[0.68rem] uppercase font-bold text-rose-400">Detained (&lt;65%)</div>
-              <div class="text-xl font-black text-rose-400 font-mono" id="attCardDetained">0</div>
-            </div>
-            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
-              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Average</div>
-              <div class="text-xl font-black text-blue-300 font-mono" id="attCardAverage">0%</div>
-            </div>
-          </div>
-
-          <!-- Attendance Period / Date Filter Toolbar -->
-          <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-sky-400 text-sm">calendar_month</span> Attendance Period:
-              </span>
-              <div class="flex items-center gap-1.5">
-                <label for="attFromDate" class="text-slate-400 text-[11px]">From:</label>
-                <input type="date" id="attFromDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+              <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Enrolled</div>
+                <div class="text-xl font-black text-white font-mono" id="attCardTotal">0</div>
               </div>
-              <div class="flex items-center gap-1.5">
-                <label for="attToDate" class="text-slate-400 text-[11px]">To:</label>
-                <input type="date" id="attToDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+              <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible (&ge;75%)</div>
+                <div class="text-xl font-black text-emerald-400 font-mono" id="attCardEligible">0</div>
               </div>
-              <button onclick="loadConsolidatedAttendance()" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-xs transition flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-rounded text-sm">filter_alt</span> Filter Period
-              </button>
-              <button onclick="resetAttendancePeriod()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition cursor-pointer" title="Reset to Full Semester">
-                Clear
-              </button>
+              <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-amber-400">Condonation (65-74.9%)</div>
+                <div class="text-xl font-black text-amber-400 font-mono" id="attCardCondonation">0</div>
+              </div>
+              <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-rose-400">Detained (&lt;65%)</div>
+                <div class="text-xl font-black text-rose-400 font-mono" id="attCardDetained">0</div>
+              </div>
+              <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Average</div>
+                <div class="text-xl font-black text-blue-300 font-mono" id="attCardAverage">0%</div>
+              </div>
             </div>
-            <div id="attPeriodLabelBadge" class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-cyan-400 font-mono text-[11px]">
-              Full Semester
+
+            <!-- Attendance Period / Date Filter Toolbar -->
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-sky-400 text-sm">calendar_month</span> Attendance Period:
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <label for="attFromDate" class="text-slate-400 text-[11px]">From:</label>
+                  <input type="date" id="attFromDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <label for="attToDate" class="text-slate-400 text-[11px]">To:</label>
+                  <input type="date" id="attToDate" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:border-sky-500">
+                </div>
+                <button onclick="loadConsolidatedAttendance()" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-xs transition flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">filter_alt</span> Filter Period
+                </button>
+                <button onclick="resetAttendancePeriod()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition cursor-pointer" title="Reset to Full Semester">
+                  Clear
+                </button>
+              </div>
+              <div id="attPeriodLabelBadge" class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-cyan-400 font-mono text-[11px]">
+                Full Semester
+              </div>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2">
+                <button onclick="filterAttendanceStatus('all')" class="att-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
+                <button onclick="filterAttendanceStatus('Eligible')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Eligible">Eligible (&ge;75%)</button>
+                <button onclick="filterAttendanceStatus('Condonation')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Condonation">Condonation (65-74.9%)</button>
+                <button onclick="filterAttendanceStatus('Detained')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Detained">Detained (&lt;65%)</button>
+              </div>
+              <div class="relative w-full sm:w-64">
+                <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+                <input type="text" id="attSearchInput" onkeyup="renderAttendanceTable()" placeholder="Search roll, reg no, student name..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+              </div>
+            </div>
+
+            <!-- Attendance Table Container -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="attTableWrapper">
+              <div class="py-12 text-center text-slate-400">
+                <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
+                <div class="text-xs mt-2">Loading consolidated semester attendance...</div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Filter & Search Toolbar -->
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-2">
-              <button onclick="filterAttendanceStatus('all')" class="att-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
-              <button onclick="filterAttendanceStatus('Eligible')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Eligible">Eligible (&ge;75%)</button>
-              <button onclick="filterAttendanceStatus('Condonation')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Condonation">Condonation (65-74.9%)</button>
-              <button onclick="filterAttendanceStatus('Detained')" class="att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="Detained">Detained (&lt;65%)</button>
+        <!-- SUB-PANEL 2: SBTE EXAM ELIGIBILITY & CONDONATION REGISTER (TABLE 2) -->
+        <div id="subPanelCondonationRegister" class="hidden space-y-6">
+          <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="condSchemeBadge" class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021</span>
+                  <span id="condClauseBadge" class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Clause 10</span>
+                  <h3 class="font-black text-white text-lg">SBTE Exam Eligibility & Condonation Register</h3>
+                </div>
+                <p id="condSubtitle" class="text-xs text-slate-400 mt-1">
+                  Official semester attendance incorporating approved Tutor Duty Leaves (NCC, NSS, IEDC, Placement, Sports) strictly for End Semester Exam (ESE) eligibility. Course CIA continuous evaluation marks remain locked to academic subject logs.
+                </p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="loadCondonationRegister()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">refresh</span> Refresh Register
+                </button>
+                <button onclick="openSpecialAttendanceModal(null, 'upload')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">cloud_upload</span> Upload TEAMS PDF
+                </button>
+                <button onclick="openSpecialAttendanceModal(null, 'manual')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">add_circle</span> + Add Duty Leave
+                </button>
+                <a id="btnPrintCondonationRegister" href="/tutor/attendance/condonation-register/print" target="_blank" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                  <span class="material-symbols-rounded text-sm">print</span> Print Register (A4)
+                </a>
+              </div>
             </div>
-            <div class="relative w-full sm:w-64">
-              <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
-              <input type="text" id="attSearchInput" onkeyup="renderAttendanceTable()" placeholder="Search roll, reg no, student name..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
-            </div>
-          </div>
 
-          <!-- Attendance Table Container -->
-          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="attTableWrapper">
-            <div class="py-12 text-center text-slate-400">
-              <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
-              <div class="text-xs mt-2">Loading consolidated semester attendance...</div>
+            <!-- Stats Overview Cards for Exam Eligibility -->
+            <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-6">
+              <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Enrolled</div>
+                <div class="text-xl font-black text-white font-mono" id="condCardTotal">0</div>
+              </div>
+              <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Revised Eligible</div>
+                <div class="text-xl font-black text-emerald-400 font-mono" id="condCardEligible">0</div>
+                <div class="text-[0.65rem] text-emerald-400 font-bold" id="condCardPromoted">+0 Promoted</div>
+              </div>
+              <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-amber-400">Condonation Req.</div>
+                <div class="text-xl font-black text-amber-400 font-mono" id="condCardCondonation">0</div>
+                <div class="text-[0.65rem] text-slate-400" id="condCardCondonationLabel">65-74.9%</div>
+              </div>
+              <div id="condCardSpecialWrapper" class="p-3 bg-purple-950/20 border border-purple-800/40 rounded-xl text-center hidden">
+                <div class="text-[0.68rem] uppercase font-bold text-purple-400">Special Condonation</div>
+                <div class="text-xl font-black text-purple-400 font-mono" id="condCardSpecial">0</div>
+                <div class="text-[0.65rem] text-purple-300">50-59.9% (DTE)</div>
+              </div>
+              <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-rose-400">Detained / Repeat</div>
+                <div class="text-xl font-black text-rose-400 font-mono" id="condCardDetained">0</div>
+                <div class="text-[0.65rem] text-slate-400" id="condCardDetainedLabel">&lt;65%</div>
+              </div>
+              <div class="p-3 bg-cyan-950/20 border border-cyan-800/40 rounded-xl text-center">
+                <div class="text-[0.68rem] uppercase font-bold text-cyan-400">Duty Hours Credited</div>
+                <div class="text-xl font-black text-cyan-300 font-mono" id="condCardDutyHours">0 hrs</div>
+                <div class="text-[0.65rem] text-cyan-400">Tutor Sanctioned</div>
+              </div>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="filterCondonationStatus('all')" class="cond-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-cond-filter="all">All Students</button>
+                <button onclick="filterCondonationStatus('Eligible')" class="cond-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-cond-filter="Eligible">Eligible (&ge;75%)</button>
+                <button onclick="filterCondonationStatus('Condonation')" class="cond-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-cond-filter="Condonation">Condonation Shortage</button>
+                <button id="btnFilterSpecialCondonation" onclick="filterCondonationStatus('Special Condonation')" class="cond-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-purple-400 rounded-lg text-xs font-bold border border-slate-800 hidden" data-cond-filter="Special Condonation">Special Condonation</button>
+                <button onclick="filterCondonationStatus('Detained')" class="cond-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-cond-filter="Detained">Detained</button>
+              </div>
+              <div class="relative w-full sm:w-64">
+                <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+                <input type="text" id="condSearchInput" onkeyup="renderCondonationTable()" placeholder="Search roll, reg no, student name..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+              </div>
+            </div>
+
+            <!-- Table 2 Container -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="condTableWrapper">
+              <div class="py-12 text-center text-slate-400">
+                <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
+                <div class="text-xs mt-2">Loading SBTE Exam Eligibility & Condonation Register...</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1311,7 +1427,10 @@
 
         tr.innerHTML = `
           <td class="p-2 flex items-center gap-2.5">
-            <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-7 h-7 rounded-full object-cover border border-slate-800 shadow-sm shrink-0">
+            <div class="relative shrink-0">
+              <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-7 h-7 rounded-full object-cover border border-slate-800 shadow-sm shrink-0">
+              ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+            </div>
             <div class="min-w-0">
               <span class="font-semibold text-slate-100 block text-xs truncate">${user.name}</span>
               <span class="text-[11px] text-slate-400 block truncate">${user.email}</span>
@@ -3115,6 +3234,9 @@
             </td>
             <td class="p-2 text-center border-b border-slate-800 whitespace-nowrap">
               <div class="flex items-center justify-center gap-1">
+                <a href="/tutor/attendance/condonation-certificate?reg_no=${encodeURIComponent(st.reg_no)}" target="_blank" class="p-1 bg-amber-950/60 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 rounded-md inline-flex items-center text-xs transition-all" title="View/Print Official SBTE Condonation Certificate with Absent Dates & Hours (A4)">
+                  <span class="material-symbols-rounded text-sm">verified</span>
+                </a>
                 <a href="${studentPrintUrl}" target="_blank" class="p-1 bg-sky-950/60 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 rounded-md inline-flex items-center text-xs transition-all" title="Print Individual Attendance & Condonation Statement (A4)">
                   <span class="material-symbols-rounded text-sm">print</span>
                 </a>
@@ -3143,6 +3265,491 @@
           </tbody>
         </table>
       `;
+    }
+
+    // ==========================================
+    // SBTE EXAM ELIGIBILITY & CONDONATION LOGIC (R21 & R26)
+    // ==========================================
+    let condonationDataCache = null;
+    let currentCondonationFilter = 'all';
+
+    function switchAttendanceSubTab(tab) {
+      const courseBtn = document.getElementById('subTabCourseRegisterBtn');
+      const condBtn = document.getElementById('subTabCondonationRegisterBtn');
+      const panelCourse = document.getElementById('subPanelCourseRegister');
+      const panelCond = document.getElementById('subPanelCondonationRegister');
+
+      if (tab === 'courseRegister') {
+        panelCourse.classList.remove('hidden');
+        panelCond.classList.add('hidden');
+        courseBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-sky-600 text-white flex items-center gap-2 shadow-md cursor-pointer';
+        condBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2 border border-slate-800 cursor-pointer';
+      } else {
+        panelCourse.classList.add('hidden');
+        panelCond.classList.remove('hidden');
+        condBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-sky-600 text-white flex items-center gap-2 shadow-md cursor-pointer';
+        courseBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-premium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2 border border-slate-800 cursor-pointer';
+        if (!condonationDataCache) {
+          loadCondonationRegister();
+        }
+      }
+    }
+
+    function loadCondonationRegister() {
+      const wrapper = document.getElementById('condTableWrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <span class="material-symbols-rounded text-3xl animate-spin text-sky-400">progress_activity</span>
+          <div class="text-xs mt-2">Loading SBTE Exam Eligibility & Condonation Register...</div>
+        </div>
+      `;
+
+      fetch('/api/tutor/attendance/condonation-register')
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            condonationDataCache = res;
+            const sum = res.summary || {};
+            const scheme = res.scheme || 'R21';
+
+            // Populate Scheme Badges & Rules
+            const schemeBadge = document.getElementById('condSchemeBadge');
+            const clauseBadge = document.getElementById('condClauseBadge');
+            const subtitleEl = document.getElementById('condSubtitle');
+            const specialCardWrap = document.getElementById('condCardSpecialWrapper');
+            const specialFilterBtn = document.getElementById('btnFilterSpecialCondonation');
+            const condLabel = document.getElementById('condCardCondonationLabel');
+            const detainedLabel = document.getElementById('condCardDetainedLabel');
+
+            if (scheme === 'R26') {
+              if (schemeBadge) schemeBadge.innerText = 'SBTE Regulation 2026';
+              if (clauseBadge) clauseBadge.innerText = 'Rule 7';
+              if (subtitleEl) subtitleEl.innerText = 'Official semester attendance incorporating approved Tutor Duty Leaves (max 10 days) & relaxations (2% Menstrual, 5% PWD) strictly for ESE eligibility (Rule 7). Course CIA continuous evaluation marks remain locked to academic subject logs.';
+              if (specialCardWrap) specialCardWrap.classList.remove('hidden');
+              if (specialFilterBtn) specialFilterBtn.classList.remove('hidden');
+              if (condLabel) condLabel.innerText = '60-74.9%';
+              if (detainedLabel) detainedLabel.innerText = '<50%';
+            } else {
+              if (schemeBadge) schemeBadge.innerText = 'SBTE Regulation 2021';
+              if (clauseBadge) clauseBadge.innerText = 'Clause 10';
+              if (subtitleEl) subtitleEl.innerText = 'Official semester attendance incorporating approved Tutor Duty Leaves (NCC, NSS, IEDC, Placement, Sports) strictly for ESE eligibility (Clause 10). Course CIA continuous evaluation marks remain locked to academic subject logs.';
+              if (specialCardWrap) specialCardWrap.classList.add('hidden');
+              if (specialFilterBtn) specialFilterBtn.classList.add('hidden');
+              if (condLabel) condLabel.innerText = '65-74.9%';
+              if (detainedLabel) detainedLabel.innerText = '<65%';
+            }
+
+            // Populate Cards
+            if (document.getElementById('condCardTotal')) document.getElementById('condCardTotal').innerText = sum.total_students || 0;
+            if (document.getElementById('condCardEligible')) document.getElementById('condCardEligible').innerText = sum.revised_eligible_count || 0;
+            if (document.getElementById('condCardPromoted')) {
+              const pCount = sum.promoted_count || 0;
+              document.getElementById('condCardPromoted').innerText = pCount > 0 ? `+${pCount} Promoted via Duty Leaves` : 'No shortfalls';
+            }
+            if (document.getElementById('condCardCondonation')) document.getElementById('condCardCondonation').innerText = sum.condonation_count || 0;
+            if (document.getElementById('condCardSpecial')) document.getElementById('condCardSpecial').innerText = sum.special_condonation_count || 0;
+            if (document.getElementById('condCardDetained')) document.getElementById('condCardDetained').innerText = sum.detained_count || 0;
+            if (document.getElementById('condCardDutyHours')) document.getElementById('condCardDutyHours').innerText = (sum.total_special_hours || 0) + ' hrs';
+
+            // Populate student dropdown in modal
+            populateModalStudentSelect(res.students || []);
+
+            renderCondonationTable();
+            renderSpecialRecordsList();
+          } else {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                <div>${res.message || 'Failed to load condonation register.'}</div>
+              </div>
+            `;
+          }
+        })
+        .catch(err => {
+          wrapper.innerHTML = `
+            <div class="py-8 text-center text-rose-400 text-xs">
+              <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
+              <div>Network error loading condonation register. Please try again.</div>
+            </div>
+          `;
+        });
+    }
+
+    function filterCondonationStatus(status) {
+      currentCondonationFilter = status;
+      document.querySelectorAll('.cond-filter-btn').forEach(btn => {
+        if (btn.dataset.condFilter === status) {
+          btn.className = 'cond-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700';
+        } else {
+          btn.className = 'cond-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-white rounded-lg text-xs font-bold border border-slate-800';
+        }
+      });
+      renderCondonationTable();
+    }
+
+    function renderCondonationTable() {
+      if (!condonationDataCache) return;
+      const students = condonationDataCache.students || [];
+      const query = (document.getElementById('condSearchInput')?.value || '').toLowerCase();
+      const wrapper = document.getElementById('condTableWrapper');
+      if (!wrapper) return;
+
+      const filtered = students.filter(st => {
+        const matchesFilter = (currentCondonationFilter === 'all') || (st.revised.status === currentCondonationFilter);
+        const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
+        const matchesSearch = text.includes(query);
+        return matchesFilter && matchesSearch;
+      });
+
+      let rowsHtml = '';
+      filtered.forEach(st => {
+        const orig = st.original || {};
+        const rev = st.revised || {};
+        const spec = st.special_attendance || {};
+
+        // Categories badges
+        let catBadgesHtml = '';
+        if (spec.categories && Object.keys(spec.categories).length > 0) {
+          Object.entries(spec.categories).forEach(([cat, hrs]) => {
+            let bColor = 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+            if (cat === 'NSS') bColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            if (cat === 'NCC') bColor = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+            if (cat === 'IEDC') bColor = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+            if (cat === 'Placement') bColor = 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+            if (cat === 'Menstrual Leave') bColor = 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+            catBadgesHtml += `<span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border ${bColor} me-1 mb-0.5">${cat}: +${hrs}h</span>`;
+          });
+        }
+
+        const dutyHoursDisplay = spec.hours > 0 
+          ? `<div class="font-bold font-mono text-emerald-400 text-xs">+${spec.hours} hrs</div><div class="mt-0.5 flex flex-wrap">${catBadgesHtml}</div>`
+          : `<span class="text-slate-600 text-[11px] font-mono">-</span>`;
+
+        const smsHref = `sms:${st.phone || ''}?body=${encodeURIComponent('Carmel Polytechnic College Alert: ESE Exam Attendance of ' + st.name + ' (' + (st.sbte_reg_no || st.reg_no) + ') is ' + rev.percentage + '% [' + rev.status + ']. Min required for SBTE exam is ' + (condonationDataCache.scheme === 'R26' ? '75% (Rule 7)' : '75% (Clause 10)') + '.')}`;
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/30 transition-colors">
+            <td class="p-2 text-center font-mono font-bold text-cyan-400 text-xs border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-2 font-mono text-white text-xs border-b border-slate-800">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2 font-bold text-slate-200 text-xs border-b border-slate-800 truncate max-w-[150px]" title="${st.name}">
+              ${st.name}
+            </td>
+            <td class="p-2 text-center font-mono text-xs border-b border-slate-800">
+              <div class="text-slate-400 text-[11px]">${orig.attended} / ${orig.conducted}</div>
+              <div class="font-bold text-slate-300">${orig.percentage}%</div>
+            </td>
+            <td class="p-2 text-center border-b border-slate-800">
+              ${dutyHoursDisplay}
+            </td>
+            <td class="p-2 text-center font-mono text-xs bg-sky-950/20 border-b border-slate-800">
+              <div class="text-sky-300 font-bold">${rev.attended} / ${rev.conducted}</div>
+              <div class="font-black text-sky-400 text-xs">${rev.percentage}%</div>
+            </td>
+            <td class="p-2 text-center border-b border-slate-800">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${rev.badge}">
+                ${rev.status}
+              </span>
+              <div class="text-[9px] text-slate-400 mt-0.5 font-mono">${rev.rule}</div>
+              ${rev.promoted ? '<div class="text-[9px] font-bold text-emerald-400 mt-0.5 flex items-center justify-center gap-0.5"><span class="material-symbols-rounded text-xs">arrow_upward</span> Promoted</div>' : ''}
+            </td>
+            <td class="p-2 text-center font-mono text-xs border-b border-slate-800">
+              ${rev.shortage_pct > 0 ? '<span class="text-amber-400 font-bold">-' + rev.shortage_pct + '%</span>' : '<span class="text-emerald-400 font-bold">✓ Clear</span>'}
+            </td>
+            <td class="p-2 text-center border-b border-slate-800 whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1.5">
+                <a href="/tutor/attendance/condonation-certificate?reg_no=${encodeURIComponent(st.reg_no)}" target="_blank" class="p-1 bg-amber-950/60 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 rounded-md inline-flex items-center text-xs transition-all" title="View & Print Official SBTE Condonation Certificate with Absent Dates & Hours (A4)">
+                  <span class="material-symbols-rounded text-sm">verified</span>
+                </a>
+                <button onclick="openSpecialAttendanceModal('${st.reg_no}', 'manual')" class="p-1 bg-emerald-950/60 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-md inline-flex items-center text-xs transition-all cursor-pointer" title="Credit / Adjust Duty Leaves">
+                  <span class="material-symbols-rounded text-sm">edit_calendar</span>
+                </button>
+                <a href="${smsHref}" class="p-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-md inline-flex items-center text-xs transition-all" title="Send SMS Notice to Parent">
+                  <span class="material-symbols-rounded text-sm">sms</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="9" class="p-8 text-center text-slate-400 text-xs">No students matching the criteria.</td></tr>`;
+      }
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/60 text-[0.7rem] uppercase tracking-wider text-slate-300">
+              <th class="p-2 text-center w-12">Roll</th>
+              <th class="p-2 text-left w-24">Reg No</th>
+              <th class="p-2 text-left min-w-[130px]">Student Name</th>
+              <th class="p-2 text-center w-28">Subject Logs Attd</th>
+              <th class="p-2 text-center min-w-[110px]">Duty Leaves Credited</th>
+              <th class="p-2 text-center w-28 bg-sky-950/30 text-sky-300">Revised ESE Attd</th>
+              <th class="p-2 text-center w-36">SBTE ESE Status</th>
+              <th class="p-2 text-center w-20">Shortage</th>
+              <th class="p-2 text-center w-28">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function populateModalStudentSelect(students) {
+      const select = document.getElementById('manualSpecialStudentSelect');
+      if (!select) return;
+      let opts = '<option value="">-- Select Individual Student --</option>';
+      opts += '<option value="__ALL__">★ All Students in Class (Batch Sanction)</option>';
+      students.forEach(s => {
+        opts += `<option value="${s.reg_no}">[Roll ${s.roll_no || '-'}] ${s.name} (${s.sbte_reg_no || s.reg_no})</option>`;
+      });
+      select.innerHTML = opts;
+    }
+
+    // Modal controls for Special Attendance / Duty Leaves
+    function openSpecialAttendanceModal(regNo = null, tab = 'upload') {
+      const modal = document.getElementById('specialAttendanceModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      switchSpecialModalTab(tab);
+
+      if (regNo) {
+        const select = document.getElementById('manualSpecialStudentSelect');
+        if (select) select.value = regNo;
+      }
+    }
+
+    function closeSpecialAttendanceModal() {
+      const modal = document.getElementById('specialAttendanceModal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchSpecialModalTab(tab) {
+      const tabUpload = document.getElementById('modalTabUploadTeams');
+      const tabManual = document.getElementById('modalTabManualEntry');
+      const tabRecords = document.getElementById('modalTabRecordsList');
+
+      const btnUpload = document.getElementById('modalBtnTabUpload');
+      const btnManual = document.getElementById('modalBtnTabManual');
+      const btnRecords = document.getElementById('modalBtnTabRecords');
+
+      if (tab === 'upload') {
+        tabUpload.classList.remove('hidden');
+        tabManual.classList.add('hidden');
+        tabRecords.classList.add('hidden');
+        btnUpload.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white cursor-pointer';
+        btnManual.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+        btnRecords.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+      } else if (tab === 'manual') {
+        tabUpload.classList.add('hidden');
+        tabManual.classList.remove('hidden');
+        tabRecords.classList.add('hidden');
+        btnManual.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white cursor-pointer';
+        btnUpload.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+        btnRecords.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+      } else {
+        tabUpload.classList.add('hidden');
+        tabManual.classList.add('hidden');
+        tabRecords.classList.remove('hidden');
+        btnRecords.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-sky-600 text-white cursor-pointer';
+        btnUpload.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+        btnManual.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer';
+        renderSpecialRecordsList();
+      }
+    }
+
+    function renderSpecialRecordsList() {
+      const wrapper = document.getElementById('modalSpecialRecordsBody');
+      const countBadge = document.getElementById('modalRecordCountBadge');
+      if (!wrapper || !condonationDataCache) return;
+
+      let allRecords = [];
+      (condonationDataCache.students || []).forEach(st => {
+        (st.special_attendance?.records || []).forEach(r => {
+          allRecords.push({
+            ...r,
+            student_name: st.name,
+            roll_no: st.roll_no,
+            sbte_reg_no: st.sbte_reg_no || st.reg_no
+          });
+        });
+      });
+
+      if (countBadge) countBadge.innerText = allRecords.length;
+
+      if (allRecords.length === 0) {
+        wrapper.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">No duty leave or special attendance records added yet.</td></tr>`;
+        return;
+      }
+
+      let rowsHtml = '';
+      allRecords.forEach((r, idx) => {
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/40 text-[11px] border-b border-slate-800">
+            <td class="p-2 text-center text-slate-400">${idx + 1}</td>
+            <td class="p-2 font-mono text-slate-300">${r.formatted_date}</td>
+            <td class="p-2 text-slate-200 font-bold">${r.student_name} <span class="font-normal text-slate-400 text-[10px] font-mono">(${r.sbte_reg_no})</span></td>
+            <td class="p-2 text-center"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">${r.category}</span></td>
+            <td class="p-2 text-center font-mono font-bold text-emerald-400">+${r.hours}h</td>
+            <td class="p-2 text-slate-300 truncate max-w-[140px]" title="${r.reason || ''}">${r.reason || '-'}</td>
+            <td class="p-2 text-center">
+              <button onclick="deleteSpecialAttendanceRecord(${r.id})" class="p-1 hover:bg-rose-500/20 text-rose-400 rounded transition cursor-pointer" title="Delete Entry">
+                <span class="material-symbols-rounded text-sm">delete</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      wrapper.innerHTML = rowsHtml;
+    }
+
+    function submitTeamsLogUpload() {
+      const fileInput = document.getElementById('teamsLogFileInput');
+      const categorySelect = document.getElementById('teamsLogCategorySelect');
+      const reasonInput = document.getElementById('teamsLogReasonInput');
+      const alertEl = document.getElementById('teamsLogUploadAlert');
+      const submitBtn = document.getElementById('btnSubmitTeamsLogUpload');
+
+      if (!fileInput?.files?.length) {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+        alertEl.innerText = 'Please select a valid TEAMS attendance PDF file (.pdf).';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('default_category', categorySelect?.value || 'Duty Leave');
+      formData.append('custom_reason', reasonInput?.value || 'TEAMS Tutor Log Import');
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Processing...';
+      alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-sky-500/30 bg-sky-500/10 text-sky-300 block';
+      alertEl.innerText = 'Uploading and parsing TEAMS PDF text...';
+
+      fetch('/api/tutor/attendance/special/upload-teams-log', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(res => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm">cloud_upload</span> Upload & Process PDF';
+        if (res.status === 'SUCCESS') {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 block';
+          alertEl.innerText = res.message || 'TEAMS PDF processed successfully!';
+          fileInput.value = '';
+          loadCondonationRegister();
+        } else {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+          alertEl.innerText = res.message || 'Failed to process TEAMS PDF.';
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm">cloud_upload</span> Upload & Process PDF';
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+        alertEl.innerText = 'Network error during upload. Please check connection.';
+      });
+    }
+
+    function submitManualSpecialAttendance() {
+      const studentSelect = document.getElementById('manualSpecialStudentSelect');
+      const dateInput = document.getElementById('manualSpecialDate');
+      const hoursInput = document.getElementById('manualSpecialHours');
+      const categorySelect = document.getElementById('manualSpecialCategory');
+      const reasonInput = document.getElementById('manualSpecialReason');
+      const alertEl = document.getElementById('manualSpecialAlert');
+      const submitBtn = document.getElementById('btnSubmitManualSpecial');
+
+      const selectedStudent = studentSelect?.value;
+      const hours = parseFloat(hoursInput?.value || 0);
+
+      if (!selectedStudent) {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+        alertEl.innerText = 'Please select a student (or all students).';
+        return;
+      }
+      if (!hours || hours <= 0) {
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+        alertEl.innerText = 'Please specify valid hours (minimum 0.5 hours).';
+        return;
+      }
+
+      let targetRegNos = [];
+      if (selectedStudent === '__ALL__') {
+        targetRegNos = (condonationDataCache?.students || []).map(s => s.reg_no);
+      } else {
+        targetRegNos = [selectedStudent];
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Saving...';
+
+      fetch('/api/tutor/attendance/special/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({
+          reg_no: targetRegNos,
+          date: dateInput?.value || null,
+          hours: hours,
+          category: categorySelect?.value || 'Duty Leave',
+          reason: reasonInput?.value || ''
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Duty Leave Entry';
+        if (res.status === 'SUCCESS') {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 block';
+          alertEl.innerText = res.message || 'Duty leave credited successfully!';
+          hoursInput.value = '1';
+          if (reasonInput) reasonInput.value = '';
+          loadCondonationRegister();
+        } else {
+          alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+          alertEl.innerText = res.message || 'Failed to save duty leave.';
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-rounded text-sm">save</span> Save Duty Leave Entry';
+        alertEl.className = 'p-3 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-400 block';
+        alertEl.innerText = 'Network error while saving duty leave.';
+      });
+    }
+
+    function deleteSpecialAttendanceRecord(id) {
+      if (!confirm('Are you sure you want to revoke this duty leave / special attendance entry?')) return;
+      fetch(`/api/tutor/attendance/special/delete/${id}`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'SUCCESS') {
+          loadCondonationRegister();
+        } else {
+          alert(res.message || 'Failed to delete record.');
+        }
+      })
+      .catch(err => alert('Network error while deleting record.'));
     }
 
     // ==========================================
@@ -3409,6 +4016,160 @@
     });
   </script>
 
+
+  <!-- SPECIAL ATTENDANCE & DUTY LEAVE MODAL (SBTE TEAMS) -->
+  <div id="specialAttendanceModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-black text-slate-100 text-sm flex items-center gap-2">
+            <span class="material-symbols-rounded text-indigo-400 text-base">verified_user</span>
+            Special Attendance & Duty Leaves (SBTE TEAMS)
+          </h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">
+            Credit sanctioned duty hours for NCC, NSS, IEDC, Placement drives, Sports, or SBTE relaxations strictly for ESE eligibility.
+          </p>
+        </div>
+        <button onclick="closeSpecialAttendanceModal()" class="text-slate-400 hover:text-white cursor-pointer p-1">
+          <span class="material-symbols-rounded text-sm">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Tabs Switcher -->
+      <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <button id="modalBtnTabUpload" onclick="switchSpecialModalTab('upload')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white cursor-pointer">
+          <span class="material-symbols-rounded text-xs align-middle">cloud_upload</span> Upload TEAMS PDF
+        </button>
+        <button id="modalBtnTabManual" onclick="switchSpecialModalTab('manual')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer">
+          <span class="material-symbols-rounded text-xs align-middle">edit_calendar</span> Manual Duty Leave Entry
+        </button>
+        <button id="modalBtnTabRecords" onclick="switchSpecialModalTab('records')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-rounded text-xs align-middle">list_alt</span> Active Records (<span id="modalRecordCountBadge">0</span>)
+        </button>
+      </div>
+
+      <!-- TAB 1: Upload TEAMS Tutor Log PDF -->
+      <div id="modalTabUploadTeams" class="space-y-4">
+        <div class="p-3 bg-indigo-950/20 border border-indigo-800/40 rounded-xl text-xs text-indigo-300 leading-relaxed">
+          <strong>SBTE TEAMS Log Import:</strong> Upload the official attendance PDF exported from the TEAMS tutor portal. This log contains conducted session dates and hours without individual course codes. Uploaded hours update student exam attendance percentages for condonation clearance without altering subject-level CIA marks.
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-300 font-bold mb-1">Select TEAMS Tutor Attendance PDF (.pdf)</label>
+          <input type="file" id="teamsLogFileInput" accept=".pdf" class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 font-bold mb-1">Default Attendance Category</label>
+            <select id="teamsLogCategorySelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="Duty Leave">General Duty Leave</option>
+              <option value="NCC">NCC (National Cadet Corps)</option>
+              <option value="NSS">NSS (National Service Scheme)</option>
+              <option value="IEDC">IEDC / Innovation Bootcamp</option>
+              <option value="Placement">Campus Placement Drive</option>
+              <option value="Sports">Sports / Arts Representation</option>
+              <option value="Menstrual Leave">Menstrual Leave (Rev 2026 - 2% Relaxation)</option>
+              <option value="PWD">Differently Abled (Rev 2026 - 5% Relaxation)</option>
+              <option value="Other">Other Approved Duty Leave</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 font-bold mb-1">Import Reference / Remarks</label>
+            <input type="text" id="teamsLogReasonInput" placeholder="e.g. TEAMS S3 Tutor Attendance Log" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div id="teamsLogUploadAlert" class="hidden p-3 rounded-xl text-xs font-bold border"></div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeSpecialAttendanceModal()" class="flex-1 py-2.5 border border-slate-800 hover:bg-slate-800 rounded-xl font-bold text-xs text-slate-300 transition-premium cursor-pointer">Cancel</button>
+          <button id="btnSubmitTeamsLogUpload" onclick="submitTeamsLogUpload()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10">
+            <span class="material-symbols-rounded text-sm">cloud_upload</span> Upload & Process PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: Manual Duty Leave Entry -->
+      <div id="modalTabManualEntry" class="hidden space-y-4">
+        <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-xs text-emerald-300 leading-relaxed">
+          <strong>Direct Duty Leave Sanction:</strong> Grant duty hours for a specific student or the entire class based on approved orders (NCC parades, NSS camps, placement interviews, hackathons, or medical leaves).
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-300 font-bold mb-1">Target Student</label>
+          <select id="manualSpecialStudentSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="">-- Select Student --</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 font-bold mb-1">Date of Event / Leave</label>
+            <input type="date" id="manualSpecialDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 font-bold mb-1">Hours to Credit</label>
+            <input type="number" id="manualSpecialHours" step="0.5" min="0.5" max="150" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 font-bold mb-1">Category</label>
+            <select id="manualSpecialCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="Duty Leave">General Duty Leave</option>
+              <option value="NCC">NCC Duty / Camp</option>
+              <option value="NSS">NSS Activity / Camp</option>
+              <option value="IEDC">IEDC / Hackathon</option>
+              <option value="Placement">Placement Drive</option>
+              <option value="Sports">Sports Representation</option>
+              <option value="Cultural">Cultural Representation</option>
+              <option value="Menstrual Leave">Menstrual Leave (Rev 2026)</option>
+              <option value="PWD">PWD Category (Rev 2026)</option>
+              <option value="Other">Other Reason</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 font-bold mb-1">Event / Reason Description</label>
+          <input type="text" id="manualSpecialReason" placeholder="e.g. Attended Annual Training Camp NCC at Kozhikode" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div id="manualSpecialAlert" class="hidden p-3 rounded-xl text-xs font-bold border"></div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeSpecialAttendanceModal()" class="flex-1 py-2.5 border border-slate-800 hover:bg-slate-800 rounded-xl font-bold text-xs text-slate-300 transition-premium cursor-pointer">Cancel</button>
+          <button id="btnSubmitManualSpecial" onclick="submitManualSpecialAttendance()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-premium cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/10">
+            <span class="material-symbols-rounded text-sm">save</span> Save Duty Leave Entry
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 3: Class Duty Records List -->
+      <div id="modalTabRecordsList" class="hidden space-y-3">
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 max-h-72 custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 bg-slate-900/80 text-[10px] uppercase tracking-wider text-slate-400">
+                <th class="p-2 text-center w-8">#</th>
+                <th class="p-2 w-20">Date</th>
+                <th class="p-2">Student</th>
+                <th class="p-2 text-center">Category</th>
+                <th class="p-2 text-center w-14">Hours</th>
+                <th class="p-2">Description</th>
+                <th class="p-2 text-center w-12">Action</th>
+              </tr>
+            </thead>
+            <tbody id="modalSpecialRecordsBody">
+              <tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">Loading records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-end pt-2">
+          <button onclick="closeSpecialAttendanceModal()" class="px-5 py-2 border border-slate-800 hover:bg-slate-800 rounded-xl font-bold text-xs text-slate-300 transition-premium cursor-pointer">Close Window</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- BULK IMPORT STUDENTS MODAL -->
   <div id="bulkImportModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">

@@ -86,7 +86,10 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-9 h-9 rounded-full border border-slate-700 object-cover shadow-md">
+            <div class="relative shrink-0">
+                <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-9 h-9 rounded-full border border-slate-700 object-cover shadow-md">
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+            </div>
             <span class="font-bold text-slate-200 hidden sm:block text-sm">{{ session('userName') }}</span>
         </div>
     </nav>

@@ -243,8 +243,8 @@ class AttainmentService
         if (str_contains($type, 'drawing')) {
             return [
                 'entry_mode' => 'dual',
-                'max_marks' => 75,      // ESE = 75 Marks (or 100 as per scheme)
-                'cia_marks' => 50,      // CIA = 50 Marks (Summative 20 + Formative 20 + Att 10)
+                'max_marks' => 50,      // ESE = 50 Marks (Revision 2021 Drawing Lab / Board Exam)
+                'cia_marks' => 75,      // CIA = 75 Marks (Continuous 37.5 + Open-Ended 7.5 + Tests 15 + Att 15)
                 'ese_threshold_grade' => 'D',
                 'ese_threshold_percent' => 50.0,
                 'cie_threshold_percent' => 50.0,

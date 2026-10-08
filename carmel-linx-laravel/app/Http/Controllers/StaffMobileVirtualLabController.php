@@ -168,10 +168,13 @@ class StaffMobileVirtualLabController extends Controller
             ->groupBy('reg_no');
 
         // ── Per-student data payload ───────────────────────────────────────────
+        $mid = (int)ceil($students->count() / 2);
+
         $studentsData = $students->map(function ($student, $sIdx) use (
             $batchSubject, $experiments, $totalExperiments,
             $allExpMarks, $evaluations, $tests, $allTestMarks,
-            $t1, $t2, $totalAttClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $assignedBatches, $officialAttendance
+            $t1, $t2, $totalAttClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $conductedExperimentsCount, $assignedBatches, $officialAttendance,
+            $mid
         ) {
             $regNo = $student->reg_no;
 
@@ -183,7 +186,6 @@ class StaffMobileVirtualLabController extends Controller
             } elseif ($batchSubject->lab_batch_mode === 'full') {
                 $labBatch = '1';
             } else {
-                $mid = (int)ceil($student->count ?? 25);
                 $labBatch = ($sIdx < $mid) ? '1' : '2';
             }
 
@@ -226,6 +228,7 @@ class StaffMobileVirtualLabController extends Controller
             $attendanceMarks = $calculatedAttMark;
 
             // ── Open-Ended ─────────────────────────────────────────────────────
+            $eval = $evaluations->firstWhere('reg_no', $regNo);
             $openEndedMarks = $eval ? (float)($eval->micro_project ?? 0) : 0.0;
             $openEndedTopic = $eval ? ($eval->open_ended_topic ?? '') : '';
 
@@ -292,8 +295,8 @@ class StaffMobileVirtualLabController extends Controller
             $scaledTests15 = round(($scoreT1 + $scoreT2) / 2, 2);
             $avgTest40     = $scaledTests15;
 
-            // ── CIA Total (identical formula to desktop) ───────────────────────
-            $totalCIA = (float)round($avgLabWork + $openEndedMarks + $scaledTests15 + $attendanceMarks);
+            // ── CIA Total (identical formula to desktop - Whole Number) ───────
+            $totalCIA = (int)round($avgLabWork + $openEndedMarks + $scaledTests15 + $attendanceMarks);
 
             // ── Experiment detail for popup (all exps, graded & ungraded) ──────
             $expDetail = [];

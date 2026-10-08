@@ -25,8 +25,8 @@
   .meta-table td.val { font-weight: 600; color: #0f172a; width: 32%; }
 
   table.data-table { width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #64748b; margin-bottom: 20px; }
-  table.data-table th { background: #1e3a5f; color: #fff; padding: 5px 4px; text-align: center; font-weight: 700; border: 1px solid #334155; }
-  table.data-table td { border: 1px solid #cbd5e1; padding: 4px 4px; text-align: center; }
+  table.data-table th { background: #1e3a5f; color: #fff; padding: 6px 4px; text-align: center; font-weight: 700; border: 1px solid #334155; }
+  table.data-table td { border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center; }
   table.data-table td.td-left { text-align: left; padding-left: 6px; font-weight: 600; }
   table.data-table tr:nth-child(even) { background: #f8fafc; }
 
@@ -60,7 +60,7 @@
     <h1>Carmel Polytechnic College, Alappuzha</h1>
     <h2>Department of {{ $courseFile->program ?? 'Technical Education' }}</h2>
     <p>State Board of Technical Education, Kerala &bull; Revision 2021 (R-2021)</p>
-    <div class="report-title">Summative Assessment Evaluation Register (Series Tests)</div>
+    <div class="report-title">Summative Series Tests Evaluation Register</div>
   </div>
 
   <table class="meta-table">
@@ -72,104 +72,76 @@
     </tr>
     <tr>
       <td class="lbl">Semester & Scheme</td>
-      <td class="val">Semester {{ $courseFile->semester ?? 'I' }} &bull; Revision 2021 (R-2021)</td>
-      <td class="lbl">Summative Weightage</td>
-      <td class="val"><strong>40% of CIA ({{ round(($courseFile->cia_marks ?: 50) * 0.40, 1) }} Marks)</strong></td>
+      <td class="val">Semester {{ $courseFile->semester ?? '3' }} &bull; Revision 2021 (Practical / Drawing Lab)</td>
+      <td class="lbl">Series Tests Weightage</td>
+      <td class="val"><strong>20% of CIA (15.0 Marks Max - Average of 2 Tests)</strong></td>
     </tr>
     <tr>
-      <td class="lbl">Evaluation Rubric</td>
-      <td class="val" colspan="3">Procedure of Drawing (40%) + Final Drawing (30%) + Dimensioning (20%) + Neatness (10%) = Max 100 per test</td>
+      <td class="lbl">Evaluation Policy</td>
+      <td class="val" colspan="3">
+        Series examinations conducted covering course outcomes. Final series mark is the average of Test 1 and Test 2 scaled to Max 15.0 Marks.
+      </td>
     </tr>
   </table>
 
   <table class="data-table">
     <thead>
       <tr>
-        <th rowspan="2" style="width: 30px;">#</th>
-        <th rowspan="2" style="width: 60px;">Roll No</th>
-        <th rowspan="2" style="width: 85px;">Reg No</th>
-        <th rowspan="2" class="td-left" style="width: 170px;">Student Name</th>
-        <th colspan="5" style="background: #1e40af;">Summative Test 1 (Modules I & II)</th>
-        <th colspan="5" style="background: #5b21b6;">Summative Test 2 (Modules III & IV)</th>
-        <th rowspan="2" style="width: 60px;">Avg (100)</th>
-        <th rowspan="2" style="width: 65px;">Summative ({{ round(($courseFile->cia_marks ?: 50) * 0.40, 1) }}M)</th>
-      </tr>
-      <tr>
-        <th style="width: 32px; font-size: 8px;">Proc (40)</th>
-        <th style="width: 32px; font-size: 8px;">Fin (30)</th>
-        <th style="width: 32px; font-size: 8px;">Dim (20)</th>
-        <th style="width: 32px; font-size: 8px;">Neat (10)</th>
-        <th style="width: 36px; font-weight: 800; font-size: 8px;">Tot (100)</th>
-
-        <th style="width: 32px; font-size: 8px;">Proc (40)</th>
-        <th style="width: 32px; font-size: 8px;">Fin (30)</th>
-        <th style="width: 32px; font-size: 8px;">Dim (20)</th>
-        <th style="width: 32px; font-size: 8px;">Neat (10)</th>
-        <th style="width: 36px; font-weight: 800; font-size: 8px;">Tot (100)</th>
+        <th style="width: 35px;">#</th>
+        <th style="width: 65px;">Roll No</th>
+        <th style="width: 90px;">Reg No</th>
+        <th class="td-left">Student Name</th>
+        <th style="width: 110px; background: #1e40af;">Test 1 (Max 15M)</th>
+        <th style="width: 110px; background: #5b21b6;">Test 2 (Max 15M)</th>
+        <th style="width: 120px; background: #0f2e59;">Series Average<br><small>(Max 15.0 Marks)</small></th>
       </tr>
     </thead>
     <tbody>
-      @php
-        $summativeMax = round(($courseFile->cia_marks ?: 50) * 0.40, 2);
-      @endphp
       @foreach($students as $idx => $st)
         @php
           $stTests = $seriesTests->get($st->reg_no, collect());
           $t1 = $stTests->where('test_no', 'Test 1')->first();
           $t2 = $stTests->where('test_no', 'Test 2')->first();
 
-          $t1Score = ($t1 && !$t1->is_absent) ? floatval($t1->total_score_100) : null;
-          $t2Score = ($t2 && !$t2->is_absent) ? floatval($t2->total_score_100) : null;
+          $t1Score15 = ($t1 && !$t1->is_absent && $t1->total_score_100 !== null) ? round((floatval($t1->total_score_100) / 100.0) * 15.0, 2) : null;
+          $t2Score15 = ($t2 && !$t2->is_absent && $t2->total_score_100 !== null) ? round((floatval($t2->total_score_100) / 100.0) * 15.0, 2) : null;
 
-          if ($t1Score !== null && $t2Score !== null) {
-              $avg = ($t1Score + $t2Score) / 2.0;
-          } elseif ($t1Score !== null) {
-              $avg = $t1Score;
-          } elseif ($t2Score !== null) {
-              $avg = $t2Score;
+          if ($t1Score15 !== null && $t2Score15 !== null) {
+              $avgSeries15 = round(($t1Score15 + $t2Score15) / 2.0, 2);
+          } elseif ($t1Score15 !== null) {
+              $avgSeries15 = $t1Score15;
+          } elseif ($t2Score15 !== null) {
+              $avgSeries15 = $t2Score15;
           } else {
-              $avg = 0.00;
+              $avgSeries15 = 0.00;
           }
-          $sumMark = round((($avg / 100.0) * $summativeMax) * 2) / 2;
         @endphp
         <tr>
           <td>{{ $idx + 1 }}</td>
           <td>{{ $st->roll_no ?? '-' }}</td>
-          <td>{{ $st->reg_no }}</td>
+          <td><span style="font-family: monospace; font-weight: 700;">{{ $st->reg_no }}</span></td>
           <td class="td-left">{{ $st->name }}</td>
-          
-          <!-- Test 1 -->
-          @if($t1)
-            @if($t1->is_absent)
-              <td colspan="5" style="color: #dc2626; font-weight: bold;">ABSENT</td>
+          <td style="font-weight: 700; color: #1e40af;">
+            @if($t1 && $t1->is_absent)
+              <span style="color: #dc2626;">ABS</span>
+            @elseif($t1Score15 !== null)
+              {{ $t1Score15 }}
             @else
-              <td>{{ floatval($t1->procedure_drawing) }}</td>
-              <td>{{ floatval($t1->final_drawing) }}</td>
-              <td>{{ floatval($t1->dimensioning) }}</td>
-              <td>{{ floatval($t1->neatness) }}</td>
-              <td style="font-weight: 700;">{{ floatval($t1->total_score_100) }}</td>
+              -
             @endif
-          @else
-            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-          @endif
-
-          <!-- Test 2 -->
-          @if($t2)
-            @if($t2->is_absent)
-              <td colspan="5" style="color: #dc2626; font-weight: bold;">ABSENT</td>
+          </td>
+          <td style="font-weight: 700; color: #5b21b6;">
+            @if($t2 && $t2->is_absent)
+              <span style="color: #dc2626;">ABS</span>
+            @elseif($t2Score15 !== null)
+              {{ $t2Score15 }}
             @else
-              <td>{{ floatval($t2->procedure_drawing) }}</td>
-              <td>{{ floatval($t2->final_drawing) }}</td>
-              <td>{{ floatval($t2->dimensioning) }}</td>
-              <td>{{ floatval($t2->neatness) }}</td>
-              <td style="font-weight: 700;">{{ floatval($t2->total_score_100) }}</td>
+              -
             @endif
-          @else
-            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-          @endif
-
-          <td><strong>{{ round($avg, 1) }}</strong></td>
-          <td style="font-weight: 800; color: #7c3aed;">{{ $sumMark }}</td>
+          </td>
+          <td style="font-weight: 900; font-size: 11.5px; color: #0f172a; background: #f8fafc;">
+            {{ $avgSeries15 }}
+          </td>
         </tr>
       @endforeach
     </tbody>

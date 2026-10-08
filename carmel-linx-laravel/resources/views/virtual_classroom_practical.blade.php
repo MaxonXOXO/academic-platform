@@ -416,11 +416,11 @@
                                 </button>
                             </td>
                             <td>
-                                <input type="text" id="open-title-{{ $student->reg_no }}" value="{{ $openLog ? $openLog->project_title : '' }}" placeholder="Project Title..." class="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[11px] text-white focus:outline-none focus:border-amber-500 w-full">
+                                <input type="text" id="open-title-{{ $student->reg_no }}" value="{{ $openLog ? ($openLog->project_title ?? '') : '' }}" placeholder="Project Title..." class="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[11px] text-white focus:outline-none focus:border-amber-500 w-full">
                             </td>
                             <td class="text-center">
                                 <span id="score-text-open-{{ $student->reg_no }}" class="font-mono text-xs font-semibold text-amber-400">
-                                    {{ $openLog ? floatval($openLog->total_score_50) : '0' }} / 7.5
+                                    {{ $openLog ? floatval($openLog->total_score_50 ?? 0) : '0' }} / 7.5
                                 </span>
                             </td>
                             <td class="text-center">
@@ -547,7 +547,15 @@
                             <th>Student Name</th>
                             <th class="text-center w-24">Batch</th>
                             <th class="text-center w-28">Exps Done</th>
-                            <th class="text-center w-28">Lab Work (37.5M)</th>
+                            <th class="text-center w-40" id="th-lab-work-col">
+                                <div class="flex flex-col items-center justify-center gap-1">
+                                    <span id="th-lab-work-label">Lab Work (37.5M)</span>
+                                    <button type="button" id="btnToggleDirectLw" onclick="toggleDirectLwMode()" class="px-2 py-0.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] rounded transition flex items-center gap-1 cursor-pointer shadow whitespace-nowrap" title="Direct 37.5 Consolidated Lab Work Override from Physical Log Book">
+                                        <i class="fa-solid fa-pen-ruler text-amber-400 text-xs"></i>
+                                        <span id="btnToggleDirectLwText">37.5 Override</span>
+                                    </button>
+                                </div>
+                            </th>
                             <th class="text-center w-28">Tests (15M)</th>
                             <th class="text-center w-28">Open Ended (7.5M)</th>
                             <th class="text-center w-24">Attendance (15M)</th>
@@ -562,6 +570,8 @@
                             $graded = $gradedCount[$student->reg_no] ?? 0;
                             $totalExp = (isset($conductedCount) && $conductedCount > 0) ? $conductedCount : ($totalExperiments ?? 0);
                             $gradedColor = $graded === 0 ? 'text-red-400' : ($graded < $totalExp ? 'text-amber-400' : 'text-emerald-400');
+                            $isDirect = $score['has_direct_override'] ?? false;
+                            $lwVal = (float)($score['scaled_lab_work_30'] ?? $score['avg_lab_work_375'] ?? 0);
                         @endphp
                         <tr class="student-row" data-reg-no="{{ $student->reg_no }}" data-batch="{{ $batchDesignation }}">
                             <td class="text-center text-cyan-400 font-mono text-xs">{{ $student->roll_no ?? ($index + 1) }}</td>
@@ -585,7 +595,29 @@
                             <td class="text-center">
                                 <span class="font-mono text-xs font-bold {{ $gradedColor }}" id="graded-count-{{ $student->reg_no }}" title="{{ $graded }} Done Marked / {{ $totalExp }} Total Completed ({{ $totalExperiments }} in syllabus)">{{ $graded }} / {{ $totalExp }}</span>
                             </td>
-                            <td class="text-center font-mono text-blue-400 text-xs" id="cia-lab-work-{{ $student->reg_no }}">{{ $score['scaled_lab_work_30'] ?? '0.00' }}</td>
+                            <td class="text-center font-mono text-xs" id="cia-lab-work-cell-{{ $student->reg_no }}">
+                                <div class="cia-lw-display flex items-center justify-center gap-1.5" id="cia-lw-display-{{ $student->reg_no }}">
+                                    <span class="cia-lw-val {{ $isDirect ? 'text-amber-300 font-bold' : 'text-blue-400 font-semibold' }}" id="cia-lab-work-{{ $student->reg_no }}">
+                                        {{ number_format($lwVal, 2) }}
+                                    </span>
+                                    @if($isDirect)
+                                        <span class="px-1 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[9px] font-sans font-bold" title="Direct 37.5 Override from Log Book">Direct</span>
+                                    @endif
+                                </div>
+                                <div class="cia-lw-input-wrap hidden items-center justify-center gap-1" id="cia-lw-edit-{{ $student->reg_no }}">
+                                    <input type="number" step="0.25" min="0" max="37.5"
+                                           class="direct-lw-field w-16 px-1.5 py-0.5 bg-slate-950 border {{ $isDirect ? 'border-amber-400 text-amber-300' : 'border-slate-700 text-blue-300' }} rounded font-mono font-bold text-xs text-center focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                                           data-reg-no="{{ $student->reg_no }}"
+                                           value="{{ $isDirect ? $lwVal : '' }}"
+                                           placeholder="{{ number_format($lwVal, 2) }}"
+                                           oninput="onDirectLwInput(this, '{{ $student->reg_no }}')"
+                                           onblur="onDirectLwBlur(this, '{{ $student->reg_no }}')">
+                                    <button type="button" onclick="clearDirectLw('{{ $student->reg_no }}')" title="Revert to calculated experiment average"
+                                            class="text-slate-500 hover:text-red-400 text-[10px] p-0.5 cursor-pointer transition">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </div>
+                            </td>
                             <td class="text-center font-mono text-purple-400 text-xs" id="cia-series-{{ $student->reg_no }}">{{ $score['scaled_series_15'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-amber-400 text-xs" id="cia-open-{{ $student->reg_no }}">{{ $score['scaled_open_ended_10'] ?? '0.00' }}</td>
                             <td class="text-center font-mono text-sky-400 text-xs" id="cia-att-{{ $student->reg_no }}">{{ $attendanceMarks[$student->reg_no]['mark'] ?? 0 }}</td>
@@ -1230,6 +1262,47 @@
         </div>
     </div>
 
+    <!-- Direct 37.5 Lab Work Override Confirmation Modal (Revision 2021) -->
+    <div id="directLwConfirmModal" onclick="if(event.target === this) closeDirectLwModal()" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[70] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                    <i class="fa-solid fa-pen-ruler text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Direct 37.5 Lab Work Manual Override</h3>
+                    <p class="text-[11px] text-amber-300 font-medium">Revision 2021 Virtual Lab Special Entry Mode</p>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+                <p>
+                    This mode allows you to directly enter the consolidated <strong class="text-amber-300">Continuous Lab Work average (out of 37.5 marks)</strong> for each student from your physical log book, without entering digital marks for each individual experiment.
+                </p>
+                <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-[11px] space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                        <span><strong>Official Reports:</strong> All printable registers (CIA 75M, Final Marksheet 125M, and Student Cards) will use this entered 37.5 mark. For official SBTE compliance, the 5 rubric columns (Rough 5, Fair 7.5, Obs 7.5, Proc 7.5, Viva 10) will be derived proportionally so they sum up cleanly to your 37.5 mark.</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-rotate-left text-sky-400 mt-0.5 shrink-0"></i>
+                        <span><strong>Revertibility:</strong> If you ever need to restore calculated per-experiment averages, simply clear the mark field or click the reset icon for that student.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button type="button" onclick="closeDirectLwModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmEnableDirectLwMode()" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-600/30 cursor-pointer">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Proceed &amp; Enable Direct Entry</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JS Logic -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1560,10 +1633,16 @@
 
         // Live client-side recalculation of consolidated CIA sheet
         function recalculateCIA(regNo) {
-            // 1. Lab Work (37.5M) — 5 components: Rough(5)+Fair(7.5)+Obs(7.5)+Proc(7.5)+Viva(10) = 37.5 raw = 37.5 CIA marks
-            const expScores = scoresState.table22[regNo] || {};
-            const expTotal = (expScores.c1||0) + (expScores.c2||0) + (expScores.c3||0) + (expScores.c4||0) + (expScores.c5||0);
-            const scaledLabWork375 = expTotal; // raw max 37.5 = CIA 37.5M directly, no scaling needed
+            const cia = consolidatedScores[regNo] || {};
+            let scaledLabWork375;
+            if (cia.has_direct_override) {
+                scaledLabWork375 = parseFloat(cia.avg_lab_work_375 ?? cia.scaled_lab_work_30 ?? 0);
+            } else {
+                // 1. Lab Work (37.5M) — 5 components: Rough(5)+Fair(7.5)+Obs(7.5)+Proc(7.5)+Viva(10) = 37.5 raw
+                const expScores = scoresState.table22[regNo] || {};
+                const expTotal = (expScores.c1||0) + (expScores.c2||0) + (expScores.c3||0) + (expScores.c4||0) + (expScores.c5||0);
+                scaledLabWork375 = expTotal;
+            }
             const labEl = document.getElementById(`cia-lab-work-${regNo}`);
             if (labEl) labEl.innerText = scaledLabWork375.toFixed(2);
 
@@ -1590,7 +1669,7 @@
             // CIA Total out of 75 (37.5 Lab + 7.5 Open-Ended + 15 Series + 15 Attendance)
             const totalCIA = scaledLabWork375 + scaledOpen10 + scaledSeries15 + att;
             const totalEl = document.getElementById(`cia-total-${regNo}`);
-            if (totalEl) totalEl.innerText = totalCIA.toFixed(2);
+            if (totalEl) totalEl.innerText = Math.round(totalCIA);
         }
 
         // AJAX submit wrappers
@@ -2809,6 +2888,193 @@
             } catch(err) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Failed to load attendance log.</td></tr>`;
                 console.error(err);
+            }
+        }
+
+        // =========================================================================
+        // DIRECT 37.5 LAB WORK OVERRIDE MODE (Revision 2021 Virtual Lab Special)
+        // =========================================================================
+        let directLwModeActive = false;
+        const directLwDebounceTimers = {};
+
+        function toggleDirectLwMode() {
+            if (!directLwModeActive) {
+                // Open confirmation advisory modal
+                const modal = document.getElementById('directLwConfirmModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            } else {
+                // Turn off direct edit mode
+                setDirectLwMode(false);
+            }
+        }
+
+        function closeDirectLwModal() {
+            const modal = document.getElementById('directLwConfirmModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function confirmEnableDirectLwMode() {
+            closeDirectLwModal();
+            setDirectLwMode(true);
+        }
+
+        function setDirectLwMode(active) {
+            directLwModeActive = active;
+            const btn = document.getElementById('btnToggleDirectLw');
+            const btnText = document.getElementById('btnToggleDirectLwText');
+            const label = document.getElementById('th-lab-work-label');
+
+            const displays = document.querySelectorAll('.cia-lw-display');
+            const inputs   = document.querySelectorAll('.cia-lw-input-wrap');
+
+            if (active) {
+                if (btn) {
+                    btn.className = "px-2 py-0.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] rounded transition flex items-center gap-1 cursor-pointer shadow-md shadow-amber-500/20 whitespace-nowrap";
+                }
+                if (btnText) btnText.innerHTML = '<i class="fa-solid fa-lock text-xs mr-0.5"></i> Lock 37.5';
+                if (label) label.innerHTML = 'Lab Work (37.5M) <span class="text-amber-400 text-[10px] font-sans font-bold ml-1">✏️ EDITABLE</span>';
+
+                displays.forEach(el => el.classList.add('hidden'));
+                inputs.forEach(el => {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                });
+            } else {
+                if (btn) {
+                    btn.className = "px-2 py-0.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] rounded transition flex items-center gap-1 cursor-pointer shadow whitespace-nowrap";
+                }
+                if (btnText) btnText.innerHTML = '<i class="fa-solid fa-pen-ruler text-amber-400 text-xs mr-0.5"></i> 37.5 Override';
+                if (label) label.innerHTML = 'Lab Work (37.5M)';
+
+                displays.forEach(el => el.classList.remove('hidden'));
+                inputs.forEach(el => {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                });
+            }
+        }
+
+        function onDirectLwInput(input, regNo) {
+            let rawVal = input.value.trim();
+            let numVal = parseFloat(rawVal);
+            if (!isNaN(numVal)) {
+                if (numVal < 0) { input.value = 0; numVal = 0; }
+                if (numVal > 37.5) { input.value = 37.5; numVal = 37.5; }
+            } else {
+                numVal = null;
+            }
+
+            // Live update row Total CIA (75M) in DOM
+            recalcRowCIA(regNo, numVal);
+
+            // Debounce auto-save (800ms)
+            if (directLwDebounceTimers[regNo]) {
+                clearTimeout(directLwDebounceTimers[regNo]);
+            }
+            directLwDebounceTimers[regNo] = setTimeout(() => {
+                saveDirectLwMark(input, regNo);
+            }, 800);
+        }
+
+        function onDirectLwBlur(input, regNo) {
+            if (directLwDebounceTimers[regNo]) {
+                clearTimeout(directLwDebounceTimers[regNo]);
+            }
+            saveDirectLwMark(input, regNo);
+        }
+
+        function recalcRowCIA(regNo, manualLwVal) {
+            const cia = consolidatedScores[regNo] || {};
+            const defaultLw = (cia.calculated_split_375 !== undefined) ? parseFloat(cia.calculated_split_375) : parseFloat(cia.scaled_lab_work_30 ?? cia.avg_lab_work_375 ?? 0);
+            const effectiveLw = (manualLwVal !== null && !isNaN(manualLwVal)) ? manualLwVal : defaultLw;
+            const series = parseFloat(cia.scaled_series_15 ?? 0);
+            const openEnded = parseFloat(cia.scaled_open_ended_10 ?? cia.open_ended_mark ?? 0);
+            const att = parseFloat(attendanceMarks[regNo]?.mark ?? cia.att_mark_15 ?? 0);
+
+            const totalCIA = Math.round(effectiveLw + series + openEnded + att);
+
+            const totalEl = document.getElementById(`cia-total-${regNo}`);
+            if (totalEl) {
+                totalEl.innerText = totalCIA;
+                totalEl.classList.add('text-amber-300');
+            }
+        }
+
+        async function saveDirectLwMark(input, regNo) {
+            const rawVal = input.value.trim();
+            const val = rawVal === '' ? null : parseFloat(rawVal);
+
+            input.classList.remove('border-emerald-400', 'border-red-400');
+            input.classList.add('border-amber-400');
+
+            try {
+                const res = await fetch(`/api/classroom/${batchSubjectId}/practical/cia-summary`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        reg_no: regNo,
+                        lab_work_marks: val !== null ? val : ''
+                    })
+                });
+
+                const resp = await res.json();
+                if (resp.success) {
+                    const d = resp.data || {};
+                    if (!consolidatedScores[regNo]) consolidatedScores[regNo] = {};
+                    consolidatedScores[regNo].scaled_lab_work_30  = d.avg_lab_work_375;
+                    consolidatedScores[regNo].avg_lab_work_375    = d.avg_lab_work_375;
+                    consolidatedScores[regNo].has_direct_override = d.has_override;
+                    consolidatedScores[regNo].total_cia_75        = d.total_cia_75;
+                    consolidatedScores[regNo].total_cia_60        = d.total_cia_75;
+
+                    // Update display elements
+                    const displayEl = document.getElementById(`cia-lw-display-${regNo}`);
+                    if (displayEl) {
+                        const isOverridden = d.has_override;
+                        displayEl.innerHTML = `
+                            <span class="cia-lw-val ${isOverridden ? 'text-amber-300 font-bold' : 'text-blue-400 font-semibold'}" id="cia-lab-work-${regNo}">
+                                ${parseFloat(d.avg_lab_work_375).toFixed(2)}
+                            </span>
+                            ${isOverridden ? '<span class="px-1 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[9px] font-sans font-bold" title="Direct 37.5 Override from Log Book">Direct</span>' : ''}
+                        `;
+                    }
+
+                    const totalEl = document.getElementById(`cia-total-${regNo}`);
+                    if (totalEl) {
+                        totalEl.innerText = Math.round(d.total_cia_75);
+                    }
+                    input.placeholder = parseFloat(d.avg_lab_work_375).toFixed(2);
+
+                    // Green flash feedback
+                    input.classList.remove('border-amber-400', 'border-slate-700');
+                    input.classList.add('border-emerald-400');
+                    setTimeout(() => {
+                        input.classList.remove('border-emerald-400');
+                        input.classList.add(d.has_override ? 'border-amber-400' : 'border-slate-700');
+                    }, 1200);
+                } else {
+                    input.classList.add('border-red-400');
+                }
+            } catch(err) {
+                console.error('Error saving direct lab work mark:', err);
+                input.classList.add('border-red-400');
+            }
+        }
+
+        async function clearDirectLw(regNo) {
+            const input = document.querySelector(`.direct-lw-field[data-reg-no="${regNo}"]`);
+            if (input) {
+                input.value = '';
+                await saveDirectLwMark(input, regNo);
             }
         }
     </script>

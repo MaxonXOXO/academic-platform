@@ -156,10 +156,27 @@
     /* DESKTOP STYLES (>= 768px) */
     @media (min-width: 768px) {
       .mobile-layout { display: none !important; }
-      body { overflow: hidden; height: 100vh; }
+      html, body {
+        overflow: hidden;
+        height: 100vh;
+        font-size: 13px !important;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      }
+      .desktop-layout h1, .desktop-layout h2, .desktop-layout h3, .desktop-layout h4, .desktop-layout h5, .desktop-layout h6 {
+        margin: 0 !important;
+        font-weight: 800 !important;
+        line-height: 1.25 !important;
+      }
+      .desktop-layout h1 { font-size: 1.05rem !important; }
+      .desktop-layout h2 { font-size: 0.95rem !important; }
+      .desktop-layout h3 { font-size: 0.85rem !important; }
+      .desktop-layout h4 { font-size: 0.8rem !important; }
       .transition-premium { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
       .scrollbar-hidden::-webkit-scrollbar { display: none; }
       .scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+      .desktop-layout table th, .desktop-layout table td {
+        font-size: 0.76rem !important;
+      }
     }
   </style>
 </head>
@@ -396,7 +413,10 @@
 
       <!-- Active Profile Info -->
       <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3">
-        <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <div class="relative shrink-0">
+          <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+          <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+        </div>
         <div class="overflow-hidden">
           <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
           <span class="text-xs font-bold text-indigo-400 block uppercase tracking-wider">Self-Financing Coordinator</span>
@@ -405,6 +425,15 @@
 
       <!-- Navigation Menus -->
       <nav class="flex-grow p-3 space-y-1">
+        @if(session('userRole') === 'HOD' || \App\Models\StaffProfile::isSfAcademicCoordinator(session('userId')))
+        <a href="/dashboard/hod" class="w-full text-left px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-between transition-premium bg-blue-950/60 border border-blue-500/40 text-blue-200 hover:text-white hover:border-blue-400 cursor-pointer no-underline mb-2 group">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-rounded text-base text-blue-400 group-hover:scale-110 transition-transform">arrow_back</span>
+            <span>Return to HOD Desk</span>
+          </div>
+          <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300">{{ session('userBranch') ?? 'HOD' }}</span>
+        </a>
+        @endif
         <button id="navDashboard" onclick="switchPanel('dashboard')" class="w-full text-left px-3.5 py-1.5 rounded-r-xl rounded-l-none font-bold flex items-center gap-2.5 transition-premium bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 text-xs">
           <span class="material-symbols-rounded text-base">dashboard</span> Overview & Approvals
         </button>
@@ -447,129 +476,148 @@
     <main class="flex-grow flex flex-col overflow-hidden relative">
       
       <!-- Top Header -->
-      <header class="h-16 border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-8 z-10">
+      <header class="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0 shadow-sm">
         <div class="flex items-center gap-3">
-          <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-lg">Academic Coordinator Overview</h1>
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Self-Financing Stream</span>
+          <div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse"></div>
+          <div class="flex items-center gap-2">
+            <h1 id="panelTitle" class="font-extrabold text-slate-100 tracking-tight text-sm">Academic Coordinator Overview</h1>
+            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">SF Stream</span>
+          </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          @if(session('userRole') === 'HOD' || \App\Models\StaffProfile::isSfAcademicCoordinator(session('userId')))
+          <a href="/dashboard/hod" class="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-blue-500/40 shadow-sm transition-premium no-underline group" title="Return to Department HOD Dashboard">
+            <span class="material-symbols-rounded text-sm text-blue-400 group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+            <span>Return to HOD Desk ({{ session('userBranch') ?? 'EEE' }})</span>
+          </a>
+          @endif
           @include('partials.fullscreen_btn')
           <div id="aiStatusBadge" class="hidden"></div>
-          <div id="loadingIndicator" class="hidden items-center gap-2 text-slate-400 text-xs">
-            <div class="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+          <div id="loadingIndicator" class="hidden items-center gap-1.5 text-slate-400 text-xs">
+            <div class="w-3.5 h-3.5 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
             <span>Syncing...</span>
           </div>
         </div>
       </header>
 
       <!-- Panel Container -->
-      <div class="flex-grow overflow-y-auto p-8 space-y-6">
+      <div class="flex-grow overflow-y-auto p-5 space-y-4">
         
         <!-- Alert Banner -->
-        <div id="globalAlert" class="hidden p-4 rounded-xl font-bold transition-premium border text-xs"></div>
+        <div id="globalAlert" class="hidden p-3 rounded-xl font-bold transition-premium border text-xs"></div>
 
         <!-- PANEL 1: OVERVIEW & PENDING LEAVE APPROVALS -->
-        <div id="panelDashboard" class="space-y-6">
+        <div id="panelDashboard" class="space-y-4">
           
-          <!-- Metrics Row -->
-          <div class="grid grid-cols-4 gap-5">
-            <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
-              <div class="bg-amber-500/10 text-amber-400 p-3 rounded-xl"><span class="material-symbols-rounded text-2xl">approval</span></div>
-              <div>
-                <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Pending SF Approvals</span>
-                <span id="statPendingLeave" class="text-xl font-black text-white mt-0.5">0</span>
+          <!-- Executive Stats Strip (High-Density & Compact) -->
+          <div class="grid grid-cols-4 gap-3.5">
+            <!-- Stat 1: Pending Clearances -->
+            <div class="bg-slate-950/60 border border-slate-800/80 hover:border-amber-500/40 rounded-xl p-3.5 flex items-center justify-between transition-premium shadow-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-rounded text-lg">pending_actions</span>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block leading-tight">Pending Clearances</span>
+                  <div class="flex items-baseline gap-1.5 mt-0.5">
+                    <span id="statPendingLeave" class="text-xl font-black text-amber-300 leading-none">0</span>
+                    <span class="text-[10px] font-bold text-slate-400">Applications</span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="loadPendingApprovals()" class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-800 transition-premium cursor-pointer" title="Refresh clearance queue">
+                <span class="material-symbols-rounded text-sm block">sync</span>
+              </button>
+            </div>
+
+            <!-- Stat 2: Supervised Branches -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-rounded text-lg">domain</span>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block leading-tight">Supervised Branches</span>
+                  <div class="flex items-center gap-1 mt-1">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-cyan-950/80 text-cyan-300 border border-cyan-800/50">EL</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-950/80 text-amber-300 border border-amber-800/50">AU</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-blue-950/80 text-blue-300 border border-blue-800/50">CT</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-purple-950/80 text-purple-300 border border-purple-800/50">GEN SF</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
-              <div class="bg-indigo-500/10 text-indigo-400 p-3 rounded-xl"><span class="material-symbols-rounded text-2xl">account_tree</span></div>
-              <div>
-                <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Supervised Stream</span>
-                <span class="text-sm font-black text-indigo-300 mt-0.5 block">EL • AU • CT • GEN SF</span>
+            <!-- Stat 3: 3-Tier Workflow Status -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-rounded text-lg">account_tree</span>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block leading-tight">Approval Level</span>
+                  <div class="flex items-center gap-1 mt-1 text-[10px] font-bold text-slate-400">
+                    <span class="text-emerald-400">HOD ✓</span>
+                    <span class="text-slate-600">→</span>
+                    <span class="text-amber-300 font-extrabold bg-amber-500/15 px-1 py-0.5 rounded border border-amber-500/30">Coordinator</span>
+                    <span class="text-slate-600">→</span>
+                    <span class="text-slate-400">Principal</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
-              <div class="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl"><span class="material-symbols-rounded text-2xl">event_note</span></div>
-              <div>
-                <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Master Ledger</span>
-                <button onclick="switchPanel('reports')" class="text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1 mt-0.5 bg-transparent border-0 p-0 cursor-pointer">
-                  View Ledger & Reports <span class="material-symbols-rounded text-xs">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="bg-slate-950/40 border border-slate-800/60 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
-              <div class="bg-purple-500/10 text-purple-400 p-3 rounded-xl"><span class="material-symbols-rounded text-2xl">smartphone</span></div>
-              <div>
-                <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Mobile Portal</span>
-                <a href="/staff/mobile?mode=mobile" class="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 mt-0.5">
-                  My Leave Log & Portal <span class="material-symbols-rounded text-xs">arrow_forward</span>
-                </a>
+            <!-- Stat 4: Quick Actions -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-3 w-full">
+                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-rounded text-lg">menu_book</span>
+                </div>
+                <div class="flex-grow flex items-center gap-1.5">
+                  <button onclick="switchPanel('reports')" class="flex-1 py-1 px-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-300 text-[10px] font-bold text-center transition-premium cursor-pointer">
+                    Ledger
+                  </button>
+                  <a href="/sf-attendance/attendance-report" class="flex-1 py-1 px-2 rounded-lg bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-700/50 text-indigo-300 text-[10px] font-bold text-center transition-premium no-underline block">
+                    Punch Log
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Pending Leave Applications Section -->
-          <div class="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-6 space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
-              <div>
-                <h3 class="font-black text-slate-100 text-base flex items-center gap-2">
-                  <span class="material-symbols-rounded text-amber-400 text-lg">pending_actions</span>
-                  Staff Leave Applications Pending Academic Coordinator Approval
-                </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Stage 2 of 3-tier hierarchy (HOD Approved → <strong>Academic Coordinator</strong> → Principal) for Self-Financing departments (EL, AU, CT, GEN SF).</p>
+          <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 shadow-lg overflow-hidden">
+            <!-- Table Header Bar -->
+            <div class="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/70">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-amber-400 text-base">pending_actions</span>
+                <h3 class="font-extrabold text-slate-100 text-xs">Self-Financing Leave Applications</h3>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">Stage 2 Queue</span>
               </div>
-              <button onclick="loadPendingApprovals()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-premium cursor-pointer flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-sm">sync</span> Refresh Queue
+              <button onclick="loadPendingApprovals()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-premium cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-rounded text-xs">sync</span> Refresh
               </button>
             </div>
 
+            <!-- Table -->
             <div class="overflow-x-auto scrollbar-hidden">
-              <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+              <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr class="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
-                    <th class="p-3">Staff Member</th>
-                    <th class="p-3">Dept</th>
-                    <th class="p-3">Leave Category</th>
-                    <th class="p-3">Date(s) Needed</th>
-                    <th class="p-3">Session</th>
-                    <th class="p-3">Reason & Work Arrangement</th>
-                    <th class="p-3">HOD Stage</th>
-                    <th class="p-3 text-right">Actions</th>
+                  <tr class="bg-slate-900/80 border-b border-slate-800/80 text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">
+                    <th class="py-2.5 px-3">Staff Member</th>
+                    <th class="py-2.5 px-2.5">Dept</th>
+                    <th class="py-2.5 px-2.5">Category</th>
+                    <th class="py-2.5 px-2.5">Duration & Dates</th>
+                    <th class="py-2.5 px-2.5">Session</th>
+                    <th class="py-2.5 px-3">Reason & Arrangement</th>
+                    <th class="py-2.5 px-2.5">HOD Status</th>
+                    <th class="py-2.5 px-3 text-right">Clearance Actions</th>
                   </tr>
                 </thead>
                 <tbody id="pendingLeaveTableBody" class="divide-y divide-slate-800/40 text-slate-300">
                   <tr><td colspan="8" class="p-6 text-center text-slate-500 font-bold">Loading pending leave applications...</td></tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <!-- Supervised Department Quick Info -->
-          <div class="grid grid-cols-3 gap-6">
-            <div class="bg-slate-950/30 border border-slate-800/40 p-5 rounded-2xl space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200 text-sm">Electronics (EL)</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Self-Financing</span>
-              </div>
-              <p class="text-xs text-slate-400">3-Tier Approval Path Active (HOD → Coordinator → Principal)</p>
-            </div>
-
-            <div class="bg-slate-950/30 border border-slate-800/40 p-5 rounded-2xl space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200 text-sm">Automobile (AU)</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Self-Financing</span>
-              </div>
-              <p class="text-xs text-slate-400">3-Tier Approval Path Active (HOD → Coordinator → Principal)</p>
-            </div>
-
-            <div class="bg-slate-950/30 border border-slate-800/40 p-5 rounded-2xl space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200 text-sm">Computer (CT) & GEN SF</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Self-Financing</span>
-              </div>
-              <p class="text-xs text-slate-400">3-Tier Approval Path Active (HOD → Coordinator → Principal)</p>
             </div>
           </div>
 
@@ -869,50 +917,87 @@
       tbody.innerHTML = '';
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-bold">No pending leave applications requiring Academic Coordinator approval.</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="p-12 text-center">
+              <div class="inline-flex w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 items-center justify-center text-emerald-400 mb-3 shadow-inner">
+                <span class="material-symbols-rounded text-3xl">task_alt</span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-200">Clearance Queue Is Empty</h4>
+              <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">No pending leave applications requiring Academic Coordinator endorsement.</p>
+            </td>
+          </tr>
+        `;
         return;
       }
 
       items.forEach(req => {
         const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/30 transition-premium';
+        tr.className = 'border-b border-slate-800/60 hover:bg-slate-900/60 transition-premium';
 
-        let datesText = req.start_date;
+        let datesText = `<span class="font-bold text-slate-200">${req.start_date}</span>`;
         if (req.end_date && req.end_date !== req.start_date) {
-          datesText += ` to ${req.end_date}`;
+          datesText += ` <span class="text-slate-500">→</span> <span class="font-bold text-slate-200">${req.end_date}</span>`;
         }
         if (req.ccl_date) {
-          datesText += `<br><span class="text-[10px] text-amber-400 font-mono">CCL Date: ${req.ccl_date}</span>`;
+          datesText += `<div class="text-[10px] text-amber-400 font-mono mt-0.5">CCL Worked: ${req.ccl_date}</div>`;
         }
 
-        let sessionBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">${req.session}</span>`;
+        let sessionBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80">${req.session}</span>`;
+
+        let deptBadge = '';
+        if (req.department === 'EL') {
+          deptBadge = '<span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-cyan-950/80 text-cyan-300 border border-cyan-700/60">EL</span>';
+        } else if (req.department === 'AU') {
+          deptBadge = '<span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-amber-950/80 text-amber-300 border border-amber-700/60">AU</span>';
+        } else if (req.department === 'CT') {
+          deptBadge = '<span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-blue-950/80 text-blue-300 border border-blue-700/60">CT</span>';
+        } else {
+          deptBadge = `<span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-purple-950/80 text-purple-300 border border-purple-700/60">${req.department}</span>`;
+        }
 
         tr.innerHTML = `
-          <td class="p-3 font-bold text-slate-100">
-            ${req.staff_name}
-            <span class="block text-[10px] font-normal text-slate-400">${req.designation}</span>
+          <td class="py-2.5 px-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-slate-800 text-white font-black text-xs flex items-center justify-center shadow-xs flex-shrink-0">
+                ${req.staff_name ? req.staff_name.charAt(0).toUpperCase() : 'S'}
+              </div>
+              <div class="overflow-hidden">
+                <span class="font-bold text-slate-100 text-xs block truncate leading-tight">${req.staff_name}</span>
+                <span class="text-[10px] text-slate-400 block truncate">${req.designation}</span>
+              </div>
+            </div>
           </td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${req.department}</span></td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20">${req.leave_category} (${req.total_days}d)</span></td>
-          <td class="p-3 font-mono text-slate-300 text-xs">${datesText}</td>
-          <td class="p-3">${sessionBadge}</td>
-          <td class="p-3 max-w-xs truncate">
-            <span class="text-slate-200 block truncate" title="${req.reason}">${req.reason}</span>
-            <span class="text-[10px] text-slate-400 block">${req.work_arrangement_status || 'Arrangement done'}</span>
+          <td class="py-2.5 px-2.5">${deptBadge}</td>
+          <td class="py-2.5 px-2.5">
+            <div class="flex flex-col">
+              <span class="font-bold text-xs text-indigo-300 leading-tight">${req.leave_category}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${req.total_days} ${req.total_days == 1 ? 'day' : 'days'}</span>
+            </div>
           </td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved by ${req.hod_name || 'HOD'}</span>
+          <td class="py-2.5 px-2.5 text-xs font-mono">${datesText}</td>
+          <td class="py-2.5 px-2.5">${sessionBadge}</td>
+          <td class="py-2.5 px-3 max-w-xs">
+            <span class="text-slate-200 block truncate font-medium text-xs" title="${req.reason}">${req.reason}</span>
+            <span class="text-[10px] text-slate-400 block truncate mt-0.5">${req.work_arrangement_status || 'Arrangement done'}</span>
           </td>
-          <td class="p-3 text-right space-x-1">
-            <button onclick="approveLeave(${req.id})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition-premium cursor-pointer shadow-sm">
-              Approve
-            </button>
-            <button onclick="openRejectModal(${req.id})" class="px-3 py-1.5 bg-rose-950/50 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg font-bold text-xs transition-premium cursor-pointer shadow-sm">
-              Reject
-            </button>
-            <a href="/staff/leave/${req.id}/pdf" target="_blank" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-xs transition-premium no-underline inline-flex items-center gap-1">
-              <span class="material-symbols-rounded text-xs">picture_as_pdf</span> PDF
-            </a>
+          <td class="py-2.5 px-2.5">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <i class="fa-solid fa-check text-[8px]"></i> ${req.hod_name || 'HOD'} Approved
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-right">
+            <div class="inline-flex items-center gap-1">
+              <button onclick="approveLeave(${req.id})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow-xs flex items-center gap-1 transition-premium cursor-pointer">
+                <i class="fa-solid fa-check text-[9px]"></i> Endorse
+              </button>
+              <button onclick="openRejectModal(${req.id})" class="px-2 py-1 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 rounded-lg font-bold text-xs flex items-center gap-1 transition-premium cursor-pointer">
+                <i class="fa-solid fa-xmark text-[9px]"></i> Reject
+              </button>
+              <a href="/staff/leave/${req.id}/pdf" target="_blank" class="p-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/80 rounded-lg text-xs transition-premium no-underline inline-flex items-center" title="Print/View PDF">
+                <span class="material-symbols-rounded text-xs">picture_as_pdf</span>
+              </a>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1201,7 +1286,10 @@
                   tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/30';
                   tr.innerHTML = `
                     <td class="p-4 flex items-center gap-3">
-                      <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
+                      <div class="relative shrink-0">
+                        <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
+                        ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+                      </div>
                       <div>
                         <span class="font-bold text-slate-100 block">${user.name}</span>
                         <span class="text-[10px] text-slate-500 block">${user.email}</span>
@@ -1228,7 +1316,10 @@
                   html += `
                     <div class="p-2.5 rounded-3 border border-secondary border-opacity-20 bg-slate-900 mb-2 d-flex align-items-center justify-content-between">
                       <div class="d-flex align-items-center gap-2 overflow-hidden">
-                        <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                        <div class="position-relative flex-shrink-0">
+                          <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                          ${user.is_online ? `<span class="position-absolute bottom-0 end-0 rounded-circle" style="width: 10px; height: 10px; background-color: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4);" title="Online"></span>` : ''}
+                        </div>
                         <div class="overflow-hidden">
                           <strong class="text-white d-block text-truncate small">${user.name}</strong>
                           <small class="text-secondary d-block" style="font-size:0.7rem;">${user.id} &bull; ${user.role}</small>

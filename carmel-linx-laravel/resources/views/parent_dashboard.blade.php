@@ -283,13 +283,18 @@
             <!-- Student Profile Header Card -->
             <div class="app-card">
                 <div class="d-flex align-items-center gap-3">
-                    @if($student->photo_url)
-                        <img src="{{ $student->photo_url }}" alt="{{ $student->name }}" class="avatar-mobile">
-                    @else
-                        <div class="avatar-mobile bg-dark text-cyan d-flex align-items-center justify-content-center fw-bold fs-5">
-                            {{ strtoupper(substr($student->name, 0, 1)) }}
-                        </div>
-                    @endif
+                    <div class="position-relative flex-shrink-0">
+                        @if($student->photo_url)
+                            <img src="{{ $student->photo_url }}" alt="{{ $student->name }}" class="avatar-mobile">
+                        @else
+                            <div class="avatar-mobile bg-dark text-cyan d-flex align-items-center justify-content-center fw-bold fs-5">
+                                {{ strtoupper(substr($student->name, 0, 1)) }}
+                            </div>
+                        @endif
+                        @if(!empty($student->reg_no) && \Illuminate\Support\Facades\Cache::has('user_online_' . $student->reg_no))
+                            <span class="position-absolute bottom-0 end-0 rounded-circle" style="width: 12px; height: 12px; background-color: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4);" title="Online"></span>
+                        @endif
+                    </div>
                     <div class="flex-grow-1">
                         <h6 class="fw-extrabold text-white mb-0" style="font-size: 1rem;">{{ $student->name }}</h6>
                         <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">

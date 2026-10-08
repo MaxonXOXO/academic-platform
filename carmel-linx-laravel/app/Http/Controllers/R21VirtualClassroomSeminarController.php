@@ -82,14 +82,32 @@ class R21VirtualClassroomSeminarController extends Controller
             ->get()
             ->keyBy('reg_no');
 
-        // Attendance data from student_attendance
+        // Authoritative official attendance from TEAMS upload in student_attendance & class_logs_attendance
         $attendanceData = DB::table('student_attendance')
+            ->whereIn('reg_no', $students->pluck('reg_no'))
             ->where('subject_code', $batchSubject->subject_code)
             ->get()
             ->groupBy('reg_no');
 
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->get();
+
         // Department Guides
         $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $branchMap = [
+            'EL' => 'Electronics Engineering',
+            'CE' => 'Civil Engineering',
+            'ME' => 'Mechanical Engineering',
+            'EE' => 'Electrical & Electronics Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'CH' => 'Chemical Engineering',
+            'CS' => 'Computer Engineering',
+            'CT' => 'Computer Engineering',
+            'AU' => 'Automobile Engineering',
+        ];
+        $fullDepartment = $branchMap[strtoupper($deptCode)] ?? $deptCode;
+
         $guides = StaffProfile::where(function($q) use ($deptCode) {
                 if (!empty($deptCode)) {
                     $q->where('branch', $deptCode);
@@ -107,31 +125,77 @@ class R21VirtualClassroomSeminarController extends Controller
         $activeStaff = StaffProfile::where('mobile_no', $userId)->first();
         $staffProfiles = StaffProfile::all()->keyBy('mobile_no');
 
+        // Dashboard Return URL by Role
+        $role = Session::get('userRole');
+        $dashboardUrl = '/dashboard/lecturer';
+        if ($role === 'HOD') {
+            $dashboardUrl = '/dashboard/hod';
+        } elseif ($role === 'Principal') {
+            $dashboardUrl = '/dashboard/principal';
+        } elseif ($role === 'Demonstrator') {
+            $dashboardUrl = '/dashboard/demonstrator';
+        } elseif ($role === 'Super_Admin') {
+            $dashboardUrl = '/dashboard/superadmin';
+        } elseif ($role === 'Admin') {
+            $dashboardUrl = '/dashboard/admin';
+        } elseif ($role === 'Gen_Dept_Coordinator_Aided') {
+            $dashboardUrl = '/dashboard/general-coordinator-aided';
+        } elseif ($role === 'Gen_Dept_Coordinator_Self_Finance') {
+            $dashboardUrl = '/dashboard/general-coordinator-sf';
+        } elseif ($role === 'Trade_Instructor') {
+            $dashboardUrl = '/dashboard/tradeinstructor';
+        } elseif ($role === 'Workshop_Superintendent') {
+            $dashboardUrl = '/dashboard/workshop';
+        }
+
         // Process student results
-        $studentResults = $students->map(function ($student) use ($seminarRegs, $allEvaluations, $myEvaluations, $labBatches, $attendanceData, $staffProfiles) {
+        $studentResults = $students->map(function ($student) use ($seminarRegs, $allEvaluations, $myEvaluations, $labBatches, $attendanceData, $classLogs, $staffProfiles) {
             $regNo = $student->reg_no;
             $reg = $seminarRegs->get($regNo);
             $myEval = $myEvaluations->get($regNo);
             $stAllEvals = $allEvaluations->where('reg_no', $regNo);
             $evalCount = $stAllEvals->count();
 
-            // Averaged rubrics across all assessors
+            // Authoritative Attendance percentage and mark from uploaded TEAMS attendance
+            $stAtt = $attendanceData->get($regNo, collect());
+            if ($stAtt->isNotEmpty()) {
+                $totalAtt = $stAtt->count();
+                $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            } elseif ($classLogs->isNotEmpty()) {
+                $totalAtt = $classLogs->count();
+                $present = 0;
+                foreach ($classLogs as $cl) {
+                    $pList = json_decode($cl->present_students, true) ?: [];
+                    if (in_array($regNo, $pList)) {
+                        $present++;
+                    }
+                }
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            } else {
+                $attPercentage = 100.0;
+            }
+
+            // Rev 2021: Attendance mark directly converted to max marks (Max 7.5M per Clause 11.2.6)
+            $attendanceMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+
+            // Averaged rubrics across all assessors for the 5 presentation components (Max 67.5M)
             $avgRelevance = $evalCount > 0 ? round($stAllEvals->avg('relevance'), 2) : null;
             $avgLiterature = $evalCount > 0 ? round($stAllEvals->avg('literature'), 2) : null;
             $avgPresentation = $evalCount > 0 ? round($stAllEvals->avg('presentation'), 2) : null;
             $avgInteraction = $evalCount > 0 ? round($stAllEvals->avg('interaction'), 2) : null;
             $avgReport = $evalCount > 0 ? round($stAllEvals->avg('report'), 2) : null;
-            $avgAttendance = $evalCount > 0 ? round($stAllEvals->avg('attendance'), 2) : null;
-            $finalAvgScore = $evalCount > 0 ? round($stAllEvals->avg('total_score'), 2) : 0.0;
+            $avgAttendance = $attendanceMark;
 
-            // Suggested Attendance mark based on student_attendance
-            $stAtt = $attendanceData->get($regNo, collect());
-            $totalAtt = $stAtt->count();
-            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            // Seminar presentation component (Max 67.5M)
+            $seminarScore = ($evalCount > 0)
+                ? round(($avgRelevance ?? 0) + ($avgLiterature ?? 0) + ($avgPresentation ?? 0) + ($avgInteraction ?? 0) + ($avgReport ?? 0), 2)
+                : null;
 
-            // Rev 2021: Actual percentage directly converted to max marks (Max 7.5M)
-            $suggestedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            // Final Continuous Internal Assessment (CIA Total 75M - Whole Number) = Seminar (67.5M) + Logged Attendance (7.5M)
+            $finalAvgScore = ($evalCount > 0)
+                ? min(75, (int)round($seminarScore + $attendanceMark))
+                : 0;
 
             // Batch assignment
             $batchRow = $labBatches->get($regNo);
@@ -148,7 +212,7 @@ class R21VirtualClassroomSeminarController extends Controller
             $isScheduled = ($reg && !empty($reg->presentation_date));
             $status = $isCompleted ? 'Completed' : ($isScheduled ? 'Scheduled' : 'Pending');
 
-            $assessorsList = $stAllEvals->map(function ($ev) use ($staffProfiles) {
+            $assessorsList = $stAllEvals->map(function ($ev) use ($staffProfiles, $attendanceMark) {
                 $sp = $staffProfiles->get($ev->assessor_mobile_no);
                 return [
                     'assessor_mobile' => $ev->assessor_mobile_no,
@@ -159,8 +223,8 @@ class R21VirtualClassroomSeminarController extends Controller
                     'presentation' => (float)$ev->presentation,
                     'interaction' => (float)$ev->interaction,
                     'report' => (float)$ev->report,
-                    'attendance' => (float)$ev->attendance,
-                    'total_score' => (float)$ev->total_score,
+                    'attendance' => (float)$attendanceMark,
+                    'total_score' => (int)min(75, round((float)$ev->relevance + (float)$ev->literature + (float)$ev->presentation + (float)$ev->interaction + (float)$ev->report + (float)$attendanceMark)),
                 ];
             })->values();
 
@@ -177,15 +241,17 @@ class R21VirtualClassroomSeminarController extends Controller
                 'guide_name' => $reg && $reg->guide ? $reg->guide->name : null,
                 'guide_mobile_no' => $reg ? $reg->guide_mobile_no : null,
                 'att_percentage' => $attPercentage,
-                'suggested_att_mark' => $suggestedAttMark,
+                'attendance_mark' => $attendanceMark,
+                'suggested_att_mark' => $attendanceMark,
+                'seminar_score' => $seminarScore,
                 'my_evaluation' => $myEval ? [
                     'relevance' => (float)$myEval->relevance,
                     'literature' => (float)$myEval->literature,
                     'presentation' => (float)$myEval->presentation,
                     'interaction' => (float)$myEval->interaction,
                     'report' => (float)$myEval->report,
-                    'attendance' => (float)$myEval->attendance,
-                    'total_score' => (float)$myEval->total_score,
+                    'attendance' => (float)$attendanceMark,
+                    'total_score' => (float)min(75.0, round((float)$myEval->relevance + (float)$myEval->literature + (float)$myEval->presentation + (float)$myEval->interaction + (float)$myEval->report + (float)$attendanceMark, 2)),
                 ] : null,
                 'assessors_list' => $assessorsList,
                 'eval_count' => $evalCount,
@@ -194,7 +260,7 @@ class R21VirtualClassroomSeminarController extends Controller
                 'avg_presentation' => $avgPresentation,
                 'avg_interaction' => $avgInteraction,
                 'avg_report' => $avgReport,
-                'avg_attendance' => $avgAttendance,
+                'avg_attendance' => $attendanceMark,
                 'final_score' => $finalAvgScore,
                 'letter_grade' => $gradeData['grade'],
                 'grade_point' => $gradeData['point'],
@@ -216,6 +282,8 @@ class R21VirtualClassroomSeminarController extends Controller
         return view('r21_seminar.virtual_classroom_seminar', compact(
             'batchSubject',
             'classroom',
+            'fullDepartment',
+            'dashboardUrl',
             'courseFile',
             'students',
             'studentResults',
@@ -275,7 +343,7 @@ class R21VirtualClassroomSeminarController extends Controller
             'presentation' => 'required|numeric|min:0|max:37.5',
             'interaction' => 'required|numeric|min:0|max:7.5',
             'report' => 'required|numeric|min:0|max:7.5',
-            'attendance' => 'required|numeric|min:0|max:7.5',
+            'attendance' => 'nullable|numeric|min:0|max:7.5',
         ]);
 
         $regNo = $request->input('reg_no');
@@ -284,12 +352,34 @@ class R21VirtualClassroomSeminarController extends Controller
         $presentation = round((float)$request->input('presentation'), 2);
         $interaction = round((float)$request->input('interaction'), 2);
         $report = round((float)$request->input('report'), 2);
-        $attendance = round((float)$request->input('attendance'), 2);
 
-        $totalScore = round($relevance + $literature + $presentation + $interaction + $report + $attendance, 2);
-        if ($totalScore > 75.0) {
-            $totalScore = 75.0;
+        // Authoritative Attendance from uploaded TEAMS attendance for this student
+        $officialAttendance = DB::table('student_attendance')
+            ->where('reg_no', $regNo)
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get();
+
+        if ($officialAttendance->isNotEmpty()) {
+            $offTot = $officialAttendance->count();
+            $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
+            $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+        } else {
+            $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
+            if ($classLogs->isNotEmpty()) {
+                $offTot = $classLogs->count();
+                $offPres = 0;
+                foreach ($classLogs as $cl) {
+                    $pList = json_decode($cl->present_students, true) ?: [];
+                    if (in_array($regNo, $pList)) $offPres++;
+                }
+                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+            } else {
+                $attPercentage = 100.0;
+            }
         }
+
+        $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+        $totalScore = min(75.0, round($relevance + $literature + $presentation + $interaction + $report + $attendance, 2));
 
         // Check if an assessor was selected from modal or use current user
         $requestedAssessor = $request->input('assessor_mobile_no');
@@ -353,7 +443,13 @@ class R21VirtualClassroomSeminarController extends Controller
             ->get();
 
         $evalCount = $studentAllEvals->count();
-        $averageScore = $evalCount > 0 ? round($studentAllEvals->avg('total_score'), 2) : $totalScore;
+        $avgRelevance = round($studentAllEvals->avg('relevance'), 2);
+        $avgLiterature = round($studentAllEvals->avg('literature'), 2);
+        $avgPresentation = round($studentAllEvals->avg('presentation'), 2);
+        $avgInteraction = round($studentAllEvals->avg('interaction'), 2);
+        $avgReport = round($studentAllEvals->avg('report'), 2);
+        $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
+        $averageScore = min(75.0, round($seminarComponent + $attendance, 2));
 
         // 4. Upsert into AcademicMark as Continuous Internal Assessment (CIA / ESE Mark for S5) out of 75
         DB::table('syllabus_registry')->updateOrInsert(
@@ -371,11 +467,15 @@ class R21VirtualClassroomSeminarController extends Controller
         );
 
         $existingMark = AcademicMark::where('reg_no', $regNo)
-            ->where('subject_code', $batchSubject->subject_code)
+            ->where(function($q) use ($batchSubject, $subjectId) {
+                $q->where('batch_subject_id', $subjectId)
+                  ->orWhere('subject_code', $batchSubject->subject_code);
+            })
             ->where('category', 'Seminar')
             ->first();
 
         if ($existingMark) {
+            $existingMark->batch_subject_id = $subjectId;
             $existingMark->marks_obtained = $averageScore;
             $existingMark->max_marks = 75;
             $existingMark->co_tag = 'CO1';
@@ -383,6 +483,7 @@ class R21VirtualClassroomSeminarController extends Controller
             $existingMark->save();
         } else {
             $newMark = new AcademicMark();
+            $newMark->batch_subject_id = $subjectId;
             $newMark->reg_no = $regNo;
             $newMark->subject_code = $batchSubject->subject_code;
             $newMark->category = 'Seminar';
@@ -402,7 +503,7 @@ class R21VirtualClassroomSeminarController extends Controller
             ->count('reg_no');
 
         $staffProfiles = StaffProfile::all()->keyBy('mobile_no');
-        $assessorsList = $studentAllEvals->map(function ($ev) use ($staffProfiles) {
+        $assessorsList = $studentAllEvals->map(function ($ev) use ($staffProfiles, $attendance) {
             $sp = $staffProfiles->get($ev->assessor_mobile_no);
             return [
                 'assessor_mobile' => $ev->assessor_mobile_no,
@@ -413,8 +514,8 @@ class R21VirtualClassroomSeminarController extends Controller
                 'presentation' => (float)$ev->presentation,
                 'interaction' => (float)$ev->interaction,
                 'report' => (float)$ev->report,
-                'attendance' => (float)$ev->attendance,
-                'total_score' => (float)$ev->total_score,
+                'attendance' => (float)$attendance,
+                'total_score' => (float)min(75.0, round((float)$ev->relevance + (float)$ev->literature + (float)$ev->presentation + (float)$ev->interaction + (float)$ev->report + (float)$attendance, 2)),
             ];
         })->values();
 
@@ -430,6 +531,14 @@ class R21VirtualClassroomSeminarController extends Controller
                 'reg_no' => $regNo,
                 'my_total' => $totalScore,
                 'average_score' => $averageScore,
+                'seminar_score' => $seminarComponent,
+                'avg_relevance' => $avgRelevance,
+                'avg_literature' => $avgLiterature,
+                'avg_presentation' => $avgPresentation,
+                'avg_interaction' => $avgInteraction,
+                'avg_report' => $avgReport,
+                'attendance_mark' => $attendance,
+                'att_percentage' => $attPercentage,
                 'eval_count' => $evalCount,
                 'letter_grade' => $gradeData['grade'],
                 'grade_point' => $gradeData['point'],
@@ -442,6 +551,120 @@ class R21VirtualClassroomSeminarController extends Controller
                 'guide_name' => $updatedReg && $updatedReg->guide ? $updatedReg->guide->name : null,
                 'guide_mobile_no' => $updatedReg ? $updatedReg->guide_mobile_no : null,
             ]
+        ]);
+    }
+
+    /**
+     * Batch Save Seminar Evaluations from Inline Table
+     */
+    public function saveBatchEvaluations(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $evaluations = $request->input('evaluations', []);
+        if (!is_array($evaluations) || empty($evaluations)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No evaluations provided.'], 422);
+        }
+
+        $savedCount = 0;
+        foreach ($evaluations as $item) {
+            $regNo = $item['reg_no'] ?? null;
+            if (!$regNo) continue;
+
+            $relevance = isset($item['relevance']) ? min(7.5, max(0.0, round((float)$item['relevance'], 2))) : 0.0;
+            $literature = isset($item['literature']) ? min(7.5, max(0.0, round((float)$item['literature'], 2))) : 0.0;
+            $presentation = isset($item['presentation']) ? min(37.5, max(0.0, round((float)$item['presentation'], 2))) : 0.0;
+            $interaction = isset($item['interaction']) ? min(7.5, max(0.0, round((float)$item['interaction'], 2))) : 0.0;
+            $report = isset($item['report']) ? min(7.5, max(0.0, round((float)$item['report'], 2))) : 0.0;
+
+            // Attendance from TEAMS
+            $officialAttendance = DB::table('student_attendance')
+                ->where('reg_no', $regNo)
+                ->where('subject_code', $batchSubject->subject_code)
+                ->get();
+
+            if ($officialAttendance->isNotEmpty()) {
+                $offTot = $officialAttendance->count();
+                $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
+                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+            } else {
+                $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
+                if ($classLogs->isNotEmpty()) {
+                    $offTot = $classLogs->count();
+                    $offPres = 0;
+                    foreach ($classLogs as $cl) {
+                        $pList = json_decode($cl->present_students, true) ?: [];
+                        if (in_array($regNo, $pList)) $offPres++;
+                    }
+                    $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
+                } else {
+                    $attPercentage = 100.0;
+                }
+            }
+
+            $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            $totalScore = min(75.0, round($relevance + $literature + $presentation + $interaction + $report + $attendance, 2));
+
+            // Assessor
+            $assessorMobile = $userId;
+            if (!StaffProfile::where('mobile_no', $assessorMobile)->exists()) {
+                $fallback = DB::table('subject_staff_assignments')->where('batch_subject_id', $subjectId)->value('staff_mobile_no') ?: StaffProfile::value('mobile_no');
+                if ($fallback) $assessorMobile = $fallback;
+            }
+
+            SeminarEvaluation::updateOrCreate(
+                [
+                    'batch_subject_id' => $subjectId,
+                    'reg_no' => $regNo,
+                    'assessor_mobile_no' => $assessorMobile
+                ],
+                [
+                    'relevance' => $relevance,
+                    'literature' => $literature,
+                    'presentation' => $presentation,
+                    'interaction' => $interaction,
+                    'report' => $report,
+                    'attendance' => $attendance,
+                    'total_score' => $totalScore
+                ]
+            );
+
+            // Committee average & AcademicMark
+            $studentAllEvals = SeminarEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->get();
+            $avgRelevance = round($studentAllEvals->avg('relevance'), 2);
+            $avgLiterature = round($studentAllEvals->avg('literature'), 2);
+            $avgPresentation = round($studentAllEvals->avg('presentation'), 2);
+            $avgInteraction = round($studentAllEvals->avg('interaction'), 2);
+            $avgReport = round($studentAllEvals->avg('report'), 2);
+            $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
+            $averageScore = min(75, (int)round($seminarComponent + $attendance));
+
+            AcademicMark::updateOrCreate(
+                [
+                    'reg_no' => $regNo,
+                    'subject_code' => $batchSubject->subject_code,
+                    'category' => 'Seminar'
+                ],
+                [
+                    'batch_subject_id' => $subjectId,
+                    'co_tag' => 'CO1',
+                    'max_marks' => 75,
+                    'marks_obtained' => $averageScore,
+                    'entered_by' => $assessorMobile
+                ]
+            );
+
+            $savedCount++;
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => "Successfully saved {$savedCount} seminar evaluations.",
+            'saved_count' => $savedCount
         ]);
     }
 
@@ -502,13 +725,24 @@ class R21VirtualClassroomSeminarController extends Controller
      * Print Consolidated Seminar Evaluation Sheet (Clause 11.2.6 - 75M)
      * Supports:
      * - 'consolidated': Full 6-Rubric Clause 11.2.6 Evaluation Register
-     * - 'cia_submission': Official SBTE Final CIA Mark Entry Statement (75M)
+     * - 'internal' / 'cia_submission': Official SBTE Final CIA Mark Entry Statement (75M)
+     * - 'ese' / 'grades': End-Semester Exam & Final SBTE Grade Report (75M)
      * - 'schedule': Seminar Presentation Schedule & Guide Allocation Log
      */
     public function printReport(Request $request, $subjectId)
     {
-        $reportType = $request->query('type', 'consolidated');
-        if (!in_array($reportType, ['consolidated', 'cia_submission', 'schedule'])) {
+        $rawType = strtolower($request->query('type', 'consolidated'));
+        if (in_array($rawType, ['internal', 'cia_submission', 'cia', 'cie'])) {
+            $reportType = 'internal';
+        } elseif (in_array($rawType, ['ese', 'grades', 'grade', 'final', 'results'])) {
+            $reportType = 'ese';
+        } elseif (in_array($rawType, ['attendance', 'att', 'attendance_report'])) {
+            $reportType = 'attendance';
+        } elseif (in_array($rawType, ['topic_splitup', 'topic', 'topics', 'splitup'])) {
+            $reportType = 'topic_splitup';
+        } elseif ($rawType === 'schedule') {
+            $reportType = 'schedule';
+        } else {
             $reportType = 'consolidated';
         }
 
@@ -525,36 +759,59 @@ class R21VirtualClassroomSeminarController extends Controller
         $allEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)->get();
         $seminarRegs = StudentSeminarRegistration::where('batch_subject_id', $subjectId)->with('guide')->get()->keyBy('reg_no');
 
-        // Attendance data from student_attendance
+        // Authoritative official attendance from student_attendance and class_logs_attendance
         $attendanceData = DB::table('student_attendance')
+            ->whereIn('reg_no', $students->pluck('reg_no'))
             ->where('subject_code', $batchSubject->subject_code)
             ->get()
             ->groupBy('reg_no');
 
-        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs, $attendanceData) {
+        $classLogs = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->get();
+
+        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs, $attendanceData, $classLogs) {
             $regNo = $student->reg_no;
             $reg = $seminarRegs->get($regNo);
             $stAllEvals = $allEvaluations->where('reg_no', $regNo);
             $evalCount = $stAllEvals->count();
 
-            // Rubrics
+            // Authoritative Attendance from TEAMS uploaded attendance
+            $stAtt = $attendanceData->get($regNo, collect());
+            if ($stAtt->isNotEmpty()) {
+                $totalAtt = $stAtt->count();
+                $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            } elseif ($classLogs->isNotEmpty()) {
+                $totalAtt = $classLogs->count();
+                $present = 0;
+                foreach ($classLogs as $cl) {
+                    $pList = json_decode($cl->present_students, true) ?: [];
+                    if (in_array($regNo, $pList)) $present++;
+                }
+                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 100.0;
+            } else {
+                $attPercentage = 100.0;
+            }
+
+            // Rev 2021: Statutory Attendance mark (Max 7.5M per Clause 11.2.6)
+            $attendanceComponent = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+
+            // Averaged Presentation Rubrics across committee faculty
             $avgRelevance = $evalCount > 0 ? round($stAllEvals->avg('relevance'), 2) : 0;
             $avgLiterature = $evalCount > 0 ? round($stAllEvals->avg('literature'), 2) : 0;
             $avgPresentation = $evalCount > 0 ? round($stAllEvals->avg('presentation'), 2) : 0;
             $avgInteraction = $evalCount > 0 ? round($stAllEvals->avg('interaction'), 2) : 0;
             $avgReport = $evalCount > 0 ? round($stAllEvals->avg('report'), 2) : 0;
-            $avgAttendance = $evalCount > 0 ? round($stAllEvals->avg('attendance'), 2) : 0;
-            $finalAvgScore = $evalCount > 0 ? round($stAllEvals->avg('total_score'), 2) : 0;
-
-            // Attendance from attendance log
-            $stAtt = $attendanceData->get($regNo, collect());
-            $totalAtt = $stAtt->count();
-            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 100.0;
 
             // Splitup components: Seminar evaluation (67.5M) + Attendance (7.5M) = 75M
-            $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
-            $attendanceComponent = round($avgAttendance, 2);
+            $seminarComponent = ($evalCount > 0)
+                ? round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2)
+                : 0;
+
+            $finalAvgScore = ($evalCount > 0)
+                ? min(75, (int)round($seminarComponent + $attendanceComponent))
+                : 0;
 
             $gradeData = self::calculateSbteGrade($finalAvgScore, $evalCount > 0);
 
@@ -571,7 +828,7 @@ class R21VirtualClassroomSeminarController extends Controller
                 'presentation' => $avgPresentation,
                 'interaction' => $avgInteraction,
                 'report' => $avgReport,
-                'attendance' => $avgAttendance,
+                'attendance' => $attendanceComponent,
                 'seminar_score' => $seminarComponent,
                 'attendance_score' => $attendanceComponent,
                 'total_score' => $finalAvgScore,
@@ -672,7 +929,7 @@ class R21VirtualClassroomSeminarController extends Controller
     public static function numberToWords($num)
     {
         if ($num === null || $num === '' || !is_numeric($num)) return '—';
-        $num = round((float)$num, 2);
+        $num = (int)round((float)$num);
         
         $ones = [
             0 => 'Zero', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',

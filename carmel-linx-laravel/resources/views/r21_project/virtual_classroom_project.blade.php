@@ -80,9 +80,24 @@
             scrollbar-width: none;
         }
         .tab-btn.active {
-            color: #38bdf8;
-            border-bottom-color: #38bdf8;
-            background-color: rgba(56, 189, 248, 0.08);
+            border: 2px solid #38bdf8 !important;
+            background-color: rgba(56, 189, 248, 0.12) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25) !important;
+            border-radius: 0.75rem !important;
+            font-weight: 700 !important;
+        }
+        .tab-btn:not(.active) {
+            border: 1px solid transparent !important;
+            color: #94a3b8 !important;
+            background-color: transparent !important;
+            border-radius: 0.75rem !important;
+            font-weight: 500 !important;
+        }
+        .tab-btn:not(.active):hover {
+            color: #e2e8f0 !important;
+            background-color: #0f172a !important;
+            border-color: rgba(30, 41, 59, 0.8) !important;
         }
     </style>
 </head>
@@ -256,36 +271,38 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs Strip (No Horizontal Scrollbar, Responsive Wrap) -->
-    <div class="px-5 bg-[#0f172a] border-b border-slate-800 flex flex-wrap items-center gap-1 overflow-x-hidden no-scrollbar py-1">
-        <button onclick="switchTab('tab-register')" id="btn-tab-register" class="tab-btn active px-3 py-2 text-xs font-bold border-b-2 border-transparent hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base">table_chart</span>
-            <span>Consolidated (125M)</span>
-        </button>
-        <button onclick="switchTab('tab-cia')" id="btn-tab-cia" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base text-emerald-400">edit_note</span>
-            <span>Continuous Assessment (CIA 75M)</span>
-        </button>
-        <button onclick="switchTab('tab-ese')" id="btn-tab-ese" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base text-amber-400">gavel</span>
-            <span>End Semester Evaluation (ESE 50M)</span>
-        </button>
-        <button onclick="switchTab('tab-reports')" id="btn-tab-reports" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base text-sky-400">print</span>
-            <span>Reports &amp; Statements</span>
-        </button>
-        <button onclick="switchTab('tab-groups')" id="btn-tab-groups" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base">workspaces</span>
-            <span>Project Groups</span>
-        </button>
-        <button onclick="switchTab('tab-attainment')" id="btn-tab-attainment" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base text-purple-400">assignment_turned_in</span>
-            <span>Exit Survey &amp; Attainment</span>
-        </button>
-        <button onclick="switchTab('tab-rubrics')" id="btn-tab-rubrics" class="tab-btn px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-sky-400 transition-all flex items-center gap-1.5 rounded-t-lg shrink-0">
-            <span class="material-symbols-rounded text-base">menu_book</span>
-            <span>SBTE Rubrics</span>
-        </button>
+    <!-- Navigation Tabs Strip (Virtual Theory Classroom R-2021 Model) -->
+    <div class="bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg my-3 mx-4 sm:mx-6">
+        <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <button onclick="switchTab('tab-register')" id="btn-tab-register" class="tab-btn active px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-sky-400">table_chart</span>
+                <span>Consolidated (125M)</span>
+            </button>
+            <button onclick="switchTab('tab-cia')" id="btn-tab-cia" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-emerald-400">edit_note</span>
+                <span>Continuous Assessment (CIA 75M)</span>
+            </button>
+            <button onclick="switchTab('tab-ese')" id="btn-tab-ese" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-amber-400">gavel</span>
+                <span>End Semester Evaluation (ESE 50M)</span>
+            </button>
+            <button onclick="switchTab('tab-reports')" id="btn-tab-reports" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-sky-400">print</span>
+                <span>Reports &amp; Statements</span>
+            </button>
+            <button onclick="switchTab('tab-groups')" id="btn-tab-groups" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-indigo-400">workspaces</span>
+                <span>Project Groups</span>
+            </button>
+            <button onclick="switchTab('tab-attainment')" id="btn-tab-attainment" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-purple-400">assignment_turned_in</span>
+                <span>Exit Survey &amp; Attainment</span>
+            </button>
+            <button onclick="switchTab('tab-rubrics')" id="btn-tab-rubrics" class="tab-btn px-4 py-2.5 text-xs md:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-rounded text-base text-blue-400">menu_book</span>
+                <span>SBTE Rubrics</span>
+            </button>
+        </nav>
     </div>
 
     <!-- Main Content Container -->
@@ -358,7 +375,7 @@
                                         {{ number_format($st['attendance_marks'], 1) }}
                                     </td>
                                     <td class="text-center font-mono font-bold bg-slate-900/80 text-sky-300">
-                                        {{ number_format($st['total_cia_75'], 1) }}
+                                        {{ round($st['total_cia_75']) }}
                                     </td>
                                     <td class="text-center font-mono font-bold bg-amber-950/20 text-amber-300">
                                         {{ number_format($st['total_ese_50'], 1) }}
@@ -488,7 +505,7 @@
                 @php
                     $firstM = $members->first();
                     $evalCount = $members->where('has_eval', true)->count();
-                    $avgGroupCia = $evalCount > 0 ? round($members->where('has_eval', true)->avg('total_cia_75'), 1) : 0.0;
+                    $avgGroupCia = $evalCount > 0 ? round($members->where('has_eval', true)->avg('total_cia_75')) : 0;
                 @endphp
                 <div class="glass-panel overflow-hidden border border-slate-700/80 shadow-lg">
                     <!-- Group Header with Quick Common CIA Action -->
@@ -568,7 +585,7 @@
                                             {{ number_format($st['summative_dept_marks'], 1) }}
                                         </td>
                                         <td class="text-center font-mono font-bold text-sky-300 bg-slate-900/80 text-sm">
-                                            {{ number_format($st['total_cia_75'], 1) }}
+                                            {{ round($st['total_cia_75']) }}
                                         </td>
                                         <td class="text-center font-bold">
                                             @if(!empty($st['cia_grade']) && $st['cia_grade'] !== '—')
@@ -1023,7 +1040,7 @@
                 @php
                     $firstM = $members->first();
                     $evalCount = $members->where('has_eval', true)->count();
-                    $avgGroupCia = $evalCount > 0 ? round($members->where('has_eval', true)->avg('total_cia_75'), 1) : 0.0;
+                    $avgGroupCia = $evalCount > 0 ? round($members->where('has_eval', true)->avg('total_cia_75')) : 0;
                     $avgGroupEse = $evalCount > 0 ? round($members->where('has_eval', true)->avg('total_ese_50'), 1) : 0.0;
                     $avgGroupTotal = $evalCount > 0 ? round($members->where('has_eval', true)->avg('grand_total_125'), 1) : 0.0;
                     $passCount = $members->where('passed', true)->count();
@@ -1112,7 +1129,7 @@
                                         <td class="text-center font-mono">{{ number_format($st['summative_dept_marks'], 1) }}</td>
                                         <td class="text-center font-mono">{{ number_format($st['attendance_marks'], 1) }}</td>
                                         <td class="text-center font-mono font-bold text-sky-300 bg-slate-900/60">
-                                            {{ number_format($st['total_cia_75'], 1) }}
+                                            {{ round($st['total_cia_75']) }}
                                         </td>
 
                                         <!-- ESE Rubrics -->

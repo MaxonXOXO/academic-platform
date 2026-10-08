@@ -795,7 +795,7 @@ class AttendanceController extends Controller
         $staffMobile = Session::get('userId');
         $role = Session::get('userRole');
 
-        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Demonstrator', 'Workshop Superintendent', 'Principal', 'Admin', 'Super_Admin'])) {
+        if (!$staffMobile || !in_array($role, ['Tutor', 'HOD', 'Lecturer', 'Demonstrator', 'Workshop Superintendent', 'Principal', 'Admin', 'Super_Admin', 'Workshop_Instructor', 'Workshop Instructor', 'Tradesman', 'Trade_Instructor'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 

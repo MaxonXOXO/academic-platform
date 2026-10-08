@@ -230,7 +230,10 @@
 
     <!-- Active Profile Info -->
     <div class="p-4 bg-slate-900/40 border-b border-slate-800/40 flex items-center gap-3" id="sidebarAvatarContainer">
-      <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+      <div class="relative shrink-0">
+        <img src="{{ session('userPhoto') ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' }}" class="w-11 h-11 rounded-full border border-slate-700 object-cover shadow-inner">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>
+      </div>
       <div class="overflow-hidden">
         <span class="font-black text-base block truncate text-white leading-tight">{{ session('userName') }}</span>
         <span class="text-xs font-bold text-teal-400 block uppercase tracking-wider">General SF Coordinator</span>
@@ -653,7 +656,10 @@
               tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/30';
               tr.innerHTML = `
                 <td class="p-4 flex items-center gap-3">
-                  <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
+                  <div class="relative shrink-0">
+                    <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-8 h-8 rounded-full object-cover border border-slate-800 shadow">
+                    ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+                  </div>
                   <div>
                     <span class="font-bold text-slate-100 block">${user.name}</span>
                     <span class="text-[10px] text-slate-500 block">${user.email}</span>

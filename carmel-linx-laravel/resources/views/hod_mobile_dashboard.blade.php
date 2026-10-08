@@ -38,7 +38,7 @@
         :root {
             --bg-primary: #0b0f19;
             --bg-card: rgba(17, 24, 39, 0.85);
-            --bg-card-border: rgba(30, 41, 59, 0.8);
+            --bg-card-border: rgba(71, 85, 105, 0.5);
             --bg-header: rgba(11, 15, 25, 0.95);
             --bg-bottom-nav: rgba(15, 23, 42, 0.95);
             --text-main: #f8fafc;
@@ -121,9 +121,7 @@
     <!-- FIXED TOP HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 px-4 py-2.5 border-b flex items-center justify-between shadow-lg" style="background: var(--bg-header); border-color: var(--bg-card-border);">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-black flex items-center justify-center shadow-md border border-blue-400/40 text-xs tracking-wider">
-                CL
-            </div>
+            <img src="{{ asset('logo.jpg') }}" alt="Carmel Linx" class="w-9 h-9 rounded-xl object-cover shadow-md border border-slate-700/60">
             <div>
                 <div class="flex items-center gap-2">
                     <h1 class="font-extrabold text-sm tracking-tight leading-none bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-300 bg-clip-text text-transparent">Carmel Linx</h1>
@@ -131,7 +129,6 @@
                         HOD Portal
                     </span>
                 </div>
-                <p class="text-[10px] font-semibold mt-0.5" style="color: var(--text-muted);">Department Management Hub</p>
             </div>
         </div>
 
@@ -171,31 +168,33 @@
                         <div class="flex items-center gap-2">
                             <h2 class="font-extrabold text-base tracking-tight text-white leading-tight">{{ $staff->name ?? 'HOD Officer' }}</h2>
                         </div>
-                        <p class="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-1.5">
+                        <p class="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
                             <i class="fa-solid fa-user-shield text-blue-400 text-[10px]"></i>
                             <span>Head of Department</span>
+                            @if(!empty($isSfCoordinator))
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+                                    <i class="fa-solid fa-graduation-cap text-[8px] mr-0.5 text-cyan-400"></i> SF Coordinator
+                                </span>
+                            @endif
                         </p>
                     </div>
                 </div>
 
-                <div class="flex flex-col items-end">
+                <div>
                     <span class="text-[10px] font-mono px-2 py-1 rounded-xl bg-blue-950/80 text-blue-300 border border-blue-700/50 shadow-inner font-bold">
                         {{ $dept }}
                     </span>
                 </div>
             </div>
 
-            <!-- Workspace Switcher inside Title Card -->
-            <div class="mt-3.5 pt-3 border-t border-slate-800/80 flex items-center justify-between relative z-10">
-                <span class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-layer-group text-blue-400 text-xs"></i> Active Workspace:
-                </span>
-                <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-                    <button id="modeBtnHod" onclick="setWorkingMode('hod')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm">
-                        <i class="fa-solid fa-user-shield text-[10px] mr-1"></i> HOD Admin
+            <!-- Mode Switcher Tabs inside Title Card -->
+            <div class="mt-3.5 pt-3 border-t border-slate-800/80 relative z-10">
+                <div class="grid grid-cols-2 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+                    <button id="modeBtnHod" onclick="setWorkingMode('hod')" class="py-1.5 text-center rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-user-shield text-[10px]"></i> HOD Mode
                     </button>
-                    <button id="modeBtnFaculty" onclick="setWorkingMode('faculty')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-chalkboard-user text-[10px] mr-1"></i> Faculty Mode
+                    <button id="modeBtnFaculty" onclick="setWorkingMode('faculty')" class="py-1.5 text-center rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-[10px]"></i> Faculty Mode
                     </button>
                 </div>
             </div>
@@ -209,6 +208,106 @@
         <!-- TAB 1: OVERVIEW & DASHBOARD -->
         <!-- ========================================== -->
         <div id="tab-overview" class="tab-panel active space-y-4">
+
+            @if(!empty($isSfHod) && $isSfHod)
+            <!-- SELF-FINANCE HOD BIOMETRIC FACE PUNCH ATTENDANCE CARD -->
+            <div class="glass-card rounded-2xl p-3.5 border border-sky-500/40 shadow-xl relative overflow-hidden bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-sky-950/40">
+                <!-- Glowing corner accent -->
+                <div class="absolute -right-8 -top-8 w-24 h-24 bg-sky-500/20 rounded-full blur-xl pointer-events-none"></div>
+
+                <!-- Header & Punch Action Button -->
+                <div class="flex items-center justify-between gap-2 relative z-10">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-500 flex items-center justify-center text-white text-base shadow-lg shadow-sky-500/30 flex-shrink-0">
+                            <i class="fa-solid fa-camera-rotate"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h3 class="font-extrabold text-sm text-white tracking-tight leading-tight">SF Biometric Attendance</h3>
+                                @if(!empty($isCompleted))
+                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check text-[8px]"></i> COMPLETED
+                                    </span>
+                                @elseif(!empty($isPunchedIn))
+                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm flex items-center gap-1">
+                                        <i class="fa-solid fa-right-to-bracket text-[8px]"></i> CHECKED IN
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                        <i class="fa-solid fa-clock text-[8px]"></i> NOT PUNCHED
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Self-Finance Facial Geofence Punch</p>
+                        </div>
+                    </div>
+
+                    <div class="flex-shrink-0">
+                        @if(!empty($isCompleted))
+                            <a href="/sf-attendance/face-punch" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/40 flex items-center gap-1.5 transition-all shadow-sm no-underline">
+                                <i class="fa-solid fa-circle-check text-[11px]"></i> Punch Log
+                            </a>
+                        @elseif(!empty($isPunchedIn))
+                            <a href="/sf-attendance/face-punch" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 border border-sky-400/40 flex items-center gap-1.5 transition-all shadow-lg shadow-sky-600/30 no-underline">
+                                <i class="fa-solid fa-camera text-[11px]"></i> Punch OUT
+                            </a>
+                        @else
+                            <a href="/sf-attendance/face-punch" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 border border-emerald-400/40 flex items-center gap-1.5 transition-all shadow-lg shadow-emerald-600/30 no-underline">
+                                <i class="fa-solid fa-camera text-[11px]"></i> Punch IN
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Prominent Punch Timings Strip -->
+                <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/80 flex-wrap gap-2 relative z-10 text-xs">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- IN Time -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <i class="fa-solid fa-sun text-amber-400 mr-0.5"></i> IN:
+                            </span>
+                            <span class="font-mono font-black text-xs {{ !empty($isPunchedIn) ? 'text-emerald-400' : 'text-slate-500' }}">
+                                {{ $inTimeFormatted ?? '--:--' }}
+                            </span>
+                            @if(!empty($isPunchedIn))
+                                <span class="px-1.5 py-0.5 text-[8px] font-black rounded {{ $inStatusLabel === 'LATE IN' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : ($inStatusLabel === 'EARLY IN' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30') }}">
+                                    {{ $inStatusLabel }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- OUT Time -->
+                        <div class="flex items-center gap-1.5 pl-2.5 border-l border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <i class="fa-solid fa-moon text-sky-400 mr-0.5"></i> OUT:
+                            </span>
+                            <span class="font-mono font-black text-xs {{ !empty($isPunchedOut) ? 'text-sky-400' : 'text-slate-500' }}">
+                                {{ $outTimeFormatted ?? '--:--' }}
+                            </span>
+                            @if(!empty($isPunchedOut))
+                                <span class="px-1.5 py-0.5 text-[8px] font-black rounded {{ $outStatusLabel === 'EARLY OUT' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : ($outStatusLabel === 'LATE OUT' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30') }}">
+                                    {{ $outStatusLabel }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Campus Stopwatch / Geofence Status -->
+                    <div>
+                        @if(!empty($campusHours))
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                                <i class="fa-solid fa-stopwatch text-amber-400"></i> {{ $campusHours }}
+                            </span>
+                        @else
+                            <span class="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-sky-400"></i> Geofence Lock
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- PROMINENT NOTIFICATIONS & SEMINARS FEED (HOME TAB) -->
             <div class="glass-card rounded-2xl p-4 border border-slate-700/60 shadow-lg space-y-3">
@@ -281,51 +380,31 @@
                 </div>
             </div>
 
-            <!-- Department Quick Stats Grid -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="glass-card rounded-2xl p-3.5 border border-slate-700/60 flex flex-col justify-between">
+            <!-- Quick Pending Leaves Grid -->
+            <div class="grid {{ !empty($isSfCoordinator) ? 'grid-cols-2' : 'grid-cols-1' }} gap-3">
+                <div onclick="switchStaffTab('tab-approvals'); switchApprovalSubTab('staff');" class="glass-card rounded-2xl p-3.5 border border-slate-700/60 flex flex-col justify-between cursor-pointer active:scale-95 transition-all hover:border-amber-500/50">
                     <div class="flex items-center justify-between text-slate-400">
-                        <span class="text-xs font-bold">Pending Staff Leaves</span>
+                        <span class="text-xs font-bold text-slate-300">Dept Staff Leaves</span>
                         <i class="fa-solid fa-user-clock text-amber-400"></i>
                     </div>
                     <div class="mt-2">
                         <span class="text-2xl font-black text-amber-400">{{ count($pendingStaffLeaves) }}</span>
-                        <p class="text-[10px] mt-0.5 text-slate-400">Requires HOD Approval</p>
+                        <p class="text-[10px] mt-0.5 text-slate-400">HOD Approval Queue</p>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-2xl p-3.5 border border-slate-700/60 flex flex-col justify-between">
+                @if(!empty($isSfCoordinator))
+                <div onclick="switchStaffTab('tab-approvals'); switchApprovalSubTab('coordinator');" class="glass-card rounded-2xl p-3.5 border border-indigo-500/30 flex flex-col justify-between cursor-pointer active:scale-95 transition-all hover:border-indigo-400/50 bg-gradient-to-br from-slate-900/90 to-indigo-950/40">
                     <div class="flex items-center justify-between text-slate-400">
-                        <span class="text-xs font-bold">Active Dept Batches</span>
-                        <i class="fa-solid fa-graduation-cap text-emerald-400"></i>
+                        <span class="text-xs font-bold text-slate-200">SF Staff Leaves</span>
+                        <i class="fa-solid fa-graduation-cap text-cyan-400"></i>
                     </div>
                     <div class="mt-2">
-                        <span class="text-2xl font-black text-emerald-400">{{ count($deptBatches) }}</span>
-                        <p class="text-[10px] mt-0.5 text-slate-400">{{ $dept }} Classrooms</p>
+                        <span class="text-2xl font-black text-cyan-300">{{ count($pendingSfCoordinatorLeaves) }}</span>
+                        <p class="text-[10px] mt-0.5 text-indigo-300 font-medium">Coordinator Clearance</p>
                     </div>
                 </div>
-
-                <div class="glass-card rounded-2xl p-3.5 border border-slate-700/60 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400">
-                        <span class="text-xs font-bold">Pending Student Leaves</span>
-                        <i class="fa-solid fa-hospital-user text-rose-400"></i>
-                    </div>
-                    <div class="mt-2">
-                        <span class="text-2xl font-black text-rose-400">{{ count($pendingStudentLeaves) }}</span>
-                        <p class="text-[10px] mt-0.5 text-slate-400">Student Requests</p>
-                    </div>
-                </div>
-
-                <div class="glass-card rounded-2xl p-3.5 border border-slate-700/60 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400">
-                        <span class="text-xs font-bold">Department Staff</span>
-                        <i class="fa-solid fa-id-card-clip text-purple-400"></i>
-                    </div>
-                    <div class="mt-2">
-                        <span class="text-2xl font-black text-purple-400">{{ count($deptStaff) }}</span>
-                        <p class="text-[10px] mt-0.5 text-slate-400">Registered Faculty</p>
-                    </div>
-                </div>
+                @endif
             </div>
 
             <!-- UNIFIED DAY ORDER & DATE CARD WITH DAY SWITCH POPUP -->
@@ -355,7 +434,7 @@
             </div>
 
             <!-- 3-SEMESTER BRANCH TIMETABLE & LIVE CLASS MONITOR -->
-            <div class="glass-card rounded-2xl p-4 border border-slate-700/60 shadow-lg space-y-3">
+            <div class="glass-card rounded-2xl p-4 border border-slate-600/80 shadow-lg space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
                     <h3 class="font-extrabold text-xs uppercase tracking-wider text-sky-400 flex items-center gap-2">
                         <i class="fa-solid fa-clock text-sky-400 text-sm"></i>
@@ -380,6 +459,15 @@
                 <!-- Semester Periods Content List -->
                 @foreach([1, 3, 5] as $semNum)
                     <div id="semTtPane{{ $semNum }}" class="sem-tt-pane {{ $semNum == 1 ? '' : 'hidden' }} space-y-2">
+                        @if($semNum == 3 || $semNum == 5)
+                            <div class="p-2 rounded-xl bg-sky-950/40 border border-sky-500/20 flex items-center justify-between text-[11px] text-sky-300">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-sky-400"></i>
+                                    <span>Rev 2021 classes ended on 06 Oct. Timetable closed for exams.</span>
+                                </span>
+                                <span class="font-mono text-[10px] text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">Exams: 13 Oct</span>
+                            </div>
+                        @endif
                         @if(isset($semesterSchedules[$semNum]))
                             <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
                                 <span>Subjects: <strong class="text-slate-200">{{ $semesterSchedules[$semNum]['subjects_count'] }}</strong></span>
@@ -398,7 +486,7 @@
                                             </div>
                                         </div>
                                         <span class="px-2 py-0.5 text-[9px] font-black rounded-full {{ $period['badge_class'] }}">
-                                            {{ $period['status'] }}
+                                             {{ $period['status'] }}
                                         </span>
                                     </div>
                                 @endforeach
@@ -409,20 +497,38 @@
             </div>
 
             <!-- Action & To-Do Center -->
-            <div class="glass-card rounded-2xl p-4 border border-slate-700/60">
+            <div class="glass-card rounded-2xl p-4 border border-slate-700/80 shadow-md">
                 <div class="flex items-center justify-between border-b pb-3 mb-3" style="border-color: var(--bg-card-border);">
                     <h3 class="font-bold text-sm flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-blue-400"></i>
                         <span>HOD To-Do & Action Center</span>
                     </h3>
                     <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                        {{ count($pendingStaffLeaves) + count($pendingStudentLeaves) }} Actions
+                        {{ count($pendingStaffLeaves) + (!empty($isSfCoordinator) ? count($pendingSfCoordinatorLeaves) : 0) }} Actions
                     </span>
                 </div>
 
                 <div class="space-y-2.5">
+                    @if(!empty($isSfCoordinator) && count($pendingSfCoordinatorLeaves) > 0)
+                        <div onclick="switchStaffTab('tab-approvals'); switchApprovalSubTab('coordinator');" class="p-3 rounded-xl bg-gradient-to-r from-indigo-950/70 to-slate-900/90 border border-indigo-500/40 flex items-center justify-between cursor-pointer hover:border-indigo-400 transition-all shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-cyan-400 border border-indigo-500/30 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-graduation-cap text-xs"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                        <span>{{ count($pendingSfCoordinatorLeaves) }} SF Staff Leaves</span>
+                                        <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 uppercase">Coordinator</span>
+                                    </h4>
+                                    <p class="text-[10px] text-slate-300">Self-Financing faculty leaves awaiting coordinator clearance</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-cyan-400 text-xs"></i>
+                        </div>
+                    @endif
+
                     @if(count($pendingStaffLeaves) > 0)
-                        <div onclick="switchStaffTab('tab-approvals')" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between cursor-pointer hover:bg-amber-500/20 transition-all">
+                        <div onclick="switchStaffTab('tab-approvals'); switchApprovalSubTab('staff');" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between cursor-pointer hover:bg-amber-500/20 transition-all">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
                                     <i class="fa-solid fa-user-clock text-xs"></i>
@@ -433,21 +539,6 @@
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-right text-amber-400 text-xs"></i>
-                        </div>
-                    @endif
-
-                    @if(count($pendingStudentLeaves) > 0)
-                        <div onclick="switchStaffTab('tab-approvals')" class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between cursor-pointer hover:bg-rose-500/20 transition-all">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold">
-                                    <i class="fa-solid fa-hospital-user text-xs"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xs font-bold text-rose-300">{{ count($pendingStudentLeaves) }} Student Leave Applications</h4>
-                                    <p class="text-[10px] text-slate-400">Department student leave queue</p>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-rose-400 text-xs"></i>
                         </div>
                     @endif
 
@@ -467,7 +558,7 @@
                         </div>
                     @endif
 
-                    @if(count($pendingStaffLeaves) == 0 && count($pendingStudentLeaves) == 0)
+                    @if(count($pendingStaffLeaves) == 0 && (empty($isSfCoordinator) || count($pendingSfCoordinatorLeaves) == 0))
                         <div class="text-center py-6 text-slate-500">
                             <i class="fa-solid fa-circle-check text-2xl text-emerald-500/50 mb-2"></i>
                             <p class="text-xs font-medium">All department approval queues are up to date!</p>
@@ -507,20 +598,22 @@
         <div id="tab-approvals" class="tab-panel space-y-4">
             
             <!-- Approvals Sub-Filter Tabs -->
-            <div class="flex items-center gap-2 border-b pb-2" style="border-color: var(--bg-card-border);">
-                <button id="subTabStaff" onclick="switchApprovalSubTab('staff')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow">
+            @if(!empty($isSfCoordinator))
+            <div class="flex items-center gap-2 border-b pb-2 overflow-x-auto no-scrollbar" style="border-color: var(--bg-card-border);">
+                <button id="subTabStaff" onclick="switchApprovalSubTab('staff')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow whitespace-nowrap">
                     Staff Leaves ({{ count($pendingStaffLeaves) }})
                 </button>
-                <button id="subTabStudent" onclick="switchApprovalSubTab('student')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white bg-slate-800/60 border border-slate-700/50">
-                    Student Leaves ({{ count($pendingStudentLeaves) }})
+                <button id="subTabCoordinator" onclick="switchApprovalSubTab('coordinator')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-indigo-300 hover:text-white bg-indigo-950/60 border border-indigo-700/60 whitespace-nowrap">
+                    <i class="fa-solid fa-graduation-cap text-[10px] mr-1 text-cyan-400"></i> SF Leaves ({{ count($pendingSfCoordinatorLeaves) }})
                 </button>
             </div>
+            @endif
 
             <!-- SUB-TAB 1: STAFF LEAVES -->
             <div id="approvalsSubStaff" class="space-y-3">
                 @if(count($pendingStaffLeaves) > 0)
                     @foreach($pendingStaffLeaves as $leave)
-                        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500 space-y-3">
+                        <div class="glass-card rounded-2xl p-4 border border-slate-700/90 border-l-4 border-l-amber-500 space-y-3 shadow-md">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -562,67 +655,204 @@
 
                             <!-- Approval Action Buttons -->
                             <div class="flex items-center gap-2 pt-1">
-                                <button onclick="openStaffLeaveActionModal({{ $leave->id }}, '{{ $leave->staff_name }}', 'Approved')" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all">
-                                    <i class="fa-solid fa-check text-xs"></i> Approve Leave
+                                <button type="button" onclick="quickApproveStaffLeave({{ $leave->id }}, '{{ addslashes($leave->staff_name) }}')" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all">
+                                    <i class="fa-solid fa-check text-xs"></i> Quick Approve
                                 </button>
-                                <button onclick="openStaffLeaveActionModal({{ $leave->id }}, '{{ $leave->staff_name }}', 'Rejected')" class="flex-1 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+                                <button type="button" onclick="openStaffLeaveActionModal({{ $leave->id }}, '{{ addslashes($leave->staff_name) }}', 'Rejected')" class="flex-1 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
                                     <i class="fa-solid fa-xmark text-xs"></i> Reject
+                                </button>
+                                <button type="button" onclick="openStaffLeaveActionModal({{ $leave->id }}, '{{ addslashes($leave->staff_name) }}', 'Approved')" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs flex items-center justify-center transition-all" title="Approve with Remarks">
+                                    <i class="fa-solid fa-comment-dots text-xs"></i>
                                 </button>
                             </div>
                         </div>
                     @endforeach
                 @else
-                    <div class="glass-card rounded-2xl p-8 text-center text-slate-500">
-                        <i class="fa-solid fa-clipboard-check text-3xl text-emerald-500/40 mb-2"></i>
+                    <div class="glass-card rounded-2xl p-6 text-center text-slate-500 space-y-2">
+                        <i class="fa-solid fa-clipboard-check text-3xl text-emerald-500/40"></i>
                         <h4 class="text-sm font-bold text-slate-300">No Pending Staff Leaves</h4>
-                        <p class="text-xs text-slate-400 mt-1">All staff leave applications for {{ $dept }} have been processed.</p>
+                        <p class="text-xs text-slate-400">All staff leave applications for {{ $dept }} have been processed.</p>
+                    </div>
+                @endif
+
+                <!-- Recent Department Staff Leave History -->
+                @if(!empty($recentStaffLeaves) && count($recentStaffLeaves) > 0)
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock-rotate-left text-blue-400 text-[11px]"></i> Recent Department Leaves
+                            </h4>
+                            <a href="/staff/leave/reports" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1 font-semibold no-underline">
+                                Full Ledger <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                        </div>
+                        <div class="space-y-2">
+                            @foreach($recentStaffLeaves as $rLeave)
+                                <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-white text-[11px]">{{ $rLeave->staff_name }}</span>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{{ $rLeave->leave_type }}</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ date('d M', strtotime($rLeave->from_date)) }} — {{ date('d M Y', strtotime($rLeave->to_date)) }} ({{ $rLeave->total_days }}d)</p>
+                                    </div>
+                                    <div>
+                                        @if($rLeave->overall_status === 'Approved')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                Approved
+                                            </span>
+                                        @elseif($rLeave->overall_status === 'Rejected')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                                Rejected
+                                            </span>
+                                        @elseif($rLeave->overall_status === 'Pending_Coordinator')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                                                At Coordinator
+                                            </span>
+                                        @elseif($rLeave->overall_status === 'Pending_Principal')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                                At Principal
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-slate-700 text-slate-300">
+                                                {{ $rLeave->overall_status }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>
 
-            <!-- SUB-TAB 2: STUDENT LEAVES -->
-            <div id="approvalsSubStudent" class="space-y-3 hidden">
-                @if(count($pendingStudentLeaves) > 0)
-                    @foreach($pendingStudentLeaves as $sLeave)
-                        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500 space-y-3">
+            @if(!empty($isSfCoordinator))
+            <!-- SUB-TAB 2: SF COORDINATOR LEAVES -->
+            <div id="approvalsSubCoordinator" class="space-y-3 hidden">
+                <div class="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/40 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 text-white">
+                        <i class="fa-solid fa-graduation-cap text-cyan-400"></i>
+                        <span class="font-bold">SF Academic Coordinator Queue</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-300 font-mono">Stage 2 of 3</span>
+                </div>
+
+                @if(count($pendingSfCoordinatorLeaves) > 0)
+                    @foreach($pendingSfCoordinatorLeaves as $cLeave)
+                        <div class="glass-card rounded-2xl p-4 border border-slate-700/90 border-l-4 border-l-indigo-500 space-y-3 shadow-md">
                             <div class="flex items-start justify-between">
                                 <div>
-                                    <h3 class="font-bold text-sm text-rose-300">{{ $sLeave->student_name }}</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Reg No: <span class="font-mono text-slate-300">{{ $sLeave->reg_no }}</span></p>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-bold text-sm text-white">{{ $cLeave->staff_name }}</h3>
+                                        <span class="px-2 py-0.5 text-[10px] font-black rounded bg-indigo-500/20 text-cyan-300 border border-indigo-500/40">
+                                            {{ $cLeave->department }}
+                                        </span>
+                                        <span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-slate-800 text-slate-300 font-mono">
+                                            {{ $cLeave->leave_type }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $cLeave->designation }} • Code: <span class="font-mono text-slate-300">{{ $cLeave->leave_code }}</span></p>
                                 </div>
                                 <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                                    {{ $sLeave->no_of_days }} Day(s)
+                                    {{ $cLeave->total_days }} {{ $cLeave->total_days == 1 ? 'Day' : 'Days' }}
                                 </span>
                             </div>
 
-                            <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs space-y-1">
+                            <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5 text-xs">
                                 <div class="flex items-center justify-between text-slate-300">
-                                    <span>Date:</span>
-                                    <strong class="font-mono">{{ $sLeave->leave_date }}</strong>
+                                    <span><i class="fa-regular fa-calendar text-cyan-400 mr-1.5"></i> Dates:</span>
+                                    <strong class="font-mono">{{ date('d M Y', strtotime($cLeave->from_date)) }} — {{ date('d M Y', strtotime($cLeave->to_date)) }}</strong>
                                 </div>
                                 <div class="text-slate-400">
-                                    <strong>Reason:</strong> {{ $sLeave->reason }}
+                                    <strong class="text-slate-300">Reason:</strong> {{ $cLeave->reason }}
                                 </div>
+                                <div class="pt-1 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+                                    <span class="text-emerald-400"><i class="fa-solid fa-check-circle mr-1"></i> Dept HOD Approved: {{ $cLeave->hod_name ?? 'HOD' }}</span>
+                                    <span class="text-slate-500 font-mono">{{ $cLeave->hod_action_at ? date('d M H:i', strtotime($cLeave->hod_action_at)) : '' }}</span>
+                                </div>
+
+                                @if(!empty($cLeave->work_arrangement) && is_array($cLeave->work_arrangement))
+                                    <div class="pt-1 border-t border-slate-800/80">
+                                        <strong class="text-[11px] text-indigo-400 block mb-1">Substitute Work Arrangements:</strong>
+                                        <div class="space-y-1">
+                                            @foreach($cLeave->work_arrangement as $arr)
+                                                <div class="text-[11px] bg-slate-800/60 p-1.5 rounded flex items-center justify-between text-slate-300">
+                                                    <span>{{ $arr['date'] ?? '' }} (P{{ $arr['period'] ?? '' }})</span>
+                                                    <span class="font-semibold text-sky-400">{{ $arr['substitute_name'] ?? 'Assigned Staff' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
 
+                            <!-- Coordinator Action Buttons -->
                             <div class="flex items-center gap-2 pt-1">
-                                <button onclick="processStudentLeave({{ $sLeave->id }}, 'Approved')" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all">
-                                    <i class="fa-solid fa-check text-xs"></i> Approve
+                                <button type="button" onclick="quickApproveStaffLeave({{ $cLeave->id }}, '{{ addslashes($cLeave->staff_name) }}', 'Coordinator')" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all">
+                                    <i class="fa-solid fa-check text-xs"></i> Quick Approve
                                 </button>
-                                <button onclick="processStudentLeave({{ $sLeave->id }}, 'Rejected')" class="flex-1 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+                                <button type="button" onclick="openStaffLeaveActionModal({{ $cLeave->id }}, '{{ addslashes($cLeave->staff_name) }}', 'Rejected', 'Coordinator')" class="flex-1 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
                                     <i class="fa-solid fa-xmark text-xs"></i> Reject
+                                </button>
+                                <button type="button" onclick="openStaffLeaveActionModal({{ $cLeave->id }}, '{{ addslashes($cLeave->staff_name) }}', 'Approved', 'Coordinator')" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs flex items-center justify-center transition-all" title="Approve with Remarks">
+                                    <i class="fa-solid fa-comment-dots text-xs"></i>
                                 </button>
                             </div>
                         </div>
                     @endforeach
                 @else
-                    <div class="glass-card rounded-2xl p-8 text-center text-slate-500">
-                        <i class="fa-solid fa-user-check text-3xl text-emerald-500/40 mb-2"></i>
-                        <h4 class="text-sm font-bold text-slate-300">No Pending Student Leaves</h4>
-                        <p class="text-xs text-slate-400 mt-1">Student leave application queue is empty.</p>
+                    <div class="glass-card rounded-2xl p-6 text-center text-slate-500 space-y-2">
+                        <i class="fa-solid fa-clipboard-check text-3xl text-emerald-500/40"></i>
+                        <h4 class="text-sm font-bold text-slate-300">No Pending Coordinator Leaves</h4>
+                        <p class="text-xs text-slate-400">All Self-Financing staff leave applications awaiting Coordinator clearance have been processed.</p>
+                    </div>
+                @endif
+
+                <!-- Recent Coordinator Leaves History -->
+                @if(!empty($recentSfCoordinatorLeaves) && count($recentSfCoordinatorLeaves) > 0)
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock-rotate-left text-cyan-400 text-[11px]"></i> Recent SF Coordinator Decisions
+                            </h4>
+                        </div>
+                        <div class="space-y-2">
+                            @foreach($recentSfCoordinatorLeaves as $rcLeave)
+                                <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-white text-[11px]">{{ $rcLeave->staff_name }}</span>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 font-mono border border-slate-700">{{ $rcLeave->department }}</span>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{{ $rcLeave->leave_type }}</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ date('d M', strtotime($rcLeave->from_date)) }} — {{ date('d M Y', strtotime($rcLeave->to_date)) }} ({{ $rcLeave->total_days }}d)</p>
+                                    </div>
+                                    <div>
+                                        @if($rcLeave->overall_status === 'Approved')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                Approved
+                                            </span>
+                                        @elseif($rcLeave->overall_status === 'Rejected')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                                Rejected
+                                            </span>
+                                        @elseif($rcLeave->overall_status === 'Pending_Principal')
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                                At Principal
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-slate-700 text-slate-300">
+                                                {{ $rcLeave->overall_status }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>
+            @endif
 
         </div>
 
@@ -811,9 +1041,12 @@
         <button onclick="switchStaffTab('tab-approvals')" class="nav-tab-link relative flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-400" id="navBtn-approvals">
             <i class="fa-solid fa-user-check text-base"></i>
             <span>Approvals</span>
-            @if(count($pendingStaffLeaves) + count($pendingStudentLeaves) > 0)
+            @php
+                $totalPendingApprovals = count($pendingStaffLeaves) + (!empty($isSfCoordinator) ? count($pendingSfCoordinatorLeaves) : 0);
+            @endphp
+            @if($totalPendingApprovals > 0)
                 <span class="absolute -top-1 right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-900 font-extrabold text-[9px] flex items-center justify-center">
-                    {{ count($pendingStaffLeaves) + count($pendingStudentLeaves) }}
+                    {{ $totalPendingApprovals }}
                 </span>
             @endif
         </button>
@@ -835,15 +1068,16 @@
     </nav>
 
     <!-- STAFF LEAVE APPROVAL ACTION MODAL -->
-    <div id="staffLeaveModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-        <div class="glass-card rounded-2xl p-5 w-full max-w-sm space-y-4">
+    <div id="staffLeaveModal" style="display: none; z-index: 99999;" class="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-card rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl border border-slate-700">
             <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--bg-card-border);">
                 <h3 id="leaveModalTitle" class="font-bold text-sm text-slate-200">Process Staff Leave</h3>
-                <button onclick="closeStaffLeaveModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" onclick="closeStaffLeaveModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
 
             <input type="hidden" id="modalLeaveId">
             <input type="hidden" id="modalLeaveAction">
+            <input type="hidden" id="modalLeaveStage" value="HOD">
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 mb-1">Remarks (Optional)</label>
@@ -851,10 +1085,10 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="submitStaffLeaveDecision()" id="modalConfirmBtn" class="flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow">
+                <button type="button" onclick="submitStaffLeaveDecision()" id="modalConfirmBtn" class="flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow flex items-center justify-center gap-1.5">
                     Confirm Action
                 </button>
-                <button onclick="closeStaffLeaveModal()" class="py-2.5 px-4 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs border border-slate-700">
+                <button type="button" onclick="closeStaffLeaveModal()" class="py-2.5 px-4 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs border border-slate-700">
                     Cancel
                 </button>
             </div>
@@ -905,20 +1139,22 @@
         // Approval Sub-Tab Filter
         function switchApprovalSubTab(type) {
             const staffSub = document.getElementById('approvalsSubStaff');
-            const studentSub = document.getElementById('approvalsSubStudent');
+            const coordSub = document.getElementById('approvalsSubCoordinator');
             const btnStaff = document.getElementById('subTabStaff');
-            const btnStudent = document.getElementById('subTabStudent');
+            const btnCoord = document.getElementById('subTabCoordinator');
 
-            if (type === 'staff') {
-                staffSub.classList.remove('hidden');
-                studentSub.classList.add('hidden');
-                btnStaff.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow';
-                btnStudent.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white bg-slate-800/60 border border-slate-700/50';
+            if (staffSub) staffSub.classList.add('hidden');
+            if (coordSub) coordSub.classList.add('hidden');
+
+            if (btnStaff) btnStaff.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white bg-slate-800/60 border border-slate-700/50 whitespace-nowrap';
+            if (btnCoord) btnCoord.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-indigo-300 hover:text-white bg-indigo-950/60 border border-indigo-700/60 whitespace-nowrap';
+
+            if (type === 'coordinator') {
+                if (coordSub) coordSub.classList.remove('hidden');
+                if (btnCoord) btnCoord.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow whitespace-nowrap';
             } else {
-                staffSub.classList.add('hidden');
-                studentSub.classList.remove('hidden');
-                btnStudent.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow';
-                btnStaff.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white bg-slate-800/60 border border-slate-700/50';
+                if (staffSub) staffSub.classList.remove('hidden');
+                if (btnStaff) btnStaff.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow whitespace-nowrap';
             }
         }
 
@@ -928,57 +1164,70 @@
             const btnFaculty = document.getElementById('modeBtnFaculty');
 
             if (mode === 'hod') {
-                btnHod.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow';
-                btnFaculty.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+                btnHod.className = 'py-1.5 text-center rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+                btnFaculty.className = 'py-1.5 text-center rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
                 switchStaffTab('tab-overview');
             } else {
-                btnFaculty.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow';
-                btnHod.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+                btnFaculty.className = 'py-1.5 text-center rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+                btnHod.className = 'py-1.5 text-center rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
                 switchStaffTab('tab-mybatches');
             }
         }
 
         // Staff Leave Approval Action Modal
-        function openStaffLeaveActionModal(leaveId, staffName, action) {
+        function openStaffLeaveActionModal(leaveId, staffName, action, stage = 'HOD') {
             document.getElementById('modalLeaveId').value = leaveId;
             document.getElementById('modalLeaveAction').value = action;
+            document.getElementById('modalLeaveStage').value = stage;
             document.getElementById('modalLeaveRemarks').value = '';
 
             const title = document.getElementById('leaveModalTitle');
             const confirmBtn = document.getElementById('modalConfirmBtn');
+            const stageLabel = stage === 'Coordinator' ? ' (SF Coordinator)' : ' (HOD)';
 
             if (action === 'Approved') {
-                title.innerText = 'Approve Leave for ' + staffName;
-                confirmBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 shadow';
-                confirmBtn.innerText = 'Confirm Approval';
+                title.innerText = 'Approve Leave' + stageLabel + ': ' + staffName;
+                confirmBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 shadow flex items-center justify-center gap-1.5';
+                confirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> Confirm Approval';
             } else {
-                title.innerText = 'Reject Leave for ' + staffName;
-                confirmBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow';
-                confirmBtn.innerText = 'Confirm Rejection';
+                title.innerText = 'Reject Leave' + stageLabel + ': ' + staffName;
+                confirmBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow flex items-center justify-center gap-1.5';
+                confirmBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Confirm Rejection';
             }
 
-            document.getElementById('staffLeaveModal').classList.remove('hidden');
+            confirmBtn.disabled = false;
+            const modal = document.getElementById('staffLeaveModal');
+            modal.style.display = 'flex';
         }
 
         function closeStaffLeaveModal() {
-            document.getElementById('staffLeaveModal').classList.add('hidden');
+            const modal = document.getElementById('staffLeaveModal');
+            modal.style.display = 'none';
         }
 
         async function submitStaffLeaveDecision() {
             const leaveId = document.getElementById('modalLeaveId').value;
             const action = document.getElementById('modalLeaveAction').value;
+            const stage = document.getElementById('modalLeaveStage').value || 'HOD';
             const remarks = document.getElementById('modalLeaveRemarks').value;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+
+            if (!leaveId || !action) return;
+
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
             try {
                 const res = await fetch('/api/staff/leave/process-approval', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({
                         leave_id: leaveId,
-                        stage: 'HOD',
+                        stage: stage,
                         action: action,
                         remarks: remarks
                     })
@@ -991,6 +1240,42 @@
                     window.location.reload();
                 } else {
                     alert('Error: ' + (data.message || 'Action failed.'));
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = 'Confirm Action';
+                }
+            } catch (err) {
+                alert('Connection error: ' + err.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Confirm Action';
+            }
+        }
+
+        async function quickApproveStaffLeave(leaveId, staffName, stage = 'HOD') {
+            const roleLabel = stage === 'Coordinator' ? 'SF Academic Coordinator' : 'HOD';
+            if (!confirm('Approve leave application for ' + staffName + ' as ' + roleLabel + '?')) return;
+
+            try {
+                const res = await fetch('/api/staff/leave/process-approval', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        leave_id: leaveId,
+                        stage: stage,
+                        action: 'Approved',
+                        remarks: 'Approved by ' + roleLabel
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'SUCCESS') {
+                    alert('Leave application for ' + staffName + ' approved successfully.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Approval failed.'));
                 }
             } catch (err) {
                 alert('Connection error: ' + err.message);
@@ -1006,6 +1291,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({

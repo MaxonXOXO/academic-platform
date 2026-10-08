@@ -13,6 +13,7 @@ use App\Models\SubjectStaffAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class DataController extends Controller
 {
@@ -635,9 +636,9 @@ class DataController extends Controller
                 // HOD can manage themselves
                 if ($staff->mobile_no === $currentUserId) return true;
 
-                // HOD can manage Faculty, Lecturer, Demonstrator, and Trade Instructor in their branch
+                // HOD can manage Faculty, Lecturer, Demonstrator, Workshop Instructor, Trade Instructor, and Tradesman in their branch
                 return strtoupper($staff->branch) === strtoupper($currentBranch) &&
-                       in_array($staff->designation, ['Faculty', 'Lecturer', 'Demonstrator', 'Trade_Instructor', 'Physical_Instructor', 'Physical Instructor']);
+                       in_array($staff->designation, ['Faculty', 'Lecturer', 'Demonstrator', 'Trade_Instructor', 'Trade Instructor', 'Physical_Instructor', 'Physical Instructor', 'Workshop_Instructor', 'Workshop Instructor', 'Tradesman']);
             }
         }
 
@@ -825,6 +826,7 @@ class DataController extends Controller
                         'academic_status' => $s->academic_status,
                         'status_notes' => $s->status_notes,
                         'photo_url' => $s->photo_url,
+                        'is_online' => !empty($s->reg_no) && Cache::has('user_online_' . $s->reg_no),
                         'type' => 'student',
                         'sbte_reg_no' => $s->sbte_reg_no,
                         'semester' => $s->semester ? 'S' . $s->semester : 'N/A',
@@ -890,6 +892,7 @@ class DataController extends Controller
                         'branch' => $f->branch,
                         'status' => $f->account_status,
                         'photo_url' => $f->photo_url,
+                        'is_online' => !empty($f->mobile_no) && Cache::has('user_online_' . $f->mobile_no),
                         'type' => 'staff',
                     ];
                 })->toArray();
@@ -1840,6 +1843,7 @@ class DataController extends Controller
                         'name'        => $f->name,
                         'designation' => $f->designation,
                         'photo_url'   => $f->photo_url,
+                        'is_online'   => !empty($f->mobile_no) && Cache::has('user_online_' . $f->mobile_no),
                     ];
                 });
 
@@ -3458,7 +3462,7 @@ class DataController extends Controller
     public function bulkImportStudents(Request $request)
     {
         $userRole = Session::get('userRole');
-        if (!in_array($userRole, ['Super_Admin', 'Admin', 'HOD', 'Principal', 'Lecturer', 'Demonstrator'])) {
+        if (!in_array($userRole, ['Super_Admin', 'Admin', 'HOD', 'Principal', 'Lecturer', 'Demonstrator', 'Workshop_Instructor', 'Tradesman', 'Trade_Instructor'])) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.']);
         }
 

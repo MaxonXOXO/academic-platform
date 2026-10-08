@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Formative Drawing Sheet Continuous Evaluation Register (R-2021) — {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</title>
+<title>Continuous Drawing Sheets Evaluation Register (R-2021) — {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; background: #f1f5f9; color: #1e293b; padding: 24px 16px; }
@@ -24,7 +24,7 @@
   .meta-table td.lbl { font-weight: 700; color: #1e3a5f; background: #f1f5f9; width: 18%; }
   .meta-table td.val { font-weight: 600; color: #0f172a; width: 32%; }
 
-  table.data-table { width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #64748b; margin-bottom: 20px; }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 9.5px; border: 1px solid #64748b; margin-bottom: 20px; }
   table.data-table th { background: #1e3a5f; color: #fff; padding: 5px 3px; text-align: center; font-weight: 700; border: 1px solid #334155; }
   table.data-table td { border: 1px solid #cbd5e1; padding: 4px 4px; text-align: center; }
   table.data-table td.td-left { text-align: left; padding-left: 6px; font-weight: 600; }
@@ -51,7 +51,7 @@
 <body>
 
 <div class="no-print">
-  <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Formative Register</button>
+  <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Continuous Drawing Register</button>
   <button class="back-btn" onclick="window.close()"><i class="fa-solid fa-xmark"></i> Close</button>
 </div>
 
@@ -60,7 +60,7 @@
     <h1>Carmel Polytechnic College, Alappuzha</h1>
     <h2>Department of {{ $courseFile->program ?? 'Technical Education' }}</h2>
     <p>State Board of Technical Education, Kerala &bull; Revision 2021 (R-2021)</p>
-    <div class="report-title">Formative Continuous Evaluation Register (Drawing Sheets)</div>
+    <div class="report-title">Continuous Drawing Sheets Evaluation Register</div>
   </div>
 
   <table class="meta-table">
@@ -72,13 +72,15 @@
     </tr>
     <tr>
       <td class="lbl">Semester & Scheme</td>
-      <td class="val">Semester {{ $courseFile->semester ?? 'I' }} &bull; Revision 2021 (R-2021)</td>
-      <td class="lbl">Formative Weightage</td>
-      <td class="val"><strong>40% of CIA ({{ round(($courseFile->cia_marks ?: 50) * 0.40, 1) }} Marks)</strong></td>
+      <td class="val">Semester {{ $courseFile->semester ?? '3' }} &bull; Revision 2021 (Practical / Drawing Lab)</td>
+      <td class="lbl">Continuous Weightage</td>
+      <td class="val"><strong>50% of CIA (37.5 Marks Max)</strong></td>
     </tr>
     <tr>
-      <td class="lbl">Evaluation Rubric</td>
-      <td class="val" colspan="3">Timely Completion (50%) + Appearance & Organization of Drawing Sheets (50%) = Max 100 per sheet</td>
+      <td class="lbl">Evaluation Policy</td>
+      <td class="val" colspan="3">
+        Continuous drawing sheets evaluated per session. Faculty may enter sheet scores or directly record continuous drawing work mark (Max 37.5 Marks).
+      </td>
     </tr>
   </table>
 
@@ -86,37 +88,41 @@
     <thead>
       <tr>
         <th rowspan="2" style="width: 30px;">#</th>
-        <th rowspan="2" style="width: 60px;">Roll No</th>
-        <th rowspan="2" style="width: 85px;">Reg No</th>
-        <th rowspan="2" class="td-left" style="width: 170px;">Student Name</th>
+        <th rowspan="2" style="width: 55px;">Roll No</th>
+        <th rowspan="2" style="width: 80px;">Reg No</th>
+        <th rowspan="2" class="td-left" style="width: 160px;">Student Name</th>
         @foreach($sheets as $s)
-          <th colspan="2" style="font-size: 9px;">{{ $s['sheet_no'] }}</th>
+          <th colspan="2" style="font-size: 8.5px;">{{ $s['sheet_no'] }}</th>
         @endforeach
-        <th rowspan="2" style="width: 60px;">Avg (100)</th>
-        <th rowspan="2" style="width: 65px;">Formative ({{ round(($courseFile->cia_marks ?: 50) * 0.40, 1) }}M)</th>
+        <th rowspan="2" style="width: 55px;">Avg (100)</th>
+        <th rowspan="2" style="width: 65px;">Calc (37.5M)</th>
+        <th rowspan="2" style="width: 70px;">Final Continuous<br><small>(Max 37.5M)</small></th>
       </tr>
       <tr>
         @foreach($sheets as $s)
-          <th style="width: 32px; font-size: 8px;">Tim (50)</th>
-          <th style="width: 32px; font-size: 8px;">App (50)</th>
+          <th style="width: 28px; font-size: 8px;">Tim</th>
+          <th style="width: 28px; font-size: 8px;">App</th>
         @endforeach
       </tr>
     </thead>
     <tbody>
       @php
-        $formativeMax = round(($courseFile->cia_marks ?: 50) * 0.40, 2);
+        $continuousMax = 37.5;
       @endphp
       @foreach($students as $idx => $st)
         @php
+          $pEval = $practicalEvals->get($st->reg_no);
           $stSheets = $sheetEvals->get($st->reg_no, collect());
           $validSheets = $stSheets->where('is_absent', false);
           $avgScore = $validSheets->count() > 0 ? $validSheets->avg('total_score_100') : 0.00;
-          $formativeMark = round((($avgScore / 100.0) * $formativeMax) * 2) / 2;
+          $calculatedMark = round((($avgScore / 100.0) * $continuousMax) * 2) / 2;
+          $overrideMark = ($pEval && $pEval->lab_work_marks !== null && $pEval->lab_work_marks !== '') ? floatval($pEval->lab_work_marks) : null;
+          $finalMark = ($overrideMark !== null) ? $overrideMark : $calculatedMark;
         @endphp
         <tr>
           <td>{{ $idx + 1 }}</td>
           <td>{{ $st->roll_no ?? '-' }}</td>
-          <td>{{ $st->reg_no }}</td>
+          <td><span style="font-family: monospace;">{{ $st->reg_no }}</span></td>
           <td class="td-left">{{ $st->name }}</td>
           @foreach($sheets as $s)
             @php
@@ -135,7 +141,13 @@
             @endif
           @endforeach
           <td><strong>{{ round($avgScore, 1) }}</strong></td>
-          <td style="font-weight: 800; color: #0284c7;">{{ $formativeMark }}</td>
+          <td style="color: #475569;">{{ $calculatedMark }}</td>
+          <td style="font-weight: 800; color: #0284c7;">
+            {{ $finalMark }}
+            @if($overrideMark !== null)
+              <small style="color: #f59e0b;" title="Overridden by Faculty">*</small>
+            @endif
+          </td>
         </tr>
       @endforeach
     </tbody>

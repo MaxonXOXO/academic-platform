@@ -179,6 +179,7 @@
           <span class="material-symbols-rounded text-sm">photo_camera</span>
         </label>
         <input type="file" id="staffPhotoUploadInput" accept="image/*" class="hidden" onchange="handleStaffPhotoUpload(event)">
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40 pointer-events-none" title="Online"></span>
       </div>
       <div class="overflow-hidden">
         <span class="font-bold text-sm block truncate text-slate-200">{{ session('userName') }}</span>
@@ -1783,7 +1784,10 @@
 
         tr.innerHTML = `
           <td class="p-2.5 md:p-3 flex items-center gap-2.5">
-            <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-7 h-7 rounded-full object-cover border border-slate-800 shadow shrink-0">
+            <div class="relative shrink-0">
+              <img src="${user.photo_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80'}" class="w-7 h-7 rounded-full object-cover border border-slate-800 shadow shrink-0">
+              ${user.is_online ? `<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm ring-1 ring-emerald-400/40" title="Online"></span>` : ''}
+            </div>
             <div class="min-w-0 overflow-hidden">
               <span class="font-bold text-slate-100 block text-xs md:text-sm truncate max-w-[140px] lg:max-w-[180px]">${user.name}</span>
               <span class="text-[11px] text-slate-500 block truncate max-w-[140px] lg:max-w-[180px]">${user.email}</span>

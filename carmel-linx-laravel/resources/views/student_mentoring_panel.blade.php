@@ -4,7 +4,7 @@
   <div class="bg-gradient-to-r from-slate-950/60 to-blue-950/25 border border-slate-800/80 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-xl fade-up">
     <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left w-full md:w-auto">
       <div class="flex-shrink-0">
-        <div id="diaryStudentPhotoContainer">
+        <div id="diaryStudentPhotoContainer" class="relative inline-block">
           <!-- Student View: Direct session photo or fallback -->
           @if(session('userPhoto'))
             <img src="{{ session('userPhoto') }}" class="w-16 h-16 rounded-2xl border-2 border-blue-500/40 object-cover shadow-2xl">
@@ -13,6 +13,7 @@
               {{ strtoupper(substr(session('userName', 'S'), 0, 2)) }}
             </div>
           @endif
+          <span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-md ring-1 ring-emerald-400/40" title="Online"></span>
         </div>
       </div>
       <div class="flex-grow space-y-1">

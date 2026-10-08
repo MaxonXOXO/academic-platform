@@ -194,7 +194,7 @@
                     <td>{{ $student->seminar_details['interaction'] }}</td>
                     <td>{{ $student->seminar_details['report'] }}</td>
                     <td>{{ $student->seminar_details['attendance'] }}</td>
-                    <td style="font-weight: bold; background-color: #f9f9f9;">{{ $student->seminar_details['total_score'] }}</td>
+                    <td style="font-weight: bold; background-color: #f9f9f9;">{{ round($student->seminar_details['total_score']) }}</td>
                 </tr>
             @endforeach
         </tbody>

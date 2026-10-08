@@ -430,7 +430,7 @@
                             <td class="py-1 px-2 text-center font-mono text-warning">{{ number_format($student['open_ended_marks'], 1) }}</td>
                             <td class="py-1 px-2 text-center font-mono text-purple" style="color: #c084fc !important;">{{ number_format($student['scaled_tests_15'], 1) }}</td>
                             <td class="py-1 px-2 text-center font-mono text-success">{{ $student['attendance_marks'] }}</td>
-                            <td class="py-1 px-2 text-center font-mono fw-bold text-warning">{{ number_format($student['total_cia'], 1) }}</td>
+                            <td class="py-1 px-2 text-center font-mono fw-bold text-warning">{{ round($student['total_cia']) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -854,7 +854,7 @@
                     });
                     const avgLab = countG > 0 ? (sumTotals / countG) : 0;
                     student.avg_lab_work = avgLab;
-                    student.total_cia = avgLab + (student.open_ended_marks || 0) + (student.scaled_tests_15 || 0) + (parseFloat(student.attendance_marks) || 0);
+                    student.total_cia = Math.round(avgLab + (student.open_ended_marks || 0) + (student.scaled_tests_15 || 0) + (parseFloat(student.attendance_marks) || 0));
 
                     const el = document.querySelector(`.text-exp-total-${regNo}`);
                     if (el) el.innerText = `${total.toFixed(1)} / 37.5`;

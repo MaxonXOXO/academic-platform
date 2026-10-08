@@ -400,7 +400,7 @@
             <h1><i class="fa-solid fa-camera-rotate"></i> Staff Biometric Time Punch</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <a href="/staff/mobile" class="back-btn-right" title="Return to Home Dashboard">
+            <a href="{{ Session::get('userRole') === 'HOD' ? '/dashboard/hod' : '/staff/mobile' }}" class="back-btn-right" title="Return to Home Dashboard">
                 <i class="fa-solid fa-house"></i> Back
             </a>
         </div>
@@ -549,6 +549,7 @@
     <div class="toast" id="toastMsg">Notification message</div>
 
     <script>
+        const RETURN_DASHBOARD_URL = "{{ Session::get('userRole') === 'HOD' ? '/dashboard/hod' : '/staff/mobile' }}";
         const STAFF_ID = "{{ $staffId }}";
         const GEOFENCE_LAT = {{ $geofence->centroid_lat }};
         const GEOFENCE_LNG = {{ $geofence->centroid_lng }};
@@ -1044,7 +1045,7 @@
                         `;
                     }
                     setTimeout(() => {
-                        window.location.href = '/staff/mobile';
+                        window.location.href = RETURN_DASHBOARD_URL;
                     }, 1400);
                 } else {
                     showToast(data.message || "Registration failed.");
@@ -1135,7 +1136,7 @@
                         `;
                     }
                     setTimeout(() => {
-                        window.location.href = '/staff/mobile';
+                        window.location.href = RETURN_DASHBOARD_URL;
                     }, 1000);
                 } else {
                     showToast(data.message || "Punch execution failed.");
@@ -1200,7 +1201,7 @@
                 }
                 stopCamera();
                 setTimeout(() => {
-                    window.location.href = '/staff/mobile';
+                    window.location.href = RETURN_DASHBOARD_URL;
                 }, 1200);
             } else {
                 startCamera();

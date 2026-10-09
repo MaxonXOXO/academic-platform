@@ -378,9 +378,11 @@
                 <div class="lbl">Actual Attended Hours</div>
                 <div class="num text-slate-700">{{ $stats['original_attended'] }}</div>
             </div>
-            <div class="summary-card accent-emerald">
-                <div class="lbl">Duty Leaves Credited</div>
-                <div class="num">+{{ $stats['duty_hours_credited'] }}</div>
+            <div class="summary-card {{ $stats['duty_hours_credited'] > 0 ? 'accent-emerald' : '' }}">
+                <div class="lbl">{{ $stats['duty_hours_credited'] > 0 ? 'Duty Leaves Credited' : 'Total Missed Hours' }}</div>
+                <div class="num {{ $stats['duty_hours_credited'] > 0 ? '' : 'text-slate-700' }}">
+                    {{ $stats['duty_hours_credited'] > 0 ? '+' . $stats['duty_hours_credited'] : $stats['total_missed_hours'] }}
+                </div>
             </div>
             <div class="summary-card highlight">
                 <div class="lbl">Effective Exam Attd %</div>
@@ -393,13 +395,13 @@
                 <div class="lbl">Required Threshold</div>
                 <div class="num">{{ $evaluation['required_pct'] }}%</div>
             </div>
-            <div class="summary-card accent-rose">
+            <div class="summary-card {{ $stats['gross_shortage_hours'] > 0 ? 'accent-rose' : 'accent-emerald' }}">
                 <div class="lbl">Gross Shortage Hours</div>
-                <div class="num">{{ $stats['gross_shortage_hours'] }} hrs</div>
+                <div class="num">{{ $stats['gross_shortage_hours'] > 0 ? $stats['gross_shortage_hours'] . ' hrs' : 'None (0 hrs)' }}</div>
             </div>
-            <div class="summary-card accent-amber">
+            <div class="summary-card {{ $stats['net_shortage_hours'] > 0 ? 'accent-amber' : 'accent-emerald' }}">
                 <div class="lbl">Net Shortage Hours</div>
-                <div class="num">{{ $stats['net_shortage_hours'] }} hrs</div>
+                <div class="num">{{ $stats['net_shortage_hours'] > 0 ? $stats['net_shortage_hours'] . ' hrs' : 'None (0 hrs)' }}</div>
             </div>
             <div class="summary-card {{ $evaluation['status'] === 'Eligible' ? 'accent-emerald' : ($evaluation['status'] === 'Condonation' ? 'accent-amber' : 'accent-rose') }}">
                 <div class="lbl">SBTE Exam Status</div>

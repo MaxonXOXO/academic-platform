@@ -793,6 +793,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/classroom/{subjectId}/generate-summative-paper', [App\Http\Controllers\ClassroomController::class, 'generateSummativePaper']);
     Route::post('/api/classroom/{subjectId}/save-summative-config', [App\Http\Controllers\ClassroomController::class, 'saveSummativeConfig']);
     Route::post('/api/classroom/{subjectId}/save-written-test-marks', [App\Http\Controllers\ClassroomController::class, 'saveWrittenTestMarks']);
+    Route::post('/api/classroom/{subjectId}/attendance-override', [App\Http\Controllers\ClassroomController::class, 'saveAttendanceOverride']);
     Route::post('/api/classroom/generate-scheme-answers', [App\Http\Controllers\ClassroomController::class, 'generateAnswerKeyForScheme']);
     Route::post('/api/classroom/{subjectId}/publish-online-test', [App\Http\Controllers\TestEngineController::class, 'publishOnlineTest']);
     Route::post('/api/classroom/{subjectId}/preview-online-test-questions', [App\Http\Controllers\TestEngineController::class, 'previewOnlineTestQuestions']);
@@ -1214,18 +1215,34 @@ Route::middleware(['web'])->group(function () {
             }
         }
 
-        // Calculate overall percentage with special duty credits
+        $tutorClassAttendances = collect();
+        if (Schema::hasTable('tutor_class_attendances')) {
+            $tutorClassAttendances = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $classroomId)
+                ->get()
+                ->keyBy('reg_no');
+        }
+
+        // Calculate overall percentage with official TEAMS data or special duty credits
         foreach ($studentAttendance as $regNo => &$data) {
-            $stSpecial = $specialAttendanceRecords->get($regNo, collect());
-            if ($stSpecial->isEmpty() && !empty($data['sbte_reg_no'])) {
-                $stSpecial = $specialAttendanceRecords->get($data['sbte_reg_no'], collect());
+            $tutorOfficial = $tutorClassAttendances->get($regNo) ?: (!empty($data['sbte_reg_no']) ? $tutorClassAttendances->get($data['sbte_reg_no']) : null);
+            if ($tutorOfficial) {
+                $data['total_conducted'] = (int)$tutorOfficial->total_hours ?: $data['total_conducted'];
+                $data['total_present'] = (int)$tutorOfficial->attended_hours ?: $data['total_present'];
+                $data['overall_percentage'] = (float)$tutorOfficial->final_percentage;
+                $data['special_duty_hours'] = 0;
+            } else {
+                $stSpecial = $specialAttendanceRecords->get($regNo, collect());
+                if ($stSpecial->isEmpty() && !empty($data['sbte_reg_no'])) {
+                    $stSpecial = $specialAttendanceRecords->get($data['sbte_reg_no'], collect());
+                }
+                $duty = (float)$stSpecial->sum('hours');
+                $data['special_duty_hours'] = $duty;
+                $effectivePresent = min($data['total_conducted'], $data['total_present'] + $duty);
+                $data['overall_percentage'] = $data['total_conducted'] > 0 
+                    ? round(($effectivePresent / $data['total_conducted']) * 100) 
+                    : 0;
             }
-            $duty = (float)$stSpecial->sum('hours');
-            $data['special_duty_hours'] = $duty;
-            $effectivePresent = min($data['total_conducted'], $data['total_present'] + $duty);
-            $data['overall_percentage'] = $data['total_conducted'] > 0 
-                ? round(($effectivePresent / $data['total_conducted']) * 100) 
-                : 0;
         }
         unset($data);
 

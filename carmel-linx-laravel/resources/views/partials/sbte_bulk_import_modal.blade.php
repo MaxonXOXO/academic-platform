@@ -31,14 +31,42 @@
         <input type="hidden" id="sbteBatchSubjectId" name="batch_subject_id" value="">
       </div>
 
-      <!-- Sub-Batch Selector -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-400 mb-1">Batch / Group Allocation</label>
-        <select id="sbteSubBatch" name="sub_batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
-          <option value="Whole" selected>Whole Class (All Students)</option>
-          <option value="1">Lab Batch 1 (First Half)</option>
-          <option value="2">Lab Batch 2 (Second Half)</option>
-        </select>
+      <!-- Batch Allocation Mode Selector -->
+      <div class="space-y-2">
+        <label class="block text-[11px] font-bold text-slate-300">Class / Lab Batch Allocation Mode</label>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="sbteRadioGroup">
+          <!-- Split Batch Card -->
+          <label id="sbteSplitCard" class="relative flex items-start gap-2.5 p-2.5 rounded-xl border border-blue-500/60 bg-blue-950/30 hover:border-blue-400 transition cursor-pointer group">
+            <input type="radio" name="lab_upload_mode" id="sbteModeSplit" value="split" checked onchange="onSbteUploadModeChange()" class="mt-0.5 text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="block text-xs font-bold text-white group-hover:text-blue-300 transition">Split Batch Lab</span>
+                <span id="sbteSplitBadge" class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 uppercase">Recommended</span>
+              </div>
+              <p class="text-[10px] text-slate-400 leading-snug" id="sbteSplitDesc">Batches 1 &amp; 2 conducted separately based on Virtual Lab Setup. Conducted hours calculated per batch.</p>
+            </div>
+          </label>
+
+          <!-- Full Batch Card -->
+          <label id="sbteFullCard" class="relative flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-blue-500/70 transition cursor-pointer group">
+            <input type="radio" name="lab_upload_mode" id="sbteModeFull" value="full" onchange="onSbteUploadModeChange()" class="mt-0.5 text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700">
+            <div class="space-y-0.5">
+              <span class="block text-xs font-bold text-white group-hover:text-blue-300 transition">Full Batch / Theory</span>
+              <p class="text-[10px] text-slate-400 leading-snug">Whole class attended together. Total hours in PDF applies to all students.</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Optional Sub-batch Scope Dropdown -->
+        <div id="sbteSubBatchScopeWrapper" class="pt-1">
+          <label class="block text-[10px] font-semibold text-slate-400 mb-1">PDF File Content Scope:</label>
+          <select id="sbteSubBatch" name="sub_batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500">
+            <option value="Whole" selected>Both Batches Combined in this PDF (All Dates)</option>
+            <option value="1">Only Batch 1 sessions in this PDF (Roll 1 to Cutoff)</option>
+            <option value="2">Only Batch 2 sessions in this PDF (Roll Cutoff+1 to End)</option>
+          </select>
+        </div>
       </div>
 
       <!-- File Upload Zone -->
@@ -118,6 +146,31 @@
 </div>
 
 <script>
+  function onSbteUploadModeChange() {
+    const isSplit = document.getElementById('sbteModeSplit')?.checked;
+    const splitCard = document.getElementById('sbteSplitCard');
+    const fullCard = document.getElementById('sbteFullCard');
+    const scopeWrapper = document.getElementById('sbteSubBatchScopeWrapper');
+
+    if (isSplit) {
+      if (splitCard) {
+        splitCard.className = "relative flex items-start gap-2.5 p-2.5 rounded-xl border border-blue-500/80 bg-blue-950/40 hover:border-blue-400 transition cursor-pointer group shadow-sm";
+      }
+      if (fullCard) {
+        fullCard.className = "relative flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-slate-600 transition cursor-pointer group";
+      }
+      if (scopeWrapper) scopeWrapper.classList.remove('hidden');
+    } else {
+      if (fullCard) {
+        fullCard.className = "relative flex items-start gap-2.5 p-2.5 rounded-xl border border-blue-500/80 bg-blue-950/40 hover:border-blue-400 transition cursor-pointer group shadow-sm";
+      }
+      if (splitCard) {
+        splitCard.className = "relative flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-700/80 bg-slate-950/70 hover:border-slate-600 transition cursor-pointer group";
+      }
+      if (scopeWrapper) scopeWrapper.classList.add('hidden');
+    }
+  }
+
   function openSbteImportModal() {
     const subjectSelect = document.getElementById('subjectSelect');
     const subjectId = subjectSelect ? subjectSelect.value : '';
@@ -142,6 +195,49 @@
     if (fileInfo) fileInfo.classList.add('hidden');
     const fileLabel = document.getElementById('sbteFileLabel');
     if (fileLabel) fileLabel.innerText = 'Click or drag & drop class attendance PDF from TEAMS here';
+
+    // Auto-detect Virtual Lab Setup Range (Cutoff & Split vs Full Mode)
+    fetch(`/api/staff/attendance/subjects/${subjectId}/details`)
+      .then(res => res.json())
+      .then(dt => {
+        if (dt.status === 'SUCCESS') {
+          const isPractical = dt.subject_type && dt.subject_type !== 'Theory';
+          const isSplitConfigured = isPractical && (dt.lab_batch_mode === 'split' || dt.lab_batch_cutoff || dt.batch_split_summary?.is_configured);
+          
+          const splitRadio = document.getElementById('sbteModeSplit');
+          const fullRadio = document.getElementById('sbteModeFull');
+          const splitDesc = document.getElementById('sbteSplitDesc');
+          const splitBadge = document.getElementById('sbteSplitBadge');
+          const splitCard = document.getElementById('sbteSplitCard');
+
+          if (!isPractical) {
+            // Theory Subject
+            if (fullRadio) fullRadio.checked = true;
+            if (splitCard) splitCard.classList.add('opacity-40');
+            if (splitBadge) splitBadge.classList.add('hidden');
+          } else {
+            // Practical Subject
+            if (splitCard) splitCard.classList.remove('opacity-40');
+            if (splitBadge) splitBadge.classList.remove('hidden');
+
+            if (isSplitConfigured) {
+              if (splitRadio) splitRadio.checked = true;
+              const summary = dt.batch_split_summary || {};
+              if (splitDesc) {
+                const b1R = summary.b1_range || (dt.lab_batch_cutoff ? '1-' + dt.lab_batch_cutoff : '1-25');
+                const b2R = summary.b2_range || (dt.lab_batch_cutoff ? (parseInt(dt.lab_batch_cutoff)+1)+'+' : '26+');
+                splitDesc.innerText = `Virtual Lab Setup: Batch 1 (Roll ${b1R}) & Batch 2 (Roll ${b2R}). Calculates attendance against each batch's actual conducted sessions.`;
+              }
+            } else {
+              if (fullRadio) fullRadio.checked = true;
+            }
+          }
+          onSbteUploadModeChange();
+        }
+      })
+      .catch(() => {
+        onSbteUploadModeChange();
+      });
 
     document.getElementById('sbteImportModal').classList.remove('hidden');
   }

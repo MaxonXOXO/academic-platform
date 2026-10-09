@@ -172,6 +172,11 @@ class VirtualClassroomPracticalController extends Controller
             ->get()
             ->groupBy('reg_no');
 
+        // Check official TEAMS attendance record or manual override from subject_official_attendances
+        $subjectOfficialAttendance = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $batchSubjectId)
+            ->get()
+            ->keyBy('reg_no');
+
         // Pre-compute attendance mark per student
         $attendanceMarks = [];
         $evalMap = $evalRecords->keyBy('reg_no');
@@ -204,26 +209,33 @@ class VirtualClassroomPracticalController extends Controller
             $present = min($totalForStudent, $rawPresent);
             $logAttPct = $totalForStudent > 0 ? round(($present / $totalForStudent) * 100, 2) : 0.0;
 
-            // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
-            $stOfficial = $officialAttendance->get($rNo, collect());
-            if ($stOfficial->isNotEmpty()) {
-                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
-                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
-                        $sb = (string)($att->sub_batch ?? 'Whole');
-                        if ($sb === $labBatch || $sb === 'Whole') return true;
-                        return in_array($att->status, ['Present', 'Late']);
-                    });
-                    if ($stFiltered->isNotEmpty()) {
-                        $stOfficial = $stFiltered;
-                    }
-                }
-                $offTot = $stOfficial->count();
-                $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
+            // Prioritize authoritative TEAMS upload or manual override from subject_official_attendances
+            $offRec = $subjectOfficialAttendance->get($rNo)
+                ?: (!empty($st->sbte_reg_no) ? $subjectOfficialAttendance->get($st->sbte_reg_no) : null);
+            if ($offRec && ($offRec->override_percentage !== null || $offRec->teams_percentage !== null || $offRec->final_percentage !== null)) {
+                $pct = (float)$offRec->final_percentage;
+                $attMark = (float)$offRec->final_mark;
             } else {
-                $pct = $logAttPct;
+                $stOfficial = $officialAttendance->get($rNo, collect());
+                if ($stOfficial->isNotEmpty()) {
+                    if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                        $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                            $sb = (string)($att->sub_batch ?? 'Whole');
+                            if ($sb === $labBatch || $sb === 'Whole') return true;
+                            return in_array($att->status, ['Present', 'Late']);
+                        });
+                        if ($stFiltered->isNotEmpty()) {
+                            $stOfficial = $stFiltered;
+                        }
+                    }
+                    $offTot = $stOfficial->count();
+                    $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                    $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
+                } else {
+                    $pct = $logAttPct;
+                }
+                $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
             }
-            $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
             $attendanceMarks[$rNo] = [
                 'percentage' => $pct,
@@ -1006,6 +1018,11 @@ class VirtualClassroomPracticalController extends Controller
             ->get()
             ->groupBy('reg_no');
 
+        // Check official TEAMS attendance record or manual override from subject_official_attendances
+        $subjectOfficialAttendance = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $batchSubjectId)
+            ->get()
+            ->keyBy('reg_no');
+
         $t1 = $tests->where('test_name', 'Test 1')->first();
         $t2 = $tests->where('test_name', 'Test 2')->first();
 
@@ -1017,7 +1034,7 @@ class VirtualClassroomPracticalController extends Controller
 
         $mid = (int)ceil($students->count() / 2);
 
-        $mappedStudents = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance, $mid) {
+        $mappedStudents = $students->map(function ($student, $sIdx) use ($batchSubject, $experiments, $allExpMarks, $evaluations, $tests, $allTestMarks, $t1, $t2, $totalClasses, $b1Scheduled, $b2Scheduled, $wholeScheduled, $studentPresentSlots, $totalCompletedExps, $assignedBatches, $officialAttendance, $subjectOfficialAttendance, $mid) {
             $regNo = $student->reg_no;
 
             $labBatch = null;
@@ -1047,26 +1064,33 @@ class VirtualClassroomPracticalController extends Controller
             $presentClasses = min($totalForStudent, $rawPresent);
             $logAttPct = $totalForStudent > 0 ? round(($presentClasses / $totalForStudent) * 100, 2) : 0.0;
 
-            // Authoritative attendance: TEAMS uploaded attendance is official for percentage and CIA attendance mark
-            $stOfficial = $officialAttendance->get($regNo, collect());
-            if ($stOfficial->isNotEmpty()) {
-                if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
-                    $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
-                        $sb = (string)($att->sub_batch ?? 'Whole');
-                        if ($sb === $labBatch || $sb === 'Whole') return true;
-                        return in_array($att->status, ['Present', 'Late']);
-                    });
-                    if ($stFiltered->isNotEmpty()) {
-                        $stOfficial = $stFiltered;
-                    }
-                }
-                $offTot = $stOfficial->count();
-                $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
-                $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
+            // Prioritize authoritative TEAMS upload or manual override from subject_official_attendances
+            $offRec = $subjectOfficialAttendance->get($regNo)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
+            if ($offRec && ($offRec->override_percentage !== null || $offRec->teams_percentage !== null || $offRec->final_percentage !== null)) {
+                $pct = (float)$offRec->final_percentage;
+                $suggestedAttendance = (float)$offRec->final_mark;
             } else {
-                $pct = $logAttPct;
+                $stOfficial = $officialAttendance->get($regNo, collect());
+                if ($stOfficial->isNotEmpty()) {
+                    if ($batchSubject->subject_type !== 'Theory' && ($batchSubject->lab_batch_mode === 'split' || !empty($labBatch))) {
+                        $stFiltered = $stOfficial->filter(function($att) use ($labBatch) {
+                            $sb = (string)($att->sub_batch ?? 'Whole');
+                            if ($sb === $labBatch || $sb === 'Whole') return true;
+                            return in_array($att->status, ['Present', 'Late']);
+                        });
+                        if ($stFiltered->isNotEmpty()) {
+                            $stOfficial = $stFiltered;
+                        }
+                    }
+                    $offTot = $stOfficial->count();
+                    $offPres = $stOfficial->whereIn('status', ['Present', 'Late'])->count();
+                    $pct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 2) : 0.0;
+                } else {
+                    $pct = $logAttPct;
+                }
+                $suggestedAttendance = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
             }
-            $suggestedAttendance = \App\Services\AttainmentService::calculateR21AttendanceMark($pct, 15.0);
 
             $eval = $evaluations->get($regNo);
             $microProject = $eval ? (float)$eval->micro_project : 0.00;

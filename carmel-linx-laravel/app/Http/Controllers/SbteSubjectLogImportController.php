@@ -152,9 +152,16 @@ class SbteSubjectLogImportController extends Controller
         }
         $sessionCount = count($sessionDates);
 
-        // Extract Hours row (e.g. 1,2,3 or 4,5,6 per date session)
-        preg_match('/Total\s*\n\s*([\d\s,]+)\n/i', $fullText, $hoursM);
-        $rawHoursStr = trim($hoursM[1] ?? '');
+        // Extract Hours row (e.g. 1,2,3 or 4,5,6 per date session) across all table pages
+        preg_match_all('/(?:Total|Period[s]?|Hour[s]?)\s*\n\s*([\d\s,]+)(?:\n|$)/i', $fullText, $allHoursM);
+        $rawHoursStr = '';
+        if (!empty($allHoursM[1])) {
+            $rawHoursStr = implode(' ', $allHoursM[1]);
+        }
+        if (empty(trim($rawHoursStr))) {
+            preg_match('/Total\s*\n\s*([\d\s,]+)\n/i', $fullText, $hoursM);
+            $rawHoursStr = trim($hoursM[1] ?? '');
+        }
         $hoursList = [];
 
         if (!empty($rawHoursStr)) {
@@ -314,10 +321,15 @@ class SbteSubjectLogImportController extends Controller
             ->where('batch_subject_id', $batchSubject->id)
             ->pluck('lab_batch', 'reg_no')
             ->toArray();
-        $isSplitLab = ($batchSubject->subject_type !== 'Theory') && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff) || !empty($labBatches));
+        $labUploadMode = $request->input('lab_upload_mode', null);
+        $isSplitLab = ($batchSubject->subject_type !== 'Theory') && (
+            $labUploadMode === 'split' ||
+            ($labUploadMode !== 'full' && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff) || !empty($labBatches)))
+        );
 
         $importedSessions = 0;
         $totalHoursLogged = 0;
+        $pdfBatchHours = ['1' => 0, '2' => 0, 'Whole' => 0];
         $mappedLpCount = 0;
         $usedLpIds = [];
         $lpSeqIndex = 0;
@@ -487,6 +499,7 @@ class SbteSubjectLogImportController extends Controller
                     }
 
                     $totalHoursLogged++;
+                    $pdfBatchHours[$sessionSubBatch] = ($pdfBatchHours[$sessionSubBatch] ?? 0) + 1;
                 }
 
                 // Sync student_attendance table once per session date
@@ -618,6 +631,91 @@ class SbteSubjectLogImportController extends Controller
                         }
                     }
                 }
+            }
+
+            // Sync authoritative TEAMS subject attendance for CIA calculation
+            $subjType = $batchSubject->subject_type ?? 'Theory';
+            $maxAttMarks = ($subjType === 'Theory') ? 10.0 : (stripos($subjType, 'seminar') !== false ? 7.5 : 15.0);
+            $studPdfTotals = [];
+            $b1PdfTotals = [];
+            $b2PdfTotals = [];
+            foreach ($studMatches as $sm) {
+                $rNo = (int)($sm['roll_no'] ?? 0);
+                if ($rNo && isset($sm['total']) && is_numeric($sm['total'])) {
+                    $tot = (int)$sm['total'];
+                    $studPdfTotals[$rNo] = $tot;
+
+                    // Group PDF attended totals by Virtual Lab Setup batch
+                    $stObj = $studentsByRoll[$rNo] ?? null;
+                    $stB = $stObj ? ($labBatches[$stObj->reg_no] ?? ($batchSubject->lab_batch_cutoff ? ($rNo <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null)) : null;
+                    if ($stB === '1') $b1PdfTotals[] = $tot;
+                    elseif ($stB === '2') $b2PdfTotals[] = $tot;
+                }
+            }
+            $maxPdfAttended = !empty($studPdfTotals) ? max($studPdfTotals) : 0;
+            $b1MaxPdfAtt = !empty($b1PdfTotals) ? max($b1PdfTotals) : 0;
+            $b2MaxPdfAtt = !empty($b2PdfTotals) ? max($b2PdfTotals) : 0;
+            $docConductedHours = $totalHoursLogged;
+            if (!empty($studPdfTotals)) {
+                $docConductedHours = max($docConductedHours, $maxPdfAttended);
+            }
+
+            foreach ($classroomStudents as $cs) {
+                $rNo = $cs->reg_no;
+                $roll = (int)($cs->roll_no ?? 0);
+                $logsAttendedCount = DB::table('class_logs_attendance')
+                    ->where('batch_subject_id', $batchSubject->id)
+                    ->whereRaw("JSON_CONTAINS(present_students, '\"" . $rNo . "\"')")
+                    ->count();
+
+                $pdfAttended = $studPdfTotals[$roll] ?? null;
+                $effectiveAttended = ($pdfAttended !== null && $pdfAttended > 0) ? $pdfAttended : $logsAttendedCount;
+
+                // For split practicals, conducted hours is calculated dynamically per student's Virtual Lab Setup range (never hardcoded 50%)
+                $studentConductedHours = $docConductedHours;
+                if ($isSplitLab) {
+                    $stLabBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $roll ? ($roll <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                    if ($stLabBatch) {
+                        // 1. Exact sessions/hours in this PDF for this batch
+                        $pdfBatchConducted = ($pdfBatchHours[$stLabBatch] ?? 0) + ($pdfBatchHours['Whole'] ?? 0);
+                        // 2. Class logs in DB for this batch
+                        $dbBatchConducted = DB::table('class_logs_attendance')
+                            ->where('batch_subject_id', $batchSubject->id)
+                            ->where(function($q) use ($stLabBatch) {
+                                $q->where('sub_batch', $stLabBatch)->orWhere('sub_batch', 'Whole');
+                            })
+                            ->count();
+                        // 3. Peak attendance achieved by students belonging to this batch
+                        $batchMaxPdf = ($stLabBatch === '1') ? $b1MaxPdfAtt : $b2MaxPdfAtt;
+
+                        $studentConductedHours = max($pdfBatchConducted, $dbBatchConducted, $batchMaxPdf, $effectiveAttended);
+                    }
+                }
+
+                $effectiveConducted = max($studentConductedHours, $effectiveAttended);
+
+                $officialPct = ($effectiveConducted > 0) ? round(($effectiveAttended / $effectiveConducted) * 100, 2) : 0.00;
+                $officialMark = \App\Services\AttainmentService::calculateR21AttendanceMark($officialPct, $maxAttMarks);
+
+                \App\Models\SubjectOfficialAttendance::updateOrInsert(
+                    [
+                        'batch_subject_id' => $batchSubject->id,
+                        'reg_no' => $rNo,
+                    ],
+                    [
+                        'subject_code' => $batchSubject->subject_code,
+                        'classroom_id' => $batchSubject->classroom_id,
+                        'total_hours' => $effectiveConducted,
+                        'attended_hours' => $effectiveAttended,
+                        'teams_percentage' => $officialPct,
+                        'final_percentage' => DB::raw("COALESCE(override_percentage, {$officialPct})"),
+                        'max_attendance_marks' => $maxAttMarks,
+                        'attendance_mark' => $officialMark,
+                        'final_mark' => DB::raw("COALESCE(override_mark, {$officialMark})"),
+                        'source' => 'TEAMS_PDF_UPLOAD',
+                        'updated_at' => now(),
+                    ]
+                );
             }
 
             DB::commit();
@@ -883,6 +981,54 @@ class SbteSubjectLogImportController extends Controller
                         }
                     }
                 }
+            }
+
+            // Sync authoritative TEAMS subject attendance for CIA calculation
+            $subjType = $batchSubject->subject_type ?? 'Theory';
+            $maxAttMarks = ($subjType === 'Theory') ? 10.0 : (stripos($subjType, 'seminar') !== false ? 7.5 : 15.0);
+            foreach ($classroomStudents as $cs) {
+                $rNo = $cs->reg_no;
+                $roll = (int)($cs->roll_no ?? 0);
+                $logsAttendedCount = DB::table('class_logs_attendance')
+                    ->where('batch_subject_id', $batchSubject->id)
+                    ->whereRaw("JSON_CONTAINS(present_students, '\"" . $rNo . "\"')")
+                    ->count();
+
+                $studentConductedHours = $totalHoursLogged;
+                if ($isSplitLab) {
+                    $stLabBatch = $labBatches[$rNo] ?? ($batchSubject->lab_batch_cutoff && $roll ? ($roll <= (int)$batchSubject->lab_batch_cutoff ? '1' : '2') : null);
+                    $batchHours = DB::table('class_logs_attendance')
+                        ->where('batch_subject_id', $batchSubject->id)
+                        ->where(function($q) use ($stLabBatch) {
+                            $q->where('sub_batch', $stLabBatch)->orWhere('sub_batch', 'Whole');
+                        })
+                        ->count();
+                    $studentConductedHours = $batchHours > 0 ? $batchHours : $logsAttendedCount;
+                }
+
+                $effectiveConducted = max($studentConductedHours, $logsAttendedCount);
+                $officialPct = ($effectiveConducted > 0) ? round(($logsAttendedCount / $effectiveConducted) * 100, 2) : 0.00;
+                $officialMark = \App\Services\AttainmentService::calculateR21AttendanceMark($officialPct, $maxAttMarks);
+
+                \App\Models\SubjectOfficialAttendance::updateOrInsert(
+                    [
+                        'batch_subject_id' => $batchSubject->id,
+                        'reg_no' => $rNo,
+                    ],
+                    [
+                        'subject_code' => $batchSubject->subject_code,
+                        'classroom_id' => $batchSubject->classroom_id,
+                        'total_hours' => $effectiveConducted,
+                        'attended_hours' => $logsAttendedCount,
+                        'teams_percentage' => $officialPct,
+                        'final_percentage' => DB::raw("COALESCE(override_percentage, {$officialPct})"),
+                        'max_attendance_marks' => $maxAttMarks,
+                        'attendance_mark' => $officialMark,
+                        'final_mark' => DB::raw("COALESCE(override_mark, {$officialMark})"),
+                        'source' => 'TEAMS_SUBJECT_LOG',
+                        'updated_at' => now(),
+                    ]
+                );
             }
 
             DB::commit();

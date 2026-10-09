@@ -181,19 +181,9 @@
             <div class="num">{{ $summary['total_students'] ?? 0 }}</div>
         </div>
         <div class="stats-summary-card" style="border-color:#86efac; background:#f0fdf4;">
-            <div class="lbl">Original Eligible</div>
-            <div class="num" style="color:#15803d;">{{ $summary['original_eligible_count'] ?? 0 }}</div>
+            <div class="lbl">ESE Eligible (&ge;75%)</div>
+            <div class="num" style="color:#15803d;">{{ $summary['eligible_count'] ?? $summary['revised_eligible_count'] ?? 0 }}</div>
         </div>
-        <div class="stats-summary-card" style="border-color:#38bdf8; background:#f0f9ff;">
-            <div class="lbl">Revised ESE Eligible</div>
-            <div class="num" style="color:#0284c7;">{{ $summary['revised_eligible_count'] ?? 0 }}</div>
-        </div>
-        @if(($summary['promoted_count'] ?? 0) > 0)
-            <div class="stats-summary-card" style="border-color:#a7f3d0; background:#ecfdf5;">
-                <div class="lbl">Promoted via Duty Leaves</div>
-                <div class="num" style="color:#059669;">+{{ $summary['promoted_count'] }}</div>
-            </div>
-        @endif
         <div class="stats-summary-card" style="border-color:#fcd34d; background:#fffbeb;">
             <div class="lbl">Condonation Required</div>
             <div class="num" style="color:#b45309;">{{ $summary['condonation_count'] ?? 0 }}</div>
@@ -208,61 +198,50 @@
             <div class="lbl">Detained (&lt;{{ $scheme === 'R26' ? '50' : '65' }}%)</div>
             <div class="num" style="color:#b91c1c;">{{ $summary['detained_count'] ?? 0 }}</div>
         </div>
-        <div class="stats-summary-card">
-            <div class="lbl">Total Duty Hours</div>
-            <div class="num">{{ $summary['total_special_hours'] ?? 0 }} hrs</div>
-        </div>
     </div>
 
     <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 3%;">Roll</th>
-                <th style="width: 9%;">Reg No</th>
-                <th style="width: 17%;">Student Name</th>
-                <th style="width: 7%;">Conducted</th>
-                <th style="width: 7%;">Attended</th>
-                <th style="width: 7%;">Original %</th>
-                <th style="width: 8%;">Original Status</th>
-                <th style="width: 8%;">Duty Hours</th>
-                <th style="width: 8%;">Revised Attd</th>
-                <th style="width: 8%;">Revised ESE %</th>
-                <th style="width: 10%;">Final ESE Status</th>
-                <th style="width: 8%;">Shortage</th>
+                <th style="width: 4%;">Roll</th>
+                <th style="width: 12%;">Reg No</th>
+                <th style="width: 28%; text-align: left; padding-left: 5px;">Student Name</th>
+                <th style="width: 10%;">Conducted (Hrs)</th>
+                <th style="width: 10%;">Attended (Hrs)</th>
+                <th style="width: 12%;">Attendance %</th>
+                <th style="width: 14%;">SBTE ESE Status</th>
+                <th style="width: 10%;">Shortage</th>
             </tr>
         </thead>
         <tbody>
             @forelse($students as $st)
                 @php
-                    $revStatus = $st['revised']['status'];
-                    $statusClass = $revStatus === 'Eligible' ? 'status-eligible' : ($revStatus === 'Condonation' ? 'status-condonation' : ($revStatus === 'Special Condonation' ? 'status-special' : 'status-detained'));
+                    $conducted = $st['conducted'] ?? $st['original']['conducted'] ?? 0;
+                    $attended = $st['attended'] ?? $st['original']['attended'] ?? 0;
+                    $percentage = $st['percentage'] ?? $st['revised']['percentage'] ?? 0;
+                    $status = $st['status'] ?? $st['revised']['status'] ?? 'Detained';
+                    $shortage = $st['shortage_pct'] ?? $st['revised']['shortage_pct'] ?? 0;
+                    $statusClass = $status === 'Eligible' ? 'status-eligible' : ($status === 'Condonation' ? 'status-condonation' : ($status === 'Special Condonation' ? 'status-special' : 'status-detained'));
                 @endphp
                 <tr>
                     <td class="font-mono font-bold">{{ $st['roll_no'] ?: '-' }}</td>
                     <td class="font-mono">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
                     <td class="align-left" style="font-weight: 600;">{{ $st['name'] }}</td>
-                    <td class="font-mono">{{ $st['original']['conducted'] }}</td>
-                    <td class="font-mono">{{ $st['original']['attended'] }}</td>
-                    <td class="font-mono font-bold">{{ $st['original']['percentage'] }}%</td>
-                    <td style="font-size: 7.5px;">{{ $st['original']['status'] }}</td>
-                    <td class="font-mono font-bold" style="color: {{ $st['special_attendance']['hours'] > 0 ? '#15803d' : '#64748b' }};">
-                        {{ $st['special_attendance']['hours'] > 0 ? '+' . $st['special_attendance']['hours'] : '-' }}
+                    <td class="font-mono">{{ $conducted }}</td>
+                    <td class="font-mono">{{ $attended }}</td>
+                    <td class="font-mono font-bold" style="color: {{ $percentage >= 75 ? '#15803d' : ($percentage >= 65 ? '#b45309' : '#b91c1c') }};">
+                        {{ $percentage }}%
                     </td>
-                    <td class="font-mono">{{ $st['revised']['attended'] }}</td>
-                    <td class="font-mono font-bold" style="color: #0284c7;">{{ $st['revised']['percentage'] }}%</td>
                     <td class="{{ $statusClass }}">
-                        {{ $revStatus }}
-                        @if($st['revised']['promoted'])
-                            <span style="font-size: 6.5px; display: block; color: #15803d;">(Promoted)</span>
-                        @endif
+                        {{ $status }}
                     </td>
-                    <td class="font-mono" style="color: {{ $st['revised']['shortage_pct'] > 0 ? '#b45309' : '#15803d' }};">
-                        {{ $st['revised']['shortage_pct'] > 0 ? '-' . $st['revised']['shortage_pct'] . '%' : 'None' }}
+                    <td class="font-mono" style="color: {{ $shortage > 0 ? '#b45309' : '#15803d' }};">
+                        {{ $shortage > 0 ? '-' . $shortage . '%' : 'None' }}
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="12" style="padding: 10px;">No students found for this classroom.</td>
+                    <td colspan="8" style="padding: 10px;">No students found for this classroom.</td>
                 </tr>
             @endforelse
         </tbody>

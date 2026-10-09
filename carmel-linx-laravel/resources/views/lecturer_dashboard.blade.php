@@ -243,6 +243,32 @@
       padding-right: 0.5rem !important;
     }
 
+    /* Remove up/down spinner arrows on number inputs for formative and summative mark entry */
+    input.summ-mark::-webkit-outer-spin-button,
+    input.summ-mark::-webkit-inner-spin-button,
+    input.co-mark::-webkit-outer-spin-button,
+    input.co-mark::-webkit-inner-spin-button,
+    #markEntryTbody input[type=number]::-webkit-outer-spin-button,
+    #markEntryTbody input[type=number]::-webkit-inner-spin-button,
+    #summativeMarkEntryTbody input[type=number]::-webkit-outer-spin-button,
+    #summativeMarkEntryTbody input[type=number]::-webkit-inner-spin-button,
+    input.override-att-input::-webkit-outer-spin-button,
+    input.override-att-input::-webkit-inner-spin-button,
+    input.no-spinner::-webkit-outer-spin-button,
+    input.no-spinner::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    }
+    input.summ-mark,
+    input.co-mark,
+    #markEntryTbody input[type=number],
+    #summativeMarkEntryTbody input[type=number],
+    input.override-att-input,
+    input.no-spinner {
+      -moz-appearance: textfield !important;
+      appearance: textfield !important;
+    }
+
     /* Flatpickr date picker calendar visibility in dark background */
     .flatpickr-calendar {
       background: #0f172a !important;
@@ -1131,34 +1157,34 @@
         <!-- CARD 3: Professional Horizontal Tab Strip Navigation Container (Separated Card) -->
         <div class="bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg">
           <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none">
-             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]">
+             <button onclick="toggleClassroomTab('structure')" id="tabStructure" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]">
                <span class="material-symbols-rounded text-sm">account_tree</span> Course Structure
              </button>
-             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('planner')" id="tabPlanner" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">calendar_month</span> Lesson Planner
              </button>
-             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('assessment')" id="tabAssessment" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">assignment_turned_in</span> Formative Assessment
              </button>
-             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('summative')" id="tabSummative" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">school</span> Summative Assessment
              </button>
-             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
+             <button onclick="toggleClassroomTab('seminar_evaluation')" id="tabSeminar" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
                <span class="material-symbols-rounded text-sm">co_present</span> Seminar Evaluation
              </button>
-             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
+             <button onclick="toggleClassroomTab('lab_evaluation')" id="tabLab" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px hidden">
                <span class="material-symbols-rounded text-sm text-teal-400">science</span> Formative Assessment
              </button>
-             <button onclick="toggleClassroomTab('qbank')" id="tabQBank" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-               <span class="material-symbols-rounded text-sm">database</span> Question Bank
-             </button>
-             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('survey')" id="tabSurvey" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">rate_review</span> Surveys
              </button>
-             <button onclick="toggleClassroomTab('course_attainment')" id="tabCourseAttainment" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('course_attainment')" id="tabCourseAttainment" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm text-amber-400">emoji_events</span> Course Attainment
              </button>
-             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+             <button onclick="toggleClassroomTab('cia_calculation')" id="tabCiaCalculation" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+               <span class="material-symbols-rounded text-sm text-emerald-400">calculate</span> CIA Final Register
+             </button>
+             <button onclick="toggleClassroomTab('reports')" id="tabReports" class="shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
                <span class="material-symbols-rounded text-sm">assessment</span> Reports
              </button>
           </nav>
@@ -1360,6 +1386,10 @@
                       <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-slate-400">assignment</span> Assignment QP & Rubrics Report</span>
                       <span class="material-symbols-rounded text-xs text-slate-400">arrow_forward</span>
                     </button>
+                    <button type="button" onclick="scrollToQuestionBank()" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center justify-between cursor-pointer shadow-sm">
+                      <span class="flex items-center gap-2"><span class="material-symbols-rounded text-base text-cyan-400">database</span> Question Bank Pool</span>
+                      <span class="material-symbols-rounded text-xs text-slate-400">arrow_downward</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1422,32 +1452,35 @@
                 </div>
               </div>
 
-            </div>
-
-            <!-- Question Bank Panel -->
-            <div id="questionBankContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
-              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
-                <div>
-                  <h4 class="text-sm font-black text-slate-200">Shared Question Bank Pool</h4>
-                  <p class="text-sm text-slate-400 mt-1">Manage and import MCQ or Descriptive questions for this subject code. These questions are pooled across all batches.</p>
+              <!-- Shared Question Bank Pool Section (Inside Reports Tab) -->
+              <div id="questionBankContent" class="flex flex-col space-y-6 pt-6 border-t border-slate-800/60">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="material-symbols-rounded text-cyan-400 text-lg">database</span>
+                      <h4 class="text-sm font-black text-slate-200">Shared Question Bank Pool</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Manage and import MCQ or Descriptive questions for this subject code. These questions are pooled across all batches.</p>
+                  </div>
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <button onclick="downloadExcelTemplate()" class="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 shadow-md cursor-pointer">
+                      <span class="material-symbols-rounded text-base">download</span> Download Excel Template
+                    </button>
+                    <button onclick="document.getElementById('qbankFileInput').click()" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md border border-slate-700/60">
+                      <span class="material-symbols-rounded text-base">upload_file</span> Upload Filled Excel
+                    </button>
+                    <input type="file" id="qbankFileInput" class="hidden" accept=".xlsx,.xls,.csv" onchange="handleQBankUpload(this)">
+                  </div>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                  <button onclick="downloadExcelTemplate()" class="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 rounded-xl text-sm font-bold transition-premium flex items-center gap-1.5 shadow-md cursor-pointer">
-                    <span class="material-symbols-rounded text-base">download</span> Download Excel Template
-                  </button>
-                  <button onclick="document.getElementById('qbankFileInput').click()" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md border border-slate-700/60">
-                    <span class="material-symbols-rounded text-base">upload_file</span> Upload Filled Excel
-                  </button>
-                  <input type="file" id="qbankFileInput" class="hidden" accept=".xlsx,.xls,.csv" onchange="handleQBankUpload(this)">
+
+                <!-- Question Bank View -->
+                <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl p-6 shadow-inner">
+                  <div class="space-y-6" id="qbankCoGroups">
+                    <div class="text-sm font-bold text-slate-400 py-10 text-center">Loading Question Bank...</div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Question Bank View -->
-              <div class="bg-slate-950/50 border border-slate-800/60 rounded-xl p-6 shadow-inner">
-                <div class="space-y-6" id="qbankCoGroups">
-                  <div class="text-sm font-bold text-slate-400 py-10 text-center">Loading Question Bank...</div>
-                </div>
-              </div>
             </div>
 
             <!-- Combined Surveys Panel (Mid-Semester & Exit Surveys) -->
@@ -1511,6 +1544,53 @@
               </div>
 
               <div id="courseAttainmentWorkspace" class="space-y-6">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Continuous Internal Assessment (CIA) Final Register Panel (Revision 2021) -->
+            <div id="ciaCalculationContent" class="hidden flex-col h-full overflow-y-auto pr-2 pb-10 space-y-6">
+              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span class="material-symbols-rounded text-base block">calculate</span>
+                    </span>
+                    <h4 id="ciaPanelHeaderTitle" class="text-sm font-black text-slate-200">Continuous Internal Assessment (CIA) Final Register — Revision 2021</h4>
+                  </div>
+                  <p id="ciaPanelSubtitle" class="text-xs text-slate-400 mt-1">Official Continuous Internal Assessment (CIA) calculation. TEAMS uploaded attendance is the authoritative source for attendance marks. Manual percentage overrides can be applied when necessary.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="ciaOverrideSaveStatus" class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mr-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> TEAMS Synced
+                  </span>
+                  <button type="button" onclick="loadCiaCalculation(currentSubjectId)" title="Reload latest data from database" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md border border-slate-700/60">
+                    <span class="material-symbols-rounded text-sm">refresh</span> Refresh Data
+                  </button>
+                  <button type="button" onclick="openCiaRegisterPrint()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-900/30">
+                    <span class="material-symbols-rounded text-sm">print</span> Print Final CIA Marksheet (A4)
+                  </button>
+                  <button type="button" onclick="saveAllCiaAttendanceOverrides()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-900/30">
+                    <span class="material-symbols-rounded text-sm">save</span> Save All Overrides
+                  </button>
+                </div>
+              </div>
+
+              <!-- Authoritative Notice Box -->
+              <div class="bg-gradient-to-r from-blue-950/40 to-slate-900/40 border border-blue-500/30 rounded-xl p-3.5 flex items-center justify-between gap-4 text-xs">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-blue-400 text-xl">verified</span>
+                  <div>
+                    <span class="font-bold text-slate-200">Official TEAMS Attendance Regulation:</span>
+                    <span id="ciaNoticeText" class="text-slate-400 ml-1">In Revision 2021, TEAMS uploaded attendance is the final document for Attendance Mark. Percentage field can be overridden below for manual correction without altering teaching log records.</span>
+                  </div>
+                </div>
+                <div id="ciaTeamsSummaryBadge" class="shrink-0 font-mono text-[11px] font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-800/60 px-2.5 py-1 rounded-lg">
+                  TEAMS Official Active
+                </div>
+              </div>
+
+              <div id="ciaCalculationWorkspace" class="bg-slate-950/50 border border-slate-800/60 rounded-xl overflow-hidden shadow-inner">
                 <!-- Rendered dynamically -->
               </div>
             </div>
@@ -1970,11 +2050,12 @@
               'planner': 'coursePlannerContent',
               'assessment': 'formativeAssessmentContent',
               'summative': 'summativeAssessmentContent',
-              'qbank': 'questionBankContent',
+              'qbank': 'classReportsContent',
               'survey': 'surveysContent',
               'seminar_evaluation': 'seminarEvaluationContent',
               'lab_copo': 'labCoPoMappingContent',
               'course_attainment': 'courseAttainmentContent',
+              'cia_calculation': 'ciaCalculationContent',
               'reports': 'classReportsContent'
             };
             const targetId = tabContentMap[initialTab];
@@ -1985,6 +2066,13 @@
                 structEl.classList.add('hidden');
                 targetEl.classList.remove('hidden');
                 if (initialTab !== 'structure') targetEl.classList.add('flex');
+              }
+              if (initialTab === 'qbank') {
+                setTimeout(() => {
+                  if (typeof scrollToQuestionBank === 'function') {
+                    scrollToQuestionBank();
+                  }
+                }, 400);
               }
             }
           }
@@ -2601,19 +2689,641 @@
         });
     }
 
+    function renderCiaCalculation(students) {
+      const workspace = document.getElementById('ciaCalculationWorkspace');
+      if (!workspace) return;
+
+      students = students || window.currentVirtualStudents || [];
+
+      if (!students || students.length === 0) {
+        workspace.innerHTML = `
+          <div class="p-8 text-center text-slate-400 font-bold text-sm">
+            No students found in this classroom batch.
+          </div>
+        `;
+        return;
+      }
+
+      const isPractical = Boolean(
+        window.isCurrentSubjectPractical ||
+        (students && students.length > 0 && students[0].is_practical) ||
+        (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
+        (typeof window.currentSubjectType !== 'undefined' && window.currentSubjectType && (window.currentSubjectType.toLowerCase().includes('lab') || window.currentSubjectType.toLowerCase().includes('practical') || window.currentSubjectType.toLowerCase().includes('drawing')))
+      );
+
+      // Dynamically update panel header title, subtitle, and authoritative notice
+      const hTitle = document.getElementById('ciaPanelHeaderTitle');
+      const hSub = document.getElementById('ciaPanelSubtitle');
+      const nText = document.getElementById('ciaNoticeText');
+
+      if (isPractical) {
+        if (hTitle) hTitle.innerText = 'Continuous Internal Assessment (CIA 75M) Final Register — Revision 2021 (Practical / Lab)';
+        if (hSub) hSub.innerText = 'Official Continuous Internal Assessment (CIA) calculation for Practical / Lab courses. In lab, CIA is computed from Two Test Avg (/15), Lab Work Avg (/37.5), Open-Ended (/7.5), and TEAMS Attendance Mark (/15), totaling 75 marks.';
+        if (nText) nText.innerText = 'In Revision 2021 Practical / Lab, TEAMS uploaded attendance is the authoritative source for Attendance Mark (Max 15). Percentage can be overridden below for manual correction without altering teaching log records.';
+      } else {
+        if (hTitle) hTitle.innerText = 'Continuous Internal Assessment (CIA 50M) Final Register — Revision 2021 (Theory)';
+        if (hSub) hSub.innerText = 'Official Continuous Internal Assessment (CIA) calculation for Theory courses. TEAMS uploaded attendance is the authoritative source for attendance marks out of 10. Manual percentage overrides can be applied when necessary.';
+        if (nText) nText.innerText = 'In Revision 2021 Theory, TEAMS uploaded attendance is the final document for Attendance Mark (Max 10). Percentage field can be overridden below for manual correction without altering teaching log records.';
+      }
+
+      // ── Practical / Lab Classroom (Max 75) ───────────────────────────
+      if (isPractical) {
+        let rowsHtml = '';
+        students.forEach((student, index) => {
+          // 1. Lab Work Avg (Max 37.5)
+          let labWorkVal = 0.0;
+          if (student.avg_lab_work !== null && student.avg_lab_work !== undefined && student.avg_lab_work !== '') {
+            labWorkVal = parseFloat(student.avg_lab_work);
+          } else if (student.lab_work_marks !== null && student.lab_work_marks !== undefined && student.lab_work_marks !== '') {
+            labWorkVal = parseFloat(student.lab_work_marks);
+          } else if (student.calculated_split_avg !== null && student.calculated_split_avg !== undefined) {
+            labWorkVal = parseFloat(student.calculated_split_avg);
+          }
+          labWorkVal = Math.min(37.5, Math.max(0, labWorkVal));
+          const labWorkText = labWorkVal > 0 ? labWorkVal.toFixed(1) : (student.avg_lab_work !== undefined ? labWorkVal.toFixed(1) : '-');
+
+          // 2. Two Test Avg (Max 15)
+          let testScoreVal = 0.0;
+          if (student.two_test_avg !== null && student.two_test_avg !== undefined && student.two_test_avg !== '') {
+            testScoreVal = parseFloat(student.two_test_avg);
+          } else if (student.tests && student.tests.average !== undefined && student.tests.average !== null) {
+            testScoreVal = parseFloat(student.tests.average);
+          } else {
+            const t1 = parseFloat(student.practical_test1 ?? student.test1_score ?? 0);
+            const t2 = parseFloat(student.practical_test2 ?? student.test2_score ?? 0);
+            testScoreVal = (t1 + t2) / 2;
+          }
+          testScoreVal = Math.min(15.0, Math.max(0, testScoreVal));
+          const testScoreText = testScoreVal > 0 ? testScoreVal.toFixed(1) : (student.two_test_avg !== undefined ? testScoreVal.toFixed(1) : '-');
+
+          // 3. Open-Ended (Max 7.5)
+          let openEndedVal = 0.0;
+          if (student.open_ended_mark !== null && student.open_ended_mark !== undefined && student.open_ended_mark !== '') {
+            openEndedVal = parseFloat(student.open_ended_mark);
+          } else if (student.micro_project !== null && student.micro_project !== undefined && student.micro_project !== '') {
+            openEndedVal = parseFloat(student.micro_project);
+          } else if (student.open_ended_marks !== null && student.open_ended_marks !== undefined && student.open_ended_marks !== '') {
+            openEndedVal = parseFloat(student.open_ended_marks);
+          }
+          openEndedVal = Math.min(7.5, Math.max(0, openEndedVal));
+          const openEndedText = openEndedVal > 0 ? openEndedVal.toFixed(1) : (student.open_ended_mark !== undefined ? openEndedVal.toFixed(1) : '-');
+
+          // 4. Official TEAMS Attendance & Overrides
+          const teamsPctVal = (student.teams_percentage !== null && student.teams_percentage !== undefined)
+            ? parseFloat(student.teams_percentage)
+            : null;
+          const teamsPctDisplay = teamsPctVal !== null ? teamsPctVal.toFixed(1) + '%' : '-';
+
+          const overrideVal = (student.override_percentage !== null && student.override_percentage !== undefined && student.override_percentage !== '')
+            ? parseFloat(student.override_percentage)
+            : null;
+          const overrideDisplay = overrideVal !== null ? overrideVal.toFixed(1) : '';
+
+          const activePct = overrideVal !== null ? overrideVal : (teamsPctVal !== null ? teamsPctVal : 0.0);
+
+          // Attendance Mark (Max 15) - R21 Rule: round(activePct * 0.15 * 2) / 2
+          let attMark = 0;
+          if (overrideVal === null && student.attendance_marks !== null && student.attendance_marks !== undefined && student.is_practical) {
+            attMark = parseFloat(student.attendance_marks);
+          } else {
+            const rawAtt15 = (activePct / 100.0) * 15.0;
+            attMark = Math.min(15, Math.max(0, Math.floor(Math.round(rawAtt15 * 2) / 2)));
+          }
+
+          // Total CIA (Max 75) = labWorkVal (37.5) + testScoreVal (15) + openEndedVal (7.5) + attMark (15)
+          const totalCia = Math.min(75, Math.round(labWorkVal + testScoreVal + openEndedVal + attMark));
+          const isPassed = totalCia >= 30;
+
+          rowsHtml += `
+            <tr class="border-b border-slate-800/40 hover:bg-slate-900/40 transition-premium"
+                data-reg="${student.reg_no}"
+                data-practical="true"
+                data-lab="${labWorkVal}"
+                data-test="${testScoreVal}"
+                data-open="${openEndedVal}">
+              <td class="p-3 text-slate-400 font-bold text-center text-xs">${student.roll_no || (index + 1)}</td>
+              <td class="p-3">
+                <div class="font-bold text-slate-100 text-sm">${student.name}</div>
+                <div class="font-mono text-slate-400 text-xs">${student.sbte_reg_no || student.reg_no}</div>
+              </td>
+              <td class="p-3 text-center font-mono font-bold text-teal-400 text-sm bg-teal-500/5">
+                ${labWorkText}
+              </td>
+              <td class="p-3 text-center font-mono font-bold text-sky-400 text-sm bg-sky-500/5">
+                ${testScoreText}
+              </td>
+              <td class="p-3 text-center font-mono font-bold text-violet-400 text-sm bg-violet-500/5">
+                ${openEndedText}
+              </td>
+              <td class="p-3 text-center">
+                <span class="inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-cyan-950/70 border border-cyan-800/70 text-cyan-300" title="Official TEAMS percentage from attendance upload">
+                  <span class="material-symbols-rounded text-xs text-cyan-400">upload_file</span>
+                  ${teamsPctDisplay}
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <div class="inline-flex items-center gap-1">
+                  <input type="number" step="0.1" min="0" max="100"
+                    value="${overrideDisplay}"
+                    placeholder="Auto"
+                    data-reg="${student.reg_no}"
+                    data-teams="${teamsPctVal !== null ? teamsPctVal : 0}"
+                    data-practical="true"
+                    title="Enter manual override attendance % (leave empty to use official TEAMS %)"
+                    class="cia-att-override-input override-att-input no-spinner w-20 bg-slate-900 border ${overrideDisplay ? 'border-amber-400 text-amber-300 ring-1 ring-amber-500/50' : 'border-slate-700/80 text-slate-200'} rounded-lg px-2 py-1.5 text-center font-mono font-bold text-xs focus:outline-none focus:border-amber-400"
+                    onfocus="this.select()"
+                    oninput="handleCiaAttOverrideInput(this)"
+                    onchange="saveCiaAttOverrideSingle(this)">
+                  ${overrideDisplay ? `
+                    <button type="button" onclick="resetCiaAttOverride('${student.reg_no}')" title="Reset override to official TEAMS %" class="text-slate-500 hover:text-rose-400 p-1 cursor-pointer transition-colors">
+                      <span class="material-symbols-rounded text-sm">close</span>
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+              <td class="p-3 text-center font-mono font-bold text-amber-300 text-sm cia-row-att-mark">
+                ${attMark} <span class="text-[10px] text-slate-500 font-normal">/ 15</span>
+              </td>
+              <td class="p-3 text-center font-mono font-extrabold text-base text-indigo-300 bg-indigo-500/10 cia-row-total-cia">
+                ${totalCia} <span class="text-[10px] text-slate-500 font-normal">/ 75</span>
+              </td>
+              <td class="p-3 text-center cia-row-status">
+                <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md border ${isPassed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">
+                  ${isPassed ? 'PASSED ✓' : 'FAILED'}
+                </span>
+              </td>
+            </tr>
+          `;
+        });
+
+        workspace.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[950px]">
+              <thead>
+                <tr class="bg-slate-900/60 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                  <th class="p-3 text-center w-12">Roll</th>
+                  <th class="p-3">Student Name &amp; Reg No</th>
+                  <th class="p-3 text-center w-28 text-teal-400">Lab Work Avg<br><span class="text-[9px] font-normal text-teal-300/80">(Max 37.5)</span></th>
+                  <th class="p-3 text-center w-28 text-sky-400">Two Test Avg<br><span class="text-[9px] font-normal text-sky-300/80">(Max 15)</span></th>
+                  <th class="p-3 text-center w-28 text-violet-400">Open Ended<br><span class="text-[9px] font-normal text-violet-300/80">(Max 7.5)</span></th>
+                  <th class="p-3 text-center w-32 text-cyan-400">TEAMS Attn %<br><span class="text-[9px] font-normal text-cyan-300/80">Official Upload</span></th>
+                  <th class="p-3 text-center w-36 text-amber-400">Override Attn %<br><span class="text-[9px] font-normal text-amber-300/80">Manual Correction</span></th>
+                  <th class="p-3 text-center w-24 text-amber-300">Attn Mark<br><span class="text-[9px] font-normal text-slate-400">(Max 15)</span></th>
+                  <th class="p-3 text-center w-24 text-indigo-400 bg-indigo-500/10">Total CIA<br><span class="text-[9px] font-normal text-indigo-300/80">(Max 75)</span></th>
+                  <th class="p-3 text-center w-24">CIA Status</th>
+                </tr>
+              </thead>
+              <tbody id="ciaCalculationTableBody" class="divide-y divide-slate-800/40">
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      // ── Theory Classroom (Max 50) ────────────────────────────────────
+      let rowsHtml = '';
+      students.forEach((student, index) => {
+        // 1. Formative (Assignments) - Best 2 of CO1..CO4
+        let aScores = [];
+        let am = student.assignment_marks || {};
+        ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+          if (am[c] !== null && am[c] !== undefined && am[c] !== '' && !isNaN(am[c])) {
+            aScores.push(Number(am[c]));
+          }
+        });
+        aScores.sort((a, b) => b - a);
+        let assignAvg = 0.0;
+        let assignAvgText = '-';
+        if (aScores.length >= 2) {
+          assignAvg = Number(((aScores[0] + aScores[1]) / 2).toFixed(1));
+          assignAvgText = assignAvg.toFixed(1);
+        } else if (aScores.length === 1) {
+          assignAvg = Number(aScores[0].toFixed(1));
+          assignAvgText = assignAvg.toFixed(1);
+        }
+
+        // 2. Summative (Written Tests) - Best 2 of Tests
+        let sScores = [];
+        let sm = student.summative_marks || {};
+        ['CO1', 'CO2', 'CO3', 'CO4'].forEach(c => {
+          if (sm[c] !== null && sm[c] !== undefined && sm[c] !== '' && !isNaN(sm[c])) {
+            sScores.push(Number(sm[c]));
+          }
+        });
+        if (sScores.length === 0 && student.tests) {
+          if (student.tests['Test 1'] && student.tests['Test 1'].total !== undefined && student.tests['Test 1'].total !== null) {
+            sScores.push(Number(student.tests['Test 1'].total));
+          }
+          if (student.tests['Test 2'] && student.tests['Test 2'].total !== undefined && student.tests['Test 2'].total !== null) {
+            sScores.push(Number(student.tests['Test 2'].total));
+          }
+        }
+        sScores.sort((a, b) => b - a);
+        let summAvg = 0.0;
+        let summAvgText = '-';
+        if (sScores.length >= 2) {
+          summAvg = Number(((sScores[0] + sScores[1]) / 2).toFixed(1));
+          summAvgText = summAvg.toFixed(1);
+        } else if (sScores.length === 1) {
+          summAvg = Number(sScores[0].toFixed(1));
+          summAvgText = summAvg.toFixed(1);
+        }
+
+        // 3. Official TEAMS Attendance & Overrides
+        const teamsPctVal = (student.teams_percentage !== null && student.teams_percentage !== undefined)
+          ? parseFloat(student.teams_percentage)
+          : null;
+        const teamsPctDisplay = teamsPctVal !== null ? teamsPctVal.toFixed(1) + '%' : '-';
+
+        const overrideVal = (student.override_percentage !== null && student.override_percentage !== undefined && student.override_percentage !== '')
+          ? parseFloat(student.override_percentage)
+          : null;
+        const overrideDisplay = overrideVal !== null ? overrideVal.toFixed(1) : '';
+
+        // Active attendance percentage used for CIA mark
+        const activePct = overrideVal !== null ? overrideVal : (teamsPctVal !== null ? teamsPctVal : 0.0);
+
+        // Attendance Mark (Max 10) - R21 Rule: round(activePct / 10)
+        const attMark = Math.min(10, Math.max(0, Math.round((activePct / 100.0) * 10)));
+
+        // Total CIA (Max 50) = assignAvg (20) + summAvg (20) + attMark (10)
+        const hasAcademic = (aScores.length > 0 || sScores.length > 0);
+        const totalCia = hasAcademic ? Math.round(assignAvg + summAvg + attMark) : attMark;
+        const isPassed = totalCia >= 20;
+
+        rowsHtml += `
+          <tr class="border-b border-slate-800/40 hover:bg-slate-900/40 transition-premium" data-reg="${student.reg_no}" data-practical="false" data-assign="${assignAvg}" data-summ="${summAvg}">
+            <td class="p-3 text-slate-400 font-bold text-center text-xs">${student.roll_no || (index + 1)}</td>
+            <td class="p-3">
+              <div class="font-bold text-slate-100 text-sm">${student.name}</div>
+              <div class="font-mono text-slate-400 text-xs">${student.sbte_reg_no || student.reg_no}</div>
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-emerald-400 text-sm bg-emerald-500/5">
+              ${assignAvgText}
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-sky-400 text-sm bg-sky-500/5">
+              ${summAvgText}
+            </td>
+            <td class="p-3 text-center">
+              <span class="inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-cyan-950/70 border border-cyan-800/70 text-cyan-300" title="Official TEAMS percentage from attendance upload">
+                <span class="material-symbols-rounded text-xs text-cyan-400">upload_file</span>
+                ${teamsPctDisplay}
+              </span>
+            </td>
+            <td class="p-3 text-center">
+              <div class="inline-flex items-center gap-1">
+                <input type="number" step="0.1" min="0" max="100"
+                  value="${overrideDisplay}"
+                  placeholder="Auto"
+                  data-reg="${student.reg_no}"
+                  data-teams="${teamsPctVal !== null ? teamsPctVal : 0}"
+                  data-practical="false"
+                  title="Enter manual override attendance % (leave empty to use official TEAMS %)"
+                  class="cia-att-override-input override-att-input no-spinner w-20 bg-slate-900 border ${overrideDisplay ? 'border-amber-400 text-amber-300 ring-1 ring-amber-500/50' : 'border-slate-700/80 text-slate-200'} rounded-lg px-2 py-1.5 text-center font-mono font-bold text-xs focus:outline-none focus:border-amber-400"
+                  onfocus="this.select()"
+                  oninput="handleCiaAttOverrideInput(this)"
+                  onchange="saveCiaAttOverrideSingle(this)">
+                ${overrideDisplay ? `
+                  <button type="button" onclick="resetCiaAttOverride('${student.reg_no}')" title="Reset override to official TEAMS %" class="text-slate-500 hover:text-rose-400 p-1 cursor-pointer transition-colors">
+                    <span class="material-symbols-rounded text-sm">close</span>
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-amber-300 text-sm cia-row-att-mark">
+              ${attMark} <span class="text-[10px] text-slate-500 font-normal">/ 10</span>
+            </td>
+            <td class="p-3 text-center font-mono font-extrabold text-base text-indigo-300 bg-indigo-500/10 cia-row-total-cia cia-row-total-cie">
+              ${totalCia} <span class="text-[10px] text-slate-500 font-normal">/ 50</span>
+            </td>
+            <td class="p-3 text-center cia-row-status">
+              <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md border ${isPassed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">
+                ${isPassed ? 'PASSED ✓' : 'FAILED'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      workspace.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[850px]">
+            <thead>
+              <tr class="bg-slate-900/60 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <th class="p-3 text-center w-12">Roll</th>
+                <th class="p-3">Student Name &amp; Reg No</th>
+                <th class="p-3 text-center w-28 text-emerald-400">Assignment Avg<br><span class="text-[9px] font-normal text-emerald-300/80">Best 2 (/20)</span></th>
+                <th class="p-3 text-center w-28 text-sky-400">Written Test Avg<br><span class="text-[9px] font-normal text-sky-300/80">Best 2 (/20)</span></th>
+                <th class="p-3 text-center w-32 text-cyan-400">TEAMS Attn %<br><span class="text-[9px] font-normal text-cyan-300/80">Official Upload</span></th>
+                <th class="p-3 text-center w-36 text-amber-400">Override Attn %<br><span class="text-[9px] font-normal text-amber-300/80">Manual Correction</span></th>
+                <th class="p-3 text-center w-24 text-amber-300">Attn Mark<br><span class="text-[9px] font-normal text-slate-400">(Max 10)</span></th>
+                <th class="p-3 text-center w-24 text-indigo-400 bg-indigo-500/10">Total CIA<br><span class="text-[9px] font-normal text-indigo-300/80">(Max 50)</span></th>
+                <th class="p-3 text-center w-24">CIA Status</th>
+              </tr>
+            </thead>
+            <tbody id="ciaCalculationTableBody" class="divide-y divide-slate-800/40">
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function handleCiaAttOverrideInput(input) {
+      if (!input) return;
+      const row = input.closest('tr');
+      if (!row) return;
+
+      const isPractical = row.getAttribute('data-practical') === 'true' || input.getAttribute('data-practical') === 'true';
+      const regNo = input.getAttribute('data-reg');
+      const teamsVal = parseFloat(input.getAttribute('data-teams')) || 0.0;
+      const rawVal = input.value.trim();
+      const activePct = (rawVal !== '' && !isNaN(rawVal)) ? parseFloat(rawVal) : teamsVal;
+
+      let attMark = 0;
+      let totalCia = 0;
+      let isPassed = false;
+
+      if (isPractical) {
+        const labWork = parseFloat(row.getAttribute('data-lab')) || 0.0;
+        const testScore = parseFloat(row.getAttribute('data-test')) || 0.0;
+        const openEnded = parseFloat(row.getAttribute('data-open')) || 0.0;
+
+        // Practical Attendance Mark (out of 15) - R21 Rule: round(activePct * 0.15 * 2) / 2
+        const rawAtt15 = (activePct / 100.0) * 15.0;
+        attMark = Math.min(15, Math.max(0, Math.floor(Math.round(rawAtt15 * 2) / 2)));
+        totalCia = Math.min(75, Math.round(labWork + testScore + openEnded + attMark));
+        isPassed = totalCia >= 30;
+
+        const markCell = row.querySelector('.cia-row-att-mark');
+        if (markCell) markCell.innerHTML = `${attMark} <span class="text-[10px] text-slate-500 font-normal">/ 15</span>`;
+
+        const ciaCell = row.querySelector('.cia-row-total-cia') || row.querySelector('.cia-row-total-cie');
+        if (ciaCell) ciaCell.innerHTML = `${totalCia} <span class="text-[10px] text-slate-500 font-normal">/ 75</span>`;
+      } else {
+        const assignAvg = parseFloat(row.getAttribute('data-assign')) || 0.0;
+        const summAvg = parseFloat(row.getAttribute('data-summ')) || 0.0;
+
+        // Theory Attendance Mark (out of 10) - R21 Rule: round(activePct / 10)
+        attMark = Math.min(10, Math.max(0, Math.round((activePct / 100.0) * 10)));
+        totalCia = Math.round(assignAvg + summAvg + attMark);
+        isPassed = totalCia >= 20;
+
+        const markCell = row.querySelector('.cia-row-att-mark');
+        if (markCell) markCell.innerHTML = `${attMark} <span class="text-[10px] text-slate-500 font-normal">/ 10</span>`;
+
+        const ciaCell = row.querySelector('.cia-row-total-cia') || row.querySelector('.cia-row-total-cie');
+        if (ciaCell) ciaCell.innerHTML = `${totalCia} <span class="text-[10px] text-slate-500 font-normal">/ 50</span>`;
+      }
+
+      const statusCell = row.querySelector('.cia-row-status');
+      if (statusCell) {
+        statusCell.innerHTML = `
+          <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md border ${isPassed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">
+            ${isPassed ? 'PASSED ✓' : 'FAILED'}
+          </span>
+        `;
+      }
+
+      if (rawVal !== '') {
+        input.classList.add('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-500/50');
+      } else {
+        input.classList.remove('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-500/50');
+      }
+    }
+
+    function saveCiaAttOverrideSingle(input) {
+      if (!input || !currentSubjectId) return;
+      const regNo = input.getAttribute('data-reg');
+      const val = input.value.trim();
+      const overrideVal = (val !== '' && !isNaN(val)) ? parseFloat(val) : null;
+
+      const statusIndicator = document.getElementById('ciaOverrideSaveStatus');
+      if (statusIndicator) {
+        statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-spin"></span> Saving...';
+      }
+
+      fetch(`/api/classroom/${currentSubjectId}/attendance-override`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({
+          reg_no: regNo,
+          override_percentage: overrideVal
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          if (statusIndicator) {
+            statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Saved';
+            setTimeout(() => {
+              if (statusIndicator) statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> TEAMS Synced';
+            }, 2500);
+          }
+          if (window.currentVirtualStudents) {
+            const st = window.currentVirtualStudents.find(s => s.reg_no === regNo);
+            if (st) {
+              st.override_percentage = overrideVal;
+              st.final_percentage = data.data.final_percentage;
+              st.attendance_marks = data.data.final_mark;
+            }
+          }
+        } else {
+          if (statusIndicator) statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span> Save error';
+          alert(data.message || 'Error saving override.');
+        }
+      })
+      .catch(err => {
+        if (statusIndicator) statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span> Save error';
+        console.error('Error saving attendance override:', err);
+      });
+    }
+
+    function resetCiaAttOverride(regNo) {
+      const input = document.querySelector(`.cia-att-override-input[data-reg="${regNo}"]`);
+      if (input) {
+        input.value = '';
+        handleCiaAttOverrideInput(input);
+        saveCiaAttOverrideSingle(input);
+      }
+    }
+
+    function saveAllCiaAttendanceOverrides() {
+      if (!currentSubjectId) return;
+      const inputs = document.querySelectorAll('.cia-att-override-input');
+      const rows = [];
+      inputs.forEach(inp => {
+        const regNo = inp.getAttribute('data-reg');
+        const val = inp.value.trim();
+        rows.push({
+          reg_no: regNo,
+          override_percentage: (val !== '' && !isNaN(val)) ? parseFloat(val) : null
+        });
+      });
+
+      const statusIndicator = document.getElementById('ciaOverrideSaveStatus');
+      if (statusIndicator) {
+        statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-spin"></span> Saving all...';
+      }
+
+      fetch(`/api/classroom/${currentSubjectId}/attendance-override`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({ rows: rows })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'SUCCESS') {
+          if (statusIndicator) {
+            statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> All saved';
+            setTimeout(() => {
+              if (statusIndicator) statusIndicator.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> TEAMS Synced';
+            }, 2500);
+          }
+          if (Array.isArray(data.data) && window.currentVirtualStudents) {
+            const updatedMap = new Map(data.data.map(u => [u.reg_no, u]));
+            window.currentVirtualStudents.forEach(st => {
+              if (updatedMap.has(st.reg_no)) {
+                const u = updatedMap.get(st.reg_no);
+                st.override_percentage = u.override_percentage;
+                st.final_percentage = u.final_percentage;
+                st.attendance_marks = u.final_mark;
+              }
+            });
+          }
+          alert('All attendance overrides saved successfully.');
+        } else {
+          alert('Error: ' + data.message);
+        }
+      })
+      .catch(err => {
+        console.error('Error saving overrides:', err);
+        alert('Network error saving overrides.');
+      });
+    }
+
+    function openCiaRegisterPrint() {
+      const sid = currentSubjectId || window.currentSubjectId;
+      if (!sid) {
+        alert("Please select a subject first.");
+        return;
+      }
+      const isLab = Boolean(
+        window.isCurrentSubjectPractical || 
+        (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
+        (typeof window.currentSubjectType !== 'undefined' && window.currentSubjectType && (window.currentSubjectType.toLowerCase().includes('lab') || window.currentSubjectType.toLowerCase().includes('practical') || window.currentSubjectType.toLowerCase().includes('drawing')))
+      );
+
+      const url = isLab 
+        ? `/classroom/practical/${sid}/report/print`
+        : `/classroom/${sid}/final-results/print`;
+
+      const win = window.open(url, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = url;
+      }
+    }
+    window.openCiaRegisterPrint = openCiaRegisterPrint;
+
+    function loadCiaCalculation(subjectId) {
+      const sid = subjectId || currentSubjectId;
+      if (!sid) return;
+
+      const workspace = document.getElementById('ciaCalculationWorkspace');
+      if (workspace && (!window.currentVirtualStudents || window.currentVirtualStudents.length === 0)) {
+        workspace.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 text-center text-slate-500">
+            <div class="w-7 h-7 border-2 border-slate-600 border-t-emerald-500 rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-bold text-slate-400">Fetching CIA Final Register data from database...</p>
+          </div>
+        `;
+      }
+
+      return fetch(`/api/classroom/${sid}/details`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS' && data.data && data.data.students) {
+            window.currentVirtualStudents = data.data.students;
+            const subjectTypeRaw = (data.data.subject_type || '').toLowerCase();
+            const sNameLower = (data.data.subject_name || '').toLowerCase();
+            const isPractical = subjectTypeRaw === 'practical' || subjectTypeRaw === 'lab' || subjectTypeRaw.includes('lab') || subjectTypeRaw.includes('practical') || subjectTypeRaw.includes('practicum') || sNameLower.includes('lab') || sNameLower.includes('practical') || sNameLower.includes('practicum') || sNameLower.includes('workshop');
+            window.isCurrentSubjectPractical = isPractical;
+            renderCiaCalculation(data.data.students);
+          } else if (window.currentVirtualStudents && window.currentVirtualStudents.length > 0) {
+            renderCiaCalculation(window.currentVirtualStudents);
+          } else {
+            if (workspace) {
+              workspace.innerHTML = `
+                <div class="p-8 text-center text-slate-400 font-bold text-sm">
+                  No students found in this classroom batch.
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching CIA calculation details:', err);
+          if (window.currentVirtualStudents && window.currentVirtualStudents.length > 0) {
+            renderCiaCalculation(window.currentVirtualStudents);
+          }
+        });
+    }
+
+    function scrollToQuestionBank() {
+      if (window.currentActiveVirtualTab !== 'reports') {
+        toggleClassroomTab('reports');
+      }
+      const qb = document.getElementById('questionBankContent');
+      if (qb) {
+        qb.classList.remove('hidden');
+        if (!qb.classList.contains('flex')) qb.classList.add('flex');
+      }
+      const sid = currentSubjectId || window.currentSubjectClassroomId;
+      if (sid) {
+        fetchQuestionBank(sid);
+      }
+      setTimeout(() => {
+        const qbTarget = document.getElementById('questionBankContent');
+        const reportsContainer = document.getElementById('classReportsContent');
+        if (qbTarget && reportsContainer) {
+          reportsContainer.scrollTo({
+            top: qbTarget.offsetTop - 30,
+            behavior: 'smooth'
+          });
+        }
+        if (qbTarget) {
+          qbTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+    window.scrollToQuestionBank = scrollToQuestionBank;
+
     function toggleClassroomTab(tabName) {
+      if (tabName === 'qbank') {
+        scrollToQuestionBank();
+        return;
+      }
+
       window.currentActiveVirtualTab = tabName;
       const tabs = [
         { id: 'structure', btn: 'tabStructure', content: 'courseStructureContent' },
         { id: 'planner', btn: 'tabPlanner', content: 'coursePlannerContent' },
         { id: 'assessment', btn: 'tabAssessment', content: 'formativeAssessmentContent' },
         { id: 'summative', btn: 'tabSummative', content: 'summativeAssessmentContent' },
-        { id: 'qbank', btn: 'tabQBank', content: 'questionBankContent' },
         { id: 'survey', btn: 'tabSurvey', content: 'surveysContent' },
         { id: 'seminar_evaluation', btn: 'tabSeminar', content: 'seminarEvaluationContent' },
         { id: 'lab_evaluation', btn: 'tabLab', content: 'labEvaluationContent' },
         { id: 'lab_copo', btn: 'tabLabCoPo', content: 'labCoPoMappingContent' },
         { id: 'course_attainment', btn: 'tabCourseAttainment', content: 'courseAttainmentContent' },
+        { id: 'cia_calculation', btn: 'tabCiaCalculation', content: 'ciaCalculationContent' },
         { id: 'reports', btn: 'tabReports', content: 'classReportsContent' }
       ];
 
@@ -2624,9 +3334,9 @@
         if (btn) {
           const isHidden = btn.classList.contains('hidden');
           if (t.id === tabName) {
-            btn.className = "px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]" + (isHidden ? " hidden" : "");
+            btn.className = "shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]" + (isHidden ? " hidden" : "");
           } else {
-            btn.className = "px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px" + (isHidden ? " hidden" : "");
+            btn.className = "shrink-0 px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px" + (isHidden ? " hidden" : "");
           }
         }
 
@@ -2646,12 +3356,19 @@
         if (window.isCurrentSubjectPractical) {
           fetchPracticalEvaluations();
         }
+        const sid = currentSubjectId || window.currentSubjectClassroomId;
+        if (sid) {
+          fetchQuestionBank(sid);
+        }
+        const qb = document.getElementById('questionBankContent');
+        if (qb) {
+          qb.classList.remove('hidden');
+          if (!qb.classList.contains('flex')) qb.classList.add('flex');
+        }
       } else if (tabName === 'assessment') {
         if (window.isCurrentSubjectPractical) {
           fetchPracticalEvaluations();
         }
-      } else if (tabName === 'qbank') {
-        fetchQuestionBank(currentSubjectId);
       } else if (tabName === 'survey') {
         switchSurveySubTab('mid_sem');
       } else if (tabName === 'seminar_evaluation') {
@@ -2671,6 +3388,14 @@
         fetchPracticalCoPoMapping();
       } else if (tabName === 'course_attainment') {
         loadCourseAttainment();
+      } else if (tabName === 'cia_calculation') {
+        const hasStudents = window.currentVirtualStudents && window.currentVirtualStudents.length > 0;
+        const matchesType = hasStudents && (Boolean(window.currentVirtualStudents[0].is_practical) === Boolean(window.isCurrentSubjectPractical));
+        if (matchesType) {
+          renderCiaCalculation(window.currentVirtualStudents);
+        } else {
+          loadCiaCalculation(currentSubjectId);
+        }
       }
     }
 
@@ -2804,6 +3529,7 @@
           renderCoursePlanner(data.data.lesson_plans);
           renderFormativeAssessment(data.data.students || []);
           renderSummativeAssessment(data.data.cos, data.data.students || []);
+          renderCiaCalculation(data.data.students || []);
           loadActiveOnlineTests(subjectId);
           if (isPractical && typeof fetchPracticalEvaluations === 'function') {
             fetchPracticalEvaluations();
@@ -2823,6 +3549,7 @@
           const tabQBank = document.getElementById('tabQBank');
           const tabSurvey = document.getElementById('tabSurvey');
           const tabCourseAttainment = document.getElementById('tabCourseAttainment');
+          const tabCiaCalculation = document.getElementById('tabCiaCalculation');
           const pRepActions = document.getElementById('practicalReportsActions');
           const vcTitle = document.getElementById('vcTitle');
 
@@ -2847,6 +3574,7 @@
             if (tabQBank) tabQBank.classList.add('hidden');
             if (tabSurvey) tabSurvey.classList.add('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.add('hidden');
+            if (tabCiaCalculation) tabCiaCalculation.classList.add('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
             toggleClassroomTab(activeTabToRestore);
           } else if (isPractical) {
@@ -2865,9 +3593,10 @@
             if (tabAssessment) tabAssessment.classList.add('hidden');
             if (tabSummative) tabSummative.classList.remove('hidden');
             if (tabReports) tabReports.classList.remove('hidden');
-            if (tabQBank) tabQBank.classList.remove('hidden');
+            if (tabQBank) tabQBank.classList.add('hidden');
             if (tabSurvey) tabSurvey.classList.remove('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
+            if (tabCiaCalculation) tabCiaCalculation.classList.remove('hidden');
             if (pRepActions) {
               pRepActions.classList.remove('hidden');
               pRepActions.classList.add('flex');
@@ -2934,9 +3663,10 @@
             if (tabAssessment) tabAssessment.classList.remove('hidden');
             if (tabSummative) tabSummative.classList.remove('hidden');
             if (tabReports) tabReports.classList.remove('hidden');
-            if (tabQBank) tabQBank.classList.remove('hidden');
+            if (tabQBank) tabQBank.classList.add('hidden');
             if (tabSurvey) tabSurvey.classList.remove('hidden');
             if (tabCourseAttainment) tabCourseAttainment.classList.remove('hidden');
+            if (tabCiaCalculation) tabCiaCalculation.classList.remove('hidden');
             if (pRepActions) pRepActions.classList.add('hidden');
 
             const lblConsolidated = document.getElementById('lblConsolidatedMarkReport');
@@ -3864,7 +4594,7 @@
 
             return `
               <div class="relative">
-                <input type="number" step="1" max="20" min="0" value="${val !== null ? Math.round(val) : ''}" 
+                <input type="number" step="any" max="20" min="0" value="${val !== null && val !== undefined && val !== '' ? val : ''}" 
                        class="${styleClasses}" data-co="${co}"
                        onfocus="this.select()"
                        oninput="updateTheoryAssignAvg(this); triggerAssignmentMarksAutoSave();"
@@ -5079,10 +5809,10 @@
               <td class="p-3 font-bold text-slate-100 text-lg">${student.name}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.reg_no}</td>
               <td class="p-3 font-mono text-slate-200 font-bold text-base">${student.sbte_reg_no || '-'}</td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined ? Math.round(sm.CO1) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined ? Math.round(sm.CO2) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined ? Math.round(sm.CO3) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
-              <td class="p-3"><input type="number" step="1" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined ? Math.round(sm.CO4) : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="any" min="0" value="${sm.CO1 !== null && sm.CO1 !== undefined && sm.CO1 !== '' ? sm.CO1 : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO1" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="any" min="0" value="${sm.CO2 !== null && sm.CO2 !== undefined && sm.CO2 !== '' ? sm.CO2 : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO2" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="any" min="0" value="${sm.CO3 !== null && sm.CO3 !== undefined && sm.CO3 !== '' ? sm.CO3 : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO3" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
+              <td class="p-3"><input type="number" step="any" min="0" value="${sm.CO4 !== null && sm.CO4 !== undefined && sm.CO4 !== '' ? sm.CO4 : ''}" placeholder="-" class="summ-mark w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2.5 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500/50 text-center" data-co="CO4" onfocus="this.select()" oninput="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave();" onchange="updateTheorySummativeAvg(this); triggerSummativeMarksAutoSave(true);" onblur="triggerSummativeMarksAutoSave(true);" onkeydown="handleSummativeMarkKeyDown(event, this)"></td>
               <td class="p-3 text-center bg-sky-500/5"><span class="theory-summ-avg-display font-mono font-bold text-sky-400 text-sm">${rowAvgText}</span></td>
             </tr>
           `;
@@ -8434,7 +9164,19 @@
     }
 
     function fetchQuestionBank(subjectId) {
+      const sid = subjectId || currentSubjectId;
       const container = document.getElementById('qbankCoGroups');
+      if (!container) return;
+
+      if (!sid) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <p class="text-sm font-bold">Please select a classroom subject to load the question bank.</p>
+          </div>
+        `;
+        return;
+      }
+
       container.innerHTML = `
         <div class="flex flex-col items-center justify-center py-10">
           <div class="w-8 h-8 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-4"></div>
@@ -8442,7 +9184,7 @@
         </div>
       `;
 
-      fetch(`/api/classroom/${subjectId}/question-bank`)
+      fetch(`/api/classroom/${sid}/question-bank`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'SUCCESS') {

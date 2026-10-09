@@ -12,4 +12,6 @@ carmel-linx-laravel/storage/framework/views/*
 carmel-linx-laravel/storage/framework/cache/*
 !carmel-linx-laravel/storage/framework/cache/.gitkeep
 carmel-linx-laravel/public/build
+carmel-linx-laravel/database/backups/*.sql
+!carmel-linx-laravel/database/backups/carmel_linx_db_backup_20260811_191442.sql
 

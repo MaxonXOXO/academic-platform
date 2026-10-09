@@ -1518,7 +1518,7 @@ Syllabus Text:
                                   $subQ->where('subject_code', $batchSubject->subject_code);
                               });
                         })
-                        ->whereIn('category', ['Written Test', 'Summative', 'Series Test'])
+                        ->whereIn('category', ['Written Test', 'Summative', 'Series Test', 'Online Test'])
                         ->get();
 
             $taskSubmissions = \DB::table('student_task_submissions')
@@ -1536,15 +1536,126 @@ Syllabus Text:
             if (str_contains($subjectTypeRaw, 'practical') || str_contains($subjectTypeRaw, 'lab') || str_contains($subjectNameRaw, 'lab') || str_contains($subjectNameRaw, 'practical')) {
                 $isPracticalSubject = true;
             }
-            if ($isPracticalSubject || \App\Models\PracticalTest::where('batch_subject_id', $subjectId)->exists() || \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->exists()) {
+            $pracExpMarks = collect();
+            if ($isPracticalSubject || \App\Models\PracticalTest::where('batch_subject_id', $subjectId)->exists() || \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->exists() || \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)->exists()) {
                 $pracTests = \App\Models\PracticalTest::where('batch_subject_id', $subjectId)->get();
                 $pracTestIds = $pracTests->pluck('id')->toArray();
                 $pracTestMarks = \App\Models\PracticalTestMark::whereIn('practical_test_id', $pracTestIds)->whereIn('reg_no', $studentRegNos)->get();
                 $pracEvaluations = \App\Models\PracticalEvaluation::where('batch_subject_id', $subjectId)->whereIn('reg_no', $studentRegNos)->get();
+                $expIds = \App\Models\PracticalExperiment::where('batch_subject_id', $subjectId)->pluck('id');
+                if ($expIds->isNotEmpty()) {
+                    $pracExpMarks = \App\Models\PracticalExperimentMark::whereIn('practical_experiment_id', $expIds)->whereIn('reg_no', $studentRegNos)->get();
+                }
+            }
+
+            $subjectOfficialAttendance = collect();
+            if (\Schema::hasTable('subject_official_attendances')) {
+                $subjectOfficialAttendance = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+                    ->get()
+                    ->keyBy('reg_no');
+            }
+
+            // Sync or fallback from student_attendance or class_logs_attendance if official record is missing or zero
+            $stAttGrouped = collect();
+            if (\Schema::hasTable('student_attendance')) {
+                $stAttGrouped = \DB::table('student_attendance')
+                    ->where('subject_code', $batchSubject->subject_code)
+                    ->whereIn('reg_no', $studentRegNos)
+                    ->get()
+                    ->groupBy('reg_no');
+            }
+
+            $classLogsForAtt = collect();
+            if ($stAttGrouped->isEmpty() && \Schema::hasTable('class_logs_attendance')) {
+                $classLogsForAtt = \DB::table('class_logs_attendance')
+                    ->where('batch_subject_id', $subjectId)
+                    ->get(['date', 'period', 'present_students']);
+            }
+
+            foreach ($studentRegNos as $rNo) {
+                $rec = $subjectOfficialAttendance->get($rNo);
+                $hasValidHours = $rec && ($rec->total_hours > 0 || $rec->teams_percentage > 0);
+
+                if (!$hasValidHours) {
+                    $stList = $stAttGrouped->get($rNo, collect());
+                    if ($isPracticalSubject && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff))) {
+                        $stLabBatch = \DB::table('r26_student_lab_batches')->where('batch_subject_id', $subjectId)->where('reg_no', $rNo)->value('lab_batch');
+                        if (!$stLabBatch && $batchSubject->lab_batch_cutoff) {
+                            $stRoll = \DB::table('students')->where('reg_no', $rNo)->value('roll_no');
+                            $stLabBatch = ($stRoll && (int)$stRoll <= (int)$batchSubject->lab_batch_cutoff) ? '1' : '2';
+                        }
+                        if ($stLabBatch) {
+                            $filtered = $stList->filter(function($att) use ($stLabBatch) {
+                                $sb = (string)($att->sub_batch ?? 'Whole');
+                                return $sb === $stLabBatch || $sb === 'Whole';
+                            });
+                            if ($filtered->isNotEmpty()) {
+                                $stList = $filtered;
+                            }
+                        }
+                    }
+                    $tot = 0;
+                    $pres = 0;
+                    if ($stList->isNotEmpty()) {
+                        $tot = $stList->count();
+                        $pres = $stList->whereIn('status', ['Present', 'Late'])->count();
+                    } elseif ($classLogsForAtt->isNotEmpty()) {
+                        $tot = $classLogsForAtt->count();
+                        foreach ($classLogsForAtt as $cl) {
+                            $pStuds = json_decode($cl->present_students ?? '[]', true) ?: [];
+                            if (in_array($rNo, $pStuds)) {
+                                $pres++;
+                            }
+                        }
+                    }
+
+                    if ($tot > 0) {
+                        $pct = round(($pres / $tot) * 100, 1);
+                        $ovVal = ($rec && $rec->override_percentage !== null && $rec->override_percentage !== '')
+                            ? (float)$rec->override_percentage
+                            : null;
+                        $finalPct = $ovVal !== null ? $ovVal : $pct;
+                        $maxAttMarks = $isPracticalSubject ? 15.0 : 10.0;
+                        $finalMark = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($finalPct, $maxAttMarks);
+
+                        $item = (object)[
+                            'reg_no' => $rNo,
+                            'batch_subject_id' => $subjectId,
+                            'subject_code' => $batchSubject->subject_code,
+                            'classroom_id' => $batchSubject->classroom_id,
+                            'total_hours' => $tot,
+                            'attended_hours' => $pres,
+                            'teams_percentage' => $pct,
+                            'override_percentage' => $ovVal,
+                            'final_percentage' => $finalPct,
+                            'max_attendance_marks' => $maxAttMarks,
+                            'final_mark' => (int)$finalMark,
+                        ];
+                        $subjectOfficialAttendance->put($rNo, $item);
+
+                        if (\Schema::hasTable('subject_official_attendances')) {
+                            \App\Models\SubjectOfficialAttendance::updateOrCreate(
+                                ['batch_subject_id' => $subjectId, 'reg_no' => $rNo],
+                                [
+                                    'subject_code' => $batchSubject->subject_code,
+                                    'classroom_id' => $batchSubject->classroom_id,
+                                    'total_hours' => $tot,
+                                    'attended_hours' => $pres,
+                                    'teams_percentage' => $pct,
+                                    'override_percentage' => $ovVal,
+                                    'final_percentage' => $finalPct,
+                                    'max_attendance_marks' => $maxAttMarks,
+                                    'final_mark' => (int)$finalMark,
+                                    'source' => 'Synced TEAMS'
+                                ]
+                            );
+                        }
+                    }
+                }
             }
 
             // Map marks and submissions to students
-            $students = $students->map(function ($student) use ($batchSubject, $marks, $summativeMarks, $taskSubmissions, $pracTests, $pracTestMarks, $pracEvaluations) {
+            $students = $students->map(function ($student) use ($batchSubject, $marks, $summativeMarks, $taskSubmissions, $pracTests, $pracTestMarks, $pracEvaluations, $pracExpMarks, $subjectOfficialAttendance, $isPracticalSubject) {
                 $studentMarks = $marks->where('reg_no', $student->reg_no);
                 $coMarks = [];
                 $coSubmissions = [];
@@ -1555,8 +1666,6 @@ Syllabus Text:
                     $sub = $taskSubmissions->where('reg_no', $student->reg_no)->where('co_tag', $co)->where('category', 'Assignment')->first();
                     $coSubmissions[$co] = $sub ? $sub->status : null;
                 }
-                $student->assignment_marks = $coMarks;
-                $student->assignment_submissions = $coSubmissions;
 
                 $studentSummativeMarks = $summativeMarks->where('reg_no', $student->reg_no);
                 $coSummative = [];
@@ -1564,7 +1673,6 @@ Syllabus Text:
                     $mark = $studentSummativeMarks->where('co_tag', $co)->sortByDesc('updated_at')->first();
                     $coSummative[$co] = ($mark && is_numeric($mark->marks_obtained)) ? (float)$mark->marks_obtained : null;
                 }
-                $student->summative_marks = $coSummative;
 
                 // Practical tests and board grade mapping
                 $pT1 = $pracTests->where('test_name', 'Test 1')->first();
@@ -1598,6 +1706,49 @@ Syllabus Text:
                     }
                 }
 
+                // If practical subject and coSummative is empty, populate from practical test marks
+                if ($isPracticalSubject && empty(array_filter($coSummative, fn($v) => $v !== null))) {
+                    if ($hasT1 || $hasT2) {
+                        $scaledT1 = $hasT1 ? round(($scoreT1 / 15.0) * 20.0, 1) : null;
+                        $scaledT2 = $hasT2 ? round(($scoreT2 / 15.0) * 20.0, 1) : null;
+                        $coSummative['CO1'] = $scaledT1;
+                        $coSummative['CO2'] = $scaledT1;
+                        $coSummative['CO3'] = $scaledT2;
+                        $coSummative['CO4'] = $scaledT2;
+                    } elseif ($t1Co1 || $t1Co2 || $t2Co3 || $t2Co4) {
+                        $coSummative['CO1'] = $t1Co1 ? (float)$t1Co1->marks_obtained : null;
+                        $coSummative['CO2'] = $t1Co2 ? (float)$t1Co2->marks_obtained : null;
+                        $coSummative['CO3'] = $t2Co3 ? (float)$t2Co3->marks_obtained : null;
+                        $coSummative['CO4'] = $t2Co4 ? (float)$t2Co4->marks_obtained : null;
+                    }
+                }
+                $student->summative_marks = $coSummative;
+
+                // If practical subject and coMarks (assignments) is empty, populate from lab work marks / experiment averages
+                if ($isPracticalSubject && empty(array_filter($coMarks, fn($v) => $v !== null))) {
+                    $lwMarks = ($pEval && $pEval->lab_work_marks !== null && $pEval->lab_work_marks !== '') 
+                        ? (float)$pEval->lab_work_marks 
+                        : null;
+                    if ($lwMarks === null && $pracExpMarks->isNotEmpty()) {
+                        $stExps = $pracExpMarks->where('reg_no', $student->reg_no);
+                        if ($stExps->isNotEmpty()) {
+                            $rRecord = $stExps->avg('rough_record') ?? 0;
+                            $fRecord = $stExps->avg('fair_record') ?? 0;
+                            $prereq = $stExps->avg('prerequisites') ?? 0;
+                            $workDone = $stExps->avg('work_done') ?? 0;
+                            $result = $stExps->avg('result') ?? 0;
+                            $lwMarks = round($rRecord + $fRecord + $prereq + $workDone + $result, 2);
+                        }
+                    }
+                    if ($lwMarks !== null) {
+                        $scaledLw = round(((float)$lwMarks / 37.5) * 20.0, 1);
+                        $coMarks['CO1'] = $scaledLw;
+                        $coMarks['CO2'] = $scaledLw;
+                    }
+                }
+                $student->assignment_marks = $coMarks;
+                $student->assignment_submissions = $coSubmissions;
+
                 $student->tests = [
                     'Test 1' => [
                         'CO1' => $t1Co1 ? (float)$t1Co1->marks_obtained : 0.0,
@@ -1617,6 +1768,69 @@ Syllabus Text:
                 $student->series2_score = $hasT2 ? $scoreT2 : null;
                 $student->board_exam_marks = $boardExam;
                 $student->lab_work_marks = $pEval ? $pEval->lab_work_marks : null;
+
+                $off = $subjectOfficialAttendance->get($student->reg_no)
+                    ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
+
+                $student->teams_percentage = $off ? (float)$off->teams_percentage : null;
+                $student->override_percentage = $off ? $off->override_percentage : null;
+                $student->final_percentage = $off ? (float)$off->final_percentage : null;
+                $student->attendance_marks = $off ? (int)$off->final_mark : null;
+                $student->attendance_total_hours = $off ? (int)$off->total_hours : null;
+                $student->attendance_attended_hours = $off ? (int)$off->attended_hours : null;
+
+                if ($isPracticalSubject) {
+                    // 1. Lab Work (out of 37.5)
+                    $rawLw = ($pEval && $pEval->lab_work_marks !== null && $pEval->lab_work_marks !== '')
+                        ? (float)$pEval->lab_work_marks
+                        : null;
+                    if ($rawLw === null && $pracExpMarks->isNotEmpty()) {
+                        $stExps = $pracExpMarks->where('reg_no', $student->reg_no);
+                        if ($stExps->isNotEmpty()) {
+                            $stExpScores = [];
+                            foreach ($stExps as $m) {
+                                if ((float)$m->total_mark > 0) {
+                                    $stExpScores[] = (float)$m->total_mark;
+                                } else {
+                                    $rSum = (float)$m->rough_record + (float)$m->fair_record + (float)$m->prerequisites + (float)$m->work_done + (float)$m->result;
+                                    if ($rSum > 0) $stExpScores[] = $rSum;
+                                }
+                            }
+                            $totalCompletedExps = isset($expIds) && $expIds->isNotEmpty() ? $expIds->count() : 1;
+                            $totalDivisor = max($totalCompletedExps, count($stExpScores), 1);
+                            $rawLw = round(array_sum($stExpScores) / $totalDivisor, 2);
+                        }
+                    }
+                    $avgLabWork = $rawLw !== null ? min(37.5, max(0.0, (float)$rawLw)) : 0.0;
+
+                    // 2. Open-Ended (out of 7.5)
+                    $openEndedMark = ($pEval && $pEval->micro_project !== null && $pEval->micro_project !== '')
+                        ? min(7.5, max(0.0, (float)$pEval->micro_project))
+                        : 0.0;
+
+                    // 3. Two Test Avg (out of 15)
+                    $twoTestAvg = min(15.0, max(0.0, (float)$avgTests));
+
+                    // 4. Attendance Mark (out of 15)
+                    $activeAttPct = $student->final_percentage ?? ($student->teams_percentage ?? 0.0);
+                    $attMark15 = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($activeAttPct, 15.0);
+                    $student->attendance_marks = $attMark15;
+
+                    // 5. Total CIA (out of 75)
+                    $totalCia75 = (int)round($avgLabWork + $twoTestAvg + $openEndedMark + $attMark15);
+
+                    $student->avg_lab_work = round($avgLabWork, 1);
+                    $student->lab_work_marks = round($avgLabWork, 1);
+                    $student->two_test_avg = round($twoTestAvg, 1);
+                    $student->open_ended_mark = round($openEndedMark, 1);
+                    $student->micro_project = round($openEndedMark, 1);
+                    $student->test1_score = round($scoreT1, 1);
+                    $student->test2_score = round($scoreT2, 1);
+                    $student->total_cia = $totalCia75;
+                    $student->is_practical = true;
+                } else {
+                    $student->is_practical = false;
+                }
 
                 return $student;
             });
@@ -1680,7 +1894,12 @@ Syllabus Text:
                 'syllabus_revision' => $syllabusRevision,
                 'proposed_total_hours' => $proposedHours,
                 'cia_marks' => $ciaMarks,
-                'ese_marks' => $eseMarks
+                'ese_marks' => $eseMarks,
+                'official_attendance_summary' => [
+                    'has_teams_attendance' => isset($subjectOfficialAttendance) && $subjectOfficialAttendance->isNotEmpty(),
+                    'total_hours' => isset($subjectOfficialAttendance) && $subjectOfficialAttendance->isNotEmpty() ? $subjectOfficialAttendance->first()->total_hours : null,
+                    'count' => isset($subjectOfficialAttendance) ? $subjectOfficialAttendance->count() : 0,
+                ]
             ]
         ]);
     }
@@ -2425,6 +2644,135 @@ Return ONLY valid JSON matching this exact structure:
         return response()->json(['status' => 'SUCCESS', 'message' => 'Written test marks saved successfully.']);
     }
 
+    public function saveAttendanceOverride(Request $request, $subjectId)
+    {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($subjectId)) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ]);
+        }
+
+        $batchSubject = \App\Models\BatchSubject::find($subjectId);
+        if (!$batchSubject) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Subject not found.']);
+        }
+
+        $isPractical = false;
+        $subjectTypeRaw = strtolower($batchSubject->subject_type ?? '');
+        $subjectNameRaw = strtolower($batchSubject->subject_name ?? '');
+        if (str_contains($subjectTypeRaw, 'practical') || str_contains($subjectTypeRaw, 'lab') || str_contains($subjectNameRaw, 'lab') || str_contains($subjectNameRaw, 'practical') || str_contains($subjectNameRaw, 'practicum')) {
+            $isPractical = true;
+        }
+        $maxAttMarks = $isPractical ? 15.0 : 10.0;
+
+        $rows = $request->input('rows');
+        if (is_array($rows) && !empty($rows)) {
+            $updated = [];
+            foreach ($rows as $row) {
+                $rNo = $row['reg_no'] ?? null;
+                if (!$rNo) continue;
+                $ovPct = isset($row['override_percentage']) && $row['override_percentage'] !== '' && $row['override_percentage'] !== null
+                    ? round((float)$row['override_percentage'], 1)
+                    : null;
+
+                $record = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+                    ->where(function($q) use ($rNo) {
+                        $q->where('reg_no', $rNo);
+                    })
+                    ->first();
+
+                if (!$record) {
+                    $record = new \App\Models\SubjectOfficialAttendance();
+                    $record->batch_subject_id = $subjectId;
+                    $record->subject_code = $batchSubject->subject_code;
+                    $record->reg_no = $rNo;
+                    $record->classroom_id = $batchSubject->classroom_id;
+                    $record->total_hours = 0;
+                    $record->attended_hours = 0;
+                    $record->teams_percentage = 0.0;
+                    $record->max_attendance_marks = $maxAttMarks;
+                    $record->source = 'Manual';
+                } else {
+                    $record->max_attendance_marks = $maxAttMarks;
+                }
+
+                if ($ovPct !== null) {
+                    $record->override_percentage = $ovPct;
+                    $record->final_percentage = $ovPct;
+                    $record->final_mark = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($ovPct, (float)($record->max_attendance_marks ?: $maxAttMarks));
+                } else {
+                    $record->override_percentage = null;
+                    $record->final_percentage = (float)$record->teams_percentage;
+                    $record->final_mark = (int)\App\Services\AttainmentService::calculateR21AttendanceMark((float)$record->teams_percentage, (float)($record->max_attendance_marks ?: $maxAttMarks));
+                }
+                $record->save();
+                $updated[] = [
+                    'reg_no' => $record->reg_no,
+                    'teams_percentage' => (float)$record->teams_percentage,
+                    'override_percentage' => $record->override_percentage,
+                    'final_percentage' => (float)$record->final_percentage,
+                    'final_mark' => (int)$record->final_mark
+                ];
+            }
+            return response()->json(['status' => 'SUCCESS', 'message' => 'Attendance overrides saved successfully.', 'data' => $updated]);
+        }
+
+        $regNo = $request->input('reg_no');
+        if (!$regNo) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Student registration number is required.']);
+        }
+
+        $overridePct = $request->has('override_percentage') && $request->input('override_percentage') !== '' && $request->input('override_percentage') !== null
+            ? round((float)$request->input('override_percentage'), 1)
+            : null;
+
+        $record = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+            ->where(function($q) use ($regNo) {
+                $q->where('reg_no', $regNo);
+            })
+            ->first();
+
+        if (!$record) {
+            $record = new \App\Models\SubjectOfficialAttendance();
+            $record->batch_subject_id = $subjectId;
+            $record->subject_code = $batchSubject->subject_code;
+            $record->reg_no = $regNo;
+            $record->classroom_id = $batchSubject->classroom_id;
+            $record->total_hours = 0;
+            $record->attended_hours = 0;
+            $record->teams_percentage = 0.0;
+            $record->max_attendance_marks = $maxAttMarks;
+            $record->source = 'Manual';
+        } else {
+            $record->max_attendance_marks = $maxAttMarks;
+        }
+
+        if ($overridePct !== null) {
+            $record->override_percentage = $overridePct;
+            $record->final_percentage = $overridePct;
+            $record->final_mark = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($overridePct, (float)($record->max_attendance_marks ?: $maxAttMarks));
+        } else {
+            $record->override_percentage = null;
+            $record->final_percentage = (float)$record->teams_percentage;
+            $record->final_mark = (int)\App\Services\AttainmentService::calculateR21AttendanceMark((float)$record->teams_percentage, (float)($record->max_attendance_marks ?: $maxAttMarks));
+        }
+
+        $record->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Attendance override updated.',
+            'data' => [
+                'reg_no' => $record->reg_no,
+                'teams_percentage' => (float)$record->teams_percentage,
+                'override_percentage' => $record->override_percentage,
+                'final_percentage' => (float)$record->final_percentage,
+                'final_mark' => (int)$record->final_mark
+            ]
+        ]);
+    }
+
     public function saveSummativeConfig(Request $request, $subjectId)
     {
         $courseFile = CourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
@@ -2880,9 +3228,17 @@ Return ONLY valid JSON matching this exact structure:
                 ->groupBy('reg_no');
         }
 
+        // Authoritative TEAMS subject official attendance for CIA
+        $subjectOfficialAttendance = collect();
+        if (\Schema::hasTable('subject_official_attendances')) {
+            $subjectOfficialAttendance = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+                ->get()
+                ->keyBy('reg_no');
+        }
+
         $isR21 = str_contains($batchSubject->syllabus_revision_code ?? '', '2021') || (!str_contains($batchSubject->syllabus_revision_code ?? '', '2026') && !str_contains($batchSubject->classroom_id ?? '', '2026'));
 
-        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs, $isR21, $studentPresentSlots, $officialAttendance) {
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalLogs, $isR21, $studentPresentSlots, $officialAttendance, $subjectOfficialAttendance) {
             $studMarks = $marks->where('reg_no', $student->reg_no);
 
             // Assignment Marks (Formative)
@@ -2945,47 +3301,55 @@ Return ONLY valid JSON matching this exact structure:
                 $summAvg = count($summScores) > 0 ? round(array_sum($summScores) / 4.0, 1) : 0.0;
             }
 
-            // Attendance % (Authoritative source: TEAMS uploaded attendance)
-            $stAtt = $officialAttendance->get($student->reg_no, collect());
-            if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
-                $stAtt = $officialAttendance->get($student->sbte_reg_no, collect());
-            }
+            // Attendance % (Authoritative source: TEAMS uploaded attendance in subject_official_attendances)
+            $officialRec = $subjectOfficialAttendance->get($student->reg_no)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
 
-            // Pre-admission date filtering for LET / late-joining students
-            $doj = $student->date_of_joining ?: (($student->admission_type === 'LET') ? '2026-07-15' : null);
-            if (!empty($doj)) {
-                $stAtt = $stAtt->filter(fn($att) => $att->date >= $doj);
-            }
-
-            if ($stAtt->isNotEmpty()) {
-                $offTot = $stAtt->count();
-                $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
-            } elseif ($totalLogs > 0) {
-                // Fallback to class_logs_attendance, excluding pre-admission dates
-                $studentLogs = $logs;
-                if (!empty($doj)) {
-                    $studentLogs = $studentLogs->filter(fn($l) => $l->date >= $doj);
-                }
-                $uniqueSlots = [];
-                $presSlots = [];
-                foreach ($studentLogs as $l) {
-                    $slotKey = $l->date . '_P' . $l->period;
-                    $uniqueSlots[$slotKey] = true;
-                    $pList = json_decode($l->present_students ?? '[]', true) ?: [];
-                    if (in_array($student->reg_no, $pList) || (!empty($student->sbte_reg_no) && in_array($student->sbte_reg_no, $pList))) {
-                        $presSlots[$slotKey] = true;
-                    }
-                }
-                $studTotal = count($uniqueSlots) ?: $studentLogs->count();
-                $presentCount = count($presSlots);
-                $attPercent = ($studTotal > 0) ? round(($presentCount / $studTotal) * 100, 1) : 0.0;
+            if ($officialRec) {
+                $attPercent = (float)$officialRec->final_percentage;
+                $attMarks = (int)$officialRec->final_mark;
             } else {
-                $attPercent = 0.0;
-            }
+                $stAtt = $officialAttendance->get($student->reg_no, collect());
+                if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
+                    $stAtt = $officialAttendance->get($student->sbte_reg_no, collect());
+                }
 
-            // Attendance Marks out of 10 (Rev 2021: Actual % directly converted to max 10, >= .5 rounded up, < .5 rounded down)
-            $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
+                // Pre-admission date filtering for LET / late-joining students
+                $doj = $student->date_of_joining ?: (($student->admission_type === 'LET') ? '2026-07-15' : null);
+                if (!empty($doj)) {
+                    $stAtt = $stAtt->filter(fn($att) => $att->date >= $doj);
+                }
+
+                if ($stAtt->isNotEmpty()) {
+                    $offTot = $stAtt->count();
+                    $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                    $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
+                } elseif ($totalLogs > 0) {
+                    // Fallback to class_logs_attendance, excluding pre-admission dates
+                    $studentLogs = $logs;
+                    if (!empty($doj)) {
+                        $studentLogs = $studentLogs->filter(fn($l) => $l->date >= $doj);
+                    }
+                    $uniqueSlots = [];
+                    $presSlots = [];
+                    foreach ($studentLogs as $l) {
+                        $slotKey = $l->date . '_P' . $l->period;
+                        $uniqueSlots[$slotKey] = true;
+                        $pList = json_decode($l->present_students ?? '[]', true) ?: [];
+                        if (in_array($student->reg_no, $pList) || (!empty($student->sbte_reg_no) && in_array($student->sbte_reg_no, $pList))) {
+                            $presSlots[$slotKey] = true;
+                        }
+                    }
+                    $studTotal = count($uniqueSlots) ?: $studentLogs->count();
+                    $presentCount = count($presSlots);
+                    $attPercent = ($studTotal > 0) ? round(($presentCount / $studTotal) * 100, 1) : 0.0;
+                } else {
+                    $attPercent = 0.0;
+                }
+
+                // Attendance Marks out of 10 (Rev 2021: Actual % directly converted to max 10, >= .5 rounded up, < .5 rounded down)
+                $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
+            }
 
             // Total CIE out of 50 = Assignment Avg (20) + Summative Avg (20) + Attendance (10) - Whole Number
             $totalCie = (int)round($assignAvg + $summAvg + $attMarks);
@@ -3203,11 +3567,22 @@ Return ONLY valid JSON matching this exact structure:
             ->get()
             ->groupBy('reg_no');
 
+        // Authoritative TEAMS subject official attendance for CIA
+        $subjectOfficialAttendance = collect();
+        if (\Schema::hasTable('subject_official_attendances')) {
+            $subjectOfficialAttendance = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+                ->get()
+                ->keyBy('reg_no');
+        }
+        if ($subjectOfficialAttendance->isNotEmpty() && $subjectOfficialAttendance->first()->total_hours > 0) {
+            $totalConductedHours = $subjectOfficialAttendance->first()->total_hours;
+        }
+
         $eligibleCount = 0;
         $shortageCount = 0;
         $totalAttnPercentSum = 0;
 
-        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalConductedHours, $studentAttendance, $studentPresentSlots, &$eligibleCount, &$shortageCount, &$totalAttnPercentSum) {
+        $studentRows = $students->map(function ($student) use ($marks, $logs, $totalConductedHours, $studentAttendance, $studentPresentSlots, &$eligibleCount, &$shortageCount, &$totalAttnPercentSum, $subjectOfficialAttendance) {
             $studMarks = $marks->where('reg_no', $student->reg_no);
 
             // Assignment Marks (CO1, CO2, CO3, CO4)
@@ -3258,47 +3633,57 @@ Return ONLY valid JSON matching this exact structure:
             // Pre-admission date filtering for LET / late-joining students
             $doj = $student->date_of_joining ?: (($student->admission_type === 'LET') ? '2026-07-15' : null);
 
-            // Authoritative attendance %: TEAMS uploaded data in student_attendance is official for % and attendance marks
-            $stAtt = $studentAttendance->get($student->reg_no, collect());
-            if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
-                $stAtt = $studentAttendance->get($student->sbte_reg_no, collect());
-            }
-            if (!empty($doj)) {
-                $stAtt = $stAtt->filter(fn($att) => $att->date >= $doj);
-            }
+            // Authoritative attendance %: TEAMS uploaded data in subject_official_attendances is official for % and attendance marks
+            $officialRec = $subjectOfficialAttendance->get($student->reg_no)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
 
-            if ($stAtt->isNotEmpty()) {
-                $offTot = $stAtt->count();
-                $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
-                $presentHours = $offPres;
-                $absentHours = max(0, $offTot - $offPres);
-            } elseif ($totalConductedHours > 0) {
-                $studentLogs = $logs;
-                if (!empty($doj)) {
-                    $studentLogs = $studentLogs->filter(fn($l) => $l->date >= $doj);
-                }
-                $uniqueSlots = [];
-                $presSlots = [];
-                foreach ($studentLogs as $l) {
-                    $slotKey = $l->date . '_P' . $l->period;
-                    $uniqueSlots[$slotKey] = true;
-                    $pList = json_decode($l->present_students ?? '[]', true) ?: [];
-                    if (in_array($student->reg_no, $pList) || (!empty($student->sbte_reg_no) && in_array($student->sbte_reg_no, $pList))) {
-                        $presSlots[$slotKey] = true;
-                    }
-                }
-                $studTotal = count($uniqueSlots) ?: $studentLogs->count();
-                $presentHours = count($presSlots);
-                $absentHours = max(0, $studTotal - $presentHours);
-                $attPercent = ($studTotal > 0) ? round(($presentHours / $studTotal) * 100, 1) : 0.0;
+            if ($officialRec) {
+                $attPercent = (float)$officialRec->final_percentage;
+                $attMarks = (int)$officialRec->final_mark;
+                $presentHours = (int)$officialRec->attended_hours;
+                $absentHours = max(0, (int)$officialRec->total_hours - $presentHours);
             } else {
-                $attPercent = 0.0;
-                $presentHours = 0;
-                $absentHours = 0;
-            }
+                $stAtt = $studentAttendance->get($student->reg_no, collect());
+                if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
+                    $stAtt = $studentAttendance->get($student->sbte_reg_no, collect());
+                }
+                if (!empty($doj)) {
+                    $stAtt = $stAtt->filter(fn($att) => $att->date >= $doj);
+                }
 
-            $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
+                if ($stAtt->isNotEmpty()) {
+                    $offTot = $stAtt->count();
+                    $offPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+                    $attPercent = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
+                    $presentHours = $offPres;
+                    $absentHours = max(0, $offTot - $offPres);
+                } elseif ($totalConductedHours > 0) {
+                    $studentLogs = $logs;
+                    if (!empty($doj)) {
+                        $studentLogs = $studentLogs->filter(fn($l) => $l->date >= $doj);
+                    }
+                    $uniqueSlots = [];
+                    $presSlots = [];
+                    foreach ($studentLogs as $l) {
+                        $slotKey = $l->date . '_P' . $l->period;
+                        $uniqueSlots[$slotKey] = true;
+                        $pList = json_decode($l->present_students ?? '[]', true) ?: [];
+                        if (in_array($student->reg_no, $pList) || (!empty($student->sbte_reg_no) && in_array($student->sbte_reg_no, $pList))) {
+                            $presSlots[$slotKey] = true;
+                        }
+                    }
+                    $studTotal = count($uniqueSlots) ?: $studentLogs->count();
+                    $presentHours = count($presSlots);
+                    $absentHours = max(0, $studTotal - $presentHours);
+                    $attPercent = ($studTotal > 0) ? round(($presentHours / $studTotal) * 100, 1) : 0.0;
+                } else {
+                    $attPercent = 0.0;
+                    $presentHours = 0;
+                    $absentHours = 0;
+                }
+
+                $attMarks = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, 10.0);
+            }
             $totalAttnPercentSum += $attPercent;
 
             if ($attPercent >= 75) {

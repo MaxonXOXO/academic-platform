@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\BatchSubject;
 use App\Models\SubjectStaffAssignment;
 use App\Models\Student;
@@ -896,6 +897,14 @@ class AttendanceController extends Controller
             ->get()
             ->groupBy('batch_subject_id');
 
+        $tutorClassRecords = collect();
+        if (Schema::hasTable('tutor_class_attendances')) {
+            $tutorClassRecords = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $classroomId)
+                ->get()
+                ->keyBy('reg_no');
+        }
+
         $reportRows = [];
         $totalEligible = 0;
         $totalCondonation = 0;
@@ -1017,18 +1026,31 @@ class AttendanceController extends Controller
                 $totalAttendedAll += $attended;
             }
 
-            $overallPct = $totalConductedAll > 0 ? round(($totalAttendedAll / $totalConductedAll) * 100, 1) : 100.0;
+            // If tutor uploaded authoritative TEAMS Class Attendance PDF, use that for overall attendance & eligibility
+            $tutorOfficial = $tutorClassRecords->get($regNo) ?: ($stud->sbte_reg_no ? $tutorClassRecords->get($stud->sbte_reg_no) : null);
+            if ($tutorOfficial) {
+                $totalConductedAll = ((int)$tutorOfficial->total_hours > 0) ? (int)$tutorOfficial->total_hours : $totalConductedAll;
+                $totalAttendedAll = ((int)$tutorOfficial->total_hours > 0) ? (int)$tutorOfficial->attended_hours : $totalAttendedAll;
+                $overallPct = (float)$tutorOfficial->final_percentage;
+                $status = $tutorOfficial->eligibility_status ?: ($overallPct >= 75.0 ? 'Eligible' : ($overallPct >= 65.0 ? 'Condonation' : 'Detained'));
+            } else {
+                $overallPct = $totalConductedAll > 0 ? round(($totalAttendedAll / $totalConductedAll) * 100, 1) : 100.0;
+                if ($overallPct >= 75.0) {
+                    $status = 'Eligible';
+                } elseif ($overallPct >= 65.0) {
+                    $status = 'Condonation';
+                } else {
+                    $status = 'Detained';
+                }
+            }
 
-            if ($overallPct >= 75.0) {
-                $status = 'Eligible';
+            if ($status === 'Eligible') {
                 $statusBadge = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
                 $totalEligible++;
-            } elseif ($overallPct >= 65.0) {
-                $status = 'Condonation';
+            } elseif ($status === 'Condonation' || $status === 'Special Condonation') {
                 $statusBadge = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
                 $totalCondonation++;
             } else {
-                $status = 'Detained';
                 $statusBadge = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
                 $totalDetained++;
             }

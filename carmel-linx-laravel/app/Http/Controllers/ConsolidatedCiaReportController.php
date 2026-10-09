@@ -192,6 +192,27 @@ class ConsolidatedCiaReportController extends Controller
                 ->groupBy('subject_code');
         }
 
+        // Authoritative TEAMS Subject Attendance (subject_official_attendances)
+        $teamsOfficialAttendances = collect();
+        if (Schema::hasTable('subject_official_attendances') && $subjects->isNotEmpty()) {
+            $teamsOfficialAttendances = DB::table('subject_official_attendances')
+                ->whereIn('batch_subject_id', $subjects->pluck('id'))
+                ->whereIn('reg_no', $allLookupRegs)
+                ->get()
+                ->groupBy('batch_subject_id')
+                ->map(fn($group) => $group->keyBy('reg_no'));
+        }
+
+        // Authoritative TEAMS Class Attendance (tutor_class_attendances)
+        $tutorClassAttendances = collect();
+        if (Schema::hasTable('tutor_class_attendances')) {
+            $tutorClassAttendances = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $classroomId)
+                ->whereIn('reg_no', $allLookupRegs)
+                ->get()
+                ->keyBy('reg_no');
+        }
+
         // Class logs attendance
         $classLogsGrouped = collect();
         if (Schema::hasTable('class_logs_attendance') && $subjects->isNotEmpty()) {
@@ -422,8 +443,15 @@ class ConsolidatedCiaReportController extends Controller
                 }
 
                 // Authoritative attendance percentage for subject CIA:
-                // Teams uploaded attendance in student_attendance is official for subject attendance % and CIA mark
-                if ($stAttForStud->isNotEmpty()) {
+                // Teams uploaded attendance in subject_official_attendances is official for subject attendance % and CIA mark
+                $officialRecord = $teamsOfficialAttendances->get($sId, collect())->get($regNo)
+                    ?: ($sbteRegNo ? $teamsOfficialAttendances->get($sId, collect())->get($sbteRegNo) : null);
+
+                if ($officialRecord) {
+                    $subjAttPct = (float)$officialRecord->final_percentage;
+                    $conducted = (int)$officialRecord->total_hours;
+                    $attended = (int)$officialRecord->attended_hours;
+                } elseif ($stAttForStud->isNotEmpty()) {
                     if ($isPractical && !empty($labBatch)) {
                         $stAttForStudFiltered = $stAttForStud->filter(function($att) use ($labBatch) {
                             $sb = (string)($att->sub_batch ?? 'Whole');
@@ -501,26 +529,42 @@ class ConsolidatedCiaReportController extends Controller
                 }
             }
 
-            // Raw unadjusted attendance across subjects
-            $rawAttPct = ($totalConductedAll > 0)
-                ? round(($totalAttendedAll / $totalConductedAll) * 100, 1)
-                : 0.0;
-
-            // Incorporate Tutor-Uploaded TEAMS duty hours and special attendance credits
+            // Extract any sanctioned duty leave / special attendance credits
             $stSpecial = $specialAttendanceRecords->get($regNo, collect());
             if ($stSpecial->isEmpty() && $sbteRegNo) {
                 $stSpecial = $specialAttendanceRecords->get($sbteRegNo, collect());
             }
             $specialDutyHours = (float)$stSpecial->sum('hours');
-            $effectiveAttendedAll = min($totalConductedAll, $totalAttendedAll + $specialDutyHours);
-            $finalEligibilityAttPct = ($totalConductedAll > 0)
-                ? round(($effectiveAttendedAll / $totalConductedAll) * 100, 1)
-                : 0.0;
-
-            // SBTE Exam Eligibility Evaluation (Clause 10 for R21 / Rule 7 for R26)
             $relaxations = $stSpecial->pluck('category')->filter(fn($c) => in_array($c, ['Menstrual Leave', 'PWD']))->unique()->toArray();
-            $eligibility = TutorSpecialAttendanceController::evaluateEligibility($finalEligibilityAttPct, $schemeCode, $relaxations);
-            $attStatus = $eligibility['status'];
+
+            // Check Authoritative TEAMS Class Attendance (Tutor Uploaded) first!
+            $tutorClassAtt = $tutorClassAttendances->get($regNo) ?: ($sbteRegNo ? $tutorClassAttendances->get($sbteRegNo) : null);
+
+            if ($tutorClassAtt) {
+                $finalEligibilityAttPct = (float)$tutorClassAtt->final_percentage;
+                $rawAttPct = (float)$tutorClassAtt->attendance_percentage;
+                $eligibility = TutorSpecialAttendanceController::evaluateEligibility($finalEligibilityAttPct, $schemeCode, $relaxations);
+                $attStatus = $tutorClassAtt->eligibility_status ?: $eligibility['status'];
+                $displayConducted = ((int)$tutorClassAtt->total_hours > 0) ? (int)$tutorClassAtt->total_hours : $totalConductedAll;
+                $displayAttended = ((int)$tutorClassAtt->total_hours > 0) ? (int)$tutorClassAtt->attended_hours : $totalAttendedAll;
+            } else {
+                // Raw unadjusted attendance across subjects
+                $rawAttPct = ($totalConductedAll > 0)
+                    ? round(($totalAttendedAll / $totalConductedAll) * 100, 1)
+                    : 0.0;
+
+                // Incorporate duty hours and special attendance credits
+                $effectiveAttendedAll = min($totalConductedAll, $totalAttendedAll + $specialDutyHours);
+                $finalEligibilityAttPct = ($totalConductedAll > 0)
+                    ? round(($effectiveAttendedAll / $totalConductedAll) * 100, 1)
+                    : 0.0;
+
+                // SBTE Exam Eligibility Evaluation (Clause 10 for R21 / Rule 7 for R26)
+                $eligibility = TutorSpecialAttendanceController::evaluateEligibility($finalEligibilityAttPct, $schemeCode, $relaxations);
+                $attStatus = $eligibility['status'];
+                $displayConducted = $totalConductedAll;
+                $displayAttended = $totalAttendedAll;
+            }
 
             // Overall Semester CIA Status
             $overallResult = '-';
@@ -540,8 +584,8 @@ class ConsolidatedCiaReportController extends Controller
                 'sbte_reg_no' => $student->sbte_reg_no ?: $student->reg_no,
                 'name' => $student->name,
                 'admission_type' => $student->admission_type,
-                'total_conducted' => $totalConductedAll,
-                'total_attended' => $totalAttendedAll,
+                'total_conducted' => $displayConducted,
+                'total_attended' => $displayAttended,
                 'subject_marks' => $studentSubjectMarks,
                 'overall_attendance' => $finalEligibilityAttPct,
                 'raw_attendance' => $rawAttPct,

@@ -230,6 +230,12 @@ class TutorSpecialAttendanceController extends Controller
 
         $baseStudents = $baseData['students'] ?? [];
 
+        // Check authoritative TEAMS class attendance records first
+        $tutorClassRecords = collect();
+        if (Schema::hasTable('tutor_class_attendances')) {
+            $tutorClassRecords = \App\Models\TutorClassAttendance::where('classroom_id', $classroomId)->get()->keyBy('reg_no');
+        }
+
         // Fetch all special attendance records for this classroom
         $specialRecords = TutorSpecialAttendance::where('classroom_id', $classroomId)
             ->orderBy('date', 'desc')
@@ -237,58 +243,37 @@ class TutorSpecialAttendanceController extends Controller
         $specialGrouped = $specialRecords->groupBy('reg_no');
 
         $studentsRows = [];
-        $totalOriginalEligible = 0;
-        $totalRevisedEligible = 0;
+        $totalEligible = 0;
         $totalCondonation = 0;
         $totalSpecialCondonation = 0;
         $totalDetained = 0;
-        $totalSpecialHoursCredited = 0;
-        $promotedCount = 0;
 
         foreach ($baseStudents as $st) {
             $regNo = $st['reg_no'];
-            $origConducted = (int)($st['total_conducted'] ?? 0);
-            $origAttended = (int)($st['total_attended'] ?? 0);
-            $origPct = (float)($st['overall_percentage'] ?? 0.0);
-            $origStatus = $st['status'] ?? 'Detained';
+            $tutorOfficial = $tutorClassRecords->get($regNo);
 
-            if ($origStatus === 'Eligible') {
-                $totalOriginalEligible++;
+            if ($tutorOfficial) {
+                $conducted = (int)$tutorOfficial->total_hours;
+                $attended = (int)$tutorOfficial->attended_hours;
+                $pct = (float)$tutorOfficial->final_percentage;
+                $eval = self::evaluateEligibility($pct, $scheme);
+                $status = $tutorOfficial->eligibility_status ?: $eval['status'];
+            } else {
+                $conducted = (int)($st['total_conducted'] ?? 0);
+                $attended = (int)($st['total_attended'] ?? 0);
+                $pct = (float)($st['overall_percentage'] ?? 0.0);
+                $eval = self::evaluateEligibility($pct, $scheme);
+                $status = $eval['status'] ?? ($st['status'] ?? 'Detained');
             }
 
-            // Student's special attendance records
-            $stSpecial = $specialGrouped->get($regNo, collect());
-            $specialHours = (float)$stSpecial->sum('hours');
-            $totalSpecialHoursCredited += $specialHours;
-
-            // Extract relaxations if any (e.g. Menstrual Leave, PWD)
-            $relaxations = $stSpecial->pluck('category')->filter(fn($c) => in_array($c, ['Menstrual Leave', 'PWD']))->unique()->toArray();
-
-            // Revised calculations for Exam Eligibility only (CIA marks untouched)
-            $revisedAttended = min($origConducted, $origAttended + $specialHours);
-            $revisedPct = $origConducted > 0 ? round(($revisedAttended / $origConducted) * 100, 1) : 0.0;
-
-            $revisedEvaluation = self::evaluateEligibility($revisedPct, $scheme, $relaxations);
-            $revisedStatus = $revisedEvaluation['status'];
-
-            if ($revisedStatus === 'Eligible') {
-                $totalRevisedEligible++;
-                if ($origStatus !== 'Eligible') {
-                    $promotedCount++;
-                }
-            } elseif ($revisedStatus === 'Condonation') {
+            if ($status === 'Eligible') {
+                $totalEligible++;
+            } elseif ($status === 'Condonation') {
                 $totalCondonation++;
-            } elseif ($revisedStatus === 'Special Condonation') {
+            } elseif ($status === 'Special Condonation') {
                 $totalSpecialCondonation++;
             } else {
                 $totalDetained++;
-            }
-
-            // Categories breakdown
-            $categoriesBreakdown = [];
-            foreach ($stSpecial as $rec) {
-                $cat = $rec->category ?: 'Duty Leave';
-                $categoriesBreakdown[$cat] = ($categoriesBreakdown[$cat] ?? 0) + (float)$rec->hours;
             }
 
             $studentsRows[] = [
@@ -297,38 +282,48 @@ class TutorSpecialAttendanceController extends Controller
                 'sbte_reg_no' => $st['sbte_reg_no'],
                 'name' => $st['name'],
                 'phone' => $st['phone'],
+                'has_teams_upload' => (bool)$tutorOfficial,
+                'conducted' => $conducted,
+                'attended' => $attended,
+                'percentage' => $pct,
+                'status' => $status,
+                'rule' => $eval['rule'],
+                'badge' => $eval['badge'],
+                'decision' => $eval['decision'],
+                'shortage_pct' => $eval['shortage_pct'],
+                'teams_details' => $tutorOfficial ? [
+                    'total_hours' => (int)$tutorOfficial->total_hours,
+                    'attended_hours' => (int)$tutorOfficial->attended_hours,
+                    'percentage' => (float)$tutorOfficial->final_percentage,
+                    'status' => $tutorOfficial->eligibility_status ?: $status,
+                    'source' => $tutorOfficial->source ?? 'TEAMS_TUTOR_UPLOAD',
+                    'remarks' => $tutorOfficial->remarks,
+                    'updated_at' => $tutorOfficial->updated_at ? \Carbon\Carbon::parse($tutorOfficial->updated_at)->format('d/m/Y h:i A') : null,
+                ] : null,
                 'original' => [
-                    'conducted' => $origConducted,
-                    'attended' => $origAttended,
-                    'missed' => max(0, $origConducted - $origAttended),
-                    'percentage' => $origPct,
-                    'status' => $origStatus,
-                ],
-                'special_attendance' => [
-                    'hours' => $specialHours,
-                    'records_count' => $stSpecial->count(),
-                    'categories' => $categoriesBreakdown,
-                    'records' => $stSpecial->map(fn($r) => [
-                        'id' => $r->id,
-                        'date' => $r->date ? $r->date->format('Y-m-d') : null,
-                        'formatted_date' => $r->date ? $r->date->format('d/m/Y') : 'Semester Credit',
-                        'hours' => $r->hours,
-                        'category' => $r->category,
-                        'reason' => $r->reason,
-                        'source' => $r->source,
-                    ]),
+                    'conducted' => $conducted,
+                    'attended' => $attended,
+                    'missed' => max(0, $conducted - $attended),
+                    'percentage' => $pct,
+                    'status' => $status,
                 ],
                 'revised' => [
-                    'conducted' => $origConducted,
-                    'attended' => $revisedAttended,
-                    'missed' => max(0, $origConducted - $revisedAttended),
-                    'percentage' => $revisedPct,
-                    'status' => $revisedStatus,
-                    'rule' => $revisedEvaluation['rule'],
-                    'badge' => $revisedEvaluation['badge'],
-                    'decision' => $revisedEvaluation['decision'],
-                    'shortage_pct' => $revisedEvaluation['shortage_pct'],
-                    'promoted' => ($origStatus !== 'Eligible' && $revisedStatus === 'Eligible'),
+                    'conducted' => $conducted,
+                    'attended' => $attended,
+                    'missed' => max(0, $conducted - $attended),
+                    'percentage' => $pct,
+                    'status' => $status,
+                    'rule' => $eval['rule'],
+                    'badge' => $eval['badge'],
+                    'decision' => $eval['decision'],
+                    'shortage_pct' => $eval['shortage_pct'],
+                    'promoted' => false,
+                ],
+                'special_attendance' => [
+                    'hours' => 0,
+                    'records_count' => 0,
+                    'categories' => [],
+                    'records' => collect(),
                 ],
             ];
         }
@@ -346,13 +341,15 @@ class TutorSpecialAttendanceController extends Controller
             'period' => $baseData['period'] ?? ['label' => 'Full Semester'],
             'summary' => [
                 'total_students' => count($baseStudents),
-                'original_eligible_count' => $totalOriginalEligible,
-                'revised_eligible_count' => $totalRevisedEligible,
-                'promoted_count' => $promotedCount,
+                'eligible_count' => $totalEligible,
                 'condonation_count' => $totalCondonation,
                 'special_condonation_count' => $totalSpecialCondonation,
                 'detained_count' => $totalDetained,
-                'total_special_hours' => $totalSpecialHoursCredited,
+                'has_teams_upload' => $tutorClassRecords->isNotEmpty(),
+                'original_eligible_count' => $totalEligible,
+                'revised_eligible_count' => $totalEligible,
+                'promoted_count' => 0,
+                'total_special_hours' => 0,
             ],
             'students' => $studentsRows,
         ]);
@@ -453,7 +450,6 @@ class TutorSpecialAttendanceController extends Controller
 
         $request->validate([
             'file' => 'required|file|max:20480',
-            'default_category' => 'nullable|string',
             'custom_reason' => 'nullable|string',
         ]);
 
@@ -463,8 +459,7 @@ class TutorSpecialAttendanceController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Please upload a valid PDF file (.pdf).'], 422);
         }
 
-        $defaultCategory = $request->input('default_category') ?: 'Duty Leave';
-        $customReason = $request->input('custom_reason') ?: 'TEAMS Attendance Log Import';
+        $customReason = $request->input('custom_reason') ?: 'TEAMS Official Class Attendance Log';
 
         $fullText = '';
         try {
@@ -524,45 +519,93 @@ class TutorSpecialAttendanceController extends Controller
                 }
 
                 if ($matchedStudent) {
-                    // Extract numeric hours from line
+                    // Extract numeric hours and percentage from line
                     $tokens = preg_split('/\s+/', $line);
-                    $numericTokens = array_filter($tokens, fn($t) => is_numeric($t));
-                    $hoursValue = 0;
+                    $numericTokens = array_values(array_filter($tokens, fn($t) => is_numeric($t)));
+                    $conductedVal = 0;
+                    $attendedVal = 0;
+                    $pctVal = null;
 
-                    // If last token is total
-                    if (!empty($numericTokens)) {
-                        $lastNum = (float)end($numericTokens);
-                        // Check if line mentions duty leaves or special hours
-                        $hoursValue = $lastNum;
+                    // Remove the roll number from numeric tokens if present at the beginning
+                    $pureNumeric = $numericTokens;
+                    if (!empty($pureNumeric) && (int)$pureNumeric[0] === $rollNo) {
+                        array_shift($pureNumeric);
                     }
 
-                    if ($hoursValue > 0) {
+                    if (count($pureNumeric) >= 3) {
+                        $p1 = (float)$pureNumeric[count($pureNumeric) - 3];
+                        $p2 = (float)$pureNumeric[count($pureNumeric) - 2];
+                        $p3 = (float)$pureNumeric[count($pureNumeric) - 1];
+                        if ($p3 <= 100.0) {
+                            $conductedVal = (int)$p1;
+                            $attendedVal = (int)$p2;
+                            $pctVal = $p3;
+                        }
+                    } elseif (count($pureNumeric) === 2) {
+                        $p1 = (float)$pureNumeric[0];
+                        $p2 = (float)$pureNumeric[1];
+                        if ($p2 <= 100.0) {
+                            $conductedVal = (int)$p1;
+                            $pctVal = $p2;
+                            $attendedVal = ($conductedVal > 0) ? (int)round(($pctVal / 100.0) * $conductedVal) : 0;
+                        } else {
+                            $conductedVal = (int)max($p1, $p2);
+                            $attendedVal = (int)min($p1, $p2);
+                        }
+                    } elseif (count($pureNumeric) === 1) {
+                        $p1 = (float)$pureNumeric[0];
+                        if ($p1 <= 100.0) {
+                            $pctVal = $p1;
+                        } else {
+                            $attendedVal = (int)$p1;
+                        }
+                    }
+
+                    if ($conductedVal > 0 || $attendedVal > 0 || $pctVal !== null) {
                         $parsedEntries[] = [
                             'reg_no' => $matchedStudent->reg_no,
                             'name' => $matchedStudent->name,
                             'roll_no' => $matchedStudent->roll_no,
-                            'hours' => $hoursValue,
+                            'total_hours' => $conductedVal,
+                            'attended_hours' => $attendedVal,
+                            'percentage' => $pctVal,
                         ];
                     }
                 }
             }
         }
 
-        // If line token matching found specific records, persist them
+        // If line token matching found specific records, persist into authoritative tutor_class_attendances
         if (!empty($parsedEntries)) {
+            $maxConducted = max(array_column($parsedEntries, 'total_hours'));
+            $scheme = self::detectScheme($classroom);
+
             DB::beginTransaction();
             try {
                 foreach ($parsedEntries as $pe) {
-                    TutorSpecialAttendance::create([
-                        'classroom_id' => $classroom->classroom_id,
-                        'reg_no' => $pe['reg_no'],
-                        'date' => null,
-                        'hours' => $pe['hours'],
-                        'category' => $defaultCategory,
-                        'reason' => $customReason,
-                        'source' => 'TEAMS_UPLOAD',
-                        'recorded_by' => $staffMobile ?: 'Class Tutor',
-                    ]);
+                    $conducted = $pe['total_hours'] > 0 ? $pe['total_hours'] : ($maxConducted > 0 ? $maxConducted : 0);
+                    $pct = $pe['percentage'] !== null ? $pe['percentage'] : (($conducted > 0) ? round(($pe['attended_hours'] / $conducted) * 100, 2) : 0.0);
+                    $attended = $pe['attended_hours'] > 0 ? $pe['attended_hours'] : (($conducted > 0) ? (int)round(($pct / 100.0) * $conducted) : 0);
+                    $eligibility = self::evaluateEligibility($pct, $scheme);
+                    $status = $eligibility['status'] ?? 'Eligible';
+
+                    \App\Models\TutorClassAttendance::updateOrInsert(
+                        [
+                            'classroom_id' => $classroom->classroom_id,
+                            'reg_no' => $pe['reg_no'],
+                        ],
+                        [
+                            'total_hours' => (int)$conducted,
+                            'attended_hours' => (int)$attended,
+                            'attendance_percentage' => $pct,
+                            'final_percentage' => DB::raw("COALESCE(override_percentage, {$pct})"),
+                            'eligibility_status' => $status,
+                            'recorded_by' => $staffMobile ?: 'Class Tutor',
+                            'source' => 'TEAMS_TUTOR_UPLOAD',
+                            'remarks' => $customReason,
+                            'updated_at' => now(),
+                        ]
+                    );
                     $savedCount++;
                 }
                 DB::commit();
@@ -575,7 +618,7 @@ class TutorSpecialAttendanceController extends Controller
         return response()->json([
             'status' => 'SUCCESS',
             'message' => $savedCount > 0
-                ? "Successfully processed TEAMS attendance log! Credited special attendance for {$savedCount} student(s)."
+                ? "Successfully processed official TEAMS class attendance! Updated semester attendance and eligibility for {$savedCount} student(s)."
                 : "PDF parsed successfully. Found " . count($detectedDates) . " dates. If automatic rows did not match, please verify or use manual duty leave entry.",
             'detected_dates' => array_slice($detectedDates, 0, 15),
             'matched_students_count' => $savedCount,
@@ -609,37 +652,75 @@ class TutorSpecialAttendanceController extends Controller
             abort(404, "Student '{$regNo}' not found.");
         }
 
-        // 1. Fetch all BatchSubjects for this classroom
+        $studentIdentifiers = array_filter([$student->reg_no, $student->sbte_reg_no]);
+
+        // 1. Fetch Authoritative TEAMS Class Attendance (Tutor Uploaded)
+        $tutorOfficial = null;
+        if (Schema::hasTable('tutor_class_attendances')) {
+            $tutorOfficial = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $classroomId)
+                ->where(function($q) use ($studentIdentifiers) {
+                    $q->whereIn('reg_no', $studentIdentifiers);
+                })
+                ->first();
+        }
+
+        // 2. Fetch all BatchSubjects for this classroom
         $subjectsQuery = BatchSubject::where('classroom_id', $classroomId);
         if (!empty($classroom->current_semester)) {
             $subjectsQuery->where('semester', (int)$classroom->current_semester);
         }
         $subjects = $subjectsQuery->orderBy('subject_code', 'asc')->get();
         $subjectIds = $subjects->pluck('id');
-        $subjectCodes = $subjects->pluck('subject_code')->filter()->unique();
+        $subjectsById = $subjects->keyBy('id');
 
-        // 2. Query class logs & collect absent sessions
+        // 3. Query class logs & collect attendance sessions
         $classLogs = DB::table('class_logs_attendance')
             ->whereIn('batch_subject_id', $subjectIds)
             ->orderBy('date', 'asc')
             ->orderBy('period', 'asc')
             ->get();
 
-        $subjectsById = $subjects->keyBy('id');
+        // Build set of slots where student was PRESENT in ANY subject
+        $presentSlots = [];
+        foreach ($classLogs as $log) {
+            $presentArr = json_decode($log->present_students ?? '[]', true) ?: [];
+            if (!empty(array_intersect($studentIdentifiers, $presentArr))) {
+                $presentSlots[$log->date][$log->period] = true;
+            }
+        }
 
+        // Cross-reference with leave_records if student submitted leave requests
+        $studentLeaves = collect();
+        if (Schema::hasTable('leave_records')) {
+            $studentLeaves = DB::table('leave_records')
+                ->whereIn('reg_no', $studentIdentifiers)
+                ->get()
+                ->keyBy('leave_date');
+        }
+
+        // Cross-reference with tutor_special_attendances for duty leaves
+        $specialRecords = TutorSpecialAttendance::where('classroom_id', $classroomId)
+            ->whereIn('reg_no', $studentIdentifiers)
+            ->get();
+        $specialHoursCredited = (float)$specialRecords->sum('hours');
+        $specialByDate = $specialRecords->filter(fn($r) => !empty($r->date))->keyBy(fn($r) => $r->date->format('Y-m-d'));
+
+        // Identify genuine absent dates & missed hours
         $absentDatesMap = [];
-        $totalConductedHours = 0;
-        $totalAttendedHours = 0;
+        $recordedAbsentPeriods = [];
 
         foreach ($classLogs as $log) {
-            $totalConductedHours++;
-            $presentArr = json_decode($log->present_students ?? '[]', true) ?: [];
             $absentArr = json_decode($log->absent_students ?? '[]', true) ?: [];
+            $isExplicitlyAbsent = !empty(array_intersect($studentIdentifiers, $absentArr));
 
-            $isAbsent = in_array($student->reg_no, $absentArr) || (!in_array($student->reg_no, $presentArr) && !empty($absentArr));
+            // A student is only absent if explicitly marked absent AND not present in another class during that period
+            $wasPresentInSlot = !empty($presentSlots[$log->date][$log->period]);
 
-            if ($isAbsent) {
+            if ($isExplicitlyAbsent && !$wasPresentInSlot) {
                 $d = $log->date;
+                $p = $log->period;
+
                 if (!isset($absentDatesMap[$d])) {
                     $absentDatesMap[$d] = [
                         'date' => $d,
@@ -650,39 +731,27 @@ class TutorSpecialAttendanceController extends Controller
                         'subjects' => [],
                     ];
                 }
-                $absentDatesMap[$d]['periods'][] = $log->period;
-                $absentDatesMap[$d]['hours_count']++;
+
+                $slotKey = $d . '_P' . $p;
+                if (!isset($recordedAbsentPeriods[$slotKey])) {
+                    $recordedAbsentPeriods[$slotKey] = true;
+                    $absentDatesMap[$d]['periods'][] = $p;
+                    $absentDatesMap[$d]['hours_count']++;
+                }
+
                 $subj = $subjectsById->get($log->batch_subject_id);
                 if ($subj && !in_array($subj->subject_code, $absentDatesMap[$d]['subjects'])) {
                     $absentDatesMap[$d]['subjects'][] = $subj->subject_code;
                 }
-            } else {
-                $totalAttendedHours++;
             }
         }
 
-        // Cross-reference with leave_records if student submitted leave requests
-        $studentLeaves = collect();
-        if (Schema::hasTable('leave_records')) {
-            $studentLeaves = DB::table('leave_records')
-                ->where('reg_no', $student->reg_no)
-                ->get()
-                ->keyBy('leave_date');
-        }
-
-        // Cross-reference with tutor_special_attendances for duty leaves
-        $specialRecords = TutorSpecialAttendance::where('classroom_id', $classroomId)
-            ->where('reg_no', $student->reg_no)
-            ->get();
-        $specialHoursCredited = (float)$specialRecords->sum('hours');
-        $specialByDate = $specialRecords->filter(fn($r) => !empty($r->date))->keyBy(fn($r) => $r->date->format('Y-m-d'));
-
         // Enrich absent dates list
         $chronologicalAbsences = [];
-        $totalMissedHours = 0;
+        $computedMissedHours = 0;
 
         foreach ($absentDatesMap as $d => $item) {
-            $totalMissedHours += $item['hours_count'];
+            $computedMissedHours += $item['hours_count'];
 
             $leave = $studentLeaves->get($d);
             $special = $specialByDate->get($d);
@@ -701,12 +770,15 @@ class TutorSpecialAttendanceController extends Controller
                 $docSubmitted = $leave->status === 'Approved' ? 'Approved Leave Record' : 'Submitted (Pending)';
             }
 
+            $periodsSorted = array_unique($item['periods']);
+            sort($periodsSorted, SORT_NUMERIC);
+
             $chronologicalAbsences[] = [
                 'date' => $item['date'],
                 'formatted_date' => $item['formatted_date'],
                 'day' => $item['day'],
                 'hours_count' => $item['hours_count'],
-                'periods_str' => 'Period ' . implode(', ', array_unique($item['periods'])),
+                'periods_str' => 'Period ' . implode(', ', $periodsSorted),
                 'subjects_str' => implode(', ', $item['subjects']) ?: 'Class Sessions',
                 'category' => $category,
                 'reason' => $reason,
@@ -714,22 +786,47 @@ class TutorSpecialAttendanceController extends Controller
             ];
         }
 
-        // Compute Condonation Statistics
-        $origPct = $totalConductedHours > 0 ? round(($totalAttendedHours / $totalConductedHours) * 100, 1) : 0.0;
-        $effectiveAttended = min($totalConductedHours, $totalAttendedHours + $specialHoursCredited);
-        $effectivePct = $totalConductedHours > 0 ? round(($effectiveAttended / $totalConductedHours) * 100, 1) : 0.0;
-
+        // Compute Condonation Statistics using Authoritative TEAMS data if available
         $relaxations = $specialRecords->pluck('category')->filter(fn($c) => in_array($c, ['Menstrual Leave', 'PWD']))->unique()->toArray();
-        $evaluation = self::evaluateEligibility($effectivePct, $scheme, $relaxations);
 
-        // Required hours for eligibility
-        $requiredThreshold = $evaluation['required_pct'];
-        $requiredHours = (int)ceil(($requiredThreshold / 100.0) * $totalConductedHours);
-        $grossShortageHours = max(0, $requiredHours - $totalAttendedHours);
-        $netShortageHours = max(0, $requiredHours - $effectiveAttended);
+        if ($tutorOfficial) {
+            $totalConductedHours = (int)$tutorOfficial->total_hours;
+            $totalAttendedHours = (int)$tutorOfficial->attended_hours;
+            $origPct = (float)$tutorOfficial->attendance_percentage;
+            $effectivePct = (float)$tutorOfficial->final_percentage;
+            $effectiveAttended = $totalAttendedHours;
+            $specialHoursCredited = 0;
+            $totalMissedHours = max(0, $totalConductedHours - $totalAttendedHours);
 
-        // Prescribed condonation fee
-        $feeAmount = ($scheme === 'R26' && $evaluation['status'] === 'Special Condonation') ? 1500 : 750;
+            $evaluation = self::evaluateEligibility($effectivePct, $scheme, $relaxations);
+            $evaluation['status'] = $tutorOfficial->eligibility_status ?: $evaluation['status'];
+
+            if ($effectivePct >= $evaluation['required_pct']) {
+                $grossShortageHours = 0;
+                $netShortageHours = 0;
+                $feeAmount = 0;
+            } else {
+                $requiredThreshold = $evaluation['required_pct'];
+                $requiredHours = (int)ceil(($requiredThreshold / 100.0) * $totalConductedHours);
+                $grossShortageHours = max(0, $requiredHours - $totalAttendedHours);
+                $netShortageHours = max(0, $requiredHours - $effectiveAttended);
+                $feeAmount = ($scheme === 'R26' && $evaluation['status'] === 'Special Condonation') ? 1500 : 750;
+            }
+        } else {
+            $totalConductedHours = count($presentSlots) + $computedMissedHours;
+            $totalAttendedHours = max(0, $totalConductedHours - $computedMissedHours);
+            $origPct = $totalConductedHours > 0 ? round(($totalAttendedHours / $totalConductedHours) * 100, 1) : 0.0;
+            $effectiveAttended = min($totalConductedHours, $totalAttendedHours + $specialHoursCredited);
+            $effectivePct = $totalConductedHours > 0 ? round(($effectiveAttended / $totalConductedHours) * 100, 1) : 0.0;
+            $totalMissedHours = $computedMissedHours;
+
+            $evaluation = self::evaluateEligibility($effectivePct, $scheme, $relaxations);
+            $requiredThreshold = $evaluation['required_pct'];
+            $requiredHours = (int)ceil(($requiredThreshold / 100.0) * $totalConductedHours);
+            $grossShortageHours = max(0, $requiredHours - $totalAttendedHours);
+            $netShortageHours = max(0, $requiredHours - $effectiveAttended);
+            $feeAmount = ($scheme === 'R26' && $evaluation['status'] === 'Special Condonation') ? 1500 : 750;
+        }
 
         return view('tutor.attendance_condonation_certificate', [
             'classroom' => $classroom,

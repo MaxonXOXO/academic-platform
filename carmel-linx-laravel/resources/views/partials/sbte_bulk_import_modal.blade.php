@@ -10,7 +10,7 @@
         </div>
         <div>
           <h3 class="font-extrabold text-sm sm:text-base text-white">Upload TEAMS Attendance</h3>
-          <p class="text-[11px] text-slate-400">Upload class attendance PDF from TEAMS portal (Subject Log & Attendance).</p>
+          <p class="text-[11px] text-slate-400">Upload class attendance Excel spreadsheet (.xlsx, .xls, .csv) or PDF from TEAMS portal.</p>
         </div>
       </div>
       <button type="button" onclick="closeSbteImportModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer">
@@ -53,31 +53,44 @@
             <input type="radio" name="lab_upload_mode" id="sbteModeFull" value="full" onchange="onSbteUploadModeChange()" class="mt-0.5 text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700">
             <div class="space-y-0.5">
               <span class="block text-xs font-bold text-white group-hover:text-blue-300 transition">Full Batch / Theory</span>
-              <p class="text-[10px] text-slate-400 leading-snug">Whole class attended together. Total hours in PDF applies to all students.</p>
+              <p class="text-[10px] text-slate-400 leading-snug">Whole class attended together. Total hours in uploaded file applies to all students.</p>
             </div>
           </label>
         </div>
 
         <!-- Optional Sub-batch Scope Dropdown -->
         <div id="sbteSubBatchScopeWrapper" class="pt-1">
-          <label class="block text-[10px] font-semibold text-slate-400 mb-1">PDF File Content Scope:</label>
+          <label class="block text-[10px] font-semibold text-slate-400 mb-1">File Content Scope:</label>
           <select id="sbteSubBatch" name="sub_batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500">
-            <option value="Whole" selected>Both Batches Combined in this PDF (All Dates)</option>
-            <option value="1">Only Batch 1 sessions in this PDF (Roll 1 to Cutoff)</option>
-            <option value="2">Only Batch 2 sessions in this PDF (Roll Cutoff+1 to End)</option>
+            <option value="Whole" selected>Both Batches Combined in this file (All Dates)</option>
+            <option value="1">Only Batch 1 sessions in this file (Roll 1 to Cutoff)</option>
+            <option value="2">Only Batch 2 sessions in this file (Roll Cutoff+1 to End)</option>
           </select>
         </div>
       </div>
 
       <!-- File Upload Zone -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 mb-1">Upload Class Attendance PDF from TEAMS</label>
-        <div id="sbteDropZone" onclick="document.getElementById('sbteFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2">
-          <input type="file" id="sbteFileInput" name="file" accept=".pdf" class="hidden" onchange="handleSbteFileSelect(this)">
-          <span class="material-symbols-rounded text-3xl text-blue-400">picture_as_pdf</span>
-          <div class="text-xs font-bold text-slate-300" id="sbteFileLabel">Click or drag & drop class attendance PDF from TEAMS here</div>
-          <div class="text-[10px] text-slate-500">Official "SUBJECT LOG FROM ... TO ..." exported from TEAMS portal</div>
-          <div id="sbteSelectedFileInfo" class="hidden mt-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-300 font-mono font-medium"></div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-[11px] font-bold text-slate-300">Upload Class Attendance from TEAMS</label>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+            <span class="material-symbols-rounded text-xs">table_view</span> Excel / Spreadsheet (Recommended)
+          </span>
+        </div>
+        <div id="sbteDropZone" onclick="document.getElementById('sbteFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-emerald-500 bg-slate-950/60 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2">
+          <input type="file" id="sbteFileInput" name="file" accept=".xlsx,.xls,.csv,.html,.htm,.pdf" class="hidden" onchange="handleSbteFileSelect(this)">
+          <div class="flex items-center gap-2 text-emerald-400">
+            <span class="material-symbols-rounded text-3xl">table_chart</span>
+            <span class="text-xs text-slate-500 font-bold">or</span>
+            <span class="material-symbols-rounded text-2xl text-blue-400">picture_as_pdf</span>
+          </div>
+          <div class="text-xs font-bold text-slate-200" id="sbteFileLabel">Click or drag &amp; drop Excel (.xlsx, .xls, .csv) or PDF from TEAMS here</div>
+          <div class="text-[10px] text-slate-400">Official "ATTENDANCE STATEMENT" or "SUBJECT LOG" exported from TEAMS portal</div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">Excel: Exact Parsing</span>
+            <span class="px-2 py-0.5 rounded text-[9px] font-medium bg-slate-800 text-slate-400">PDF: Supported</span>
+          </div>
+          <div id="sbteSelectedFileInfo" class="hidden mt-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs text-emerald-300 font-mono font-medium"></div>
         </div>
       </div>
 
@@ -87,7 +100,7 @@
           <input type="checkbox" id="sbteAutoFillLp" name="auto_fill_lesson_plan" value="1" checked class="mt-0.5 rounded border-slate-700 text-blue-600 focus:ring-blue-500">
           <div>
             <span class="font-bold text-white">Auto-fill blank topics from Lesson Plan / Lab Experiments</span>
-            <p class="text-[11px] text-slate-400">When the PDF has blank content, automatically assigns the next pending topic in syllabus sequence and marks it completed.</p>
+            <p class="text-[11px] text-slate-400">When the uploaded file has blank topics, automatically assigns the next pending topic in syllabus sequence and marks it completed.</p>
           </div>
         </label>
       </div>
@@ -194,7 +207,7 @@
     const fileInfo = document.getElementById('sbteSelectedFileInfo');
     if (fileInfo) fileInfo.classList.add('hidden');
     const fileLabel = document.getElementById('sbteFileLabel');
-    if (fileLabel) fileLabel.innerText = 'Click or drag & drop class attendance PDF from TEAMS here';
+    if (fileLabel) fileLabel.innerText = 'Click or drag & drop Excel (.xlsx, .xls, .csv) or PDF from TEAMS here';
 
     // Auto-detect Virtual Lab Setup Range (Cutoff & Split vs Full Mode)
     fetch(`/api/staff/attendance/subjects/${subjectId}/details`)
@@ -295,7 +308,7 @@
     const submitText = document.getElementById('sbteSubmitText');
 
     if (!fileInput.files || fileInput.files.length === 0) {
-      errorDiv.innerText = "Please select a TEAMS class attendance PDF file to upload.";
+      errorDiv.innerText = "Please select a TEAMS class attendance Excel (.xlsx, .xls, .csv) or PDF file to upload.";
       errorDiv.classList.remove('hidden');
       return;
     }
@@ -347,7 +360,7 @@
           }
         }
       } else {
-        errorDiv.innerText = data.message || "Failed to import SBTE Subject Log.";
+        errorDiv.innerText = data.message || "Failed to import TEAMS attendance.";
         errorDiv.classList.remove('hidden');
       }
     })

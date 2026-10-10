@@ -1569,7 +1569,7 @@ Syllabus Text:
             if ($stAttGrouped->isEmpty() && \Schema::hasTable('class_logs_attendance')) {
                 $classLogsForAtt = \DB::table('class_logs_attendance')
                     ->where('batch_subject_id', $subjectId)
-                    ->get(['date', 'period', 'present_students']);
+                    ->get(['date', 'period', 'sub_batch', 'present_students']);
             }
 
             foreach ($studentRegNos as $rNo) {
@@ -1578,6 +1578,7 @@ Syllabus Text:
 
                 if (!$hasValidHours) {
                     $stList = $stAttGrouped->get($rNo, collect());
+                    $stLabBatch = null;
                     if ($isPracticalSubject && ($batchSubject->lab_batch_mode === 'split' || !empty($batchSubject->lab_batch_cutoff))) {
                         $stLabBatch = \DB::table('r26_student_lab_batches')->where('batch_subject_id', $subjectId)->where('reg_no', $rNo)->value('lab_batch');
                         if (!$stLabBatch && $batchSubject->lab_batch_cutoff) {
@@ -1600,8 +1601,15 @@ Syllabus Text:
                         $tot = $stList->count();
                         $pres = $stList->whereIn('status', ['Present', 'Late'])->count();
                     } elseif ($classLogsForAtt->isNotEmpty()) {
-                        $tot = $classLogsForAtt->count();
-                        foreach ($classLogsForAtt as $cl) {
+                        $logsForStudent = $classLogsForAtt;
+                        if (!empty($stLabBatch)) {
+                            $logsForStudent = $classLogsForAtt->filter(function($cl) use ($stLabBatch) {
+                                $sb = (string)($cl->sub_batch ?? 'Whole');
+                                return $sb === $stLabBatch || $sb === 'Whole';
+                            });
+                        }
+                        $tot = $logsForStudent->count();
+                        foreach ($logsForStudent as $cl) {
                             $pStuds = json_decode($cl->present_students ?? '[]', true) ?: [];
                             if (in_array($rNo, $pStuds)) {
                                 $pres++;

@@ -148,11 +148,11 @@
               <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Class & Session Log</h2>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="upload class attendance pdf from teams">
+              <button type="button" onclick="openSbteImportModal()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Upload class attendance Excel (.xlsx, .xls, .csv) or PDF from TEAMS">
                 <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
                 <span class="flex flex-col text-left leading-tight">
                   <span>Upload TEAMS Attendance</span>
-                  <span class="text-[9px] font-normal text-blue-200/90 leading-none">(upload class attendance pdf from teams)</span>
+                  <span class="text-[9px] font-normal text-emerald-200/90 leading-none">(Excel / PDF from TEAMS)</span>
                 </span>
               </button>
               <!-- Avoid next entry label in green as requested (kept hidden for script safety) -->
@@ -425,11 +425,11 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center gap-2 transition cursor-pointer shadow-md" title="upload class attendance pdf from teams">
+          <button type="button" onclick="openSbteImportModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center gap-2 transition cursor-pointer shadow-md" title="Upload class attendance Excel (.xlsx, .xls, .csv) or PDF from TEAMS">
             <span class="material-symbols-rounded text-sm shrink-0">cloud_upload</span>
             <span class="flex flex-col text-left leading-tight">
               <span>Upload TEAMS Attendance</span>
-              <span class="text-[9px] font-normal text-blue-200/90 leading-none">(upload class attendance pdf from teams)</span>
+              <span class="text-[9px] font-normal text-emerald-200/90 leading-none">(Excel / PDF from TEAMS)</span>
             </span>
           </button>
           <button type="button" onclick="syncSubjectLogsFromLessonPlan()" class="px-3 py-1.5 text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Auto-fill any pending class logs from available Lesson Plans in chronological order">

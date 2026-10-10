@@ -392,51 +392,120 @@
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: 3.5%">Roll</th>
-                        <th rowspan="2" style="width: 9.5%">SBTE Reg No</th>
-                        <th rowspan="2" style="width: 13%">Student Name</th>
-                        <th rowspan="2" style="width: 15%">Seminar Topic</th>
-                        <th rowspan="2" style="width: 9.5%">Assigned Guide</th>
-                        <th rowspan="2" style="width: 4%">Att.<br>%</th>
-                        <th colspan="6">Clause 11.2.6 Statutory Evaluation Rubrics (Averaged)</th>
-                        <th rowspan="2" style="width: 6.5%">Final CIA<br>(75M)</th>
-                        <th rowspan="2" style="width: 5%">SBTE<br>Grade</th>
-                        <th rowspan="2" style="width: 5%">Result</th>
+                        <th rowspan="2" style="width: 3%">Roll</th>
+                        <th rowspan="2" style="width: 9%">SBTE Reg No</th>
+                        <th rowspan="2" style="width: 12%">Student Name</th>
+                        <th rowspan="2" style="width: 13%">Seminar Topic</th>
+                        <th rowspan="2" style="width: 9%">Assigned Guide</th>
+                        <th rowspan="2" style="width: 3.5%">Att.<br>%</th>
+                        <th rowspan="2" style="width: 8%">Evaluator</th>
+                        <th colspan="6">Clause 11.2.6 Statutory Evaluation Rubrics</th>
+                        <th rowspan="2" style="width: 5.5%">Final CIA<br>(75M)</th>
+                        <th rowspan="2" style="width: 4.5%">SBTE<br>Grade</th>
+                        <th rowspan="2" style="width: 4.5%">Result</th>
                     </tr>
                     <tr>
-                        <th class="sub-th" style="width: 4.8%">Relevance<br>(7.5M)</th>
-                        <th class="sub-th" style="width: 4.8%">Literature<br>(7.5M)</th>
-                        <th class="sub-th" style="width: 5.5%">Presentation<br>(37.5M)</th>
-                        <th class="sub-th" style="width: 4.8%">Discussion<br>(7.5M)</th>
-                        <th class="sub-th" style="width: 4.8%">Report<br>(7.5M)</th>
-                        <th class="sub-th" style="width: 4.8%">Attendance<br>(7.5M)</th>
+                        <th class="sub-th" style="width: 4.5%">Relevance<br>(7.5M)</th>
+                        <th class="sub-th" style="width: 4.5%">Literature<br>(7.5M)</th>
+                        <th class="sub-th" style="width: 5%">Presentation<br>(37.5M)</th>
+                        <th class="sub-th" style="width: 4.5%">Discussion<br>(7.5M)</th>
+                        <th class="sub-th" style="width: 4.5%">Report<br>(7.5M)</th>
+                        <th class="sub-th" style="width: 4.5%">Attendance<br>(7.5M)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($students as $st)
-                        <tr>
-                            <td>{{ $st['roll_no'] ?? '-' }}</td>
-                            <td class="font-mono-bold">{{ $st['sbte_reg_no'] }}</td>
-                            <td class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
-                            <td class="align-left" style="font-size: 8px;">{{ $st['topic'] }}</td>
-                            <td class="align-left" style="font-size: 8.5px;">{{ $st['guide_name'] }}</td>
-                            <td style="font-size: 8.5px;">{{ $st['att_percentage'] }}%</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['relevance'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['literature'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['presentation'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['interaction'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['report'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['attendance'], 1) : '—' }}</td>
-                            <td class="font-mono-bold" style="background-color: #f1f5f9; font-size: 9.5px;">
-                                {{ $st['eval_count'] > 0 ? round($st['total_score']) : '—' }}
-                            </td>
-                            <td>
-                                <span class="grade-badge">{{ $st['letter_grade'] }}</span>
-                            </td>
-                            <td style="font-weight: 700; {{ $st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;') }}">
-                                {{ $st['result'] }}
-                            </td>
-                        </tr>
+                        @php
+                            $evalAssessors = $st['assessors'] ?? [];
+                            $hasMultiple = count($evalAssessors) >= 2;
+                        @endphp
+                        @if($hasMultiple)
+                            @php
+                                $a1 = $evalAssessors[0];
+                                $a2 = $evalAssessors[1];
+                            @endphp
+                            <!-- Assessor 1 (Member 1) Row -->
+                            <tr>
+                                <td rowspan="3">{{ $st['roll_no'] ?? '-' }}</td>
+                                <td rowspan="3" class="font-mono-bold">{{ $st['sbte_reg_no'] }}</td>
+                                <td rowspan="3" class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
+                                <td rowspan="3" class="align-left" style="font-size: 8px;">{{ $st['topic'] }}</td>
+                                <td rowspan="3" class="align-left" style="font-size: 8.5px;">{{ $st['guide_name'] }}</td>
+                                <td rowspan="3" style="font-size: 8.5px;">{{ $st['att_percentage'] }}%</td>
+                                <td class="align-left" style="font-size: 8px; font-weight: 700; background-color: #f8fafc;">
+                                    M1: {{ $a1['assessor_name'] }}
+                                </td>
+                                <td>{{ number_format($a1['relevance'], 1) }}</td>
+                                <td>{{ number_format($a1['literature'], 1) }}</td>
+                                <td>{{ number_format($a1['presentation'], 1) }}</td>
+                                <td>{{ number_format($a1['interaction'], 1) }}</td>
+                                <td>{{ number_format($a1['report'], 1) }}</td>
+                                <td>{{ number_format($a1['attendance'], 1) }}</td>
+                                <td class="font-mono-bold">{{ round($a1['total_score']) }}</td>
+                                <td rowspan="3">
+                                    <span class="grade-badge">{{ $st['letter_grade'] }}</span>
+                                </td>
+                                <td rowspan="3" style="font-weight: 700; {{ $st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;') }}">
+                                    {{ $st['result'] }}
+                                </td>
+                            </tr>
+                            <!-- Assessor 2 (Member 2) Row -->
+                            <tr>
+                                <td class="align-left" style="font-size: 8px; font-weight: 700; background-color: #f8fafc;">
+                                    M2: {{ $a2['assessor_name'] }}
+                                </td>
+                                <td>{{ number_format($a2['relevance'], 1) }}</td>
+                                <td>{{ number_format($a2['literature'], 1) }}</td>
+                                <td>{{ number_format($a2['presentation'], 1) }}</td>
+                                <td>{{ number_format($a2['interaction'], 1) }}</td>
+                                <td>{{ number_format($a2['report'], 1) }}</td>
+                                <td>{{ number_format($a2['attendance'], 1) }}</td>
+                                <td class="font-mono-bold">{{ round($a2['total_score']) }}</td>
+                            </tr>
+                            <!-- Consolidated Average Row -->
+                            <tr style="background-color: #f1f5f9; font-weight: 700;">
+                                <td class="align-left" style="font-size: 8px; font-weight: 800; background-color: #e2e8f0; color: #0f172a;">
+                                    Consolidated Avg
+                                </td>
+                                <td>{{ number_format($st['relevance'], 1) }}</td>
+                                <td>{{ number_format($st['literature'], 1) }}</td>
+                                <td>{{ number_format($st['presentation'], 1) }}</td>
+                                <td>{{ number_format($st['interaction'], 1) }}</td>
+                                <td>{{ number_format($st['report'], 1) }}</td>
+                                <td>{{ number_format($st['attendance'], 1) }}</td>
+                                <td class="font-mono-bold" style="background-color: #e2e8f0; font-size: 10px;">
+                                    {{ round($st['total_score']) }}
+                                </td>
+                            </tr>
+                        @else
+                            <!-- Single Assessor or Pending Evaluation Row -->
+                            <tr>
+                                <td>{{ $st['roll_no'] ?? '-' }}</td>
+                                <td class="font-mono-bold">{{ $st['sbte_reg_no'] }}</td>
+                                <td class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
+                                <td class="align-left" style="font-size: 8px;">{{ $st['topic'] }}</td>
+                                <td class="align-left" style="font-size: 8.5px;">{{ $st['guide_name'] }}</td>
+                                <td style="font-size: 8.5px;">{{ $st['att_percentage'] }}%</td>
+                                <td class="align-left" style="font-size: 8px; font-weight: 600;">
+                                    {{ count($evalAssessors) === 1 ? 'M1: ' . $evalAssessors[0]['assessor_name'] : '—' }}
+                                </td>
+                                <td>{{ $st['is_completed'] ? number_format($st['relevance'], 1) : '—' }}</td>
+                                <td>{{ $st['is_completed'] ? number_format($st['literature'], 1) : '—' }}</td>
+                                <td>{{ $st['is_completed'] ? number_format($st['presentation'], 1) : '—' }}</td>
+                                <td>{{ $st['is_completed'] ? number_format($st['interaction'], 1) : '—' }}</td>
+                                <td>{{ $st['is_completed'] ? number_format($st['report'], 1) : '—' }}</td>
+                                <td>{{ $st['is_completed'] ? number_format($st['attendance'], 1) : '—' }}</td>
+                                <td class="font-mono-bold" style="background-color: #f1f5f9; font-size: 9.5px;">
+                                    {{ $st['is_completed'] ? round($st['total_score']) : '—' }}
+                                </td>
+                                <td>
+                                    <span class="grade-badge">{{ $st['is_completed'] ? $st['letter_grade'] : '—' }}</span>
+                                </td>
+                                <td style="font-weight: 700; {{ $st['is_completed'] ? ($st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;')) : 'color: #64748b;' }}">
+                                    {{ $st['is_completed'] ? $st['result'] : 'Pending' }}
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
             </table>
@@ -544,20 +613,20 @@
                             <td class="font-mono-bold">{{ $st['sbte_reg_no'] }}</td>
                             <td class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
                             <td>{{ $st['att_percentage'] }}%</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['attendance_score'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['seminar_score'], 1) : '—' }}</td>
+                            <td>{{ $st['is_completed'] ? number_format($st['attendance_score'], 1) : '—' }}</td>
+                            <td>{{ $st['is_completed'] ? number_format($st['seminar_score'], 1) : '—' }}</td>
                             <td class="font-mono-bold" style="background-color: #f1f5f9; font-size: 10px;">
-                                {{ $st['eval_count'] > 0 ? round($st['total_score']) : '—' }}
+                                {{ $st['is_completed'] ? round($st['total_score']) : '—' }}
                             </td>
                             <td class="align-left" style="font-size: 8px; font-weight: 600; text-transform: capitalize;">
                                 {{ $st['score_in_words'] }}
                             </td>
                             <td>
-                                <span class="grade-badge">{{ $st['letter_grade'] }}</span>
+                                <span class="grade-badge">{{ $st['is_completed'] ? $st['letter_grade'] : '—' }}</span>
                             </td>
-                            <td>{{ $st['grade_point'] }}</td>
-                            <td style="font-weight: 700; {{ $st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;') }}">
-                                {{ $st['result'] }}
+                            <td>{{ $st['is_completed'] ? $st['grade_point'] : '—' }}</td>
+                            <td style="font-weight: 700; {{ $st['is_completed'] ? ($st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;')) : 'color: #64748b;' }}">
+                                {{ $st['is_completed'] ? $st['result'] : 'Pending' }}
                             </td>
                             <td></td>
                         </tr>
@@ -726,20 +795,20 @@
                             <td>{{ $st['roll_no'] ?? '-' }}</td>
                             <td class="font-mono-bold">{{ $st['sbte_reg_no'] }}</td>
                             <td class="align-left" style="font-weight: 700;">{{ $st['name'] }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['seminar_score'], 1) : '—' }}</td>
-                            <td>{{ $st['eval_count'] > 0 ? number_format($st['attendance_score'], 1) : '—' }}</td>
+                            <td>{{ $st['is_completed'] ? number_format($st['seminar_score'], 1) : '—' }}</td>
+                            <td>{{ $st['is_completed'] ? number_format($st['attendance_score'], 1) : '—' }}</td>
                             <td class="font-mono-bold" style="background-color: #f1f5f9; font-size: 10px;">
-                                {{ $st['eval_count'] > 0 ? round($st['total_score']) : '—' }}
+                                {{ $st['is_completed'] ? round($st['total_score']) : '—' }}
                             </td>
                             <td>
-                                <span class="grade-badge {{ $st['letter_grade'] === 'S' ? 'color: #b45309;' : ($st['letter_grade'] === 'F' ? 'color: #b91c1c;' : '') }}">{{ $st['letter_grade'] }}</span>
+                                <span class="grade-badge {{ $st['letter_grade'] === 'S' ? 'color: #b45309;' : ($st['letter_grade'] === 'F' ? 'color: #b91c1c;' : '') }}">{{ $st['is_completed'] ? $st['letter_grade'] : '—' }}</span>
                             </td>
-                            <td>{{ $st['grade_point'] }}</td>
-                            <td style="font-weight: 700; {{ $st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;') }}">
-                                {{ $st['result'] }}
+                            <td>{{ $st['is_completed'] ? $st['grade_point'] : '—' }}</td>
+                            <td style="font-weight: 700; {{ $st['is_completed'] ? ($st['result'] === 'Pass' ? 'color: #047857;' : ($st['result'] === 'Failed' ? 'color: #b91c1c;' : 'color: #64748b;')) : 'color: #64748b;' }}">
+                                {{ $st['is_completed'] ? $st['result'] : 'Pending' }}
                             </td>
                             <td class="align-left" style="font-size: 8px;">
-                                @if($st['eval_count'] > 0)
+                                @if($st['is_completed'])
                                     @if($st['letter_grade'] === 'S')
                                         Passed with Outstanding Performance (Grade S)
                                     @elseif($st['result'] === 'Pass')

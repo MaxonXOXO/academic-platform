@@ -153,6 +153,53 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Hide spin buttons in all modern browsers so decimals like 4.5 never get covered or clipped */
+        input.seminar-mark::-webkit-outer-spin-button,
+        input.seminar-mark::-webkit-inner-spin-button,
+        input.modal-rubric-input::-webkit-outer-spin-button,
+        input.modal-rubric-input::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+
+        input.seminar-mark[type=number],
+        input.modal-rubric-input[type=number] {
+            -moz-appearance: textfield !important;
+        }
+
+        /* Large, ergonomic mark input fields that never shrink or truncate decimals on 19" screens */
+        .seminar-input-table input.seminar-mark {
+            width: 100% !important;
+            min-width: 68px !important;
+            max-width: 76px !important;
+            height: 34px !important;
+            box-sizing: border-box !important;
+            font-size: 0.95rem !important;
+            padding: 0.25rem 0.15rem !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.01em !important;
+            text-align: center !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        }
+        .seminar-input-table input.seminar-mark.mark-pres {
+            min-width: 76px !important;
+            max-width: 82px !important;
+        }
+        .seminar-input-table input.seminar-mark:focus {
+            outline: 2px solid #3b82f6 !important;
+            outline-offset: -1px !important;
+            background-color: #0c1527 !important;
+        }
+        .student-cell {
+            line-height: 1.25;
+        }
+        .student-name {
+            font-size: 0.72rem !important;
+            line-height: 1.15 !important;
+            font-weight: 500 !important;
+            color: #94a3b8 !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100">
@@ -185,57 +232,36 @@
         <!-- Main Spacious Title Bar -->
         <div class="px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5">
             
-            <!-- Left: Title & Classroom Badges -->
+            <!-- Left: Clinx Logo & Title & Classroom Badges -->
             <div class="flex items-start sm:items-center gap-3 sm:gap-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-950/80 border border-blue-800/70 text-blue-300 font-bold text-xs uppercase tracking-wider shadow-sm">
-                            <span class="material-symbols-rounded text-base text-blue-400">record_voice_over</span>
-                            Virtual Seminar Room (R-2021)
-                        </span>
-                        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-mono text-xs font-bold shadow-sm">
-                            {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}
-                        </span>
-                        <span class="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 font-bold text-xs shadow-sm">
-                            Sem {{ $classroom->current_semester ?? $batchSubject->semester ?? 'V' }} • CIA = ESE (75 Marks)
-                        </span>
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" class="flex items-center gap-2.5 text-decoration-none shrink-0" title="Carmel Linx Dashboard">
+                    <img src="{{ asset('logo.jpg') }}" alt="Carmel Linx Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-sky-400/40 shadow-md">
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-sm sm:text-base font-black text-white tracking-tight">Carmel Linx</span>
+                        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Virtual Seminar Room</span>
                     </div>
-                    <div class="flex items-baseline gap-3 flex-wrap">
-                        <h1 class="text-lg sm:text-xl md:text-2xl font-black text-white tracking-tight">
-                            {{ $batchSubject->subject_name }}
-                        </h1>
-                        <span class="text-slate-400 font-medium text-xs sm:text-sm flex items-center gap-1.5">
-                            <span class="material-symbols-rounded text-base text-slate-500">meeting_room</span>
-                            {{ $classroom->classroom_name ?? $batchSubject->classroom_id }}
-                        </span>
-                    </div>
+                </a>
+
+                <div class="h-8 w-px bg-slate-800 hidden sm:block"></div>
+
+                <div>
+                    <h1 class="text-base sm:text-lg md:text-xl font-black text-white tracking-tight flex items-center gap-2 flex-wrap">
+                        <span>{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</span>
+                        <span class="text-slate-500 font-normal">-</span>
+                        <span>{{ $batchSubject->subject_name }}</span>
+                        <span class="text-slate-500 font-normal">-</span>
+                        <span class="text-sky-400 font-bold">R-2021</span>
+                    </h1>
                 </div>
             </div>
 
-            <!-- Right: Logged-in Faculty Name, Syllabus, Fullscreen & Direct Dashboard Back Button -->
+            <!-- Right: Logged-in Faculty Name, Fullscreen & Direct Dashboard Back Button -->
             <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
-                <!-- Logged-in Faculty Name Badge (Matching 2021 Theory & Lab) -->
+                <!-- Logged-in Faculty Name Badge (Displayed once) -->
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 shadow-sm shrink-0" title="Logged in Faculty In-Charge">
                     <span class="material-symbols-rounded text-sky-400 text-sm">person</span>
                     <span class="text-[11px] text-slate-400 font-medium">Faculty:</span>
                     <strong class="text-xs text-white font-bold">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong>
-                </div>
-
-                <!-- Syllabus Button -->
-                <div class="flex items-center rounded-lg border border-slate-700 bg-slate-900 overflow-hidden shadow-sm shrink-0">
-                    <button type="button" onclick="openSyllabusModal()" class="px-2.5 py-1.5 text-slate-200 hover:bg-slate-800 font-medium text-xs transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
-                        <span class="material-symbols-rounded text-sm text-blue-400">cloud_upload</span>
-                        <span class="hidden sm:inline">Syllabus</span>
-                    </button>
-                    @if(!empty($courseFile->syllabus_pdf_path))
-                        <a href="{{ $courseFile->syllabus_pdf_path }}" target="_blank" id="headerViewSyllabusBtn" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition flex items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
-                            <span class="material-symbols-rounded text-xs">visibility</span>
-                        </a>
-                    @else
-                        <a href="#" target="_blank" id="headerViewSyllabusBtn" class="hidden px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
-                            <span class="material-symbols-rounded text-xs">visibility</span>
-                        </a>
-                    @endif
                 </div>
 
                 <!-- Fullscreen Toggle Button -->
@@ -253,12 +279,12 @@
 
         </div>
 
-        <!-- Secondary Stat Strip (Spacious & Clean, no crowding) -->
+        <!-- Secondary Stat Strip (Spacious & Clean, no crowding, no duplicate faculty name) -->
         <div class="bg-[#0b101d] border-t border-slate-800/80 px-4 py-2.5 sm:px-6 flex items-center justify-between gap-3 overflow-x-auto custom-scrollbar">
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                 <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 me-1 hidden sm:inline">Overview:</span>
                 
-                <!-- Total -->
+                <!-- Total Students -->
                 <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2 shrink-0 shadow-sm">
                     <span class="material-symbols-rounded text-slate-400 text-base">groups</span>
                     <div class="flex items-baseline gap-1.5">
@@ -287,22 +313,44 @@
                     </div>
                 </div>
 
-                <!-- Class Average -->
-                <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2 shrink-0 shadow-sm">
-                    <span class="material-symbols-rounded text-blue-400 text-base">analytics</span>
+                <!-- Statutory CIA = ESE (75 Marks) replacing Class Avg -->
+                <div class="px-3 py-1.5 rounded-lg bg-blue-950/40 border border-blue-800/60 flex items-center gap-2 shrink-0 shadow-sm">
+                    <span class="material-symbols-rounded text-blue-400 text-base">verified</span>
                     <div class="flex items-baseline gap-1.5">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Class Avg:</span>
-                        <span class="text-xs sm:text-sm font-bold text-blue-300">
-                            <span id="statClassAvg">{{ $classAvg }}</span> / 75
+                        <span class="text-[10px] uppercase font-bold text-blue-300">Assessment Scheme:</span>
+                        <span class="text-xs sm:text-sm font-bold text-white">
+                            Sem {{ $classroom->current_semester ?? $batchSubject->semester ?? '5' }} • CIA = ESE (75 Marks)
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Assessor Info Indicator -->
-            <div class="flex items-center gap-2 text-xs text-slate-400 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>Active Assessor: <strong class="text-slate-200">{{ $activeStaff->name ?? Session::get('userName') ?? 'Faculty' }}</strong></span>
+            <!-- Course Attendance & Syllabus Controls -->
+            <div class="flex items-center gap-2 flex-wrap shrink-0">
+                <!-- Course Attendance & Log Button -->
+                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" 
+                   class="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-500/40 text-emerald-300 hover:text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer no-underline shadow-sm shrink-0" 
+                   title="Open Course Attendance & Log for this subject">
+                    <span class="material-symbols-rounded text-sm text-emerald-400">co_present</span>
+                    <span>Course Attendance</span>
+                </a>
+
+                <!-- Syllabus Upload & View -->
+                <div class="flex items-center rounded-lg border border-slate-700 bg-slate-900 overflow-hidden shadow-sm shrink-0">
+                    <button type="button" onclick="openSyllabusModal()" class="px-2.5 py-1.5 text-slate-200 hover:bg-slate-800 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer" title="Upload Syllabus PDF">
+                        <span class="material-symbols-rounded text-sm text-blue-400">cloud_upload</span>
+                        <span>Syllabus</span>
+                    </button>
+                    @if(!empty($courseFile->syllabus_pdf_path))
+                        <a href="{{ $courseFile->syllabus_pdf_path }}" target="_blank" id="headerViewSyllabusBtn" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition flex items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
+                            <span class="material-symbols-rounded text-xs">visibility</span>
+                        </a>
+                    @else
+                        <a href="#" target="_blank" id="headerViewSyllabusBtn" class="hidden px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs transition items-center cursor-pointer no-underline border-l border-slate-700" title="View Uploaded Syllabus PDF">
+                            <span class="material-symbols-rounded text-xs">visibility</span>
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </header>
@@ -351,32 +399,12 @@
                     </div>
                     
                     <div class="flex items-center gap-2.5 flex-wrap">
-                        <!-- Batch Filter Buttons -->
-                        <div class="flex items-center gap-1.5 text-xs flex-wrap">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 me-1">Batch:</span>
-                            <button type="button" onclick="filterLabBatch('All')" id="batch-filter-All" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-blue-500 text-blue-400 font-bold transition cursor-pointer">
-                                Full Batch (<span id="bFilterAllCount">{{ $totalStudents }}</span>)
-                            </button>
-                            <button type="button" onclick="filterLabBatch('1')" id="batch-filter-1" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
-                                Batch 1 (<span id="bFilter1Count">{{ $batch1Count }}</span>)
-                            </button>
-                            <button type="button" onclick="filterLabBatch('2')" id="batch-filter-2" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
-                                Batch 2 (<span id="bFilter2Count">{{ $batch2Count }}</span>)
-                            </button>
-                            <button type="button" onclick="filterLabBatch('Unassigned')" id="batch-filter-Unassigned" class="batch-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium transition cursor-pointer">
-                                Unassigned (<span id="bFilterUnCount">{{ $unassignedCount }}</span>)
-                            </button>
-                            <button type="button" onclick="openLabBatchSetupModal('{{ $batchSubject->id }}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold transition flex items-center gap-1 cursor-pointer shadow-sm text-xs" title="Configure Student Lab Batch Division">
-                                <span class="material-symbols-rounded text-xs text-blue-400">tune</span>
-                                <span>Split setup</span>
-                            </button>
+                        <!-- Student Search -->
+                        <div class="relative min-w-[180px] sm:min-w-[240px]">
+                            <span class="material-symbols-rounded absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input type="text" id="studentSearchInput" placeholder="Search name, SBTE no..." oninput="onStudentSearch(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
                         </div>
 
-                        <!-- Student Search -->
-                        <div class="relative min-w-[150px] sm:min-w-[180px]">
-                            <span class="material-symbols-rounded absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                            <input type="text" id="studentSearchInput" placeholder="Search student..." oninput="onStudentSearch(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
-                        </div>
 
                         <!-- Print Register Link -->
                         <a href="/r21/classroom/seminar/{{ $batchSubject->id }}/print?type=consolidated" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm no-underline cursor-pointer" title="Print Consolidated Evaluation Register">
@@ -394,25 +422,23 @@
 
                 <!-- Table Container -->
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[1100px] seminar-input-table" id="evaluationTable">
+                    <table class="w-full text-left border-collapse min-w-[1080px] seminar-input-table" id="evaluationTable">
                         <thead>
                             <tr class="bg-slate-900/60 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
-                                <th class="p-3 text-center w-12 text-slate-400 whitespace-nowrap">Roll</th>
-                                <th class="p-3 text-center w-28 text-slate-400 font-mono whitespace-nowrap">SBTE No</th>
-                                <th class="p-3 text-left min-w-[220px] text-slate-200 whitespace-nowrap">Name</th>
-                                <th class="p-3 text-center w-16 text-slate-400 whitespace-nowrap">Batch</th>
-                                <th class="p-3 text-left min-w-[180px] max-w-[240px] text-slate-400 whitespace-nowrap">Topic</th>
-                                <th class="p-3 text-left min-w-[120px] max-w-[160px] text-slate-400 whitespace-nowrap">Guide</th>
-                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Rel<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
-                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Lit<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
-                                <th class="p-3 text-center w-24 text-blue-400 whitespace-nowrap">Pres<span class="block text-[10px] text-slate-400 font-normal">37.5M</span></th>
-                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Interctn<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
-                                <th class="p-3 text-center w-20 text-blue-400 whitespace-nowrap">Report<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
-                                <th class="p-3 text-center w-18 text-slate-400 whitespace-nowrap">Attn %<span class="block text-[10px] text-slate-500 font-normal">TEAMS</span></th>
-                                <th class="p-3 text-center w-20 text-cyan-400 whitespace-nowrap">Attn Mark<span class="block text-[10px] text-cyan-300/70 font-normal">7.5M</span></th>
-                                <th class="p-3 text-center w-24 text-emerald-400 bg-emerald-500/10 whitespace-nowrap">CIA<span class="block text-[9px] text-emerald-300 font-normal">Max 75M</span></th>
-                                <th class="p-3 text-center w-20 text-slate-300 whitespace-nowrap">Grade</th>
-                                <th class="p-3 text-center w-24 sticky-col-action text-slate-400 whitespace-nowrap">Action</th>
+                                <th class="p-2.5 text-center w-10 text-slate-400 whitespace-nowrap">Roll</th>
+                                <th class="p-2.5 text-left min-w-[170px] text-slate-200 whitespace-nowrap">SBTE No / Student Name</th>
+                                <th class="p-2.5 text-left min-w-[170px] max-w-[220px] text-slate-400 whitespace-nowrap">Topic</th>
+                                <th class="p-2.5 text-left min-w-[110px] max-w-[150px] text-slate-400 whitespace-nowrap">Guide</th>
+                                <th class="p-1.5 text-center w-[74px] min-w-[74px] text-blue-400 whitespace-nowrap">REL<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-1.5 text-center w-[74px] min-w-[74px] text-blue-400 whitespace-nowrap">LIT<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-1.5 text-center w-[82px] min-w-[82px] text-blue-400 whitespace-nowrap">PRES<span class="block text-[10px] text-slate-400 font-normal">37.5M</span></th>
+                                <th class="p-1.5 text-center w-[74px] min-w-[74px] text-blue-400 whitespace-nowrap">INTRCN<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-1.5 text-center w-[74px] min-w-[74px] text-blue-400 whitespace-nowrap">RPRT<span class="block text-[10px] text-slate-400 font-normal">7.5M</span></th>
+                                <th class="p-2 text-center w-14 text-slate-400 whitespace-nowrap">Attn %<span class="block text-[10px] text-slate-500 font-normal">TEAMS</span></th>
+                                <th class="p-2 text-center w-16 text-cyan-400 whitespace-nowrap">Attn Mark<span class="block text-[10px] text-cyan-300/70 font-normal">7.5M</span></th>
+                                <th class="p-2 text-center w-20 text-emerald-400 bg-emerald-500/10 whitespace-nowrap">TOTAL CIA<span class="block text-[9px] text-emerald-300 font-normal">Max 75M</span></th>
+                                <th class="p-2 text-center w-14 text-slate-300 whitespace-nowrap">Grade</th>
+                                <th class="p-2 text-center w-24 sticky-col-action text-slate-400 whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody id="seminarMarksTbody">
@@ -425,54 +451,50 @@
                                 data-batch="{{ $st['batch'] }}">
                                 
                                 <!-- 1. Roll -->
-                                <td class="p-3 text-center font-bold text-slate-400 text-sm sm:text-base whitespace-nowrap">{{ $st['roll_no'] ?? '-' }}</td>
+                                <td class="p-2 text-center font-bold text-slate-400 text-xs sm:text-sm whitespace-nowrap">{{ $st['roll_no'] ?? '-' }}</td>
                                 
-                                <!-- 2. SBTE Reg No -->
-                                <td class="p-3 text-center font-mono text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
-                                
-                                <!-- 3. Name -->
-                                <td class="p-3 whitespace-nowrap">
-                                    <div class="font-bold text-slate-100 text-sm sm:text-base whitespace-nowrap tracking-wide">{{ $st['name'] }}</div>
-                                </td>
-                                
-                                <!-- 4. Batch -->
-                                <td class="p-3 text-center whitespace-nowrap">
-                                    @if($st['batch'] === '1')
-                                        <span class="px-2 py-0.5 rounded-md bg-blue-900/40 border border-blue-500/40 text-blue-300 text-xs font-bold">B1</span>
-                                    @elseif($st['batch'] === '2')
-                                        <span class="px-2 py-0.5 rounded-md bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">B2</span>
-                                    @else
-                                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-xs">Unassigned</span>
-                                    @endif
-                                </td>
-                                
-                                <!-- 5. Topic -->
-                                <td class="p-3">
-                                    <div class="text-xs sm:text-sm text-slate-200 font-semibold truncate max-w-[220px] col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
-                                        {{ $st['topic'] ?? '—' }}
-                                    </div>
-                                    <button type="button" onclick="openScheduleModal('{{ $st['reg_no'] }}')" class="mt-1 text-[10px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-0.5 cursor-pointer">
-                                        <span class="material-symbols-rounded text-xs">edit_note</span>
-                                        <span>{{ !empty($st['topic']) ? 'Edit Topic' : '+ Assign Topic' }}</span>
+                                <!-- 2. Student Name & SBTE No (Name first, SBTE no below, no icon, clickable to open Individual Report Card) -->
+                                <td class="p-2 whitespace-nowrap student-cell min-w-[155px]">
+                                    <button type="button" 
+                                            onclick="showFacultyBreakdown('{{ $st['reg_no'] }}')" 
+                                            class="text-left group cursor-pointer hover:opacity-90 transition block w-full focus:outline-none" 
+                                            title="Click to view individual seminar evaluation report card">
+                                        <div class="student-name font-bold text-white text-xs group-hover:text-sky-300 transition-colors truncate max-w-[210px]">
+                                            {{ $st['name'] }}
+                                        </div>
+                                        <div class="font-mono text-slate-400 font-semibold text-[10.5px] tracking-wider mt-0.5 group-hover:text-slate-300">
+                                            {{ $st['sbte_reg_no'] ?? $st['reg_no'] }}
+                                        </div>
                                     </button>
                                 </td>
                                 
-                                <!-- 6. Guide -->
-                                <td class="p-3">
-                                    <div class="text-xs sm:text-sm text-slate-300 font-semibold col-row-guide truncate max-w-[150px]">
+                                <!-- 3. Topic -->
+                                <td class="p-2 max-w-[200px]">
+                                    <div class="text-[11px] sm:text-xs text-slate-200 font-semibold truncate col-row-topic" title="{{ $st['topic'] ?? 'No topic assigned yet' }}">
+                                        {{ $st['topic'] ?? '—' }}
+                                    </div>
+                                    <button type="button" onclick="openEvaluationModal('{{ $st['reg_no'] }}')" class="mt-0.5 text-[10px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-0.5 cursor-pointer">
+                                        <span class="material-symbols-rounded text-xs">edit_note</span>
+                                        <span>{{ !empty($st['topic']) ? 'Edit Topic' : '+ Add Topic' }}</span>
+                                    </button>
+                                </td>
+                                
+                                <!-- 4. Guide -->
+                                <td class="p-2 max-w-[140px]">
+                                    <div class="text-[11px] sm:text-xs text-slate-300 font-semibold col-row-guide truncate">
                                         {{ $st['guide_name'] ?? 'Not Assigned' }}
                                     </div>
                                 </td>
                                 
-                                <!-- 7. Relevance (7.5M) -->
-                                <td class="p-2">
+                                <!-- 5. Relevance (7.5M) -->
+                                <td class="p-1 text-center w-[74px] min-w-[74px]">
                                     <input type="number" 
                                            step="0.5" 
                                            min="0" 
                                            max="7.5" 
                                            value="{{ $st['my_evaluation'] ? $st['my_evaluation']['relevance'] : ($st['avg_relevance'] !== null ? $st['avg_relevance'] : '') }}" 
                                            placeholder="-" 
-                                           class="seminar-mark mark-rel w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           class="seminar-mark mark-rel bg-slate-900/90 border border-slate-700/70 rounded-lg text-slate-100 font-bold focus:outline-none focus:border-blue-500 text-center" 
                                            data-reg="{{ $st['reg_no'] }}" 
                                            data-rubric="relevance" 
                                            onfocus="this.select()" 
@@ -482,15 +504,15 @@
                                            onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
                                 
-                                <!-- 8. Literature (7.5M) -->
-                                <td class="p-2">
+                                <!-- 6. Literature (7.5M) -->
+                                <td class="p-1 text-center w-[74px] min-w-[74px]">
                                     <input type="number" 
                                            step="0.5" 
                                            min="0" 
                                            max="7.5" 
                                            value="{{ $st['my_evaluation'] ? $st['my_evaluation']['literature'] : ($st['avg_literature'] !== null ? $st['avg_literature'] : '') }}" 
                                            placeholder="-" 
-                                           class="seminar-mark mark-lit w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           class="seminar-mark mark-lit bg-slate-900/90 border border-slate-700/70 rounded-lg text-slate-100 font-bold focus:outline-none focus:border-blue-500 text-center" 
                                            data-reg="{{ $st['reg_no'] }}" 
                                            data-rubric="literature" 
                                            onfocus="this.select()" 
@@ -500,15 +522,15 @@
                                            onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
                                 
-                                <!-- 9. Presentation (37.5M) -->
-                                <td class="p-2">
+                                <!-- 7. Presentation (37.5M) -->
+                                <td class="p-1 text-center w-[82px] min-w-[82px]">
                                     <input type="number" 
                                            step="0.5" 
                                            min="0" 
                                            max="37.5" 
                                            value="{{ $st['my_evaluation'] ? $st['my_evaluation']['presentation'] : ($st['avg_presentation'] !== null ? $st['avg_presentation'] : '') }}" 
                                            placeholder="-" 
-                                           class="seminar-mark mark-pres w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           class="seminar-mark mark-pres bg-slate-900/90 border border-slate-700/70 rounded-lg text-slate-100 font-bold focus:outline-none focus:border-blue-500 text-center" 
                                            data-reg="{{ $st['reg_no'] }}" 
                                            data-rubric="presentation" 
                                            onfocus="this.select()" 
@@ -518,15 +540,15 @@
                                            onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
                                 
-                                <!-- 10. Interaction (7.5M) -->
-                                <td class="p-2">
+                                <!-- 8. Interaction (7.5M) -->
+                                <td class="p-1 text-center w-[74px] min-w-[74px]">
                                     <input type="number" 
                                            step="0.5" 
                                            min="0" 
                                            max="7.5" 
                                            value="{{ $st['my_evaluation'] ? $st['my_evaluation']['interaction'] : ($st['avg_interaction'] !== null ? $st['avg_interaction'] : '') }}" 
                                            placeholder="-" 
-                                           class="seminar-mark mark-interctn w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           class="seminar-mark mark-interctn bg-slate-900/90 border border-slate-700/70 rounded-lg text-slate-100 font-bold focus:outline-none focus:border-blue-500 text-center" 
                                            data-reg="{{ $st['reg_no'] }}" 
                                            data-rubric="interaction" 
                                            onfocus="this.select()" 
@@ -536,15 +558,15 @@
                                            onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
                                 
-                                <!-- 11. Report (7.5M) -->
-                                <td class="p-2">
+                                <!-- 9. Report (7.5M) -->
+                                <td class="p-1 text-center w-[74px] min-w-[74px]">
                                     <input type="number" 
                                            step="0.5" 
                                            min="0" 
                                            max="7.5" 
                                            value="{{ $st['my_evaluation'] ? $st['my_evaluation']['report'] : ($st['avg_report'] !== null ? $st['avg_report'] : '') }}" 
                                            placeholder="-" 
-                                           class="seminar-mark mark-report w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-2 py-2 text-slate-100 font-bold text-base focus:outline-none focus:border-blue-500 text-center" 
+                                           class="seminar-mark mark-report bg-slate-900/90 border border-slate-700/70 rounded-lg text-slate-100 font-bold focus:outline-none focus:border-blue-500 text-center" 
                                            data-reg="{{ $st['reg_no'] }}" 
                                            data-rubric="report" 
                                            onfocus="this.select()" 
@@ -554,26 +576,38 @@
                                            onkeydown="handleSeminarMarkKeyDown(event, this)">
                                 </td>
                                 
-                                <!-- 12. Attn % -->
-                                <td class="p-3 text-center">
-                                    <span class="font-bold text-slate-300 text-sm">{{ $st['att_percentage'] }}%</span>
+                                <!-- 10. Attn % (TEAMS Upload with override capability) -->
+                                <td class="p-1.5 text-center">
+                                    <div class="inline-flex items-center gap-0.5 justify-center">
+                                        <input type="number" 
+                                               step="0.1" 
+                                               min="0" 
+                                               max="100" 
+                                               value="{{ $st['att_percentage'] }}" 
+                                               class="seminar-att-pct w-14 bg-slate-900 border border-slate-700/80 rounded px-1 py-1 text-center text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-950 transition" 
+                                               data-reg="{{ $st['reg_no'] }}" 
+                                               oninput="onAttendancePctChange(this)" 
+                                               onchange="onAttendancePctChange(this)" 
+                                               title="Attendance % from TEAMS (edit to override)">
+                                        <span class="text-[10px] text-slate-400 font-bold">%</span>
+                                    </div>
                                 </td>
                                 
-                                <!-- 13. Attn Mark (7.5M) -->
-                                <td class="p-3 text-center text-cyan-400 font-mono font-bold text-base" data-attn="{{ $st['attendance_mark'] }}">
+                                <!-- 11. Attn Mark (7.5M) -->
+                                <td class="p-2.5 text-center col-attn-mark text-cyan-400 font-mono font-bold text-sm sm:text-base" data-attn="{{ $st['attendance_mark'] }}">
                                     {{ number_format($st['attendance_mark'], 1) }}
                                 </td>
                                 
-                                <!-- 14. CIA (75M) -->
-                                <td class="p-3 text-center bg-emerald-500/5">
-                                    <span class="col-row-cia font-mono font-black text-lg {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : ($st['eval_count'] > 0 ? 'text-rose-400' : 'text-slate-500') }}">
-                                        {{ $st['eval_count'] > 0 ? round($st['final_score']) : '—' }}
+                                <!-- 12. TOTAL CIA (75M) -->
+                                <td class="p-2.5 text-center bg-emerald-500/5">
+                                    <span class="col-row-cia font-mono font-black text-base sm:text-lg {{ $st['final_score'] >= 30.0 && $st['is_completed'] ? 'text-emerald-400' : ($st['is_completed'] ? 'text-rose-400' : 'text-slate-500') }}">
+                                        {{ $st['is_completed'] ? round($st['final_score']) : '—' }}
                                     </span>
                                 </td>
                                 
-                                <!-- 15. Grade -->
-                                <td class="p-3 text-center col-row-grade">
-                                    @if($st['letter_grade'] !== '-')
+                                <!-- 13. Grade -->
+                                <td class="p-2.5 text-center col-row-grade">
+                                    @if($st['is_completed'] && $st['letter_grade'] !== '-')
                                         <span class="grade-badge-cell font-black text-xs {{ $st['letter_grade'] === 'S' ? 'text-amber-400' : ($st['letter_grade'] === 'F' ? 'text-rose-400' : 'text-slate-200') }}">
                                             Grade {{ $st['letter_grade'] }}
                                         </span>
@@ -582,14 +616,14 @@
                                     @endif
                                 </td>
                                 
-                                <!-- 16. Action -->
-                                <td class="p-3 text-center sticky-col-action">
+                                <!-- 14. Action (Enlarged Card & Topic Entry Trigger) -->
+                                <td class="p-2.5 text-center sticky-col-action">
                                     <button type="button" 
                                             onclick="openEvaluationModal('{{ $st['reg_no'] }}')" 
-                                            class="px-2.5 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer shadow-sm whitespace-nowrap" 
-                                            title="Open evaluation details / breakdown modal">
-                                        <span class="material-symbols-rounded text-sm">tune</span>
-                                        <span>Details</span>
+                                            class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 mx-auto cursor-pointer shadow-md hover:shadow-blue-500/25 whitespace-nowrap min-h-[38px] active:scale-95" 
+                                            title="Open full topic approval, committee assessor & mark splitup card">
+                                        <span class="material-symbols-rounded text-base">edit_note</span>
+                                        <span>Topic &amp; Score</span>
                                     </button>
                                 </td>
                             </tr>
@@ -659,7 +693,6 @@
                                 <th class="text-center w-8 sm:w-12">Roll</th>
                                 <th class="w-20 sm:w-24">Reg No</th>
                                 <th class="min-w-[140px]">Student Name</th>
-                                <th class="w-12 text-center">Batch</th>
                                 <th class="w-32 text-center">Presentation Date</th>
                                 <th class="min-w-[200px]">Approved Seminar Topic</th>
                                 <th class="min-w-[150px]">Seminar Guide</th>
@@ -673,22 +706,12 @@
                                 id="row-sched-{{ $st['reg_no'] }}"
                                 data-reg="{{ $st['reg_no'] }}"
                                 data-roll="{{ $st['roll_no'] }}"
-                                data-name="{{ strtolower($st['name']) }}"
-                                data-batch="{{ $st['batch'] }}">
+                                data-name="{{ strtolower($st['name']) }}">
                                 
                                 <td class="text-center font-bold text-slate-300">{{ $st['roll_no'] ?? '-' }}</td>
                                 <td class="font-mono text-slate-300 font-semibold text-[10px]">{{ $st['sbte_reg_no'] ?? $st['reg_no'] }}</td>
                                 <td>
                                     <div class="font-bold text-white">{{ $st['name'] }}</div>
-                                </td>
-                                <td class="text-center">
-                                    @if($st['batch'] === '1')
-                                        <span class="px-1.5 py-0.5 rounded bg-blue-900/40 border border-blue-500/40 text-blue-300 text-[10px] font-bold">B1</span>
-                                    @elseif($st['batch'] === '2')
-                                        <span class="px-1.5 py-0.5 rounded bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">B2</span>
-                                    @else
-                                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">Unassigned</span>
-                                    @endif
                                 </td>
 
                                 <!-- Presentation Date -->
@@ -754,7 +777,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center py-8 text-slate-500">
+                                <td colspan="8" class="text-center py-8 text-slate-500">
                                     No students enrolled.
                                 </td>
                             </tr>
@@ -773,14 +796,15 @@
             
             <!-- Grade Distribution Cards -->
             @php
-                $sGradeCount = $studentResults->where('letter_grade', 'S')->count();
-                $aGradeCount = $studentResults->where('letter_grade', 'A')->count();
-                $bGradeCount = $studentResults->where('letter_grade', 'B')->count();
-                $cGradeCount = $studentResults->where('letter_grade', 'C')->count();
-                $dGradeCount = $studentResults->where('letter_grade', 'D')->count();
-                $eGradeCount = $studentResults->where('letter_grade', 'E')->count();
-                $fGradeCount = $studentResults->where('letter_grade', 'F')->count();
-                $passedCount = $studentResults->where('result', 'Pass')->count();
+                $completedList = $studentResults->where('is_completed', true);
+                $sGradeCount = $completedList->where('letter_grade', 'S')->count();
+                $aGradeCount = $completedList->where('letter_grade', 'A')->count();
+                $bGradeCount = $completedList->where('letter_grade', 'B')->count();
+                $cGradeCount = $completedList->where('letter_grade', 'C')->count();
+                $dGradeCount = $completedList->where('letter_grade', 'D')->count();
+                $eGradeCount = $completedList->where('letter_grade', 'E')->count();
+                $fGradeCount = $completedList->where('letter_grade', 'F')->count();
+                $passedCount = $completedList->where('result', 'Pass')->count();
                 $passRate = $completedCount > 0 ? round(($passedCount / $completedCount) * 100, 1) : 0.0;
             @endphp
 
@@ -876,11 +900,11 @@
                                 <td class="text-center font-mono col-grade-interaction">{{ $st['avg_interaction'] !== null ? number_format($st['avg_interaction'], 1) : '—' }}</td>
                                 <td class="text-center font-mono col-grade-report">{{ $st['avg_report'] !== null ? number_format($st['avg_report'], 1) : '—' }}</td>
                                 <td class="text-center font-mono col-grade-attendance">{{ $st['avg_attendance'] !== null ? number_format($st['avg_attendance'], 1) : '—' }}</td>
-                                <td class="text-center font-mono font-bold text-sm col-grade-final {{ $st['final_score'] >= 30.0 ? 'text-emerald-400' : ($st['eval_count'] > 0 ? 'text-rose-400' : 'text-slate-500') }}">
-                                    {{ $st['eval_count'] > 0 ? round($st['final_score']) : '—' }}
+                                <td class="text-center font-mono font-bold text-sm col-grade-final {{ $st['final_score'] >= 30.0 && $st['is_completed'] ? 'text-emerald-400' : ($st['is_completed'] ? 'text-rose-400' : 'text-slate-500') }}">
+                                    {{ $st['is_completed'] ? round($st['final_score']) : '—' }}
                                 </td>
                                 <td class="text-center col-grade-letter">
-                                    @if($st['letter_grade'] !== '-')
+                                    @if($st['is_completed'] && $st['letter_grade'] !== '-')
                                         <span class="font-bold text-xs {{ $st['letter_grade'] === 'S' ? 'text-amber-400' : ($st['letter_grade'] === 'F' ? 'text-rose-400' : 'text-slate-200') }}">
                                             {{ $st['letter_grade'] }}
                                         </span>
@@ -888,12 +912,16 @@
                                         <span class="text-slate-500">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center font-mono text-slate-300 col-grade-point">{{ $st['grade_point'] }}</td>
+                                <td class="text-center font-mono text-slate-300 col-grade-point">{{ $st['is_completed'] ? $st['grade_point'] : '—' }}</td>
                                 <td class="text-center col-grade-result">
-                                    @if($st['result'] === 'Pass')
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>
-                                    @elseif($st['result'] === 'Failed')
-                                        <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>
+                                    @if($st['is_completed'])
+                                        @if($st['result'] === 'Pass')
+                                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>
+                                        @elseif($st['result'] === 'Failed')
+                                            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>
+                                        @else
+                                            <span class="text-slate-500 text-[10px]">Pending</span>
+                                        @endif
                                     @else
                                         <span class="text-slate-500 text-[10px]">Pending</span>
                                     @endif
@@ -1134,39 +1162,39 @@
     </main>
 
     <!-- ========================================================== -->
-    <!-- MODAL 1: Compact, Professional Seminar Evaluation Dialog  -->
-    <!-- Centered Card Modal (Max 780px wide, User-Friendly Colors) -->
+    <!-- MODAL 1: Spacious, Professional Seminar Evaluation Dialog  -->
+    <!-- Enlarge Action Card: Topic Entry, Committee Members, Clean Direct Mark Inputs (No Sliders) -->
     <!-- ========================================================== -->
-    <div id="evaluationModal" class="fixed inset-0 z-[80] hidden bg-slate-950/80 backdrop-blur-md items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div id="evaluationModal" class="fixed inset-0 z-[80] hidden bg-slate-950/85 backdrop-blur-md items-center justify-center p-3 sm:p-5 overflow-y-auto">
         
-        <div class="bg-[#111a2e] border border-slate-700/80 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]">
+        <div class="bg-[#111a2e] border border-slate-700 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[95vh]">
 
             <!-- Modal Header -->
-            <div class="px-5 py-3 bg-[#0c1322] border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div class="px-5 py-3.5 bg-[#0c1322] border-b border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-rounded text-lg">rate_review</span>
+                    <div class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-rounded text-xl">rate_review</span>
                     </div>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-sm sm:text-base font-extrabold text-white leading-tight" id="evalModalStudentName">Student Evaluation</span>
-                            <span class="text-[11px] text-slate-400 font-mono px-2 py-0.2 rounded bg-slate-900 border border-slate-800" id="evalModalStudentMeta">
+                            <span class="text-base sm:text-lg font-black text-white leading-tight" id="evalModalStudentName">Student Evaluation</span>
+                            <span class="text-xs text-slate-300 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-700" id="evalModalStudentMeta">
                                 Reg: - • Roll: -
                             </span>
                         </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">Clause 11.2.6 Evaluation Rubrics &bull; Max 75 Marks</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Clause 11.2.6 Seminar Continuous Mark Entry &bull; Max 75 Marks</div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-3">
                     <!-- Live Header Score Pill -->
-                    <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs">
+                    <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs shadow-inner">
                         <span class="text-slate-400 font-medium">Total:</span>
-                        <span class="font-bold text-blue-400 text-sm" id="evalHeaderScoreVal">0.0</span>
-                        <span class="text-slate-500 text-[10px]">/ 75</span>
+                        <span class="font-extrabold text-blue-400 text-base" id="evalHeaderScoreVal">0.0</span>
+                        <span class="text-slate-500 text-xs">/ 75</span>
                     </div>
 
-                    <button type="button" onclick="closeEvaluationModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer" title="Close Modal (Esc)">
+                    <button type="button" onclick="closeEvaluationModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition cursor-pointer" title="Close Modal (Esc)">
                         <span class="material-symbols-rounded text-xl">close</span>
                     </button>
                 </div>
@@ -1176,165 +1204,291 @@
             <form id="evaluationForm" onsubmit="submitEvaluationForm(event)" class="flex flex-col overflow-hidden flex-grow">
                 <input type="hidden" id="evalRegNo" name="reg_no">
 
-                <!-- Scrollable Body (clean padding, no excess height) -->
-                <div class="p-3.5 sm:p-4 overflow-y-auto custom-scrollbar space-y-3">
+                <!-- Scrollable Body -->
+                <div class="p-4 sm:p-5 overflow-y-auto custom-scrollbar space-y-4">
                     
-                    <!-- Metadata Strip: Topic, Assessor, Guide & Date -->
-                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+                    <!-- TOPIC & COMMITTEE SECTION (Enlarged Card) -->
+                    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-md space-y-3.5">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                                <span class="material-symbols-rounded text-base text-blue-400">topic</span>
+                                <span>Approved Topic &amp; Committee Panel</span>
+                            </span>
+                            <span class="text-[11px] text-slate-400">Clause 11.2.6 Committee Setup</span>
+                        </div>
                         
-                        <!-- Row 1: Approved Seminar Topic -->
+                        <!-- Row 1: Approved Seminar Topic (Enlarged direct entry) -->
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Approved Seminar Topic</label>
-                            <input type="text" id="evalTopicInput" placeholder="Enter or edit seminar topic..." class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition">
+                            <label class="block text-xs font-bold text-slate-200 mb-1.5">Approved Seminar Topic Title</label>
+                            <textarea id="evalTopicInput" rows="2" placeholder="Enter approved seminar presentation topic..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-white text-xs sm:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition custom-scrollbar font-medium"></textarea>
                         </div>
 
-                        <!-- Row 2: Assessor, Guide & Presentation Date (3 columns) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Evaluating Assessor</label>
-                                <select id="evalAssessorMobile" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition" onchange="onAssessorChange(this.value)">
+                        <!-- Row 2: Committee Members & Date (Neatly in one row on 22" monitor) -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end">
+                            <!-- Committee Member 1: Assigned Faculty for that Subject -->
+                            <div class="md:col-span-4">
+                                <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                    <span>Member 1 (Subject Faculty)</span>
+                                </label>
+                                <select id="evalAssessorMobile" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition" onchange="onAssessorChange(this.value)">
+                                    @if(isset($assignedFaculty) && $assignedFaculty->isNotEmpty())
+                                        @foreach($assignedFaculty as $af)
+                                            <option value="{{ $af->mobile_no }}" {{ ($activeStaff && $activeStaff->mobile_no == $af->mobile_no) ? 'selected' : '' }}>
+                                                {{ $af->name }} ({{ $af->designation }}) [Assigned]
+                                            </option>
+                                        @endforeach
+                                    @endif
                                     @foreach($guides as $g)
-                                        <option value="{{ $g->mobile_no }}" {{ ($activeStaff && $activeStaff->mobile_no == $g->mobile_no) ? 'selected' : '' }}>
-                                            {{ $g->name }} ({{ $g->designation }})
+                                        @if(!isset($assignedFaculty) || !$assignedFaculty->contains('mobile_no', $g->mobile_no))
+                                            <option value="{{ $g->mobile_no }}" {{ ($activeStaff && $activeStaff->mobile_no == $g->mobile_no) ? 'selected' : '' }}>
+                                                {{ $g->name }} ({{ $g->designation }})
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Committee Member 2: Anyone from Staff of the Department (Dropdown) -->
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                                    <span>Member 2 (Dept Staff)</span>
+                                </label>
+                                <select id="evalCommitteeMember2" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition" onchange="onCommitteeMember2Change(this.value)">
+                                    <option value="">— Select Member 2 —</option>
+                                    @foreach($departmentStaff ?? $guides as $ds)
+                                        <option value="{{ $ds->mobile_no }}">
+                                            {{ $ds->name }} ({{ $ds->designation }})
                                         </option>
                                     @endforeach
                                 </select>
-                                <span class="hidden" id="currentAssessorDisplay">{{ $activeStaff->name ?? 'Faculty' }}</span>
                             </div>
 
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Assigned Guide</label>
-                                <select id="evalGuideSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition">
+                            <!-- Assigned Faculty Guide -->
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1">Supervising Guide</label>
+                                <select id="evalGuideSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-blue-500 outline-none transition">
                                     <option value="">— Select Guide —</option>
                                     @foreach($guides as $g)
-                                        <option value="{{ $g->mobile_no }}">{{ $g->name }}</option>
+                                        <option value="{{ $g->mobile_no }}">{{ $g->name }} ({{ $g->designation }})</option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Presentation Date</label>
-                                <input type="date" id="evalPresentationDateInput" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white text-xs font-mono focus:border-blue-500 outline-none transition">
+                            <!-- Presentation Date (Compact to keep all in 1 row) -->
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1">Pres. Date</label>
+                                <input type="date" id="evalPresentationDateInput" class="w-full max-w-[130px] bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white text-xs font-mono focus:border-blue-500 outline-none transition">
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- Committee Breakdown Box (Shown if other faculty evaluated) -->
-                    <div id="evalCommitteeBreakdownBox" class="hidden px-3 py-2 rounded-xl bg-slate-900/90 border border-blue-900/50">
+                    <!-- Committee Breakdown Box (Shown if multiple assessors evaluated) -->
+                    <div id="evalCommitteeBreakdownBox" class="hidden px-4 py-3 rounded-2xl bg-slate-900/90 border border-blue-900/50 shadow-md">
                         <div class="flex items-center justify-between gap-2 flex-wrap">
                             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                                 <span class="material-symbols-rounded text-base text-blue-400">group</span>
-                                <span>Recorded Committee Scores</span>
+                                <span>Recorded Committee Evaluations</span>
                             </span>
-                            <span class="text-xs font-semibold text-blue-300" id="evalBreakdownAvgText">Average: 0 / 75</span>
+                            <span class="text-xs font-bold text-blue-300" id="evalBreakdownAvgText">Average: 0 / 75</span>
                         </div>
-                        <div id="evalBreakdownList" class="mt-1.5 space-y-1 text-xs"></div>
+                        <div id="evalBreakdownList" class="mt-2 space-y-1.5 text-xs"></div>
                     </div>
 
-                    <!-- 6 Rubric Criteria in a Clean, Compact 2-Column Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        
-                        <!-- Criterion 1: Relevance of Topic (Max 7.5) -->
-                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
-                                    <span class="font-bold text-slate-200 text-xs truncate">Relevance of Topic</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
-                                </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_relevance" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('relevance')">
-                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
-                                </div>
+                    <!-- Committee Assessor Scoring Selector (Member 1 vs Member 2) -->
+                    <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between flex-wrap gap-2.5 shadow-sm">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-black uppercase text-slate-300">Entering Marks For:</span>
+                            <div class="inline-flex rounded-xl p-0.5 bg-slate-950 border border-slate-800" role="group">
+                                <button type="button" 
+                                        id="btnScorerMember1" 
+                                        onclick="switchScoringAssessor('member1')" 
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-sm cursor-pointer">
+                                    <span class="w-2 h-2 rounded-full bg-blue-200"></span>
+                                    <span id="labelScorerMember1">Member 1 (Subject Faculty)</span>
+                                </button>
+                                <button type="button" 
+                                        id="btnScorerMember2" 
+                                        onclick="switchScoringAssessor('member2')" 
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer">
+                                    <span class="w-2 h-2 rounded-full bg-slate-600" id="dotScorerMember2"></span>
+                                    <span id="labelScorerMember2">Member 2 (Dept Staff)</span>
+                                </button>
                             </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_relevance" class="w-full cursor-pointer" oninput="syncEvalInput('relevance')">
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1" id="scorerActiveNotice">
+                            <span class="material-symbols-rounded text-sm text-blue-400">info</span>
+                            <span>Direct mark entry &bull; Tab to move to next field</span>
+                        </div>
+                    </div>
+
+                    <!-- 6 DIRECT MARK ENTRY FIELDS (No Sliders, Large Fields, Direct Tab Switch) -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-300">
+                                Mark Entry Splitup (Direct Fields &bull; No Sliders)
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-mono">Use Tab key to switch from one mark field to next</span>
                         </div>
 
-                        <!-- Criterion 3 (HERO): Presentation Delivery (Max 37.5 - 50%) -->
-                        <div class="p-2.5 rounded-xl bg-gradient-to-br from-blue-950/40 to-slate-900 border border-blue-600/50 shadow-sm space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm">3</span>
-                                    <span class="font-extrabold text-white text-xs truncate">Presentation Delivery</span>
-                                    <span class="px-1.5 py-0.2 rounded bg-blue-600/30 text-blue-300 text-[9px] font-bold border border-blue-500/40">50%</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            
+                            <!-- 1. Relevance of Topic (Max 7.5) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center">1</span>
+                                        <span class="font-bold text-slate-200 text-xs">Relevance of Topic</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 7.5</span>
                                 </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="37.5" id="input_presentation" class="w-16 bg-slate-950 border border-blue-500 rounded px-1.5 py-0.5 text-center text-blue-300 font-black text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('presentation')">
-                                    <span class="text-blue-400 font-bold text-[10px]">/ 37.5</span>
-                                </div>
+                                <input type="number" 
+                                       step="0.5" 
+                                       min="0" 
+                                       max="7.5" 
+                                       id="input_relevance" 
+                                       tabindex="1"
+                                       class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-center text-slate-100 font-mono font-bold text-base focus:border-blue-500 focus:bg-slate-900 outline-none transition" 
+                                       placeholder="0.0" 
+                                       oninput="calculateLiveTotal()" 
+                                       onfocus="this.select()"
+                                       onkeydown="handleModalRubricKeyDown(event, this)">
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal">Relevance, originality &amp; technical depth (10%)</div>
                             </div>
-                            <input type="range" min="0" max="37.5" step="0.5" id="range_presentation" class="w-full cursor-pointer accent-blue-500" oninput="syncEvalInput('presentation')">
-                        </div>
 
-                        <!-- Criterion 2: Literature Survey (Max 7.5) -->
-                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
-                                    <span class="font-bold text-slate-200 text-xs truncate">Literature Survey</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                            <!-- 2. Literature Survey (Max 7.5) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center">2</span>
+                                        <span class="font-bold text-slate-200 text-xs">Literature Survey</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 7.5</span>
                                 </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_literature" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('literature')">
-                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
-                                </div>
+                                <input type="number" 
+                                       step="0.5" 
+                                       min="0" 
+                                       max="7.5" 
+                                       id="input_literature" 
+                                       tabindex="2"
+                                       class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-center text-slate-100 font-mono font-bold text-base focus:border-blue-500 focus:bg-slate-900 outline-none transition" 
+                                       placeholder="0.0" 
+                                       oninput="calculateLiveTotal()" 
+                                       onfocus="this.select()"
+                                       onkeydown="handleModalRubricKeyDown(event, this)">
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal">Literature collection &amp; paper references (10%)</div>
                             </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_literature" class="w-full cursor-pointer" oninput="syncEvalInput('literature')">
-                        </div>
 
-                        <!-- Criterion 4: Interaction / Discussion (Max 7.5) -->
-                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
-                                    <span class="font-bold text-slate-200 text-xs truncate">Interaction / Viva</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                            <!-- 3. Presentation Delivery (Max 37.5) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-blue-600/30 text-blue-300 font-bold text-xs flex items-center justify-center">3</span>
+                                        <span class="font-bold text-slate-200 text-xs">Presentation Delivery</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 37.5</span>
                                 </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_interaction" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('interaction')">
-                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
-                                </div>
+                                <input type="number" 
+                                       step="0.5" 
+                                       min="0" 
+                                       max="37.5" 
+                                       id="input_presentation" 
+                                       tabindex="3"
+                                       class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-center text-slate-100 font-mono font-bold text-base focus:border-blue-500 focus:bg-slate-900 outline-none transition" 
+                                       placeholder="0.0" 
+                                       oninput="calculateLiveTotal()" 
+                                       onfocus="this.select()"
+                                       onkeydown="handleModalRubricKeyDown(event, this)">
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal">Slides quality, explanation &amp; delivery (50%)</div>
                             </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_interaction" class="w-full cursor-pointer" oninput="syncEvalInput('interaction')">
-                        </div>
 
-                        <!-- Criterion 5: Seminar Report (Max 7.5) -->
-                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
-                                    <span class="font-bold text-slate-200 text-xs truncate">Seminar Report</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">10%</span>
+                            <!-- 4. Interaction / Viva (Max 7.5) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center">4</span>
+                                        <span class="font-bold text-slate-200 text-xs">Interaction / Viva</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 7.5</span>
                                 </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_report" class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-blue-400 font-bold text-xs focus:border-blue-400 outline-none" oninput="syncEvalSlider('report')">
-                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
-                                </div>
+                                <input type="number" 
+                                       step="0.5" 
+                                       min="0" 
+                                       max="7.5" 
+                                       id="input_interaction" 
+                                       tabindex="4"
+                                       class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-center text-slate-100 font-mono font-bold text-base focus:border-blue-500 focus:bg-slate-900 outline-none transition" 
+                                       placeholder="0.0" 
+                                       oninput="calculateLiveTotal()" 
+                                       onfocus="this.select()"
+                                       onkeydown="handleModalRubricKeyDown(event, this)">
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal">Questions answer ability &amp; discussion (10%)</div>
                             </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_report" class="w-full cursor-pointer" oninput="syncEvalInput('report')">
-                        </div>
 
-                        <!-- Criterion 6: Attendance (Max 7.5 - Authoritative TEAMS Attendance) -->
-                        <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-800/60 transition space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded-full bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">6</span>
-                                    <span class="font-bold text-emerald-300 text-xs">Attendance (10% = 7.5M)</span>
-                                    <span class="px-1.5 py-0.2 rounded bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-[9px] font-mono font-bold" id="modalAttBadge">TEAMS Log</span>
+                            <!-- 5. Seminar Report (Max 7.5) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center">5</span>
+                                        <span class="font-bold text-slate-200 text-xs">Seminar Report</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 7.5</span>
                                 </div>
-                                <div class="flex items-center gap-1 font-mono shrink-0">
-                                    <input type="number" step="0.5" min="0" max="7.5" id="input_attendance" readonly class="w-14 bg-slate-950 border border-emerald-600/50 rounded px-1.5 py-0.5 text-center text-emerald-300 font-black text-xs outline-none cursor-not-allowed">
-                                    <span class="text-slate-500 text-[10px]">/ 7.5</span>
-                                </div>
+                                <input type="number" 
+                                       step="0.5" 
+                                       min="0" 
+                                       max="7.5" 
+                                       id="input_report" 
+                                       tabindex="5"
+                                       class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-center text-slate-100 font-mono font-bold text-base focus:border-blue-500 focus:bg-slate-900 outline-none transition" 
+                                       placeholder="0.0" 
+                                       oninput="calculateLiveTotal()" 
+                                       onfocus="this.select()"
+                                       onkeydown="handleModalRubricKeyDown(event, this)">
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal">Report formatting, diagrams &amp; quality (10%)</div>
                             </div>
-                            <div class="flex items-center justify-between text-[10px] text-slate-400">
-                                <span id="modalAttHelpText">Calculated from official TEAMS attendance log</span>
-                                <span class="font-bold text-emerald-400 font-mono" id="modalSuggestedAttVal">7.5 M</span>
-                            </div>
-                            <input type="range" min="0" max="7.5" step="0.25" id="range_attendance" class="w-full cursor-not-allowed accent-emerald-500 opacity-60" disabled>
-                        </div>
 
+                            <!-- 6. Attendance (Max 7.5 & TEAMS Attn %) -->
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/80 transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-md bg-emerald-600/30 text-emerald-300 font-bold text-xs flex items-center justify-center">6</span>
+                                        <span class="font-bold text-slate-200 text-xs">Attendance</span>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">Max 7.5</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] font-medium text-slate-400 mb-1 text-center">Attn % (TEAMS)</label>
+                                        <input type="number" 
+                                               step="0.1" 
+                                               min="0" 
+                                               max="100" 
+                                               id="input_attendance_pct" 
+                                               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-center text-slate-100 font-mono font-bold text-sm focus:border-blue-500 outline-none transition" 
+                                               placeholder="0.0" 
+                                               oninput="onModalAttnPctInput(this)">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-medium text-slate-400 mb-1 text-center">Mark (out of 7.5)</label>
+                                        <input type="number" 
+                                               step="0.5" 
+                                               min="0" 
+                                               max="7.5" 
+                                               id="input_attendance" 
+                                               tabindex="6"
+                                               class="modal-rubric-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-center text-slate-100 font-mono font-bold text-sm focus:border-blue-500 outline-none transition" 
+                                               placeholder="0.0" 
+                                               oninput="calculateLiveTotal()" 
+                                               onfocus="this.select()">
+                                    </div>
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-1 text-center font-normal" id="modalAttHelpText">TEAMS upload default &bull; Override % if needed</div>
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>
@@ -1818,6 +1972,8 @@
             attendance: { max: 7.5 }
         };
 
+        let currentScorer = 'member1'; // 'member1' or 'member2'
+
         function openEvaluationModal(regNo) {
             try {
                 const st = studentDataset.find(s => s.reg_no === regNo);
@@ -1844,22 +2000,38 @@
                 setVal('evalGuideSelect', st.guide_mobile_no || '');
                 setVal('evalPresentationDateInput', st.presentation_date || '');
 
-                // Attendance help & value
+                // Attendance help & value (TEAMS default with override support)
                 const attVal = st.attendance_mark !== undefined ? st.attendance_mark : st.suggested_att_mark;
                 setText('modalSuggestedAttVal', `${Number(attVal).toFixed(1)} M`);
-                setText('modalAttHelpText', `TEAMS class attendance: ${st.att_percentage}% → Authoritative: ${Number(attVal).toFixed(1)} / 7.5 M`);
+                setText('modalAttHelpText', `TEAMS upload: ${st.att_percentage || 0}% → ${Number(attVal).toFixed(1)} / 7.5 M (Edit % to override)`);
+                setVal('input_attendance_pct', st.att_percentage || 0);
+                setVal('input_attendance', Number(attVal).toFixed(1));
 
-                // Reset Assessor Selector to current logged-in user or first assessor
+                // Member 1 (Subject Faculty): default to assigned faculty or current faculty
                 const assessorSel = document.getElementById('evalAssessorMobile');
                 if (assessorSel && currentLoggedInMobile) {
                     assessorSel.value = currentLoggedInMobile;
                 }
 
+                // Member 2 (Dept Staff): check if there is an evaluation by another faculty in st.assessors_list
+                const member2Sel = document.getElementById('evalCommitteeMember2');
+                if (member2Sel) {
+                    const currentM1 = assessorSel ? assessorSel.value : '';
+                    const otherEval = (st.assessors_list || []).find(e => e.assessor_mobile !== currentM1);
+                    if (otherEval && member2Sel.querySelector(`option[value="${otherEval.assessor_mobile}"]`)) {
+                        member2Sel.value = otherEval.assessor_mobile;
+                    }
+                }
+
+                // Reset active scoring assessor to Member 1
+                currentScorer = 'member1';
+                updateScorerTabsUI();
+
                 // Render committee breakdown box if other faculty evaluated
                 renderModalCommitteeBreakdown(st);
 
                 // Populate rubric inputs for selected assessor
-                populateRubricsForAssessor(st, currentLoggedInMobile);
+                populateRubricsForAssessor(st, assessorSel ? assessorSel.value : currentLoggedInMobile);
 
                 calculateLiveTotal();
 
@@ -1867,29 +2039,178 @@
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
+                    setTimeout(() => {
+                        const firstInput = document.getElementById('input_relevance');
+                        if (firstInput) {
+                            firstInput.focus();
+                            firstInput.select();
+                        }
+                    }, 100);
                 }
             } catch (err) {
                 console.error("Error opening evaluation modal:", err);
             }
         }
 
-        function onAssessorChange(selectedAssessorMobile) {
+        function updateScorerTabsUI() {
+            const btn1 = document.getElementById('btnScorerMember1');
+            const btn2 = document.getElementById('btnScorerMember2');
+            const dot2 = document.getElementById('dotScorerMember2');
+            const label1 = document.getElementById('labelScorerMember1');
+            const label2 = document.getElementById('labelScorerMember2');
+            const notice = document.getElementById('scorerActiveNotice');
+
+            const m1Sel = document.getElementById('evalAssessorMobile');
+            const m2Sel = document.getElementById('evalCommitteeMember2');
+            const m1Text = m1Sel && m1Sel.selectedOptions[0] ? m1Sel.selectedOptions[0].text.split('(')[0].trim() : 'Member 1';
+            const m2Text = m2Sel && m2Sel.value && m2Sel.selectedOptions[0] ? m2Sel.selectedOptions[0].text.split('(')[0].trim() : 'Member 2 (Dept Staff)';
+
+            if (label1) label1.textContent = `Member 1: ${m1Text}`;
+            if (label2) label2.textContent = m2Sel && m2Sel.value ? `Member 2: ${m2Text}` : 'Member 2 (Select Staff)';
+
+            if (currentScorer === 'member1') {
+                if (btn1) {
+                    btn1.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-sm cursor-pointer';
+                }
+                if (btn2) {
+                    btn2.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer';
+                }
+                if (dot2) dot2.className = 'w-2 h-2 rounded-full bg-slate-600';
+                if (notice) notice.innerHTML = `<span class="material-symbols-rounded text-sm text-blue-400">info</span><span>Scoring as <strong>Member 1 (${m1Text})</strong> &bull; Tab to switch fields</span>`;
+            } else {
+                if (btn1) {
+                    btn1.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer';
+                }
+                if (btn2) {
+                    btn2.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm cursor-pointer';
+                }
+                if (dot2) dot2.className = 'w-2 h-2 rounded-full bg-white';
+                if (notice) notice.innerHTML = `<span class="material-symbols-rounded text-sm text-indigo-400">info</span><span>Scoring as <strong>Member 2 (${m2Text})</strong> &bull; Tab to switch fields</span>`;
+            }
+        }
+
+        function switchScoringAssessor(target) {
             const regNo = document.getElementById('evalRegNo').value;
             const st = studentDataset.find(s => s.reg_no === regNo);
             if (!st) return;
-            populateRubricsForAssessor(st, selectedAssessorMobile);
+
+            if (target === 'member2') {
+                const m2Sel = document.getElementById('evalCommitteeMember2');
+                if (!m2Sel || !m2Sel.value) {
+                    alert('Please select Committee Member 2 from the department staff dropdown first.');
+                    if (m2Sel) m2Sel.focus();
+                    return;
+                }
+                currentScorer = 'member2';
+                populateRubricsForAssessor(st, m2Sel.value);
+            } else {
+                currentScorer = 'member1';
+                const m1Sel = document.getElementById('evalAssessorMobile');
+                populateRubricsForAssessor(st, m1Sel ? m1Sel.value : currentLoggedInMobile);
+            }
+
+            updateScorerTabsUI();
             calculateLiveTotal();
+
+            const firstInput = document.getElementById('input_relevance');
+            if (firstInput) {
+                firstInput.focus();
+                firstInput.select();
+            }
+        }
+
+        function onCommitteeMember2Change(selectedMobile) {
+            updateScorerTabsUI();
+            const regNo = document.getElementById('evalRegNo').value;
+            const st = studentDataset.find(s => s.reg_no === regNo);
+            if (!st) return;
+
+            if (currentScorer === 'member2') {
+                populateRubricsForAssessor(st, selectedMobile);
+                calculateLiveTotal();
+            }
+            renderModalCommitteeBreakdown(st);
+        }
+
+        function onAssessorChange(selectedAssessorMobile) {
+            updateScorerTabsUI();
+            const regNo = document.getElementById('evalRegNo').value;
+            const st = studentDataset.find(s => s.reg_no === regNo);
+            if (!st) return;
+
+            if (currentScorer === 'member1') {
+                populateRubricsForAssessor(st, selectedAssessorMobile);
+                calculateLiveTotal();
+            }
+            renderModalCommitteeBreakdown(st);
         }
 
         function populateRubricsForAssessor(st, assessorMobile) {
             const evalObj = (st.assessors_list || []).find(e => e.assessor_mobile === assessorMobile);
-            const attVal = st.attendance_mark !== undefined ? st.attendance_mark : st.suggested_att_mark;
+            const attVal = (evalObj && evalObj.attendance !== undefined && evalObj.attendance > 0)
+                ? evalObj.attendance
+                : (st.attendance_mark !== undefined ? st.attendance_mark : st.suggested_att_mark);
             for (let c in criteriaConfig) {
                 let val = (c === 'attendance') ? attVal : (evalObj ? evalObj[c] : 0);
                 const inp = document.getElementById(`input_${c}`);
-                const rng = document.getElementById(`range_${c}`);
-                if (inp) inp.value = val;
-                if (rng) rng.value = val;
+                if (inp) inp.value = (val !== undefined && val !== null) ? val : 0;
+            }
+            const pctInp = document.getElementById('input_attendance_pct');
+            if (pctInp) pctInp.value = st.att_percentage || 0;
+        }
+
+        function onModalAttnPctInput(input) {
+            let pct = parseFloat(input.value);
+            if (isNaN(pct)) pct = 0;
+            if (pct > 100) { pct = 100; input.value = 100; }
+            if (pct < 0) { pct = 0; input.value = 0; }
+            const mark = Math.min(7.5, Math.round(((pct / 100.0) * 7.5) * 2) / 2);
+            const attInput = document.getElementById('input_attendance');
+            if (attInput) {
+                attInput.value = mark.toFixed(1);
+            }
+            calculateLiveTotal();
+        }
+
+        function handleModalRubricKeyDown(event, input) {
+            const fields = ['input_relevance', 'input_literature', 'input_presentation', 'input_interaction', 'input_report'];
+            const idx = fields.indexOf(input.id);
+            if (idx === -1) return;
+
+            if (event.key === 'Tab' && !event.shiftKey) {
+                if (idx < fields.length - 1) {
+                    event.preventDefault();
+                    const nextEl = document.getElementById(fields[idx + 1]);
+                    if (nextEl) {
+                        nextEl.focus();
+                        nextEl.select();
+                    }
+                } else {
+                    event.preventDefault();
+                    const saveBtn = document.getElementById('btnSaveEval');
+                    if (saveBtn) saveBtn.focus();
+                }
+            } else if (event.key === 'Tab' && event.shiftKey) {
+                if (idx > 0) {
+                    event.preventDefault();
+                    const prevEl = document.getElementById(fields[idx - 1]);
+                    if (prevEl) {
+                        prevEl.focus();
+                        prevEl.select();
+                    }
+                }
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (idx < fields.length - 1) {
+                    const nextEl = document.getElementById(fields[idx + 1]);
+                    if (nextEl) {
+                        nextEl.focus();
+                        nextEl.select();
+                    }
+                } else {
+                    const saveBtn = document.getElementById('btnSaveEval');
+                    if (saveBtn) saveBtn.click();
+                }
             }
         }
 
@@ -1899,31 +2220,115 @@
             const avgText = document.getElementById('evalBreakdownAvgText');
             if (!box || !list || !avgText) return;
 
-            if (!st.assessors_list || st.assessors_list.length === 0) {
+            const m1Sel = document.getElementById('evalAssessorMobile');
+            const m2Sel = document.getElementById('evalCommitteeMember2');
+            const m1Mobile = m1Sel ? m1Sel.value : '';
+            const m2Mobile = m2Sel ? m2Sel.value : '';
+            const m1Text = (m1Sel && m1Sel.selectedOptions[0]) ? m1Sel.selectedOptions[0].text.split('(')[0].trim() : 'Member 1';
+            const m2Text = (m2Sel && m2Sel.selectedOptions[0] && m2Sel.value) ? m2Sel.selectedOptions[0].text.split('(')[0].trim() : '';
+
+            const m1Eval = (st.assessors_list || []).find(e => e.assessor_mobile === m1Mobile);
+            const m2Eval = (st.assessors_list || []).find(e => e.assessor_mobile === m2Mobile);
+
+            const hasAnyRecorded = (st.assessors_list && st.assessors_list.length > 0);
+            if (!hasAnyRecorded && !m2Mobile) {
                 box.classList.add('hidden');
                 return;
             }
 
             box.classList.remove('hidden');
-            avgText.textContent = `Committee Average: ${Math.round(st.final_score)} / 75 (Grade ${st.letter_grade})`;
+            avgText.textContent = hasAnyRecorded
+                ? `Committee Average: ${Math.round(st.final_score)} / 75 (Grade ${st.letter_grade})`
+                : `Committee Evaluation Panel`;
 
             let html = '';
-            st.assessors_list.forEach((ev, idx) => {
-                html += `
-                    <div class="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-                        <div>
-                            <span class="font-bold text-white">${ev.assessor_name}</span>
-                            <span class="text-slate-500 text-[10px] ml-1">(${ev.designation})</span>
-                            <div class="text-[10px] text-slate-400">
-                                Rel: ${ev.relevance} | Lit: ${ev.literature} | Pres: ${ev.presentation} | Disc: ${ev.interaction} | Rep: ${ev.report} | Att: ${ev.attendance}
+
+            // Member 1 Item
+            if (m1Mobile) {
+                if (m1Eval) {
+                    html += `
+                        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-white">${m1Eval.assessor_name || m1Text}</span>
+                                <span class="text-blue-400 text-[10px] ml-1 font-bold">[Member 1 • Subject Faculty]</span>
+                                <div class="text-[10px] text-slate-400 mt-0.5">
+                                    Rel: <strong class="text-blue-300">${m1Eval.relevance}</strong> | Lit: <strong class="text-blue-300">${m1Eval.literature}</strong> | Pres: <strong class="text-blue-300">${m1Eval.presentation}</strong> | Viva: <strong class="text-blue-300">${m1Eval.interaction}</strong> | Rep: <strong class="text-blue-300">${m1Eval.report}</strong> | Att: <strong class="text-emerald-300">${m1Eval.attendance}</strong>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-black text-blue-400 font-mono">${Math.round(m1Eval.total_score)} M</span>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-blue-400 font-mono">${Math.round(ev.total_score)} M</span>
+                    `;
+                } else {
+                    html += `
+                        <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-slate-300">${m1Text}</span>
+                                <span class="text-blue-400 text-[10px] ml-1 font-semibold">[Member 1 • Subject Faculty]</span>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Marks pending entry</div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/50">Pending</span>
+                            </div>
                         </div>
-                    </div>
-                `;
-            });
+                    `;
+                }
+            }
+
+            // Member 2 Item
+            if (m2Mobile) {
+                if (m2Eval) {
+                    html += `
+                        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-white">${m2Eval.assessor_name || m2Text}</span>
+                                <span class="text-indigo-400 text-[10px] ml-1 font-bold">[Member 2 • Dept Staff]</span>
+                                <div class="text-[10px] text-slate-400 mt-0.5">
+                                    Rel: <strong class="text-indigo-300">${m2Eval.relevance}</strong> | Lit: <strong class="text-indigo-300">${m2Eval.literature}</strong> | Pres: <strong class="text-indigo-300">${m2Eval.presentation}</strong> | Viva: <strong class="text-indigo-300">${m2Eval.interaction}</strong> | Rep: <strong class="text-indigo-300">${m2Eval.report}</strong> | Att: <strong class="text-emerald-300">${m2Eval.attendance}</strong>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-black text-indigo-400 font-mono">${Math.round(m2Eval.total_score)} M</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-slate-300">${m2Text}</span>
+                                <span class="text-indigo-400 text-[10px] ml-1 font-semibold">[Member 2 • Dept Staff]</span>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Selected &bull; Ready for mark entry</div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-800/50">Ready to score</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (hasAnyRecorded) {
+                // If there are other past evaluations not matching M1 or M2
+                (st.assessors_list || []).forEach(ev => {
+                    if (ev.assessor_mobile !== m1Mobile) {
+                        html += `
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-white">${ev.assessor_name}</span>
+                                    <span class="text-slate-400 text-[10px] ml-1">(${ev.designation})</span>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">
+                                        Rel: <strong class="text-blue-300">${ev.relevance}</strong> | Lit: <strong class="text-blue-300">${ev.literature}</strong> | Pres: <strong class="text-blue-300">${ev.presentation}</strong> | Viva: <strong class="text-blue-300">${ev.interaction}</strong> | Rep: <strong class="text-blue-300">${ev.report}</strong> | Att: <strong class="text-emerald-300">${ev.attendance}</strong>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-sm font-black text-blue-400 font-mono">${Math.round(ev.total_score)} M</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
             list.innerHTML = html;
         }
 
@@ -1935,40 +2340,15 @@
             }
         }
 
-        function syncEvalSlider(c) {
-            const inp = document.getElementById(`input_${c}`);
-            const rng = document.getElementById(`range_${c}`);
-            let val = parseFloat(inp.value) || 0;
-            if (val > criteriaConfig[c].max) val = criteriaConfig[c].max;
-            if (val < 0) val = 0;
-            inp.value = val;
-            rng.value = val;
-            calculateLiveTotal();
-        }
-
-        function syncEvalInput(c) {
-            const inp = document.getElementById(`input_${c}`);
-            const rng = document.getElementById(`range_${c}`);
-            inp.value = rng.value;
-            calculateLiveTotal();
-        }
-
-        function applySuggestedAttendance() {
-            const regNo = document.getElementById('evalRegNo').value;
-            const st = studentDataset.find(s => s.reg_no === regNo);
-            if (!st) return;
-            document.getElementById('input_attendance').value = st.suggested_att_mark;
-            document.getElementById('range_attendance').value = st.suggested_att_mark;
-            calculateLiveTotal();
-        }
-
         function calculateLiveTotal() {
             let total = 0;
             for (let c in criteriaConfig) {
-                total += parseFloat(document.getElementById(`input_${c}`).value) || 0;
+                total += parseFloat(document.getElementById(`input_${c}`)?.value) || 0;
             }
             if (total > 75.0) total = 75.0;
-            document.getElementById('evalLiveTotal').innerHTML = `${total.toFixed(1)} <span class="text-xs text-slate-400 font-normal">/ 75.0</span>`;
+            const roundedTotal = Math.round(total);
+            const totalEl = document.getElementById('evalLiveTotal');
+            if (totalEl) totalEl.innerHTML = `${roundedTotal} <span class="text-xs text-slate-400 font-normal">/ 75</span>`;
 
             // Calculate Grade
             const pct = (total / 75.0) * 100.0;
@@ -1983,22 +2363,28 @@
             else { grade = 'F (Failed)'; color = 'text-rose-400'; }
 
             const gradeEl = document.getElementById('evalLiveGrade');
-            gradeEl.textContent = grade;
-            gradeEl.className = `text-sm sm:text-base font-extrabold mt-0.5 ${color}`;
+            if (gradeEl) {
+                gradeEl.textContent = grade;
+                gradeEl.className = `text-sm sm:text-base font-extrabold mt-0.5 ${color}`;
+            }
 
             const headerScore = document.getElementById('evalHeaderScoreVal');
-            if (headerScore) headerScore.textContent = total.toFixed(1);
+            if (headerScore) headerScore.textContent = roundedTotal;
         }
 
         async function submitEvaluationForm(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const btn = document.getElementById('btnSaveEval');
             btn.disabled = true;
             btn.innerHTML = `<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Saving...`;
 
+            const activeAssessor = (currentScorer === 'member2' && document.getElementById('evalCommitteeMember2')?.value)
+                ? document.getElementById('evalCommitteeMember2').value
+                : document.getElementById('evalAssessorMobile').value;
+
             const payload = {
                 reg_no: document.getElementById('evalRegNo').value,
-                assessor_mobile_no: document.getElementById('evalAssessorMobile').value,
+                assessor_mobile_no: activeAssessor,
                 topic: document.getElementById('evalTopicInput').value,
                 guide_mobile_no: document.getElementById('evalGuideSelect').value,
                 presentation_date: document.getElementById('evalPresentationDateInput').value,
@@ -2008,6 +2394,7 @@
                 interaction: parseFloat(document.getElementById('input_interaction').value) || 0,
                 report: parseFloat(document.getElementById('input_report').value) || 0,
                 attendance: parseFloat(document.getElementById('input_attendance').value) || 0,
+                att_percentage: parseFloat(document.getElementById('input_attendance_pct')?.value) || 0,
             };
 
             try {
@@ -2023,14 +2410,17 @@
                 const data = await res.json();
 
                 if (data.status === 'SUCCESS') {
+                    const reportVal = parseFloat(payload.report) || 0;
+                    const isCompleted = (reportVal > 0);
+
                     // Update dataset cache
                     const st = studentDataset.find(s => s.reg_no === payload.reg_no);
                     if (st) {
                         st.my_evaluation = { ...payload, total_score: data.data.my_total };
-                        st.final_score = data.data.average_score;
-                        st.letter_grade = data.data.letter_grade;
+                        st.final_score = isCompleted ? data.data.average_score : 0;
+                        st.letter_grade = isCompleted ? data.data.letter_grade : '-';
                         st.eval_count = data.data.eval_count;
-                        st.is_completed = true;
+                        st.is_completed = isCompleted;
                         st.assessors_list = data.data.assessors_list || st.assessors_list;
                         if (data.data.topic) st.topic = data.data.topic;
                         if (data.data.guide_name) st.guide_name = data.data.guide_name;
@@ -2053,16 +2443,37 @@
                         const repInput = row.querySelector('.mark-report');
                         if (repInput) repInput.value = payload.report;
 
+                        // Attendance percentage & mark reflection
+                        const attPctInput = row.querySelector('.seminar-att-pct');
+                        if (attPctInput && data.data.att_percentage !== undefined) {
+                            attPctInput.value = data.data.att_percentage;
+                        }
+                        const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
+                        if (attnCell && data.data.attendance_mark !== undefined) {
+                            attnCell.setAttribute('data-attn', Number(data.data.attendance_mark).toFixed(1));
+                            attnCell.textContent = Number(data.data.attendance_mark).toFixed(1);
+                        }
+
                         const ciaEl = row.querySelector('.col-row-cia');
                         if (ciaEl) {
-                            ciaEl.textContent = Number(data.data.average_score).toFixed(1);
-                            ciaEl.className = `col-row-cia font-mono font-black text-lg ${data.data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                            if (isCompleted) {
+                                const roundedCia = Math.round(Number(data.data.average_score));
+                                ciaEl.textContent = roundedCia;
+                                ciaEl.className = `col-row-cia font-mono font-black text-lg ${roundedCia >= 30 ? 'text-emerald-400' : 'text-rose-400'}`;
+                            } else {
+                                ciaEl.textContent = '—';
+                                ciaEl.className = 'col-row-cia font-mono font-bold text-base text-slate-500';
+                            }
                         }
 
                         const gradeEl = row.querySelector('.col-row-grade');
                         if (gradeEl) {
-                            const colorClass = data.data.letter_grade === 'S' ? 'text-amber-400' : (data.data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
-                            gradeEl.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${data.data.letter_grade}</span>`;
+                            if (isCompleted && data.data.letter_grade && data.data.letter_grade !== '-') {
+                                const colorClass = data.data.letter_grade === 'S' ? 'text-amber-400' : (data.data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
+                                gradeEl.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${data.data.letter_grade}</span>`;
+                            } else {
+                                gradeEl.innerHTML = `<span class="grade-badge-cell font-bold text-slate-500 text-xs">—</span>`;
+                            }
                         }
 
                         if (data.data.topic && row.querySelector('.col-row-topic')) row.querySelector('.col-row-topic').textContent = data.data.topic;
@@ -2078,51 +2489,23 @@
                         if (data.data.presentation_date_formatted) {
                             schedRow.querySelector('.col-sched-date').innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-900 border border-slate-700 font-mono text-[11px] font-bold text-slate-200"><span class="material-symbols-rounded text-xs text-blue-400">calendar_today</span> ${data.data.presentation_date_formatted}</span>`;
                         }
-                    }
-
-                    // Also update Grades & Results Table row if exists
-                    const gradeRow = document.getElementById(`row-grade-${payload.reg_no}`);
-                    if (gradeRow) {
-                        if (data.data.avg_relevance !== undefined) gradeRow.querySelector('.col-grade-relevance').textContent = Number(data.data.avg_relevance).toFixed(1);
-                        if (data.data.avg_literature !== undefined) gradeRow.querySelector('.col-grade-literature').textContent = Number(data.data.avg_literature).toFixed(1);
-                        if (data.data.avg_presentation !== undefined) gradeRow.querySelector('.col-grade-presentation').textContent = Number(data.data.avg_presentation).toFixed(1);
-                        if (data.data.avg_interaction !== undefined) gradeRow.querySelector('.col-grade-interaction').textContent = Number(data.data.avg_interaction).toFixed(1);
-                        if (data.data.avg_report !== undefined) gradeRow.querySelector('.col-grade-report').textContent = Number(data.data.avg_report).toFixed(1);
-                        if (data.data.attendance_mark !== undefined) gradeRow.querySelector('.col-grade-attendance').textContent = Number(data.data.attendance_mark).toFixed(1);
-
-                        const finalScoreEl = gradeRow.querySelector('.col-grade-final');
-                        if (finalScoreEl) {
-                            finalScoreEl.textContent = Number(data.data.average_score).toFixed(1);
-                            finalScoreEl.className = `text-center font-mono font-bold text-sm col-grade-final ${data.data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                        }
-
-                        const letterEl = gradeRow.querySelector('.col-grade-letter');
-                        if (letterEl) {
-                            const colorClass = data.data.letter_grade === 'S' ? 'text-amber-400' : (data.data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
-                            letterEl.innerHTML = `<span class="font-bold text-xs ${colorClass}">${data.data.letter_grade}</span>`;
-                        }
-
-                        const pointEl = gradeRow.querySelector('.col-grade-point');
-                        if (pointEl) pointEl.textContent = data.data.grade_point;
-
-                        const resultEl = gradeRow.querySelector('.col-grade-result');
-                        if (resultEl) {
-                            if (data.data.result === 'Pass') {
-                                resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>`;
-                            } else if (data.data.result === 'Failed') {
-                                resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>`;
+                        const statusCell = schedRow.querySelector('.col-sched-status');
+                        if (statusCell) {
+                            if (isCompleted) {
+                                statusCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold text-[10px]"><span class="material-symbols-rounded text-xs">check_circle</span> Completed</span>`;
+                            } else if (payload.presentation_date) {
+                                statusCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30 text-blue-400 font-bold text-[10px]"><span class="material-symbols-rounded text-xs">schedule</span> Scheduled</span>`;
                             } else {
-                                resultEl.innerHTML = `<span class="text-slate-500 text-[10px]">Pending</span>`;
+                                statusCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-[10px]"><span class="material-symbols-rounded text-xs">pending</span> Pending</span>`;
                             }
                         }
                     }
 
-                    // Update stat counter
-                    if (data.data.completed_count) {
-                        document.getElementById('statCompletedCount').textContent = data.data.completed_count;
-                        const total = parseInt(document.getElementById('statTotalCount').textContent) || 0;
-                        document.getElementById('statPendingCount').textContent = Math.max(0, total - data.data.completed_count);
-                    }
+                    // Also update Grades & Results Table row if exists
+                    syncGradeRow(payload.reg_no, { ...data.data, is_completed: isCompleted });
+
+                    // Refresh stats strictly by RPRT mark > 0
+                    refreshEvaluatedCountStats();
 
                     closeEvaluationModal();
                 } else {
@@ -2376,37 +2759,107 @@
             const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
             const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
             const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
-            const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+            const repInput = row.querySelector('.mark-report');
+            const rep = (repInput && repInput.value !== '' && !isNaN(parseFloat(repInput.value))) ? parseFloat(repInput.value) : 0;
             
             // Attendance mark from authoritative TEAMS attendance cell
-            const attnCell = row.querySelector('[data-attn]');
+            const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
             const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
 
             const total = Math.min(75.0, Math.round((rel + lit + pres + interctn + rep + attn) * 10) / 10);
+            const roundedTotal = Math.round(total);
 
-            // Update row CIA
+            // Report submission mark is the decisive final step:
+            // A student is evaluated ONLY on the basis of RPRT mark > 0.
+            const isCompleted = (rep > 0);
+
+            // Update row CIA (Round whole number without decimals)
             const ciaEl = row.querySelector('.col-row-cia');
             if (ciaEl) {
-                ciaEl.textContent = total.toFixed(1);
-                ciaEl.className = `col-row-cia font-mono font-black text-lg ${total >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                if (isCompleted) {
+                    ciaEl.textContent = roundedTotal;
+                    ciaEl.className = `col-row-cia font-mono font-black text-lg ${roundedTotal >= 30 ? 'text-emerald-400' : 'text-rose-400'}`;
+                } else {
+                    ciaEl.textContent = '—';
+                    ciaEl.className = 'col-row-cia font-mono font-bold text-base text-slate-500';
+                }
             }
 
             // Calculate letter grade
-            const pct = (total / 75.0) * 100.0;
-            let grade = 'F';
-            let colorClass = 'text-rose-400';
-            if (pct >= 90) { grade = 'S'; colorClass = 'text-amber-400'; }
-            else if (pct >= 80) { grade = 'A'; colorClass = 'text-blue-400'; }
-            else if (pct >= 70) { grade = 'B'; colorClass = 'text-sky-400'; }
-            else if (pct >= 60) { grade = 'C'; colorClass = 'text-teal-400'; }
-            else if (pct >= 50) { grade = 'D'; colorClass = 'text-emerald-400'; }
-            else if (pct >= 40) { grade = 'E'; colorClass = 'text-slate-200'; }
-            else { grade = 'F'; colorClass = 'text-rose-400'; }
-
             const gradeCell = row.querySelector('.col-row-grade');
             if (gradeCell) {
-                gradeCell.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${grade}</span>`;
+                if (isCompleted) {
+                    const pct = (total / 75.0) * 100.0;
+                    let grade = 'F';
+                    let colorClass = 'text-rose-400';
+                    if (pct >= 90) { grade = 'S'; colorClass = 'text-amber-400'; }
+                    else if (pct >= 80) { grade = 'A'; colorClass = 'text-blue-400'; }
+                    else if (pct >= 70) { grade = 'B'; colorClass = 'text-sky-400'; }
+                    else if (pct >= 60) { grade = 'C'; colorClass = 'text-teal-400'; }
+                    else if (pct >= 50) { grade = 'D'; colorClass = 'text-emerald-400'; }
+                    else if (pct >= 40) { grade = 'E'; colorClass = 'text-slate-200'; }
+                    else { grade = 'F'; colorClass = 'text-rose-400'; }
+
+                    gradeCell.innerHTML = `<span class="grade-badge-cell font-black text-xs ${colorClass}">Grade ${grade}</span>`;
+                } else {
+                    gradeCell.innerHTML = `<span class="grade-badge-cell font-bold text-slate-500 text-xs">—</span>`;
+                }
             }
+
+            // Update cached student dataset is_completed
+            const st = studentDataset.find(s => s.reg_no === regNo);
+            if (st) {
+                st.is_completed = isCompleted;
+                st.final_score = isCompleted ? roundedTotal : 0;
+            }
+
+            // Sync Grade table row if exists
+            syncGradeRow(regNo, {
+                average_score: roundedTotal,
+                is_completed: isCompleted,
+                letter_grade: isCompleted ? (gradeCell?.textContent?.replace('Grade ', '') || '-') : '-',
+                grade_point: isCompleted ? (roundedTotal >= 30 ? (roundedTotal >= 67.5 ? 10 : (roundedTotal >= 60 ? 9 : (roundedTotal >= 52.5 ? 8 : (roundedTotal >= 45 ? 7 : (roundedTotal >= 37.5 ? 6 : 5))))) : 0) : '-',
+                result: isCompleted ? (roundedTotal >= 30 ? 'Pass' : 'Failed') : 'Pending'
+            });
+
+            // Re-calculate live evaluated and pending count stats
+            refreshEvaluatedCountStats();
+        }
+
+        function refreshEvaluatedCountStats() {
+            const reportInputs = document.querySelectorAll('#evaluationTable .mark-report');
+            let completed = 0;
+            reportInputs.forEach(inp => {
+                const val = parseFloat(inp.value);
+                if (!isNaN(val) && val > 0) completed++;
+            });
+            const completedEl = document.getElementById('statCompletedCount');
+            const pendingEl = document.getElementById('statPendingCount');
+            const total = reportInputs.length || parseInt(document.getElementById('statTotalCount')?.textContent) || 0;
+            if (completedEl) completedEl.textContent = completed;
+            if (pendingEl) pendingEl.textContent = Math.max(0, total - completed);
+        }
+
+        function onAttendancePctChange(input) {
+            const regNo = input.getAttribute('data-reg');
+            const row = document.getElementById(`row-eval-${regNo}`);
+            if (!row) return;
+
+            let pct = parseFloat(input.value);
+            if (isNaN(pct)) pct = 0;
+            if (pct > 100) { pct = 100; input.value = 100; }
+            if (pct < 0) { pct = 0; input.value = 0; }
+
+            // R21 formula: round(raw * 2) / 2
+            const mark = Math.min(7.5, Math.max(0, Math.round(((pct / 100.0) * 7.5) * 2) / 2));
+            const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
+            if (attnCell) {
+                attnCell.setAttribute('data-attn', mark.toFixed(1));
+                attnCell.textContent = mark.toFixed(1);
+            }
+
+            calculateRowCia(input);
+            triggerSeminarAutoSave(input, true);
         }
 
         function setAutoSaveStatus(status, text) {
@@ -2452,8 +2905,11 @@
             const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
             const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
             
-            const attnCell = row.querySelector('[data-attn]');
+            const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
             const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
+
+            const attPctInput = row.querySelector('.seminar-att-pct');
+            const attPct = parseFloat(attPctInput?.value) || 0;
 
             const st = studentDataset.find(s => s.reg_no === regNo);
 
@@ -2468,7 +2924,8 @@
                 presentation: pres,
                 interaction: interctn,
                 report: rep,
-                attendance: attn
+                attendance: attn,
+                att_percentage: attPct
             };
 
             try {
@@ -2486,25 +2943,23 @@
                 if (data.status === 'SUCCESS') {
                     setAutoSaveStatus('saved', 'All changes saved');
 
+                    const isCompleted = (rep > 0);
+
                     // Update cached dataset
                     if (st) {
                         st.my_evaluation = { ...payload, total_score: data.data.my_total };
-                        st.final_score = data.data.average_score;
-                        st.letter_grade = data.data.letter_grade;
+                        st.final_score = isCompleted ? data.data.average_score : 0;
+                        st.letter_grade = isCompleted ? data.data.letter_grade : '-';
                         st.eval_count = data.data.eval_count;
-                        st.is_completed = true;
+                        st.is_completed = isCompleted;
                         st.assessors_list = data.data.assessors_list || st.assessors_list;
                     }
 
                     // Update Grades table row if it exists
-                    syncGradeRow(payload.reg_no, data.data);
+                    syncGradeRow(payload.reg_no, { ...data.data, is_completed: isCompleted });
 
-                    // Update stats
-                    if (data.data.completed_count) {
-                        document.getElementById('statCompletedCount').textContent = data.data.completed_count;
-                        const total = parseInt(document.getElementById('statTotalCount').textContent) || 0;
-                        document.getElementById('statPendingCount').textContent = Math.max(0, total - data.data.completed_count);
-                    }
+                    // Re-calculate live evaluated and pending count stats
+                    refreshEvaluatedCountStats();
                 } else {
                     setAutoSaveStatus('error', data.message || 'Auto-save failed');
                 }
@@ -2547,8 +3002,11 @@
                 const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
                 const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
                 
-                const attnCell = row.querySelector('[data-attn]');
+                const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
                 const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
+
+                const attPctInput = row.querySelector('.seminar-att-pct');
+                const attPct = parseFloat(attPctInput?.value) || 0;
 
                 const st = studentDataset.find(s => s.reg_no === regNo);
 
@@ -2562,7 +3020,8 @@
                     presentation: pres,
                     interaction: interctn,
                     report: rep,
-                    attendance: attn
+                    attendance: attn,
+                    att_percentage: attPct
                 });
             });
 
@@ -2602,6 +3061,11 @@
             const gradeRow = document.getElementById(`row-grade-${regNo}`);
             if (!gradeRow) return;
 
+            const row = document.getElementById(`row-eval-${regNo}`);
+            const repInput = row?.querySelector('.mark-report');
+            const rep = (repInput && repInput.value !== '' && !isNaN(parseFloat(repInput.value))) ? parseFloat(repInput.value) : 0;
+            const isCompleted = (rep > 0 || (data && data.is_completed === true));
+
             if (data.avg_relevance !== undefined) gradeRow.querySelector('.col-grade-relevance').textContent = Number(data.avg_relevance).toFixed(1);
             if (data.avg_literature !== undefined) gradeRow.querySelector('.col-grade-literature').textContent = Number(data.avg_literature).toFixed(1);
             if (data.avg_presentation !== undefined) gradeRow.querySelector('.col-grade-presentation').textContent = Number(data.avg_presentation).toFixed(1);
@@ -2611,25 +3075,39 @@
 
             const finalScoreEl = gradeRow.querySelector('.col-grade-final');
             if (finalScoreEl) {
-                finalScoreEl.textContent = Number(data.average_score).toFixed(1);
-                finalScoreEl.className = `text-center font-mono font-bold text-sm col-grade-final ${data.average_score >= 30.0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                if (isCompleted) {
+                    const roundedScore = Math.round(Number(data.average_score));
+                    finalScoreEl.textContent = roundedScore;
+                    finalScoreEl.className = `text-center font-mono font-bold text-sm col-grade-final ${roundedScore >= 30 ? 'text-emerald-400' : 'text-rose-400'}`;
+                } else {
+                    finalScoreEl.textContent = '—';
+                    finalScoreEl.className = 'text-center font-mono text-sm col-grade-final text-slate-500';
+                }
             }
 
             const letterEl = gradeRow.querySelector('.col-grade-letter');
             if (letterEl) {
-                const colorClass = data.letter_grade === 'S' ? 'text-amber-400' : (data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
-                letterEl.innerHTML = `<span class="font-bold text-xs ${colorClass}">${data.letter_grade}</span>`;
+                if (isCompleted && data.letter_grade && data.letter_grade !== '-') {
+                    const colorClass = data.letter_grade === 'S' ? 'text-amber-400' : (data.letter_grade === 'F' ? 'text-rose-400' : 'text-slate-200');
+                    letterEl.innerHTML = `<span class="font-bold text-xs ${colorClass}">${data.letter_grade}</span>`;
+                } else {
+                    letterEl.innerHTML = `<span class="text-slate-500">—</span>`;
+                }
             }
 
             const pointEl = gradeRow.querySelector('.col-grade-point');
-            if (pointEl) pointEl.textContent = data.grade_point;
+            if (pointEl) pointEl.textContent = isCompleted ? data.grade_point : '—';
 
             const resultEl = gradeRow.querySelector('.col-grade-result');
             if (resultEl) {
-                if (data.result === 'Pass') {
-                    resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>`;
-                } else if (data.result === 'Failed') {
-                    resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>`;
+                if (isCompleted) {
+                    if (data.result === 'Pass') {
+                        resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">PASS</span>`;
+                    } else if (data.result === 'Failed') {
+                        resultEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">FAILED</span>`;
+                    } else {
+                        resultEl.innerHTML = `<span class="text-slate-500 text-[10px]">Pending</span>`;
+                    }
                 } else {
                     resultEl.innerHTML = `<span class="text-slate-500 text-[10px]">Pending</span>`;
                 }
@@ -2637,12 +3115,71 @@
         }
 
         // ---------------- RAPID KEYBOARD NAVIGATION ----------------
+        const rubricOrder = ['relevance', 'literature', 'presentation', 'interaction', 'report'];
+
         function handleSeminarMarkKeyDown(event, input) {
             const rubric = input.getAttribute('data-rubric');
-            const currentRow = input.closest('tr');
+            const currentRow = input.closest('tr.student-row');
             if (!currentRow) return;
 
-            if (event.key === 'ArrowDown' || event.key === 'Enter') {
+            const rIdx = rubricOrder.indexOf(rubric);
+
+            // Tab navigation: seamless wrap from last rubric to next student's first rubric
+            if (event.key === 'Tab' && !event.shiftKey) {
+                if (rubric === 'report') {
+                    event.preventDefault();
+                    let nextRow = currentRow.nextElementSibling;
+                    while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
+                        nextRow = nextRow.nextElementSibling;
+                    }
+                    if (nextRow) {
+                        const target = nextRow.querySelector('.mark-rel');
+                        if (target) {
+                            target.focus();
+                            target.select();
+                        }
+                    }
+                }
+            } else if (event.key === 'Tab' && event.shiftKey) {
+                if (rubric === 'relevance') {
+                    event.preventDefault();
+                    let prevRow = currentRow.previousElementSibling;
+                    while (prevRow && (prevRow.classList.contains('hidden') || !prevRow.classList.contains('student-row'))) {
+                        prevRow = prevRow.previousElementSibling;
+                    }
+                    if (prevRow) {
+                        const target = prevRow.querySelector('.mark-report');
+                        if (target) {
+                            target.focus();
+                            target.select();
+                        }
+                    }
+                }
+            } else if (event.key === 'ArrowRight') {
+                if (input.selectionEnd === input.value.length || input.value === '') {
+                    if (rIdx >= 0 && rIdx < rubricOrder.length - 1) {
+                        event.preventDefault();
+                        const nextRubric = rubricOrder[rIdx + 1];
+                        const target = currentRow.querySelector(`[data-rubric="${nextRubric}"]`);
+                        if (target) {
+                            target.focus();
+                            target.select();
+                        }
+                    }
+                }
+            } else if (event.key === 'ArrowLeft') {
+                if (input.selectionStart === 0 || input.value === '') {
+                    if (rIdx > 0) {
+                        event.preventDefault();
+                        const prevRubric = rubricOrder[rIdx - 1];
+                        const target = currentRow.querySelector(`[data-rubric="${prevRubric}"]`);
+                        if (target) {
+                            target.focus();
+                            target.select();
+                        }
+                    }
+                }
+            } else if (event.key === 'ArrowDown' || event.key === 'Enter') {
                 event.preventDefault();
                 let nextRow = currentRow.nextElementSibling;
                 while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
@@ -2677,6 +3214,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadSeminarSurveyData();
+            refreshEvaluatedCountStats();
         });
 
         // Global keydown handler for Escape key modal dismissal

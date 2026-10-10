@@ -1697,8 +1697,10 @@ class SbteSubjectLogImportController extends Controller
         // Fetch all class logs for this subject ordered chronologically
         $allLogs = DB::table('class_logs_attendance')
             ->where('batch_subject_id', $batchSubjectId)
+            ->whereNotNull('date')
             ->orderBy('date', 'asc')
             ->orderBy('period', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         if ($allLogs->isEmpty()) {
@@ -1709,13 +1711,48 @@ class SbteSubjectLogImportController extends Controller
             ];
         }
 
+        // Deduplicate logs for the same date, period and sub_batch (keep entry with most student records)
+        $seenLogKeys = [];
+        foreach ($allLogs as $log) {
+            $key = $log->date . '_' . ($log->period ?? '0') . '_' . strtolower(trim($log->sub_batch ?? 'whole'));
+            if (!isset($seenLogKeys[$key])) {
+                $seenLogKeys[$key] = $log;
+            } else {
+                $prevPresent = count(json_decode($seenLogKeys[$key]->present_students ?? '[]', true) ?: []);
+                $currPresent = count(json_decode($log->present_students ?? '[]', true) ?: []);
+                if ($currPresent > $prevPresent || ($currPresent === $prevPresent && $log->id > $seenLogKeys[$key]->id)) {
+                    $seenLogKeys[$key] = $log;
+                }
+            }
+        }
+        $validLogs = collect(array_values($seenLogKeys))->sortBy(function ($l) {
+            return $l->date . '_' . str_pad($l->period ?? '0', 3, '0', STR_PAD_LEFT) . '_' . str_pad($l->id, 8, '0', STR_PAD_LEFT);
+        })->values();
+
+        // Determine if this course is Theory or Practical
+        $subjectType = trim($batchSubject->subject_type ?? '');
+        $isTheory = ($subjectType === 'Theory'
+            || $subjectType === 'Theory Courses'
+            || $subjectType === 'Drawing Theory'
+            || stripos($subjectType, 'theory') !== false);
+
+        // Check if any lesson plan is explicitly split into Batch 1 / Batch 2
+        $hasSplitBatches = $lessonPlans->contains(function ($lp) {
+            $sb = strtolower(trim($lp->sub_batch ?? ''));
+            return in_array($sb, ['batch 1', 'batch 2', 'batch a', 'batch b', '1', '2', 'a', 'b']);
+        });
+
+        if ($hasSplitBatches) {
+            $isTheory = false;
+        }
+
         $syncedCount = 0;
 
         DB::beginTransaction();
         try {
-            if ($lessonPlans->isNotEmpty()) {
-                // For theory subjects, each distinct log (hour) maps to a distinct sequential lesson plan
-                foreach ($allLogs as $idx => $log) {
+            if ($isTheory || ($lessonPlans->isNotEmpty() && $practicalExperiments->isEmpty() && !$hasSplitBatches)) {
+                // For Theory subjects: Each conducted class hour maps 1-to-1 chronologically to sequential lesson plans
+                foreach ($validLogs as $idx => $log) {
                     $assignedLp = $lessonPlans->get($idx);
                     if ($assignedLp) {
                         $newTopic = $assignedLp->topic_content;
@@ -1748,8 +1785,8 @@ class SbteSubjectLogImportController extends Controller
                     }
                 }
 
-                // Reset remaining lesson plans to Pending
-                for ($p = count($allLogs); $p < $lessonPlans->count(); $p++) {
+                // Reset remaining unconducted lesson plans to Pending with null actual_date and null actual_hours
+                for ($p = count($validLogs); $p < $lessonPlans->count(); $p++) {
                     $pendingLp = $lessonPlans->get($p);
                     if ($pendingLp) {
                         $pendingLp->status = 'Pending';
@@ -1758,10 +1795,104 @@ class SbteSubjectLogImportController extends Controller
                         $pendingLp->save();
                     }
                 }
+            } elseif ($lessonPlans->isNotEmpty()) {
+                // Practical Lab with Lesson Plans (e.g. Split Batches or Experiment matching)
+                $logsByBatch = [
+                    'Batch 1' => [],
+                    'Batch 2' => [],
+                    'All' => []
+                ];
+
+                foreach ($validLogs as $cl) {
+                    $sb = strtolower(trim($cl->sub_batch ?? ''));
+                    if ($sb === 'batch 1' || $sb === '1' || $sb === 'a' || $sb === 'batch a') {
+                        $logsByBatch['Batch 1'][] = $cl;
+                    } elseif ($sb === 'batch 2' || $sb === '2' || $sb === 'b' || $sb === 'batch b') {
+                        $logsByBatch['Batch 2'][] = $cl;
+                    } else {
+                        $logsByBatch['All'][] = $cl;
+                    }
+                }
+
+                $batchIndices = ['Batch 1' => 0, 'Batch 2' => 0, 'All' => 0];
+                $usedLogIds = [];
+
+                foreach ($lessonPlans as $plan) {
+                    $dateToAssign = null;
+                    $matchedLogId = null;
+                    $bKey = ($plan->sub_batch === 'Batch 2' || $plan->sub_batch === 'Batch B') ? 'Batch 2' : (($plan->sub_batch === 'Batch 1' || $plan->sub_batch === 'Batch A') ? 'Batch 1' : 'All');
+
+                    // 1. Direct lesson_plan_id match from unused logs
+                    $matchedLog = $validLogs->first(function ($l) use ($plan, $usedLogIds) {
+                        return $l->lesson_plan_id == $plan->id && !in_array($l->id, $usedLogIds);
+                    });
+                    if ($matchedLog && $matchedLog->date) {
+                        $dateToAssign = $matchedLog->date;
+                        $matchedLogId = $matchedLog->id;
+                    }
+
+                    // 2. Try match from practical_experiments conducted_date
+                    if (!$dateToAssign && !empty($plan->topic_content) && $practicalExperiments->isNotEmpty()) {
+                        foreach ($practicalExperiments as $exp) {
+                            $needle = "Expt " . $exp->experiment_no;
+                            $matched = false;
+                            if (str_contains($plan->topic_content, $needle)) {
+                                $matched = true;
+                            } elseif (preg_match('/\b(?:Exp|Expt|Experiment)\.?\s*#?\s*0*' . preg_quote($exp->experiment_no, '/') . '\b/i', $plan->topic_content)) {
+                                $matched = true;
+                            } elseif (!empty($exp->title) && stripos($plan->topic_content, trim($exp->title)) !== false) {
+                                $matched = true;
+                            }
+
+                            if ($matched && !empty($exp->conducted_date)) {
+                                $dateToAssign = $exp->conducted_date;
+                                break;
+                            }
+                        }
+                    }
+
+                    // 3. Fallback sequential match from candidate logs for this batch
+                    if (!$dateToAssign) {
+                        $candidateLogs = !empty($logsByBatch[$bKey]) ? $logsByBatch[$bKey] : $logsByBatch['All'];
+                        while ($batchIndices[$bKey] < count($candidateLogs)) {
+                            $candidate = $candidateLogs[$batchIndices[$bKey]];
+                            $batchIndices[$bKey]++;
+                            if (!in_array($candidate->id, $usedLogIds)) {
+                                $dateToAssign = $candidate->date;
+                                $matchedLogId = $candidate->id;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($dateToAssign) {
+                        $plan->actual_date = $dateToAssign;
+                        $plan->actual_hours = $plan->allocated_hours ?: 1;
+                        $plan->status = 'Completed';
+                        $plan->save();
+
+                        if ($matchedLogId) {
+                            $usedLogIds[] = $matchedLogId;
+                            DB::table('class_logs_attendance')
+                                ->where('id', $matchedLogId)
+                                ->update([
+                                    'lesson_plan_id' => $plan->id,
+                                    'topics_covered' => $plan->topic_content,
+                                    'updated_at' => now()
+                                ]);
+                        }
+                        $syncedCount++;
+                    } else {
+                        $plan->actual_date = null;
+                        $plan->actual_hours = null;
+                        $plan->status = 'Pending';
+                        $plan->save();
+                    }
+                }
             } else {
                 // Practical experiments grouping by date and sub_batch
                 $groupedSessions = [];
-                foreach ($allLogs as $log) {
+                foreach ($validLogs as $log) {
                     $key = $log->date . '__' . ($log->sub_batch ?? 'Whole');
                     if (!isset($groupedSessions[$key])) {
                         $groupedSessions[$key] = [

@@ -4368,7 +4368,8 @@
         body: JSON.stringify({})
       }).then(r => r.json()).then(d => {
         alert((d.status === 'SUCCESS' || d.success) ? (d.message || 'Synced successfully!') : (d.message || 'Sync failed.'));
-        if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
+        if (typeof loadCourseDetails === 'function') loadCourseDetails(currentSubjectId);
+        else if (typeof loadClassroomData === 'function') loadClassroomData(currentSubjectId);
         else location.reload();
       }).catch(e => alert('Error: ' + e.message));
     }

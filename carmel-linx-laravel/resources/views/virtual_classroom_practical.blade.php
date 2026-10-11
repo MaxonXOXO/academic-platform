@@ -2687,7 +2687,13 @@
             // 3. Attendance
             document.getElementById('detailInputAttMark').value = att.mark !== undefined ? att.mark : 0;
             document.getElementById('detailAttSuggested').innerText = `Sugg: ${att.suggested_mark ?? att.mark ?? 0}`;
-            document.getElementById('detailAttStats').innerText = `${att.percentage ?? 0}% (${att.present_classes ?? 0}/${att.total_classes ?? 0} sessions)`;
+            const attEl = document.getElementById('detailAttStats');
+            if (attEl) {
+                attEl.innerText = `${att.percentage ?? 0}%`;
+                if (att.total_classes !== undefined && att.total_classes > 0) {
+                    attEl.title = `${att.present_classes ?? 0}/${att.total_classes ?? 0} sessions`;
+                }
+            }
 
             // 4. Lab Work avg
             const labAvg = parseFloat(cia.avg_lab_work_375 ?? cia.scaled_lab_work_30 ?? 0);

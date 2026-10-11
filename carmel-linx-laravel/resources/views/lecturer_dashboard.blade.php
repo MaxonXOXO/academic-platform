@@ -10741,7 +10741,7 @@
         const testsAvg = (student.tests && student.tests.average !== undefined && student.tests.average !== null) ? parseFloat(student.tests.average).toFixed(2) : '0.00';
         const openEndedVal = (student.open_ended !== undefined && student.open_ended !== null) ? parseFloat(student.open_ended).toFixed(1) : (student.micro_project !== undefined && student.micro_project !== null ? parseFloat(student.micro_project).toFixed(1) : '0.0');
         const attendanceVal = student.attendance_marks !== undefined && student.attendance_marks !== null ? parseFloat(student.attendance_marks).toFixed(1) : '0.0';
-        const attHoursText = (student.total_classes !== undefined && student.total_classes > 0) ? ` <span class="text-[10px] text-slate-400 font-sans font-normal">(${student.present_classes}/${student.total_classes} hrs)</span>` : '';
+        const attTooltip = (student.total_classes !== undefined && student.total_classes > 0) ? `${student.present_classes || 0}/${student.total_classes} hrs attended` : '';
         const internalsTotal = student.total_internal !== undefined && student.total_internal !== null ? Math.round(parseFloat(student.total_internal)) : '0';
 
         tr.innerHTML = `
@@ -10782,7 +10782,7 @@
             </div>
           </td>
           <td class="p-2 text-center font-mono text-amber-400 text-xs cursor-pointer hover:underline" onclick="openOeModal('${student.reg_no}')">${openEndedVal}</td>
-          <td class="p-2 text-center font-mono text-emerald-400 text-xs">${attendanceVal} (${student.attendance_percentage}%)${attHoursText}</td>
+          <td class="p-2 text-center font-mono text-emerald-400 text-xs" title="${attTooltip}">${attendanceVal} (${student.attendance_percentage}%)</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t1Val}</td>
           <td class="p-2 text-center font-mono text-purple-400 text-xs">${t2Val}</td>
           <td class="p-2 text-center font-mono font-semibold text-purple-300 text-xs">${testsAvg}</td>
@@ -11976,7 +11976,12 @@
 
         if (elName) elName.innerText = student.name || 'Student Evaluation';
         if (elReg) elReg.innerText = `Register No: ${student.sbte_reg_no || student.reg_no}`;
-        if (elAtt) elAtt.innerText = `${student.attendance_percentage || 0}%` + ((student.total_classes !== undefined && student.total_classes > 0) ? ` (${student.present_classes || 0}/${student.total_classes} hrs)` : '');
+        if (elAtt) {
+          elAtt.innerText = `${student.attendance_percentage || 0}%`;
+          if (student.total_classes !== undefined && student.total_classes > 0) {
+            elAtt.title = `${student.present_classes || 0}/${student.total_classes} hrs attended`;
+          }
+        }
 
         const btnPrint = document.getElementById('btnLabModalPrintStudent');
         if (btnPrint) {

@@ -445,12 +445,167 @@
                     </div>
                 </div>
 
+                <!-- Official Tutor Attendance & SBTE Exam Eligibility Card -->
+                <div class="app-card border border-cyan border-opacity-40 shadow-lg mb-3" style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.7rem; font-weight: 800;">
+                                <i class="fa-solid fa-certificate me-1"></i> {{ ($tutorOfficialAttendance ?? null) ? 'OFFICIAL TUTOR ATTENDANCE' : 'DAILY CLASS LOG ATTENDANCE' }}
+                            </span>
+                        </div>
+                        <span class="badge px-2.5 py-1 rounded-pill {{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'bg-warning bg-opacity-20 text-amber-400 border border-warning border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30') }}" style="font-size: 0.7rem; font-weight: 800;">
+                            {{ $examEligibility['status'] ?? 'Eligible' }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between my-2">
+                        <div>
+                            <span class="text-secondary d-block uppercase fw-bold" style="font-size: 0.68rem; letter-spacing: 0.5px;">Final Eligibility Percentage</span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h2 class="fw-black mb-0 font-monospace {{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? 'text-emerald-400' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'text-amber-400' : 'text-rose-400') }}" style="font-size: 2.2rem; line-height: 1.1;">
+                                    {{ number_format(($effectiveExamPct ?? $overallAttendancePct), 1) }}%
+                                </h2>
+                                @if($tutorOfficialAttendance ?? null)
+                                    <span class="badge bg-info bg-opacity-15 text-cyan border border-info border-opacity-25" style="font-size: 0.65rem;">
+                                        <i class="fa-solid fa-check-double me-1"></i> Verified by Tutor
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <div class="fw-bold text-white mb-0 font-monospace" style="font-size: 1.05rem;">
+                                {{ ($tutorOfficialAttendance ?? null) ? $tutorOfficialAttendance->attended_hours : $totalAttendedClasses }}
+                                <span class="text-secondary fs-6 fw-normal">/ {{ ($tutorOfficialAttendance ?? null) ? $tutorOfficialAttendance->total_hours : $totalConductedClasses }} hrs</span>
+                            </div>
+                            <small class="text-secondary d-block" style="font-size: 0.68rem;">Attended / Conducted</small>
+                            <small class="text-cyan d-block font-mono" style="font-size: 0.68rem;">Daily Log: {{ number_format($overallAttendancePct, 1) }}%</small>
+                        </div>
+                    </div>
+
+                    <div class="p-2 px-2.5 rounded-3 mt-2 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 d-flex align-items-center justify-content-between" style="font-size: 0.72rem;">
+                        <span class="text-slate-300">
+                            <i class="fa-solid fa-gavel me-1 text-warning"></i>
+                            <strong>{{ $examEligibility['rule'] ?? 'SBTE' }}:</strong> {{ $examEligibility['decision'] ?? 'Eligible to appear for ESE.' }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Exam Hall Ticket Actions (No Due Slip & Attendance Certificate) -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <button type="button" onclick="openNoDueModal()" class="btn btn-dark border border-cyan border-opacity-30 w-full text-start p-2.5 rounded-3 d-flex align-items-center gap-2.5 shadow-sm text-decoration-none" style="background: rgba(15, 23, 42, 0.9);">
+                            <div class="p-2 rounded-circle bg-cyan bg-opacity-15 text-cyan flex-shrink-0" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-ticket-simple fs-5"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <strong class="text-white d-block text-truncate" style="font-size: 0.78rem;">No Due Slip</strong>
+                                <small class="{{ ($noDueData['overall_eligible'] ?? true) ? 'text-emerald-400' : 'text-amber-400' }} d-block text-truncate fw-bold" style="font-size: 0.64rem;">
+                                    {{ ($noDueData['overall_eligible'] ?? true) ? '✓ Hall Ticket Ready' : '⚠ Dues Pending' }}
+                                </small>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        @if(($attendanceCertCondition['is_available'] ?? false))
+                            <a href="/student/attendance-certificate/print" target="_blank" class="btn btn-dark border border-emerald-500 border-opacity-30 w-full text-start p-2.5 rounded-3 d-flex align-items-center gap-2.5 shadow-sm text-decoration-none" style="background: rgba(15, 23, 42, 0.9);">
+                                <div class="p-2 rounded-circle bg-emerald-500 bg-opacity-15 text-emerald-400 flex-shrink-0" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-file-shield fs-5"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <strong class="text-white d-block text-truncate" style="font-size: 0.78rem;">Att. Certificate</strong>
+                                    <small class="text-emerald-400 d-block text-truncate fw-bold" style="font-size: 0.64rem;">
+                                        <i class="fa-solid fa-print me-1"></i> Print Current Sem
+                                    </small>
+                                </div>
+                            </a>
+                        @else
+                            <button type="button" onclick="showAttendanceCertConditionAlert()" class="btn btn-dark border border-secondary border-opacity-25 w-full text-start p-2.5 rounded-3 d-flex align-items-center gap-2.5 shadow-sm text-decoration-none" style="background: rgba(15, 23, 42, 0.9);">
+                                <div class="p-2 rounded-circle bg-secondary bg-opacity-20 text-secondary flex-shrink-0" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-lock fs-5"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <strong class="text-white d-block text-truncate" style="font-size: 0.78rem;">Att. Certificate</strong>
+                                    <small class="text-rose-400 d-block text-truncate fw-bold" style="font-size: 0.64rem;">
+                                        Shortage / Pending
+                                    </small>
+                                </div>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Draft Internal Marks (CIA) Provisional Card -->
+                <div class="app-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">
+                            <i class="fa-solid fa-pen-ruler text-warning me-1.5"></i> Draft Internal Marks (CIA)
+                        </h6>
+                        <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-30 px-2 py-0.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
+                            PROVISIONAL
+                        </span>
+                    </div>
+                    <small class="text-secondary d-block mb-3" style="font-size: 0.72rem; line-height: 1.35;">
+                        Semester {{ $classroom->current_semester ?? $student->semester }} subject internal marks entered by faculty. Subject to final review and HOD lock.
+                    </small>
+
+                    <div class="space-y-2">
+                        @forelse(($draftInternalMarks ?? []) as $m)
+                            <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <div>
+                                        <span class="badge bg-secondary bg-opacity-40 text-cyan font-mono px-1.5 py-0.5 me-1" style="font-size: 0.68rem;">
+                                            {{ $m['subject_code'] }}
+                                        </span>
+                                        <span class="badge bg-dark border border-secondary border-opacity-25 text-slate-300" style="font-size: 0.62rem;">
+                                            {{ $m['subject_type'] }}
+                                        </span>
+                                    </div>
+                                    <div class="text-end">
+                                        @if($m['draft_mark'] !== null)
+                                            <span class="fw-black font-mono fs-6 {{ $m['is_pass'] ? 'text-emerald-400' : 'text-rose-400' }}">
+                                                {{ number_format($m['draft_mark'], 0) }}
+                                            </span>
+                                            <span class="text-secondary font-mono" style="font-size: 0.75rem;">/ {{ $m['max_cia'] }}</span>
+                                        @else
+                                            <span class="badge bg-slate-800 text-slate-400 border border-slate-700 font-mono" style="font-size: 0.65rem;">
+                                                Awaiting Entry
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <strong class="text-white text-truncate d-inline-block" style="font-size: 0.78rem; max-width: 68%;">
+                                        {{ $m['subject_name'] }}
+                                    </strong>
+                                    <div class="text-end" style="font-size: 0.68rem;">
+                                        @if($m['draft_mark'] !== null)
+                                            <span class="badge {{ $m['is_pass'] ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30' }} px-1.5 py-0.5" style="font-size: 0.62rem;">
+                                                {{ $m['is_pass'] ? 'PASS' : 'BELOW MIN' }} (Min {{ $m['pass_threshold'] }})
+                                            </span>
+                                        @endif
+                                        @if($m['attendance_pct'] !== null)
+                                            <span class="text-slate-400 ms-1 font-mono">
+                                                Att: {{ number_format($m['attendance_pct'], 1) }}%
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center text-secondary py-3 small">
+                                No registered subjects found for this semester.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
                 <!-- Quick Overview Cards -->
                 <div class="row g-2 mb-3">
                     <div class="col-6">
                         <div class="stat-card border-start border-2 border-info">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-secondary uppercase" style="font-size: 0.68rem; font-weight: 700;">Attendance</span>
+                                <span class="text-secondary uppercase" style="font-size: 0.68rem; font-weight: 700;">Daily Attendance</span>
                                 <i class="fa-solid fa-chart-pie text-cyan"></i>
                             </div>
                             <h5 class="fw-extrabold mb-0 {{ $overallAttendancePct >= 75 ? 'text-emerald-400' : 'text-amber-400' }}" style="font-size: 1.2rem;">
@@ -650,20 +805,61 @@
                 
                 <!-- Hero Attendance Gauge -->
                 <div class="app-card text-center">
-                    <span class="text-secondary uppercase text-[11px] fw-bold d-block mb-2">Overall Attendance (6 Working Hours)</span>
-                    <div class="attendance-dial {{ $overallAttendancePct >= 75 ? '' : ($overallAttendancePct >= 65 ? 'warning' : 'danger') }}">
-                        <span class="fw-extrabold fs-4 {{ $overallAttendancePct >= 75 ? 'text-emerald-400' : ($overallAttendancePct >= 65 ? 'text-amber-400' : 'text-rose-400') }}">
-                            {{ number_format($overallAttendancePct, 1) }}%
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                        <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.7rem; font-weight: 800;">
+                            <i class="fa-solid fa-certificate me-1"></i> {{ ($tutorOfficialAttendance ?? null) ? 'OFFICIAL TUTOR ATTENDANCE' : 'DAILY CLASS LOG ATTENDANCE' }}
                         </span>
                     </div>
+
+                    <div class="attendance-dial {{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? '' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'warning' : 'danger') }}">
+                        <span class="fw-extrabold fs-4 {{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? 'text-emerald-400' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'text-amber-400' : 'text-rose-400') }}">
+                            {{ number_format(($effectiveExamPct ?? $overallAttendancePct), 1) }}%
+                        </span>
+                    </div>
+
                     <div class="mt-2">
-                        <span class="badge {{ $totalConductedClasses == 0 ? 'bg-secondary' : ($overallAttendancePct >= 75 ? 'bg-success' : ($overallAttendancePct >= 65 ? 'bg-warning text-dark' : 'bg-danger')) }} badge-app">
-                            {{ $totalConductedClasses == 0 ? 'No Attendance Marked Yet' : ($overallAttendancePct >= 75 ? 'Good Standing (Eligible for Exams)' : ($overallAttendancePct >= 65 ? 'Warning: Low Attendance' : 'Critical: Condonation Alert')) }}
+                        <span class="badge {{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? 'bg-success' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app">
+                            {{ $examEligibility['status'] ?? 'Eligible' }} — {{ $examEligibility['rule'] ?? 'SBTE' }}
                         </span>
                     </div>
                     <small class="text-secondary d-block mt-2" style="font-size: 0.75rem;">
-                        Attended: <strong>{{ $totalAttendedClasses }}</strong> / Total Conducted: <strong>{{ $totalConductedClasses }}</strong> Hours
+                        Attended: <strong>{{ ($tutorOfficialAttendance ?? null) ? $tutorOfficialAttendance->attended_hours : $totalAttendedClasses }}</strong> / Total Conducted: <strong>{{ ($tutorOfficialAttendance ?? null) ? $tutorOfficialAttendance->total_hours : $totalConductedClasses }}</strong> Hours
                     </small>
+                    @if($tutorOfficialAttendance ?? null)
+                        <small class="text-cyan d-block font-mono mt-0.5" style="font-size: 0.7rem;">
+                            Daily Hour-By-Hour Log: {{ number_format($overallAttendancePct, 1) }}% ({{ $totalAttendedClasses }}/{{ $totalConductedClasses }} hrs)
+                        </small>
+                    @endif
+                </div>
+
+                <!-- Printable Attendance Certificate Banner -->
+                <div class="app-card border border-cyan border-opacity-30 mb-3 p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-file-contract text-cyan fs-4"></i>
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.88rem;">SBTE Attendance Certificate</strong>
+                                <small class="text-secondary" style="font-size: 0.72rem;">Current Semester Official Absentee Log & Eligibility</small>
+                            </div>
+                        </div>
+                        @if(($attendanceCertCondition['is_available'] ?? false))
+                            <a href="/student/attendance-certificate/print" target="_blank" class="btn btn-sm btn-cyan rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-print me-1"></i> Print A4
+                            </a>
+                        @else
+                            <button type="button" onclick="showAttendanceCertConditionAlert()" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.7rem;">
+                                <i class="fa-solid fa-lock me-1"></i> Condition Pending
+                            </button>
+                        @endif
+                    </div>
+                    <div class="p-2 rounded-2 bg-slate-900 bg-opacity-60 border border-secondary border-opacity-20 d-flex align-items-center justify-content-between" style="font-size: 0.72rem;">
+                        <span class="text-slate-300">
+                            <strong>Regulation:</strong> {{ ($scheme ?? 'R21') === 'R26' ? 'Revision 2026 Rule 7' : 'Revision 2021 Clause 10' }}
+                        </span>
+                        <span class="{{ ($effectiveExamPct ?? $overallAttendancePct) >= 75 ? 'text-emerald-400' : (($effectiveExamPct ?? $overallAttendancePct) >= 65 ? 'text-amber-400' : 'text-rose-400') }} fw-bold">
+                            {{ $examEligibility['status'] ?? 'Eligible' }}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Subject-Wise Attendance Breakdown Table -->
@@ -678,11 +874,15 @@
                                     <th>Subject</th>
                                     <th class="text-center">Attended</th>
                                     <th class="text-center">Conducted</th>
-                                    <th class="text-end">%</th>
+                                    <th class="text-end">Percentage</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($subjectStats as $stat)
+                                @php
+                                    $bsub = ($batchSubjects ?? collect())->firstWhere('subject_code', $stat['subject_code']);
+                                    $offSub = ($bsub && isset($subjectOfficialAttendances)) ? $subjectOfficialAttendances->get($bsub->id) : null;
+                                @endphp
                                 <tr class="border-bottom border-secondary border-opacity-10">
                                     <td>
                                         <strong class="text-white d-block">{{ $stat['subject_code'] }}</strong>
@@ -691,9 +891,16 @@
                                     <td class="text-center fw-bold text-emerald-400">{{ $stat['attended'] }} hrs</td>
                                     <td class="text-center text-slate-300">{{ $stat['conducted'] }} hrs</td>
                                     <td class="text-end">
-                                        <span class="badge {{ $stat['percentage'] >= 75 ? 'bg-success' : ($stat['percentage'] >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app">
-                                            {{ number_format($stat['percentage'], 1) }}%
-                                        </span>
+                                        @if($offSub && $offSub->final_percentage !== null)
+                                            <span class="badge {{ $offSub->final_percentage >= 75 ? 'bg-success' : ($offSub->final_percentage >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app d-block">
+                                                {{ number_format($offSub->final_percentage, 1) }}%
+                                            </span>
+                                            <span class="badge bg-info bg-opacity-20 text-cyan font-mono" style="font-size: 0.58rem; letter-spacing: 0.2px;">Official</span>
+                                        @else
+                                            <span class="badge {{ $stat['percentage'] >= 75 ? 'bg-success' : ($stat['percentage'] >= 65 ? 'bg-warning text-dark' : 'bg-danger') }} badge-app">
+                                                {{ number_format($stat['percentage'], 1) }}%
+                                            </span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty
@@ -2304,12 +2511,148 @@
             }
         });
 
+        function openNoDueModal() {
+            const modalEl = document.getElementById('noDueSlipModal');
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            } else {
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+            }
+        }
+
+        function closeNoDueModal() {
+            const modalEl = document.getElementById('noDueSlipModal');
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+        }
+
+        function showAttendanceCertConditionAlert() {
+            alert("Attendance Certificate Condition:\n\nUnder SBTE Kerala regulations, an official attendance & condonation certificate is generated for students with regular eligibility (>=75%) or those requiring Principal condonation (65% to 74.9%).\n\nYour current percentage is below the threshold or the class tutor has not finalized the official attendance upload. Please consult your Class Tutor.");
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW bypassed:', err));
             });
         }
     </script>
+
+    <!-- NO DUE CLEARANCE SLIP MODAL -->
+    <div class="modal fade" id="noDueSlipModal" tabindex="-1" aria-hidden="true" style="background: rgba(0,0,0,0.78); backdrop-filter: blur(6px);">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content bg-dark border border-cyan border-opacity-40 text-white shadow-2xl" style="border-radius: 18px;">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 py-3">
+                    <div>
+                        <h6 class="modal-title fw-black text-cyan d-flex align-items-center gap-2 mb-0" style="font-size: 0.95rem;">
+                            <i class="fa-solid fa-ticket-simple text-cyan"></i> No Due Clearance Slip
+                        </h6>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Carmel Polytechnic College Exam Hall Ticket Clearance</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" onclick="closeNoDueModal()"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <!-- Student Summary Grid -->
+                    <div class="p-2.5 rounded-3 bg-slate-900 border border-secondary border-opacity-25 mb-3" style="font-size: 0.78rem;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary">Student Name:</span>
+                            <strong class="text-white">{{ $student->name }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary">Register No (SBTE):</span>
+                            <strong class="text-cyan font-mono">{{ $student->sbte_reg_no ?: $student->reg_no }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary">Semester & Branch:</span>
+                            <strong class="text-slate-200">Sem {{ $classroom->current_semester ?? $student->semester }} ({{ $classroom->branch ?? $student->branch }})</strong>
+                        </div>
+                    </div>
+
+                    <!-- Clearances List -->
+                    <h6 class="fw-bold text-white mb-2" style="font-size: 0.82rem;">Department Clearances:</h6>
+                    
+                    <div class="space-y-2">
+                        <!-- 1. Office & Accounts -->
+                        <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.78rem;">1. College Office & Accounts</strong>
+                                <small class="text-secondary" style="font-size: 0.68rem;">{{ $noDueData['fee_status'] ?? 'Cleared' }}</small>
+                            </div>
+                            <span class="badge {{ ($noDueData['fee_cleared'] ?? true) ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30' }}" style="font-size: 0.7rem;">
+                                {{ ($noDueData['fee_cleared'] ?? true) ? 'CLEARED' : 'PENDING' }}
+                            </span>
+                        </div>
+
+                        <!-- 2. Department Labs -->
+                        <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.78rem;">2. Dept. Laboratories & Workshop</strong>
+                                <small class="text-secondary" style="font-size: 0.68rem;">{{ $noDueData['dept_status'] ?? 'Cleared' }}</small>
+                            </div>
+                            <span class="badge {{ ($noDueData['dept_cleared'] ?? true) ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30' }}" style="font-size: 0.7rem;">
+                                {{ ($noDueData['dept_cleared'] ?? true) ? 'CLEARED' : 'PENDING' }}
+                            </span>
+                        </div>
+
+                        <!-- 3. Library -->
+                        <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.78rem;">3. Central Library</strong>
+                                <small class="text-secondary" style="font-size: 0.68rem;">{{ $noDueData['library_status'] ?? 'Cleared' }}</small>
+                            </div>
+                            <span class="badge {{ ($noDueData['library_cleared'] ?? true) ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30' }}" style="font-size: 0.7rem;">
+                                {{ ($noDueData['library_cleared'] ?? true) ? 'CLEARED' : 'PENDING' }}
+                            </span>
+                        </div>
+
+                        <!-- 4. Tutor / Attendance -->
+                        <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.78rem;">4. Class Tutor / Attendance</strong>
+                                <small class="text-secondary" style="font-size: 0.68rem;">Official Attendance: {{ number_format(($effectiveExamPct ?? $overallAttendancePct), 1) }}% &bull; {{ $noDueData['tutor_status'] ?? 'Cleared' }}</small>
+                            </div>
+                            <span class="badge {{ ($noDueData['tutor_cleared'] ?? true) ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30' }}" style="font-size: 0.7rem;">
+                                {{ ($noDueData['tutor_cleared'] ?? true) ? 'CLEARED' : 'PENDING' }}
+                            </span>
+                        </div>
+
+                        <!-- 5. Hostel -->
+                        <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 0.78rem;">5. Hostel & Mess Office</strong>
+                                <small class="text-secondary" style="font-size: 0.68rem;">{{ $noDueData['hostel_status'] ?? 'Cleared' }}</small>
+                            </div>
+                            <span class="badge {{ ($noDueData['hostel_cleared'] ?? true) ? 'bg-success bg-opacity-20 text-emerald-400 border border-success border-opacity-30' : 'bg-danger bg-opacity-20 text-rose-400 border border-danger border-opacity-30' }}" style="font-size: 0.7rem;">
+                                {{ ($noDueData['hostel_cleared'] ?? true) ? 'CLEARED' : 'PENDING' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Hall Ticket Overall Box -->
+                    <div class="p-3 rounded-3 mt-3 text-center {{ ($noDueData['overall_eligible'] ?? true) ? 'bg-emerald-950 border border-emerald-500 text-emerald-300' : 'bg-rose-950 border border-rose-500 text-rose-300' }}" style="border-width: 1.5px !important;">
+                        <strong class="d-block mb-1" style="font-size: 0.85rem;">
+                            {{ ($noDueData['overall_eligible'] ?? true) ? '✓ ELIGIBLE FOR EXAM HALL TICKET' : '⚠ HALL TICKET ON HOLD (PENDING DUES)' }}
+                        </strong>
+                        <small style="font-size: 0.72rem; line-height: 1.35;" class="d-block text-slate-300">
+                            {{ ($noDueData['overall_eligible'] ?? true) ? 'All clearances verified. Present printed slip or college ID to collect physical hall ticket.' : 'Please resolve pending department dues before the examination hall ticket cutoff.' }}
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary border-opacity-25 py-2.5 d-flex justify-content-between">
+                    <button type="button" class="btn btn-sm btn-secondary px-3" onclick="closeNoDueModal()">Close</button>
+                    <a href="/student/nodue-slip/print" target="_blank" class="btn btn-sm btn-cyan px-3 fw-bold">
+                        <i class="fa-solid fa-print me-1"></i> Print No Due Slip
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Push Notification Prompt Banner -->
     @include('partials.push_notification_prompt')
     @endif

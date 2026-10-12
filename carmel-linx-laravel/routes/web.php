@@ -268,6 +268,8 @@ Route::middleware(['web'])->group(function () {
     });
 
     Route::get('/student/attendance', [\App\Http\Controllers\StudentAttendanceController::class, 'showStudentAttendance']);
+    Route::get('/student/attendance-certificate/print', [\App\Http\Controllers\StudentAttendanceController::class, 'printStudentAttendanceCertificate'])->name('student.attendance.certificate.print');
+    Route::get('/student/nodue-slip/print', [\App\Http\Controllers\StudentAttendanceController::class, 'printStudentNoDueSlip'])->name('student.nodue.slip.print');
 
     Route::get('/student/mentoring-diary', function () {
         if (Session::get('userRole') !== 'Student') return redirect('/');

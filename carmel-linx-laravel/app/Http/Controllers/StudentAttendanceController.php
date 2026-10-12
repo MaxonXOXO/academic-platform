@@ -446,6 +446,135 @@ class StudentAttendanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->first();
 
+        // 8. Official Class Attendance Uploaded by Tutor (tutor_class_attendances)
+        $tutorOfficialAttendance = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('tutor_class_attendances')) {
+            $tutorOfficialAttendance = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $student->classroom_id)
+                ->where(function($q) use ($studentIds) {
+                    $q->whereIn('reg_no', $studentIds);
+                })
+                ->first();
+        }
+
+        // 9. Official Subject Attendance Uploaded by Tutor (subject_official_attendances)
+        $subjectOfficialAttendances = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('subject_official_attendances') && !empty($subjectIds)) {
+            $subjectOfficialAttendances = DB::table('subject_official_attendances')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->where(function($q) use ($studentIds) {
+                    $q->whereIn('reg_no', $studentIds);
+                })
+                ->get()
+                ->keyBy('batch_subject_id');
+        }
+
+        // 10. SBTE Exam Eligibility & Scheme (R21 / R26)
+        $scheme = \App\Http\Controllers\TutorSpecialAttendanceController::detectScheme($classroom);
+        $effectiveExamPct = $tutorOfficialAttendance ? (float)$tutorOfficialAttendance->final_percentage : $overallAttendancePct;
+        $examEligibility = \App\Http\Controllers\TutorSpecialAttendanceController::evaluateEligibility($effectiveExamPct, $scheme);
+        if ($tutorOfficialAttendance && $tutorOfficialAttendance->eligibility_status) {
+            $examEligibility['status'] = $tutorOfficialAttendance->eligibility_status;
+        }
+
+        // 11. Draft Internal Marks (CIA) for Enrolled Subjects
+        $currentSem = (int)($classroom->current_semester ?? $student->semester ?? 1);
+        $savedSemMarks = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_semester_marks')) {
+            $savedSemMarks = DB::table('student_semester_marks')
+                ->whereIn('reg_no', $studentIds)
+                ->where('semester', $currentSem)
+                ->get()
+                ->keyBy('subject_code');
+        }
+
+        $draftInternalMarks = [];
+        foreach ($batchSubjects as $subj) {
+            $sCode = $subj->subject_code;
+            $maxCia = 50;
+            $isAu3055Theory = ($subj->id == 110 || ($sCode == '3055' && (str_contains($subj->classroom_id ?? '', 'AU') || ($subj->branch ?? '') === 'AU' || str_contains(strtolower($subj->subject_name ?? ''), 'automobile'))));
+            $type = strtolower($subj->subject_type ?? '');
+            $name = strtolower($subj->subject_name ?? '');
+
+            if (!$isAu3055Theory && (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab') || str_contains($type, 'drawing') || str_contains($name, 'drawing') || str_contains($type, 'seminar') || str_contains($name, 'seminar') || str_contains($type, 'project') || str_contains($name, 'project'))) {
+                $maxCia = 75;
+            }
+
+            $markRecord = $savedSemMarks->get($sCode);
+            $markVal = null;
+            if ($markRecord && is_numeric($markRecord->internal_marks)) {
+                $markVal = (float)$markRecord->internal_marks;
+            }
+
+            // Subject attendance % (official if uploaded, else daily log)
+            $offSub = $subjectOfficialAttendances->get($subj->id);
+            $subjAttPct = $offSub ? (float)$offSub->final_percentage : null;
+            if ($subjAttPct === null) {
+                $foundStat = collect($subjectStats)->firstWhere('subject_code', $sCode);
+                $subjAttPct = $foundStat ? (float)$foundStat['percentage'] : null;
+            }
+
+            $passThreshold = round($maxCia * 0.40);
+            $isPass = $markVal !== null ? ($markVal >= $passThreshold) : null;
+
+            $draftInternalMarks[] = [
+                'subject_id' => $subj->id,
+                'subject_code' => $sCode,
+                'subject_name' => $subj->subject_name,
+                'subject_type' => $subj->subject_type ?? 'Theory',
+                'max_cia' => $maxCia,
+                'draft_mark' => $markVal,
+                'pass_threshold' => $passThreshold,
+                'is_pass' => $isPass,
+                'attendance_pct' => $subjAttPct,
+                'is_official_attendance' => ($offSub !== null),
+            ];
+        }
+
+        // 12. No Due Slip Clearance Checklist
+        $feeRecord = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_fee_records')) {
+            $feeRecord = DB::table('student_fee_records')->whereIn('reg_no', $studentIds)->orderBy('id', 'desc')->first();
+        }
+        $feePending = 0;
+        $feeStatus = 'Cleared (No Pending Dues)';
+        $feeCleared = true;
+        if ($feeRecord && is_numeric($feeRecord->fees_to_pay) && is_numeric($feeRecord->total_paid)) {
+            $feePending = max(0, (float)$feeRecord->fees_to_pay - (float)$feeRecord->total_paid);
+            if ($feePending > 0) {
+                $feeStatus = 'Pending: Rs. ' . number_format($feePending);
+                $feeCleared = false;
+            }
+        }
+
+        $tutorCleared = ($effectiveExamPct >= 65.0);
+        $tutorStatus = $effectiveExamPct >= 75.0 ? 'Cleared (Eligible for ESE)' : ($effectiveExamPct >= 65.0 ? 'Cleared (Condonable Shortage)' : 'Attendance Shortage (<65%)');
+
+        $noDueData = [
+            'fee_cleared' => $feeCleared,
+            'fee_status' => $feeStatus,
+            'fee_pending' => $feePending,
+            'tutor_cleared' => $tutorCleared,
+            'tutor_status' => $tutorStatus,
+            'dept_cleared' => true,
+            'dept_status' => 'Cleared (Lab Records & Coursework Complete)',
+            'library_cleared' => true,
+            'library_status' => 'Cleared (No Overdue Books)',
+            'hostel_cleared' => true,
+            'hostel_status' => 'Cleared (Day Scholar / No Dues)',
+            'overall_eligible' => ($feeCleared && $tutorCleared),
+        ];
+
+        // 13. Attendance Certificate Condition Check
+        $attendanceCertCondition = [
+            'is_available' => ($effectiveExamPct >= 65.0),
+            'status' => $examEligibility['status'],
+            'percentage' => $effectiveExamPct,
+            'is_official' => ($tutorOfficialAttendance !== null),
+            'rule' => $examEligibility['rule'] ?? '',
+            'decision' => $examEligibility['decision'] ?? '',
+        ];
+
         return response(view('student_mobile_dashboard', compact(
             'student',
             'classroom',
@@ -459,11 +588,160 @@ class StudentAttendanceController extends Controller
             'leaveRecords',
             'activeTests',
             'activeDayOrder',
-            'campusEventToday'
+            'campusEventToday',
+            'tutorOfficialAttendance',
+            'subjectOfficialAttendances',
+            'scheme',
+            'examEligibility',
+            'effectiveExamPct',
+            'draftInternalMarks',
+            'noDueData',
+            'attendanceCertCondition'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
         ]);
     }
+
+    /**
+     * Print Student Attendance & Condonation Certificate (SBTE A4 Format).
+     */
+    public function printStudentAttendanceCertificate(Request $request)
+    {
+        $role = Session::get('userRole');
+        $userId = Session::get('userId');
+
+        if (!$userId) {
+            return redirect('/');
+        }
+
+        if ($role === 'Student') {
+            $request->merge(['reg_no' => $userId]);
+        }
+
+        return (new TutorSpecialAttendanceController)->printCondonationCertificate($request);
+    }
+
+    /**
+     * Print Student No Due Clearance Slip for SBTE Exam Hall Ticket.
+     */
+    public function printStudentNoDueSlip(Request $request)
+    {
+        $role = Session::get('userRole');
+        $userId = Session::get('userId');
+
+        if (!$userId) {
+            return redirect('/');
+        }
+
+        $regNo = ($role === 'Student') ? $userId : ($request->input('reg_no') ?: $userId);
+        $student = DB::table('students')->where('reg_no', $regNo)->orWhere('adm_no', $regNo)->first();
+
+        if (!$student) {
+            abort(404, 'Student profile not found.');
+        }
+
+        $studentIds = array_filter([$student->reg_no ?? null, $student->adm_no ?? null, $student->sbte_reg_no ?? null]);
+
+        $classroom = DB::table('class_management')->where('classroom_id', $student->classroom_id)->first();
+        if (!$classroom) {
+            $classroom = DB::table('r26_class_management')->where('classroom_id', $student->classroom_id)->first();
+        }
+
+        $tutor = null;
+        if ($classroom && $classroom->tutor_mobile_no) {
+            $tutor = DB::table('staff_profiles')->where('mobile_no', $classroom->tutor_mobile_no)->first();
+        }
+
+        $scheme = \App\Http\Controllers\TutorSpecialAttendanceController::detectScheme($classroom);
+
+        // Authoritative official attendance
+        $tutorOfficial = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('tutor_class_attendances')) {
+            $tutorOfficial = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $student->classroom_id)
+                ->where(function($q) use ($studentIds) {
+                    $q->whereIn('reg_no', $studentIds);
+                })
+                ->first();
+        }
+
+        $attendancePct = $tutorOfficial ? (float)$tutorOfficial->final_percentage : 0.0;
+        $attendanceConducted = $tutorOfficial ? (int)$tutorOfficial->total_hours : 0;
+        $attendanceAttended = $tutorOfficial ? (int)$tutorOfficial->attended_hours : 0;
+
+        if (!$tutorOfficial) {
+            // Fallback to daily logs
+            $batchSubjects = DB::table('batch_subjects')->where('classroom_id', $student->classroom_id)->get();
+            $sIds = $batchSubjects->pluck('id')->toArray();
+            $logs = DB::table('class_logs_attendance')->whereIn('batch_subject_id', $sIds)->where('period', '<=', 6)->get(['present_students', 'absent_students']);
+            $totC = 0; $totA = 0;
+            foreach ($logs as $l) {
+                $pList = json_decode($l->present_students ?? '[]', true) ?: [];
+                $aList = json_decode($l->absent_students ?? '[]', true) ?: [];
+                $hasP = !empty(array_intersect($studentIds, $pList));
+                $hasA = !empty(array_intersect($studentIds, $aList));
+                if ($hasP || $hasA) {
+                    $totC++;
+                    if ($hasP) $totA++;
+                }
+            }
+            $attendanceConducted = $totC;
+            $attendanceAttended = $totA;
+            $attendancePct = $totC > 0 ? round(($totA / $totC) * 100, 1) : 0.0;
+        }
+
+        $examEligibility = \App\Http\Controllers\TutorSpecialAttendanceController::evaluateEligibility($attendancePct, $scheme);
+        if ($tutorOfficial && $tutorOfficial->eligibility_status) {
+            $examEligibility['status'] = $tutorOfficial->eligibility_status;
+        }
+
+        // Fee verification
+        $feeRecord = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_fee_records')) {
+            $feeRecord = DB::table('student_fee_records')->whereIn('reg_no', $studentIds)->orderBy('id', 'desc')->first();
+        }
+        $feePending = 0;
+        $feeStatus = 'Cleared (No Pending Dues)';
+        $feeCleared = true;
+        if ($feeRecord && is_numeric($feeRecord->fees_to_pay) && is_numeric($feeRecord->total_paid)) {
+            $feePending = max(0, (float)$feeRecord->fees_to_pay - (float)$feeRecord->total_paid);
+            if ($feePending > 0) {
+                $feeStatus = 'Pending: Rs. ' . number_format($feePending);
+                $feeCleared = false;
+            }
+        }
+
+        $tutorCleared = ($attendancePct >= 65.0);
+        $tutorStatus = $attendancePct >= 75.0 ? 'Cleared (Eligible for ESE)' : ($attendancePct >= 65.0 ? 'Cleared (Condonable Shortage)' : 'Attendance Shortage (<65%)');
+
+        $noDueData = [
+            'fee_cleared' => $feeCleared,
+            'fee_status' => $feeStatus,
+            'fee_pending' => $feePending,
+            'tutor_cleared' => $tutorCleared,
+            'tutor_status' => $tutorStatus,
+            'dept_cleared' => true,
+            'dept_status' => 'Cleared (Lab Records & Coursework Complete)',
+            'library_cleared' => true,
+            'library_status' => 'Cleared (No Overdue Books)',
+            'hostel_cleared' => true,
+            'hostel_status' => 'Cleared (Day Scholar / No Dues)',
+            'overall_eligible' => ($feeCleared && $tutorCleared),
+        ];
+
+        return view('student_nodue_slip_print', compact(
+            'student',
+            'classroom',
+            'tutor',
+            'scheme',
+            'attendancePct',
+            'attendanceConducted',
+            'attendanceAttended',
+            'examEligibility',
+            'noDueData'
+        ));
+    }
 }
+

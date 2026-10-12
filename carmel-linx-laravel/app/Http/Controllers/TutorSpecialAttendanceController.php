@@ -632,12 +632,26 @@ class TutorSpecialAttendanceController extends Controller
      */
     public function printCondonationCertificate(Request $request)
     {
-        $regNo = $request->input('reg_no') ?: $request->input('student');
+        $regNo = $request->input('reg_no') ?: $request->input('student') ?: Session::get('userId');
         if (!$regNo) {
             abort(404, 'Student registration number is required.');
         }
 
+        $student = Student::where('reg_no', $regNo)
+            ->orWhere('sbte_reg_no', $regNo)
+            ->orWhere('adm_no', $regNo)
+            ->first();
+        if (!$student) {
+            abort(404, "Student '{$regNo}' not found.");
+        }
+
         $classroom = self::resolveTutorClassroom($request);
+        if (!$classroom && $student->classroom_id) {
+            $classroom = DB::table('class_management')->where('classroom_id', $student->classroom_id)->first();
+            if (!$classroom && Schema::hasTable('r26_class_management')) {
+                $classroom = DB::table('r26_class_management')->where('classroom_id', $student->classroom_id)->first();
+            }
+        }
         if (!$classroom) {
             abort(404, 'Classroom not found.');
         }
@@ -645,14 +659,7 @@ class TutorSpecialAttendanceController extends Controller
         $classroomId = $classroom->classroom_id;
         $scheme = self::detectScheme($classroom);
 
-        $student = Student::where('reg_no', $regNo)
-            ->orWhere('sbte_reg_no', $regNo)
-            ->first();
-        if (!$student) {
-            abort(404, "Student '{$regNo}' not found.");
-        }
-
-        $studentIdentifiers = array_filter([$student->reg_no, $student->sbte_reg_no]);
+        $studentIdentifiers = array_filter([$student->reg_no, $student->sbte_reg_no, $student->adm_no]);
 
         // 1. Fetch Authoritative TEAMS Class Attendance (Tutor Uploaded)
         $tutorOfficial = null;

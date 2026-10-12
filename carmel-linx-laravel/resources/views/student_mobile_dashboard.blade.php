@@ -581,23 +581,18 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <strong class="text-white text-truncate d-inline-block" style="font-size: 0.78rem; max-width: 65%;">
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <strong class="text-white text-truncate flex-grow-1" style="font-size: 0.78rem; min-width: 0;">
                                         {{ $m['subject_name'] }}
                                     </strong>
-                                    <div class="text-end" style="font-size: 0.68rem;">
+                                    <div class="flex-shrink-0 text-end">
                                         @if($isBelowMin)
                                             <span class="badge px-2 py-0.5 rounded-pill shadow-sm" style="background: rgba(225, 29, 72, 0.25); color: #fda4af; border: 1px solid rgba(225, 29, 72, 0.6); font-size: 0.65rem; font-weight: 800;">
                                                 <i class="fa-solid fa-triangle-exclamation me-1"></i>BELOW MIN (Min {{ $m['pass_threshold'] }})
                                             </span>
                                         @elseif($isPass)
-                                            <span class="badge px-1.5 py-0.5 rounded-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.62rem; font-weight: 700;">
+                                            <span class="badge px-2 py-0.5 rounded-pill shadow-sm" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.65rem; font-weight: 700;">
                                                 <i class="fa-solid fa-check me-0.5"></i>PASS (Min {{ $m['pass_threshold'] }})
-                                            </span>
-                                        @endif
-                                        @if($m['attendance_pct'] !== null)
-                                            <span class="text-slate-400 ms-1 font-mono">
-                                                Att: {{ number_format($m['attendance_pct'], 1) }}%
                                             </span>
                                         @endif
                                     </div>

@@ -209,6 +209,8 @@
             </div>
         </div>
 
+        @include('partials.nba_report_samples_helper')
+
         <div class="section-title">Written Marks Grid</div>
         <table>
             <thead>
@@ -226,16 +228,19 @@
             </thead>
             <tbody>
                 @forelse($students as $idx => $s)
-                    <tr>
+                    @php
+                        $writtenAvg = $s->best2_avg;
+                    @endphp
+                    <tr data-student-name="{{ $s->name }}" data-student-roll="{{ $s->roll_no ?? ($idx + 1) }}" data-student-reg="{{ $s->sbte_reg_no ?: $s->reg_no }}">
                         <td>{{ $idx + 1 }}</td>
                         <td style="font-weight: bold;">{{ $s->name }}</td>
                         <td style="font-family: monospace;">{{ $s->reg_no }}</td>
                         <td style="font-family: monospace;">{{ $s->sbte_reg_no ?: '-' }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO1'] }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO2'] }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO3'] }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $s->summative_marks['CO4'] }}</td>
-                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;">{{ $s->best2_avg !== '-' ? $s->best2_avg . ' / 20' : '-' }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 1 (CO1)" data-nba-val="{{ is_numeric($s->summative_marks['CO1'] ?? null) ? $s->summative_marks['CO1'] : '' }}">{{ $s->summative_marks['CO1'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 2 (CO2)" data-nba-val="{{ is_numeric($s->summative_marks['CO2'] ?? null) ? $s->summative_marks['CO2'] : '' }}">{{ $s->summative_marks['CO2'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 3 (CO3)" data-nba-val="{{ is_numeric($s->summative_marks['CO3'] ?? null) ? $s->summative_marks['CO3'] : '' }}">{{ $s->summative_marks['CO3'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 4 (CO4)" data-nba-val="{{ is_numeric($s->summative_marks['CO4'] ?? null) ? $s->summative_marks['CO4'] : '' }}">{{ $s->summative_marks['CO4'] }}</td>
+                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;" data-nba-assessment="Written Test Average" data-nba-val="{{ is_numeric($writtenAvg) ? $writtenAvg : '' }}">{{ $writtenAvg !== '-' ? $writtenAvg . ' / 20' : '-' }}</td>
                     </tr>
                 @empty
                     <tr>

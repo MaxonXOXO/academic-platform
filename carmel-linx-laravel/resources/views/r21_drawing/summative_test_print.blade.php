@@ -84,6 +84,8 @@
     </tr>
   </table>
 
+  @include('partials.nba_report_samples_helper')
+
   <table class="data-table">
     <thead>
       <tr>
@@ -116,12 +118,12 @@
               $avgSeries15 = 0.00;
           }
         @endphp
-        <tr>
+        <tr data-student-name="{{ $st->name }}" data-student-roll="{{ $st->roll_no ?? '-' }}" data-student-reg="{{ $st->reg_no }}">
           <td>{{ $idx + 1 }}</td>
           <td>{{ $st->roll_no ?? '-' }}</td>
           <td><span style="font-family: monospace; font-weight: 700;">{{ $st->reg_no }}</span></td>
           <td class="td-left">{{ $st->name }}</td>
-          <td style="font-weight: 700; color: #1e40af;">
+          <td style="font-weight: 700; color: #1e40af;" data-nba-assessment="Drawing Test 1 (15M)" data-nba-val="{{ $t1 && !$t1->is_absent && $t1Score15 !== null ? $t1Score15 : '' }}">
             @if($t1 && $t1->is_absent)
               <span style="color: #dc2626;">ABS</span>
             @elseif($t1Score15 !== null)
@@ -130,7 +132,7 @@
               -
             @endif
           </td>
-          <td style="font-weight: 700; color: #5b21b6;">
+          <td style="font-weight: 700; color: #5b21b6;" data-nba-assessment="Drawing Test 2 (15M)" data-nba-val="{{ $t2 && !$t2->is_absent && $t2Score15 !== null ? $t2Score15 : '' }}">
             @if($t2 && $t2->is_absent)
               <span style="color: #dc2626;">ABS</span>
             @elseif($t2Score15 !== null)
@@ -139,7 +141,7 @@
               -
             @endif
           </td>
-          <td style="font-weight: 900; font-size: 11.5px; color: #0f172a; background: #f8fafc;">
+          <td style="font-weight: 900; font-size: 11.5px; color: #0f172a; background: #f8fafc;" data-nba-assessment="Series Average (15M)" data-nba-val="{{ $avgSeries15 }}">
             {{ $avgSeries15 }}
           </td>
         </tr>

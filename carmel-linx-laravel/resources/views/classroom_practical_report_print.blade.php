@@ -164,6 +164,8 @@
         </tr>
     </table>
 
+    @include('partials.nba_report_samples_helper')
+
     <table class="report-table">
         <thead>
             <tr>
@@ -256,7 +258,7 @@
                     $t1Val = isset($student->tests['Test 1']['total']) ? number_format($student->tests['Test 1']['total'], 1) : '0.0';
                     $t2Val = isset($student->tests['Test 2']['total']) ? number_format($student->tests['Test 2']['total'], 1) : '0.0';
                 @endphp
-                <tr>
+                <tr data-student-name="{{ $student->name }}" data-student-roll="{{ $student->roll_no ?? '-' }}" data-student-reg="{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}">
                     <td>{{ $student->roll_no ?? '-' }}</td>
                     <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
@@ -265,13 +267,13 @@
                     <td>{{ number_format($student->avg_obs_prep ?? 0, 2) }}</td>
                     <td>{{ number_format($student->avg_proc_punct ?? 0, 2) }}</td>
                     <td>{{ number_format($student->avg_viva_voce ?? 0, 2) }}</td>
-                    <td style="font-weight: bold; background-color: #f8fbff;">{{ number_format($student->avg_lab_work, 2) }}</td>
-                    <td>{{ number_format($student->micro_project ?? $student->open_ended ?? 0, 1) }}</td>
+                    <td style="font-weight: bold; background-color: #f8fbff;" data-nba-assessment="Lab Work (37.5M)" data-nba-val="{{ (float)$student->avg_lab_work }}">{{ number_format($student->avg_lab_work, 2) }}</td>
+                    <td data-nba-assessment="Open-Ended (7.5M)" data-nba-val="{{ (float)($student->micro_project ?? $student->open_ended ?? 0) }}">{{ number_format($student->micro_project ?? $student->open_ended ?? 0, 1) }}</td>
                     <td>{{ number_format($student->attendance_marks, 1) }}</td>
-                    <td>{{ $t1Val }}</td>
-                    <td>{{ $t2Val }}</td>
-                    <td>{{ number_format($student->tests['average'] ?? 0, 2) }}</td>
-                    <td style="font-weight: bold; background-color: #fafdfc; color: #0f766e;">{{ round($student->total_internal) }}</td>
+                    <td data-nba-assessment="Series Test 1 (15M)" data-nba-val="{{ is_numeric($t1Val) ? (float)$t1Val : '' }}">{{ $t1Val }}</td>
+                    <td data-nba-assessment="Series Test 2 (15M)" data-nba-val="{{ is_numeric($t2Val) ? (float)$t2Val : '' }}">{{ $t2Val }}</td>
+                    <td data-nba-assessment="Test Average (15M)" data-nba-val="{{ (float)($student->tests['average'] ?? 0) }}">{{ number_format($student->tests['average'] ?? 0, 2) }}</td>
+                    <td style="font-weight: bold; background-color: #fafdfc; color: #0f766e;" data-nba-assessment="Final CIA (75M)" data-nba-val="{{ (float)$student->total_internal }}">{{ round($student->total_internal) }}</td>
                     <td style="font-weight: bold; background-color: #fafdff; color: #1d4ed8;">{{ $eseDisplay }}</td>
                     <td style="font-weight: bold; background-color: #fffafd; color: #6b21a8;">{{ $finalResultDisplay }}</td>
                 </tr>

@@ -84,6 +84,8 @@
     </tr>
   </table>
 
+  @include('partials.nba_report_samples_helper')
+
   <table class="data-table">
     <thead>
       <tr>
@@ -119,7 +121,7 @@
           $overrideMark = ($pEval && $pEval->lab_work_marks !== null && $pEval->lab_work_marks !== '') ? floatval($pEval->lab_work_marks) : null;
           $finalMark = ($overrideMark !== null) ? $overrideMark : $calculatedMark;
         @endphp
-        <tr>
+        <tr data-student-name="{{ $st->name }}" data-student-roll="{{ $st->roll_no ?? '-' }}" data-student-reg="{{ $st->reg_no }}">
           <td>{{ $idx + 1 }}</td>
           <td>{{ $st->roll_no ?? '-' }}</td>
           <td><span style="font-family: monospace;">{{ $st->reg_no }}</span></td>
@@ -127,22 +129,23 @@
           @foreach($sheets as $s)
             @php
               $shData = $stSheets->where('sheet_no', $s['sheet_no'])->first();
+              $shScore = ($shData && !$shData->is_absent && $shData->total_score_100 !== null) ? floatval($shData->total_score_100) : (($shData && !$shData->is_absent) ? (floatval($shData->timely_completion) + floatval($shData->appearance_organization)) : null);
             @endphp
             @if($shData)
               @if($shData->is_absent)
                 <td colspan="2" style="color: #dc2626; font-weight: bold;">ABS</td>
               @else
                 <td>{{ floatval($shData->timely_completion) }}</td>
-                <td>{{ floatval($shData->appearance_organization) }}</td>
+                <td data-nba-assessment="{{ $s['sheet_no'] }}" data-nba-val="{{ $shScore !== null ? $shScore : '' }}">{{ floatval($shData->appearance_organization) }}</td>
               @endif
             @else
               <td>-</td>
               <td>-</td>
             @endif
           @endforeach
-          <td><strong>{{ round($avgScore, 1) }}</strong></td>
+          <td data-nba-assessment="Sheets Avg (100M)" data-nba-val="{{ round($avgScore, 1) }}"><strong>{{ round($avgScore, 1) }}</strong></td>
           <td style="color: #475569;">{{ $calculatedMark }}</td>
-          <td style="font-weight: 800; color: #0284c7;">
+          <td style="font-weight: 800; color: #0284c7;" data-nba-assessment="Final Continuous (37.5M)" data-nba-val="{{ (float)$finalMark }}">
             {{ $finalMark }}
             @if($overrideMark !== null)
               <small style="color: #f59e0b;" title="Overridden by Faculty">*</small>

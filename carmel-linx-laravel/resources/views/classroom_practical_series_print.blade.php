@@ -196,6 +196,8 @@
         <div><strong>Final Series CIA:</strong> Average of Test 1 and Test 2 (/15)</div>
     </div>
 
+    @include('partials.nba_report_samples_helper')
+
     <table class="report-table">
         <thead>
             <tr>
@@ -217,14 +219,14 @@
                     $avg = isset($student->tests['average']) ? (float)$student->tests['average'] : round(($t1 + $t2) / 2, 2);
                     $status = $avg >= 6.0 ? 'Satisfactory' : 'Needs Practice';
                 @endphp
-                <tr>
+                <tr data-student-name="{{ $student->name }}" data-student-roll="{{ $student->roll_no ?? '-' }}" data-student-reg="{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}">
                     <td>{{ $idx + 1 }}</td>
                     <td class="font-mono font-bold">{{ $student->roll_no ?? '-' }}</td>
                     <td class="font-mono">{{ !empty($student->sbte_reg_no) ? $student->sbte_reg_no : $student->reg_no }}</td>
                     <td class="align-left" style="font-weight: bold;">{{ $student->name }}</td>
-                    <td class="font-mono font-bold">{{ number_format($t1, 1) }}</td>
-                    <td class="font-mono font-bold">{{ number_format($t2, 1) }}</td>
-                    <td class="font-mono font-bold" style="background-color: #f0fdfa; color: #0f766e; font-size: 11.5px;">{{ number_format($avg, 2) }}</td>
+                    <td class="font-mono font-bold" data-nba-assessment="Series Test 1 (15M)" data-nba-val="{{ $t1 }}">{{ number_format($t1, 1) }}</td>
+                    <td class="font-mono font-bold" data-nba-assessment="Series Test 2 (15M)" data-nba-val="{{ $t2 }}">{{ number_format($t2, 1) }}</td>
+                    <td class="font-mono font-bold" style="background-color: #f0fdfa; color: #0f766e; font-size: 11.5px;" data-nba-assessment="Test Average (15M)" data-nba-val="{{ $avg }}">{{ number_format($avg, 2) }}</td>
                     <td style="font-weight: 600; color: {{ $avg >= 6.0 ? '#047857' : '#b91c1c' }};">{{ $status }}</td>
                 </tr>
             @empty

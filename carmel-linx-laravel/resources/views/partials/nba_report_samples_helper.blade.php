@@ -1,22 +1,21 @@
 {{-- 
-    NBA Accreditation Audit - Physical Filing Samples Helper (Revision 2021)
-    Provides automatic identification, highlighting, sorting, and summary generation
-    for Best, Average, and Low student samples across Formative and Summative assessments.
+    NBA Accreditation Audit - Assessment Benchmark Cards (Revision 2021)
+    Displays clean summary cards on top of reports with Best, Average, and Low marks
+    for tests and assignments, with print support and table cell highlights.
 --}}
 <style>
-    /* NBA Sample Badges */
+    /* NBA Cell Badges */
     .nba-badge {
         display: inline-block;
-        font-size: 8px;
+        font-size: 7.5px;
         font-weight: 800;
         letter-spacing: 0.3px;
-        padding: 1px 4px;
+        padding: 1px 3px;
         border-radius: 3px;
-        margin-left: 4px;
+        margin-left: 3px;
         vertical-align: middle;
-        line-height: 1.2;
+        line-height: 1.1;
         text-transform: uppercase;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
     .nba-badge-best {
         background-color: #dcfce7 !important;
@@ -55,267 +54,249 @@
         background-color: inherit !important;
     }
 
-    /* Interactive Toolbar */
-    .nba-toolbar-container {
-        background: #0f172a;
-        color: #f8fafc;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-bottom: 16px;
+    /* Clean Compact Toolbar (Screen Only) */
+    .nba-simple-toolbar {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 6px 12px;
+        margin-bottom: 12px;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    .nba-toolbar-left {
-        display: flex;
-        align-items: center;
         gap: 8px;
-        flex-wrap: wrap;
-    }
-    .nba-toolbar-title {
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: #38bdf8;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-right: 6px;
-    }
-    .nba-btn {
-        background: #1e293b;
-        color: #e2e8f0;
-        border: 1px solid #334155;
-        border-radius: 6px;
-        padding: 5px 10px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.15s ease;
-        line-height: 1.3;
-    }
-    .nba-btn:hover {
-        background: #334155;
-        color: #ffffff;
-        border-color: #475569;
-    }
-    .nba-btn.active {
-        background: #0284c7;
-        color: #ffffff;
-        border-color: #38bdf8;
-    }
-    .nba-btn-filter.active {
-        background: #16a34a;
-        color: #ffffff;
-        border-color: #4ade80;
-    }
-    .nba-select {
-        background: #1e293b;
-        color: #e2e8f0;
-        border: 1px solid #334155;
-        border-radius: 6px;
-        padding: 5px 8px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        outline: none;
-    }
-    .nba-select:focus {
-        border-color: #38bdf8;
-    }
-    .nba-toolbar-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 10px;
-        color: #94a3b8;
-    }
-    .nba-legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 9.5px;
-        font-weight: 600;
-    }
-
-    /* NBA Physical Filing Samples Summary Card */
-    .nba-filing-card {
-        background: #ffffff;
-        border: 1.5px solid #0284c7;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        margin-top: 10px;
-        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
-        overflow: hidden;
         font-family: inherit;
     }
-    .nba-filing-card-header {
-        background: #f0f9ff;
-        border-bottom: 1px solid #bae6fd;
-        padding: 8px 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    .nba-filing-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 10px;
-        table-layout: auto;
-    }
-    .nba-filing-table th {
-        background: #f8fafc;
-        color: #0f172a;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 9px;
-        padding: 6px 8px;
-        border: 1px solid #e2e8f0;
-        text-align: left;
-    }
-    .nba-filing-table td {
-        padding: 6px 8px;
-        border: 1px solid #e2e8f0;
-        vertical-align: middle;
-        font-size: 10px;
-    }
-    .nba-filing-table tr:nth-child(even) {
-        background-color: #fafbfc;
-    }
-    .nba-sample-box {
-        display: flex;
-        flex-direction: column;
-        gap: 1px;
-    }
-    .nba-sample-name {
-        font-weight: 700;
+    .nba-toolbar-btn {
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        padding: 4px 8px;
         font-size: 10.5px;
-        color: #0f172a;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
-    .nba-sample-meta {
-        font-size: 9px;
-        color: #64748b;
-        font-family: monospace;
+    .nba-toolbar-btn:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+    }
+    .nba-toolbar-btn.active {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0369a1;
     }
 
-    /* Print styles */
+    /* Benchmark Cards Section (Prints on top of reports) */
+    .nba-benchmark-section {
+        background: #ffffff;
+        border: 1.5px solid #0284c7;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-top: 6px;
+        margin-bottom: 16px;
+        font-family: inherit;
+        box-shadow: 0 1px 3px rgba(2, 132, 199, 0.06);
+    }
+    .nba-benchmark-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e0f2fe;
+    }
+    .nba-benchmark-title {
+        font-size: 10.5px;
+        font-weight: 800;
+        color: #0369a1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .nba-benchmark-subtitle {
+        font-size: 9px;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .nba-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+        gap: 8px;
+    }
+    .nba-stat-card {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        padding: 5px 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .nba-card-title {
+        font-size: 9.5px;
+        font-weight: 800;
+        color: #0f172a;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .nba-card-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 3px;
+        text-align: center;
+    }
+    .nba-metric-pill {
+        padding: 3px 2px;
+        border-radius: 3px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .nba-metric-pill.best {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+    }
+    .nba-metric-pill.avg {
+        background: #fffbeb;
+        border: 1px solid #fde047;
+    }
+    .nba-metric-pill.low {
+        background: #fef2f2;
+        border: 1px solid #fca5a5;
+    }
+    .nba-metric-lbl {
+        font-size: 7px;
+        font-weight: 800;
+        text-transform: uppercase;
+        line-height: 1;
+    }
+    .nba-metric-pill.best .nba-metric-lbl { color: #166534; }
+    .nba-metric-pill.avg  .nba-metric-lbl { color: #854d0e; }
+    .nba-metric-pill.low  .nba-metric-lbl { color: #991b1b; }
+
+    .nba-metric-val {
+        font-size: 11px;
+        font-weight: 800;
+        margin-top: 2px;
+        line-height: 1.1;
+    }
+    .nba-metric-pill.best .nba-metric-val { color: #15803d; }
+    .nba-metric-pill.avg  .nba-metric-val { color: #a16207; }
+    .nba-metric-pill.low  .nba-metric-val { color: #b91c1c; }
+
+    /* Print Formatting */
     @media print {
-        .nba-toolbar-container, .no-print {
+        .nba-simple-toolbar, .no-print {
             display: none !important;
         }
+        .nba-benchmark-section {
+            display: block !important;
+            border: 1.5px solid #000 !important;
+            box-shadow: none !important;
+            margin-top: 6px !important;
+            margin-bottom: 12px !important;
+            padding: 5px 8px !important;
+            page-break-inside: avoid !important;
+        }
+        .nba-benchmark-header {
+            border-bottom: 1px solid #000 !important;
+            margin-bottom: 5px !important;
+            padding-bottom: 3px !important;
+        }
+        .nba-benchmark-title {
+            color: #000 !important;
+            font-size: 9px !important;
+        }
+        .nba-benchmark-subtitle {
+            color: #333 !important;
+            font-size: 8px !important;
+        }
+        .nba-cards-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 5px !important;
+        }
+        .nba-stat-card {
+            border: 1px solid #000 !important;
+            background: #fff !important;
+            flex: 1 1 auto !important;
+            padding: 3px 5px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .nba-card-title {
+            color: #000 !important;
+            font-size: 8px !important;
+            border-bottom: 1px solid #000 !important;
+            margin-bottom: 3px !important;
+            padding-bottom: 2px !important;
+        }
+        .nba-metric-pill {
+            border: 1px solid #444 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .nba-metric-pill.best { background: #f0fdf4 !important; }
+        .nba-metric-pill.avg  { background: #fffbeb !important; }
+        .nba-metric-pill.low  { background: #fef2f2 !important; }
+        .nba-metric-lbl { font-size: 6.5px !important; }
+        .nba-metric-val { font-size: 9.5px !important; }
         .nba-badge {
             display: inline-block !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            border-width: 1px !important;
         }
         .nba-cell-best, .nba-cell-avg, .nba-cell-low {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        .nba-filing-card {
-            border: 1.5px solid #000 !important;
-            box-shadow: none !important;
-            page-break-inside: avoid;
-            margin-top: 15px !important;
-            margin-bottom: 20px !important;
-        }
-        .nba-filing-card-header {
-            background: #f1f5f9 !important;
-            border-bottom: 1px solid #000 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        .nba-filing-table th, .nba-filing-table td {
-            border: 1px solid #000 !important;
-            color: #000 !important;
-        }
     }
 </style>
 
-{{-- Reusable Toolbar HTML Template --}}
-<div class="nba-toolbar-container no-print" id="nbaToolbar">
-    <div class="nba-toolbar-left">
-        <div class="nba-toolbar-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            NBA Filing Audit (R21)
-        </div>
-
-        {{-- Toggle Highlights --}}
-        <button type="button" class="nba-btn active" id="btnNbaToggleHighlights" onclick="toggleNbaHighlights()">
-            🎯 Highlights: <span id="nbaHighlightStateText">ON</span>
+{{-- Compact Screen Toolbar --}}
+<div class="nba-simple-toolbar no-print">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: 800; font-size: 11px; color: #0369a1; text-transform: uppercase;">
+            🎯 NBA Audit Samples:
+        </span>
+        <button type="button" class="nba-toolbar-btn active" id="btnNbaToggleHighlights" onclick="toggleNbaHighlights()">
+            Table Highlights: <span id="nbaHighlightStateText">ON</span>
         </button>
-
-        {{-- Filter to Samples Only --}}
-        <button type="button" class="nba-btn nba-btn-filter" id="btnNbaToggleFilter" onclick="toggleNbaSamplesFilter()">
-            🔍 View: <span id="nbaFilterStateText">All Students</span>
-        </button>
-
-        {{-- Sort Dropdown --}}
-        <div style="display: inline-flex; align-items: center; gap: 4px;">
-            <label for="nbaSortSelect" style="font-size: 10px; color: #94a3b8; font-weight: 600;">Sort By:</label>
-            <select class="nba-select" id="nbaSortSelect" onchange="handleNbaSortChange(this.value)">
-                <option value="default">Default Order</option>
-            </select>
-        </div>
-
-        {{-- Toggle Filing Index Card --}}
-        <button type="button" class="nba-btn" id="btnNbaToggleCard" onclick="toggleNbaSummaryCard()">
-            📋 Filing Index Card: <span id="nbaCardStateText">Visible</span>
+        <button type="button" class="nba-toolbar-btn active" id="btnNbaToggleCards" onclick="toggleNbaBenchmarkCards()">
+            Benchmark Cards: <span id="nbaCardsStateText">Visible</span>
         </button>
     </div>
-
-    <div class="nba-toolbar-right">
-        <span class="nba-legend-item"><span class="nba-badge nba-badge-best">BEST</span> Highest Mark</span>
-        <span class="nba-legend-item"><span class="nba-badge nba-badge-avg">AVG</span> Mean Average</span>
-        <span class="nba-legend-item"><span class="nba-badge nba-badge-low">LOW</span> Lowest Valid</span>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #475569;">
+        <span><strong style="color: #15803d;">BEST</strong> = Highest Mark</span> &bull;
+        <span><strong style="color: #a16207;">AVG</strong> = Mean Average</span> &bull;
+        <span><strong style="color: #b91c1c;">LOW</strong> = Lowest Valid</span>
     </div>
 </div>
 
-{{-- Reusable Summary Card HTML Template --}}
-<div class="nba-filing-card" id="nbaFilingSummaryCard">
-    <div class="nba-filing-card-header">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 14px;">📁</span>
-            <div>
-                <strong style="font-size: 11px; text-transform: uppercase; color: #0369a1; letter-spacing: 0.5px;">
-                    NBA Accreditation Physical Filing Samples Register
-                </strong>
-                <div style="font-size: 9.5px; color: #64748b;">
-                    Three student samples per assessment (Best, Average, Low) required for physical Course File verification &amp; attainment analysis
-                </div>
-            </div>
+{{-- Benchmark Cards Section (Prints on Top of Reports) --}}
+<div class="nba-benchmark-section" id="nbaBenchmarkSection">
+    <div class="nba-benchmark-header">
+        <div class="nba-benchmark-title">
+            <span>📊</span> Assessment Benchmark Samples (NBA Course File Audit)
         </div>
-        <div id="nbaStatsBadge" style="font-size: 9.5px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
-            Analyzing...
+        <div class="nba-benchmark-subtitle">
+            Best, Class Average, and Low benchmark scores required for NBA Course Outcome physical filing &amp; attainment
         </div>
     </div>
-    <div style="overflow-x: auto;">
-        <table class="nba-filing-table">
-            <thead>
-                <tr>
-                    <th style="width: 22%;">Assessment / Test</th>
-                    <th style="width: 13%; text-align: center;">Class Stats</th>
-                    <th style="width: 21%; background-color: #f0fdf4; color: #166534;">🟢 Best Sample (Max)</th>
-                    <th style="width: 22%; background-color: #fffbeb; color: #92400e;">🟡 Average Sample (~Mean)</th>
-                    <th style="width: 22%; background-color: #fef2f2; color: #991b1b;">🔴 Low Sample (Min)</th>
-                </tr>
-            </thead>
-            <tbody id="nbaFilingTableBody">
-                <tr>
-                    <td colspan="5" style="text-align: center; color: #64748b; padding: 10px;">Computing samples...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="nba-cards-grid" id="nbaBenchmarkCards">
+        {{-- Populated dynamically via JS --}}
     </div>
 </div>
 
@@ -323,11 +304,8 @@
 (function() {
     window.nbaState = {
         highlightsOn: true,
-        filterOnlySamples: false,
-        summaryCardVisible: true,
-        sampleRows: new Set(),
+        cardsVisible: true,
         assessments: {},
-        originalRowsOrder: [],
         tableElem: null
     };
 
@@ -337,10 +315,9 @@
         const tables = document.querySelectorAll(tableSelector);
         if (!tables.length) return;
 
-        // Pick the marks data table (usually table with tbody)
         let mainTable = null;
         for (let t of tables) {
-            if (t.id === 'nbaFilingSummaryCard' || t.classList.contains('nba-filing-table') || t.classList.contains('meta-info') || t.classList.contains('meta-table')) continue;
+            if (t.classList.contains('meta-info') || t.classList.contains('meta-table')) continue;
             if (t.querySelector('tbody tr')) {
                 mainTable = t;
                 break;
@@ -355,32 +332,10 @@
         const rows = Array.from(tbody.querySelectorAll('tr'));
         if (!rows.length) return;
 
-        // Save original rows order
-        window.nbaState.originalRowsOrder = rows.slice();
-
-        // 1. Scan each row and extract marked cells
+        // Group cells by assessment
         const assessmentsMap = {};
-        const sampleRowsSet = new Set();
 
         rows.forEach((row, rIdx) => {
-            row.setAttribute('data-nba-row-idx', rIdx);
-
-            // Student identification
-            let name = row.getAttribute('data-student-name') || '';
-            let roll = row.getAttribute('data-student-roll') || '';
-            let reg = row.getAttribute('data-student-reg') || '';
-
-            // Fallback parsing if attributes missing
-            if (!name) {
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 3) {
-                    roll = cells[0].innerText.trim();
-                    name = (cells[1].innerText.trim().length > 3) ? cells[1].innerText.trim() : (cells[2] ? cells[2].innerText.trim() : '');
-                    reg = (cells[2] && cells[2].innerText.trim().length > 4) ? cells[2].innerText.trim() : (cells[3] ? cells[3].innerText.trim() : '');
-                }
-            }
-
-            // Find all cells configured with data-nba-assessment
             const cells = row.querySelectorAll('[data-nba-assessment]');
             cells.forEach(cell => {
                 const aName = cell.getAttribute('data-nba-assessment');
@@ -392,7 +347,6 @@
                 if (rawVal !== null && rawVal !== '' && rawVal !== '-') {
                     numVal = parseFloat(rawVal);
                 } else {
-                    // Try parsing from cell innerText
                     const txt = cell.innerText.trim();
                     if (txt !== '-' && txt !== 'ABS' && txt !== '' && !isNaN(parseFloat(txt))) {
                         numVal = parseFloat(txt);
@@ -406,151 +360,94 @@
                 assessmentsMap[aName].push({
                     row: row,
                     cell: cell,
-                    val: numVal,
-                    student: { name: name || 'Student #' + (rIdx + 1), roll: roll || '-', reg: reg || '-' }
+                    val: numVal
                 });
             });
         });
 
         window.nbaState.assessments = assessmentsMap;
 
-        // 2. Compute Best, Avg, Low for each assessment
-        const summaryRowsHtml = [];
-        const sortOptions = [{ value: 'default', label: 'Default Roll/Serial Order' }];
+        // Compute metrics and generate cards
+        const cardsHtml = [];
 
         Object.keys(assessmentsMap).forEach(aName => {
             const items = assessmentsMap[aName];
             const validItems = items.filter(it => it.val !== null && !isNaN(it.val));
 
-            // Populate sort select
-            sortOptions.push({ value: aName + '__desc', label: `${aName}: High to Low` });
-            sortOptions.push({ value: aName + '__asc', label: `${aName}: Low to High` });
-            sortOptions.push({ value: aName + '__samples', label: `${aName}: Samples First (Best/Avg/Low)` });
-
             if (validItems.length === 0) {
-                summaryRowsHtml.push(`
-                    <tr>
-                        <td style="font-weight: 700; color: #0f172a;">${aName}</td>
-                        <td style="text-align: center; color: #64748b;">No data</td>
-                        <td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic;">No numeric marks submitted yet</td>
-                    </tr>
+                cardsHtml.push(`
+                    <div class="nba-stat-card">
+                        <div class="nba-card-title">${aName}</div>
+                        <div style="font-size: 9px; color: #94a3b8; text-align: center; padding: 6px 0;">No marks entered</div>
+                    </div>
                 `);
                 return;
             }
 
-            // Calculations
             const vals = validItems.map(it => it.val);
             const maxVal = Math.max(...vals);
             const minVal = Math.min(...vals);
             const sumVal = vals.reduce((acc, v) => acc + v, 0);
-            const meanVal = sumVal / validItems.length;
+            const meanVal = (sumVal / validItems.length);
+            const formattedMean = (meanVal % 1 === 0) ? meanVal.toString() : meanVal.toFixed(1);
 
-            // Find Best
-            const bestItems = validItems.filter(it => it.val === maxVal);
-            const primaryBest = bestItems[0];
-
-            // Find Low
-            const lowItems = validItems.filter(it => it.val === minVal);
-            const primaryLow = (minVal < maxVal) ? lowItems[0] : primaryBest;
-
-            // Find Average (closest to mean, preferring one not chosen as best/low if available)
-            let remainingItems = validItems.filter(it => it !== primaryBest && it !== primaryLow);
-            if (remainingItems.length === 0) {
-                remainingItems = validItems;
-            }
-            remainingItems.sort((a, b) => Math.abs(a.val - meanVal) - Math.abs(b.val - meanVal));
-            const primaryAvg = remainingItems[0] || primaryBest;
-
-            // Mark cells with badges & classes
-            // Best
-            bestItems.forEach(it => {
-                it.cell.classList.add('nba-cell-best');
-                if (!it.cell.querySelector('.nba-badge-best')) {
-                    it.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-best" title="NBA Best Sample (Score: ${it.val})">BEST</span>`);
+            // Find closest to mean for average badge
+            let closestItem = validItems[0];
+            let minDiff = Math.abs(validItems[0].val - meanVal);
+            validItems.forEach(it => {
+                const diff = Math.abs(it.val - meanVal);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestItem = it;
                 }
-                it.row.setAttribute('data-has-nba-sample', 'true');
-                sampleRowsSet.add(it.row);
             });
 
-            // Low
-            if (minVal < maxVal) {
-                lowItems.forEach(it => {
+            // Mark table cells
+            validItems.forEach(it => {
+                if (it.val === maxVal) {
+                    it.cell.classList.add('nba-cell-best');
+                    if (!it.cell.querySelector('.nba-badge-best')) {
+                        it.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-best" title="Best Mark: ${it.val}">BEST</span>`);
+                    }
+                } else if (it.val === minVal && minVal < maxVal) {
                     it.cell.classList.add('nba-cell-low');
                     if (!it.cell.querySelector('.nba-badge-low')) {
-                        it.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-low" title="NBA Low Sample (Score: ${it.val})">LOW</span>`);
+                        it.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-low" title="Low Mark: ${it.val}">LOW</span>`);
                     }
-                    it.row.setAttribute('data-has-nba-sample', 'true');
-                    sampleRowsSet.add(it.row);
-                });
-            }
-
-            // Avg
-            if (primaryAvg && !primaryAvg.cell.classList.contains('nba-cell-best') && !primaryAvg.cell.classList.contains('nba-cell-low')) {
-                primaryAvg.cell.classList.add('nba-cell-avg');
-                if (!primaryAvg.cell.querySelector('.nba-badge-avg')) {
-                    primaryAvg.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-avg" title="NBA Average Sample (Score: ${primaryAvg.val}, Class Avg: ${meanVal.toFixed(1)})">AVG</span>`);
+                } else if (it === closestItem) {
+                    it.cell.classList.add('nba-cell-avg');
+                    if (!it.cell.querySelector('.nba-badge-avg')) {
+                        it.cell.insertAdjacentHTML('beforeend', ` <span class="nba-badge nba-badge-avg" title="Closest to Class Mean: ${it.val}">AVG</span>`);
+                    }
                 }
-                primaryAvg.row.setAttribute('data-has-nba-sample', 'true');
-                sampleRowsSet.add(primaryAvg.row);
-            }
+            });
 
-            // Summary row format
-            summaryRowsHtml.push(`
-                <tr>
-                    <td style="font-weight: 700; color: #0f172a;">
-                        <span style="display: block; font-size: 11px;">${aName}</span>
-                    </td>
-                    <td style="text-align: center; font-size: 9px; line-height: 1.4;">
-                        <div><strong>Avg:</strong> ${meanVal.toFixed(1)}</div>
-                        <div style="color: #64748b;">Max: ${maxVal} | Min: ${minVal}</div>
-                        <div style="color: #0284c7; font-weight: 600;">(${validItems.length} Submissions)</div>
-                    </td>
-                    <td style="background-color: #f0fdf4;">
-                        <div class="nba-sample-box">
-                            <span class="nba-sample-name" style="color: #166534;">
-                                ${primaryBest.student.name} <span class="nba-badge nba-badge-best">${primaryBest.val}</span>
-                            </span>
-                            <span class="nba-sample-meta">Roll: ${primaryBest.student.roll} &bull; Reg: ${primaryBest.student.reg}</span>
+            // Clean, compact benchmark card
+            cardsHtml.push(`
+                <div class="nba-stat-card">
+                    <div class="nba-card-title" title="${aName}">${aName}</div>
+                    <div class="nba-card-metrics">
+                        <div class="nba-metric-pill best" title="Highest Mark in class: ${maxVal}">
+                            <span class="nba-metric-lbl">BEST</span>
+                            <span class="nba-metric-val">${maxVal}</span>
                         </div>
-                    </td>
-                    <td style="background-color: #fffbeb;">
-                        <div class="nba-sample-box">
-                            <span class="nba-sample-name" style="color: #92400e;">
-                                ${primaryAvg.student.name} <span class="nba-badge nba-badge-avg">${primaryAvg.val}</span>
-                            </span>
-                            <span class="nba-sample-meta">Roll: ${primaryAvg.student.roll} &bull; Reg: ${primaryAvg.student.reg} (&Delta; ${Math.abs(primaryAvg.val - meanVal).toFixed(1)} to avg)</span>
+                        <div class="nba-metric-pill avg" title="Class Mean Average: ${formattedMean}">
+                            <span class="nba-metric-lbl">AVG</span>
+                            <span class="nba-metric-val">${formattedMean}</span>
                         </div>
-                    </td>
-                    <td style="background-color: #fef2f2;">
-                        <div class="nba-sample-box">
-                            <span class="nba-sample-name" style="color: #991b1b;">
-                                ${primaryLow.student.name} <span class="nba-badge nba-badge-low">${primaryLow.val}</span>
-                            </span>
-                            <span class="nba-sample-meta">Roll: ${primaryLow.student.roll} &bull; Reg: ${primaryLow.student.reg}</span>
+                        <div class="nba-metric-pill low" title="Lowest Valid Mark: ${minVal}">
+                            <span class="nba-metric-lbl">LOW</span>
+                            <span class="nba-metric-val">${minVal}</span>
                         </div>
-                    </td>
-                </tr>
+                    </div>
+                </div>
             `);
         });
 
-        window.nbaState.sampleRows = sampleRowsSet;
-
-        // Render summary rows
-        const summaryTbody = document.getElementById('nbaFilingTableBody');
-        if (summaryTbody) {
-            summaryTbody.innerHTML = summaryRowsHtml.join('');
-        }
-
-        // Update stats badge
-        const statsBadge = document.getElementById('nbaStatsBadge');
-        if (statsBadge) {
-            statsBadge.innerHTML = `Identified <strong>${sampleRowsSet.size}</strong> distinct sample students across ${Object.keys(assessmentsMap).length} assessments`;
-        }
-
-        // Populate sort select
-        const sortSelect = document.getElementById('nbaSortSelect');
-        if (sortSelect) {
-            sortSelect.innerHTML = sortOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('');
+        // Insert cards
+        const container = document.getElementById('nbaBenchmarkCards');
+        if (container) {
+            container.innerHTML = cardsHtml.join('');
         }
     };
 
@@ -581,104 +478,21 @@
         }
     };
 
-    // Toggle filter: all students vs sample students only
-    window.toggleNbaSamplesFilter = function() {
-        const state = !window.nbaState.filterOnlySamples;
-        window.nbaState.filterOnlySamples = state;
+    // Toggle benchmark cards visibility
+    window.toggleNbaBenchmarkCards = function() {
+        const section = document.getElementById('nbaBenchmarkSection');
+        if (!section) return;
+        const state = (section.style.display === 'none');
+        section.style.display = state ? 'block' : 'none';
+        window.nbaState.cardsVisible = state;
 
-        const table = window.nbaState.tableElem || document.querySelector('table');
-        if (!table) return;
-
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const sampleSet = window.nbaState.sampleRows;
-
-        rows.forEach(row => {
-            if (state) {
-                // Show only sample rows
-                if (sampleSet.has(row) || row.getAttribute('data-has-nba-sample') === 'true') {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            } else {
-                row.style.display = '';
-            }
-        });
-
-        const btn = document.getElementById('btnNbaToggleFilter');
-        const txt = document.getElementById('nbaFilterStateText');
-        if (btn && txt) {
-            if (state) {
-                btn.classList.add('active');
-                txt.innerText = `NBA Samples Only (${sampleSet.size})`;
-            } else {
-                btn.classList.remove('active');
-                txt.innerText = 'All Students';
-            }
-        }
-    };
-
-    // Toggle summary card visibility
-    window.toggleNbaSummaryCard = function() {
-        const card = document.getElementById('nbaFilingSummaryCard');
-        if (!card) return;
-        const state = (card.style.display === 'none');
-        card.style.display = state ? 'block' : 'none';
-
-        const btn = document.getElementById('btnNbaToggleCard');
-        const txt = document.getElementById('nbaCardStateText');
+        const btn = document.getElementById('btnNbaToggleCards');
+        const txt = document.getElementById('nbaCardsStateText');
         if (btn && txt) {
             txt.innerText = state ? 'Visible' : 'Hidden';
             if (state) btn.classList.add('active');
             else btn.classList.remove('active');
         }
-    };
-
-    // Handle sort dropdown change
-    window.handleNbaSortChange = function(sortValue) {
-        const table = window.nbaState.tableElem;
-        if (!table) return;
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-
-        if (sortValue === 'default') {
-            window.nbaState.originalRowsOrder.forEach(r => tbody.appendChild(r));
-            return;
-        }
-
-        const [aName, direction] = sortValue.split('__');
-        const items = window.nbaState.assessments[aName];
-        if (!items) return;
-
-        // Map row to item
-        const rowMap = new Map();
-        items.forEach(it => rowMap.set(it.row, it));
-
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-
-        rows.sort((rowA, rowB) => {
-            const itA = rowMap.get(rowA);
-            const itB = rowMap.get(rowB);
-            const valA = (itA && itA.val !== null && !isNaN(itA.val)) ? itA.val : -999999;
-            const valB = (itB && itB.val !== null && !isNaN(itB.val)) ? itB.val : -999999;
-
-            if (direction === 'desc') {
-                return valB - valA;
-            } else if (direction === 'asc') {
-                return valA - valB;
-            } else if (direction === 'samples') {
-                const isSampleA = (itA && (itA.cell.classList.contains('nba-cell-best') || itA.cell.classList.contains('nba-cell-avg') || itA.cell.classList.contains('nba-cell-low'))) ? 1 : 0;
-                const isSampleB = (itB && (itB.cell.classList.contains('nba-cell-best') || itB.cell.classList.contains('nba-cell-avg') || itB.cell.classList.contains('nba-cell-low'))) ? 1 : 0;
-                if (isSampleA !== isSampleB) return isSampleB - isSampleA;
-                return valB - valA;
-            }
-            return 0;
-        });
-
-        rows.forEach(r => tbody.appendChild(r));
     };
 
     // Auto-run when DOM is ready

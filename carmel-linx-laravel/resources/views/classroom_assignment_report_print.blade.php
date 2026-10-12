@@ -236,11 +236,11 @@
                         <td style="font-weight: bold;">{{ $s->name }}</td>
                         <td style="font-family: monospace;">{{ $s->reg_no }}</td>
                         <td style="font-family: monospace;">{{ $s->sbte_reg_no ?: '-' }}</td>
-                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="CO1 Assignment" data-nba-val="{{ is_numeric($s->assignment_marks['CO1'] ?? null) ? $s->assignment_marks['CO1'] : '' }}">{{ $s->assignment_marks['CO1'] }}</td>
-                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="CO2 Assignment" data-nba-val="{{ is_numeric($s->assignment_marks['CO2'] ?? null) ? $s->assignment_marks['CO2'] : '' }}">{{ $s->assignment_marks['CO2'] }}</td>
-                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="CO3 Assignment" data-nba-val="{{ is_numeric($s->assignment_marks['CO3'] ?? null) ? $s->assignment_marks['CO3'] : '' }}">{{ $s->assignment_marks['CO3'] }}</td>
-                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="CO4 Assignment" data-nba-val="{{ is_numeric($s->assignment_marks['CO4'] ?? null) ? $s->assignment_marks['CO4'] : '' }}">{{ $s->assignment_marks['CO4'] }}</td>
-                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;" data-nba-assessment="Assignment Average" data-nba-val="{{ is_numeric($assignAvg) ? $assignAvg : '' }}">{{ $assignAvg !== '-' ? $assignAvg . ' / 20' : '-' }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Assignment 1 (CO1)" data-nba-val="{{ is_numeric($s->assignment_marks['CO1'] ?? null) ? $s->assignment_marks['CO1'] : '' }}">{{ $s->assignment_marks['CO1'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Assignment 2 (CO2)" data-nba-val="{{ is_numeric($s->assignment_marks['CO2'] ?? null) ? $s->assignment_marks['CO2'] : '' }}">{{ $s->assignment_marks['CO2'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Assignment 3 (CO3)" data-nba-val="{{ is_numeric($s->assignment_marks['CO3'] ?? null) ? $s->assignment_marks['CO3'] : '' }}">{{ $s->assignment_marks['CO3'] }}</td>
+                        <td style="text-align: center; font-weight: bold;" data-nba-assessment="Assignment 4 (CO4)" data-nba-val="{{ is_numeric($s->assignment_marks['CO4'] ?? null) ? $s->assignment_marks['CO4'] : '' }}">{{ $s->assignment_marks['CO4'] }}</td>
+                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;" data-nba-assessment="Assign Avg" data-nba-val="{{ is_numeric($assignAvg) ? $assignAvg : '' }}">{{ $assignAvg !== '-' ? $assignAvg . ' / 20' : '-' }}</td>
                     </tr>
                 @empty
                     <tr>

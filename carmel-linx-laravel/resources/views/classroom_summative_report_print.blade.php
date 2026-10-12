@@ -240,7 +240,7 @@
                         <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 2 (CO2)" data-nba-val="{{ is_numeric($s->summative_marks['CO2'] ?? null) ? $s->summative_marks['CO2'] : '' }}">{{ $s->summative_marks['CO2'] }}</td>
                         <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 3 (CO3)" data-nba-val="{{ is_numeric($s->summative_marks['CO3'] ?? null) ? $s->summative_marks['CO3'] : '' }}">{{ $s->summative_marks['CO3'] }}</td>
                         <td style="text-align: center; font-weight: bold;" data-nba-assessment="Test 4 (CO4)" data-nba-val="{{ is_numeric($s->summative_marks['CO4'] ?? null) ? $s->summative_marks['CO4'] : '' }}">{{ $s->summative_marks['CO4'] }}</td>
-                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;" data-nba-assessment="Written Test Average" data-nba-val="{{ is_numeric($writtenAvg) ? $writtenAvg : '' }}">{{ $writtenAvg !== '-' ? $writtenAvg . ' / 20' : '-' }}</td>
+                        <td style="text-align: center; font-weight: 800; background: #f8fafc; color: #1e3a8a;" data-nba-assessment="Written Avg" data-nba-val="{{ is_numeric($writtenAvg) ? $writtenAvg : '' }}">{{ $writtenAvg !== '-' ? $writtenAvg . ' / 20' : '-' }}</td>
                     </tr>
                 @empty
                     <tr>

@@ -558,10 +558,7 @@
                                 $isBelowMin = ($m['draft_mark'] !== null && !$m['is_pass']);
                                 $isPass = ($m['draft_mark'] !== null && $m['is_pass']);
                             @endphp
-                            <div class="p-2.5 rounded-3 mb-2 shadow-sm"
-                                 style="background: {{ $isBelowMin ? 'linear-gradient(135deg, rgba(225, 29, 72, 0.18) 0%, rgba(15, 23, 42, 0.95) 100%)' : ($isPass ? 'rgba(15, 23, 42, 0.75)' : 'rgba(15, 23, 42, 0.6)') }} !important;
-                                        border: {{ $isBelowMin ? '1.5px solid rgba(244, 63, 94, 0.65)' : '1px solid rgba(148, 163, 184, 0.15)' }} !important;
-                                        border-left: 4.5px solid {{ $isBelowMin ? '#f43f5e' : ($isPass ? '#10b981' : '#64748b') }} !important;">
+                            <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <div class="d-flex align-items-center gap-1">
                                         <span class="badge font-mono px-1.5 py-0.5" style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
@@ -605,16 +602,6 @@
                                         @endif
                                     </div>
                                 </div>
-                                @if($isBelowMin)
-                                    <div class="mt-1 pt-1 border-top border-rose-500 border-opacity-30 d-flex align-items-center justify-content-between" style="font-size: 0.66rem; color: #fda4af;">
-                                        <span>
-                                            <i class="fa-solid fa-circle-exclamation me-1 text-rose-400"></i>Internal mark is below minimum passing threshold ({{ $m['pass_threshold'] }} / {{ $m['max_cia'] }})
-                                        </span>
-                                        <span class="font-mono text-rose-300 fw-bold">
-                                            Deficit: -{{ number_format($m['pass_threshold'] - $m['draft_mark'], 1) }}
-                                        </span>
-                                    </div>
-                                @endif
                             </div>
                         @empty
                             <div class="text-center text-secondary py-3 small">

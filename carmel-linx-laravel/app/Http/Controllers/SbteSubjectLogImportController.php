@@ -976,8 +976,10 @@ class SbteSubjectLogImportController extends Controller
                             $assignedExp = $practicalExperiments->get($expIndex);
                             if ($assignedExp) {
                                 $assignedTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
-                                $assignedExp->conducted_date = $date;
-                                $assignedExp->save();
+                                if (empty($assignedExp->conducted_date)) {
+                                    $assignedExp->conducted_date = $date;
+                                    $assignedExp->save();
+                                }
                                 $mappedLpCount++;
                             } else {
                                 $assignedTopic = "Practical Session";
@@ -1909,22 +1911,27 @@ class SbteSubjectLogImportController extends Controller
 
                 $sessionIndex = 0;
                 foreach ($groupedSessions as $session) {
-                    $expIdx = $sessionIndex % $practicalExperiments->count();
-                    $assignedExp = $practicalExperiments->get($expIdx);
-                    if ($assignedExp) {
-                        $newTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
-                        $assignedExp->conducted_date = $session['date'];
-                        $assignedExp->save();
+                    if ($sessionIndex < $practicalExperiments->count()) {
+                        $assignedExp = $practicalExperiments->get($sessionIndex);
+                        if ($assignedExp) {
+                            if (empty($assignedExp->conducted_date)) {
+                                $assignedExp->conducted_date = $session['date'];
+                                $assignedExp->save();
+                            }
 
-                        DB::table('class_logs_attendance')
-                            ->whereIn('id', $session['log_ids'])
-                            ->update([
-                                'topics_covered' => $newTopic,
-                                'lesson_plan_id' => null,
-                                'updated_at' => now()
-                            ]);
+                            if (empty($session['current_topic'])) {
+                                $newTopic = "Exp #{$assignedExp->experiment_no}: {$assignedExp->title}";
+                                DB::table('class_logs_attendance')
+                                    ->whereIn('id', $session['log_ids'])
+                                    ->update([
+                                        'topics_covered' => $newTopic,
+                                        'lesson_plan_id' => null,
+                                        'updated_at' => now()
+                                    ]);
+                            }
 
-                        $syncedCount++;
+                            $syncedCount++;
+                        }
                     }
                     $sessionIndex++;
                 }

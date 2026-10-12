@@ -1210,6 +1210,9 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
         }
 
+        $batchSubject = BatchSubject::findOrFail($batchSubjectId);
+        $isPractical = ($batchSubject->subject_type !== 'Theory') || ($batchSubject->lab_batch_mode === 'split');
+
         // Fetch practical experiments for this subject
         $practicalExperiments = \App\Models\PracticalExperiment::where('batch_subject_id', $batchSubjectId)
             ->orderByRaw('CAST(experiment_no AS UNSIGNED), experiment_no ASC')
@@ -1229,10 +1232,15 @@ class AttendanceController extends Controller
             ->orderBy('class_logs_attendance.id', 'asc')
             ->get();
 
-        // Group continuous per-period logs into consolidated session entries (by date, sub_batch, topics_covered, lesson_plan_id)
+        // Group continuous per-period logs into consolidated session entries (by date, sub_batch for practical labs)
         $groupedSessions = [];
         foreach ($rawLogs as $raw) {
-            $key = $raw->date . '__' . ($raw->sub_batch ?? 'Whole') . '__' . trim($raw->topics_covered ?? '') . '__' . ($raw->lesson_plan_id ?? '0');
+            if ($isPractical) {
+                $key = $raw->date . '__' . ($raw->sub_batch ?? 'Whole');
+            } else {
+                $key = $raw->date . '__' . ($raw->sub_batch ?? 'Whole') . '__' . trim($raw->topics_covered ?? '') . '__' . ($raw->lesson_plan_id ?? '0');
+            }
+
             if (!isset($groupedSessions[$key])) {
                 $groupedSessions[$key] = [
                     'id' => $raw->id,
@@ -1243,6 +1251,7 @@ class AttendanceController extends Controller
                     'sub_batch' => $raw->sub_batch ?? 'Whole',
                     'lesson_plan_id' => $raw->lesson_plan_id,
                     'topics_covered' => $raw->topics_covered,
+                    'topics_list' => array_filter([trim($raw->topics_covered ?? '')]),
                     'present_students' => $raw->present_students,
                     'absent_students' => $raw->absent_students,
                     'present_count' => count(json_decode($raw->present_students ?? '[]', true) ?: []),
@@ -1257,6 +1266,11 @@ class AttendanceController extends Controller
                 if (!in_array((int)$raw->period, $groupedSessions[$key]['periods'])) {
                     $groupedSessions[$key]['periods'][] = (int)$raw->period;
                     sort($groupedSessions[$key]['periods']);
+                }
+                $t = trim($raw->topics_covered ?? '');
+                if ($t && !in_array($t, $groupedSessions[$key]['topics_list'])) {
+                    $groupedSessions[$key]['topics_list'][] = $t;
+                    $groupedSessions[$key]['topics_covered'] = implode(' / ', array_filter($groupedSessions[$key]['topics_list']));
                 }
                 $pCount = count(json_decode($raw->present_students ?? '[]', true) ?: []);
                 if ($pCount > 0 && $groupedSessions[$key]['present_count'] === 0) {
@@ -1507,7 +1521,7 @@ class AttendanceController extends Controller
 
             $classLogs = DB::table('class_logs_attendance')
                 ->where('batch_subject_id', $batchSubjectId)
-                ->orderBy('date', 'desc')
+                ->orderBy('date', 'asc')
                 ->get(['id', 'date', 'period', 'topics_covered', 'lesson_plan_id']);
 
             $expIds = $experiments->pluck('id')->toArray();

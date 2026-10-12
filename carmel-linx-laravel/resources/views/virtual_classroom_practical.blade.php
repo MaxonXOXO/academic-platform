@@ -290,7 +290,7 @@
                     </a>
                     <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
                         <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
-                        <span>Completed: <strong id="headerCompletedExpsCount">{{ $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }}</span>
+                        <span>Completed: <strong id="headerCompletedExpsCount">{{ $syllabusCompletedCount ?? $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }} <span class="text-[10px] text-emerald-400 font-normal">({{ $conductedSessionsCount ?? count($conductedDetails ?? []) }} Sessions)</span></span>
                     </button>
                     <button type="button" onclick="openManageExperimentsModal(event)" class="px-2.5 py-1 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
                         <i class="fa-solid fa-gear text-teal-400 text-[10px]"></i> Manage Exps
@@ -523,7 +523,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="openCompletedExperimentsModal()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
                         <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
-                        <span>Completed Experiments: <strong id="summaryCompletedExpsCount">{{ $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }}</span>
+                        <span>Completed Experiments: <strong id="summaryCompletedExpsCount">{{ $syllabusCompletedCount ?? $conductedCount ?? 0 }}</strong>/{{ $totalExperiments ?? 0 }} <span class="text-[10px] text-emerald-400 font-normal">({{ $conductedSessionsCount ?? count($conductedDetails ?? []) }} Sessions Conducted)</span></span>
                     </button>
                     <a href="/classroom/practical/{{ $batchSubject->id }}/series-report/print" target="_blank" class="px-2.5 py-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-pen-to-square text-xs"></i> <span>Series (15M)</span>
@@ -904,7 +904,7 @@
                     <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sessions Conducted</span>
-                            <span class="text-2xl font-mono font-bold text-blue-300 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedCount ?? 0 }}</span>
+                            <span class="text-2xl font-mono font-bold text-blue-300 mt-1 block" id="kpiCompletedExpsCount">{{ $conductedSessionsCount ?? count($conductedDetails ?? []) }}</span>
                         </div>
                         <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                             <span class="material-symbols-rounded text-xl">task_alt</span>
@@ -913,7 +913,7 @@
                     <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Actual Lab Hours</span>
-                            <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiActualLabHours">{{ $actualLabHours ?? (($conductedCount ?? 0) * 3) }} hrs</span>
+                            <span class="text-2xl font-mono font-bold text-white mt-1 block" id="kpiActualLabHours">{{ $actualLabHours ?? (($conductedSessionsCount ?? count($conductedDetails ?? [])) * 3) }} hrs</span>
                         </div>
                         <div class="w-10 h-10 rounded-xl bg-slate-800/70 border border-slate-700/60 flex items-center justify-center text-slate-300">
                             <span class="material-symbols-rounded text-xl">schedule</span>
@@ -922,7 +922,7 @@
                     <div class="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Syllabus Coverage</span>
-                            <span class="text-2xl font-mono font-bold text-emerald-400 mt-1 block" id="kpiCoveragePercent">{{ ($totalExperiments ?? 0) > 0 ? round((($conductedCount ?? 0) / ($totalExperiments ?? 0)) * 100) : 0 }}%</span>
+                            <span class="text-2xl font-mono font-bold text-emerald-400 mt-1 block" id="kpiCoveragePercent">{{ ($totalExperiments ?? 0) > 0 ? round((($syllabusCompletedCount ?? $conductedCount ?? 0) / ($totalExperiments ?? 0)) * 100) : 0 }}%</span>
                         </div>
                         <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                             <span class="material-symbols-rounded text-xl">verified</span>
@@ -937,7 +937,7 @@
                             <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                                 <i class="fa-solid fa-clipboard-check text-sm text-teal-400"></i> Completed Experiments Log Details
                             </span>
-                            <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records</span>
+                            <span class="text-[11px] font-mono text-slate-400" id="completedExpsTableCounter">Showing {{ count($conductedDetails ?? []) }} completed session records ({{ $syllabusCompletedCount ?? $conductedCount ?? 0 }}/{{ $totalExperiments ?? 0 }} Syllabus Experiments)</span>
                         </div>
                         <!-- Cohort Filter Tabs -->
                         <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800 text-[11px]">
@@ -2857,7 +2857,7 @@
                 }
 
                 const logs = attLogCache;
-                let present = 0, absent = 0;
+                let present = 0, absent = 0, scheduledTotal = 0;
                 tbody.innerHTML = '';
 
                 if (logs.length === 0) {
@@ -2866,29 +2866,40 @@
                 }
 
                 logs.forEach(log => {
-                    const isPresent = log.present.includes(regNo);
-                    const isAbsent  = log.absent.includes(regNo);
-                    if (isPresent) present++;
-                    if (!isPresent) absent++;
+                    const isPresent = log.present && log.present.includes(regNo);
+                    const isAbsent  = log.absent && log.absent.includes(regNo);
+                    const isScheduled = isPresent || isAbsent;
+
+                    if (isPresent) {
+                        present++;
+                        scheduledTotal++;
+                    } else if (isAbsent) {
+                        absent++;
+                        scheduledTotal++;
+                    }
 
                     const tr = document.createElement('tr');
-                    tr.className = `border-b border-slate-800/40 ${isPresent ? '' : 'bg-red-950/10'}`;
+                    tr.className = `border-b border-slate-800/40 ${isAbsent ? 'bg-red-950/10' : ''}`;
+
+                    let statusBadge = '<span class="px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700/60 rounded text-[10px]">— Other Batch</span>';
+                    if (isPresent) {
+                        statusBadge = '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">✓ Present</span>';
+                    } else if (isAbsent) {
+                        statusBadge = '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold">✗ Absent</span>';
+                    }
+
                     tr.innerHTML = `
                         <td class="p-2 font-mono text-slate-300 text-[11px]">${log.date}</td>
                         <td class="p-2 text-center font-mono text-slate-400 text-[11px]">${log.period}</td>
                         <td class="p-2 text-slate-300 text-[11px]">${log.topic}</td>
                         <td class="p-2 text-center text-slate-500 text-[10px]">${log.sub_batch ?? 'Whole'}</td>
-                        <td class="p-2 text-center">
-                            ${isPresent
-                                ? '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">✓ Present</span>'
-                                : '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold">✗ Absent</span>'}
-                        </td>`;
+                        <td class="p-2 text-center">${statusBadge}</td>`;
                     tbody.appendChild(tr);
                 });
 
-                const total = logs.length;
+                const total = scheduledTotal > 0 ? scheduledTotal : logs.length;
                 const pct   = total > 0 ? Math.round((present / total) * 100) : 0;
-                summary.innerText = `(${present} / ${total} sessions — ${pct}%)`;
+                summary.innerText = `(${present} / ${total} scheduled sessions — ${pct}%)`;
                 attLogLoaded = true;
 
             } catch(err) {

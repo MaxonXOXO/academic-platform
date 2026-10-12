@@ -246,18 +246,21 @@ class VirtualClassroomPracticalController extends Controller
         }
 
         // ── Conducted Experiments / Class Logs ─────────────────────────────────
+        // ── Conducted Experiments / Class Logs ─────────────────────────────────
         // Build conducted session details list for the Completed Experiments table.
-        // Group raw period logs into consolidated session entries (same date, sub_batch, topic).
+        // Group raw period logs into consolidated practical session entries (by date, sub_batch).
         $studentRollMap = $students->pluck('roll_no', 'reg_no');
 
+        // Group continuous per-period logs into consolidated sessions by (date, sub_batch)
         $groupedLogs = $classLogs->groupBy(function($l) {
-            return $l->date . '###' . ($l->sub_batch ?? 'Whole') . '###' . trim($l->topics_covered ?? '');
+            return $l->date . '###' . ($l->sub_batch ?? 'Whole');
         });
 
         $logSessions = [];
         foreach ($groupedLogs as $groupKey => $logs) {
             $first = $logs->first();
-            $topic = trim($first->topics_covered ?? '');
+            $topics = $logs->pluck('topics_covered')->filter()->map(fn($t) => trim($t))->unique()->values();
+            $topic = $topics->isNotEmpty() ? $topics->implode(' / ') : trim($first->topics_covered ?? '');
             if (!$topic && !$first->lesson_plan_id) continue;
 
             $date = $first->date;
@@ -267,8 +270,18 @@ class VirtualClassroomPracticalController extends Controller
             $hoursCount = count($periods);
             $periodStr = $hoursCount > 0 ? implode(', ', array_map(fn($p) => 'P' . $p, $periods)) : 'Session';
             $hoursText = "{$hoursCount} " . ($hoursCount === 1 ? 'hr' : 'hrs') . " ({$periodStr})";
-            $pList = json_decode($first->present_students ?? '[]', true) ?: [];
-            $aList = json_decode($first->absent_students ?? '[]', true) ?: [];
+
+            $pList = [];
+            $aList = [];
+            foreach ($logs as $l) {
+                $pl = json_decode($l->present_students ?? '[]', true) ?: [];
+                $al = json_decode($l->absent_students ?? '[]', true) ?: [];
+                if (!empty($pl) || !empty($al)) {
+                    $pList = $pl;
+                    $aList = $al;
+                    break;
+                }
+            }
             $totalInLog = count($pList) + count($aList);
             $presentCount = count($pList);
             $absentCount = count($aList);
@@ -295,101 +308,104 @@ class VirtualClassroomPracticalController extends Controller
 
         $conductedDetails = [];
 
-        if ($experiments->isEmpty()) {
-            foreach ($logSessions as $idx => $s) {
-                $conductedDetails[] = [
-                    'experiment_id' => null,
-                    'experiment_no' => 'Exp ' . ($idx + 1),
-                    'title'         => $s['topic'] ?: 'Practical Session',
-                    'co_tag'        => 'CO1',
-                    'date'          => $s['date'],
-                    'periods'       => $s['periods'],
-                    'hours_count'   => $s['hours_count'],
-                    'hours_text'    => $s['hours_text'],
-                    'batch'         => $s['batch_label'],
-                    'sub_batch'     => $s['sub_batch'],
-                    'present_count' => $s['present_count'],
-                    'absent_count'  => $s['absent_count'],
-                    'absent_roll_nos' => $s['absent_roll_nos'],
-                    'total_count'   => $s['total_count'],
-                    'attendance_pct'=> $s['attendance_pct'],
-                ];
-            }
-        } else {
-            // When syllabus experiments exist: match each conducted/graded experiment with its log sessions for EACH batch
+        // Map every conducted logSession into conductedDetails
+        foreach ($logSessions as $idx => $s) {
+            $matchedExps = [];
+            $topic = $s['topic'];
+
             foreach ($experiments as $exp) {
-                $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
                 $expNo = trim((string)$exp->experiment_no);
                 $expTitle = strtolower(trim((string)($exp->title ?? '')));
 
-                $matchingSessions = [];
-
-                foreach ($logSessions as $s) {
-                    $t = trim((string)($s['topic'] ?? ''));
-                    if (empty($t)) continue;
-
-                    $matches = false;
-                    // Match experiment number e.g. "Exp 10", "Experiment 10", "Expt 10"
-                    if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $t)) {
+                $matches = false;
+                if (preg_match('/\b(?:exp|experiment|ex|expt)\.?\s*#?\s*0*' . preg_quote($expNo, '/') . '\b/i', $topic)) {
+                    $matches = true;
+                } elseif (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $topic, $mList)) {
+                    $nums = preg_split('/[\s,&-]+/', $mList[1]);
+                    if (in_array($expNo, array_map('trim', $nums))) {
                         $matches = true;
-                    } elseif (preg_match('/\b(?:exp|experiment|ex|expt|experiments|expts)s?\.?\s*#?([0-9\s,&-]+)/i', $t, $mList)) {
-                        $nums = preg_split('/[\s,&-]+/', $mList[1]);
-                        if (in_array($expNo, array_map('trim', $nums))) {
-                            $matches = true;
-                        }
-                    } elseif (!empty($expTitle) && strlen($expTitle) >= 6) {
-                        $tLower = strtolower($t);
-                        if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
-                            $matches = true;
-                        }
                     }
-
-                    if ($matches) {
-                        $matchingSessions[] = $s;
+                } elseif (!empty($expTitle) && strlen($expTitle) >= 6) {
+                    $tLower = strtolower($topic);
+                    if (str_contains($tLower, $expTitle) || (strlen($tLower) >= 6 && str_contains($expTitle, $tLower))) {
+                        $matches = true;
                     }
                 }
 
-                if (!empty($matchingSessions)) {
-                    foreach ($matchingSessions as $mSession) {
-                        $conductedDetails[] = [
-                            'experiment_id' => $exp->id,
-                            'experiment_no' => 'Exp ' . $exp->experiment_no,
-                            'title'         => $exp->title,
-                            'co_tag'        => $exp->co_tag ?? 'CO1',
-                            'date'          => $mSession['date'],
-                            'periods'       => $mSession['periods'],
-                            'hours_count'   => $mSession['hours_count'],
-                            'hours_text'    => $mSession['hours_text'],
-                            'batch'         => $mSession['batch_label'],
-                            'sub_batch'     => $mSession['sub_batch'],
-                            'present_count' => $mSession['present_count'],
-                            'absent_count'  => $mSession['absent_count'],
-                            'absent_roll_nos' => $mSession['absent_roll_nos'],
-                            'total_count'   => $mSession['total_count'],
-                            'attendance_pct'=> $mSession['attendance_pct'],
-                        ];
-                    }
-                } elseif ($hasMarks || !empty($exp->conducted_date)) {
-                    $mSession = collect($logSessions)->firstWhere('date', $exp->conducted_date);
-                    $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
-                    $conductedDetails[] = [
-                        'experiment_id' => $exp->id,
-                        'experiment_no' => 'Exp ' . $exp->experiment_no,
-                        'title'         => $exp->title,
-                        'co_tag'        => $exp->co_tag ?? 'CO1',
-                        'date'          => $mSession ? $mSession['date'] : $exp->conducted_date,
-                        'periods'       => $mSession ? $mSession['periods'] : [1, 2, 3],
-                        'hours_count'   => $mSession ? $mSession['hours_count'] : 3,
-                        'hours_text'    => $mSession ? $mSession['hours_text'] : '3 hrs (Lab)',
-                        'batch'         => $mSession ? $mSession['batch_label'] : 'Whole Class',
-                        'sub_batch'     => $mSession ? $mSession['sub_batch'] : 'Whole',
-                        'present_count' => $mSession ? $mSession['present_count'] : $gradedCount,
-                        'absent_count'  => $mSession ? $mSession['absent_count'] : 0,
-                        'absent_roll_nos' => $mSession ? $mSession['absent_roll_nos'] : 'None',
-                        'total_count'   => $mSession ? $mSession['total_count'] : $students->count(),
-                        'attendance_pct'=> $mSession ? $mSession['attendance_pct'] : ($students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 0.0),
-                    ];
+                if ($matches) {
+                    $matchedExps[] = $exp;
                 }
+            }
+
+            if (!empty($matchedExps)) {
+                $expId = $matchedExps[0]->id;
+                $coTag = $matchedExps[0]->co_tag ?? 'CO1';
+                $expNoLabel = count($matchedExps) === 1
+                    ? ('Exp ' . $matchedExps[0]->experiment_no)
+                    : ('Exp ' . collect($matchedExps)->pluck('experiment_no')->implode(', '));
+            } else {
+                $expId = null;
+                $coTag = 'CO1';
+                $tLower = strtolower($topic);
+                if (str_contains($tLower, 'repeat')) {
+                    $expNoLabel = 'Repeat Lab';
+                } elseif (str_contains($tLower, 'series exam 1') || str_contains($tLower, 'series 1')) {
+                    $expNoLabel = 'Series Exam 1';
+                } elseif (str_contains($tLower, 'series exam 2') || str_contains($tLower, 'series 2')) {
+                    $expNoLabel = 'Series Exam 2';
+                } elseif (str_contains($tLower, 'open ended')) {
+                    $expNoLabel = 'Open Ended Project';
+                } elseif (str_contains($tLower, 'revision')) {
+                    $expNoLabel = 'Practical Revision';
+                } else {
+                    $expNoLabel = 'Lab Session ' . ($idx + 1);
+                }
+            }
+
+            $conductedDetails[] = [
+                'experiment_id'   => $expId,
+                'experiment_ids'  => collect($matchedExps)->pluck('id')->all(),
+                'experiment_no'   => $expNoLabel,
+                'title'           => $topic,
+                'co_tag'          => $coTag,
+                'date'            => $s['date'],
+                'periods'         => $s['periods'],
+                'hours_count'     => $s['hours_count'],
+                'hours_text'      => $s['hours_text'],
+                'batch'           => $s['batch_label'],
+                'sub_batch'       => $s['sub_batch'],
+                'present_count'   => $s['present_count'],
+                'absent_count'    => $s['absent_count'],
+                'absent_roll_nos' => $s['absent_roll_nos'],
+                'total_count'     => $s['total_count'],
+                'attendance_pct'  => $s['attendance_pct'],
+            ];
+        }
+
+        // If any syllabus experiment with marks or conducted_date has no matching session entry, append as fallback
+        $allCoveredExpIds = collect($conductedDetails)->pluck('experiment_ids')->flatten()->filter()->unique()->all();
+        foreach ($experiments as $exp) {
+            $alreadyCovered = in_array($exp->id, $allCoveredExpIds) || collect($conductedDetails)->contains(fn($c) => $c['experiment_id'] === $exp->id);
+            $hasMarks = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count() > 0;
+            if (!$alreadyCovered && ($hasMarks || !empty($exp->conducted_date))) {
+                $gradedCount = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->count();
+                $conductedDetails[] = [
+                    'experiment_id'   => $exp->id,
+                    'experiment_no'   => 'Exp ' . $exp->experiment_no,
+                    'title'           => $exp->title,
+                    'co_tag'          => $exp->co_tag ?? 'CO1',
+                    'date'            => $exp->conducted_date ?: now()->toDateString(),
+                    'periods'         => [1, 2, 3],
+                    'hours_count'     => 3,
+                    'hours_text'      => '3 hrs (Lab)',
+                    'batch'           => 'Whole Class',
+                    'sub_batch'       => 'Whole',
+                    'present_count'   => $gradedCount,
+                    'absent_count'    => 0,
+                    'absent_roll_nos' => 'None',
+                    'total_count'     => $students->count(),
+                    'attendance_pct'  => $students->count() > 0 ? round(($gradedCount / $students->count()) * 100, 1) : 0.0,
+                ];
             }
         }
 
@@ -406,25 +422,26 @@ class VirtualClassroomPracticalController extends Controller
             $rB = $batchRank($b);
             if ($rA !== $rB) return $rA <=> $rB;
 
-            preg_match('/\d+/', (string)($a['experiment_no'] ?? ''), $mA);
-            preg_match('/\d+/', (string)($b['experiment_no'] ?? ''), $mB);
-            $numA = isset($mA[0]) ? (int)$mA[0] : 0;
-            $numB = isset($mB[0]) ? (int)$mB[0] : 0;
-            if ($numA !== $numB) return $numA <=> $numB;
-
             return strcmp((string)($a['date'] ?? ''), (string)($b['date'] ?? ''));
         });
 
-        // Determine which experiments have been conducted in this class (do not club batch 1 + batch 2)
-        $conductedCount = $experiments->isEmpty()
+        // Determine syllabus experiments completed and total conducted sessions count
+        $syllabusCompletedCount = $experiments->isEmpty()
             ? count($conductedDetails)
-            : collect($conductedDetails)->pluck('experiment_id')->filter()->unique()->count();
+            : $experiments->filter(function($exp) use ($conductedDetails, $allExpMarks) {
+                $hasMark = $allExpMarks->where('practical_experiment_id', $exp->id)->where('total_mark', '>', 0)->isNotEmpty();
+                $hasSession = collect($conductedDetails)->contains(fn($c) => $c['experiment_id'] == $exp->id);
+                return $hasMark || $hasSession || !empty($exp->conducted_date);
+            })->count();
+
+        $conductedSessionsCount = count($conductedDetails);
+        $conductedCount = $syllabusCompletedCount;
 
         $actualLabHours = $classLogs->map(function($l) {
             return $l->date . '_P' . $l->period;
         })->unique()->count();
-        if ($actualLabHours === 0 && $conductedCount > 0) {
-            $actualLabHours = $conductedCount * 3;
+        if ($actualLabHours === 0 && $conductedSessionsCount > 0) {
+            $actualLabHours = $conductedSessionsCount * 3;
         }
 
         // ── Per-Student Experiment Detail Map ─────────────────────────────────
@@ -551,6 +568,8 @@ class VirtualClassroomPracticalController extends Controller
             'experiments',
             'totalExperiments',
             'conductedCount',
+            'syllabusCompletedCount',
+            'conductedSessionsCount',
             'experimentLogs',
             'openEndedLogs',
             'seriesExamLogs',
@@ -745,26 +764,55 @@ class VirtualClassroomPracticalController extends Controller
      */
     public function getAttendanceLog(Request $request, $subjectId)
     {
-        $logs = DB::table('class_logs_attendance')
+        $rawLogs = DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
             ->orderBy('date', 'asc')
             ->orderBy('period', 'asc')
             ->get(['id', 'date', 'period', 'topics_covered', 'sub_batch', 'present_students', 'absent_students']);
 
-        $result = $logs->map(function($log) {
-            return [
-                'date'      => $log->date,
-                'period'    => $log->period,
-                'topic'     => $log->topics_covered ?? '—',
-                'sub_batch' => $log->sub_batch ?? 'Whole',
-                'present'   => json_decode($log->present_students ?? '[]', true) ?: [],
-                'absent'    => json_decode($log->absent_students  ?? '[]', true) ?: [],
-            ];
+        // Group continuous per-period logs into consolidated sessions by (date, sub_batch)
+        $grouped = $rawLogs->groupBy(function($log) {
+            return $log->date . '###' . ($log->sub_batch ?? 'Whole');
         });
+
+        $result = [];
+        foreach ($grouped as $groupKey => $logs) {
+            $first = $logs->first();
+            $periods = $logs->pluck('period')->unique()->sort()->values()->all();
+            $periodStr = count($periods) > 1 ? implode(', ', $periods) : (string)($periods[0] ?? $first->period);
+
+            $topics = $logs->pluck('topics_covered')->filter()->map(fn($t) => trim($t))->unique()->values();
+            $topicStr = $topics->isNotEmpty() ? $topics->implode(' / ') : ($first->topics_covered ?? '—');
+
+            $pList = [];
+            $aList = [];
+            foreach ($logs as $l) {
+                $pl = json_decode($l->present_students ?? '[]', true) ?: [];
+                $al = json_decode($l->absent_students ?? '[]', true) ?: [];
+                if (!empty($pl) || !empty($al)) {
+                    $pList = $pl;
+                    $aList = $al;
+                    break;
+                }
+            }
+
+            $sbVal = $first->sub_batch ?? 'Whole';
+            $sbLabel = ($sbVal === '1' || $sbVal === 1) ? 'Batch 1' : (($sbVal === '2' || $sbVal === 2) ? 'Batch 2' : ($sbVal ?: 'Whole'));
+
+            $result[] = [
+                'date'      => $first->date,
+                'period'    => $periodStr,
+                'periods'   => $periods,
+                'topic'     => $topicStr,
+                'sub_batch' => $sbLabel,
+                'present'   => $pList,
+                'absent'    => $aList,
+            ];
+        }
 
         return response()->json([
             'status'         => 'SUCCESS',
-            'total_sessions' => $logs->count(),
+            'total_sessions' => count($result),
             'logs'           => $result,
         ]);
     }
@@ -1256,9 +1304,9 @@ class VirtualClassroomPracticalController extends Controller
 
         $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $batchSubjectId)->get();
 
-        // Group class logs by (date, sub_batch, topics_covered)
+        // Group class logs into consolidated practical sessions by (date, sub_batch)
         $groupedLogs = $classLogs->groupBy(function($l) {
-            return $l->date . '###' . ($l->sub_batch ?? 'Whole') . '###' . trim($l->topics_covered ?? '');
+            return $l->date . '###' . ($l->sub_batch ?? 'Whole');
         });
 
         $studentRollMap = $students->pluck('roll_no', 'reg_no');
@@ -1282,7 +1330,8 @@ class VirtualClassroomPracticalController extends Controller
         $logSessions = [];
         foreach ($groupedLogs as $groupKey => $logs) {
             $first = $logs->first();
-            $topic = trim($first->topics_covered ?? '');
+            $topics = $logs->pluck('topics_covered')->filter()->map(fn($t) => trim($t))->unique()->values();
+            $topic = $topics->isNotEmpty() ? $topics->implode(' / ') : trim($first->topics_covered ?? '');
             if (!$topic && !$first->lesson_plan_id) continue;
 
             $date = $first->date;
@@ -1296,7 +1345,14 @@ class VirtualClassroomPracticalController extends Controller
             $periodStr = $hoursCount > 0 ? implode(', ', array_map(fn($p) => 'P' . $p, $periods)) : 'Session';
             $hoursText = "{$hoursCount} " . ($hoursCount === 1 ? 'hr' : 'hrs') . " ({$periodStr})";
 
-            $pList = array_unique(json_decode($first->present_students ?? '[]', true) ?: []);
+            $pList = [];
+            foreach ($logs as $l) {
+                $pl = json_decode($l->present_students ?? '[]', true) ?: [];
+                if (!empty($pl)) {
+                    $pList = array_unique($pl);
+                    break;
+                }
+            }
             
             // Present students strictly from this batch (handles any duplicates or cross-batch registrations)
             $presStudents = $batchStudents->whereIn('reg_no', $pList);

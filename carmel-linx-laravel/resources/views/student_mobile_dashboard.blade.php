@@ -628,145 +628,72 @@
                     </div>
                 </div>
 
-                <!-- Today's Timetable Preview -->
+                <!-- Class Schedule & Timetable Status -->
                 <div class="app-card">
                     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                         <h6 class="fw-bold text-white mb-0" style="font-size: 0.95rem;">
-                            <i class="fa-solid fa-clock me-1 text-cyan"></i> Today's Schedule & Attendance
+                            <i class="fa-solid fa-calendar-xmark me-1 text-cyan"></i> Class Schedule & Timetable
                         </h6>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge text-dark fw-black px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-1.5" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); font-size: 1.1rem; font-weight: 900; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);">
-                                <i class="fa-solid fa-calendar-day fs-6"></i> {{ $activeDayOrder ?? 'Day 1' }}
-                            </span>
-                            <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">{{ \Carbon\Carbon::now()->format('d M Y') }}</small>
-                        </div>
+                        <span class="badge text-cyan font-mono px-2.5 py-1" style="font-size: 0.72rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <i class="fa-solid fa-graduation-cap me-1"></i> Board Exams Period
+                        </span>
                     </div>
 
                     <!-- Campus Event Broadcast Banner for Students -->
-                    <div id="studentCampusEventBanner" class="{{ $campusEventToday ? '' : 'd-none' }} mb-4 p-4 rounded-4 shadow-xl position-relative overflow-hidden" style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1.5px solid rgba(225, 29, 72, 0.4) !important; border-left: 5px solid #f43f5e !important;">
-                        
-                        <!-- Top Badges Header -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom border-slate-700 border-opacity-40">
-                            <span class="badge px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px;">
+                    @if($campusEventToday)
+                    <div id="studentCampusEventBanner" class="mb-3 p-3.5 rounded-3 shadow-xl position-relative overflow-hidden" style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1.5px solid rgba(225, 29, 72, 0.4) !important; border-left: 4px solid #f43f5e !important;">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-1 border-bottom border-slate-700 border-opacity-40">
+                            <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.68rem; font-weight: 800;">
                                 <i class="fa-solid fa-bullhorn text-emerald-400"></i> CAMPUS ANNOUNCEMENT
                             </span>
-                            <span id="studentCampusSuspensionBadge" class="badge px-3 py-1.5 rounded-pill shadow-sm" style="background: rgba(225, 29, 72, 0.2); border: 1px solid rgba(225, 29, 72, 0.5); color: #fda4af; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.4px;">
+                            <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(225, 29, 72, 0.2); border: 1px solid rgba(225, 29, 72, 0.5); color: #fda4af; font-size: 0.68rem; font-weight: 800;">
                                 <i class="fa-solid fa-ban me-1 text-rose-400"></i> CLASSES SUSPENDED
                             </span>
                         </div>
-
-                        <!-- Event Title -->
-                        <h4 id="studentCampusEventTitle" class="fw-black text-white mb-2" style="font-size: 1.18rem; line-height: 1.4; letter-spacing: -0.2px;">
+                        <h5 class="fw-bold text-white mb-1" style="font-size: 1rem;">
                             {{ $campusEventToday->title ?? '' }}
-                        </h4>
-
-                        <!-- Metadata Badges Row -->
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 text-slate-300" style="font-size: 0.78rem;">
-                            <span id="studentCampusEventDate" class="px-2.5 py-1 rounded-3 font-semibold" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde047;">
-                                <i class="fa-solid fa-calendar-days me-1 text-amber-400"></i><span class="date-text">{{ $campusEventToday ? ($campusEventToday->date_range_text ?? ($campusEventToday->event_date ? $campusEventToday->event_date->format('d M Y') : '')) : '' }}</span>
-                            </span>
-                            <span id="studentCampusEventCategory" class="px-2.5 py-1 rounded-3 font-medium" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">
-                                <i class="fa-solid fa-tag me-1 text-blue-400"></i>{{ $campusEventToday->event_category ?? 'Academic' }}
-                            </span>
-                            <span id="studentCampusEventVenue" class="{{ ($campusEventToday->venue ?? null) ? '' : 'd-none' }} px-2.5 py-1 rounded-3 font-medium" style="background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.3); color: #67e8f9;">
-                                <i class="fa-solid fa-location-dot me-1 text-cyan-400"></i><span class="venue-text">{{ $campusEventToday->venue ?? '' }}</span>
-                            </span>
-                        </div>
-
-                        <!-- Suspension Notice & Reopening Box -->
-                        <div id="studentCampusEventNoticeBox" class="p-3.5 px-4 rounded-3 mb-3 border border-rose-500 border-opacity-30 position-relative" style="background: linear-gradient(135deg, rgba(225, 29, 72, 0.14) 0%, rgba(159, 18, 57, 0.08) 100%); box-shadow: 0 4px 15px rgba(225, 29, 72, 0.08);">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="p-2 rounded-circle flex-shrink-0 ms-1 me-2 d-flex align-items-center justify-content-center" style="background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-triangle-exclamation text-rose-400 fs-5"></i>
-                                </div>
-                                <div class="flex-grow-1" style="font-size: 0.88rem; line-height: 1.55;">
-                                    <strong id="studentCampusNoticeText" class="text-white d-block mb-2 font-bold" style="font-size: 0.9rem;">
-                                        {{ $campusEventToday ? ($campusEventToday->notice_text ?? 'Regular classes suspended due to '.$campusEventToday->title.'.') : '' }}
-                                    </strong>
-                                    
-                                    <!-- Highlighted Reopening Callout -->
-                                    <div id="studentCampusReopenText" class="mt-2.5">
-                                        @if($campusEventToday && $campusEventToday->formatted_reopen_date)
-                                            <div class="p-2.5 px-3 rounded-3 d-flex align-items-center shadow-md w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid #34d399;">
-                                                <div class="p-2 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center me-3" style="background: rgba(15, 23, 42, 0.18); width: 38px; height: 38px;">
-                                                    <i class="fa-solid fa-calendar-check text-slate-950 fs-5"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="text-slate-950 fw-extrabold uppercase" style="font-size: 0.68rem; letter-spacing: 0.8px; opacity: 0.92; line-height: 1.2;">
-                                                        COLLEGE REOPENS ON
-                                                    </div>
-                                                    <div class="text-slate-950 font-black" style="font-size: 1.02rem; font-weight: 900 !important; white-space: nowrap; line-height: 1.25;">
-                                                        {{ $campusEventToday->formatted_reopen_date }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p id="studentCampusEventDescription" class="text-slate-300 mb-3" style="font-size: 0.82rem; line-height: 1.5; color: #cbd5e1 !important;">
-                            {{ $campusEventToday->description ?? '' }}
+                        </h5>
+                        <p class="text-slate-300 mb-2" style="font-size: 0.78rem; line-height: 1.45;">
+                            {{ $campusEventToday->notice_text ?? ($campusEventToday->description ?? '') }}
                         </p>
-
-                        <div id="studentCampusEventAttachment" class="mb-3">
-                            @if($campusEventToday && $campusEventToday->attachment_path)
-                                @if($campusEventToday->attachment_type === 'image' || in_array(pathinfo($campusEventToday->attachment_path, PATHINFO_EXTENSION), ['jpg','jpeg','png','webp']))
-                                <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25 bg-black text-center">
-                                    <img src="/storage/{{ $campusEventToday->attachment_path }}" alt="Event Poster" class="img-fluid w-100 rounded-3 cursor-pointer" style="max-height: 260px; object-fit: contain;" onclick="window.open('/storage/{{ $campusEventToday->attachment_path }}', '_blank')">
-                                    <div class="p-1 bg-dark text-slate-300 text-center" style="font-size: 0.68rem;"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Tap poster to enlarge</div>
+                        @if($campusEventToday->formatted_reopen_date)
+                            <div class="p-2 rounded-2 d-flex align-items-center gap-2 mb-2" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #34d399;">
+                                <i class="fa-solid fa-calendar-check text-emerald-400 fs-6"></i>
+                                <div style="font-size: 0.72rem; color: #a7f3d0;">
+                                    College reopens on <strong>{{ $campusEventToday->formatted_reopen_date }}</strong>
                                 </div>
-                                @elseif($campusEventToday->attachment_type === 'pdf' || pathinfo($campusEventToday->attachment_path, PATHINFO_EXTENSION) === 'pdf')
-                                <div class="p-2 bg-slate-900 rounded-3 border border-secondary border-opacity-30 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa-solid fa-file-pdf text-danger fs-4"></i>
-                                        <div>
-                                            <strong class="text-white d-block" style="font-size: 0.78rem;">Official Event Circular (PDF)</strong>
-                                            <small class="text-secondary" style="font-size: 0.68rem;">Tap to open attachment</small>
-                                        </div>
-                                    </div>
-                                    <a href="/storage/{{ $campusEventToday->attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
-                                        <i class="fa-solid fa-download me-1"></i> Open PDF
-                                    </a>
-                                </div>
-                                @endif
-                            @endif
-                        </div>
-
-                        <div class="pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
-                            <small class="text-secondary" style="font-size: 0.7rem;">
-                                <i class="fa-solid fa-circle-info text-info me-1"></i> Standard class timetable is suppressed for today's event.
-                            </small>
-                            <button type="button" onclick="toggleStudentTimetableOverride()" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-slate-300 font-bold" style="font-size: 0.7rem;">
-                                <i class="fa-solid fa-eye me-1"></i> Toggle Timetable
-                            </button>
-                        </div>
+                            </div>
+                        @endif
                     </div>
+                    @endif
 
-                    <!-- Dynamic Timetable Timeline Container -->
-                    <div id="studentHourlyTimetableContainer" class="{{ $campusEventToday ? 'd-none' : '' }}">
-                        @foreach($hourlyStatus as $pNum => $pData)
-                        <div class="timeline-item {{ $pNum === 7 ? 'special-hour' : strtolower(str_replace(' ', '-', $pData['status'])) }}">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <div class="d-flex align-items-center gap-1.5 mb-1">
-                                        <span class="badge {{ $pNum === 7 ? 'bg-purple text-white' : 'bg-secondary' }}" style="font-size: 0.68rem;">P{{ $pNum }}</span>
-                                        <span class="time-pill">
-                                            <i class="fa-regular fa-clock me-1"></i>{{ $pData['time_slot'] }}
-                                        </span>
-                                    </div>
-                                    <strong class="text-white d-block" style="font-size: 0.85rem;">{{ $pData['subject_name'] }}</strong>
-                                    <small class="text-secondary d-block mt-0.5" style="font-size: 0.72rem;">
-                                        {{ $pData['topic'] }}
-                                    </small>
+                    <!-- Official Notice: Daily Timetable Stopped as Official Classes Have Ended -->
+                    <div class="p-3.5 rounded-3" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8;">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2.5 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); width: 42px; height: 42px;">
+                                <i class="fa-solid fa-calendar-check text-cyan fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1">
+                                    <strong class="text-white" style="font-size: 0.92rem; font-weight: 800;">Official Classes Concluded</strong>
+                                    <span class="badge bg-slate-800 text-slate-300 font-mono" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.1);">Concluded: 06 Oct 2026</span>
                                 </div>
-                                <span class="badge {{ $pData['badge_class'] }} badge-app">
-                                    {{ $pData['status'] }}
-                                </span>
+                                <p class="text-slate-300 mb-2" style="font-size: 0.8rem; line-height: 1.45;">
+                                    Regular instructional semester classes have officially concluded on <strong>06 October 2026</strong>. The daily period timetable is stopped during the SBTE Diploma Board Examination schedule.
+                                </p>
+                                <div class="p-2 rounded-2 d-flex align-items-center gap-2 mb-2" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25);">
+                                    <i class="fa-solid fa-clock-rotate-left text-emerald-400" style="font-size: 0.85rem;"></i>
+                                    <span class="text-emerald-300 font-semibold" style="font-size: 0.74rem;">
+                                        Daily timetable display will reactivate on next semester commencement date.
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 pt-1 border-top border-slate-700 border-opacity-50" style="font-size: 0.72rem;">
+                                    <span class="text-slate-400">
+                                        <i class="fa-solid fa-circle-info text-cyan me-1"></i> Check <strong>Attendance</strong> tab for official tutor attendance &amp; No Due Slip.
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        @endforeach
                     </div>
                 </div>
 
@@ -1015,30 +942,307 @@
 
             </div>
 
-            <!-- TAB 4: STATS & ACTIVITY POINTS -->
+            <!-- TAB 4: STATS & ACADEMIC EVALUATION -->
             <div id="tab-stats" class="tab-pane d-none fade-in">
                 
-                <!-- GPA & Academic Stats -->
-                <div class="app-card">
-                    <h6 class="fw-bold text-cyan mb-3" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-graduation-cap me-1"></i> Academic Progress & GPA
-                    </h6>
-                    <div id="mobileAcademicStatsContent">
-                        <div class="text-center text-secondary py-3 animate-pulse" style="font-size: 0.78rem;">
-                            Fetching cumulative GPA & semester stats...
+                <!-- 4 Key Academic Stat Overview Cards -->
+                <div class="row g-2 mb-3">
+                    <!-- 1. Cumulative GPA (CGPA) -->
+                    <div class="col-6">
+                        <div class="app-card h-100 p-3 d-flex flex-column justify-content-between" style="border-left: 3.5px solid #06b6d4;">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-secondary text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Cumulative GPA</span>
+                                    <i class="fa-solid fa-graduation-cap text-cyan" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-1 my-1">
+                                    <span class="fw-black text-cyan" style="font-size: 1.45rem; line-height: 1;">
+                                        {{ $computedCgpa !== null && $computedCgpa > 0 ? number_format($computedCgpa, 2) : 'Awaiting' }}
+                                    </span>
+                                    @if($computedCgpa !== null && $computedCgpa > 0)
+                                        <small class="text-secondary" style="font-size: 0.72rem;">/ 10</small>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.62rem; background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3);">
+                                    {{ $classification ?? 'In Progress' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. SGPA Trend -->
+                    <div class="col-6">
+                        <div class="app-card h-100 p-3 d-flex flex-column justify-content-between" style="border-left: 3.5px solid #10b981;">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-secondary text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">SGPA Trend</span>
+                                    <i class="fa-solid fa-chart-line text-emerald-400" style="font-size: 0.85rem;"></i>
+                                </div>
+                                @if(!empty($sgpaTrend))
+                                    <div class="d-flex flex-wrap gap-1 my-1">
+                                        @foreach($sgpaTrend as $semKey => $val)
+                                            <span class="badge bg-slate-900 border border-emerald-500/30 text-emerald-300 font-mono" style="font-size: 0.65rem;">
+                                                S{{ $semKey }}: <strong class="text-white">{{ number_format($val, 2) }}</strong>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="my-1">
+                                        <span class="fw-black text-emerald-400" style="font-size: 1.1rem; line-height: 1;">
+                                            Sem 1–{{ $student->semester }}
+                                        </span>
+                                    </div>
+                                    <small class="text-secondary d-block" style="font-size: 0.65rem;">Board Eval Ongoing</small>
+                                @endif
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.62rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                    Semester Progress
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Total Course Activity Points -->
+                    <div class="col-6">
+                        <div class="app-card h-100 p-3 d-flex flex-column justify-content-between" style="border-left: 3.5px solid #f59e0b;">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-secondary text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Activity Points</span>
+                                    <i class="fa-solid fa-star text-amber-400" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-1 my-1">
+                                    <span class="fw-black text-amber-400" style="font-size: 1.45rem; line-height: 1;">
+                                        {{ (int)$totalActivityPoints }}
+                                    </span>
+                                    <small class="text-secondary" style="font-size: 0.72rem;">/ {{ $activityGoal }} pts</small>
+                                </div>
+                                <div class="progress mt-1.5" style="height: 5px; background: rgba(255,255,255,0.08); border-radius: 999px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ min(100, round(($totalActivityPoints / $activityGoal) * 100)) }}%;" aria-valuenow="{{ $totalActivityPoints }}" aria-valuemin="0" aria-valuemax="{{ $activityGoal }}"></div>
+                                </div>
+                            </div>
+                            <div class="mt-2 d-flex align-items-center justify-content-between">
+                                <small class="text-secondary" style="font-size: 0.62rem;">{{ $isLet ? 'LET Goal: 40' : 'Goal: 60 pts' }}</small>
+                                <button type="button" onclick="toggleActivityForm()" class="btn btn-xs btn-outline-warning py-0 px-1.5 rounded-pill" style="font-size: 0.6rem;">+ Claim</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Current Sem Attendance -->
+                    <div class="col-6">
+                        <div class="app-card h-100 p-3 d-flex flex-column justify-content-between" style="border-left: 3.5px solid {{ $effectiveExamPct >= 75 ? '#10b981' : ($effectiveExamPct >= 65 ? '#f59e0b' : '#f43f5e') }};">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-secondary text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Sem {{ $student->semester }} Attendance</span>
+                                    <i class="fa-solid fa-user-check {{ $effectiveExamPct >= 75 ? 'text-emerald-400' : ($effectiveExamPct >= 65 ? 'text-amber-400' : 'text-rose-400') }}" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-1 my-1">
+                                    <span class="fw-black {{ $effectiveExamPct >= 75 ? 'text-emerald-400' : ($effectiveExamPct >= 65 ? 'text-amber-400' : 'text-rose-400') }}" style="font-size: 1.45rem; line-height: 1;">
+                                        {{ number_format($effectiveExamPct, 1) }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 0.62rem; {{ $effectiveExamPct >= 75 ? 'background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3);' : ($effectiveExamPct >= 65 ? 'background: rgba(245,158,11,0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3);' : 'background: rgba(244,63,94,0.15); color: #fda4af; border: 1px solid rgba(244,63,94,0.3);') }}">
+                                    {{ $tutorOfficialAttendance ? 'Official Tutor' : 'Class Log' }} • {{ $examEligibility['status'] ?? 'Eligible' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Activity Points Goal Tracker -->
-                @php
-                    $isLet = session('userAdmissionType') === 'LET';
-                    $activityGoal = $isLet ? 40 : 60;
-                @endphp
+                <!-- Assignments Evaluation Section -->
+                <div class="app-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                        <div>
+                            <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">
+                                <i class="fa-solid fa-list-check me-1 text-cyan"></i> Assignments Evaluation
+                            </h6>
+                            <small class="text-secondary" style="font-size: 0.7rem;">Continuous Internal Evaluation (CIE) Assignments</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" style="font-size: 0.68rem;" title="Attended">
+                                {{ $assignmentsStats['attended'] }} Attended
+                            </span>
+                            @if($assignmentsStats['submitted'] > 0)
+                                <span class="badge bg-amber-500/20 text-amber-400 border border-amber-500/30" style="font-size: 0.68rem;" title="Submitted">
+                                    {{ $assignmentsStats['submitted'] }} Submitted
+                                </span>
+                            @endif
+                            <span class="badge {{ $assignmentsStats['pending'] > 0 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 fw-black' : 'bg-slate-800 text-slate-400' }}" style="font-size: 0.68rem;" title="Pending Works">
+                                {{ $assignmentsStats['pending'] }} Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Filter pills for Assignments -->
+                    <div class="d-flex gap-1 mb-2 pb-1 overflow-x-auto">
+                        <button type="button" class="btn btn-xs btn-cyan fw-bold rounded-pill px-2.5 py-1 text-dark assign-filter-btn" data-filter="all" onclick="filterMobileAssignments('all', this)">
+                            All ({{ $assignmentsStats['total'] }})
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 assign-filter-btn" data-filter="pending" onclick="filterMobileAssignments('pending', this)">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Pending Work ({{ $assignmentsStats['pending'] }})
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 assign-filter-btn" data-filter="attended" onclick="filterMobileAssignments('attended', this)">
+                            <i class="fa-solid fa-check me-1"></i>Attended ({{ $assignmentsStats['attended'] }})
+                        </button>
+                    </div>
+
+                    <!-- Assignments Card List -->
+                    <div class="space-y-2" id="mobileAssignmentsListContainer">
+                        @forelse($assignmentsList as $asgn)
+                            @php
+                                $aStatus = strtolower($asgn['status']);
+                                $isPending = $aStatus === 'pending';
+                                $isAttended = $aStatus === 'attended';
+                                $isSubmitted = $aStatus === 'submitted';
+                            @endphp
+                            <div class="assignment-item p-2.5 rounded-3 border mb-2 {{ $isPending ? 'border-rose-500/40 bg-rose-950/20' : ($isAttended ? 'border-emerald-500/30 bg-slate-900/60' : 'border-amber-500/30 bg-amber-950/20') }}"
+                                 data-status="{{ $aStatus }}"
+                                 style="border-left: 4px solid {{ $isPending ? '#f43f5e' : ($isAttended ? '#10b981' : '#f59e0b') }} !important;">
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <div class="d-flex align-items-center gap-1.5 mb-0.5">
+                                            <span class="badge bg-slate-800 text-cyan font-mono" style="font-size: 0.65rem;">{{ $asgn['subject_code'] }}</span>
+                                            <span class="badge bg-secondary bg-opacity-30 text-slate-300 font-mono" style="font-size: 0.65rem;">{{ $asgn['co_tag'] }}</span>
+                                        </div>
+                                        <strong class="text-white d-block text-truncate" style="font-size: 0.84rem;">
+                                            {{ $asgn['title'] }}
+                                        </strong>
+                                        <small class="text-secondary d-block text-truncate" style="font-size: 0.7rem;">
+                                            {{ $asgn['subject_name'] }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        @if($isAttended)
+                                            <div class="text-emerald-400 font-black" style="font-size: 1.05rem; line-height: 1.1;">
+                                                {{ number_format($asgn['marks_obtained'], 1) }}
+                                                <span class="text-secondary" style="font-size: 0.68rem; font-weight: normal;">/ {{ $asgn['max_marks'] }}</span>
+                                            </div>
+                                            <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mt-1" style="font-size: 0.62rem;">
+                                                <i class="fa-solid fa-check me-0.5"></i> Graded
+                                            </span>
+                                        @elseif($isSubmitted)
+                                            <span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/40" style="font-size: 0.68rem;">
+                                                <i class="fa-solid fa-clock me-0.5"></i> Submitted
+                                            </span>
+                                            <small class="text-secondary d-block mt-0.5" style="font-size: 0.62rem;">Under Review</small>
+                                        @else
+                                            <span class="badge bg-rose-500/20 text-rose-400 border border-rose-500/40 fw-black" style="font-size: 0.7rem;">
+                                                <i class="fa-solid fa-triangle-exclamation me-0.5"></i> PENDING
+                                            </span>
+                                            <small class="text-rose-400 d-block mt-0.5 fw-semibold" style="font-size: 0.62rem;">Pending Work</small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center text-secondary py-3" style="font-size: 0.78rem;">
+                                No assignments configured for current semester.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Tests Evaluation Section -->
+                <div class="app-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                        <div>
+                            <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">
+                                <i class="fa-solid fa-file-pen me-1 text-purple-400"></i> Tests Evaluation
+                            </h6>
+                            <small class="text-secondary" style="font-size: 0.7rem;">Written, Practical, Drawing & MCQ Tests</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" style="font-size: 0.68rem;" title="Attended">
+                                {{ $testsStats['attended'] }} Attended
+                            </span>
+                            <span class="badge {{ $testsStats['pending'] > 0 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 fw-black' : 'bg-slate-800 text-slate-400' }}" style="font-size: 0.68rem;" title="Pending Tests">
+                                {{ $testsStats['pending'] }} Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Filter pills for Tests -->
+                    <div class="d-flex gap-1 mb-2 pb-1 overflow-x-auto">
+                        <button type="button" class="btn btn-xs text-white fw-bold rounded-pill px-2.5 py-1 test-filter-btn" data-filter="all" onclick="filterMobileTests('all', this)" style="background: #a855f7;">
+                            All ({{ $testsStats['total'] }})
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 test-filter-btn" data-filter="pending" onclick="filterMobileTests('pending', this)">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Pending Tests ({{ $testsStats['pending'] }})
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 test-filter-btn" data-filter="attended" onclick="filterMobileTests('attended', this)">
+                            <i class="fa-solid fa-check me-1"></i>Attended ({{ $testsStats['attended'] }})
+                        </button>
+                    </div>
+
+                    <!-- Tests Card List -->
+                    <div class="space-y-2" id="mobileTestsListContainer">
+                        @forelse($testsList as $testItem)
+                            @php
+                                $tStatus = strtolower($testItem['status']);
+                                $isPending = $tStatus === 'pending';
+                                $isAttended = $tStatus === 'attended';
+                                $catColor = match($testItem['category'] ?? '') {
+                                    'Written Test' => '#38bdf8',
+                                    'Practical Test' => '#34d399',
+                                    'Drawing Test' => '#f59e0b',
+                                    'Online MCQ' => '#c084fc',
+                                    default => '#94a3b8'
+                                };
+                            @endphp
+                            <div class="test-item p-2.5 rounded-3 border mb-2 {{ $isPending ? 'border-rose-500/40 bg-rose-950/20' : 'border-emerald-500/30 bg-slate-900/60' }}"
+                                 data-status="{{ $tStatus }}"
+                                 style="border-left: 4px solid {{ $isPending ? '#f43f5e' : '#10b981' }} !important;">
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <div class="d-flex align-items-center gap-1.5 mb-0.5">
+                                            <span class="badge bg-slate-800 text-slate-300 font-mono" style="font-size: 0.65rem;">{{ $testItem['subject_code'] }}</span>
+                                            <span class="badge" style="font-size: 0.63rem; background: rgba(255,255,255,0.06); color: {{ $catColor }}; border: 1px solid {{ $catColor }}40;">
+                                                {{ $testItem['category'] }}
+                                            </span>
+                                            <span class="badge bg-secondary bg-opacity-30 text-slate-300 font-mono" style="font-size: 0.65rem;">{{ $testItem['co_tag'] }}</span>
+                                        </div>
+                                        <strong class="text-white d-block text-truncate" style="font-size: 0.84rem;">
+                                            {{ $testItem['title'] }}
+                                        </strong>
+                                        <small class="text-secondary d-block text-truncate" style="font-size: 0.7rem;">
+                                            {{ $testItem['subject_name'] }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        @if($isAttended)
+                                            <div class="text-emerald-400 font-black" style="font-size: 1.05rem; line-height: 1.1;">
+                                                {{ number_format($testItem['marks_obtained'], 1) }}
+                                                <span class="text-secondary" style="font-size: 0.68rem; font-weight: normal;">/ {{ $testItem['max_marks'] }}</span>
+                                            </div>
+                                            <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mt-1" style="font-size: 0.62rem;">
+                                                <i class="fa-solid fa-check me-0.5"></i> Attended
+                                            </span>
+                                        @else
+                                            <span class="badge bg-rose-500/20 text-rose-400 border border-rose-500/40 fw-black" style="font-size: 0.7rem;">
+                                                <i class="fa-solid fa-triangle-exclamation me-0.5"></i> PENDING
+                                            </span>
+                                            <small class="text-rose-400 d-block mt-0.5 fw-semibold" style="font-size: 0.62rem;">Not Attended</small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center text-secondary py-3" style="font-size: 0.78rem;">
+                                No internal tests recorded for current semester.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Activity Points Goal Tracker & Claims History -->
                 <div class="app-card">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h6 class="fw-bold text-amber mb-0" style="font-size: 0.9rem; color: #f59e0b;">
-                            <i class="fa-solid fa-star me-1"></i> Activity Points (Goal: {{ $activityGoal }})
+                            <i class="fa-solid fa-star me-1"></i> Activity Points Claims History
                         </h6>
                         <button type="button" onclick="toggleActivityForm()" class="btn btn-sm btn-outline-warning px-2.5 py-1 rounded-pill" style="font-size: 0.7rem;">
                             <i class="fa-solid fa-plus me-1"></i> Claim Points
@@ -1580,6 +1784,52 @@
             card.classList.toggle('d-none');
         }
 
+        function filterMobileAssignments(filter, btn) {
+            document.querySelectorAll('.assign-filter-btn').forEach(b => {
+                b.classList.remove('btn-cyan', 'text-dark', 'fw-bold');
+                b.classList.add('btn-outline-secondary');
+            });
+            if (btn) {
+                btn.classList.remove('btn-outline-secondary', 'btn-outline-danger', 'btn-outline-success');
+                btn.classList.add('btn-cyan', 'text-dark', 'fw-bold');
+            }
+            const items = document.querySelectorAll('#mobileAssignmentsListContainer .assignment-item');
+            items.forEach(item => {
+                const status = item.getAttribute('data-status');
+                if (filter === 'all') {
+                    item.classList.remove('d-none');
+                } else if (filter === 'pending') {
+                    item.classList.toggle('d-none', status !== 'pending');
+                } else if (filter === 'attended') {
+                    item.classList.toggle('d-none', status !== 'attended' && status !== 'submitted');
+                }
+            });
+        }
+
+        function filterMobileTests(filter, btn) {
+            document.querySelectorAll('.test-filter-btn').forEach(b => {
+                b.classList.remove('btn-purple', 'text-white', 'fw-bold');
+                b.classList.add('btn-outline-secondary');
+                b.style.background = '';
+            });
+            if (btn) {
+                btn.classList.remove('btn-outline-secondary', 'btn-outline-danger', 'btn-outline-success');
+                btn.classList.add('btn-purple', 'text-white', 'fw-bold');
+                btn.style.background = '#a855f7';
+            }
+            const items = document.querySelectorAll('#mobileTestsListContainer .test-item');
+            items.forEach(item => {
+                const status = item.getAttribute('data-status');
+                if (filter === 'all') {
+                    item.classList.remove('d-none');
+                } else if (filter === 'pending') {
+                    item.classList.toggle('d-none', status !== 'pending');
+                } else if (filter === 'attended') {
+                    item.classList.toggle('d-none', status !== 'attended');
+                }
+            });
+        }
+
         function submitStudentMobileLeave(event) {
             event.preventDefault();
             const form = event.target;
@@ -1635,6 +1885,7 @@
 
         function loadMobileAcademicReport() {
             const container = document.getElementById('mobileAcademicStatsContent');
+            if (!container) return;
             fetch('/api/student/academic-report')
                 .then(res => res.json())
                 .then(data => {

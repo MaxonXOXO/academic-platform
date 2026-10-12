@@ -575,6 +575,279 @@ class StudentAttendanceController extends Controller
             'decision' => $examEligibility['decision'] ?? '',
         ];
 
+        // 14. Academic Stats: CGPA, SGPA Trend, Activity Points
+        $semSummaries = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_semester_summary')) {
+            $semSummaries = DB::table('student_semester_summary')
+                ->whereIn('reg_no', $studentIds)
+                ->orderBy('semester', 'asc')
+                ->get();
+        }
+
+        $allGrades = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_board_grades')) {
+            $allGrades = DB::table('student_board_grades')
+                ->whereIn('reg_no', $studentIds)
+                ->get();
+        }
+
+        $getGP = function($grade) {
+            switch (strtoupper(trim($grade ?? ''))) {
+                case 'S': return 10;
+                case 'A': return 9;
+                case 'B': return 8;
+                case 'C': return 7;
+                case 'D': return 6;
+                case 'E': return 5;
+                case 'F': return 0;
+                default: return null;
+            }
+        };
+
+        $sgpaTrend = [];
+        $computedCgpa = null;
+
+        if ($allGrades->isNotEmpty()) {
+            $cumTotalGP = 0;
+            $cumTotalCredits = 0;
+            $semGroups = $allGrades->groupBy('semester')->sortKeys();
+            foreach ($semGroups as $sem => $grades) {
+                $semTotalGP = 0;
+                $semTotalCredits = 0;
+                foreach ($grades as $g) {
+                    $gp = $getGP($g->grade);
+                    if ($gp !== null) {
+                        $credit = 4;
+                        $semTotalGP += ($gp * $credit);
+                        $semTotalCredits += $credit;
+                        $cumTotalGP += ($gp * $credit);
+                        $cumTotalCredits += $credit;
+                    }
+                }
+                if ($semTotalCredits > 0) {
+                    $sgpaTrend[$sem] = round($semTotalGP / $semTotalCredits, 2);
+                }
+            }
+            if ($cumTotalCredits > 0) {
+                $computedCgpa = round($cumTotalGP / $cumTotalCredits, 2);
+            }
+        }
+
+        if ($semSummaries->isNotEmpty()) {
+            foreach ($semSummaries as $sum) {
+                if ($sum->sgpa !== null && !isset($sgpaTrend[$sum->semester])) {
+                    $sgpaTrend[$sum->semester] = (float)$sum->sgpa;
+                }
+            }
+            if ($computedCgpa === null) {
+                $lastSummary = $semSummaries->last();
+                $computedCgpa = $lastSummary && $lastSummary->cgpa !== null ? (float)$lastSummary->cgpa : null;
+            }
+        }
+
+        $classification = 'In Progress';
+        if ($computedCgpa !== null && $computedCgpa > 0) {
+            if ($computedCgpa >= 8.0) {
+                $classification = 'First Class with Distinction';
+            } elseif ($computedCgpa >= 6.5) {
+                $classification = 'First Class';
+            } else {
+                $classification = 'Second Class';
+            }
+        }
+
+        // Activity points (Total in course)
+        $activityVerified = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('activity_point_claims')) {
+            $activityVerified = DB::table('activity_point_claims')
+                ->whereIn('reg_no', $studentIds)
+                ->where('status', 'Verified')
+                ->sum('points_awarded') ?: 0;
+        }
+        $activityFromSummary = $semSummaries->sum('activity_points') ?: 0;
+        $totalActivityPoints = max((float)$activityVerified, (float)$activityFromSummary);
+        $isLet = ($student->admission_type === 'LET') || str_ends_with(strtoupper($student->reg_no ?? ''), 'L');
+        $activityGoal = $isLet ? 40 : 60;
+
+        // 15. Comprehensive Assignments & Tests Breakdown for Current Semester
+        $academicMarksAll = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('academic_marks')) {
+            $academicMarksAll = DB::table('academic_marks')
+                ->whereIn('reg_no', $studentIds)
+                ->whereIn('subject_code', $batchSubjects->pluck('subject_code'))
+                ->get();
+        }
+
+        $taskSubmissionsAll = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('student_task_submissions')) {
+            $taskSubmissionsAll = DB::table('student_task_submissions')
+                ->whereIn('reg_no', $studentIds)
+                ->whereIn('subject_code', $batchSubjects->pluck('subject_code'))
+                ->get();
+        }
+
+        $pracTestsAll = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('practical_test_marks') && \Illuminate\Support\Facades\Schema::hasTable('practical_tests')) {
+            $pracTestsAll = DB::table('practical_test_marks')
+                ->join('practical_tests', 'practical_test_marks.practical_test_id', '=', 'practical_tests.id')
+                ->whereIn('practical_tests.batch_subject_id', $subjectIds)
+                ->whereIn('practical_test_marks.reg_no', $studentIds)
+                ->select('practical_test_marks.*', 'practical_tests.test_name', 'practical_tests.batch_subject_id')
+                ->get();
+        }
+
+        $drawingTestsAll = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('r21_drawing_series_tests')) {
+            $drawingTestsAll = DB::table('r21_drawing_series_tests')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentIds)
+                ->get();
+        }
+
+        $assignmentsList = [];
+        $testsList = [];
+
+        foreach ($batchSubjects as $subj) {
+            $sCode = $subj->subject_code;
+            $sName = $subj->subject_name;
+            $sType = $subj->subject_type ?? 'Theory';
+            $isTheory = (stripos($sType, 'theory') !== false || (stripos($sType, 'drawing') === false && stripos($sType, 'lab') === false && stripos($sType, 'pract') === false));
+
+            if ($isTheory) {
+                // Theory assignments: CO1 to CO4
+                foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coIdx => $coTag) {
+                    $coNum = $coIdx + 1;
+                    $m = $academicMarksAll->where('subject_code', $sCode)->where('category', 'Assignment')->where('co_tag', $coTag)->first();
+                    $sub = $taskSubmissionsAll->where('subject_code', $sCode)->where('category', 'Assignment')->where('co_tag', $coTag)->first();
+
+                    $status = 'Pending';
+                    $markObtained = null;
+                    $maxMarks = 20;
+
+                    if ($m && is_numeric($m->marks_obtained)) {
+                        $status = 'Attended';
+                        $markObtained = (float)$m->marks_obtained;
+                        $maxMarks = (int)($m->max_marks ?: 20);
+                    } elseif ($sub) {
+                        $status = 'Submitted';
+                    }
+
+                    $assignmentsList[] = [
+                        'subject_code' => $sCode,
+                        'subject_name' => $sName,
+                        'title' => "Assignment {$coNum} ({$coTag})",
+                        'co_tag' => $coTag,
+                        'status' => $status,
+                        'marks_obtained' => $markObtained,
+                        'max_marks' => $maxMarks,
+                    ];
+                }
+
+                // Theory written tests: CO1 to CO4
+                foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coIdx => $coTag) {
+                    $coNum = $coIdx + 1;
+                    $m = $academicMarksAll->where('subject_code', $sCode)->where('category', 'Written Test')->where('co_tag', $coTag)->first();
+
+                    $status = 'Pending';
+                    $markObtained = null;
+                    $maxMarks = 50;
+
+                    if ($m && is_numeric($m->marks_obtained)) {
+                        $status = 'Attended';
+                        $markObtained = (float)$m->marks_obtained;
+                        $maxMarks = (int)($m->max_marks ?: 50);
+                    }
+
+                    $testsList[] = [
+                        'subject_code' => $sCode,
+                        'subject_name' => $sName,
+                        'title' => "Written Test {$coNum} ({$coTag})",
+                        'category' => 'Written Test',
+                        'co_tag' => $coTag,
+                        'status' => $status,
+                        'marks_obtained' => $markObtained,
+                        'max_marks' => $maxMarks,
+                    ];
+                }
+            } elseif (stripos($sType, 'drawing') !== false) {
+                // Drawing series tests (Test 1 & Test 2)
+                $dTests = $drawingTestsAll->where('batch_subject_id', $subj->id);
+                for ($dt = 1; $dt <= 2; $dt++) {
+                    $dtRow = $dTests->where('test_no', $dt)->first();
+                    $markObtained = ($dtRow && is_numeric($dtRow->total_score_100)) ? (float)$dtRow->total_score_100 : null;
+                    $testsList[] = [
+                        'subject_code' => $sCode,
+                        'subject_name' => $sName,
+                        'title' => "Drawing Series Test {$dt}",
+                        'category' => 'Drawing Test',
+                        'co_tag' => "DT{$dt}",
+                        'status' => ($markObtained !== null) ? 'Attended' : 'Pending',
+                        'marks_obtained' => $markObtained,
+                        'max_marks' => 100,
+                    ];
+                }
+            } else {
+                // Practical / Lab tests
+                $subjPracTests = $pracTestsAll->where('batch_subject_id', $subj->id);
+                if ($subjPracTests->isNotEmpty()) {
+                    foreach ($subjPracTests as $pt) {
+                        $markObtained = is_numeric($pt->marks_obtained) ? (float)$pt->marks_obtained : null;
+                        $testsList[] = [
+                            'subject_code' => $sCode,
+                            'subject_name' => $sName,
+                            'title' => ($pt->test_name ?? 'Lab Test') . ' (Practical)',
+                            'category' => 'Practical Test',
+                            'co_tag' => 'Lab',
+                            'status' => ($markObtained !== null) ? 'Attended' : 'Pending',
+                            'marks_obtained' => $markObtained,
+                            'max_marks' => 15,
+                        ];
+                    }
+                } else {
+                    for ($t = 1; $t <= 2; $t++) {
+                        $testsList[] = [
+                            'subject_code' => $sCode,
+                            'subject_name' => $sName,
+                            'title' => "Practical Series Test {$t}",
+                            'category' => 'Practical Test',
+                            'co_tag' => 'Lab',
+                            'status' => 'Pending',
+                            'marks_obtained' => null,
+                            'max_marks' => 15,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Online tests from activeTests
+        foreach ($activeTests as $at) {
+            $matchedSubj = $batchSubjects->firstWhere('subject_code', $at->subject_code ?? '');
+            $testsList[] = [
+                'subject_code' => $at->subject_code ?? 'Online',
+                'subject_name' => $matchedSubj->subject_name ?? ($at->test_name ?? ($at->title ?? 'Online MCQ Test')),
+                'title' => $at->test_name ?? ($at->title ?? 'Online MCQ Test'),
+                'category' => 'Online MCQ',
+                'co_tag' => 'MCQ',
+                'status' => !empty($at->is_completed) ? 'Attended' : 'Pending',
+                'marks_obtained' => !empty($at->is_completed) ? (float)($at->best_score ?? 0) : null,
+                'max_marks' => (int)($at->mcq_count ?? 10),
+            ];
+        }
+
+        $assignmentsStats = [
+            'total' => count($assignmentsList),
+            'attended' => count(array_filter($assignmentsList, fn($a) => $a['status'] === 'Attended')),
+            'submitted' => count(array_filter($assignmentsList, fn($a) => $a['status'] === 'Submitted')),
+            'pending' => count(array_filter($assignmentsList, fn($a) => $a['status'] === 'Pending')),
+        ];
+
+        $testsStats = [
+            'total' => count($testsList),
+            'attended' => count(array_filter($testsList, fn($t) => $t['status'] === 'Attended')),
+            'pending' => count(array_filter($testsList, fn($t) => $t['status'] === 'Pending')),
+        ];
+
         return response(view('student_mobile_dashboard', compact(
             'student',
             'classroom',
@@ -596,7 +869,17 @@ class StudentAttendanceController extends Controller
             'effectiveExamPct',
             'draftInternalMarks',
             'noDueData',
-            'attendanceCertCondition'
+            'attendanceCertCondition',
+            'computedCgpa',
+            'classification',
+            'sgpaTrend',
+            'totalActivityPoints',
+            'activityGoal',
+            'isLet',
+            'assignmentsList',
+            'assignmentsStats',
+            'testsList',
+            'testsStats'
         )))->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
             'Pragma' => 'no-cache',

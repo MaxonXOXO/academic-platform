@@ -417,6 +417,9 @@
                 @endif
             </div>
 
+            <!-- TAB 1: HOME / DASHBOARD OVERVIEW -->
+            <div id="tab-home" class="tab-pane fade-in">
+
                 <!-- Executive Flash Notice Banner (Student Mobile) -->
                 <div id="studentExecutiveFlashNoticeBanner" class="mb-3 d-none"></div>
 
@@ -541,8 +544,8 @@
                         <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">
                             <i class="fa-solid fa-pen-ruler text-warning me-1.5"></i> Draft Internal Marks (CIA)
                         </h6>
-                        <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-30 px-2 py-0.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
-                            PROVISIONAL
+                        <span class="badge px-2.5 py-1 rounded-pill fw-bold" style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); font-size: 0.68rem; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i>PROVISIONAL
                         </span>
                     </div>
                     <small class="text-secondary d-block mb-3" style="font-size: 0.72rem; line-height: 1.35;">
@@ -551,19 +554,26 @@
 
                     <div class="space-y-2">
                         @forelse(($draftInternalMarks ?? []) as $m)
-                            <div class="p-2.5 rounded-3 bg-slate-900 bg-opacity-70 border border-secondary border-opacity-20 mb-2">
+                            @php
+                                $isBelowMin = ($m['draft_mark'] !== null && !$m['is_pass']);
+                                $isPass = ($m['draft_mark'] !== null && $m['is_pass']);
+                            @endphp
+                            <div class="p-2.5 rounded-3 mb-2 shadow-sm"
+                                 style="background: {{ $isBelowMin ? 'linear-gradient(135deg, rgba(225, 29, 72, 0.18) 0%, rgba(15, 23, 42, 0.95) 100%)' : ($isPass ? 'rgba(15, 23, 42, 0.75)' : 'rgba(15, 23, 42, 0.6)') }} !important;
+                                        border: {{ $isBelowMin ? '1.5px solid rgba(244, 63, 94, 0.65)' : '1px solid rgba(148, 163, 184, 0.15)' }} !important;
+                                        border-left: 4.5px solid {{ $isBelowMin ? '#f43f5e' : ($isPass ? '#10b981' : '#64748b') }} !important;">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <div>
-                                        <span class="badge bg-secondary bg-opacity-40 text-cyan font-mono px-1.5 py-0.5 me-1" style="font-size: 0.68rem;">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge font-mono px-1.5 py-0.5" style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
                                             {{ $m['subject_code'] }}
                                         </span>
-                                        <span class="badge bg-dark border border-secondary border-opacity-25 text-slate-300" style="font-size: 0.62rem;">
+                                        <span class="badge bg-slate-800 text-slate-300 font-normal" style="font-size: 0.62rem; border: 1px solid rgba(255,255,255,0.08);">
                                             {{ $m['subject_type'] }}
                                         </span>
                                     </div>
                                     <div class="text-end">
                                         @if($m['draft_mark'] !== null)
-                                            <span class="fw-black font-mono fs-6 {{ $m['is_pass'] ? 'text-emerald-400' : 'text-rose-400' }}">
+                                            <span class="fw-black font-mono fs-6 {{ $isBelowMin ? 'text-rose-400' : 'text-emerald-400' }}">
                                                 {{ number_format($m['draft_mark'], 0) }}
                                             </span>
                                             <span class="text-secondary font-mono" style="font-size: 0.75rem;">/ {{ $m['max_cia'] }}</span>
@@ -575,13 +585,17 @@
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <strong class="text-white text-truncate d-inline-block" style="font-size: 0.78rem; max-width: 68%;">
+                                    <strong class="text-white text-truncate d-inline-block" style="font-size: 0.78rem; max-width: 65%;">
                                         {{ $m['subject_name'] }}
                                     </strong>
                                     <div class="text-end" style="font-size: 0.68rem;">
-                                        @if($m['draft_mark'] !== null)
-                                            <span class="badge {{ $m['is_pass'] ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30' }} px-1.5 py-0.5" style="font-size: 0.62rem;">
-                                                {{ $m['is_pass'] ? 'PASS' : 'BELOW MIN' }} (Min {{ $m['pass_threshold'] }})
+                                        @if($isBelowMin)
+                                            <span class="badge px-2 py-0.5 rounded-pill shadow-sm" style="background: rgba(225, 29, 72, 0.25); color: #fda4af; border: 1px solid rgba(225, 29, 72, 0.6); font-size: 0.65rem; font-weight: 800;">
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>BELOW MIN (Min {{ $m['pass_threshold'] }})
+                                            </span>
+                                        @elseif($isPass)
+                                            <span class="badge px-1.5 py-0.5 rounded-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.62rem; font-weight: 700;">
+                                                <i class="fa-solid fa-check me-0.5"></i>PASS (Min {{ $m['pass_threshold'] }})
                                             </span>
                                         @endif
                                         @if($m['attendance_pct'] !== null)
@@ -591,40 +605,22 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if($isBelowMin)
+                                    <div class="mt-1 pt-1 border-top border-rose-500 border-opacity-30 d-flex align-items-center justify-content-between" style="font-size: 0.66rem; color: #fda4af;">
+                                        <span>
+                                            <i class="fa-solid fa-circle-exclamation me-1 text-rose-400"></i>Internal mark is below minimum passing threshold ({{ $m['pass_threshold'] }} / {{ $m['max_cia'] }})
+                                        </span>
+                                        <span class="font-mono text-rose-300 fw-bold">
+                                            Deficit: -{{ number_format($m['pass_threshold'] - $m['draft_mark'], 1) }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="text-center text-secondary py-3 small">
                                 No registered subjects found for this semester.
                             </div>
                         @endforelse
-                    </div>
-                </div>
-
-                <!-- Quick Overview Cards -->
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="stat-card border-start border-2 border-info">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-secondary uppercase" style="font-size: 0.68rem; font-weight: 700;">Daily Attendance</span>
-                                <i class="fa-solid fa-chart-pie text-cyan"></i>
-                            </div>
-                            <h5 class="fw-extrabold mb-0 {{ $overallAttendancePct >= 75 ? 'text-emerald-400' : 'text-amber-400' }}" style="font-size: 1.2rem;">
-                                {{ number_format($overallAttendancePct, 1) }}%
-                            </h5>
-                            <small class="text-secondary" style="font-size: 0.68rem;">Periods 1–6 Standard</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="stat-card border-start border-2 border-emerald-500">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-secondary uppercase" style="font-size: 0.68rem; font-weight: 700;">Attended Hours</span>
-                                <i class="fa-solid fa-user-check text-emerald-400"></i>
-                            </div>
-                            <h5 class="fw-extrabold text-white mb-0" style="font-size: 1.2rem;">
-                                {{ $totalAttendedClasses }} <span class="text-secondary fs-6 fw-normal">/ {{ $totalConductedClasses }}</span>
-                            </h5>
-                            <small class="text-secondary" style="font-size: 0.68rem;">Total Conducted Hours</small>
-                        </div>
                     </div>
                 </div>
 
@@ -1581,27 +1577,27 @@
 
         <!-- Bottom Mobile Navigation Bar -->
         <div class="bottom-nav">
-            <a href="#" class="nav-link-mobile active" onclick="switchMobileTab(event, 'tab-home')">
+            <a href="#" class="nav-link-mobile active" onclick="switchMobileTab(event, 'tab-home', this)">
                 <i class="fa-solid fa-house"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-attendance')">
+            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-attendance', this)">
                 <i class="fa-solid fa-clock"></i>
                 <span>Attendance</span>
             </a>
-            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-tasks')">
+            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-tasks', this)">
                 <i class="fa-solid fa-list-check"></i>
                 <span>Tasks</span>
             </a>
-            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-stats')">
+            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-stats', this)">
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Stats</span>
             </a>
-            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-leave')">
+            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-leave', this)">
                 <i class="fa-solid fa-calendar-minus"></i>
                 <span>Leave</span>
             </a>
-            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-profile')">
+            <a href="#" class="nav-link-mobile" onclick="switchMobileTab(event, 'tab-profile', this)">
                 <i class="fa-solid fa-user"></i>
                 <span>Profile</span>
             </a>
@@ -1611,20 +1607,25 @@
 
     <!-- Mobile Dashboard Logic -->
     <script>
-        function switchMobileTab(e, tabId) {
-            e.preventDefault();
+        function switchMobileTab(e, tabId, btn) {
+            if (e && e.preventDefault) e.preventDefault();
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
             document.querySelectorAll('.nav-link-mobile').forEach(el => el.classList.remove('active'));
 
             const target = document.getElementById(tabId);
-            if (target) target.classList.remove('d-none');
-            e.currentTarget.classList.add('active');
+            if (target) {
+                target.classList.remove('d-none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            const activeNav = btn || (e ? (e.currentTarget || (e.target && e.target.closest('.nav-link-mobile'))) : null) || document.querySelector(`.nav-link-mobile[onclick*="${tabId}"]`);
+            if (activeNav) activeNav.classList.add('active');
 
             if (tabId === 'tab-tasks') {
                 loadMobileWorksToDo();
             } else if (tabId === 'tab-stats') {
-                loadMobileAcademicReport();
-                loadMobileActivityPoints();
+                if (typeof loadMobileActivityPoints === 'function') {
+                    loadMobileActivityPoints();
+                }
             }
         }
 
@@ -1775,13 +1776,31 @@
         }
 
         function toggleMobileLeaveForm() {
+            const leaveTab = document.getElementById('tab-leave');
+            if (leaveTab && leaveTab.classList.contains('d-none')) {
+                switchMobileTab(null, 'tab-leave');
+            }
             const card = document.getElementById('mobileLeaveFormCard');
-            card.classList.toggle('d-none');
+            if (card) {
+                card.classList.toggle('d-none');
+                if (!card.classList.contains('d-none')) {
+                    card.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
         }
 
         function toggleActivityForm() {
+            const statsTab = document.getElementById('tab-stats');
+            if (statsTab && statsTab.classList.contains('d-none')) {
+                switchMobileTab(null, 'tab-stats');
+            }
             const card = document.getElementById('mobileActivityFormCard');
-            card.classList.toggle('d-none');
+            if (card) {
+                card.classList.toggle('d-none');
+                if (!card.classList.contains('d-none')) {
+                    card.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
         }
 
         function filterMobileAssignments(filter, btn) {

@@ -7,7 +7,7 @@
     <title>[{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}] {{ $batchSubject->subject_name }} - Drawing Lab (R-2021)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <script>
         // Zero-flicker Theme Pre-loader (Compatible with Carmel Linx common preference)
@@ -40,45 +40,60 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* BASE & TYPOGRAPHY: DEFAULT DARK THEME (COMMON CARMEL LINX)   */
+        /* GLOBAL SMOOTH TYPOGRAPHY & ZERO TEXT-GLOW (CLEAN NORMAL UI)   */
         /* ------------------------------------------------------------- */
+        *, *::before, *::after {
+            text-shadow: none !important;
+        }
+
+        html, body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
         body {
             background-color: var(--bg-primary);
-            color: #f8fafc;
-            font-family: 'Inter', -apple-system, sans-serif;
+            color: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             font-size: 0.83rem;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        h1, h2, h3, h4, h5, h6, .brand-font {
-            font-family: 'Outfit', sans-serif;
+        h1, h2, h3, h4, h5, h6, .brand-font, .card-title, .modal-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #f8fafc;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            text-shadow: none !important;
         }
 
         /* Top Navbar */
         .navbar-custom {
             background: #090e17;
             border-bottom: 2px solid #1e293b;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
             padding: 0.85rem 1.25rem;
             min-height: 72px;
             transition: all 0.2s ease;
         }
         .vc-nav-title {
-            color: #ffffff !important;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 1.15rem;
-            line-height: 1.15;
+            color: #f8fafc !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 700;
+            font-size: 1.12rem;
+            line-height: 1.2;
             letter-spacing: -0.01em;
+            text-shadow: none !important;
         }
         .vc-sub-title {
-            color: #ffffff !important;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 1.15rem;
-            letter-spacing: -0.2px;
+            color: #f8fafc !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: -0.01em;
+            text-shadow: none !important;
         }
         .vc-nav-subtext {
             color: #94a3b8 !important;
@@ -138,7 +153,7 @@
         .metric-card:hover {
             border-color: #38bdf8;
             transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
         .metric-icon-box {
             width: 40px;
@@ -159,8 +174,8 @@
         }
         .metric-val {
             font-size: 1.25rem;
-            font-weight: 800;
-            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-family: 'Inter', -apple-system, sans-serif;
             line-height: 1.2;
             color: #f8fafc;
         }
@@ -205,7 +220,7 @@
         }
         .vc-meta-dot {
             color: #475569;
-            font-weight: 800;
+            font-weight: 600;
         }
 
         /* Unified Virtual Classroom Horizontal Tab Strip Navigation */
@@ -259,13 +274,28 @@
             color: #ffffff !important;
             background: rgba(56, 189, 248, 0.12) !important;
             border: 2px solid #38bdf8 !important;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25) !important;
+            box-shadow: none !important;
             border-radius: 0.75rem !important;
-            font-weight: 700 !important;
+            font-weight: 600 !important;
         }
         .vc-tab-btn .material-symbols-rounded {
             font-size: 1.18rem;
             line-height: 1;
+        }
+
+        /* Remove Up/Down Spin Arrows from All Mark Entry Fields and Tables */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button,
+        .fast-input::-webkit-outer-spin-button,
+        .fast-input::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+
+        input[type="number"],
+        .fast-input {
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
         }
 
         /* Fast Input Controls (Dark Mode Default) */
@@ -273,8 +303,9 @@
             width: 74px;
             height: 33px;
             text-align: center;
-            font-weight: 800;
-            font-size: 0.90rem;
+            font-weight: 600;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 0.88rem;
             color: #38bdf8;
             background-color: #070e1c;
             border: 1.5px solid #334155;
@@ -285,7 +316,7 @@
             color: #38bdf8;
             background-color: #091326;
             border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
             outline: none;
         }
         .fast-input.is-overridden {
@@ -309,11 +340,11 @@
         }
         .table-custom th {
             background-color: #090e17 !important;
-            color: #38bdf8 !important;
-            font-weight: 700;
+            color: #e2e8f0 !important;
+            font-weight: 600;
             text-transform: uppercase;
             font-size: 0.70rem;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
             padding: 0.65rem 0.5rem;
             border: 1px solid #1e293b !important;
             white-space: nowrap;
@@ -321,7 +352,7 @@
         }
         .table-custom th small {
             color: #94a3b8 !important;
-            font-weight: 600;
+            font-weight: 500;
         }
         .table-custom th.th-highlight {
             background-color: #061e36 !important;
@@ -342,14 +373,14 @@
         }
 
         .roll-badge {
-            font-weight: 800;
+            font-weight: 600;
             color: #f1f5f9;
             background-color: #1e293b;
             border: 1px solid #334155;
             border-radius: 4px;
             padding: 2px 7px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 0.82rem;
         }
         .reg-badge {
             font-family: monospace;
@@ -397,7 +428,7 @@
             background: #2563eb !important;
             border-color: #38bdf8 !important;
             color: #ffffff !important;
-            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
         }
 
         /* Subview Toggle Button */
@@ -442,6 +473,11 @@
             color: #fbbf24;
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
+        .autosave-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
 
         /* Common Academic Reports Hub (Unified Design) */
         .report-hub-card {
@@ -472,12 +508,13 @@
         }
         .report-hub-title {
             font-size: 0.76rem;
-            font-weight: 900;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             color: #e2e8f0;
             margin: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
+            text-shadow: none !important;
         }
         .report-hub-desc {
             font-size: 0.74rem;
@@ -550,7 +587,7 @@
             background: rgba(6, 78, 59, 0.38);
             border-color: #10b981;
             color: #ffffff;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
         .report-hub-btn.hub-btn-emerald .hub-icon,
         .report-hub-btn.hub-btn-emerald .hub-arrow {
@@ -620,7 +657,7 @@
             background-color: #091326 !important;
             border-color: #38bdf8 !important;
             color: #f8fafc !important;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
         }
         body:not(.light-theme) ::-webkit-scrollbar { width: 7px; height: 7px; }
         body:not(.light-theme) ::-webkit-scrollbar-track { background: #080d1a; }
@@ -641,7 +678,10 @@
         body.light-theme h5,
         body.light-theme h6,
         body.light-theme .brand-font {
+            font-family: 'Inter', -apple-system, sans-serif;
             color: #0f172a !important;
+            font-weight: 600;
+            text-shadow: none !important;
         }
 
         body.light-theme .navbar-custom {
@@ -652,10 +692,16 @@
             min-height: 72px !important;
         }
         body.light-theme .vc-nav-title {
-            color: #0f172a !important; /* REVERSED: Dark in Light Mode */
+            color: #0f172a !important;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 700;
+            text-shadow: none !important;
         }
         body.light-theme .vc-sub-title {
-            color: #0f172a !important; /* REVERSED: Dark in Light Mode */
+            color: #0f172a !important;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 600;
+            text-shadow: none !important;
         }
         body.light-theme .vc-nav-subtext {
             color: #64748b !important;
@@ -745,19 +791,23 @@
             color: #0f172a !important;
             background: rgba(37, 99, 235, 0.08) !important;
             border: 2px solid #2563eb !important;
-            box-shadow: 0 0 12px rgba(37, 99, 235, 0.2) !important;
+            box-shadow: none !important;
+            font-weight: 600 !important;
+            text-shadow: none !important;
         }
 
         body.light-theme .fast-input {
             color: #0f172a !important;
             background-color: #ffffff !important;
             border: 1.5px solid #cbd5e1 !important;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 600;
         }
         body.light-theme .fast-input:focus {
             color: #0f172a !important;
             background-color: #ffffff !important;
             border-color: #2563eb !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18) !important;
         }
         body.light-theme .fast-input.is-overridden {
             border-color: #f59e0b !important;
@@ -860,6 +910,11 @@
             background: #fffbeb !important;
             color: #d97706 !important;
             border-color: #fde68a !important;
+        }
+        body.light-theme .autosave-error {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border-color: #fecaca !important;
         }
 
         body.light-theme .report-hub-card {
@@ -982,7 +1037,7 @@
             background-color: #ffffff !important;
             border-color: #2563eb !important;
             color: #0f172a !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18) !important;
         }
         body.light-theme ::-webkit-scrollbar { width: 7px; height: 7px; }
         body.light-theme ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -1170,7 +1225,6 @@
                                     <th style="width: 135px;" class="text-info">Sheet Eval Mark<br><small>(Consolidated 37.5M)</small></th>
                                     <th style="width: 110px;" class="text-warning">Open-Ended<br><small>(Max 7.5M)</small></th>
                                     <th style="width: 110px;" style="color: #c084fc;">Series Avg<br><small>(Max 15.0M)</small></th>
-                                    <th style="width: 95px;">TEAMS Att %</th>
                                     <th style="width: 115px;" class="text-success">Attendance Mark<br><small>(Max 15.0M)</small></th>
                                     <th style="width: 95px;" class="th-highlight text-warning">Total CIA<br><small>(Max 75M)</small></th>
                                     <th style="width: 80px;">Result</th>
@@ -1184,12 +1238,12 @@
                                         <td><span class="roll-badge">{{ $r['roll_no'] ?? '-' }}</span></td>
                                         <td><span class="reg-badge">{{ $r['reg_no'] }}</span></td>
                                         <td class="text-start fw-bold text-dark">
-                                            {{ $r['name'] }}
-                                            @if($r['open_ended_topic'])
-                                                <div class="text-secondary font-monospace" style="font-size: 0.66rem;" title="{{ $r['open_ended_topic'] }}">
-                                                    <i class="fa-solid fa-lightbulb text-warning me-0.5"></i>{{ Str::limit($r['open_ended_topic'], 24) }}
-                                                </div>
-                                            @endif
+                                             {{ $r['name'] }}
+                                             @if($r['open_ended_topic'])
+                                                 <div class="text-secondary font-monospace" style="font-size: 0.66rem;" title="{{ $r['open_ended_topic'] }}">
+                                                     <i class="fa-solid fa-lightbulb text-warning me-0.5"></i>{{ Str::limit($r['open_ended_topic'], 24) }}
+                                                 </div>
+                                             @endif
                                         </td>
 
                                         <!-- Sheet Evaluation Mark (37.5M Consolidated with direct override provision) -->
@@ -1230,32 +1284,20 @@
                                             </small>
                                         </td>
 
-                                        <!-- TEAMS Attendance % -->
+                                        <!-- Attendance Mark (15.0M) from Attendance Register -->
                                         <td>
-                                            <span class="fw-bold text-dark">{{ $r['att_percentage'] }}%</span>
-                                            <small class="text-secondary d-block" style="font-size: 0.63rem;">{{ $r['att_attended'] }}/{{ $r['att_total'] }}</small>
-                                        </td>
-
-                                        <!-- Attendance Mark (15.0M) from TEAMS / Slab / Override -->
-                                        <td>
-                                            <input type="number" step="0.5" min="0" max="15.0"
-                                                class="fast-input input-attendance {{ $r['att_override'] !== null ? 'is-overridden' : '' }}"
-                                                value="{{ $r['att_override'] !== null ? $r['att_override'] : $r['calc_att_mark'] }}"
-                                                placeholder="{{ $r['calc_att_mark'] }}"
-                                                data-calculated="{{ $r['calc_att_mark'] }}"
-                                                oninput="recalculateRow(this)">
-                                            <small class="text-secondary d-block mt-0.5" style="font-size: 0.65rem;">
-                                                @if($r['att_override'] !== null)
-                                                    <span class="text-warning fw-bold">Override (Slab: {{ $r['calc_att_mark'] }})</span>
-                                                @else
-                                                    <span>Slab: {{ $r['calc_att_mark'] }}</span>
-                                                @endif
-                                            </small>
+                                            <span class="fw-bold fs-6 val-attendance text-success {{ $r['override_percentage'] !== null ? 'is-overridden' : '' }}">{{ $r['final_att_mark'] }}</span>
+                                            <input type="hidden" class="input-attendance" value="{{ $r['final_att_mark'] }}">
+                                            @if($r['override_percentage'] !== null)
+                                                <small class="text-secondary d-block mt-0.5" style="font-size: 0.65rem;">
+                                                    <span class="text-warning fw-bold"><i class="fa-solid fa-sliders me-0.5"></i>Override ({{ $r['override_percentage'] }}%)</span>
+                                                </small>
+                                            @endif
                                         </td>
 
                                         <!-- Total CIA (Max 75.0 - Whole Number) -->
                                         <td class="td-cia-total">
-                                            <span class="fw-bolder fs-6 val-total-cia">{{ round($r['total_cia']) }}</span>
+                                            <span class="fw-bold fs-6 val-total-cia">{{ round($r['total_cia']) }}</span>
                                             <small class="text-secondary d-block" style="font-size: 0.65rem;">/ 75</small>
                                         </td>
 
@@ -1471,7 +1513,7 @@
                                                 <span class="fw-bold text-primary matrix-avg">{{ $r['avg_sheet_score_100'] }}</span>
                                             </td>
                                             <td>
-                                                <span class="fw-bolder fs-6 matrix-continuous" style="color: #b45309;">{{ $r['calc_continuous'] }}</span>
+                                                <span class="fw-bold fs-6 matrix-continuous" style="color: #b45309;">{{ $r['calc_continuous'] }}</span>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -1558,7 +1600,7 @@
 
                                         <!-- Series Average (/15) -->
                                         <td class="td-series-avg">
-                                            <span class="fw-bolder fs-6 val-series-avg">{{ $r['avg_series_15'] }}</span>
+                                            <span class="fw-bold fs-6 val-series-avg">{{ $r['avg_series_15'] }}</span>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1582,10 +1624,11 @@
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" 
-                               class="btn btn-outline-success btn-sm px-2.5 py-1 d-flex align-items-center gap-1.5" 
-                               title="Open Common Attendance & Log">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>Open Common Log Desk</span>
+                               class="btn btn-success btn-sm px-3 py-1.5 fw-bold d-flex align-items-center gap-1.5 shadow-sm text-white" 
+                               title="Attendance Log">
+                                <i class="fa-solid fa-clipboard-user"></i>
+                                <span>Attendance Log</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem; opacity: 0.85;"></i>
                             </a>
                             <button type="button" class="btn btn-primary btn-sm px-3 fw-bold" onclick="saveAttendanceOverrides()">
                                 <i class="fa-solid fa-floppy-disk me-1"></i> Save Attendance
@@ -1615,13 +1658,13 @@
                                     <th style="width: 100px;">Attended</th>
                                     <th style="width: 110px;">Percentage (%)</th>
                                     <th style="width: 130px;">Data Source</th>
-                                    <th style="width: 120px;" class="text-success">Slab Mark (/15)</th>
-                                    <th style="width: 130px;" class="text-warning">Manual Override (/15)</th>
+                                    <th style="width: 130px;" class="text-warning">Manual Override (%)</th>
+                                    <th style="width: 125px;" class="text-success">Attendance Mark (/15)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($studentResults as $r)
-                                    <tr data-reg-no="{{ $r['reg_no'] }}" class="att-row">
+                                    <tr data-reg-no="{{ $r['reg_no'] }}" class="att-row" data-teams-pct="{{ $r['att_percentage'] }}" data-teams-mark="{{ $r['calc_att_mark'] }}">
                                         <td><span class="roll-badge">{{ $r['roll_no'] ?? '-' }}</span></td>
                                         <td><span class="reg-badge">{{ $r['reg_no'] }}</span></td>
                                         <td class="text-start fw-bold text-dark">{{ $r['name'] }}</td>
@@ -1633,12 +1676,20 @@
                                                 {{ $r['att_source'] ?? 'Common Log' }}
                                             </span>
                                         </td>
-                                        <td><span class="fw-bold text-success">{{ $r['calc_att_mark'] }}</span></td>
                                         <td>
-                                            <input type="number" step="0.5" min="0" max="15.0"
-                                                class="fast-input input-att-override {{ $r['att_override'] !== null ? 'is-overridden' : '' }}"
-                                                value="{{ $r['att_override'] !== null ? $r['att_override'] : '' }}"
-                                                placeholder="{{ $r['calc_att_mark'] }}">
+                                            <input type="number" step="0.1" min="0" max="100"
+                                                class="fast-input input-att-override-pct {{ $r['override_percentage'] !== null ? 'is-overridden' : '' }}"
+                                                value="{{ $r['override_percentage'] !== null ? $r['override_percentage'] : '' }}"
+                                                placeholder="{{ $r['att_percentage'] }}"
+                                                oninput="calcAttRow(this)">
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold fs-6 val-att-final-mark text-success {{ $r['override_percentage'] !== null ? 'is-overridden' : '' }}">{{ $r['final_att_mark'] }}</span>
+                                            <small class="text-secondary d-block mt-0.5 att-status-note" style="font-size: 0.65rem;">
+                                                @if($r['override_percentage'] !== null)
+                                                    <span class="text-warning fw-bold">Overridden</span>
+                                                @endif
+                                            </small>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -2022,10 +2073,10 @@
             const eseInput  = row.querySelector('.input-ese');
             const seriesVal = parseFloat(row.querySelector('.val-series').innerText) || 0;
 
-            const continuous = Math.min(37.5, Math.max(0, parseFloat(contInput.value) || 0));
-            const openEnded  = Math.min(7.5, Math.max(0, parseFloat(openInput.value) || 0));
-            const attendance = Math.min(15.0, Math.max(0, parseFloat(attInput.value) || 0));
-            const ese        = eseInput.value !== '' ? Math.min(50.0, Math.max(0, parseFloat(eseInput.value) || 0)) : null;
+            const continuous = Math.min(37.5, Math.max(0, parseFloat(contInput ? contInput.value : 0) || 0));
+            const openEnded  = Math.min(7.5, Math.max(0, parseFloat(openInput ? openInput.value : 0) || 0));
+            const attendance = Math.min(15.0, Math.max(0, parseFloat(attInput ? attInput.value : (row.querySelector('.val-attendance') ? row.querySelector('.val-attendance').innerText : 0)) || 0));
+            const ese        = (eseInput && eseInput.value !== '') ? Math.min(50.0, Math.max(0, parseFloat(eseInput.value) || 0)) : null;
 
             // Total CIA (Strict SBTE Kerala Max 75.0 - Whole Number)
             const totalCia = Math.min(75, Math.round(continuous + openEnded + seriesVal + attendance));
@@ -2044,31 +2095,116 @@
             // Grand Total (Total CIA + ESE - Whole Number)
             const grandTotal = ese !== null ? Math.round(totalCia + ese) : totalCia;
             row.querySelector('.val-grand-total').innerText = grandTotal;
-
-            showSavingIndicator('ready');
         }
 
-        // Save Consolidated CIA Fast (Hub for 37.5 Continuous Override, 7.5 Open Ended, Attendance, ESE)
-        async function saveConsolidatedCiaFast() {
+        // =========================================================================
+        // AUTOSAVE DEBOUNCED ENGINE FOR ALL DRAWING LAB TABS (CIA, SHEETS, SERIES, ATT, PLANS)
+        // =========================================================================
+        let ciaSaveTimer = null;
+        let isSavingCia = false;
+        let ciaPendingAfterSave = false;
+
+        function triggerAutoSaveCia(immediate = false) {
+            clearTimeout(ciaSaveTimer);
+            if (immediate) {
+                saveConsolidatedCiaFast(true);
+            } else {
+                showSavingIndicator('saving');
+                ciaSaveTimer = setTimeout(() => {
+                    saveConsolidatedCiaFast(true);
+                }, 800);
+            }
+        }
+
+        let seriesSaveTimer = null;
+        let isSavingSeries = false;
+        let seriesPendingAfterSave = false;
+
+        function triggerAutoSaveSeries(immediate = false) {
+            clearTimeout(seriesSaveTimer);
+            if (immediate) {
+                saveSeriesFast(true);
+            } else {
+                showSavingIndicator('saving');
+                seriesSaveTimer = setTimeout(() => {
+                    saveSeriesFast(true);
+                }, 800);
+            }
+        }
+
+        let sheetsSaveTimer = null;
+        let isSavingSheets = false;
+        let sheetsPendingAfterSave = false;
+
+        function triggerAutoSaveSheets(immediate = false) {
+            clearTimeout(sheetsSaveTimer);
+            if (immediate) {
+                saveActiveSheetMarks(true);
+            } else {
+                showSavingIndicator('saving');
+                sheetsSaveTimer = setTimeout(() => {
+                    saveActiveSheetMarks(true);
+                }, 800);
+            }
+        }
+
+        let attSaveTimer = null;
+        let isSavingAttendance = false;
+        let attPendingAfterSave = false;
+
+        function triggerAutoSaveAttendance(immediate = false) {
+            clearTimeout(attSaveTimer);
+            if (immediate) {
+                saveAttendanceOverrides(true);
+            } else {
+                showSavingIndicator('saving');
+                attSaveTimer = setTimeout(() => {
+                    saveAttendanceOverrides(true);
+                }, 800);
+            }
+        }
+
+        let lessonPlanTimer = null;
+        let isSavingLessonPlans = false;
+        let lessonPlansPendingAfterSave = false;
+
+        function triggerAutoSaveLessonPlans(immediate = false) {
+            clearTimeout(lessonPlanTimer);
+            if (immediate) {
+                saveLessonPlansFast(true);
+            } else {
+                showSavingIndicator('saving');
+                lessonPlanTimer = setTimeout(() => {
+                    saveLessonPlansFast(true);
+                }, 800);
+            }
+        }
+
+        // Save Consolidated CIA Fast (Hub for 37.5 Continuous Override, 7.5 Open Ended, ESE)
+        async function saveConsolidatedCiaFast(isAuto = false) {
+            if (isSavingCia) {
+                ciaPendingAfterSave = true;
+                return;
+            }
+            clearTimeout(ciaSaveTimer);
+            ciaSaveTimer = null;
+            isSavingCia = true;
             showSavingIndicator('saving');
             const records = [];
 
             document.querySelectorAll('.cia-row').forEach(row => {
                 const regNo = row.getAttribute('data-reg-no');
-                const contVal = row.querySelector('.input-continuous').value.trim();
-                const openVal = row.querySelector('.input-openended').value.trim();
-                const attVal  = row.querySelector('.input-attendance').value.trim();
-                const eseVal  = row.querySelector('.input-ese').value.trim();
-                const calcAtt = row.querySelector('.input-attendance').getAttribute('data-calculated') || '';
-
-                const isAttOverridden = (attVal !== '' && calcAtt !== '' && Math.abs(parseFloat(attVal) - parseFloat(calcAtt)) > 0.001);
+                const contInput = row.querySelector('.input-continuous');
+                const contVal = contInput ? contInput.value.trim() : '';
+                const openInput = row.querySelector('.input-openended');
+                const openVal = openInput ? openInput.value.trim() : '';
+                const eseInput = row.querySelector('.input-ese');
+                const eseVal  = eseInput ? eseInput.value.trim() : '';
 
                 records.push({
                     reg_no: regNo,
                     continuous_override: contVal !== '' ? parseFloat(contVal) : null,
                     open_ended_mark: openVal !== '' ? parseFloat(openVal) : 0,
-                    attendance_mark: attVal !== '' ? parseFloat(attVal) : null,
-                    attendance_override: isAttOverridden ? parseFloat(attVal) : null,
                     ese_mark: eseVal !== '' ? parseFloat(eseVal) : null,
                 });
             });
@@ -2083,13 +2219,19 @@
                 if (data.success) {
                     showSavingIndicator('saved');
                 } else {
-                    alert(data.message || 'Error saving marks');
-                    showSavingIndicator('ready');
+                    if (!isAuto) alert(data.message || 'Error saving marks');
+                    showSavingIndicator('error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Network error saving marks.');
-                showSavingIndicator('ready');
+                console.error('CIA Save error:', err);
+                if (!isAuto) alert('Network error saving marks.');
+                showSavingIndicator('error');
+            } finally {
+                isSavingCia = false;
+                if (ciaPendingAfterSave) {
+                    ciaPendingAfterSave = false;
+                    saveConsolidatedCiaFast(isAuto);
+                }
             }
         }
 
@@ -2136,10 +2278,18 @@
                 input.disabled = false;
             }
             calcSeriesRow(chk);
+            triggerAutoSaveSeries(true);
         }
 
         // Save Series Fast (Preserving Meenu M's Test 1 marks safely)
-        async function saveSeriesFast() {
+        async function saveSeriesFast(isAuto = false) {
+            if (isSavingSeries) {
+                seriesPendingAfterSave = true;
+                return;
+            }
+            clearTimeout(seriesSaveTimer);
+            seriesSaveTimer = null;
+            isSavingSeries = true;
             showSavingIndicator('saving');
             const records = [];
 
@@ -2169,13 +2319,19 @@
                 if (data.success) {
                     showSavingIndicator('saved');
                 } else {
-                    alert(data.message || 'Error saving series marks');
-                    showSavingIndicator('ready');
+                    if (!isAuto) alert(data.message || 'Error saving series marks');
+                    showSavingIndicator('error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Network error saving series marks.');
-                showSavingIndicator('ready');
+                console.error('Series Save error:', err);
+                if (!isAuto) alert('Network error saving series marks.');
+                showSavingIndicator('error');
+            } finally {
+                isSavingSeries = false;
+                if (seriesPendingAfterSave) {
+                    seriesPendingAfterSave = false;
+                    saveSeriesFast(isAuto);
+                }
             }
         }
 
@@ -2205,8 +2361,12 @@
 
         // Switch Sheet Pill with complete dynamic data binding
         function switchSheet(sheetNo, pillEl) {
-            // First capture current sheet changes into store
-            captureCurrentSheetTableInputs();
+            // If there is an active debounced save for the current sheet, flush immediately
+            if (sheetsSaveTimer) {
+                triggerAutoSaveSheets(true);
+            } else {
+                captureCurrentSheetTableInputs();
+            }
 
             // Update active pill
             document.querySelectorAll('.sheet-pill').forEach(p => p.classList.remove('active'));
@@ -2278,6 +2438,7 @@
             }
             const regNo = row.getAttribute('data-reg-no');
             updateMatrixRowForStudent(regNo, activeSheetNo, 0, chk.checked);
+            triggerAutoSaveSheets(true);
         }
 
         function updateMatrixRowForStudent(regNo, sheetNo, totalScore, isAbsent) {
@@ -2297,7 +2458,14 @@
         }
 
         // Save Active Sheet Marks to Database
-        async function saveActiveSheetMarks() {
+        async function saveActiveSheetMarks(isAuto = false) {
+            if (isSavingSheets) {
+                sheetsPendingAfterSave = true;
+                return;
+            }
+            clearTimeout(sheetsSaveTimer);
+            sheetsSaveTimer = null;
+            isSavingSheets = true;
             showSavingIndicator('saving');
             captureCurrentSheetTableInputs();
 
@@ -2326,13 +2494,19 @@
                 if (data.success) {
                     showSavingIndicator('saved');
                 } else {
-                    alert(data.message || 'Error saving sheet marks');
-                    showSavingIndicator('ready');
+                    if (!isAuto) alert(data.message || 'Error saving sheet marks');
+                    showSavingIndicator('error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Network error saving sheet marks.');
-                showSavingIndicator('ready');
+                console.error('Sheet Save error:', err);
+                if (!isAuto) alert('Network error saving sheet marks.');
+                showSavingIndicator('error');
+            } finally {
+                isSavingSheets = false;
+                if (sheetsPendingAfterSave) {
+                    sheetsPendingAfterSave = false;
+                    saveActiveSheetMarks(isAuto);
+                }
             }
         }
 
@@ -2363,16 +2537,89 @@
             }
         }
 
+        // Calculate Statutory Attendance Mark from Percentage (SBTE R21 Max 15M)
+        function calcAttMarkFromPct(pct) {
+            if (isNaN(pct) || pct <= 0) return 0.0;
+            if (pct >= 100) return 15.0;
+            const raw = (pct / 100.0) * 15.0;
+            return Math.min(15.0, Math.max(0.0, Math.round(raw * 2) / 2));
+        }
+
+        // Real-Time Calculation for Attendance Override (%) Row
+        function calcAttRow(inputEl) {
+            const row = inputEl.closest('.att-row');
+            if (!row) return;
+
+            const overrideVal = inputEl.value.trim();
+            const teamsPct = parseFloat(row.getAttribute('data-teams-pct')) || 0.0;
+            const teamsMark = parseFloat(row.getAttribute('data-teams-mark')) || 0.0;
+            const finalMarkEl = row.querySelector('.val-att-final-mark');
+            const noteEl = row.querySelector('.att-status-note');
+
+            let finalMark = teamsMark;
+            let isOverridden = false;
+            let displayNote = '';
+
+            if (overrideVal !== '') {
+                const ovPct = Math.min(100.0, Math.max(0.0, parseFloat(overrideVal) || 0.0));
+                finalMark = calcAttMarkFromPct(ovPct);
+                isOverridden = true;
+                displayNote = `<span class="text-warning fw-bold">Overridden</span>`;
+            }
+
+            if (isOverridden) {
+                inputEl.classList.add('is-overridden');
+                if (finalMarkEl) finalMarkEl.classList.add('is-overridden');
+            } else {
+                inputEl.classList.remove('is-overridden');
+                if (finalMarkEl) finalMarkEl.classList.remove('is-overridden');
+            }
+            if (finalMarkEl) finalMarkEl.innerText = finalMark;
+            if (noteEl) noteEl.innerHTML = displayNote;
+
+            // Real-time synchronization directly to Tab 1 (Consolidated CIA Register)
+            const regNo = row.getAttribute('data-reg-no');
+            const ciaRow = document.querySelector(`.cia-row[data-reg-no="${regNo}"]`);
+            if (ciaRow) {
+                const ciaValEl = ciaRow.querySelector('.val-attendance');
+                const ciaHidden = ciaRow.querySelector('.input-attendance');
+                const ciaNote = ciaRow.querySelector('small.text-secondary');
+                if (ciaValEl) {
+                    ciaValEl.innerText = finalMark;
+                    if (isOverridden) {
+                        ciaValEl.classList.add('is-overridden');
+                    } else {
+                        ciaValEl.classList.remove('is-overridden');
+                    }
+                }
+                if (ciaHidden) ciaHidden.value = finalMark;
+                if (ciaNote) {
+                    ciaNote.innerHTML = isOverridden
+                        ? `<span class="text-warning fw-bold"><i class="fa-solid fa-sliders me-0.5"></i>Override (${parseFloat(overrideVal)}%)</span>`
+                        : '';
+                }
+                recalculateRow(ciaHidden || ciaValEl);
+            }
+        }
+
         // Attendance Overrides Save
-        async function saveAttendanceOverrides() {
+        async function saveAttendanceOverrides(isAuto = false) {
+            if (isSavingAttendance) {
+                attPendingAfterSave = true;
+                return;
+            }
+            clearTimeout(attSaveTimer);
+            attSaveTimer = null;
+            isSavingAttendance = true;
             showSavingIndicator('saving');
             const records = [];
             document.querySelectorAll('.att-row').forEach(row => {
                 const regNo = row.getAttribute('data-reg-no');
-                const overrideVal = row.querySelector('.input-att-override').value.trim();
+                const inputEl = row.querySelector('.input-att-override-pct');
+                const overrideVal = inputEl ? inputEl.value.trim() : '';
                 records.push({
                     reg_no: regNo,
-                    override_mark: overrideVal !== '' ? parseFloat(overrideVal) : null,
+                    override_percentage: overrideVal !== '' ? parseFloat(overrideVal) : null,
                 });
             });
 
@@ -2385,24 +2632,20 @@
                 const data = await res.json();
                 if (data.success) {
                     showSavingIndicator('saved');
-                    // Sync back to Tab 1
-                    records.forEach(r => {
-                        const ciaRow = document.querySelector(`.cia-row[data-reg-no="${r.reg_no}"]`);
-                        if (ciaRow && r.override_mark !== null) {
-                            const attInput = ciaRow.querySelector('.input-attendance');
-                            attInput.value = r.override_mark;
-                            attInput.classList.add('is-overridden');
-                            recalculateRow(attInput);
-                        }
-                    });
                 } else {
-                    alert(data.message || 'Error saving attendance');
-                    showSavingIndicator('ready');
+                    if (!isAuto) alert(data.message || 'Error saving attendance');
+                    showSavingIndicator('error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Network error saving attendance.');
-                showSavingIndicator('ready');
+                console.error('Attendance Save error:', err);
+                if (!isAuto) alert('Network error saving attendance.');
+                showSavingIndicator('error');
+            } finally {
+                isSavingAttendance = false;
+                if (attPendingAfterSave) {
+                    attPendingAfterSave = false;
+                    saveAttendanceOverrides(isAuto);
+                }
             }
         }
 
@@ -2417,6 +2660,7 @@
                 deletedPlanIds.push(parseInt(planId));
             }
             row.remove();
+            triggerAutoSaveLessonPlans(true);
         }
 
         function addNewLessonPlanRow() {
@@ -2469,9 +2713,17 @@
             `;
             tbody.appendChild(tr);
             tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            triggerAutoSaveLessonPlans(true);
         }
 
-        async function saveLessonPlansFast() {
+        async function saveLessonPlansFast(isAuto = false) {
+            if (isSavingLessonPlans) {
+                lessonPlansPendingAfterSave = true;
+                return;
+            }
+            clearTimeout(lessonPlanTimer);
+            lessonPlanTimer = null;
+            isSavingLessonPlans = true;
             showSavingIndicator('saving');
             const plans = [];
             document.querySelectorAll('#lessonPlanTable .plan-row').forEach((row, idx) => {
@@ -2487,6 +2739,7 @@
 
                 plans.push({
                     id: planId && !planId.startsWith('new_') ? planId : null,
+                    temp_id: planId,
                     day_no: dayVal ? parseInt(dayVal) : (idx + 1),
                     remarks: moduleVal || null,
                     topic_content: topicVal || 'Drawing Exercise',
@@ -2507,15 +2760,31 @@
                 const data = await res.json();
                 if (data.success) {
                     deletedPlanIds = [];
+                    if (data.saved_plans && Array.isArray(data.saved_plans)) {
+                        data.saved_plans.forEach(sp => {
+                            if (sp.temp_id && sp.id) {
+                                const row = document.querySelector(`.plan-row[data-plan-id="${sp.temp_id}"]`);
+                                if (row) {
+                                    row.setAttribute('data-plan-id', sp.id);
+                                }
+                            }
+                        });
+                    }
                     showSavingIndicator('saved');
                 } else {
-                    alert(data.message || 'Error saving lesson plan');
-                    showSavingIndicator('ready');
+                    if (!isAuto) alert(data.message || 'Error saving lesson plan');
+                    showSavingIndicator('error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Network error saving lesson plan.');
-                showSavingIndicator('ready');
+                console.error('Lesson Plan Save error:', err);
+                if (!isAuto) alert('Network error saving lesson plan.');
+                showSavingIndicator('error');
+            } finally {
+                isSavingLessonPlans = false;
+                if (lessonPlansPendingAfterSave) {
+                    lessonPlansPendingAfterSave = false;
+                    saveLessonPlansFast(isAuto);
+                }
             }
         }
 
@@ -2609,6 +2878,10 @@
         function showSavingIndicator(status) {
             const ind = document.getElementById('saveStatusIndicator');
             if (!ind) return;
+            if (ind._hideTimeout) {
+                clearTimeout(ind._hideTimeout);
+                ind._hideTimeout = null;
+            }
             if (status === 'saving') {
                 ind.style.display = 'inline-flex';
                 ind.className = 'autosave-pill autosave-saving';
@@ -2617,9 +2890,16 @@
                 ind.style.display = 'inline-flex';
                 ind.className = 'autosave-pill autosave-ready';
                 ind.innerHTML = '<i class="fa-solid fa-check"></i> All Saved';
-                setTimeout(() => {
+                ind._hideTimeout = setTimeout(() => {
                     ind.style.display = 'none';
-                }, 2000);
+                }, 2500);
+            } else if (status === 'error') {
+                ind.style.display = 'inline-flex';
+                ind.className = 'autosave-pill autosave-error';
+                ind.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Save Failed';
+                ind._hideTimeout = setTimeout(() => {
+                    ind.style.display = 'none';
+                }, 3500);
             } else {
                 ind.style.display = 'none';
             }
@@ -2653,11 +2933,325 @@
             }
         }
 
-        // Automatic URL Tab Activation & Theme Init
+        // Mark Entry Table Column Navigation Definitions
+        const markColumnGroups = {
+            'consolidatedCiaTable': ['input-continuous', 'input-openended', 'input-ese'],
+            'sheetMarksTable': ['input-timely', 'input-appearance', 'input-remarks'],
+            'seriesFastTable': ['input-t1', 'input-t2'],
+            'attTable': ['input-att-override-pct']
+        };
+
+        function autoSaveTableImmediately(table) {
+            if (!table) return;
+            if (table.id === 'consolidatedCiaTable') {
+                triggerAutoSaveCia(true);
+            } else if (table.id === 'sheetMarksTable') {
+                triggerAutoSaveSheets(true);
+            } else if (table.id === 'seriesFastTable') {
+                triggerAutoSaveSeries(true);
+            } else if (table.id === 'attTable') {
+                triggerAutoSaveAttendance(true);
+            } else if (table.id === 'lessonPlanTable') {
+                triggerAutoSaveLessonPlans(true);
+            }
+        }
+
+        function navigateMarkTableInput(currentInput, direction = 'down', allowColumnWrap = false) {
+            const table = currentInput.closest('table');
+            if (!table) return false;
+
+            const tableId = table.id;
+            const colGroups = markColumnGroups[tableId] || [];
+
+            // Detect current column class
+            let matchedClass = null;
+            for (const cls of colGroups) {
+                if (currentInput.classList.contains(cls)) {
+                    matchedClass = cls;
+                    break;
+                }
+            }
+
+            // Fallback for general mark input classes
+            if (!matchedClass) {
+                const markClasses = [
+                    'input-continuous', 'input-openended', 'input-ese',
+                    'input-timely', 'input-appearance', 'input-remarks',
+                    'input-t1', 'input-t2', 'input-att-override-pct'
+                ];
+                for (const cls of markClasses) {
+                    if (currentInput.classList.contains(cls)) {
+                        matchedClass = cls;
+                        break;
+                    }
+                }
+            }
+
+            let candidateList = [];
+            let currentIndex = -1;
+
+            if (matchedClass) {
+                candidateList = Array.from(table.querySelectorAll(`tbody tr .${matchedClass}`));
+                currentIndex = candidateList.indexOf(currentInput);
+            } else {
+                // By column index in table (e.g. Lesson Plan table)
+                const currentCell = currentInput.closest('td');
+                const colIdx = currentCell ? currentCell.cellIndex : -1;
+                if (colIdx >= 0) {
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    rows.forEach(r => {
+                        const cell = r.cells[colIdx];
+                        if (cell) {
+                            const inp = cell.querySelector('input:not([type="hidden"]), select, textarea');
+                            if (inp) candidateList.push(inp);
+                        }
+                    });
+                    currentIndex = candidateList.indexOf(currentInput);
+                }
+            }
+
+            if (currentIndex === -1 || candidateList.length === 0) return false;
+
+            const step = direction === 'up' ? -1 : 1;
+            let targetIdx = currentIndex + step;
+
+            while (targetIdx >= 0 && targetIdx < candidateList.length) {
+                const candidate = candidateList[targetIdx];
+                const row = candidate.closest('tr');
+                const isVisible = row && row.style.display !== 'none' && candidate.offsetParent !== null;
+                const isEnabled = !candidate.disabled && !candidate.readOnly;
+
+                if (isVisible && isEnabled) {
+                    candidate.focus();
+                    try { candidate.select(); } catch (err) {}
+                    if (typeof candidate.scrollIntoView === 'function') {
+                        candidate.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                    }
+                    return true;
+                }
+                targetIdx += step;
+            }
+
+            // If we reached the end/beginning of this column and column wrapping is allowed (on Tab)
+            if (allowColumnWrap && matchedClass && colGroups.length > 1) {
+                const colIndexInGroup = colGroups.indexOf(matchedClass);
+                if (direction === 'down' && colIndexInGroup < colGroups.length - 1) {
+                    const nextColClass = colGroups[colIndexInGroup + 1];
+                    const nextColInputs = Array.from(table.querySelectorAll(`tbody tr .${nextColClass}`));
+                    for (let candidate of nextColInputs) {
+                        const row = candidate.closest('tr');
+                        const isVisible = row && row.style.display !== 'none' && candidate.offsetParent !== null;
+                        const isEnabled = !candidate.disabled && !candidate.readOnly;
+                        if (isVisible && isEnabled) {
+                            candidate.focus();
+                            try { candidate.select(); } catch (err) {}
+                            if (typeof candidate.scrollIntoView === 'function') {
+                                candidate.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                            }
+                            return true;
+                        }
+                    }
+                } else if (direction === 'up' && colIndexInGroup > 0) {
+                    const prevColClass = colGroups[colIndexInGroup - 1];
+                    const prevColInputs = Array.from(table.querySelectorAll(`tbody tr .${prevColClass}`));
+                    for (let i = prevColInputs.length - 1; i >= 0; i--) {
+                        const candidate = prevColInputs[i];
+                        const row = candidate.closest('tr');
+                        const isVisible = row && row.style.display !== 'none' && candidate.offsetParent !== null;
+                        const isEnabled = !candidate.disabled && !candidate.readOnly;
+                        if (isVisible && isEnabled) {
+                            candidate.focus();
+                            try { candidate.select(); } catch (err) {}
+                            if (typeof candidate.scrollIntoView === 'function') {
+                                candidate.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Automatic URL Tab Activation, Real-time Autosave Delegations & Theme Init
         window.addEventListener('DOMContentLoaded', () => {
+            // Prevent accidental mouse wheel scroll changes on focused number inputs
+            document.addEventListener('wheel', () => {
+                if (document.activeElement && document.activeElement.type === 'number') {
+                    document.activeElement.blur();
+                }
+            }, { passive: true });
+
             // Sync theme toggle button UI
             const isLightMode = document.body.classList.contains('light-theme');
             updateThemeToggleUI(isLightMode);
+
+            // Tab switch auto-save flush
+            const tabNav = document.getElementById('r21DrawingTabs');
+            if (tabNav) {
+                tabNav.addEventListener('hide.bs.tab', () => {
+                    if (ciaSaveTimer) triggerAutoSaveCia(true);
+                    if (seriesSaveTimer) triggerAutoSaveSeries(true);
+                    if (sheetsSaveTimer) triggerAutoSaveSheets(true);
+                    if (attSaveTimer) triggerAutoSaveAttendance(true);
+                    if (lessonPlanTimer) triggerAutoSaveLessonPlans(true);
+                });
+            }
+
+            // Window beforeunload flush
+            window.addEventListener('beforeunload', () => {
+                if (ciaSaveTimer) triggerAutoSaveCia(true);
+                if (seriesSaveTimer) triggerAutoSaveSeries(true);
+                if (sheetsSaveTimer) triggerAutoSaveSheets(true);
+                if (attSaveTimer) triggerAutoSaveAttendance(true);
+                if (lessonPlanTimer) triggerAutoSaveLessonPlans(true);
+            });
+
+            // TAB 1: Consolidated CIA Register Autosave Event Delegation
+            const ciaTable = document.getElementById('consolidatedCiaTable');
+            if (ciaTable) {
+                ciaTable.addEventListener('input', (e) => {
+                    if (e.target.matches('.input-continuous, .input-openended, .input-ese')) {
+                        triggerAutoSaveCia(false);
+                    }
+                });
+                ciaTable.addEventListener('change', (e) => {
+                    if (e.target.matches('.input-continuous, .input-openended, .input-ese')) {
+                        triggerAutoSaveCia(true);
+                    }
+                });
+                ciaTable.addEventListener('focusout', (e) => {
+                    if (e.target.matches('.input-continuous, .input-openended, .input-ese') && ciaSaveTimer) {
+                        triggerAutoSaveCia(true);
+                    }
+                });
+            }
+
+            // TAB 2: Formative Sheet Evaluations Autosave Event Delegation
+            const sheetTable = document.getElementById('sheetMarksTable');
+            if (sheetTable) {
+                sheetTable.addEventListener('input', (e) => {
+                    if (e.target.matches('.input-timely, .input-appearance, .input-remarks')) {
+                        triggerAutoSaveSheets(false);
+                    }
+                });
+                sheetTable.addEventListener('change', (e) => {
+                    if (e.target.matches('.input-timely, .input-appearance, .input-remarks')) {
+                        triggerAutoSaveSheets(true);
+                    }
+                });
+                sheetTable.addEventListener('focusout', (e) => {
+                    if (e.target.matches('.input-timely, .input-appearance, .input-remarks') && sheetsSaveTimer) {
+                        triggerAutoSaveSheets(true);
+                    }
+                });
+            }
+
+            // TAB 3: Summative Series Tests Autosave Event Delegation
+            const seriesTable = document.getElementById('seriesFastTable');
+            if (seriesTable) {
+                seriesTable.addEventListener('input', (e) => {
+                    if (e.target.matches('.input-t1, .input-t2')) {
+                        triggerAutoSaveSeries(false);
+                    }
+                });
+                seriesTable.addEventListener('change', (e) => {
+                    if (e.target.matches('.input-t1, .input-t2')) {
+                        triggerAutoSaveSeries(true);
+                    }
+                });
+                seriesTable.addEventListener('focusout', (e) => {
+                    if (e.target.matches('.input-t1, .input-t2') && seriesSaveTimer) {
+                        triggerAutoSaveSeries(true);
+                    }
+                });
+            }
+
+            // TAB 4: Attendance Register Autosave Event Delegation
+            const attTable = document.getElementById('attTable');
+            if (attTable) {
+                attTable.addEventListener('input', (e) => {
+                    if (e.target.matches('.input-att-override-pct')) {
+                        triggerAutoSaveAttendance(false);
+                    }
+                });
+                attTable.addEventListener('change', (e) => {
+                    if (e.target.matches('.input-att-override-pct')) {
+                        triggerAutoSaveAttendance(true);
+                    }
+                });
+                attTable.addEventListener('focusout', (e) => {
+                    if (e.target.matches('.input-att-override-pct') && attSaveTimer) {
+                        triggerAutoSaveAttendance(true);
+                    }
+                });
+            }
+
+            // TAB 5: Course Lesson Planner Autosave Event Delegation
+            const lpTable = document.getElementById('lessonPlanTable');
+            if (lpTable) {
+                lpTable.addEventListener('input', (e) => {
+                    if (e.target.matches('.plan-day, .plan-module, .plan-topic, .plan-hours, .plan-co, .plan-proposed-date, .plan-actual-date')) {
+                        triggerAutoSaveLessonPlans(false);
+                    }
+                });
+                lpTable.addEventListener('change', (e) => {
+                    if (e.target.matches('.plan-day, .plan-module, .plan-topic, .plan-hours, .plan-co, .plan-proposed-date, .plan-actual-date, .plan-status')) {
+                        triggerAutoSaveLessonPlans(true);
+                    }
+                });
+                lpTable.addEventListener('focusout', (e) => {
+                    if (e.target.matches('.plan-day, .plan-module, .plan-topic, .plan-hours, .plan-co, .plan-proposed-date, .plan-actual-date') && lessonPlanTimer) {
+                        triggerAutoSaveLessonPlans(true);
+                    }
+                });
+            }
+
+            // Universal Mark Entry Table Keyboard Navigation (Enter/Tab to lower row, Auto-save on Enter)
+            document.addEventListener('keydown', (e) => {
+                const target = e.target;
+                if (!target || !target.matches) return;
+
+                // Restrict to inputs inside tbody of mark & lesson plan tables
+                const table = target.closest('#consolidatedCiaTable, #sheetMarksTable, #seriesFastTable, #attTable, #lessonPlanTable');
+                if (!table) return;
+
+                const tbody = target.closest('tbody');
+                if (!tbody) return;
+
+                // Do not intercept checkboxes or action buttons
+                if (target.type === 'checkbox' || target.type === 'button' || target.type === 'submit') return;
+
+                const isEnter = e.key === 'Enter';
+                const isTab   = e.key === 'Tab';
+                const isDown  = e.key === 'ArrowDown';
+                const isUp    = e.key === 'ArrowUp';
+
+                if (!isEnter && !isTab && !isDown && !isUp) return;
+
+                // In SELECT elements, allow native dropdown option cycling on Arrow keys
+                if ((isDown || isUp) && target.tagName === 'SELECT') return;
+
+                // In number/text fields, prevent default spin/step on Arrow keys and navigate rows safely
+                if (isDown || isUp) {
+                    e.preventDefault();
+                    target.dispatchEvent(new Event('change', { bubbles: true }));
+                    autoSaveTableImmediately(table);
+                    navigateMarkTableInput(target, isDown ? 'down' : 'up', false);
+                    return;
+                }
+
+                // Intercept Enter and Tab to navigate down to lower row
+                e.preventDefault();
+
+                // Auto-save on Enter (and Tab)
+                target.dispatchEvent(new Event('change', { bubbles: true }));
+                autoSaveTableImmediately(table);
+
+                const direction = e.shiftKey ? 'up' : 'down';
+                navigateMarkTableInput(target, direction, isTab);
+            });
 
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab') || window.location.hash.replace('#', '').replace('tab-', '');

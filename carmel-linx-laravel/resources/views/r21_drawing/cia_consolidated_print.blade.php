@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consolidated CIA & ESE Evaluation Register (R-2021) — {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</title>
+<title>{{ !empty($withEse) ? 'Consolidated CIA & ESE Evaluation Register (R-2021)' : 'Continuous Internal Assessment (CIA 75M) Register' }} — {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; background: #f1f5f9; color: #1e293b; padding: 24px 16px; }
@@ -53,7 +53,7 @@
 <body>
 
 <div class="no-print">
-  <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Consolidated Register</button>
+  <button onclick="window.print()"><i class="fa-solid fa-print"></i> {{ !empty($withEse) ? 'Print Consolidated Register' : 'Print Internal Mark Report' }}</button>
   <button class="back-btn" onclick="window.close()"><i class="fa-solid fa-xmark"></i> Close</button>
 </div>
 
@@ -62,7 +62,7 @@
     <h1>Carmel Polytechnic College, Alappuzha</h1>
     <h2>Department of {{ $courseFile->program ?? 'Technical Education' }}</h2>
     <p>State Board of Technical Education, Kerala &bull; Revision 2021 (R-2021)</p>
-    <div class="report-title">Continuous Internal Assessment (CIA 75M) & End Semester Exam (ESE 50M) Register</div>
+    <div class="report-title">{{ !empty($withEse) ? 'Continuous Internal Assessment (CIA 75M) & End Semester Exam (ESE 50M) Register' : 'Continuous Internal Assessment (CIA 75M) Register' }}</div>
   </div>
 
   <table class="meta-table">
@@ -81,8 +81,13 @@
     <tr>
       <td class="lbl">CIA Maximum</td>
       <td class="val"><strong style="color: #1e3a5f;">{{ $ciaMax }} Marks</strong></td>
-      <td class="lbl">ESE Maximum</td>
-      <td class="val"><strong style="color: #1e3a5f;">{{ $eseMax }} Marks (Total: 125 Marks)</strong></td>
+      @if(!empty($withEse))
+        <td class="lbl">ESE Maximum</td>
+        <td class="val"><strong style="color: #1e3a5f;">{{ $eseMax }} Marks (Total: 125 Marks)</strong></td>
+      @else
+        <td class="lbl">Minimum for Pass</td>
+        <td class="val"><strong style="color: #1e3a5f;">40% (30 Marks out of 75)</strong></td>
+      @endif
     </tr>
     <tr>
       <td class="lbl">Assessment Split-up</td>
@@ -96,24 +101,30 @@
   </table>
 
   <div class="rule-note">
-    <strong>Assessment Policy (Revision 2021):</strong> Continuous Internal Assessment (CIA) total is 75 Marks. Minimum eligibility mark for pass in CIA is 40% (30 Marks). Minimum pass mark in ESE is 40% (20 Marks out of 50). Minimum overall aggregate for course pass is 40% (50 Marks out of 125).
+    @if(!empty($withEse))
+      <strong>Assessment Policy (Revision 2021):</strong> Continuous Internal Assessment (CIA) total is 75 Marks. Minimum eligibility mark for pass in CIA is 40% (30 Marks). Minimum pass mark in ESE is 40% (20 Marks out of 50). Minimum overall aggregate for course pass is 40% (50 Marks out of 125).
+    @else
+      <strong>Assessment Policy (Revision 2021):</strong> Continuous Internal Assessment (CIA) total is 75 Marks. Minimum eligibility mark for pass in CIA is 40% (30 Marks out of 75).
+    @endif
   </div>
 
   <table class="data-table">
     <thead>
       <tr>
-        <th style="width: 30px;">#</th>
-        <th style="width: 55px;">Roll No</th>
-        <th style="width: 85px;">Reg No</th>
+        <th style="width: 35px;">#</th>
+        <th style="width: 60px;">Roll No</th>
+        <th style="width: 95px;">Reg No</th>
         <th class="td-left">Student Name</th>
-        <th style="width: 80px;">Continuous<br><small>(Max {{ $continuousMax }})</small></th>
-        <th style="width: 75px;">Open-Ended<br><small>(Max {{ $openEndedMax }})</small></th>
-        <th style="width: 75px;">Series Avg<br><small>(Max {{ $summativeMax }})</small></th>
-        <th style="width: 75px;">Attendance<br><small>(Max {{ $attMax }})</small></th>
-        <th style="width: 85px; background: #0f2e59;">Total CIA<br><small>(Max {{ $ciaMax }})</small></th>
-        <th style="width: 75px;">ESE Mark<br><small>(Max {{ $eseMax }})</small></th>
-        <th style="width: 80px;">Grand Total<br><small>(Max 125)</small></th>
-        <th style="width: 75px;">Result</th>
+        <th style="width: 95px;">Continuous<br><small>(Max {{ $continuousMax }})</small></th>
+        <th style="width: 85px;">Open-Ended<br><small>(Max {{ $openEndedMax }})</small></th>
+        <th style="width: 85px;">Series Avg<br><small>(Max {{ $summativeMax }})</small></th>
+        <th style="width: 85px;">Attendance<br><small>(Max {{ $attMax }})</small></th>
+        <th style="width: 95px; background: #0f2e59;">Total CIA<br><small>(Max {{ $ciaMax }})</small></th>
+        @if(!empty($withEse))
+          <th style="width: 75px;">ESE Mark<br><small>(Max {{ $eseMax }})</small></th>
+          <th style="width: 80px;">Grand Total<br><small>(Max 125)</small></th>
+        @endif
+        <th style="width: 85px;">Result</th>
       </tr>
     </thead>
     <tbody>
@@ -135,12 +146,14 @@
           <td style="font-weight: 900; font-size: 11.5px; background: #f0fdf4; color: #166534;">
             {{ round($r['total_cia']) }}
           </td>
-          <td style="font-weight: 700; color: #475569;">
-            {{ $r['ese_mark'] !== null ? $r['ese_mark'] : '-' }}
-          </td>
-          <td style="font-weight: 900; font-size: 11.5px; color: #0f172a;">
-            {{ round($r['grand_total']) }}
-          </td>
+          @if(!empty($withEse))
+            <td style="font-weight: 700; color: #475569;">
+              {{ $r['ese_mark'] !== null ? $r['ese_mark'] : '-' }}
+            </td>
+            <td style="font-weight: 900; font-size: 11.5px; color: #0f172a;">
+              {{ round($r['grand_total']) }}
+            </td>
+          @endif
           <td>
             <span style="font-weight: 700; color: {{ $r['is_pass'] ? '#059669' : '#dc2626' }};">
               {{ $r['is_pass'] ? 'PASSED' : 'NEEDS IMP' }}

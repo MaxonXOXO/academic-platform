@@ -182,17 +182,13 @@ class R21VirtualClassroomDrawingController extends Controller
             $calcAttMark = $attInfo['calc_mark'];
 
             $savedAtt = $attEvals->get($regNo);
-            $attOverride = ($savedAtt && $savedAtt->override_mark !== null) 
-                ? floatval($savedAtt->override_mark) 
+            $overridePercentage = ($savedAtt && $savedAtt->override_percentage !== null) 
+                ? floatval($savedAtt->override_percentage) 
                 : null;
 
-            $finalAttMark = ($attOverride !== null) 
-                ? $attOverride 
-                : (($savedAtt && $savedAtt->final_attendance_mark !== null) 
-                    ? floatval($savedAtt->final_attendance_mark) 
-                    : (($pEval && $pEval->attendance_marks !== null && floatval($pEval->attendance_marks) > 0) 
-                        ? floatval($pEval->attendance_marks) 
-                        : $calcAttMark));
+            // Effective percentage for statutory mark calculation
+            $effectivePct = ($overridePercentage !== null) ? $overridePercentage : $attPercentage;
+            $finalAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($effectivePct, $attMax);
 
             // B. Continuous Drawing Work (37.5 Marks Max)
             $stSheets = $sheetEvals->get($regNo, collect());
@@ -261,9 +257,10 @@ class R21VirtualClassroomDrawingController extends Controller
                 'att_total'               => $totalAtt,
                 'att_attended'            => $presentAtt,
                 'att_percentage'          => $attPercentage,
+                'override_percentage'     => $overridePercentage,
                 'att_source'              => $attSource,
                 'calc_att_mark'           => $calcAttMark,
-                'att_override'            => $attOverride,
+                'att_override'            => $overridePercentage,
                 'final_att_mark'          => $finalAttMark,
 
                 // Continuous (37.5)
@@ -353,6 +350,11 @@ class R21VirtualClassroomDrawingController extends Controller
 
         $userId = Session::get('userId');
 
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
+        $attMap = $this->calculateAttendanceMap($batchSubject, $students, 15.0);
+        $attEvals = R21DrawingAttendanceEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
+
         foreach ($records as $r) {
             $regNo = $r['reg_no'] ?? null;
             if (!$regNo) continue;
@@ -367,20 +369,19 @@ class R21VirtualClassroomDrawingController extends Controller
 
             $openTopic = $r['open_ended_topic'] ?? null;
 
-            $attMark = (isset($r['attendance_mark']) && $r['attendance_mark'] !== '' && $r['attendance_mark'] !== null)
-                ? min(15.0, max(0, floatval($r['attendance_mark'])))
-                : null;
-
-            $attOverride = (isset($r['attendance_override']) && $r['attendance_override'] !== '' && $r['attendance_override'] !== null)
-                ? min(15.0, max(0, floatval($r['attendance_override'])))
-                : null;
-
             $eseMark = (isset($r['ese_mark']) && $r['ese_mark'] !== '' && $r['ese_mark'] !== null)
                 ? min(50.0, max(0, floatval($r['ese_mark'])))
                 : null;
 
-            $existingEval = PracticalEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->first();
-            $attMarkToSave = ($attMark !== null) ? $attMark : (($attOverride !== null) ? $attOverride : ($existingEval ? $existingEval->attendance_marks : 0.00));
+            // Attendance mark is derived cleanly from the Attendance Register / TEAMS calculation
+            $savedAtt = $attEvals->get($regNo);
+            if ($savedAtt && $savedAtt->override_percentage !== null) {
+                $attMarkToSave = \App\Services\AttainmentService::calculateR21AttendanceMark(floatval($savedAtt->override_percentage), 15.0);
+            } elseif ($savedAtt && $savedAtt->final_attendance_mark !== null) {
+                $attMarkToSave = floatval($savedAtt->final_attendance_mark);
+            } else {
+                $attMarkToSave = isset($attMap[$regNo]) ? floatval($attMap[$regNo]['calc_mark']) : 0.00;
+            }
 
             PracticalEvaluation::updateOrCreate(
                 [
@@ -396,19 +397,6 @@ class R21VirtualClassroomDrawingController extends Controller
                     'board_exam_marks'   => $eseMark,
                 ]
             );
-
-            if ($attOverride !== null) {
-                R21DrawingAttendanceEvaluation::updateOrCreate(
-                    [
-                        'batch_subject_id' => $subjectId,
-                        'reg_no'           => $regNo
-                    ],
-                    [
-                        'override_mark'         => $attOverride,
-                        'final_attendance_mark' => $attOverride,
-                    ]
-                );
-            }
         }
 
         return response()->json([
@@ -617,10 +605,21 @@ class R21VirtualClassroomDrawingController extends Controller
      */
     public function saveAttendanceMarks(Request $request, $subjectId)
     {
+        if (\App\Models\ConsolidatedCiaApproval::isLockedForSubject($subjectId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consolidated CIA marks for this semester have been approved and locked by the Head of Department. Edits are disabled.'
+            ], 403);
+        }
+
         $records = $request->input('records', []);
         if (!is_array($records)) {
             return response()->json(['success' => false, 'message' => 'Invalid data payload.'], 400);
         }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
+        $attMap = $this->calculateAttendanceMap($batchSubject, $students, 15.0);
 
         $attMax = 15.0;
 
@@ -628,17 +627,17 @@ class R21VirtualClassroomDrawingController extends Controller
             $regNo = $rec['reg_no'] ?? null;
             if (!$regNo) continue;
 
-            $override = isset($rec['override_mark']) && $rec['override_mark'] !== '' 
-                ? floatval($rec['override_mark']) 
+            $overridePct = (isset($rec['override_percentage']) && $rec['override_percentage'] !== '' && $rec['override_percentage'] !== null) 
+                ? min(100.0, max(0.0, floatval($rec['override_percentage']))) 
                 : null;
 
-            if ($override !== null) {
-                if ($override > $attMax) $override = $attMax;
-                if ($override < 0) $override = 0;
-            }
+            $attInfo = $attMap[$regNo] ?? ['total' => 0, 'attended' => 0, 'percentage' => 0.0, 'calc_mark' => 0.0];
+            $teamsPct = floatval($attInfo['percentage']);
+            $calcMark = floatval($attInfo['calc_mark']);
 
-            $attMark = floatval($rec['attendance_mark'] ?? 0);
-            $finalMark = $override !== null ? $override : $attMark;
+            $effectivePct = ($overridePct !== null) ? $overridePct : $teamsPct;
+            $finalMark = \App\Services\AttainmentService::calculateR21AttendanceMark($effectivePct, $attMax);
+            $overrideMark = ($overridePct !== null) ? $finalMark : null;
 
             R21DrawingAttendanceEvaluation::updateOrCreate(
                 [
@@ -646,9 +645,12 @@ class R21VirtualClassroomDrawingController extends Controller
                     'reg_no'           => $regNo,
                 ],
                 [
-                    'attendance_percentage' => floatval($rec['attendance_percentage'] ?? 0),
-                    'attendance_mark'       => $attMark,
-                    'override_mark'         => $override,
+                    'total_hours'           => $attInfo['total'],
+                    'attended_hours'        => $attInfo['attended'],
+                    'attendance_percentage' => $teamsPct,
+                    'override_percentage'   => $overridePct,
+                    'attendance_mark'       => $calcMark,
+                    'override_mark'         => $overrideMark,
                     'final_attendance_mark' => $finalMark,
                 ]
             );
@@ -661,7 +663,7 @@ class R21VirtualClassroomDrawingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attendance marks updated successfully.'
+            'message' => 'Attendance percentage overrides and statutory marks saved successfully.'
         ]);
     }
 
@@ -747,16 +749,11 @@ class R21VirtualClassroomDrawingController extends Controller
 
             // Attendance (Max 15)
             $attInfo = $attMap[$regNo] ?? null;
-            $calcAttMark = $attInfo ? $attInfo['calc_mark'] : $attMax;
+            $teamsPct = $attInfo ? floatval($attInfo['percentage']) : 0.0;
             $savedAtt = $attEvals->get($regNo);
-            $attOverride = ($savedAtt && $savedAtt->override_mark !== null) ? floatval($savedAtt->override_mark) : null;
-            $attMark = ($attOverride !== null) 
-                ? $attOverride 
-                : (($savedAtt && $savedAtt->final_attendance_mark !== null) 
-                    ? floatval($savedAtt->final_attendance_mark) 
-                    : (($pEval && $pEval->attendance_marks !== null && floatval($pEval->attendance_marks) > 0) 
-                        ? floatval($pEval->attendance_marks) 
-                        : $calcAttMark));
+            $overridePct = ($savedAtt && $savedAtt->override_percentage !== null) ? floatval($savedAtt->override_percentage) : null;
+            $effectivePct = ($overridePct !== null) ? $overridePct : $teamsPct;
+            $attMark = \App\Services\AttainmentService::calculateR21AttendanceMark($effectivePct, $attMax);
 
             // Continuous Work (Max 37.5)
             $stSheets = $sheetEvals->get($regNo, collect());
@@ -809,6 +806,8 @@ class R21VirtualClassroomDrawingController extends Controller
             ];
         });
 
+        $withEse = request()->boolean('with_ese', false);
+
         return view('r21_drawing.cia_consolidated_print', compact(
             'batchSubject',
             'courseFile',
@@ -819,7 +818,8 @@ class R21VirtualClassroomDrawingController extends Controller
             'continuousMax',
             'openEndedMax',
             'summativeMax',
-            'attMax'
+            'attMax',
+            'withEse'
         ));
     }
 
@@ -883,6 +883,7 @@ class R21VirtualClassroomDrawingController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid data payload.'], 400);
         }
 
+        $savedPlans = [];
         foreach ($plans as $index => $p) {
             $id = $p['id'] ?? null;
             $dayNo = !empty($p['day_no']) ? intval($p['day_no']) : ($index + 1);
@@ -908,8 +909,10 @@ class R21VirtualClassroomDrawingController extends Controller
                 LessonPlan::where('id', $id)
                     ->where('batch_subject_id', $subjectId)
                     ->update($data);
+                $savedPlans[] = ['temp_id' => $p['temp_id'] ?? $id, 'id' => intval($id)];
             } else {
-                LessonPlan::create($data);
+                $newRecord = LessonPlan::create($data);
+                $savedPlans[] = ['temp_id' => $p['temp_id'] ?? $id, 'id' => $newRecord->id];
             }
         }
 
@@ -921,8 +924,9 @@ class R21VirtualClassroomDrawingController extends Controller
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Lesson plans updated successfully.'
+            'success'     => true,
+            'message'     => 'Lesson plans updated successfully.',
+            'saved_plans' => $savedPlans,
         ]);
     }
 

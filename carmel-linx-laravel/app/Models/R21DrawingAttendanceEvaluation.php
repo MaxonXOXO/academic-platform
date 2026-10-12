@@ -17,6 +17,7 @@ class R21DrawingAttendanceEvaluation extends Model
         'total_hours',
         'attended_hours',
         'attendance_percentage',
+        'override_percentage',
         'attendance_mark',
         'override_mark',
         'final_attendance_mark',
@@ -24,6 +25,7 @@ class R21DrawingAttendanceEvaluation extends Model
 
     protected $casts = [
         'attendance_percentage' => 'decimal:2',
+        'override_percentage' => 'decimal:2',
         'attendance_mark' => 'decimal:2',
         'override_mark' => 'decimal:2',
         'final_attendance_mark' => 'decimal:2',

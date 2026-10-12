@@ -1863,8 +1863,13 @@ Syllabus Text:
         $coSum = array_sum(array_column($parsedCos, 'duration'));
         $proposedHours = ($coSum > 0) ? ($coSum + 2) : 60;
 
-        $ciaMarks = $syllabus->cia_marks ?? 60;
-        $eseMarks = $syllabus->ese_marks ?? 40;
+        if ($batchSubject->id == 110 || ($batchSubject->subject_code == '3055' && (str_contains($batchSubject->classroom_id ?? '', 'AU') || ($batchSubject->branch ?? '') === 'AU'))) {
+            $ciaMarks = 50;
+            $eseMarks = 100;
+        } else {
+            $ciaMarks = $syllabus->cia_marks ?? 60;
+            $eseMarks = $syllabus->ese_marks ?? 40;
+        }
 
         $batchStartYear = intval(explode('-', $classroom->batch_year ?? $batchSubject->classroom->batch_year ?? '')[0]);
         if ($batchStartYear <= 0) {

@@ -36,6 +36,13 @@ class R21VirtualClassroomDrawingController extends Controller
 
         $batchSubject = BatchSubject::findOrFail($subjectId);
 
+        // AU 3055 Special Case: Automobile Engineering Drawing evaluation scheme is identical to Theory per syllabus criteria.
+        // Redirect directly to the Virtual Theory Classroom.
+        $isAuDrawingTheory = ($subjectId == 110 || ($batchSubject->subject_code == '3055' && (str_contains($batchSubject->classroom_id, 'AU') || ($batchSubject->branch ?? '') === 'AU' || str_contains(strtolower($batchSubject->subject_name), 'automobile'))));
+        if ($isAuDrawingTheory) {
+            return redirect("/dashboard/lecturer?subject_id={$batchSubject->id}&subject_name=" . urlencode($batchSubject->subject_name) . "&classroom_id=" . urlencode($batchSubject->classroom_id) . "&revision=REV2021&type=Theory");
+        }
+
         // Fetch classroom details
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {

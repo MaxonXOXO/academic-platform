@@ -2380,8 +2380,9 @@
                 let subTypeLower = (st.subject_type || (matchedAssig ? matchedAssig.subject_type : '') || '').toLowerCase();
                 let revCode = (st.syllabus_revision_code || (matchedAssig ? matchedAssig.syllabus_revision_code : '') || '').toUpperCase();
 
-                const isPracticalSlot = st.is_practical || (matchedAssig && matchedAssig.is_practical) ||
-                    subTypeLower.includes('lab') || subTypeLower.includes('practical') || subTypeLower.includes('practicum') || subTypeLower.includes('drawing') || subTypeLower.includes('workshop');
+                const isAu3055Theory = (String(batchSubId) === '110' || (String(st.subject_code || (matchedAssig ? matchedAssig.subject_code : '')).includes('3055')));
+                const isPracticalSlot = !isAu3055Theory && (st.is_practical || (matchedAssig && matchedAssig.is_practical) ||
+                    subTypeLower.includes('lab') || subTypeLower.includes('practical') || subTypeLower.includes('practicum') || subTypeLower.includes('drawing') || subTypeLower.includes('workshop'));
 
                 const isR21Practical = batchSubId &&
                     isPracticalSlot &&
@@ -3191,7 +3192,8 @@
 
                         const isPracticum = Boolean(data.is_practicum || (currentAttSubjectType && currentAttSubjectType.toLowerCase().includes('practicum')));
                         const hasExperiments = (data.experiments && data.experiments.length > 0);
-                        const isPureLab = !isPracticum && (hasExperiments || (currentAttSubjectType && (
+                        const isAu3055Theory = (String(batchSubjectId) === '110' || (String(currentAttSubjectCode || '').includes('3055') && (String(currentAttClassroomId || '').includes('AU') || (String(currentAttSubjectName || '').toLowerCase().includes('automobile')))));
+                        const isPureLab = !isAu3055Theory && !isPracticum && (hasExperiments || (currentAttSubjectType && (
                             currentAttSubjectType.toLowerCase().includes('lab') ||
                             currentAttSubjectType.toLowerCase().includes('practical') ||
                             currentAttSubjectType.toLowerCase().includes('drawing') ||

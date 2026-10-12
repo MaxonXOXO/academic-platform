@@ -22,17 +22,23 @@ class DataController extends Controller
      */
     public static function getSubjectProgressData($batchSubjectId, $subjectType = null)
     {
+        $isAu3055Theory = ($batchSubjectId == 110);
         $isPractical = false;
-        if ($subjectType) {
-            $stLower = strtolower($subjectType);
-            $isPractical = str_contains($stLower, 'lab') || str_contains($stLower, 'practical') || str_contains($stLower, 'practicum') || str_contains($stLower, 'drawing') || str_contains($stLower, 'workshop');
-        }
-        
-        if (!$isPractical && $batchSubjectId) {
-            $bs = DB::table('batch_subjects')->where('id', $batchSubjectId)->first(['subject_type']);
-            if ($bs && !empty($bs->subject_type)) {
-                $stLower = strtolower($bs->subject_type);
+        if (!$isAu3055Theory) {
+            if ($subjectType) {
+                $stLower = strtolower($subjectType);
                 $isPractical = str_contains($stLower, 'lab') || str_contains($stLower, 'practical') || str_contains($stLower, 'practicum') || str_contains($stLower, 'drawing') || str_contains($stLower, 'workshop');
+            }
+            
+            if (!$isPractical && $batchSubjectId) {
+                $bs = DB::table('batch_subjects')->where('id', $batchSubjectId)->first(['subject_type', 'subject_code', 'classroom_id', 'subject_name']);
+                if ($bs) {
+                    $isAuCheck = ($bs->subject_code == '3055' && (str_contains($bs->classroom_id ?? '', 'AU') || str_contains(strtolower($bs->subject_name ?? ''), 'automobile')));
+                    if (!$isAuCheck && !empty($bs->subject_type)) {
+                        $stLower = strtolower($bs->subject_type);
+                        $isPractical = str_contains($stLower, 'lab') || str_contains($stLower, 'practical') || str_contains($stLower, 'practicum') || str_contains($stLower, 'drawing') || str_contains($stLower, 'workshop');
+                    }
+                }
             }
         }
 
@@ -2331,10 +2337,18 @@ class DataController extends Controller
                 return response()->json(['status' => 'ERROR', 'message' => 'Subject not found or unauthorized.']);
             }
 
+            $subType = $request->subject_type;
+            if ($subjectId == 110 || ($request->subject_code == '3055' && str_contains($subject->classroom_id ?? '', 'AU'))) {
+                // AU 3055 is evaluated strictly as Theory per syllabus criteria
+                if ($subType === 'Drawing Theory' || $subType === 'Drawing Lab') {
+                    $subType = 'Theory';
+                }
+            }
+
             $subject->update([
                 'subject_code'           => strtoupper(trim($request->subject_code)),
                 'subject_name'           => trim($request->subject_name),
-                'subject_type'           => $request->subject_type,
+                'subject_type'           => $subType,
                 'syllabus_revision_code' => $request->syllabus_revision_code ?? $subject->syllabus_revision_code,
             ]);
 

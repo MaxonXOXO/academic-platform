@@ -146,6 +146,7 @@ class ConsolidatedCiaReportController extends Controller
         $typePriority = [
             'Theory' => 1,
             'Theory Courses' => 1,
+            'Drawing Theory' => 1,
             'Theory / Lecture' => 1,
             'Practical / Lab' => 2,
             'Laboratory/Workshop Courses' => 2,
@@ -660,6 +661,11 @@ class ConsolidatedCiaReportController extends Controller
      */
     private static function determineMaxCia(BatchSubject $subject): int
     {
+        $isAu3055Theory = ($subject->id == 110 || ($subject->subject_code == '3055' && (str_contains($subject->classroom_id ?? '', 'AU') || ($subject->branch ?? '') === 'AU' || str_contains(strtolower($subject->subject_name ?? ''), 'automobile'))));
+        if ($isAu3055Theory) {
+            return 50;
+        }
+
         $type = strtolower($subject->subject_type ?? '');
         $name = strtolower($subject->subject_name ?? '');
 
@@ -703,8 +709,10 @@ class ConsolidatedCiaReportController extends Controller
         $sCode = $subject->subject_code;
         $sId = $subject->id;
 
+        $isAu3055Theory = ($subject->id == 110 || ($subject->subject_code == '3055' && (str_contains($subject->classroom_id ?? '', 'AU') || ($subject->branch ?? '') === 'AU' || str_contains(strtolower($subject->subject_name ?? ''), 'automobile'))));
+
         // 1. Practical / Lab Subjects
-        if (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab')) {
+        if (!$isAu3055Theory && (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab'))) {
             $eval = $pracEvals->where('reg_no', $regNo)->first()
                 ?: ($sbteRegNo ? $pracEvals->where('reg_no', $sbteRegNo)->first() : null);
 
@@ -751,7 +759,7 @@ class ConsolidatedCiaReportController extends Controller
         }
 
         // 2. Drawing Subjects
-        if (str_contains($type, 'drawing') || str_contains($name, 'drawing')) {
+        if (!$isAu3055Theory && (str_contains($type, 'drawing') || str_contains($name, 'drawing'))) {
             $stSheets = $drawSheets->filter(function($s) use ($regNo, $sbteRegNo) {
                 return $s->reg_no === $regNo || ($sbteRegNo && $s->reg_no === $sbteRegNo);
             });

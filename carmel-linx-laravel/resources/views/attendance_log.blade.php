@@ -623,7 +623,8 @@
             // Check if Practicum vs Pure Lab vs Theory
             const isPracticum = Boolean(data.is_practicum || (data.subject_type && data.subject_type.toLowerCase().includes('practicum')) || (data.subject_name && data.subject_name.toLowerCase().includes('practicum')));
             const hasExperiments = (data.experiments && data.experiments.length > 0);
-            const isPureLab = !isPracticum && (hasExperiments || (data.subject_type && (
+            const isAu3055Theory = (String(subjectId) === '110' || (String(data.subject_code || '').includes('3055') && (String(classroomId || '').includes('AU') || (data.subject_name || '').toLowerCase().includes('automobile'))));
+            const isPureLab = !isAu3055Theory && !isPracticum && (hasExperiments || (data.subject_type && (
               data.subject_type.toLowerCase().includes('lab') ||
               data.subject_type.toLowerCase().includes('practical') ||
               data.subject_type.toLowerCase().includes('drawing') ||

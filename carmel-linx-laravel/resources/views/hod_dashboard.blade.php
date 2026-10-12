@@ -4597,7 +4597,8 @@
       document.getElementById('popupSubjName').innerText = subj.subject_name;
       document.getElementById('popupSubjCode').innerText = subj.subject_code;
 
-      const isPractical = subj.is_practical || (subj.subject_type || '').toLowerCase().includes('lab') || (subj.subject_type || '').toLowerCase().includes('practical') || (subj.subject_type || '').toLowerCase().includes('practicum') || (subj.subject_type || '').toLowerCase().includes('drawing') || (subj.subject_type || '').toLowerCase().includes('workshop');
+      const isAu3055Theory = (String(subj.id) === '110' || (String(subj.subject_code || '').includes('3055') && ((subj.classroom_id || '').includes('AU') || (subj.subject_name || '').toLowerCase().includes('automobile'))));
+      const isPractical = !isAu3055Theory && (subj.is_practical || (subj.subject_type || '').toLowerCase().includes('lab') || (subj.subject_type || '').toLowerCase().includes('practical') || (subj.subject_type || '').toLowerCase().includes('practicum') || (subj.subject_type || '').toLowerCase().includes('drawing') || (subj.subject_type || '').toLowerCase().includes('workshop'));
       
       const allottedLabel = document.getElementById('popupAllottedLabel');
       const completedLabel = document.getElementById('popupCompletedLabel');

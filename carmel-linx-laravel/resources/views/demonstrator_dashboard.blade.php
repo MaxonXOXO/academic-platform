@@ -463,19 +463,21 @@
                           $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
                         }
                       } else {
-                        if (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics')) {
+                        $isAu3055Theory = (($s->subject_id ?? '') == 110 || (($s->subject_code ?? '') == '3055' && (str_contains($s->classroom_id ?? '', 'AU') || str_contains(strtolower($s->subject_name ?? ''), 'automobile'))));
+                        if (!$isAu3055Theory && (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics'))) {
                           $targetUrl = "/r21/classroom/drawing/{$s->subject_id}";
                         } elseif (str_contains($sTypeLower, 'seminar') || str_contains($sNameLower, 'seminar')) {
                           $targetUrl = "/r21/classroom/seminar/{$s->subject_id}";
                         } elseif (str_contains($sTypeLower, 'project') || str_contains($sNameLower, 'project')) {
                           $targetUrl = "/r21/classroom/project/{$s->subject_id}";
                         } else {
-                          $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($s->subject_type ?? 'Practical');
+                          $targetType = $isAu3055Theory ? 'Theory' : ($s->subject_type ?? 'Practical');
+                          $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($targetType);
                         }
                       }
 
-                      $prog = \App\Http\Controllers\DataController::getSubjectProgressData($s->subject_id, $s->subject_type);
-                      $isPractical = $prog['is_practical'] ?? true;
+                      $prog = \App\Http\Controllers\DataController::getSubjectProgressData($s->subject_id, !empty($isAu3055Theory) ? 'Theory' : $s->subject_type);
+                      $isPractical = !empty($isAu3055Theory) ? false : ($prog['is_practical'] ?? true);
                       $totalTopics = (int)($prog['total'] ?? 0);
                       $coveredTopics = (int)($prog['completed'] ?? 0);
                       $barPct = (int)($prog['percent'] ?? ($totalTopics > 0 ? round(($coveredTopics / $totalTopics) * 100) : 0));

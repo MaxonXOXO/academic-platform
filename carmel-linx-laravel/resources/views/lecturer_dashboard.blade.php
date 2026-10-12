@@ -2110,7 +2110,10 @@
       const classroomId = urlParams.get('classroom_id') || '';
       const tabParam = urlParams.get('tab');
       const revParam = urlParams.get('revision') || 'REV2021';
-      const typeParam = urlParams.get('type') || 'Practical';
+      let typeParam = urlParams.get('type') || 'Practical';
+      if (String(subjectId) === '110' || (subjectName.toLowerCase().includes('automobile') && subjectName.toLowerCase().includes('drawing'))) {
+        typeParam = 'Theory';
+      }
       if (subjectId) {
         if (tabParam) {
           window.currentActiveVirtualTab = tabParam;
@@ -2305,7 +2308,8 @@
             <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span class="material-symbols-rounded text-xs">book</span> Assigned Subjects</h5>
             <div class="space-y-3 divide-y divide-slate-800/80">
               ${b.subjects && b.subjects.length > 0 ? b.subjects.map((s, idx) => {
-                let isPractical = s.is_practical || (s.type || '').toLowerCase().includes('lab') || (s.type || '').toLowerCase().includes('practical') || (s.type || '').toLowerCase().includes('practicum') || (s.type || '').toLowerCase().includes('drawing') || (s.type || '').toLowerCase().includes('workshop');
+                let isAuDrawingTheory = (String(s.id) === '110' || (String(s.code || '').includes('3055') && (String(b.classroom_id || '').includes('AU') || (s.name || '').toLowerCase().includes('automobile'))));
+                let isPractical = !isAuDrawingTheory && (s.is_practical || (s.type || '').toLowerCase().includes('lab') || (s.type || '').toLowerCase().includes('practical') || (s.type || '').toLowerCase().includes('practicum') || (s.type || '').toLowerCase().includes('drawing') || (s.type || '').toLowerCase().includes('workshop'));
                 let topicsPct = s.total_topics > 0 ? Math.round((s.covered_topics / s.total_topics) * 100) : 0;
                 let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
                 let barPct    = isPractical ? topicsPct : (topicsPct || hoursPct);
@@ -2325,10 +2329,10 @@
                 return `
                   <div class="${idx > 0 ? 'pt-3' : ''} w-full">
                     <div class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-blue-500/50 hover:bg-slate-900 flex flex-col gap-2">
-                      <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${formattedCode}', '${s.syllabus_revision_code || 'REV2021'}', '${s.type}')">
+                      <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${formattedCode}', '${s.syllabus_revision_code || 'REV2021'}', '${isAuDrawingTheory ? 'Theory' : s.type}')">
                         <div class="flex-1 min-w-0 pr-2">
                           <div class="text-base font-extrabold text-slate-200 group-hover:text-blue-400 transition-premium truncate">${s.name}</div>
-                          <div class="text-xs text-slate-450 font-mono mt-0.5">Sem ${s.semester} · ${s.type} · ${formattedCode}</div>
+                          <div class="text-xs text-slate-450 font-mono mt-0.5">Sem ${s.semester} · ${isAuDrawingTheory ? 'Theory' : s.type} · ${formattedCode}</div>
                         </div>
                         <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-base transition-premium flex-shrink-0">open_in_new</span>
                       </div>
@@ -2355,6 +2359,10 @@
     window.currentVirtualSemester = '';
 
     function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory', initialTab = null) {
+      const isAuDrawingTheory = (String(subjectId) === '110' || (String(subjectCode).includes('3055') && (String(batchId).includes('AU') || (subjectName || '').toLowerCase().includes('automobile'))));
+      if (isAuDrawingTheory) {
+        type = 'Theory';
+      }
       const sTypeLower = (type || '').toLowerCase();
       const sNameLower = (subjectName || '').toLowerCase();
       const isR26 = (revision === 'REV2026' || (batchId && batchId.includes('2026')));
@@ -2377,8 +2385,8 @@
           return;
         }
       } else {
-        // Revision 2021 Drawing Classroom
-        if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics')) {
+        // Revision 2021 Drawing Classroom (AU 3055 is evaluated strictly as Theory)
+        if (!isAuDrawingTheory && (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics'))) {
           window.location.href = `/r21/classroom/drawing/${subjectId}`;
           return;
         }
@@ -2398,7 +2406,7 @@
         currentSubjectId = subjectId;
         window.currentVirtualRevision = revision;
 
-        const isPractical = sTypeLower.includes('practical') || sTypeLower.includes('lab') || (type || '').includes('Practical') || (type || '').includes('Lab') || sNameLower.includes('practical') || sNameLower.includes('lab') || sNameLower.includes('practicum') || sNameLower.includes('workshop');
+        const isPractical = !isAuDrawingTheory && (sTypeLower.includes('practical') || sTypeLower.includes('lab') || (type || '').includes('Practical') || (type || '').includes('Lab') || sNameLower.includes('practical') || sNameLower.includes('lab') || sNameLower.includes('practicum') || sNameLower.includes('workshop'));
         window.isCurrentSubjectPractical = isPractical;
         const isSeminar   = sTypeLower.includes('seminar') || sNameLower.includes('seminar');
         const rStr        = revision ? revision.toString() : 'R-2021';
@@ -2704,7 +2712,8 @@
         return;
       }
 
-      const isPractical = Boolean(
+      const isAuDrawingTheory = (String(currentSubjectId) === '110' || (typeof window.currentVirtualSubjectCode !== 'undefined' && String(window.currentVirtualSubjectCode).includes('3055')));
+      const isPractical = !isAuDrawingTheory && Boolean(
         window.isCurrentSubjectPractical ||
         (students && students.length > 0 && students[0].is_practical) ||
         (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
@@ -3216,7 +3225,8 @@
         alert("Please select a subject first.");
         return;
       }
-      const isLab = Boolean(
+      const isAuDrawingTheory = (String(sid) === '110' || (typeof window.currentVirtualSubjectCode !== 'undefined' && String(window.currentVirtualSubjectCode).includes('3055')));
+      const isLab = !isAuDrawingTheory && Boolean(
         window.isCurrentSubjectPractical || 
         (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
         (typeof window.currentSubjectType !== 'undefined' && window.currentSubjectType && (window.currentSubjectType.toLowerCase().includes('lab') || window.currentSubjectType.toLowerCase().includes('practical') || window.currentSubjectType.toLowerCase().includes('drawing')))
@@ -8799,7 +8809,8 @@
         alert("Please select a subject first.");
         return;
       }
-      const isLab = Boolean(
+      const isAuDrawingTheory = (String(subjId) === '110' || (typeof window.currentVirtualSubjectCode !== 'undefined' && String(window.currentVirtualSubjectCode).includes('3055')));
+      const isLab = !isAuDrawingTheory && Boolean(
         window.isCurrentSubjectPractical || 
         (typeof currentSubjectType !== 'undefined' && currentSubjectType && (currentSubjectType.toLowerCase().includes('lab') || currentSubjectType.toLowerCase().includes('practical') || currentSubjectType.toLowerCase().includes('drawing'))) ||
         (typeof window.currentSubjectType !== 'undefined' && window.currentSubjectType && (window.currentSubjectType.toLowerCase().includes('lab') || window.currentSubjectType.toLowerCase().includes('practical') || window.currentSubjectType.toLowerCase().includes('drawing')))

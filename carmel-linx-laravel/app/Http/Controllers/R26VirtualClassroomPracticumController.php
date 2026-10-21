@@ -246,11 +246,22 @@ class R26VirtualClassroomPracticumController extends Controller
             $slStudentSplitup[$rNo] = $split;
         }
 
+        $subjectOfficialAttendances = \App\Models\SubjectOfficialAttendance::where(function ($query) use ($subjectId, $batchSubject) {
+            $query->where('batch_subject_id', $subjectId)
+                  ->orWhere(function ($q) use ($batchSubject) {
+                      $q->where('subject_code', $batchSubject->subject_code)
+                        ->where('classroom_id', $batchSubject->classroom_id);
+                  });
+        })
+        ->get()
+        ->keyBy('reg_no');
+
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
 
         // Map Students and Compute Consolidated CIA & ESE Scores
         $studentResults = $students->map(function ($student) use (
             $attendanceData,
+            $subjectOfficialAttendances,
             $experimentEvals,
             $seriesTheoryEvals,
             $seriesPracticalEvals,
@@ -264,41 +275,84 @@ class R26VirtualClassroomPracticumController extends Controller
             $regNo = $student->reg_no;
             $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
 
-            // 1. Attendance Marks (Table 2.1 - Max 5)
+            // 1. Attendance Marks (Table 2.1 - Max 5) with Override support
+            // STRICT RULE: Only use subject attendance uploaded by concerned staff (subject_official_attendances)
+            // or manual attendance logs for this subject.
+            // Tutor class attendance must NEVER be used for subjects or attendance mark calculations.
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 100.00;
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
+
+            $offRec = $subjectOfficialAttendances->get($regNo)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendances->get($student->sbte_reg_no) : null);
+
+            $staffUploadedPct = null;
+            if ($offRec) {
+                if ($offRec->teams_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->teams_percentage;
+                } elseif ($offRec->final_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->final_percentage;
+                }
+            }
+
+            // Hierarchy: 1. Staff uploaded Teams subject % -> 2. Manual attendance log % -> 3. null (prompt missing)
+            $rawAttPercentage = $staffUploadedPct !== null ? $staffUploadedPct : $logAttPct;
+            $overridePct = ($offRec && $offRec->override_percentage !== null) ? (float)$offRec->override_percentage : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
 
             $attMarks = 0;
-            if ($attPercentage >= 90) {
-                $attMarks = 5;
-            } elseif ($attPercentage >= 80) {
-                $attMarks = 4;
-            } elseif ($attPercentage >= 75) {
-                $attMarks = 3;
-            } elseif ($attPercentage >= 70) {
-                $attMarks = 2;
-            } elseif ($attPercentage >= 65) {
-                $attMarks = 1;
-            } else {
-                $attMarks = 0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) {
+                    $attMarks = 5;
+                } elseif ($effectivePct >= 80) {
+                    $attMarks = 4;
+                } elseif ($effectivePct >= 75) {
+                    $attMarks = 3;
+                } elseif ($effectivePct >= 70) {
+                    $attMarks = 2;
+                } elseif ($effectivePct >= 65) {
+                    $attMarks = 1;
+                } else {
+                    $attMarks = 0;
+                }
             }
 
             // 2. Self-Learning Marks (Max 5 CIA Marks)
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
-            if ($stSlMarks->count() > 0) {
+            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
+            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
+            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
+            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+
+            $valM1 = $m1Rec ? (float)$m1Rec->marks_obtained : null;
+            $valM2 = $m2Rec ? (float)$m2Rec->marks_obtained : null;
+            $valM3 = $m3Rec ? (float)$m3Rec->marks_obtained : null;
+            $valM4 = $m4Rec ? (float)$m4Rec->marks_obtained : null;
+
+            $caEntered = [];
+            if ($valM1 !== null) $caEntered[] = $valM1;
+            if ($valM2 !== null) $caEntered[] = $valM2;
+            if ($valM3 !== null) $caEntered[] = $valM3;
+            if ($valM4 !== null) $caEntered[] = $valM4;
+
+            if (count($caEntered) > 0) {
+                $rawAvg10 = array_sum($caEntered) / 4.0;
+                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $slScoreRaw10 = $rawAvg10;
+            } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
                 $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
                 if ($maxPossible <= 0) $maxPossible = 10.0;
                 $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
                 $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
-            $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
 
             // 3. Continuous Practical Evaluation (Max 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
@@ -406,8 +460,8 @@ class R26VirtualClassroomPracticumController extends Controller
             $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
             $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
 
-            // Consolidated Total CIA Marks (Max 40)
-            $totalCiaMarks = round(($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
+            // Consolidated Total CIA Marks (Max 40) - Whole Number
+            $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
 
             // ESE Marks & Grades (Fetch from stored ESE record, else fetch from student upload tables)
             $stEse = $eseMarks->get($regNo);
@@ -440,7 +494,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 $esePractical = 0.00; // Practical ESE is internal only (0 Marks)
                 $totalEse = $eseTheory;
                 $maxEse = 60;
-                $totalCourseMarks = $totalCiaMarks + $totalEse;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
                 $maxCourseMarks = 100; // 40 CIA + 60 ESE
 
                 // Pass Criteria Check:
@@ -453,7 +507,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 $esePractical = $stEse ? floatval($stEse->ese_practical_marks) : 0.00;
                 $totalEse = $eseTheory + $esePractical;
                 $maxEse = $practicumCourseFile->ese_marks; // 100 or 60
-                $totalCourseMarks = $totalCiaMarks + $totalEse;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
                 $maxCourseMarks = 40 + $maxEse; // 140 or 100
 
                 // Pass Criteria Check:
@@ -469,10 +523,16 @@ class R26VirtualClassroomPracticumController extends Controller
                 'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
-                'att_percentage' => $attPercentage,
+                'raw_att_percentage' => $rawAttPercentage,
+                'attendance_override_pct' => $overridePct,
+                'att_percentage' => $effectivePct,
                 'att_marks' => $attMarks,
                 'sl_raw_score' => $slScoreRaw10,
                 'sl_marks' => $slMarks,
+                'm1' => $valM1,
+                'm2' => $valM2,
+                'm3' => $valM3,
+                'm4' => $valM4,
                 'continuous_eval_marks' => $continuousEvalMarks,
                 'co1_theory_mark' => $co1Score,
                 'co2_theory_mark' => $co2Score,
@@ -1894,33 +1954,67 @@ class R26VirtualClassroomPracticumController extends Controller
                 $regNo = $row['reg_no'] ?? null;
                 if (!$regNo) continue;
 
-                $coData = $row['co_details'] ?? [];
-                foreach ($coData as $coTag => $activities) {
-                    // Delete old Self Study entries for this student/CO
+                if (array_key_exists('m1', $row) || array_key_exists('m2', $row) || array_key_exists('m3', $row) || array_key_exists('m4', $row) || array_key_exists('ca1', $row)) {
+                    // Direct 4-module entries
                     DB::table('academic_marks')
                         ->where('reg_no', $regNo)
                         ->where('batch_subject_id', $subjectId)
-                        ->where('co_tag', $coTag)
                         ->where('category', 'like', 'Self Study:%')
                         ->delete();
 
-                    foreach ($activities as $actKey => $val) {
-                        $score = floatval($val ?? 0);
-                        $actName = ucfirst(str_replace('_', ' ', $actKey));
-                        
-                        DB::table('academic_marks')->insert([
-                            'mark_id' => (string) \Illuminate\Support\Str::uuid(),
-                            'reg_no' => $regNo,
-                            'batch_subject_id' => $subjectId,
-                            'subject_code' => $batchSubject->subject_code,
-                            'category' => 'Self Study: ' . $actName,
-                            'co_tag' => $coTag,
-                            'max_marks' => 10,
-                            'marks_obtained' => $score,
-                            'entered_by' => $enteredBy,
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
+                    $modules = [
+                        'CO1' => $row['m1'] ?? ($row['ca1'] ?? null),
+                        'CO2' => $row['m2'] ?? ($row['ca2'] ?? null),
+                        'CO3' => $row['m3'] ?? ($row['ca3'] ?? null),
+                        'CO4' => $row['m4'] ?? ($row['ca4'] ?? null),
+                    ];
+
+                    foreach ($modules as $coTag => $score) {
+                        if ($score !== null && $score !== '') {
+                            DB::table('academic_marks')->insert([
+                                'mark_id' => (string) \Illuminate\Support\Str::uuid(),
+                                'reg_no' => $regNo,
+                                'batch_subject_id' => $subjectId,
+                                'subject_code' => $batchSubject->subject_code,
+                                'category' => 'Self Study: ' . $coTag,
+                                'co_tag' => $coTag,
+                                'max_marks' => 10,
+                                'marks_obtained' => min(10.0, max(0.0, floatval($score))),
+                                'entered_by' => $enteredBy,
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                        }
+                    }
+                } else {
+                    // Legacy co_details
+                    $coData = $row['co_details'] ?? [];
+                    foreach ($coData as $coTag => $activities) {
+                        DB::table('academic_marks')
+                            ->where('reg_no', $regNo)
+                            ->where('batch_subject_id', $subjectId)
+                            ->where('co_tag', $coTag)
+                            ->where('category', 'like', 'Self Study:%')
+                            ->delete();
+
+                        foreach ($activities as $actKey => $val) {
+                            $score = floatval($val ?? 0);
+                            $actName = ucfirst(str_replace('_', ' ', $actKey));
+                            
+                            DB::table('academic_marks')->insert([
+                                'mark_id' => (string) \Illuminate\Support\Str::uuid(),
+                                'reg_no' => $regNo,
+                                'batch_subject_id' => $subjectId,
+                                'subject_code' => $batchSubject->subject_code,
+                                'category' => 'Self Study: ' . $actName,
+                                'co_tag' => $coTag,
+                                'max_marks' => 10,
+                                'marks_obtained' => $score,
+                                'entered_by' => $enteredBy,
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                        }
                     }
                 }
             }
@@ -1929,6 +2023,342 @@ class R26VirtualClassroomPracticumController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Save or revert Attendance Override for Practicum CIE Register
+     */
+    public function saveAttendanceOverride(Request $request, $subjectId)
+    {
+        try {
+            $batchSubject = BatchSubject::findOrFail($subjectId);
+            $regNo = $request->input('reg_no');
+            $overridePct = $request->input('override_percentage');
+
+            if (!$regNo) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Student registration number required.'], 422);
+            }
+
+            if ($overridePct !== null && $overridePct !== '') {
+                $pctVal = min(100.0, max(0.0, floatval($overridePct)));
+                $attMark = ($pctVal >= 90) ? 5 : (($pctVal >= 80) ? 4 : (($pctVal >= 75) ? 3 : (($pctVal >= 70) ? 2 : (($pctVal >= 65) ? 1 : 0))));
+
+                \App\Models\SubjectOfficialAttendance::updateOrCreate(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'reg_no' => $regNo,
+                    ],
+                    [
+                        'subject_code' => $batchSubject->subject_code,
+                        'classroom_id' => $batchSubject->classroom_id,
+                        'override_percentage' => $pctVal,
+                        'final_percentage' => $pctVal,
+                        'max_attendance_marks' => 5,
+                        'attendance_mark' => $attMark,
+                        'override_mark' => $attMark,
+                        'final_mark' => $attMark,
+                        'source' => 'manual_override',
+                        'remarks' => 'Manual attendance override in CIE Register'
+                    ]
+                );
+            } else {
+                $record = \App\Models\SubjectOfficialAttendance::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->first();
+                if ($record) {
+                    $record->override_percentage = null;
+                    $record->override_mark = null;
+                    if ($record->teams_percentage !== null) {
+                        $record->final_percentage = $record->teams_percentage;
+                        $record->final_mark = $record->attendance_mark;
+                    }
+                    $record->save();
+                }
+            }
+
+            return response()->json(['status' => 'SUCCESS', 'message' => 'Attendance override updated successfully.']);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Print Consolidated CIE Register for Practicum
+     */
+    public function printCiaRegisterPdf($subjectId)
+    {
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $batchYear = $meta['batchYear'];
+        $lecturerName = $meta['lecturerName'];
+
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
+            ->get();
+
+        $attendanceData = DB::table('student_attendance')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
+        $subjectOfficialAttendances = \App\Models\SubjectOfficialAttendance::where(function ($query) use ($subjectId, $batchSubject) {
+            $query->where('batch_subject_id', $subjectId)
+                  ->orWhere(function ($q) use ($batchSubject) {
+                      $q->where('subject_code', $batchSubject->subject_code)
+                        ->where('classroom_id', $batchSubject->classroom_id);
+                  });
+        })
+        ->get()
+        ->keyBy('reg_no');
+
+        $experimentEvals = R26PracticumExperimentEvaluation::where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
+        $seriesTheoryEvals = R26PracticumSeriesTheory::where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
+        $seriesPracticalEvals = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
+
+        $eseMarks = R26PracticumEseMark::where('batch_subject_id', $subjectId)
+            ->get()
+            ->keyBy('reg_no');
+
+        $slAcademicMarks = DB::table('academic_marks')
+            ->where('batch_subject_id', $subjectId)
+            ->where('category', 'like', 'Self Study:%')
+            ->get()
+            ->groupBy('reg_no');
+
+        $slSubmissions = DB::table('student_task_submissions')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
+        $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
+
+        $studentResults = $students->map(function ($student) use (
+            $attendanceData,
+            $subjectOfficialAttendances,
+            $experimentEvals,
+            $seriesTheoryEvals,
+            $seriesPracticalEvals,
+            $eseMarks,
+            $slAcademicMarks,
+            $slSubmissions,
+            $practicumCourseFile,
+            $batchSubject,
+            $subjectType
+        ) {
+            $regNo = $student->reg_no;
+            $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
+
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
+
+            $offRec = $subjectOfficialAttendances->get($regNo)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendances->get($student->sbte_reg_no) : null);
+
+            $staffUploadedPct = null;
+            if ($offRec) {
+                if ($offRec->teams_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->teams_percentage;
+                } elseif ($offRec->final_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->final_percentage;
+                }
+            }
+
+            // Hierarchy: 1. Staff uploaded Teams subject % -> 2. Manual attendance log % -> 3. null
+            $rawAttPercentage = $staffUploadedPct !== null ? $staffUploadedPct : $logAttPct;
+            $overridePct = ($offRec && $offRec->override_percentage !== null) ? (float)$offRec->override_percentage : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
+
+            $attMarks = 0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) {
+                    $attMarks = 5;
+                } elseif ($effectivePct >= 80) {
+                    $attMarks = 4;
+                } elseif ($effectivePct >= 75) {
+                    $attMarks = 3;
+                } elseif ($effectivePct >= 70) {
+                    $attMarks = 2;
+                } elseif ($effectivePct >= 65) {
+                    $attMarks = 1;
+                } else {
+                    $attMarks = 0;
+                }
+            }
+
+            // Self-Learning Marks (Max 5 CIA Marks)
+            $stSlMarks = $slAcademicMarks->get($regNo, collect());
+            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
+            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
+            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
+            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+
+            $valM1 = $m1Rec ? (float)$m1Rec->marks_obtained : null;
+            $valM2 = $m2Rec ? (float)$m2Rec->marks_obtained : null;
+            $valM3 = $m3Rec ? (float)$m3Rec->marks_obtained : null;
+            $valM4 = $m4Rec ? (float)$m4Rec->marks_obtained : null;
+
+            $caEntered = [];
+            if ($valM1 !== null) $caEntered[] = $valM1;
+            if ($valM2 !== null) $caEntered[] = $valM2;
+            if ($valM3 !== null) $caEntered[] = $valM3;
+            if ($valM4 !== null) $caEntered[] = $valM4;
+
+            if (count($caEntered) > 0) {
+                $rawAvg10 = array_sum($caEntered) / 4.0;
+                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $slScoreRaw10 = $rawAvg10;
+            } elseif ($stSlMarks->count() > 0) {
+                $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+            } else {
+                $stSub = $slSubmissions->get($regNo, collect());
+                $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+            }
+            if ($slMarks > 5.0) $slMarks = 5.0;
+
+            // Continuous Practical Evaluation (Max 10 CIA Marks)
+            $stExps = $experimentEvals->get($regNo, collect());
+            $avgExpScore50 = $stExps->avg('total_score_50') ?: 0.00;
+            $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
+
+            // Theory Series Exam Marks (4 Tests: CO1, CO2, CO3, CO4 - Max 10 CIA Marks)
+            $stStEvals = $seriesTheoryEvals->get($regNo, collect());
+            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
+            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
+            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
+            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+            $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
+            $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
+            $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
+            $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
+            $series1Total = $co1Score + $co2Score;
+            $series2Total = $co3Score + $co4Score;
+            $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
+            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+
+            // Practical Series Exam Marks (2 Tests - Max 10 CIA Marks)
+            $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
+            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
+            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+
+            // Consolidated Total CIA Marks (Max 40) - Whole Number
+            $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
+
+            // ESE Marks & Grades
+            $stEse = $eseMarks->get($regNo);
+            $eseTheoryGrade = null;
+            if ($stEse && $stEse->ese_theory_grade) {
+                $eseTheoryGrade = $stEse->ese_theory_grade;
+            } else {
+                $eseTheoryGrade = DB::table('student_board_grades')
+                    ->where('reg_no', $regNo)
+                    ->where('subject_code', $batchSubject->subject_code)
+                    ->value('grade');
+                if (!$eseTheoryGrade) {
+                    $eseTheoryGrade = DB::table('student_semester_marks')
+                        ->where('reg_no', $regNo)
+                        ->where('subject_code', $batchSubject->subject_code)
+                        ->value('grade');
+                }
+            }
+
+            $eseTheory = 0.00;
+            if ($eseTheoryGrade) {
+                $eseTheory = $this->convertGradeToMarks($eseTheoryGrade);
+            } elseif ($stEse) {
+                $eseTheory = floatval($stEse->ese_theory_marks);
+            }
+
+            if ($isBasicScience) {
+                $esePractical = 0.00;
+                $totalEse = $eseTheory;
+                $maxEse = 60;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
+                $maxCourseMarks = 100;
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= 40.0);
+                $isPassed = ($passTheoryEse && $passCombined);
+            } else {
+                $esePractical = $stEse ? floatval($stEse->ese_practical_marks) : 0.00;
+                $totalEse = $eseTheory + $esePractical;
+                $maxEse = $practicumCourseFile->ese_marks;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
+                $maxCourseMarks = 40 + $maxEse;
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= ($maxCourseMarks * 0.40));
+                $isPassed = ($passTheoryEse && $passCombined);
+            }
+
+            return [
+                'reg_no' => $student->reg_no,
+                'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
+                'name' => $student->name,
+                'roll_no' => $student->roll_no,
+                'raw_att_percentage' => $rawAttPercentage,
+                'attendance_override_pct' => $overridePct,
+                'att_percentage' => $effectivePct,
+                'att_marks' => $attMarks,
+                'sl_raw_score' => $slScoreRaw10,
+                'sl_marks' => $slMarks,
+                'm1' => $valM1,
+                'm2' => $valM2,
+                'm3' => $valM3,
+                'm4' => $valM4,
+                'continuous_eval_marks' => $continuousEvalMarks,
+                'series_theory_marks' => $seriesTheoryMarks,
+                'series_practical_marks' => $seriesPracticalMarks,
+                'total_cia_marks' => $totalCiaMarks,
+                'ese_theory' => $eseTheory,
+                'ese_theory_grade' => $eseTheoryGrade ?: '-',
+                'ese_practical' => $esePractical,
+                'total_ese' => $totalEse,
+                'total_course_marks' => $totalCourseMarks,
+                'max_course_marks' => $maxCourseMarks,
+                'is_passed' => $isPassed
+            ];
+        });
+
+        return view('r26_practicum.cia_register_print', compact(
+            'batchSubject',
+            'practicumCourseFile',
+            'classroom',
+            'departmentName',
+            'batchName',
+            'batchYear',
+            'lecturerName',
+            'assignedStaff',
+            'studentResults',
+            'subjectType'
+        ));
     }
 
     /**
@@ -2988,6 +3418,93 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             }
         }
 
+        // STRICT RULE: Practicum 2026 attendance is unified for the course (Teams attendance covers both Theory & Lab).
+        // Tutor class attendance must NEVER be used for subjects or attendance mark calculations.
+        $subjectOfficialAttendances = \App\Models\SubjectOfficialAttendance::where(function ($query) use ($subjectId, $batchSubject) {
+            $query->where('batch_subject_id', $subjectId)
+                  ->orWhere(function ($q) use ($batchSubject) {
+                      $q->where('subject_code', $batchSubject->subject_code)
+                        ->where('classroom_id', $batchSubject->classroom_id);
+                  });
+        })
+        ->get()
+        ->keyBy('reg_no');
+
+        // Build Unified Attendance Summary for each student
+        $attendanceSummary = $students->map(function ($st) use ($allAttendance, $classLogs, $subjectOfficialAttendances) {
+            $stAtt = $allAttendance->where('reg_no', $st->reg_no);
+            $stPres = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $stTot = $stAtt->count();
+
+            $offRec = $subjectOfficialAttendances->get($st->reg_no)
+                ?: (!empty($st->sbte_reg_no) ? $subjectOfficialAttendances->get($st->sbte_reg_no) : null);
+
+            $teamsPct = null;
+            if ($offRec) {
+                if ($offRec->teams_percentage !== null) {
+                    $teamsPct = (float)$offRec->teams_percentage;
+                } elseif ($offRec->final_percentage !== null) {
+                    $teamsPct = (float)$offRec->final_percentage;
+                }
+            }
+
+            $logPct = $stTot > 0 ? round(($stPres / $stTot) * 100, 1) : null;
+            $rawPct = $teamsPct !== null ? $teamsPct : $logPct;
+            $overridePct = ($offRec && $offRec->override_percentage !== null) ? (float)$offRec->override_percentage : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
+
+            $attMark = 0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) {
+                    $attMark = 5;
+                } elseif ($effectivePct >= 80) {
+                    $attMark = 4;
+                } elseif ($effectivePct >= 75) {
+                    $attMark = 3;
+                } elseif ($effectivePct >= 70) {
+                    $attMark = 2;
+                } elseif ($effectivePct >= 65) {
+                    $attMark = 1;
+                } else {
+                    $attMark = 0;
+                }
+            }
+
+            $status = 'NOT ENTERED';
+            $statusColor = '#64748b';
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 75.0) {
+                    $status = 'ELIGIBLE';
+                    $statusColor = '#15803d';
+                } elseif ($effectivePct >= 65.0) {
+                    $status = 'CONDONATION';
+                    $statusColor = '#d97706';
+                } else {
+                    $status = 'SHORTAGE';
+                    $statusColor = '#dc2626';
+                }
+            }
+
+            return [
+                'reg_no' => $st->reg_no,
+                'sbte_reg_no' => $st->sbte_reg_no,
+                'name' => $st->name,
+                'roll_no' => $st->roll_no,
+                'conducted' => $stTot,
+                'attended' => $stPres,
+                'absent' => max(0, $stTot - $stPres),
+                'teams_pct' => $teamsPct,
+                'log_pct' => $logPct,
+                'raw_pct' => $rawPct,
+                'override_pct' => $overridePct,
+                'effective_pct' => $effectivePct,
+                'att_mark' => $attMark,
+                'status' => $status,
+                'status_color' => $statusColor,
+                'short' => ($effectivePct !== null && $effectivePct < 75.0),
+            ];
+        });
+
         // Staff info
         $assignedStaff = DB::table('subject_staff_assignments')
             ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
@@ -3004,6 +3521,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             'labPlans',
             'theoryTotals',
             'labTotals',
+            'attendanceSummary',
             'assignedStaff'
         ));
     }
@@ -3523,6 +4041,560 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Print Consolidated Internal Marks (CIE 40M) Report for Practicum
+     * Route: GET /r26/classroom/practicum/{subjectId}/print-internal-marks
+     */
+    public function printInternalMarks($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $batchYear = $meta['batchYear'];
+        $lecturerName = $meta['lecturerName'];
+
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
+            ->get();
+
+        $attendanceData = DB::table('student_attendance')
+            ->where('subject_code', $batchSubject->subject_code)
+            ->get()
+            ->groupBy('reg_no');
+
+        $subjectOfficialAttendances = \App\Models\SubjectOfficialAttendance::where(function ($query) use ($subjectId, $batchSubject) {
+            $query->where('batch_subject_id', $subjectId)
+                  ->orWhere(function ($q) use ($batchSubject) {
+                      $q->where('subject_code', $batchSubject->subject_code)
+                        ->where('classroom_id', $batchSubject->classroom_id);
+                  });
+        })
+        ->get()
+        ->keyBy('reg_no');
+
+        $experimentEvals = R26PracticumExperimentEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesTheoryEvals = R26PracticumSeriesTheory::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesPracticalEvals = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $slAcademicMarks = DB::table('academic_marks')->where('batch_subject_id', $subjectId)->where('category', 'like', 'Self Study:%')->get()->groupBy('reg_no');
+        $slSubmissions = DB::table('student_task_submissions')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
+
+        $studentResults = $students->map(function ($student) use (
+            $attendanceData, $subjectOfficialAttendances, $experimentEvals,
+            $seriesTheoryEvals, $seriesPracticalEvals, $slAcademicMarks, $slSubmissions
+        ) {
+            $regNo = $student->reg_no;
+
+            // 1. Attendance Marks
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
+
+            $offRec = $subjectOfficialAttendances->get($regNo)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendances->get($student->sbte_reg_no) : null);
+
+            $staffUploadedPct = null;
+            if ($offRec) {
+                if ($offRec->teams_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->teams_percentage;
+                } elseif ($offRec->final_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->final_percentage;
+                }
+            }
+
+            $rawAttPercentage = $staffUploadedPct !== null ? $staffUploadedPct : $logAttPct;
+            $overridePct = ($offRec && $offRec->override_percentage !== null) ? (float)$offRec->override_percentage : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
+
+            $attMarks = 0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) $attMarks = 5;
+                elseif ($effectivePct >= 80) $attMarks = 4;
+                elseif ($effectivePct >= 75) $attMarks = 3;
+                elseif ($effectivePct >= 70) $attMarks = 2;
+                elseif ($effectivePct >= 65) $attMarks = 1;
+                else $attMarks = 0;
+            }
+
+            // 2. Self-Learning Marks
+            $stSlMarks = $slAcademicMarks->get($regNo, collect());
+            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
+            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
+            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
+            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+            $caEntered = [];
+            if ($m1Rec && $m1Rec->marks_obtained !== null) $caEntered[] = (float)$m1Rec->marks_obtained;
+            if ($m2Rec && $m2Rec->marks_obtained !== null) $caEntered[] = (float)$m2Rec->marks_obtained;
+            if ($m3Rec && $m3Rec->marks_obtained !== null) $caEntered[] = (float)$m3Rec->marks_obtained;
+            if ($m4Rec && $m4Rec->marks_obtained !== null) $caEntered[] = (float)$m4Rec->marks_obtained;
+
+            if (count($caEntered) > 0) {
+                $rawAvg10 = array_sum($caEntered) / 4.0;
+                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+            } elseif ($stSlMarks->count() > 0) {
+                $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+            } else {
+                $stSub = $slSubmissions->get($regNo, collect());
+                $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+            }
+            if ($slMarks > 5.0) $slMarks = 5.0;
+
+            // 3. Continuous Practical Evaluation (10M)
+            $stExpEvals = $experimentEvals->get($regNo, collect());
+            $expCount = $stExpEvals->count();
+            $avgExpScore40 = $expCount > 0 ? ($stExpEvals->sum('total_score_40') / $expCount) : 0.00;
+            $continuousEvalMarks = round((($avgExpScore40 / 40.0) * 10.0) * 2) / 2;
+
+            // 4. Theory Series Marks (10M)
+            $stStEvals = $seriesTheoryEvals->get($regNo, collect());
+            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)'])->first();
+            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)'])->first();
+            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)'])->first();
+            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)'])->first();
+            $co1Score = $st1 ? ($st1->is_absent ? 0.0 : (float)$st1->total_score_50) : null;
+            $co2Score = $st2 ? ($st2->is_absent ? 0.0 : (float)$st2->total_score_50) : null;
+            $co3Score = $st3 ? ($st3->is_absent ? 0.0 : (float)$st3->total_score_50) : null;
+            $co4Score = $st4 ? ($st4->is_absent ? 0.0 : (float)$st4->total_score_50) : null;
+
+            if ($co1Score === null && $co2Score === null) {
+                $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4', 'Series Exam 1', 'Series 1 (CA4)', 'Series Exam 1 (CA4)'])->first();
+                if ($legacyCa4) {
+                    $score = $legacyCa4->is_absent ? 0.0 : (float)$legacyCa4->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $co1Score = $half;
+                    $co2Score = $half;
+                }
+            }
+            if ($co3Score === null && $co4Score === null) {
+                $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5', 'Series Exam 2', 'Series 2 (CA5)', 'Series Exam 2 (CA5)'])->first();
+                if ($legacyCa5) {
+                    $score = $legacyCa5->is_absent ? 0.0 : (float)$legacyCa5->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $co3Score = $half;
+                    $co4Score = $half;
+                }
+            }
+
+            $series1Total = min(50.0, ($co1Score ?? 0) + ($co2Score ?? 0));
+            $series2Total = min(50.0, ($co3Score ?? 0) + ($co4Score ?? 0));
+            $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
+            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+
+            // 5. Practical Series Marks (10M)
+            $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
+            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
+            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+
+            $totalSeries20 = round(($seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
+            $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
+
+            return [
+                'reg_no' => $student->reg_no,
+                'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
+                'name' => $student->name,
+                'roll_no' => $student->roll_no,
+                'att_percentage' => $effectivePct,
+                'att_marks' => $attMarks,
+                'sl_marks' => $slMarks,
+                'continuous_eval_marks' => $continuousEvalMarks,
+                'series_theory_marks' => $seriesTheoryMarks,
+                'series_practical_marks' => $seriesPracticalMarks,
+                'total_series_20' => $totalSeries20,
+                'total_cia_marks' => $totalCiaMarks,
+            ];
+        });
+
+        return view('r26_practicum.internal_marks_print', compact(
+            'batchSubject', 'classroom', 'students', 'practicumCourseFile',
+            'studentResults', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName'
+        ));
+    }
+
+    /**
+     * Print Series Examination Mark Report for Practicum
+     * Route: GET /r26/classroom/practicum/{subjectId}/print-series-report
+     */
+    public function printSeriesReport($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $batchYear = $meta['batchYear'];
+        $lecturerName = $meta['lecturerName'];
+
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
+            ->get();
+
+        $seriesTheoryEvals = R26PracticumSeriesTheory::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesPracticalEvals = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+
+        $studentResults = $students->map(function ($student) use ($seriesTheoryEvals, $seriesPracticalEvals) {
+            $regNo = $student->reg_no;
+
+            // Theory Series
+            $stThEvals = $seriesTheoryEvals->get($regNo, collect());
+            $s1 = $stThEvals->whereIn('series_no', ['Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)'])->first();
+            $s2 = $stThEvals->whereIn('series_no', ['Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)'])->first();
+            $s3 = $stThEvals->whereIn('series_no', ['Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)'])->first();
+            $s4 = $stThEvals->whereIn('series_no', ['Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)'])->first();
+
+            $valCo1 = $s1 ? ($s1->is_absent ? 0.0 : (float)$s1->total_score_50) : null;
+            $valCo2 = $s2 ? ($s2->is_absent ? 0.0 : (float)$s2->total_score_50) : null;
+            $valCo3 = $s3 ? ($s3->is_absent ? 0.0 : (float)$s3->total_score_50) : null;
+            $valCo4 = $s4 ? ($s4->is_absent ? 0.0 : (float)$s4->total_score_50) : null;
+
+            $s1Co1Absent = $s1 ? (bool)$s1->is_absent : false;
+            $s1Co2Absent = $s2 ? (bool)$s2->is_absent : false;
+            $s2Co3Absent = $s3 ? (bool)$s3->is_absent : false;
+            $s2Co4Absent = $s4 ? (bool)$s4->is_absent : false;
+
+            // Fallback for combined 2 series: CA4 (Mod 1&2) and CA5 (Mod 3&4)
+            if ($valCo1 === null && $valCo2 === null) {
+                $legacyCa4 = $stThEvals->whereIn('series_no', ['CA4', 'Series Exam 1', 'Series 1 (CA4)', 'Series Exam 1 (CA4)'])->first();
+                if ($legacyCa4) {
+                    $score = $legacyCa4->is_absent ? 0.0 : (float)$legacyCa4->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $valCo1 = $half;
+                    $valCo2 = $half;
+                    $s1Co1Absent = (bool)$legacyCa4->is_absent;
+                    $s1Co2Absent = (bool)$legacyCa4->is_absent;
+                }
+            }
+            if ($valCo3 === null && $valCo4 === null) {
+                $legacyCa5 = $stThEvals->whereIn('series_no', ['CA5', 'Series Exam 2', 'Series 2 (CA5)', 'Series Exam 2 (CA5)'])->first();
+                if ($legacyCa5) {
+                    $score = $legacyCa5->is_absent ? 0.0 : (float)$legacyCa5->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $valCo3 = $half;
+                    $valCo4 = $half;
+                    $s2Co3Absent = (bool)$legacyCa5->is_absent;
+                    $s2Co4Absent = (bool)$legacyCa5->is_absent;
+                }
+            }
+
+            $hasS1 = ($valCo1 !== null || $valCo2 !== null);
+            $hasS2 = ($valCo3 !== null || $valCo4 !== null);
+
+            $s1Total = $hasS1 ? min(50.0, ($valCo1 ?? 0) + ($valCo2 ?? 0)) : null;
+            $s2Total = $hasS2 ? min(50.0, ($valCo3 ?? 0) + ($valCo4 ?? 0)) : null;
+
+            $hasTheory = ($s1Total !== null || $s2Total !== null);
+            $thAvg50 = $hasTheory ? ((($s1Total ?? 0) + ($s2Total ?? 0)) / 2.0) : 0.0;
+            $theoryScaled10 = round((($thAvg50 / 50.0) * 10.0) * 2) / 2;
+
+            // Practical Series
+            $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
+            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+
+            $pr1Score = $sp1 ? ($sp1->is_absent ? 0.0 : (float)$sp1->total_score_40) : null;
+            $pr2Score = $sp2 ? ($sp2->is_absent ? 0.0 : (float)$sp2->total_score_40) : null;
+            $pr1Absent = $sp1 ? (bool)$sp1->is_absent : false;
+            $pr2Absent = $sp2 ? (bool)$sp2->is_absent : false;
+
+            $hasPractical = ($pr1Score !== null || $pr2Score !== null);
+            $prAvg40 = $hasPractical ? ((($pr1Score ?? 0) + ($pr2Score ?? 0)) / 2.0) : 0.0;
+            $practicalScaled10 = round((($prAvg40 / 40.0) * 10.0) * 2) / 2;
+
+            $totalSeries20 = round(($theoryScaled10 + $practicalScaled10) * 2) / 2;
+
+            return [
+                'reg_no' => $student->reg_no,
+                'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
+                'name' => $student->name,
+                'roll_no' => $student->roll_no,
+                's1_co1' => $valCo1,
+                's1_co1_absent' => $s1Co1Absent,
+                's1_co2' => $valCo2,
+                's1_co2_absent' => $s1Co2Absent,
+                's1_total' => $s1Total,
+                's2_co3' => $valCo3,
+                's2_co3_absent' => $s2Co3Absent,
+                's2_co4' => $valCo4,
+                's2_co4_absent' => $s2Co4Absent,
+                's2_total' => $s2Total,
+                'theory_avg_50' => $thAvg50,
+                'theory_scaled_10' => $theoryScaled10,
+                'practical_test1_40' => $pr1Score,
+                'practical_test1_absent' => $pr1Absent,
+                'practical_test2_40' => $pr2Score,
+                'practical_test2_absent' => $pr2Absent,
+                'practical_avg_40' => $prAvg40,
+                'practical_scaled_10' => $practicalScaled10,
+                'total_series_20' => $totalSeries20,
+            ];
+        });
+
+        return view('r26_practicum.series_report_print', compact(
+            'batchSubject', 'classroom', 'students', 'practicumCourseFile',
+            'studentResults', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName'
+        ));
+    }
+
+    /**
+     * Print End-Semester Examination (ESE) Mark Report for Practicum
+     * Route: GET /r26/classroom/practicum/{subjectId}/print-ese-report
+     */
+    public function printEseReport($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $meta = $this->resolveClassroomMeta($subjectId, $batchSubject->classroom_id);
+        $classroom = $meta['classroom'];
+        $departmentName = $meta['departmentName'];
+        $batchName = $meta['batchName'];
+        $batchYear = $meta['batchYear'];
+        $lecturerName = $meta['lecturerName'];
+
+        $practicumCourseFile = R26PracticumCourseFile::where('batch_subject_id', $subjectId)->firstOrFail();
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get();
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
+            ->get();
+
+        $attendanceData = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
+        $subjectOfficialAttendances = \App\Models\SubjectOfficialAttendance::where(function ($query) use ($subjectId, $batchSubject) {
+            $query->where('batch_subject_id', $subjectId)
+                  ->orWhere(function ($q) use ($batchSubject) {
+                      $q->where('subject_code', $batchSubject->subject_code)
+                        ->where('classroom_id', $batchSubject->classroom_id);
+                  });
+        })->get()->keyBy('reg_no');
+        $experimentEvals = R26PracticumExperimentEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesTheoryEvals = R26PracticumSeriesTheory::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesPracticalEvals = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $slAcademicMarks = DB::table('academic_marks')->where('batch_subject_id', $subjectId)->where('category', 'like', 'Self Study:%')->get()->groupBy('reg_no');
+        $slSubmissions = DB::table('student_task_submissions')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
+        $eseMarks = R26PracticumEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
+
+        $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
+
+        $studentResults = $students->map(function ($student) use (
+            $attendanceData, $subjectOfficialAttendances, $experimentEvals,
+            $seriesTheoryEvals, $seriesPracticalEvals, $eseMarks,
+            $slAcademicMarks, $slSubmissions, $practicumCourseFile,
+            $batchSubject, $subjectType
+        ) {
+            $regNo = $student->reg_no;
+            $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
+
+            // 1. Attendance Marks
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
+
+            $offRec = $subjectOfficialAttendances->get($regNo)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendances->get($student->sbte_reg_no) : null);
+
+            $staffUploadedPct = null;
+            if ($offRec) {
+                if ($offRec->teams_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->teams_percentage;
+                } elseif ($offRec->final_percentage !== null) {
+                    $staffUploadedPct = (float)$offRec->final_percentage;
+                }
+            }
+
+            $rawAttPercentage = $staffUploadedPct !== null ? $staffUploadedPct : $logAttPct;
+            $overridePct = ($offRec && $offRec->override_percentage !== null) ? (float)$offRec->override_percentage : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
+
+            $attMarks = 0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) $attMarks = 5;
+                elseif ($effectivePct >= 80) $attMarks = 4;
+                elseif ($effectivePct >= 75) $attMarks = 3;
+                elseif ($effectivePct >= 70) $attMarks = 2;
+                elseif ($effectivePct >= 65) $attMarks = 1;
+                else $attMarks = 0;
+            }
+
+            // 2. Self Learning
+            $stSlMarks = $slAcademicMarks->get($regNo, collect());
+            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
+            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
+            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
+            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+            $caEntered = [];
+            if ($m1Rec && $m1Rec->marks_obtained !== null) $caEntered[] = (float)$m1Rec->marks_obtained;
+            if ($m2Rec && $m2Rec->marks_obtained !== null) $caEntered[] = (float)$m2Rec->marks_obtained;
+            if ($m3Rec && $m3Rec->marks_obtained !== null) $caEntered[] = (float)$m3Rec->marks_obtained;
+            if ($m4Rec && $m4Rec->marks_obtained !== null) $caEntered[] = (float)$m4Rec->marks_obtained;
+
+            if (count($caEntered) > 0) {
+                $rawAvg10 = array_sum($caEntered) / 4.0;
+                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+            } elseif ($stSlMarks->count() > 0) {
+                $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+            } else {
+                $stSub = $slSubmissions->get($regNo, collect());
+                $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+            }
+            if ($slMarks > 5.0) $slMarks = 5.0;
+
+            // 3. Continuous Practical Evaluation
+            $stExpEvals = $experimentEvals->get($regNo, collect());
+            $expCount = $stExpEvals->count();
+            $avgExpScore40 = $expCount > 0 ? ($stExpEvals->sum('total_score_40') / $expCount) : 0.00;
+            $continuousEvalMarks = round((($avgExpScore40 / 40.0) * 10.0) * 2) / 2;
+
+            // 4. Theory Series
+            $stStEvals = $seriesTheoryEvals->get($regNo, collect());
+            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)'])->first();
+            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)'])->first();
+            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)'])->first();
+            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)'])->first();
+            $co1Score = $st1 ? ($st1->is_absent ? 0.0 : (float)$st1->total_score_50) : null;
+            $co2Score = $st2 ? ($st2->is_absent ? 0.0 : (float)$st2->total_score_50) : null;
+            $co3Score = $st3 ? ($st3->is_absent ? 0.0 : (float)$st3->total_score_50) : null;
+            $co4Score = $st4 ? ($st4->is_absent ? 0.0 : (float)$st4->total_score_50) : null;
+
+            if ($co1Score === null && $co2Score === null) {
+                $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4', 'Series Exam 1', 'Series 1 (CA4)', 'Series Exam 1 (CA4)'])->first();
+                if ($legacyCa4) {
+                    $score = $legacyCa4->is_absent ? 0.0 : (float)$legacyCa4->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $co1Score = $half;
+                    $co2Score = $half;
+                }
+            }
+            if ($co3Score === null && $co4Score === null) {
+                $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5', 'Series Exam 2', 'Series 2 (CA5)', 'Series Exam 2 (CA5)'])->first();
+                if ($legacyCa5) {
+                    $score = $legacyCa5->is_absent ? 0.0 : (float)$legacyCa5->total_score_50;
+                    $half = round($score / 2.0, 1);
+                    $co3Score = $half;
+                    $co4Score = $half;
+                }
+            }
+
+            $series1Total = min(50.0, ($co1Score ?? 0) + ($co2Score ?? 0));
+            $series2Total = min(50.0, ($co3Score ?? 0) + ($co4Score ?? 0));
+            $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
+            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+
+            // 5. Practical Series
+            $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
+            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
+            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+
+            // Consolidated Total CIA Marks (Max 40) - Whole Number
+            $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
+
+            // ESE Marks & Grades
+            $stEse = $eseMarks->get($regNo);
+            $eseTheoryGrade = null;
+            if ($stEse && $stEse->ese_theory_grade) {
+                $eseTheoryGrade = $stEse->ese_theory_grade;
+            } else {
+                $eseTheoryGrade = DB::table('student_board_grades')->where('reg_no', $regNo)->where('subject_code', $batchSubject->subject_code)->value('grade')
+                    ?: DB::table('student_semester_marks')->where('reg_no', $regNo)->where('subject_code', $batchSubject->subject_code)->value('grade');
+            }
+
+            $eseTheory = 0.00;
+            if ($eseTheoryGrade) {
+                $eseTheory = $this->convertGradeToMarks($eseTheoryGrade);
+            } elseif ($stEse) {
+                $eseTheory = floatval($stEse->ese_theory_marks);
+            }
+
+            if ($isBasicScience) {
+                $esePractical = 0.00;
+                $totalEse = $eseTheory;
+                $maxEse = 60;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
+                $maxCourseMarks = 100;
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= 40.0);
+                $isPassed = ($passTheoryEse && $passCombined);
+            } else {
+                $esePractical = $stEse ? floatval($stEse->ese_practical_marks) : 0.00;
+                $totalEse = $eseTheory + $esePractical;
+                $maxEse = $practicumCourseFile->ese_marks;
+                $totalCourseMarks = round($totalCiaMarks + $totalEse);
+                $maxCourseMarks = 40 + $maxEse;
+                $passTheoryEse = ($eseTheory >= 24.0 || (in_array(strtoupper(trim($eseTheoryGrade ?? '')), ['S','A','B','C','D','E','P'])));
+                $passCombined = ($totalCourseMarks >= ($maxCourseMarks * 0.40));
+                $isPassed = ($passTheoryEse && $passCombined);
+            }
+
+            return [
+                'reg_no' => $student->reg_no,
+                'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
+                'name' => $student->name,
+                'roll_no' => $student->roll_no,
+                'total_cia_marks' => $totalCiaMarks,
+                'ese_theory' => $eseTheory,
+                'ese_theory_grade' => $eseTheoryGrade ?: '-',
+                'ese_practical' => $esePractical,
+                'total_ese' => $totalEse,
+                'total_course_marks' => $totalCourseMarks,
+                'max_course_marks' => $maxCourseMarks,
+                'is_passed' => $isPassed,
+            ];
+        });
+
+        return view('r26_practicum.ese_report_print', compact(
+            'batchSubject', 'classroom', 'students', 'practicumCourseFile',
+            'studentResults', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName', 'isBasicScience'
+        ));
     }
 }
 

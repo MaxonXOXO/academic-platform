@@ -19,8 +19,29 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
+    /* Active Attendance Override Styling - border only on entry field, no td border */
+    .cell-att-override.has-override {
+      border-color: #f59e0b !important;
+      background-color: rgba(245, 158, 11, 0.15) !important;
+      color: #fbbf24 !important;
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35) !important;
+    }
+    /* Strictly Hide Up/Down Arrows / Spinners */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button,
+    .no-spinners::-webkit-outer-spin-button,
+    .no-spinners::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    }
+    input[type="number"], .no-spinners {
+      -moz-appearance: textfield !important;
+      appearance: textfield !important;
+    }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
@@ -320,10 +341,11 @@
     <div class="flex flex-wrap justify-between items-center bg-panel border rounded-xl px-3 py-1.5 gap-2 shadow-sm">
       <!-- Left: Logo & Virtual Theory Classroom - R 2026 -->
       <div class="flex items-center gap-2.5">
-        <img src="/logo.jpg" class="w-7 h-7 rounded-lg object-cover shadow-sm">
+        <img src="/logo.jpg" class="w-8 h-8 rounded-lg object-cover shadow-sm">
         <div>
-          <div class="text-sm font-bold tracking-tight text-title flex items-center gap-1.5 flex-wrap">
-            <span>Virtual Theory Classroom - R 2026</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">Carmel Linx</span>
+            <span class="text-base sm:text-lg font-extrabold tracking-tight text-title">Virtual Theory Classroom R - 2026</span>
             @php $isAiActive = \App\Http\Controllers\SystemSettingController::isAiEnabled(); @endphp
             @if($isAiActive)
               <span class="px-1.5 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-900/60 rounded text-[9.5px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI Active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span> AI Active</span>
@@ -331,12 +353,18 @@
               <span class="px-1.5 py-0.5 bg-amber-950/40 text-amber-400 border border-amber-900/60 rounded text-[9.5px] font-bold inline-flex items-center gap-1 shadow-2xs" title="Gemini AI is deactivated to save API credits. Lesson plans, descriptive questions, and MCQs are generated from local databases and question banks."><span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span> AI Offline</span>
             @endif
           </div>
-          <p class="text-[9.5px] text-muted font-bold uppercase tracking-wider leading-none">Carmel Linx • Lecturer Console</p>
+          <p class="text-[10px] text-muted font-bold uppercase tracking-wider leading-none mt-0.5">Lecturer Console • Carmel Polytechnic College</p>
         </div>
       </div>
 
       <!-- Right: Mode Toggle, Lecturer Profile & Back Button -->
       <div class="flex items-center gap-1.5">
+        <!-- Auto-Save Pulse Indicator -->
+        <div id="global-save-pill" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="save-status-text">Saved</span>
+        </div>
+
         <!-- Dark/Light Mode Toggle -->
         <button onclick="toggleTheme()" class="p-1 px-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer border border-slate-700/50" title="Toggle Dark/Light Mode">
           <span id="theme-icon" class="material-symbols-rounded text-xs block">light_mode</span>
@@ -376,26 +404,26 @@
       </div>
     </div>
 
-    <!-- ROW 2: SUBJECT META CARD & EVALUATION STRIP (COMPACT) -->
-    <div class="bg-panel border rounded-xl px-3 py-1 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-1.5">
-      <div class="flex flex-wrap items-center gap-1.5 text-xs">
-        <span class="px-2.5 py-0.5 bg-slate-800/90 text-slate-100 font-bold text-xs sm:text-sm rounded border border-slate-700/80 shadow-xs tracking-tight">{{ $batchSubject->subject_name }}</span>
-        <span class="px-1.5 py-0.2 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded font-mono text-[10px] font-semibold">{{ $batchSubject->subject_code }}</span>
-        <span class="text-muted text-xs">•</span>
-        <span class="font-bold text-slate-100 text-[11px] px-1.5 py-0.2 bg-slate-800/80 rounded border border-slate-700/60">Sem {{ $batchSubject->semester }}</span>
-        <span class="text-muted text-xs">•</span>
-        <span class="px-1.5 py-0.2 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded font-mono text-[10.5px] font-bold shadow-xs">{{ $batchSubject->classroom_id }}</span>
+    <!-- ROW 2: SUBJECT META CARD & EVALUATION STRIP -->
+    <div class="bg-panel border rounded-xl px-4 py-2.5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-2 min-h-[46px]">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-3 py-1 bg-slate-800/90 text-white font-extrabold text-sm sm:text-base rounded-lg border border-slate-700/80 shadow-xs tracking-tight">
+          {{ $batchSubject->subject_name }}
+          <span class="ml-1 text-sky-400 font-mono font-bold text-xs sm:text-sm">({{ $batchSubject->subject_code }})</span>
+        </span>
+        <span class="font-bold text-slate-200 text-xs px-2 py-0.5 bg-slate-800/80 rounded-md border border-slate-700/60">Sem {{ $batchSubject->semester }}</span>
+        <span class="px-2 py-0.5 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-md font-mono text-xs font-bold shadow-xs">{{ $batchSubject->classroom_id }}</span>
       </div>
 
-      <!-- COMPACT EVALUATION METRICS & ATTENDANCE LINK -->
-      <div class="flex flex-wrap items-center gap-1.5 text-[10.5px] font-mono text-muted">
-        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">CIA: <strong class="text-title">{{ $cieMarks }}M</strong></span>
-        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">ESE: <strong class="text-title">{{ $eseMarks }}M</strong></span>
-        <span class="px-1.5 py-0.2 bg-slate-900/60 border border-slate-800 rounded text-slate-300">Credits: <strong class="text-title">{{ $credit }}</strong></span>
-        <span class="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400"><strong>{{ $totalHours }} Hrs</strong></span>
-        <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-2 py-0.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-white border border-blue-500/40 rounded text-[10.5px] font-semibold transition flex items-center gap-1 no-underline shadow-2xs shrink-0" title="Open Common Attendance & Subject Log">
-          <span class="material-symbols-rounded text-xs text-blue-400">co_present</span>
-          <span class="hidden sm:inline">Attendance &amp; Log</span>
+      <!-- EVALUATION METRICS & ATTENDANCE LINK -->
+      <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-muted">
+        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded-md text-slate-300">CIA: <strong class="text-title text-emerald-400 font-bold">{{ $cieMarks }}M</strong></span>
+        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded-md text-slate-300">ESE: <strong class="text-title">{{ $eseMarks }}M</strong></span>
+        <span class="px-2 py-0.5 bg-slate-900/60 border border-slate-800 rounded-md text-slate-300">Credits: <strong class="text-title">{{ $credit }}</strong></span>
+        <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-emerald-400"><strong>{{ $totalHours }} Hrs</strong></span>
+        <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-white border border-blue-500/40 rounded-md text-xs font-semibold transition flex items-center gap-1.5 no-underline shadow-2xs shrink-0" title="Open Common Attendance & Subject Log">
+          <span class="material-symbols-rounded text-sm text-blue-400">co_present</span>
+          <span class="hidden sm:inline font-sans">Attendance &amp; Log</span>
         </a>
       </div>
     </div>
@@ -403,12 +431,12 @@
     @php
       $activeTab = request()->query('tab', 'outline');
       if ($activeTab === 'internals') $activeTab = 'reports';
-      if (!in_array($activeTab, ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'])) {
+      if (!in_array($activeTab, ['outline', 'planner', 'cia', 'series', 'selflearning', 'attainment', 'materials', 'reports'])) {
         $activeTab = 'outline';
       }
     @endphp
 
-    <!-- ROW 3: Professional Horizontal Tab Strip Navigation Container (Separated Card) -->
+    <!-- ROW 3: Horizontal Tab Strip Navigation Container -->
     <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg">
       <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
         <button onclick="switchTab('outline')" id="btn-outline" class="tab-btn px-3.5 py-2 text-[11px] md:text-xs {{ $activeTab === 'outline' ? 'font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)]' : 'font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl' }} flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
@@ -420,11 +448,15 @@
         </button>
         
         <button onclick="switchTab('cia')" id="btn-cia" class="tab-btn px-3.5 py-2 text-[11px] md:text-xs {{ $activeTab === 'cia' ? 'font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)]' : 'font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl' }} flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-          <span class="material-symbols-rounded text-sm">fact_check</span> Continuous Assessment
+          <span class="material-symbols-rounded text-sm">fact_check</span> CIE Register
         </button>
 
         <button onclick="switchTab('series')" id="btn-series" class="tab-btn px-3.5 py-2 text-[11px] md:text-xs {{ $activeTab === 'series' ? 'font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)]' : 'font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl' }} flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
           <span class="material-symbols-rounded text-sm">quiz</span> Series Exams
+        </button>
+
+        <button onclick="switchTab('selflearning')" id="btn-selflearning" class="tab-btn px-3.5 py-2 text-[11px] md:text-xs {{ $activeTab === 'selflearning' ? 'font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)]' : 'font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl' }} flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+          <span class="material-symbols-rounded text-sm text-emerald-400">local_library</span> Self-Learning (SLA)
         </button>
 
         <button onclick="switchTab('attainment')" id="btn-attainment" class="tab-btn px-3.5 py-2 text-[11px] md:text-xs {{ $activeTab === 'attainment' ? 'font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)]' : 'font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl' }} flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
@@ -941,23 +973,23 @@
             <table class="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
-                  <th class="py-1.5 px-2 w-[4%] text-center">Period</th>
-                  <th class="py-1.5 px-2 w-[7%] text-center">CO Tag</th>
-                  <th class="py-1.5 px-2 w-[27%]">Topic / Content Scheduled (Full Preview)</th>
-                  <th class="py-1.5 px-2 w-[9%]">Pedagogy</th>
-                  <th class="py-1.5 px-2 w-[9%]">Taxonomy</th>
-                  <th class="py-1.5 px-2 w-[12%]">Proposed Date</th>
-                  <th class="py-1.5 px-2 w-[12%]">Actual Date</th>
-                  <th class="py-1.5 px-2 w-[5%] text-center">Hours</th>
-                  <th class="py-1.5 px-2 w-[11%]">Status</th>
-                  <th class="py-1.5 px-2 w-[4%] text-center">Action</th>
+                  <th class="py-1.5 px-1 w-[3.5%] text-center">Period</th>
+                  <th class="py-1.5 px-1 w-[4.5%] text-center">CO Tag</th>
+                  <th class="py-1.5 px-2.5 w-[52%]">Topic / Content Scheduled (Full Preview)</th>
+                  <th class="py-1.5 px-1 w-[6%]">Pedagogy</th>
+                  <th class="py-1.5 px-1 w-[6%]">Taxonomy</th>
+                  <th class="py-1.5 px-1 w-[8%] text-center">Proposed Date</th>
+                  <th class="py-1.5 px-1 w-[8%] text-center">Actual Date</th>
+                  <th class="py-1.5 px-0.5 w-[3%] text-center">Hours</th>
+                  <th class="py-1.5 px-1 w-[5%]">Status</th>
+                  <th class="py-1.5 px-1 w-[4%] text-center">Action</th>
                 </tr>
               </thead>
-              <tbody id="plannerTableBody" class="divide-y divide-card text-sm font-normal">
+              <tbody id="plannerTableBody" class="text-sm font-normal">
                 @forelse($lessonPlans as $lp)
                   <tr data-lp-id="{{ $lp->id }}" class="bg-card-hover transition-all font-normal">
-                    <td class="p-1.5 font-mono text-center text-title period-no-display text-xs">{{ $lp->day_no }}</td>
-                    <td class="p-1.5 text-center">
+                    <td class="p-1 font-mono text-center text-title period-no-display text-xs">{{ $lp->day_no }}</td>
+                    <td class="p-1 text-center">
                       <select data-field="co_id" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs text-center">
                         <option value="CO1" {{ $lp->co_id == 'CO1' ? 'selected' : '' }}>CO1</option>
                         <option value="CO2" {{ $lp->co_id == 'CO2' ? 'selected' : '' }}>CO2</option>
@@ -969,39 +1001,44 @@
                         @endif
                       </select>
                     </td>
-                    <td class="p-1.5">
-                      <textarea data-field="topic_content" oninput="triggerPlannerAutosave()" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs resize-y">{{ $lp->topic_content }}</textarea>
+                    <td class="p-1">
+                      <textarea data-field="topic_content" oninput="triggerPlannerAutosave()" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs resize-y leading-relaxed">{{ $lp->topic_content }}</textarea>
                     </td>
-                    <td class="p-1.5">
-                      <select data-field="pedagogy" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-xs">
+                    <td class="p-1">
+                      <select data-field="pedagogy" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-[11px]">
                         <option value="Lecture" {{ $lp->pedagogy == 'Lecture' ? 'selected' : '' }}>Lecture</option>
                         <option value="Tutorial" {{ $lp->pedagogy == 'Tutorial' ? 'selected' : '' }}>Tutorial</option>
                         <option value="Practical" {{ $lp->pedagogy == 'Practical' ? 'selected' : '' }}>Practical</option>
                         <option value="Exam" {{ $lp->pedagogy == 'Exam' ? 'selected' : '' }}>Exam</option>
                       </select>
                     </td>
-                    <td class="p-1.5">
-                      <input type="text" data-field="taxonomy" oninput="triggerPlannerAutosave()" value="{{ $lp->taxonomy }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs" placeholder="Taxonomy Level...">
+                    <td class="p-1">
+                      <input type="text" data-field="taxonomy" oninput="triggerPlannerAutosave()" value="{{ $lp->taxonomy }}" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px]" placeholder="Taxonomy...">
                     </td>
-                    <td class="p-1.5">
-                      <input type="text" data-field="proposed_date" onchange="triggerPlannerAutosave()" value="{{ $lp->proposed_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $lp->proposed_date) ? $lp->proposed_date : \Carbon\Carbon::parse($lp->proposed_date)->format('d/m/Y')) : '' }}" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs text-center">
+                    <td class="p-1">
+                      <input type="text" data-field="proposed_date" onchange="triggerPlannerAutosave()" value="{{ $lp->proposed_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $lp->proposed_date) ? $lp->proposed_date : \Carbon\Carbon::parse($lp->proposed_date)->format('d/m/Y')) : '' }}" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px] text-center">
                     </td>
-                    <td class="p-1.5">
-                      <input type="text" data-field="actual_date" onchange="triggerPlannerAutosave()" value="{{ $lp->actual_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $lp->actual_date) ? $lp->actual_date : \Carbon\Carbon::parse($lp->actual_date)->format('d/m/Y')) : '' }}" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs text-center">
+                    <td class="p-1">
+                      <input type="text" data-field="actual_date" onchange="triggerPlannerAutosave()" value="{{ $lp->actual_date ? (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $lp->actual_date) ? $lp->actual_date : \Carbon\Carbon::parse($lp->actual_date)->format('d/m/Y')) : '' }}" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px] text-center">
                     </td>
-                    <td class="p-1.5">
-                      <input type="number" data-field="allocated_hours" oninput="triggerPlannerAutosave()" value="{{ $lp->allocated_hours ?: 1 }}" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-center text-xs">
+                    <td class="p-1">
+                      <input type="number" data-field="allocated_hours" oninput="triggerPlannerAutosave()" value="{{ $lp->allocated_hours ?: 1 }}" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-0.5 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-center text-[11px]">
                     </td>
-                    <td class="p-1.5">
-                      <select data-field="status" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-xs min-w-[75px]">
+                    <td class="p-1">
+                      <select data-field="status" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-[11px]">
                         <option value="Pending" {{ $lp->status == 'Pending' ? 'selected' : '' }}>Pending</option>
                         <option value="Completed" {{ $lp->status == 'Completed' ? 'selected' : '' }}>Completed</option>
                       </select>
                     </td>
-                    <td class="p-1.5 text-center">
-                      <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete Row">
-                        <span class="material-symbols-rounded text-xs block">close</span>
-                      </button>
+                    <td class="p-1 text-center">
+                      <div class="flex items-center justify-center gap-0.5">
+                        <button type="button" onclick="addLessonPlanRowBelow(this)" class="text-sky-400 hover:text-sky-300 hover:bg-sky-500/20 p-1 rounded transition cursor-pointer" title="Add Row Below">
+                          <span class="material-symbols-rounded text-xs block">add</span>
+                        </button>
+                        <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete Row">
+                          <span class="material-symbols-rounded text-xs block">close</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 @empty
@@ -1026,93 +1063,254 @@
         <!-- TAB: CONTINUOUS INTERNAL ASSESSMENT -->
         <div id="tab-cia" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'cia' ? '' : 'hidden' }}">
           
-          <!-- SUB-VIEW 1: THREE CARDS VIEW (DEFAULT) -->
-          <div id="cia-cards-view" class="space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
+          <!-- CONSOLIDATED CIA / CIE REGISTER MARKSHEET (PRIMARY VIEW) -->
+          <div id="cia-consolidated-view" class="space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-2 pb-3 border-b border-slate-800">
               <div>
-                <h3 class="text-sm font-bold text-title flex items-center gap-2">
-                  <span class="material-symbols-rounded text-violet-400 text-base">fact_check</span>
-                  Continuous Internal Assessment (CIA)
+                <h3 class="font-bold text-sm text-cyan-400 flex items-center gap-2">
+                  <span class="material-symbols-rounded text-base">fact_check</span>
+                  <span>Continuous Internal Assessment (CIA) Register - Rev 2026</span>
                 </h3>
-                <p class="text-xs text-muted mt-0.5">Scale: Attendance (5M) + Self-Learning (15M) + Series Exams (20M) = 40 Marks Total CIE</p>
+                <p class="text-xs text-slate-400 mb-0">
+                  Scheme: Attendance (Max 5M) + Self-Learning CA1–CA4 (Avg/Scaled 15M) + Series Tests (Comb 20M) = <strong class="text-amber-400">CIE 40 Marks</strong> | ESE (60M)
+                </p>
               </div>
-              <button onclick="toggleCiaView('consolidated')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-sm">assessment</span>
-                View Consolidated Marksheet
+
+              <div class="flex items-center gap-2 flex-wrap">
+                <a href="/r26/classroom/theory/{{ $batchSubject->id }}/print/cia-register" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1 no-underline">
+                  <span class="material-symbols-rounded text-sm">print</span>
+                  <span>Print CIA Register</span>
+                </a>
+                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-white border border-blue-500/40 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline" title="Open Class Attendance & Subject Log">
+                  <span class="material-symbols-rounded text-xs text-blue-400">co_present</span>
+                  <span>Attendance &amp; Log</span>
+                </a>
+                <button type="button" onclick="switchTab('selflearning')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-rounded text-sm text-emerald-400">local_library</span>
+                  <span>Self-Learning (SLA Tab) &rarr;</span>
+                </button>
+                <button onclick="triggerConsolidatedManualSave()" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                  <span class="material-symbols-rounded text-sm">save</span>
+                  <span>Save All Changes</span>
+                </button>
+              </div>
+            </div>
+
+            @if(empty($hasSubjectAttendance))
+              <!-- Missing Subject Attendance Prompt Banner -->
+              <div class="p-3 rounded-lg bg-amber-950/40 border border-amber-500/50 text-xs text-amber-200 flex items-start sm:items-center justify-between gap-3 mb-2 shadow-sm">
+                <div class="flex items-start sm:items-center gap-2.5">
+                  <span class="material-symbols-rounded text-amber-400 text-lg shrink-0 mt-0.5 sm:mt-0">warning</span>
+                  <div>
+                    <span class="font-bold text-amber-300">Subject Attendance Missing:</span>
+                    <span>Attendance has not been entered manually or uploaded from Teams for this subject. In Revision 2026, subject CIE calculations strictly require staff attendance (manual logs or staff Teams upload). Tutor uploads are reserved strictly for total semester attendance &amp; exam eligibility.</span>
+                  </div>
+                </div>
+                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="shrink-0 px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded text-[11px] transition no-underline flex items-center gap-1 shadow-xs">
+                  <span class="material-symbols-rounded text-xs">edit_calendar</span> Enter Attendance
+                </a>
+              </div>
+            @endif
+
+            <!-- Rubric Hint Banner -->
+            <div class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800 text-[11px] text-slate-300 flex items-center justify-between flex-wrap gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-blue-400 text-sm">info</span>
+                <span><strong>Attendance Slabs (5M):</strong> &ge;90%: 5 | 80-89%: 4 | 75-79%: 3 | 70-74%: 2 | 65-69%: 1 | &lt;65%: 0</span>
+              </div>
+              <span class="text-emerald-400 font-semibold">⚡ Auto-saves on typing &bull; Tab/Enter moves down in column</span>
+            </div>
+
+            <!-- Consolidated Marks Table -->
+            <div class="overflow-x-auto border border-card rounded-xl bg-slate-950/10 custom-scrollbar">
+              <table class="w-full border-collapse text-left" id="consolidatedCiaTable">
+                <thead>
+                  <tr class="bg-slate-950/80 text-slate-300 text-xs sm:text-sm font-bold">
+                    <th rowspan="2" class="border border-slate-800 text-center w-12 py-2.5">Roll</th>
+                    <th rowspan="2" class="border border-slate-800 w-28 py-2.5">Reg No</th>
+                    <th rowspan="2" class="border border-slate-800 min-w-[170px] py-2.5">Student Name</th>
+                    <th colspan="3" class="border border-slate-800 text-center bg-blue-950/40 text-blue-300 py-1.5">Attendance (5M)</th>
+                    <th rowspan="2" class="border border-slate-800 text-center w-28 bg-amber-950/40 text-amber-300 py-2.5">
+                      Self-Learning (15M)<br>
+                      <button type="button" onclick="switchTab('selflearning')" class="mt-1 px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded text-[10px] font-semibold transition cursor-pointer">Edit SLA &rarr;</button>
+                    </th>
+                    <th colspan="3" class="border border-slate-800 text-center bg-sky-950/40 text-sky-300 py-1.5">Series Exams (20M)</th>
+                    <th rowspan="2" class="border-2 border-emerald-500/60 text-center w-32 bg-emerald-950/70 text-emerald-300 py-2.5">Total<br><span class="text-emerald-400 font-black text-sm sm:text-base">CIE (40)</span></th>
+                    <th colspan="3" class="border border-slate-800 text-center bg-purple-950/40 text-purple-300 py-1.5">ESE (60M)</th>
+                    <th rowspan="2" class="border border-slate-800 text-center w-24 bg-slate-950 text-amber-300 py-2.5">Grand<br>Total (100)</th>
+                  </tr>
+                  <tr class="bg-slate-950/90 text-slate-400 text-xs">
+                    <th class="border border-slate-800 text-center w-16 py-1.5" title="Raw % from Teams attendance log">Teams %</th>
+                    <th class="border border-slate-800 text-center w-28 py-1.5" title="Override % to fix parsing errors (Amber border when active)">Override %</th>
+                    <th class="border border-slate-800 text-center w-16 py-1.5 font-bold text-blue-300">Mark (5)</th>
+                    <th class="border border-slate-800 text-center w-20 py-1.5 font-semibold text-slate-300" title="Series 1 Mark out of 50">S1 (50)</th>
+                    <th class="border border-slate-800 text-center w-20 py-1.5 font-semibold text-slate-300" title="Series 2 Mark out of 50">S2 (50)</th>
+                    <th class="border border-slate-800 text-center w-20 py-1.5 font-bold text-sky-300 bg-sky-950/20" title="Combined Series converted to 20">Ser (20)</th>
+                    <th class="border border-slate-800 text-center w-20 py-1.5" title="End Sem Exam Marks out of 60">Marks (60)</th>
+                    <th class="border border-slate-800 text-center w-14 py-1.5" title="Board Grade (S, A, B, C, D, E, F)">Grade</th>
+                    <th class="border border-slate-800 text-center w-12 py-1.5" title="Absent Toggle">AB</th>
+                  </tr>
+                </thead>
+                <tbody class="text-sm font-normal">
+                  @forelse($studentResults as $st)
+                    <tr class="student-eval-row hover:bg-slate-800/40 even:bg-slate-900/30 odd:bg-transparent transition-colors" data-reg-no="{{ $st['reg_no'] }}">
+                      <td class="border-0 text-center font-mono text-cyan-400 font-bold text-xs sm:text-sm py-3 px-2">{{ $st['roll_no'] ?: '-' }}</td>
+                      <td class="border-0 font-mono text-xs sm:text-sm font-semibold py-3 px-2">
+                        <span class="text-slate-300">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</span>
+                      </td>
+                      <td class="border-0 text-sm sm:text-base font-bold text-white py-3 px-3" title="{{ $st['name'] }}">
+                        {{ $st['name'] }}
+                      </td>
+                      <td class="border-0 text-center text-xs sm:text-sm font-mono text-slate-400 py-3 px-2">
+                        @if($st['raw_att_percentage'] !== null)
+                          {{ number_format($st['raw_att_percentage'], 1) . '%' }}
+                        @else
+                          <span class="text-amber-400/80 italic text-[11px]" title="Attendance not entered manually or from Teams">Not entered</span>
+                        @endif
+                      </td>
+                      <td class="border-0 p-2 text-center cell-att-td">
+                        <div class="flex items-center justify-center gap-1">
+                          <input type="number" step="0.1" min="0" max="100" 
+                                 value="{{ $st['attendance_override_pct'] !== null ? $st['attendance_override_pct'] : '' }}" 
+                                 data-prev-val="{{ $st['attendance_override_pct'] !== null ? $st['attendance_override_pct'] : '' }}"
+                                 data-max="100"
+                                 data-field-name="Attendance Override %"
+                                 data-reg-no="{{ $st['reg_no'] }}"
+                                 data-student-name="{{ addslashes($st['name']) }}"
+                                 placeholder="{{ $st['raw_att_percentage'] !== null ? number_format($st['raw_att_percentage'], 1) : '-' }}"
+                                 class="cell-att-override no-spinners w-16 text-center px-1.5 py-1.5 text-sm font-bold font-mono rounded bg-slate-950 border border-slate-700 text-slate-100 focus:border-amber-400 outline-none transition-all {{ $st['attendance_override_pct'] !== null ? 'has-override' : '' }}" 
+                                 title="{{ $st['attendance_override_pct'] !== null ? 'Active Override: ' . $st['attendance_override_pct'] . '%' : 'Click to override attendance percentage' }}"
+                                 onfocus="this.dataset.prevVal = this.value;"
+                                 onchange="handleAttendanceOverrideChange(this, '{{ $st['reg_no'] }}', '{{ addslashes($st['name']) }}');">
+                          @if($st['attendance_override_pct'] !== null)
+                            <button type="button" onclick="clearAttendanceOverride('{{ $st['reg_no'] }}', '{{ addslashes($st['name']) }}')" class="btn-clear-att-override p-1 rounded hover:bg-slate-800 text-amber-400 hover:text-rose-400 transition cursor-pointer" title="Revert to class log raw percentage">
+                              <span class="material-symbols-rounded text-xs">close</span>
+                            </button>
+                          @else
+                            <button type="button" onclick="promptAttendanceOverride('{{ $st['reg_no'] }}', '{{ addslashes($st['name']) }}')" class="btn-prompt-att-override p-1 rounded hover:bg-slate-800 text-slate-500 hover:text-amber-400 transition cursor-pointer" title="Click to override attendance %">
+                              <span class="material-symbols-rounded text-xs">edit</span>
+                            </button>
+                          @endif
+                        </div>
+                      </td>
+                      <td class="border-0 text-center font-extrabold text-sm sm:text-base text-blue-300 py-3 cell-att-mark">
+                        {{ number_format($st['att_marks'] ?? 0, 1) }}
+                      </td>
+                      
+                      <!-- Consolidated Self-Learning (15M) pulled from SLA tab -->
+                      <td class="border-0 text-center py-3 px-2 bg-amber-950/20">
+                        <span class="cell-sl-total text-sm sm:text-base font-extrabold text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded border border-amber-500/40 inline-block font-mono min-w-[48px]">
+                          {{ number_format($st['self_learning_15'] ?? 0, 1) }}
+                        </span>
+                        <input type="hidden" class="cell-ca1" value="{{ $st['ca1_15'] !== null ? $st['ca1_15'] : '' }}">
+                        <input type="hidden" class="cell-ca2" value="{{ $st['ca2_15'] !== null ? $st['ca2_15'] : '' }}">
+                        <input type="hidden" class="cell-ca3" value="{{ $st['ca3_15'] !== null ? $st['ca3_15'] : '' }}">
+                        <input type="hidden" class="cell-ca4" value="{{ $st['ca4_15'] !== null ? $st['ca4_15'] : '' }}">
+                      </td>
+
+                      <!-- Series 1 (50) - Display Only (Entered in Series Tab) -->
+                      <td class="border-0 text-center py-3 px-2 bg-slate-900/30">
+                        <span class="cell-s1-50-display font-mono text-xs sm:text-sm font-bold text-slate-300 inline-block min-w-[36px]" title="Series 1 Total (50M) - Enter CO marks in Series Exam Tab">
+                          {{ $st['series_1_50'] !== null ? number_format($st['series_1_50'], 1) : '-' }}
+                        </span>
+                        <input type="hidden" class="cell-s1-50" value="{{ $st['series_1_50'] !== null ? $st['series_1_50'] : '' }}">
+                        <input type="hidden" class="cell-s1-co1" value="{{ $st['series_1_co1_25'] !== null ? $st['series_1_co1_25'] : '' }}">
+                        <input type="hidden" class="cell-s1-co2" value="{{ $st['series_1_co2_25'] !== null ? $st['series_1_co2_25'] : '' }}">
+                      </td>
+
+                      <!-- Series 2 (50) - Display Only (Entered in Series Tab) -->
+                      <td class="border-0 text-center py-3 px-2 bg-slate-900/30">
+                        <span class="cell-s2-50-display font-mono text-xs sm:text-sm font-bold text-slate-300 inline-block min-w-[36px]" title="Series 2 Total (50M) - Enter CO marks in Series Exam Tab">
+                          {{ $st['series_2_50'] !== null ? number_format($st['series_2_50'], 1) : '-' }}
+                        </span>
+                        <input type="hidden" class="cell-s2-50" value="{{ $st['series_2_50'] !== null ? $st['series_2_50'] : '' }}">
+                        <input type="hidden" class="cell-s2-co3" value="{{ $st['series_2_co3_25'] !== null ? $st['series_2_co3_25'] : '' }}">
+                        <input type="hidden" class="cell-s2-co4" value="{{ $st['series_2_co4_25'] !== null ? $st['series_2_co4_25'] : '' }}">
+                      </td>
+
+                      <!-- Combined Series (20M) -->
+                      <td class="border-0 text-center font-bold text-sm sm:text-base text-sky-300 bg-sky-950/20 py-3 cell-series-total">
+                        {{ number_format($st['series_20'] ?? 0, 1) }}
+                      </td>
+
+                      <!-- Total CIE (40M) - LARGE FONT GREEN TEXT AND NUMBERS -->
+                      <td class="border-0 text-center py-3 bg-emerald-950/30">
+                        <span class="cell-cie-total text-base sm:text-xl font-black text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/50 shadow font-mono inline-block min-w-[55px]">
+                          {{ number_format(round($st['total_cia_40'] ?? 0)) }}
+                        </span>
+                      </td>
+
+                      <!-- ESE Marks (60) -->
+                      <td class="border-0 p-2 text-center">
+                        <input type="number" step="0.5" min="0" max="60" 
+                               value="{{ $st['ese_mark_60'] !== null ? $st['ese_mark_60'] : '' }}" 
+                               data-prev-val="{{ $st['ese_mark_60'] !== null ? $st['ese_mark_60'] : '' }}"
+                               data-max="60"
+                               data-field-name="ESE Marks (End Semester Exam)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-student-name="{{ addslashes($st['name']) }}"
+                               placeholder="-"
+                               class="cell-ese-marks no-spinners w-16 text-center px-1.5 py-1.5 text-sm font-semibold text-slate-100 bg-slate-950 border border-slate-700 rounded focus:border-blue-500 outline-none" 
+                               oninput="recalculateRow('{{ $st['reg_no'] }}'); queueAutoSave();">
+                      </td>
+
+                      <!-- ESE Grade -->
+                      <td class="border-0 p-2 text-center">
+                        <input type="text" maxlength="2" 
+                               value="{{ $st['ese_grade'] ?: '' }}" 
+                               placeholder="Grade"
+                               class="cell-ese-grade uppercase w-12 text-center px-1 py-1.5 text-sm font-bold text-slate-100 bg-slate-950 border border-slate-700 rounded focus:border-blue-500 outline-none" 
+                               oninput="recalculateRow('{{ $st['reg_no'] }}'); queueAutoSave();">
+                      </td>
+
+                      <!-- ESE Absent -->
+                      <td class="border-0 text-center py-3">
+                        <input type="checkbox" class="cell-ese-absent w-4 h-4 rounded cursor-pointer" 
+                               {{ !empty($st['ese_absent']) ? 'checked' : '' }} 
+                               onchange="recalculateRow('{{ $st['reg_no'] }}'); queueAutoSave();">
+                      </td>
+
+                      <!-- Grand Total (100) -->
+                      <td class="border-0 text-center font-extrabold text-sm sm:text-base text-amber-300 bg-slate-950/60 py-3 cell-grand-total">
+                        {{ number_format(round($st['grand_total'] ?? 0)) }}
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="15" class="text-center text-slate-400 py-6 italic">No enrolled students found.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800">
+              <span class="text-xs text-slate-400">Total Enrolled Students: <strong class="text-white">{{ $students->count() }}</strong></span>
+              <button onclick="triggerConsolidatedManualSave()" class="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                <span class="material-symbols-rounded text-sm">save</span>
+                <span>Save All Evaluation Records</span>
               </button>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Attendance & Subject Log Card -->
-              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
-                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
-                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-blue-400 text-sm">co_present</span>
-                    Attendance &amp; Subject Log
-                  </span>
-                  <span class="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-mono font-bold">5M Max</span>
-                </div>
-                <p class="text-xs text-muted leading-relaxed">Daily session attendance and syllabus topics covered. Auto-evaluates 5M CIE from Table 2.1 percentages.</p>
-                <div class="space-y-1.5">
-                  <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5 no-underline">
-                    <span class="material-symbols-rounded text-sm">co_present</span>
-                    Open Attendance &amp; Subject Log
-                  </a>
-                  <button type="button" onclick="openRosterModal()" class="w-full py-1 bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 rounded-md text-[10.5px] font-medium border border-slate-700/60 transition-all cursor-pointer flex items-center justify-center gap-1">
-                    <span class="material-symbols-rounded text-xs">group</span>
-                    View Student Directory ({{ $students->count() }})
-                  </button>
-                </div>
-              </div>
-
-              <!-- Self Learning Card -->
-              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
-                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
-                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-emerald-400 text-sm">local_library</span>
-                    Self-Learning Activities (SLA)
-                  </span>
-                  <span class="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">15M Max</span>
-                </div>
-                <p class="text-xs text-muted leading-relaxed">Average of 4 Module assessments (CA1 to CA4, 15M each) scaled to 15 CIE.</p>
-                <button onclick="toggleCiaView('self-learning')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs">
-                  Manage SLA Marks (CA1–CA4)
-                </button>
-              </div>
-
-              <!-- Series Exams Card -->
-              <div class="bg-panel border border-slate-700/60 dark:border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
-                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
-                  <span class="font-bold text-title text-xs flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-purple-400 text-sm">quiz</span>
-                    Series Examinations
-                  </span>
-                  <span class="text-xs bg-purple-500/15 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded font-mono font-bold">20M Max</span>
-                </div>
-                <p class="text-xs text-muted leading-relaxed">Two written exams (50M each, 2 hours). Average scaled to 20 CIE Marks.</p>
-                <button onclick="switchTab('series')" class="w-full py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs">
-                  Manage Exams (CA5 & CA6)
-                </button>
-              </div>
-            </div>
           </div>
+        </div>
 
-          <!-- SUB-VIEW 3: CO-WISE SELF-LEARNING ACTIVITIES MARKSHEET (HIDDEN BY DEFAULT) -->
-          <div id="cia-self-learning-view" class="space-y-4 hidden">
+        <!-- TAB PANEL: SELF-LEARNING (SLA) -->
+        <div id="tab-selflearning" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'selflearning' ? '' : 'hidden' }}">
+          <div id="cia-self-learning-view" class="space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800/40 pb-3 gap-2">
               <div>
                 <h3 class="text-sm font-bold text-title flex items-center gap-2">
                   <span class="material-symbols-rounded text-blue-400 text-base">local_library</span>
-                  Self-Learning Activities Marksheet (CO-wise)
+                  Self-Learning Assessment (SLA) - Rev 2026
                 </h3>
                 <p class="text-xs text-muted mt-0.5">
-                  Assign self-learning marks (Max 15 per CO/Module). Average of all 4 COs determines the final 15 SLA marks.
+                  Enter 4 marks: M1 (CA1), M2 (CA2), M3 (CA3), M4 (CA4) out of 15 each. Average calculates Self-Learning (15M) for CIE Register.
                 </p>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="toggleCiaView('cards')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                <button onclick="switchTab('cia')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
                   <span class="material-symbols-rounded text-xs">arrow_back</span>
-                  Back to Categories
+                  Back to CIE Register
                 </button>
                 <a href="/r26/classroom/self-learning/print/{{ $batchSubject->id }}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline">
                   <span class="material-symbols-rounded text-xs">print</span>
@@ -1121,282 +1319,101 @@
                 <span id="slAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
                 </span>
-                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                <button id="btnSaveSelfLearning" onclick="saveSelfLearningMarks()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
                   <span class="material-symbols-rounded text-xs">save</span>
                   Save Self-Learning
                 </button>
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-1.5 border-b border-card pb-2">
-              <button type="button" onclick="switchSelfLearningTab('CO1')" id="tabbtn-sl-CO1" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-500/15 text-blue-400 border border-blue-500/30 cursor-pointer">CO1 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO2')" id="tabbtn-sl-CO2" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO2 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO3')" id="tabbtn-sl-CO3" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO3 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('CO4')" id="tabbtn-sl-CO4" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">CO4 Self-Study</button>
-              <button type="button" onclick="switchSelfLearningTab('Summary')" id="tabbtn-sl-Summary" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-muted hover:bg-slate-900/40 cursor-pointer">Summary Sheet</button>
-            </div>
-
-            <!-- Max Marks Configuration Panels -->
-            @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coTag)
-              <div id="sl-config-{{ $coTag }}" class="sl-config-panel bg-slate-900/30 border border-slate-800 rounded-xl p-4 space-y-4">
-                <!-- Header Row -->
-                <div class="flex justify-between items-center border-b border-slate-850 pb-3 flex-wrap gap-2">
-                  <div class="flex items-center gap-2">
-                    <span class="material-symbols-rounded text-blue-400 text-base">settings</span>
-                    <h5 class="font-bold text-title text-xs uppercase tracking-wider">{{ $coTag }} Marks Allocation Setup (Total: 15 Marks)</h5>
-                  </div>
-                  <div class="flex items-center gap-2.5">
-                    <span id="cfg-{{ $coTag }}-status" class="font-semibold text-emerald-500 text-[11px]"></span>
-                    <button type="button" onclick="openAssignmentModal('{{ $coTag }}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[11px] font-semibold transition-all cursor-pointer shadow-xs flex items-center gap-1">
-                      <span class="material-symbols-rounded text-[13px]">assignment</span>
-                      Manage Assignments
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Grid of 5 Activities -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5">
-                  <!-- Activity 1 -->
-                  <div class="bg-slate-950/40 border border-slate-850 rounded-xl p-3 space-y-2">
-                    <label class="block text-xs font-bold text-slate-400">Activity 1 (Assignment)</label>
-                    <div class="flex items-center gap-2">
-                      <input type="number" step="0.5" id="cfg-{{ $coTag }}-assignment" value="{{ $selfLearningConfigs[$coTag]['assignment'] ?? 5.0 }}" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 font-bold text-slate-100 text-xs text-center focus:border-blue-500 outline-none" oninput="validateConfigSum('{{ $coTag }}')">
-                      <span class="text-xs text-slate-400">M</span>
-                    </div>
-                  </div>
-
-                  <!-- Activity 2 -->
-                  <div class="bg-slate-950/40 border border-slate-850 rounded-xl p-3 space-y-2">
-                    <label class="block text-xs font-bold text-slate-400">Activity 2 (MCQ Test)</label>
-                    <div class="flex items-center gap-2">
-                      <input type="number" step="0.5" id="cfg-{{ $coTag }}-mcq" value="{{ $selfLearningConfigs[$coTag]['mcq'] ?? 5.0 }}" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 font-bold text-slate-100 text-xs text-center focus:border-blue-500 outline-none" oninput="validateConfigSum('{{ $coTag }}')">
-                      <span class="text-xs text-slate-400">M</span>
-                    </div>
-                  </div>
-
-                  <!-- Activity 3 -->
-                  <div class="bg-slate-950/40 border border-slate-850 rounded-xl p-3 space-y-2">
-                    <label class="block text-xs font-bold text-slate-400">Activity 3 (Type & Marks)</label>
-                    <div class="flex flex-col gap-2">
-                      <select id="cfg-{{ $coTag }}-act3_mode" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-slate-100 text-xs font-semibold focus:border-blue-500 outline-none">
-                        <option value="Case Study" {{ ($selfLearningConfigs[$coTag]['act3_mode'] ?? '') == 'Case Study' ? 'selected' : '' }}>Case Study</option>
-                        <option value="Activity" {{ ($selfLearningConfigs[$coTag]['act3_mode'] ?? '') == 'Activity' ? 'selected' : '' }}>Activity/Seminar</option>
-                        <option value="Minor Project" {{ ($selfLearningConfigs[$coTag]['act3_mode'] ?? '') == 'Minor Project' ? 'selected' : '' }}>Minor Project</option>
-                        <option value="Exercises" {{ ($selfLearningConfigs[$coTag]['act3_mode'] ?? '') == 'Exercises' ? 'selected' : '' }}>Exercises</option>
-                      </select>
-                      <div class="flex items-center gap-2">
-                        <input type="number" step="0.5" id="cfg-{{ $coTag }}-act3" value="{{ $selfLearningConfigs[$coTag]['act3'] ?? 5.0 }}" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 font-bold text-slate-100 text-xs text-center focus:border-blue-500 outline-none" oninput="validateConfigSum('{{ $coTag }}')">
-                        <span class="text-xs text-slate-400">M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Activity 4 -->
-                  <div class="bg-slate-950/40 border border-slate-850 rounded-xl p-3 space-y-2">
-                    <label class="block text-xs font-bold text-slate-400">Activity 4 (Type & Marks)</label>
-                    <div class="flex flex-col gap-2">
-                      <select id="cfg-{{ $coTag }}-act4_mode" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-slate-100 text-xs font-semibold focus:border-blue-500 outline-none">
-                        <option value="Case Study" {{ ($selfLearningConfigs[$coTag]['act4_mode'] ?? '') == 'Case Study' ? 'selected' : '' }}>Case Study</option>
-                        <option value="Activity" {{ ($selfLearningConfigs[$coTag]['act4_mode'] ?? '') == 'Activity' ? 'selected' : '' }}>Activity/Seminar</option>
-                        <option value="Minor Project" {{ ($selfLearningConfigs[$coTag]['act4_mode'] ?? '') == 'Minor Project' ? 'selected' : '' }}>Minor Project</option>
-                        <option value="Exercises" {{ ($selfLearningConfigs[$coTag]['act4_mode'] ?? '') == 'Exercises' ? 'selected' : '' }}>Exercises</option>
-                      </select>
-                      <div class="flex items-center gap-2">
-                        <input type="number" step="0.5" id="cfg-{{ $coTag }}-act4" value="{{ $selfLearningConfigs[$coTag]['act4'] ?? 0.0 }}" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 font-bold text-slate-100 text-xs text-center focus:border-blue-500 outline-none" oninput="validateConfigSum('{{ $coTag }}')">
-                        <span class="text-xs text-slate-400">M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Activity 5 -->
-                  <div class="bg-slate-950/40 border border-slate-850 rounded-xl p-3 space-y-2">
-                    <label class="block text-xs font-bold text-slate-400">Activity 5 (Type & Marks)</label>
-                    <div class="flex flex-col gap-2">
-                      <select id="cfg-{{ $coTag }}-act5_mode" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-slate-100 text-xs font-semibold focus:border-blue-500 outline-none">
-                        <option value="Case Study" {{ ($selfLearningConfigs[$coTag]['act5_mode'] ?? '') == 'Case Study' ? 'selected' : '' }}>Case Study</option>
-                        <option value="Activity" {{ ($selfLearningConfigs[$coTag]['act5_mode'] ?? '') == 'Activity' ? 'selected' : '' }}>Activity/Seminar</option>
-                        <option value="Minor Project" {{ ($selfLearningConfigs[$coTag]['act5_mode'] ?? '') == 'Minor Project' ? 'selected' : '' }}>Minor Project</option>
-                        <option value="Exercises" {{ ($selfLearningConfigs[$coTag]['act5_mode'] ?? '') == 'Exercises' ? 'selected' : '' }}>Exercises</option>
-                      </select>
-                      <div class="flex items-center gap-2">
-                        <input type="number" step="0.5" id="cfg-{{ $coTag }}-act5" value="{{ $selfLearningConfigs[$coTag]['act5'] ?? 0.0 }}" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 font-bold text-slate-100 text-xs text-center focus:border-blue-500 outline-none" oninput="validateConfigSum('{{ $coTag }}')">
-                        <span class="text-xs text-slate-400">M</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            @endforeach
-
-            <!-- CO-wise Entry Sheets -->
-            @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coTag)
-              <div id="sl-table-container-{{ $coTag }}" class="sl-table-container border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar hidden">
-                <table class="w-full text-left border-collapse min-w-[1000px]">
-                  <thead>
-                    <tr class="bg-slate-900/30 text-[11px] font-bold text-muted uppercase tracking-wider border-b border-card">
-                      <th class="py-2.5 px-2 w-[6%] text-center">Roll No</th>
-                      <th class="py-2.5 px-2 w-[12%]">SBTE Reg No</th>
-                      <th class="py-2.5 px-2 w-[22%]">Student Name</th>
-                      <th class="py-2.5 px-2 w-[12%] text-center">Assignment</th>
-                      <th class="py-2.5 px-2 w-[12%] text-center">MCQ Test</th>
-                      <th class="py-2.5 px-2 w-[12%] text-center"><span class="cfg-label-act3-{{ $coTag }}">Act 3</span></th>
-                      <th class="py-2.5 px-2 w-[12%] text-center"><span class="cfg-label-act4-{{ $coTag }}">Act 4</span></th>
-                      <th class="py-2.5 px-2 w-[12%] text-center"><span class="cfg-label-act5-{{ $coTag }}">Act 5</span></th>
-                      <th class="py-2.5 px-2 w-[8%] text-center">Total (15M)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="selfLearningTableBody-{{ $coTag }}" class="divide-y divide-card text-xs font-normal">
-                    @forelse($studentCiaData as $sc)
-                      <tr data-reg-no="{{ $sc['reg_no'] }}" class="bg-card-hover transition-all font-normal">
-                        <td class="py-2 px-2 font-mono text-center text-title text-xs">{{ $sc['roll_no'] ?: '—' }}</td>
-                        <td class="py-2 px-2 font-mono text-title font-bold text-[11px]">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
-                        <td class="py-2 px-2 text-title font-medium text-xs">{{ $sc['name'] }}</td>
-                        
-                        <td class="py-2 px-2 text-center relative">
-                          @if(($sc['co_details'][$coTag]['submission_status'] ?? '') === 'Submitted')
-                            <div class="absolute top-1 right-2 flex h-2 w-2">
-                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" title="Assignment Submitted - Grade Now"></span>
-                            </div>
-                          @endif
-                          <input type="number" step="0.5" min="0" data-field="assignment" value="{{ $sc['co_details'][$coTag]['assignment'] ?? 0.0 }}" class="w-16 bg-slate-950/50 border {{ ($sc['co_details'][$coTag]['submission_status'] ?? '') === 'Submitted' ? 'border-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'border-slate-800' }} rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
-                        </td>
-                        <td class="py-2 px-2 text-center">
-                          <input type="number" step="0.5" min="0" data-field="mcq" value="{{ $sc['co_details'][$coTag]['mcq'] ?? 0.0 }}" class="w-16 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
-                        </td>
-                        <td class="py-2 px-2 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act3" value="{{ $sc['co_details'][$coTag]['act3'] ?? 0.0 }}" class="w-16 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
-                        </td>
-                        <td class="py-2 px-2 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act4" value="{{ $sc['co_details'][$coTag]['act4'] ?? 0.0 }}" class="w-16 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
-                        </td>
-                        <td class="py-2 px-2 text-center">
-                          <input type="number" step="0.5" min="0" data-field="act5" value="{{ $sc['co_details'][$coTag]['act5'] ?? 0.0 }}" class="w-16 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateSelfLearningRow(this, '{{ $coTag }}'); triggerSelfLearningAutosave();">
-                        </td>
-                        <td class="py-2 px-2 text-center font-mono text-emerald-400 font-bold text-sm" data-field="co_total">
-                          {{ $sc['co_details'][$coTag]['total'] ?? 0.0 }}
-                        </td>
-                      </tr>
-                    @empty
-                      <tr>
-                        <td colspan="9" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
-                      </tr>
-                    @endforelse
-                  </tbody>
-                </table>
-              </div>
-            @endforeach
-
-            <!-- Summary Sheet View -->
-            <div id="sl-table-container-Summary" class="sl-table-container border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar hidden">
-              <table class="w-full text-left border-collapse min-w-[800px]">
+            <!-- Single Clean Borderless Table: No eye-strain row borders -->
+            <div class="overflow-x-auto rounded-xl bg-slate-950/20 custom-scrollbar border border-slate-800/60">
+              <table class="w-full text-left border-collapse" id="selfLearningCleanTable">
                 <thead>
-                  <tr class="bg-slate-900/30 text-[11px] font-bold text-muted uppercase tracking-wider border-b border-card">
-                    <th class="py-2.5 px-2 w-[6%] text-center">Roll No</th>
-                    <th class="py-2.5 px-2 w-[12%]">SBTE Reg No</th>
-                    <th class="py-2.5 px-2 w-[26%]">Student Name</th>
-                    <th class="py-2.5 px-2 w-[12%] text-center">CO1 (15M)</th>
-                    <th class="py-2.5 px-2 w-[12%] text-center">CO2 (15M)</th>
-                    <th class="py-2.5 px-2 w-[12%] text-center">CO3 (15M)</th>
-                    <th class="py-2.5 px-2 w-[12%] text-center">CO4 (15M)</th>
-                    <th class="py-2.5 px-2 w-[10%] text-center">Average (15M)</th>
+                  <tr class="bg-slate-950/90 text-[11px] font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800/80">
+                    <th class="py-3 px-3 w-14 text-center">Roll</th>
+                    <th class="py-3 px-3 w-32">SBTE Reg No</th>
+                    <th class="py-3 px-3 min-w-[180px]">Student Name</th>
+                    <th class="py-3 px-3 w-28 text-center text-blue-300 bg-blue-950/20">M1 / CA1 (15)</th>
+                    <th class="py-3 px-3 w-28 text-center text-sky-300 bg-sky-950/20">M2 / CA2 (15)</th>
+                    <th class="py-3 px-3 w-28 text-center text-cyan-300 bg-cyan-950/20">M3 / CA3 (15)</th>
+                    <th class="py-3 px-3 w-28 text-center text-indigo-300 bg-indigo-950/20">M4 / CA4 (15)</th>
+                    <th class="py-3 px-3 w-32 text-center text-amber-300 bg-amber-950/30">SL Total (15)</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-card text-xs font-normal">
-                  @forelse($studentCiaData as $sc)
-                    <tr class="bg-card-hover transition-all font-normal">
-                      <td class="py-2 px-2 font-mono text-center text-title text-xs">{{ $sc['roll_no'] ?: '—' }}</td>
-                      <td class="py-2 px-2 font-mono text-title font-bold text-[11px]">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
-                      <td class="py-2 px-2 text-title font-medium text-xs">{{ $sc['name'] }}</td>
-                      <td class="py-2 px-2 text-center font-mono text-title text-xs" id="summary-{{ $sc['reg_no'] }}-CO1">{{ $sc['co_details']['CO1']['total'] ?? 0.0 }}</td>
-                      <td class="py-2 px-2 text-center font-mono text-title text-xs" id="summary-{{ $sc['reg_no'] }}-CO2">{{ $sc['co_details']['CO2']['total'] ?? 0.0 }}</td>
-                      <td class="py-2 px-2 text-center font-mono text-title text-xs" id="summary-{{ $sc['reg_no'] }}-CO3">{{ $sc['co_details']['CO3']['total'] ?? 0.0 }}</td>
-                      <td class="py-2 px-2 text-center font-mono text-title text-xs" id="summary-{{ $sc['reg_no'] }}-CO4">{{ $sc['co_details']['CO4']['total'] ?? 0.0 }}</td>
-                      <td class="py-2 px-2 text-center font-mono text-emerald-450 font-bold text-sm" id="summary-{{ $sc['reg_no'] }}-avg">{{ $sc['self_learning_marks'] }}</td>
+                <tbody class="text-sm font-normal">
+                  @forelse($studentResults as $st)
+                    <tr class="sla-student-row transition-colors hover:bg-slate-800/40 even:bg-slate-900/30 odd:bg-transparent" data-reg-no="{{ $st['reg_no'] }}">
+                      <td class="py-3 px-3 font-mono text-center text-cyan-400 font-bold text-xs sm:text-sm border-0">{{ $st['roll_no'] ?: '-' }}</td>
+                      <td class="py-3 px-3 font-mono text-xs sm:text-sm font-semibold text-slate-300 border-0">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
+                      <td class="py-3 px-3 text-sm sm:text-base font-bold text-white border-0">{{ $st['name'] }}</td>
+                      
+                      <!-- M1 (CA1) -->
+                      <td class="py-2.5 px-3 text-center bg-blue-950/10 border-0">
+                        <input type="number" step="0.5" min="0" max="15" 
+                               value="{{ $st['ca1_15'] !== null ? $st['ca1_15'] : '' }}" 
+                               data-prev-val="{{ $st['ca1_15'] !== null ? $st['ca1_15'] : '' }}"
+                               data-max="15"
+                               data-field-name="M1 / CA1 (Max 15M)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-module="1"
+                               placeholder="-" 
+                               class="cell-sla-m1 sla-m1 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400/40 outline-none transition-all"
+                               oninput="handleSlaInputChange('{{ $st['reg_no'] }}', 1, this.value);">
+                      </td>
+
+                      <!-- M2 (CA2) -->
+                      <td class="py-2.5 px-3 text-center bg-sky-950/10 border-0">
+                        <input type="number" step="0.5" min="0" max="15" 
+                               value="{{ $st['ca2_15'] !== null ? $st['ca2_15'] : '' }}" 
+                               data-prev-val="{{ $st['ca2_15'] !== null ? $st['ca2_15'] : '' }}"
+                               data-max="15"
+                               data-field-name="M2 / CA2 (Max 15M)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-module="2"
+                               placeholder="-" 
+                               class="cell-sla-m2 sla-m2 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-sky-400 focus:ring-1 focus:ring-sky-400/40 outline-none transition-all"
+                               oninput="handleSlaInputChange('{{ $st['reg_no'] }}', 2, this.value);">
+                      </td>
+
+                      <!-- M3 (CA3) -->
+                      <td class="py-2.5 px-3 text-center bg-cyan-950/10 border-0">
+                        <input type="number" step="0.5" min="0" max="15" 
+                               value="{{ $st['ca3_15'] !== null ? $st['ca3_15'] : '' }}" 
+                               data-prev-val="{{ $st['ca3_15'] !== null ? $st['ca3_15'] : '' }}"
+                               data-max="15"
+                               data-field-name="M3 / CA3 (Max 15M)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-module="3"
+                               placeholder="-" 
+                               class="cell-sla-m3 sla-m3 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 outline-none transition-all"
+                               oninput="handleSlaInputChange('{{ $st['reg_no'] }}', 3, this.value);">
+                      </td>
+
+                      <!-- M4 (CA4) -->
+                      <td class="py-2.5 px-3 text-center bg-indigo-950/10 border-0">
+                        <input type="number" step="0.5" min="0" max="15" 
+                               value="{{ $st['ca4_15'] !== null ? $st['ca4_15'] : '' }}" 
+                               data-prev-val="{{ $st['ca4_15'] !== null ? $st['ca4_15'] : '' }}"
+                               data-max="15"
+                               data-field-name="M4 / CA4 (Max 15M)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-module="4"
+                               placeholder="-" 
+                               class="cell-sla-m4 sla-m4 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/40 outline-none transition-all"
+                               oninput="handleSlaInputChange('{{ $st['reg_no'] }}', 4, this.value);">
+                      </td>
+
+                      <!-- SL Total (15) -->
+                      <td class="py-2.5 px-3 text-center bg-amber-950/20 border-0">
+                        <span class="sla-row-avg text-sm sm:text-base font-extrabold text-amber-300 bg-amber-950/50 px-3 py-1 rounded-lg border border-amber-500/40 inline-block font-mono min-w-[50px]">
+                          {{ number_format($st['self_learning_15'] ?? 0, 1) }}
+                        </span>
+                      </td>
                     </tr>
                   @empty
                     <tr>
                       <td colspan="8" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SUB-VIEW 2: CONSOLIDATED MARKSHEET (HIDDEN BY DEFAULT) -->
-          <div id="cia-consolidated-view" class="space-y-4 hidden">
-            <div class="flex justify-between items-center border-b border-slate-800/30 pb-3">
-              <div>
-                <h3 class="text-base font-bold text-title flex items-center gap-2">
-                  <span class="material-symbols-rounded text-violet-400">table_chart</span>
-                  Consolidated CIA Marks Sheet
-                </h3>
-                <p class="text-xs text-muted mt-1">
-                  Attendance is fetched from class logs. Marks are mapped out of 5 based on Table 2.1 (90%+ = 5M, 80%-90% = 4M, 75%-80% = 3M, 70%-75% = 2M, 65%-70% = 1M, &lt;65% = 0M).
-                </p>
-              </div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/theory/' . $batchSubject->id . '?tab=cia') }}" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-white border border-blue-500/40 rounded-md text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs no-underline" title="Open Common Class Attendance & Subject Log">
-                  <span class="material-symbols-rounded text-xs text-blue-400">co_present</span>
-                  Attendance &amp; Log
-                </a>
-                <button onclick="toggleCiaView('cards')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-[11px] font-semibold transition-all border border-slate-750 cursor-pointer flex items-center gap-1 shadow-xs">
-                  <span class="material-symbols-rounded text-xs">arrow_back</span>
-                  Back to Categories
-                </button>
-                <span id="ciaAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
-                </span>
-                <button id="btnSaveCia" onclick="saveCiaMarks()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[11px] font-semibold transition-all cursor-pointer shadow-xs">
-                  Save CIA Marks
-                </button>
-              </div>
-            </div>
-
-            <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
-              <table class="w-full text-left border-collapse min-w-[900px]">
-                <thead>
-                  <tr class="bg-slate-900/30 text-xs font-bold text-muted uppercase tracking-wider border-b border-card">
-                    <th class="p-3 w-[6%] text-center">Roll No</th>
-                    <th class="p-3 w-[12%]">SBTE Reg No</th>
-                    <th class="p-3 w-[20%]">Student Name</th>
-                    <th class="p-3 w-[10%] text-center">Attendance %</th>
-                    <th class="p-3 w-[10%] text-center">Attendance Marks (5M)</th>
-                    <th class="p-3 w-[15%] text-center">Eligibility / Status</th>
-                    <th class="p-3 w-[12%] text-center">Self Learning (15M)</th>
-                    <th class="p-3 w-[12%] text-center">Series Exams (20M)</th>
-                    <th class="p-3 w-[10%] text-center">Total CIA (40M)</th>
-                  </tr>
-                </thead>
-                <tbody id="ciaTableBody" class="divide-y divide-card text-sm font-normal">
-                  @forelse($studentCiaData as $sc)
-                    <tr data-reg-no="{{ $sc['reg_no'] }}" class="bg-card-hover transition-all font-normal">
-                      <td class="p-2.5 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
-                      <td class="p-2.5 font-mono text-title font-bold">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
-                      <td class="p-2.5 text-title font-medium">{{ $sc['name'] }}</td>
-                      <td class="p-2.5 text-center font-mono text-title">{{ $sc['attendance_percent'] }}%</td>
-                      <td class="p-2.5 text-center font-mono text-emerald-500 font-bold" data-val-attendance="{{ $sc['attendance_marks'] }}">
-                        {{ $sc['attendance_marks'] }}
-                      </td>
-                      <td class="p-2.5 text-center">
-                        <span class="px-2 py-0.5 rounded text-xs font-bold" style="color: {{ $sc['attendance_color'] === 'emerald-450' ? '#10b981' : ($sc['attendance_color'] === 'amber-500' ? '#f59e0b' : ($sc['attendance_color'] === 'purple-400' ? '#c084fc' : '#f43f5e')) }}; background-color: {{ $sc['attendance_color'] === 'emerald-450' ? 'rgba(16,185,129,0.1)' : ($sc['attendance_color'] === 'amber-500' ? 'rgba(245,158,11,0.1)' : ($sc['attendance_color'] === 'purple-400' ? 'rgba(192,132,252,0.1)' : 'rgba(244,63,94,0.1)')) }}; border: 1px solid currentColor;">
-                          {{ $sc['attendance_status'] }}
-                        </span>
-                      </td>
-                      <td class="p-2.5 text-center">
-                        <input type="number" step="0.5" min="0" max="15" data-field="self_learning" value="{{ $sc['self_learning_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateRowCia(this); triggerCiaAutosave();">
-                      </td>
-                      <td class="p-2.5 text-center">
-                        <input type="number" step="0.5" min="0" max="20" data-field="series_exam" value="{{ $sc['series_exam_marks'] }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-2 py-1 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs" oninput="calculateRowCia(this); triggerCiaAutosave();">
-                      </td>
-                      <td class="p-2.5 text-center font-mono text-blue-400 font-bold text-base" data-field="total_cia">
-                        {{ $sc['total_cia'] }}
-                      </td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="9" class="p-6 text-center text-muted italic font-normal">No student records enrolled.</td>
                     </tr>
                   @endforelse
                 </tbody>
@@ -1460,197 +1477,293 @@
 
         <!-- SERIES EXAMS TAB PANEL -->
         <div id="tab-series" class="tab-panel bg-panel border rounded-xl p-5 shadow-md space-y-4 {{ $activeTab === 'series' ? '' : 'hidden' }}">
-          <div class="border-b border-slate-800/30 pb-3 flex justify-between items-center">
-            <h3 class="text-base font-bold text-title flex items-center gap-2">
-              <span class="material-symbols-rounded text-sky-400">quiz</span>
-              Series Examinations (Theory)
-            </h3>
-            @if(!$seriesExams->isEmpty())
-              <button onclick="resetSeriesExamsConfig()" class="px-2.5 py-1 bg-rose-600/10 hover:bg-rose-600/20 text-rose-450 border border-rose-500/20 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-rounded text-xs">restart_alt</span> Reconfigure Pattern
+          <div class="border-b border-slate-800/30 pb-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div>
+              <h3 class="text-base font-bold text-title flex items-center gap-2">
+                <span class="material-symbols-rounded text-sky-400">quiz</span>
+                <span>Series Examinations (Theory) - Rev 2026</span>
+              </h3>
+              <p class="text-xs text-slate-400 mb-0">
+                Series Exam 1 (Modules 1 &amp; 2 - Max 50M &rarr; 20M) &bull; Series Exam 2 (Modules 3 &amp; 4 - Max 50M &rarr; 20M) &bull; <strong class="text-emerald-400">Combined Series (20M)</strong>
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="/r26/classroom/theory/{{ $batchSubject->id }}/print/series-register" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1 no-underline">
+                <span class="material-symbols-rounded text-sm">print</span>
+                <span>Print Series Register</span>
+              </a>
+              @if(!$seriesExams->isEmpty())
+                <button onclick="resetSeriesExamsConfig()" class="px-2.5 py-1 bg-rose-600/10 hover:bg-rose-600/20 text-rose-450 border border-rose-500/20 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm">
+                  <span class="material-symbols-rounded text-xs">restart_alt</span> Reconfigure
+                </button>
+              @endif
+              <button onclick="triggerConsolidatedManualSave()" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                <span class="material-symbols-rounded text-sm">save</span>
+                <span>Save Series Marks</span>
               </button>
-            @endif
+            </div>
           </div>
 
           @if($seriesExams->isEmpty())
-            <!-- Unconfigured Pattern State -->
-            <div class="bg-slate-900/10 border border-card rounded-xl p-6 text-center space-y-4 max-w-2xl mx-auto my-8">
-              <span class="material-symbols-rounded text-4xl text-sky-450">tune</span>
-              <h4 class="font-bold text-title text-sm">Configure Series Examination Pattern</h4>
-              <p class="text-xs text-muted leading-relaxed">
-                Please select the examination pattern according to the syllabus requirements. You can conduct 4 independent single-CO tests (25 marks each) or 2 combined-CO tests (50 marks each).
-              </p>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <label class="border border-card hover:border-sky-500/30 rounded-xl p-4 cursor-pointer block text-left bg-slate-950/20 space-y-2">
-                  <input type="radio" name="series-mode-select" value="single_co" checked class="text-sky-500 focus:ring-sky-500">
-                  <span class="font-bold text-title text-xs block">4 Single-CO Tests (25M each)</span>
-                  <span class="text-[11px] text-muted block leading-snug">
-                    Conduct one separate exam for each CO (CO1 to CO4). Exam duration is 1 hour. Total marks scaled to 20.
-                  </span>
-                </label>
-                
-                <label class="border border-card hover:border-sky-500/30 rounded-xl p-4 cursor-pointer block text-left bg-slate-950/20 space-y-2">
-                  <input type="radio" name="series-mode-select" value="combined_co" class="text-sky-500 focus:ring-sky-500">
-                  <span class="font-bold text-title text-xs block">2 Combined-CO Tests (50M each)</span>
-                  <span class="text-[11px] text-muted block leading-snug">
-                    Conduct two series exams combining two COs (CO1+CO2 & CO3+CO4). Exam duration is 2 hours. Total marks scaled to 20.
-                  </span>
-                </label>
+            <!-- Unconfigured Pattern State: Prominent Setup Banner -->
+            <div class="bg-gradient-to-r from-sky-950/40 via-blue-950/30 to-slate-900/40 border border-sky-500/30 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+              <div class="space-y-1">
+                <h4 class="font-bold text-sky-400 text-sm flex items-center gap-2">
+                  <span class="material-symbols-rounded text-lg">tune</span>
+                  Configure Series Examination Pattern
+                </h4>
+                <p class="text-xs text-slate-300">
+                  Revision 2026 Diploma Curriculum mandates 2 Combined-CO Series Exams (50M each: Series 1 = CO1+CO2, Series 2 = CO3+CO4). Total marks scaled to 20 CIE.
+                </p>
               </div>
-
-              <button onclick="initializeSeriesPattern()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md inline-flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-sm">settings_suggest</span>
-                Initialize Pattern Configuration
+              <button type="button" onclick="quickSetupCombinedSeriesPattern()" class="shrink-0 px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer">
+                <span class="material-symbols-rounded text-base">settings_suggest</span>
+                Setup Series Exam Pattern (2 Combined Tests &bull; 50M)
               </button>
             </div>
           @else
-            <!-- Configured Exams State -->
-            <div class="space-y-6">
-              
-              <!-- QP and Schemes Panel -->
-              <div class="space-y-3">
-                <h4 class="font-bold text-title text-xs uppercase tracking-wider">Scheduled Series Examinations</h4>
-                <div class="grid grid-cols-1 gap-3.5">
-                  @foreach($seriesExams as $exam)
-                    @php
-                      $firstCo = $exam->co_tags[0] ?? 'CO1';
-                      $borderColor = 'border-l-sky-500';
-                      $bgColor = 'bg-sky-500/10';
-                      $textColor = 'text-sky-600 dark:text-sky-400';
-                      if ($firstCo === 'CO2') {
-                        $borderColor = 'border-l-emerald-500';
-                        $bgColor = 'bg-emerald-500/10';
-                        $textColor = 'text-emerald-600 dark:text-emerald-400';
-                      } elseif ($firstCo === 'CO3') {
-                        $borderColor = 'border-l-blue-500';
-                        $bgColor = 'bg-blue-500/10';
-                        $textColor = 'text-blue-600 dark:text-blue-400';
-                      } elseif ($firstCo === 'CO4') {
-                        $borderColor = 'border-l-purple-500';
-                        $bgColor = 'bg-purple-500/10';
-                        $textColor = 'text-purple-600 dark:text-purple-400';
-                      }
-                    @endphp
-                    <div class="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 border-l-4 {{ $borderColor }} rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
-                      
-                      <!-- Left: Exam Info -->
-                      <div class="flex items-center gap-3">
-                        <div class="px-3 py-1 rounded-lg {{ $bgColor }} {{ $textColor }} font-bold text-xs tracking-wider uppercase">
+            <!-- Configured Exams State: Question Papers & Schemes Cards -->
+            <div class="space-y-3">
+              <h4 class="font-bold text-title text-xs uppercase tracking-wider">Scheduled Series Examinations (QPs &amp; Schemes)</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                @foreach($seriesExams as $exam)
+                  @php
+                    $firstCo = $exam->co_tags[0] ?? 'CO1';
+                    $borderColor = 'border-l-sky-500';
+                    $bgColor = 'bg-sky-500/10';
+                    $textColor = 'text-sky-600 dark:text-sky-400';
+                    if ($firstCo === 'CO2') {
+                      $borderColor = 'border-l-emerald-500';
+                      $bgColor = 'bg-emerald-500/10';
+                      $textColor = 'text-emerald-600 dark:text-emerald-400';
+                    } elseif ($firstCo === 'CO3') {
+                      $borderColor = 'border-l-blue-500';
+                      $bgColor = 'bg-blue-500/10';
+                      $textColor = 'text-blue-600 dark:text-blue-400';
+                    } elseif ($firstCo === 'CO4') {
+                      $borderColor = 'border-l-purple-500';
+                      $bgColor = 'bg-purple-500/10';
+                      $textColor = 'text-purple-600 dark:text-purple-400';
+                    }
+                  @endphp
+                  <div class="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 border-l-4 {{ $borderColor }} rounded-xl p-3.5 flex flex-col justify-between gap-3 shadow-sm">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2.5">
+                        <div class="px-2.5 py-0.5 rounded-md {{ $bgColor }} {{ $textColor }} font-bold text-xs tracking-wider uppercase">
                           {{ implode(' + ', $exam->co_tags) }}
                         </div>
                         <div>
-                          <h5 class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ $exam->exam_name }}</h5>
-                          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Marks: <strong class="text-slate-700 dark:text-slate-350 font-bold">{{ $exam->max_marks }} Marks</strong> | Duration: <strong class="text-slate-700 dark:text-slate-350 font-bold">{{ $exam->duration_minutes }} min</strong>
-                          </p>
+                          <h5 class="font-bold text-slate-800 dark:text-slate-100 text-xs">{{ $exam->exam_name }}</h5>
+                          <span class="text-[11px] text-slate-500 dark:text-slate-400">Max: {{ $exam->max_marks }}M &bull; {{ $exam->duration_minutes }} min</span>
                         </div>
                       </div>
-
-                      <!-- Right: Status and Actions -->
-                      <div class="flex flex-wrap items-center gap-2">
-                        @if($exam->locked)
-                          <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs select-none" title="Exam is locked and published to students">
-                            <span class="material-symbols-rounded text-xs">lock</span> Status: <strong class="font-bold">Locked</strong>
-                          </span>
-                        @else
-                          <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs select-none" title="Drafting Mode: Questions can be freely drafted and edited; hidden from students until published">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Status: <strong class="font-bold">Draft</strong>
-                          </span>
-                        @endif
-
-                        <div class="flex gap-1.5">
-                          @if($exam->locked)
-                            <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="View Question Paper">
-                              <span class="material-symbols-rounded text-xs">visibility</span> View QP
-                            </button>
-                          @else
-                            <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="Open Question Paper Builder to add or edit questions">
-                              <span class="material-symbols-rounded text-xs">edit_document</span> Build QP
-                            </button>
-                          @endif
-                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-qp" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
-                            <span class="material-symbols-rounded text-xs">print</span> Print QP
-                          </a>
-                          <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-scheme" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
-                            <span class="material-symbols-rounded text-xs">description</span> Print Scheme
-                          </a>
-                          @if(!$exam->locked)
-                            <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs" title="Lock question paper and publish notifications to students">
-                              <span class="material-symbols-rounded text-xs">publish</span> Lock &amp; Notify
-                            </button>
-                          @endif
-                        </div>
-                      </div>
-
+                      @if($exam->locked)
+                        <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10.5px] font-semibold flex items-center gap-1 select-none">
+                          <span class="material-symbols-rounded text-xs">lock</span> Locked
+                        </span>
+                      @else
+                        <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10.5px] font-semibold flex items-center gap-1 select-none">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Draft
+                        </span>
+                      @endif
                     </div>
-                  @endforeach
-                </div>
-              </div>
 
-              <!-- Marks Entry Panel -->
-              <div class="space-y-3">
-                <div class="flex flex-wrap justify-between items-center gap-2">
-                  <div>
-                    <h4 class="font-bold text-title text-xs uppercase tracking-wider">Series Exam Detailed Marksheet</h4>
-                    <p class="text-[11px] text-muted">Enter exam marks below. Scores scale automatically to 20 marks and autosave continuously.</p>
+                    <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-800/40">
+                      @if($exam->locked)
+                        <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                          <span class="material-symbols-rounded text-xs">visibility</span> View QP
+                        </button>
+                      @else
+                        <button onclick='openSeriesBuilderModal({{ $exam->id }}, "{{ addslashes($exam->exam_name) }}", "{{ $exam->mode }}", {{ json_encode($exam->co_tags) }}, {{ $exam->max_marks }})' class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                          <span class="material-symbols-rounded text-xs">edit_document</span> Build QP
+                        </button>
+                      @endif
+                      <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-qp" target="_blank" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
+                        <span class="material-symbols-rounded text-xs">print</span> QP
+                      </a>
+                      <a href="/r26/classroom/series-exams/{{ $exam->id }}/print-scheme" target="_blank" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs no-underline">
+                        <span class="material-symbols-rounded text-xs">description</span> Scheme
+                      </a>
+                      @if(!$exam->locked)
+                        <button onclick="lockAndPublishSeries({{ $exam->id }})" class="px-2 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                          <span class="material-symbols-rounded text-xs">publish</span> Lock
+                        </button>
+                      @endif
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <a href="/r26/classroom/{{ $batchSubject->id }}/series-exams/print-marks" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-[11px] font-semibold transition flex items-center gap-1 shadow-xs no-underline">
-                      <span class="material-symbols-rounded text-xs">print</span> Print Marks Report
-                    </a>
-                    <span id="seriesMarksAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
-                    </span>
-                    <button id="btnSaveSeriesMarks" onclick="saveSeriesExamMarks()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-semibold transition cursor-pointer shadow-xs flex items-center gap-1">
-                      <span class="material-symbols-rounded text-xs font-bold">save</span> Save Series Marks
-                    </button>
-                  </div>
-                </div>
-
-                <div class="border border-card rounded-xl overflow-x-auto bg-slate-950/10 custom-scrollbar">
-                  <table class="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                      <tr class="bg-slate-900/30 text-[10px] font-semibold text-muted uppercase tracking-wider border-b border-card">
-                        <th class="p-2.5 w-[6%] text-center whitespace-nowrap">Roll No</th>
-                        <th class="p-2.5 w-[15%] whitespace-nowrap">Register No</th>
-                        <th class="p-2.5 whitespace-nowrap">Student Name</th>
-                        @foreach($seriesExams as $exam)
-                          <th class="p-2.5 text-center w-[15%] whitespace-nowrap">{{ $exam->exam_name }} ({{ $exam->max_marks }}M)</th>
-                        @endforeach
-                        <th class="p-2.5 text-center w-[12%] whitespace-nowrap">Scaled Score (20M)</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-card text-xs" id="seriesMarksTableBody">
-                      @foreach($studentCiaData as $sc)
-                        <tr class="bg-card-hover transition-all" data-reg-no="{{ $sc['reg_no'] }}">
-                          <td class="p-2 font-mono text-center text-title whitespace-nowrap">{{ $sc['roll_no'] ?: '—' }}</td>
-                          <td class="p-2 font-mono text-title whitespace-nowrap">{{ $sc['reg_no'] }}</td>
-                          <td class="p-2 text-title font-medium whitespace-nowrap">{{ $sc['name'] }}</td>
-                          @foreach($seriesExams as $exam)
-                            <td class="p-2 text-center whitespace-nowrap">
-                              <input type="number" step="0.5" min="0" max="{{ $exam->max_marks }}" 
-                                     data-exam-id="{{ $exam->id }}" 
-                                     value="{{ $sc['exam_marks'][$exam->id] ?? 0.0 }}" 
-                                     class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-0.5 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs series-mark-input"
-                                     onfocus="this.select()"
-                                     onkeydown="handleR26SeriesMarkKeyDown(event, this)"
-                                     oninput="recalculateSeriesRow(this); triggerSeriesMarksAutosave();">
-                            </td>
-                          @endforeach
-                          <td class="p-2 text-center font-mono text-emerald-400 font-bold text-sm whitespace-nowrap" data-field="series-scaled-total">
-                            {{ $sc['series_exam_marks'] }}
-                          </td>
-                        </tr>
-                      @endforeach
-                    </tbody>
-                  </table>
-                </div>
-
+                @endforeach
               </div>
-
             </div>
           @endif
+
+          <!-- Detailed Marksheet in Series Tab (Larger font text-sm, CO1-4 separate inputs) -->
+          <div class="space-y-3 pt-2">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+              <div>
+                <h4 class="font-bold text-title text-sm uppercase tracking-wider flex items-center gap-2">
+                  <span class="material-symbols-rounded text-sky-400 text-base">table_chart</span>
+                  Series Exam Detailed Marksheet
+                </h4>
+                <p class="text-xs text-muted">Direct CO mark entry. Autosaves on typing with bidirectional sync to CIE Register.</p>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span id="seriesMarksAutosaveBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved
+                </span>
+                <button onclick="triggerConsolidatedManualSave()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs font-bold">save</span> Save Marks
+                </button>
+              </div>
+            </div>
+
+            <!-- Series Dedicated Table -->
+            <div class="overflow-x-auto border border-card rounded-xl bg-slate-950/10 custom-scrollbar">
+              <table class="w-full border-collapse text-left" id="seriesDedicatedTable">
+                <thead>
+                  <tr class="bg-slate-950/80 text-slate-300 text-xs font-bold">
+                    <th rowspan="2" class="border border-slate-800 text-center w-12">#</th>
+                    <th rowspan="2" class="border border-slate-800 w-28">Reg No</th>
+                    <th rowspan="2" class="border border-slate-800 min-w-[160px]">Student Name</th>
+                    <th colspan="5" class="border border-slate-800 text-center bg-blue-950/40 text-blue-300">Series Exam 1 (Modules 1 &amp; 2 - Max 50M)</th>
+                    <th colspan="5" class="border border-slate-800 text-center bg-sky-950/40 text-sky-300">Series Exam 2 (Modules 3 &amp; 4 - Max 50M)</th>
+                    <th rowspan="2" class="border border-slate-800 text-center w-28 bg-emerald-950/40 text-emerald-300">Combined<br>Series (20M)</th>
+                  </tr>
+                  <tr class="bg-slate-950/90 text-slate-400 text-xs">
+                    <th class="border border-slate-800 text-center w-16" title="Module 1 / CO1 (Max 25)">CO1 (25)</th>
+                    <th class="border border-slate-800 text-center w-16" title="Module 2 / CO2 (Max 25)">CO2 (25)</th>
+                    <th class="border border-slate-800 text-center w-16 font-semibold text-slate-300" title="Total S1 Marks (Max 50)">Total (50)</th>
+                    <th class="border border-slate-800 text-center w-14">Absent</th>
+                    <th class="border border-slate-800 text-center w-16 text-blue-300 font-bold">Conv (20)</th>
+                    <th class="border border-slate-800 text-center w-16" title="Module 3 / CO3 (Max 25)">CO3 (25)</th>
+                    <th class="border border-slate-800 text-center w-16" title="Module 4 / CO4 (Max 25)">CO4 (25)</th>
+                    <th class="border border-slate-800 text-center w-16 font-semibold text-slate-300" title="Total S2 Marks (Max 50)">Total (50)</th>
+                    <th class="border border-slate-800 text-center w-14">Absent</th>
+                    <th class="border border-slate-800 text-center w-16 text-sky-300 font-bold">Conv (20)</th>
+                  </tr>
+                </thead>
+                <tbody class="text-sm font-normal">
+                  @forelse($studentResults as $index => $st)
+                    <tr class="series-eval-row hover:bg-slate-800/40 even:bg-slate-900/30 odd:bg-transparent transition-colors" data-reg-no="{{ $st['reg_no'] }}">
+                      <td class="border-0 text-center text-xs text-slate-400 py-3 px-2">{{ $index + 1 }}</td>
+                      <td class="border-0 font-mono text-xs text-slate-300 py-3 px-2">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
+                      <td class="border-0 text-xs font-semibold text-white py-3 px-2">{{ $st['name'] }}</td>
+
+                      <!-- S1 CO1 Marks (25) -->
+                      <td class="border-0 p-1.5 text-center">
+                        <input type="text" inputmode="decimal" 
+                               value="{{ $st['series_1_co1_25'] !== null ? (float)$st['series_1_co1_25'] : '' }}" 
+                               data-prev-val="{{ $st['series_1_co1_25'] !== null ? (float)$st['series_1_co1_25'] : '' }}"
+                               data-max="25"
+                               data-field-name="Series 1 CO1 (Module 1)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-student-name="{{ addslashes($st['name']) }}"
+                               data-co-type="co1"
+                               placeholder="-" 
+                               class="series-tab-s1-co1 no-spinners w-14 text-center px-1.5 py-1 text-sm font-semibold text-slate-100 bg-slate-950 border border-slate-700/60 rounded focus:border-blue-500 outline-none" 
+                               title="Series 1 CO1 (Module 1) out of 25 (supports 1 decimal, e.g. 11.5)"
+                               oninput="handleSeriesCoInput(this, '{{ $st['reg_no'] }}', 'co1')"
+                               onblur="handleSeriesCoBlur(this, '{{ $st['reg_no'] }}', 'co1')">
+                      </td>
+
+                      <!-- S1 CO2 Marks (25) -->
+                      <td class="border-0 p-1.5 text-center">
+                        <input type="text" inputmode="decimal" 
+                               value="{{ $st['series_1_co2_25'] !== null ? (float)$st['series_1_co2_25'] : '' }}" 
+                               data-prev-val="{{ $st['series_1_co2_25'] !== null ? (float)$st['series_1_co2_25'] : '' }}"
+                               data-max="25"
+                               data-field-name="Series 1 CO2 (Module 2)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-student-name="{{ addslashes($st['name']) }}"
+                               data-co-type="co2"
+                               placeholder="-" 
+                               class="series-tab-s1-co2 no-spinners w-14 text-center px-1.5 py-1 text-sm font-semibold text-slate-100 bg-slate-950 border border-slate-700/60 rounded focus:border-blue-500 outline-none" 
+                               title="Series 1 CO2 (Module 2) out of 25 (supports 1 decimal, e.g. 11.5)"
+                               oninput="handleSeriesCoInput(this, '{{ $st['reg_no'] }}', 'co2')"
+                               onblur="handleSeriesCoBlur(this, '{{ $st['reg_no'] }}', 'co2')">
+                      </td>
+
+                      <!-- S1 Total (50) -->
+                      <td class="border-0 text-center font-mono text-sm font-bold text-slate-300 py-3 cell-series-tab-s1-total series-tab-s1-total">
+                        {{ $st['series_1_50'] !== null ? number_format($st['series_1_50'], 1) : '-' }}
+                      </td>
+
+                      <!-- S1 Absent -->
+                      <td class="border-0 text-center py-3">
+                        <input type="checkbox" class="series-tab-s1-abs cursor-pointer" 
+                               {{ !empty($st['series_1_absent']) ? 'checked' : '' }} 
+                               onchange="syncSeriesAbsToMain('{{ $st['reg_no'] }}', 's1', this.checked); queueAutoSave();">
+                      </td>
+
+                      <!-- S1 Converted (20) -->
+                      <td class="border-0 text-center font-bold text-sm text-blue-300 py-3 cell-series-tab-s1-20 series-tab-s1-20">
+                        {{ $st['series_1_absent'] ? 'AB' : ($st['series_1_50'] !== null ? number_format($st['series_1_20'] ?? 0, 1) : '-') }}
+                      </td>
+
+                      <!-- S2 CO3 Marks (25) -->
+                      <td class="border-0 p-1.5 text-center">
+                        <input type="text" inputmode="decimal" 
+                               value="{{ $st['series_2_co3_25'] !== null ? (float)$st['series_2_co3_25'] : '' }}" 
+                               data-prev-val="{{ $st['series_2_co3_25'] !== null ? (float)$st['series_2_co3_25'] : '' }}"
+                               data-max="25"
+                               data-field-name="Series 2 CO3 (Module 3)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-student-name="{{ addslashes($st['name']) }}"
+                               data-co-type="co3"
+                               placeholder="-" 
+                               class="series-tab-s2-co3 no-spinners w-14 text-center px-1.5 py-1 text-sm font-semibold text-slate-100 bg-slate-950 border border-slate-700/60 rounded focus:border-blue-500 outline-none" 
+                               title="Series 2 CO3 (Module 3) out of 25 (supports 1 decimal, e.g. 11.5)"
+                               oninput="handleSeriesCoInput(this, '{{ $st['reg_no'] }}', 'co3')"
+                               onblur="handleSeriesCoBlur(this, '{{ $st['reg_no'] }}', 'co3')">
+                      </td>
+
+                      <!-- S2 CO4 Marks (25) -->
+                      <td class="border-0 p-1.5 text-center">
+                        <input type="text" inputmode="decimal" 
+                               value="{{ $st['series_2_co4_25'] !== null ? (float)$st['series_2_co4_25'] : '' }}" 
+                               data-prev-val="{{ $st['series_2_co4_25'] !== null ? (float)$st['series_2_co4_25'] : '' }}"
+                               data-max="25"
+                               data-field-name="Series 2 CO4 (Module 4)"
+                               data-reg-no="{{ $st['reg_no'] }}"
+                               data-student-name="{{ addslashes($st['name']) }}"
+                               data-co-type="co4"
+                               placeholder="-" 
+                               class="series-tab-s2-co4 no-spinners w-14 text-center px-1.5 py-1 text-sm font-semibold text-slate-100 bg-slate-950 border border-slate-700/60 rounded focus:border-blue-500 outline-none" 
+                               title="Series 2 CO4 (Module 4) out of 25 (supports 1 decimal, e.g. 11.5)"
+                               oninput="handleSeriesCoInput(this, '{{ $st['reg_no'] }}', 'co4')"
+                               onblur="handleSeriesCoBlur(this, '{{ $st['reg_no'] }}', 'co4')">
+                      </td>
+
+                      <!-- S2 Total (50) -->
+                      <td class="border-0 text-center font-mono text-sm font-bold text-slate-300 py-3 cell-series-tab-s2-total series-tab-s2-total">
+                        {{ $st['series_2_50'] !== null ? number_format($st['series_2_50'], 1) : '-' }}
+                      </td>
+
+                      <!-- S2 Absent -->
+                      <td class="border-0 text-center py-3">
+                        <input type="checkbox" class="series-tab-s2-abs cursor-pointer" 
+                               {{ !empty($st['series_2_absent']) ? 'checked' : '' }} 
+                               onchange="syncSeriesAbsToMain('{{ $st['reg_no'] }}', 's2', this.checked); queueAutoSave();">
+                      </td>
+
+                      <!-- S2 Converted (20) -->
+                      <td class="border-0 text-center font-bold text-sm text-sky-300 py-3 cell-series-tab-s2-20 series-tab-s2-20">
+                        {{ $st['series_2_absent'] ? 'AB' : ($st['series_2_50'] !== null ? number_format($st['series_2_20'] ?? 0, 1) : '-') }}
+                      </td>
+
+                      <!-- Combined Series (20M) -->
+                      <td class="border-0 text-center font-bold text-sm text-emerald-400 bg-emerald-950/20 py-3 cell-series-tab-comb-20 series-tab-comb-20">
+                        {{ number_format($st['series_20'] ?? 0, 1) }}
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="14" class="text-center text-slate-400 py-6 italic">No enrolled students found.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
 
@@ -2374,7 +2487,7 @@
                         <td class="p-2 text-center font-mono text-emerald-500 font-bold">{{ $sc['attendance_marks'] }}</td>
                         <td class="p-2 text-center font-mono text-title">{{ $sc['self_learning_marks'] }}</td>
                         <td class="p-2 text-center font-mono text-title">{{ $sc['series_exam_marks'] }}</td>
-                        <td class="p-2 text-center font-mono text-blue-400 font-bold text-sm">{{ $sc['total_cia'] }}</td>
+                        <td class="p-2 text-center font-mono text-blue-400 font-bold text-sm">{{ round($sc['total_cia']) }}</td>
                       </tr>
                     @empty
                       <tr>
@@ -2450,7 +2563,7 @@
                         <td class="p-2 font-mono text-center text-title">{{ $sc['roll_no'] ?: '—' }}</td>
                         <td class="p-2 font-mono text-title text-[11px]">{{ $sc['sbte_reg_no'] ?: $sc['reg_no'] }}</td>
                         <td class="p-2 text-title font-medium">{{ $sc['name'] }}</td>
-                        <td class="p-2 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ $sc['total_cia'] }}">{{ $sc['total_cia'] }}</td>
+                        <td class="p-2 text-center font-mono text-emerald-500 font-bold" data-val-cie="{{ round($sc['total_cia']) }}">{{ round($sc['total_cia']) }}</td>
                         <td class="p-2 text-center">
                           <select class="w-36 bg-slate-950/70 border border-slate-700 hover:border-slate-500 rounded px-2 py-1 text-slate-100 text-xs font-semibold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ese-grade-select cursor-pointer transition-colors" onchange="calculateEseRowFromGrade(this); triggerEseAutosave();">
                             <option value="" class="bg-slate-900 text-slate-400">-- Select Grade --</option>
@@ -2467,7 +2580,7 @@
                         <td class="p-2 text-center">
                           <input type="number" step="0.5" min="0" max="60" value="{{ $sc['ese_marks'] ?? 0.0 }}" class="w-20 bg-slate-950/50 border border-slate-800 rounded px-1.5 py-1 text-slate-200 text-center focus:border-blue-500 outline-none font-normal text-xs ese-mark-input" onfocus="this.select()" oninput="calculateEseRowFromMarks(this); triggerEseAutosave();" onkeydown="handleR26EseMarkKeyDown(event, this)">
                         </td>
-                        <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ $sc['grand_total'] }}</td>
+                        <td class="p-2 text-center font-mono text-title font-bold" data-field="total_score">{{ round($sc['grand_total'] ?? 0) }}</td>
                         <td class="p-2 text-center font-bold" data-field="grade_display">-</td>
                         <td class="p-2 text-center font-bold" data-field="remark_display">-</td>
                       </tr>
@@ -2739,7 +2852,7 @@
         targetPanel.classList.remove('hidden');
       }
 
-      const tabs = ['outline', 'planner', 'cia', 'series', 'attainment', 'materials', 'reports'];
+      const tabs = ['outline', 'planner', 'cia', 'series', 'selflearning', 'attainment', 'materials', 'reports'];
       tabs.forEach(id => {
         const btn = document.getElementById('btn-' + id);
         if (!btn) return;
@@ -2933,10 +3046,15 @@
             <option value="Completed">Completed</option>
           </select>
         </td>
-        <td class="p-1.5 text-center">
-          <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete Row">
-            <span class="material-symbols-rounded text-xs block">close</span>
-          </button>
+        <td class="p-1 text-center">
+          <div class="flex items-center justify-center gap-0.5">
+            <button type="button" onclick="addLessonPlanRowBelow(this)" class="text-sky-400 hover:text-sky-300 hover:bg-sky-500/20 p-1 rounded transition cursor-pointer" title="Add Row Below">
+              <span class="material-symbols-rounded text-xs block">add</span>
+            </button>
+            <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete Row">
+              <span class="material-symbols-rounded text-xs block">close</span>
+            </button>
+          </div>
         </td>
       `;
 
@@ -2946,8 +3064,74 @@
       }
 
       tbody.appendChild(tr);
+      renumberLessonPlanPeriods();
       initLessonPlanDatePickers(tr);
       tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      triggerPlannerAutosave();
+    }
+
+    function addLessonPlanRowBelow(btn) {
+      const currentTr = btn.closest('tr');
+      if (!currentTr) return;
+      const newId = 'new_' + Date.now() + '_' + (newRowCounter++);
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-lp-id', newId);
+      tr.className = "bg-sky-500/5 hover:bg-sky-500/10 transition-all font-normal";
+      const currentCo = currentTr.querySelector('[data-field="co_id"]')?.value || 'CO1';
+      tr.innerHTML = `
+        <td class="p-1 font-mono text-center text-title period-no-display text-xs"></td>
+        <td class="p-1 text-center">
+          <select data-field="co_id" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-sky-400 focus:border-sky-500 outline-none font-semibold text-xs text-center">
+            <option value="CO1" ${currentCo === 'CO1' ? 'selected' : ''}>CO1</option>
+            <option value="CO2" ${currentCo === 'CO2' ? 'selected' : ''}>CO2</option>
+            <option value="CO3" ${currentCo === 'CO3' ? 'selected' : ''}>CO3</option>
+            <option value="CO4" ${currentCo === 'CO4' ? 'selected' : ''}>CO4</option>
+            <option value="CO5" ${currentCo === 'CO5' ? 'selected' : ''}>CO5</option>
+          </select>
+        </td>
+        <td class="p-1">
+          <textarea data-field="topic_content" oninput="triggerPlannerAutosave()" rows="2" class="w-full bg-slate-950/50 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:border-blue-500 outline-none font-normal text-xs resize-y leading-relaxed" placeholder="Enter topic content..."></textarea>
+        </td>
+        <td class="p-1">
+          <select data-field="pedagogy" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-[11px]">
+            <option value="Lecture" selected>Lecture</option>
+            <option value="Tutorial">Tutorial</option>
+            <option value="Practical">Practical</option>
+            <option value="Exam">Exam</option>
+          </select>
+        </td>
+        <td class="p-1">
+          <input type="text" data-field="taxonomy" oninput="triggerPlannerAutosave()" value="Understand" class="w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px]" placeholder="Taxonomy...">
+        </td>
+        <td class="p-1">
+          <input type="text" data-field="proposed_date" onchange="triggerPlannerAutosave()" value="" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px] text-center">
+        </td>
+        <td class="p-1">
+          <input type="text" data-field="actual_date" onchange="triggerPlannerAutosave()" value="" placeholder="dd/mm/yyyy" class="lp-date-picker w-full bg-slate-950/50 border border-slate-800 rounded px-1 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-[11px] text-center">
+        </td>
+        <td class="p-1">
+          <input type="number" data-field="allocated_hours" oninput="triggerPlannerAutosave()" value="1" min="1" max="10" class="w-full bg-slate-950/50 border border-slate-800 rounded px-0.5 py-1 text-slate-200 focus:border-blue-500 outline-none font-normal text-center text-[11px]">
+        </td>
+        <td class="p-1">
+          <select data-field="status" onchange="triggerPlannerAutosave()" class="w-full bg-slate-950 border border-slate-800 rounded px-1 py-1 text-slate-300 focus:border-blue-500 outline-none font-normal text-[11px]">
+            <option value="Pending" selected>Pending</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </td>
+        <td class="p-1 text-center">
+          <div class="flex items-center justify-center gap-0.5">
+            <button type="button" onclick="addLessonPlanRowBelow(this)" class="text-sky-400 hover:text-sky-300 hover:bg-sky-500/20 p-1 rounded transition cursor-pointer" title="Add Row Below">
+              <span class="material-symbols-rounded text-xs block">add</span>
+            </button>
+            <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete Row">
+              <span class="material-symbols-rounded text-xs block">close</span>
+            </button>
+          </div>
+        </td>
+      `;
+      currentTr.after(tr);
+      renumberLessonPlanPeriods();
+      initLessonPlanDatePickers(tr);
       triggerPlannerAutosave();
     }
 
@@ -3098,250 +3282,636 @@
       });
     }
 
-    function calculateRowCia(input) {
-      const tr = input.closest('tr');
-      const attVal = parseFloat(tr.querySelector('[data-val-attendance]').getAttribute('data-val-attendance')) || 0;
-      const selfLearningVal = parseFloat(tr.querySelector('[data-field="self_learning"]').value) || 0;
-      const seriesExamVal = parseFloat(tr.querySelector('[data-field="series_exam"]').value) || 0;
-      
-      const total = attVal + selfLearningVal + seriesExamVal;
-      tr.querySelector('[data-field="total_cia"]').innerText = total.toFixed(1);
+    // Attendance Override Handler with Confirmation & Amber Styling
+    async function handleAttendanceOverrideChange(input, regNo, studentName) {
+      const valStr = input.value.trim();
+      const prevVal = input.dataset.prevVal || '';
+      const td = input.closest('td');
+
+      if (valStr === prevVal) return;
+
+      if (valStr !== '') {
+        const num = parseFloat(valStr);
+        if (isNaN(num) || num < 0 || num > 100) {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'error',
+              title: 'Invalid Percentage',
+              text: 'Attendance percentage must be between 0 and 100%.',
+              background: '#0f172a',
+              color: '#f8fafc'
+            });
+          } else {
+            alert('Attendance percentage must be between 0 and 100%.');
+          }
+          input.value = prevVal;
+          return;
+        }
+
+        let confirmed = false;
+        if (typeof Swal !== 'undefined') {
+          const result = await Swal.fire({
+            title: 'Confirm Attendance Override?',
+            html: `You are overriding the attendance for <strong>${studentName}</strong> to <strong class="text-amber-400">${num}%</strong>.<br><small class="text-slate-400">This modifies the 5M CIE attendance score with an amber status border.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#475569',
+            confirmButtonText: 'Yes, Apply Override',
+            cancelButtonText: 'Cancel',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+          confirmed = result.isConfirmed;
+        } else {
+          confirmed = confirm(`Confirm Attendance Override for ${studentName} to ${num}%?`);
+        }
+
+        if (!confirmed) {
+          input.value = prevVal;
+          return;
+        }
+
+        input.dataset.prevVal = valStr;
+        input.classList.add('has-override');
+        input.title = `Active Override: ${num}%`;
+
+        const actionBtn = td ? td.querySelector('.btn-clear-att-override, .btn-prompt-att-override') : null;
+        if (actionBtn) {
+          actionBtn.className = 'btn-clear-att-override p-1 rounded hover:bg-slate-800 text-amber-400 hover:text-rose-400 transition cursor-pointer';
+          actionBtn.title = 'Revert to class log raw percentage';
+          actionBtn.onclick = () => clearAttendanceOverride(regNo, studentName);
+          actionBtn.innerHTML = '<span class="material-symbols-rounded text-xs">close</span>';
+        }
+      } else {
+        // Clearing override
+        let confirmed = false;
+        if (typeof Swal !== 'undefined') {
+          const result = await Swal.fire({
+            title: 'Remove Attendance Override?',
+            html: `Revert attendance for <strong>${studentName}</strong> to class logs raw percentage?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#475569',
+            confirmButtonText: 'Yes, Revert',
+            cancelButtonText: 'Cancel',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+          confirmed = result.isConfirmed;
+        } else {
+          confirmed = confirm(`Revert attendance for ${studentName} to class log percentage?`);
+        }
+
+        if (!confirmed) {
+          input.value = prevVal;
+          return;
+        }
+
+        input.dataset.prevVal = '';
+        input.classList.remove('has-override');
+        input.title = 'Click to override attendance percentage';
+
+        const actionBtn = td ? td.querySelector('.btn-clear-att-override, .btn-prompt-att-override') : null;
+        if (actionBtn) {
+          actionBtn.className = 'btn-prompt-att-override p-1 rounded hover:bg-slate-800 text-slate-500 hover:text-amber-400 transition cursor-pointer';
+          actionBtn.title = 'Click to override attendance %';
+          actionBtn.onclick = () => promptAttendanceOverride(regNo, studentName);
+          actionBtn.innerHTML = '<span class="material-symbols-rounded text-xs">edit</span>';
+        }
+      }
+
+      recalculateRow(regNo);
+      queueAutoSave();
     }
 
-    let ciaAutosaveTimer = null;
-    function triggerCiaAutosave() {
-      const badge = document.getElementById('ciaAutosaveBadge');
-      if (badge) {
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
-        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+    function clearAttendanceOverride(regNo, studentName) {
+      const row = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!row) return;
+      const input = row.querySelector('.cell-att-override');
+      if (!input) return;
+      input.value = '';
+      handleAttendanceOverrideChange(input, regNo, studentName);
+    }
+
+    async function promptAttendanceOverride(regNo, studentName) {
+      const row = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!row) return;
+      const input = row.querySelector('.cell-att-override');
+      if (!input) return;
+      
+      const currentVal = input.value.trim() || input.placeholder;
+      if (typeof Swal !== 'undefined') {
+        const { value: newPct } = await Swal.fire({
+          title: 'Override Attendance %',
+          html: `Enter manual attendance percentage for <strong>${studentName}</strong>:`,
+          input: 'number',
+          inputValue: currentVal !== '-' ? currentVal : '',
+          inputAttributes: {
+            min: '0',
+            max: '100',
+            step: '0.1'
+          },
+          showCancelButton: true,
+          confirmButtonColor: '#f59e0b',
+          confirmButtonText: 'Apply Override',
+          cancelButtonColor: '#475569',
+          background: '#0f172a',
+          color: '#f8fafc',
+          inputValidator: (val) => {
+            if (!val || isNaN(val) || val < 0 || val > 100) {
+              return 'Please enter a valid percentage between 0 and 100';
+            }
+          }
+        });
+        if (newPct !== undefined && newPct !== null && newPct !== '') {
+          input.value = newPct;
+          handleAttendanceOverrideChange(input, regNo, studentName);
+        }
+      } else {
+        input.focus();
+        input.select();
       }
-      clearTimeout(ciaAutosaveTimer);
-      ciaAutosaveTimer = setTimeout(() => {
-        saveCiaMarks(true);
+    }
+
+    function handleS1Change(regNo, val) {
+      const row = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!row) return;
+      const co1Inp = row.querySelector('.cell-s1-co1');
+      const co2Inp = row.querySelector('.cell-s1-co2');
+      if (val.trim() !== '') {
+        const num = Math.min(50.0, Math.max(0.0, parseFloat(val) || 0));
+        if (co1Inp) co1Inp.value = (num / 2).toFixed(1);
+        if (co2Inp) co2Inp.value = (num / 2).toFixed(1);
+      } else {
+        if (co1Inp) co1Inp.value = '';
+        if (co2Inp) co2Inp.value = '';
+      }
+      recalculateRow(regNo);
+      queueAutoSave();
+    }
+
+    function handleS2Change(regNo, val) {
+      const row = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!row) return;
+      const co3Inp = row.querySelector('.cell-s2-co3');
+      const co4Inp = row.querySelector('.cell-s2-co4');
+      if (val.trim() !== '') {
+        const num = Math.min(50.0, Math.max(0.0, parseFloat(val) || 0));
+        if (co3Inp) co3Inp.value = (num / 2).toFixed(1);
+        if (co4Inp) co4Inp.value = (num / 2).toFixed(1);
+      } else {
+        if (co3Inp) co3Inp.value = '';
+        if (co4Inp) co4Inp.value = '';
+      }
+      recalculateRow(regNo);
+      queueAutoSave();
+    }
+
+    // Consolidated Row Recalculation (Rev 2026 Theory Standards)
+    function recalculateRow(regNo) {
+      const row = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!row) return;
+
+      // Attendance: Check override first, else raw %
+      const overrideVal = row.querySelector('.cell-att-override').value.trim();
+      const rawPctText = row.querySelector('.cell-att-override').placeholder;
+      let effectivePct = null;
+
+      if (overrideVal !== '') {
+        effectivePct = parseFloat(overrideVal);
+      } else if (rawPctText !== '' && rawPctText !== '-') {
+        effectivePct = parseFloat(rawPctText);
+      }
+
+      let attMark = 0.0;
+      if (effectivePct !== null && !isNaN(effectivePct)) {
+        if (effectivePct >= 90.0) attMark = 5.0;
+        else if (effectivePct >= 80.0) attMark = 4.0;
+        else if (effectivePct >= 75.0) attMark = 3.0;
+        else if (effectivePct >= 70.0) attMark = 2.0;
+        else if (effectivePct >= 65.0) attMark = 1.0;
+        else attMark = 0.0;
+      }
+      row.querySelector('.cell-att-mark').textContent = attMark.toFixed(1);
+
+      // Self-Learning Modules 1-4 (Max 15M each -> Average scaled to 15M)
+      const ca1 = Math.min(15.0, Math.max(0.0, parseFloat(row.querySelector('.cell-ca1').value) || 0));
+      const ca2 = Math.min(15.0, Math.max(0.0, parseFloat(row.querySelector('.cell-ca2').value) || 0));
+      const ca3 = Math.min(15.0, Math.max(0.0, parseFloat(row.querySelector('.cell-ca3').value) || 0));
+      const ca4 = Math.min(15.0, Math.max(0.0, parseFloat(row.querySelector('.cell-ca4').value) || 0));
+
+      const caInputs = [
+        row.querySelector('.cell-ca1').value.trim(),
+        row.querySelector('.cell-ca2').value.trim(),
+        row.querySelector('.cell-ca3').value.trim(),
+        row.querySelector('.cell-ca4').value.trim()
+      ];
+      const enteredCount = caInputs.filter(v => v !== '').length;
+
+      let slTotal15 = 0.0;
+      if (enteredCount > 0) {
+        slTotal15 = Math.round(((ca1 + ca2 + ca3 + ca4) / 4.0) * 2) / 2;
+      }
+      if (slTotal15 > 15.0) slTotal15 = 15.0;
+      row.querySelector('.cell-sl-total').textContent = slTotal15.toFixed(1);
+
+      // Series 1: Check S1 input (50) or CO1 (25) & CO2 (25) -> Conv to 20
+      const s1Inp = row.querySelector('.cell-s1-50');
+      const co1Inp = row.querySelector('.cell-s1-co1');
+      const co2Inp = row.querySelector('.cell-s1-co2');
+      const co1Val = co1Inp ? co1Inp.value.trim() : '';
+      const co2Val = co2Inp ? co2Inp.value.trim() : '';
+
+      const seriesRow = document.querySelector(`.series-eval-row[data-reg-no="${regNo}"]`);
+      const s1Abs = seriesRow ? seriesRow.querySelector('.series-tab-s1-abs').checked : false;
+      const s2Abs = seriesRow ? seriesRow.querySelector('.series-tab-s2-abs').checked : false;
+
+      let s1Raw = null;
+      let s1_20 = 0.0;
+      if (co1Val !== '' || co2Val !== '') {
+        const c1 = (co1Val !== '' && co1Val !== '.') ? Math.min(25.0, Math.max(0.0, parseFloat(co1Val) || 0)) : 0;
+        const c2 = (co2Val !== '' && co2Val !== '.') ? Math.min(25.0, Math.max(0.0, parseFloat(co2Val) || 0)) : 0;
+        s1Raw = Math.min(50.0, c1 + c2);
+        s1_20 = !s1Abs ? Math.round(((s1Raw / 50.0) * 20.0) * 2) / 2 : 0.0;
+      } else if (s1Inp && s1Inp.value.trim() !== '') {
+        s1Raw = Math.min(50.0, Math.max(0.0, parseFloat(s1Inp.value) || 0));
+        s1_20 = !s1Abs ? Math.round(((s1Raw / 50.0) * 20.0) * 2) / 2 : 0.0;
+      }
+      if (s1Inp) s1Inp.value = s1Raw !== null ? s1Raw.toFixed(1) : '';
+      const s1Disp = row.querySelector('.cell-s1-50-display');
+      if (s1Disp) s1Disp.textContent = s1Raw !== null ? s1Raw.toFixed(1) : '-';
+
+      // Series 2: Check CO3 (25) & CO4 (25) from Series Tab -> Conv to 20
+      const s2Inp = row.querySelector('.cell-s2-50');
+      const co3Inp = row.querySelector('.cell-s2-co3');
+      const co4Inp = row.querySelector('.cell-s2-co4');
+      const co3Val = co3Inp ? co3Inp.value.trim() : '';
+      const co4Val = co4Inp ? co4Inp.value.trim() : '';
+
+      let s2Raw = null;
+      let s2_20 = 0.0;
+      if (co3Val !== '' || co4Val !== '') {
+        const c3 = (co3Val !== '' && co3Val !== '.') ? Math.min(25.0, Math.max(0.0, parseFloat(co3Val) || 0)) : 0;
+        const c4 = (co4Val !== '' && co4Val !== '.') ? Math.min(25.0, Math.max(0.0, parseFloat(co4Val) || 0)) : 0;
+        s2Raw = Math.min(50.0, c3 + c4);
+        s2_20 = !s2Abs ? Math.round(((s2Raw / 50.0) * 20.0) * 2) / 2 : 0.0;
+      } else if (s2Inp && s2Inp.value.trim() !== '') {
+        s2Raw = Math.min(50.0, Math.max(0.0, parseFloat(s2Inp.value) || 0));
+        s2_20 = !s2Abs ? Math.round(((s2Raw / 50.0) * 20.0) * 2) / 2 : 0.0;
+      }
+      if (s2Inp) s2Inp.value = s2Raw !== null ? s2Raw.toFixed(1) : '';
+      const s2Disp = row.querySelector('.cell-s2-50-display');
+      if (s2Disp) s2Disp.textContent = s2Raw !== null ? s2Raw.toFixed(1) : '-';
+
+      let seriesComb20 = 0.0;
+      if (s1Raw !== null || s2Raw !== null) {
+        seriesComb20 = Math.round(((s1_20 + s2_20) / 2.0) * 2) / 2;
+      }
+      if (seriesComb20 > 20.0) seriesComb20 = 20.0;
+      row.querySelector('.cell-series-total').textContent = seriesComb20.toFixed(1);
+
+      // Total CIE (Max 40M) = Attendance (5) + Self-Learning (15) + Series (20)
+      let totalCie40 = Math.round(attMark + slTotal15 + seriesComb20);
+      if (totalCie40 > 40) totalCie40 = 40;
+      row.querySelector('.cell-cie-total').textContent = totalCie40;
+
+      // ESE (60M)
+      const eseAbsent = row.querySelector('.cell-ese-absent').checked;
+      const eseMarksInput = row.querySelector('.cell-ese-marks').value.trim();
+      const eseMarks = (!eseAbsent && eseMarksInput !== '') ? Math.min(60.0, Math.max(0.0, parseFloat(eseMarksInput))) : 0.0;
+
+      // Grand Total (100) - Whole number (no .0)
+      const grandTotal = Math.round(totalCie40 + eseMarks);
+      row.querySelector('.cell-grand-total').textContent = grandTotal;
+
+      // Synchronize dedicated Series tab row
+      syncMainToSeries(regNo, co1Val, co2Val, s1Raw, s1Abs, s1_20, co3Val, co4Val, s2Raw, s2Abs, s2_20, seriesComb20);
+    }
+
+    // Dedicated Input Handlers for Series Exam CO Marks (Supports 1 decimal point e.g. 11.5)
+    function handleSeriesCoInput(input, regNo, coType) {
+      let val = input.value;
+      // Convert comma to dot
+      val = val.replace(',', '.');
+      // Strip any characters other than digits and decimal point
+      val = val.replace(/[^0-9.]/g, '');
+      // Allow only one decimal point
+      const parts = val.split('.');
+      if (parts.length > 2) {
+        val = parts[0] + '.' + parts.slice(1).join('');
+      }
+      // Allow maximum 1 decimal place (e.g. 11.5)
+      if (parts.length === 2 && parts[1].length > 1) {
+        val = parts[0] + '.' + parts[1].substring(0, 1);
+      }
+      // Check maximum limit of 25M
+      if (val !== '' && val !== '.') {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num > 25.0) {
+          val = '25';
+        }
+      }
+      if (input.value !== val) {
+        input.value = val;
+      }
+
+      syncSeriesToMain(regNo, coType, val);
+      queueAutoSave();
+    }
+
+    function handleSeriesCoBlur(input, regNo, coType) {
+      let val = input.value.trim();
+      if (val === '' || val === '.') {
+        input.value = '';
+        syncSeriesToMain(regNo, coType, '');
+        queueAutoSave();
+        return;
+      }
+      let num = parseFloat(val);
+      if (isNaN(num)) {
+        input.value = '';
+        syncSeriesToMain(regNo, coType, '');
+      } else {
+        num = Math.min(25.0, Math.max(0.0, num));
+        // Keep 1 decimal if not whole integer (e.g. 11.5), otherwise clean integer (e.g. 11)
+        const cleanVal = (Math.round(num * 10) / 10).toString();
+        input.value = cleanVal;
+        syncSeriesToMain(regNo, coType, cleanVal);
+      }
+      queueAutoSave();
+    }
+
+    // Bidirectional sync between CIE Register and Series Tab
+    function syncSeriesToMain(regNo, coType, val) {
+      const mainRow = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (!mainRow) return;
+
+      if (coType === 'co1') {
+        const inp = mainRow.querySelector('.cell-s1-co1');
+        if (inp) inp.value = val;
+      } else if (coType === 'co2') {
+        const inp = mainRow.querySelector('.cell-s1-co2');
+        if (inp) inp.value = val;
+      } else if (coType === 'co3') {
+        const inp = mainRow.querySelector('.cell-s2-co3');
+        if (inp) inp.value = val;
+      } else if (coType === 'co4') {
+        const inp = mainRow.querySelector('.cell-s2-co4');
+        if (inp) inp.value = val;
+      }
+      recalculateRow(regNo);
+    }
+
+    function syncSeriesAbsToMain(regNo, seriesType, isChecked) {
+      recalculateRow(regNo);
+    }
+
+    function syncMainToSeries(regNo, co1Val, co2Val, s1Raw, s1Abs, s1_20, co3Val, co4Val, s2Raw, s2Abs, s2_20, comb20) {
+      const seriesRow = document.querySelector(`.series-eval-row[data-reg-no="${regNo}"]`);
+      if (!seriesRow) return;
+
+      const activeEl = document.activeElement;
+
+      const inpCo1 = seriesRow.querySelector('.series-tab-s1-co1');
+      if (inpCo1 && inpCo1 !== activeEl) inpCo1.value = co1Val;
+
+      const inpCo2 = seriesRow.querySelector('.series-tab-s1-co2');
+      if (inpCo2 && inpCo2 !== activeEl) inpCo2.value = co2Val;
+
+      seriesRow.querySelector('.series-tab-s1-total').textContent = s1Raw !== null ? s1Raw.toFixed(1) : '-';
+      seriesRow.querySelector('.series-tab-s1-20').textContent = s1Abs ? 'AB' : (s1Raw !== null ? s1_20.toFixed(1) : '-');
+
+      const inpCo3 = seriesRow.querySelector('.series-tab-s2-co3');
+      if (inpCo3 && inpCo3 !== activeEl) inpCo3.value = co3Val;
+
+      const inpCo4 = seriesRow.querySelector('.series-tab-s2-co4');
+      if (inpCo4 && inpCo4 !== activeEl) inpCo4.value = co4Val;
+
+      seriesRow.querySelector('.series-tab-s2-total').textContent = s2Raw !== null ? s2Raw.toFixed(1) : '-';
+      seriesRow.querySelector('.series-tab-s2-20').textContent = s2Abs ? 'AB' : (s2Raw !== null ? s2_20.toFixed(1) : '-');
+
+      seriesRow.querySelector('.series-tab-comb-20').textContent = comb20.toFixed(1);
+    }
+
+    // Debounced Auto-Save Mechanism
+    let autoSaveTimer = null;
+    function queueAutoSave() {
+      showSaveStatus('Saving...', true);
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        executeConsolidatedSave(true);
       }, 1200);
     }
 
-    function saveCiaMarks(isAutoSave = false) {
-      const rows = [];
-      const trs = document.querySelectorAll('#ciaTableBody tr');
-      trs.forEach(tr => {
-        const regNo = tr.getAttribute('data-reg-no');
-        if (!regNo) return;
+    function showSaveStatus(text, isSaving = false) {
+      const pill = document.getElementById('global-save-pill');
+      const statusText = document.getElementById('save-status-text');
+      if (!pill || !statusText) return;
+
+      statusText.textContent = text;
+      pill.classList.remove('hidden');
+      pill.classList.add('flex');
+
+      if (isSaving) {
+        pill.classList.remove('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+        pill.classList.add('bg-blue-500/10', 'border-blue-500/30', 'text-blue-400');
+      } else {
+        pill.classList.remove('bg-blue-500/10', 'border-blue-500/30', 'text-blue-400');
+        pill.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+        setTimeout(() => {
+          pill.classList.add('hidden');
+          pill.classList.remove('flex');
+        }, 3000);
+      }
+    }
+
+    // Save Consolidated Evaluations (AJAX)
+    async function executeConsolidatedSave(isAuto = false) {
+      const marksData = [];
+      document.querySelectorAll('.student-eval-row').forEach(row => {
+        const regNo = row.dataset.regNo;
+        const attOverride = row.querySelector('.cell-att-override').value.trim();
         
-        const selfLearning = tr.querySelector('[data-field="self_learning"]')?.value || 0;
-        const seriesExam = tr.querySelector('[data-field="series_exam"]')?.value || 0;
-        
-        rows.push({
+        const slaRow = document.querySelector(`.sla-student-row[data-reg-no="${regNo}"]`);
+        const ca1 = (slaRow && slaRow.querySelector('.sla-m1')) ? slaRow.querySelector('.sla-m1').value.trim() : (row.querySelector('.cell-ca1') ? row.querySelector('.cell-ca1').value.trim() : '');
+        const ca2 = (slaRow && slaRow.querySelector('.sla-m2')) ? slaRow.querySelector('.sla-m2').value.trim() : (row.querySelector('.cell-ca2') ? row.querySelector('.cell-ca2').value.trim() : '');
+        const ca3 = (slaRow && slaRow.querySelector('.sla-m3')) ? slaRow.querySelector('.sla-m3').value.trim() : (row.querySelector('.cell-ca3') ? row.querySelector('.cell-ca3').value.trim() : '');
+        const ca4 = (slaRow && slaRow.querySelector('.sla-m4')) ? slaRow.querySelector('.sla-m4').value.trim() : (row.querySelector('.cell-ca4') ? row.querySelector('.cell-ca4').value.trim() : '');
+
+        const seriesRow = document.querySelector(`.series-eval-row[data-reg-no="${regNo}"]`);
+        let co1 = (seriesRow && seriesRow.querySelector('.series-tab-s1-co1')) ? seriesRow.querySelector('.series-tab-s1-co1').value.trim() : (row.querySelector('.cell-s1-co1') ? row.querySelector('.cell-s1-co1').value.trim() : '');
+        let co2 = (seriesRow && seriesRow.querySelector('.series-tab-s1-co2')) ? seriesRow.querySelector('.series-tab-s1-co2').value.trim() : (row.querySelector('.cell-s1-co2') ? row.querySelector('.cell-s1-co2').value.trim() : '');
+        const s1Inp = row.querySelector('.cell-s1-50');
+        if (s1Inp && s1Inp.value.trim() !== '' && co1 === '' && co2 === '') {
+          const half = (parseFloat(s1Inp.value) / 2).toFixed(1);
+          co1 = half;
+          co2 = half;
+        }
+
+        let co3 = (seriesRow && seriesRow.querySelector('.series-tab-s2-co3')) ? seriesRow.querySelector('.series-tab-s2-co3').value.trim() : (row.querySelector('.cell-s2-co3') ? row.querySelector('.cell-s2-co3').value.trim() : '');
+        let co4 = (seriesRow && seriesRow.querySelector('.series-tab-s2-co4')) ? seriesRow.querySelector('.series-tab-s2-co4').value.trim() : (row.querySelector('.cell-s2-co4') ? row.querySelector('.cell-s2-co4').value.trim() : '');
+        const s2Inp = row.querySelector('.cell-s2-50');
+        if (s2Inp && s2Inp.value.trim() !== '' && co3 === '' && co4 === '') {
+          const half = (parseFloat(s2Inp.value) / 2).toFixed(1);
+          co3 = half;
+          co4 = half;
+        }
+
+        const eseMarks = row.querySelector('.cell-ese-marks').value.trim();
+        const eseGrade = row.querySelector('.cell-ese-grade').value.trim();
+        const eseAbsent = row.querySelector('.cell-ese-absent').checked;
+
+        // Series absent flags from series tab
+        const s1Abs = seriesRow ? seriesRow.querySelector('.series-tab-s1-abs').checked : false;
+        const s2Abs = seriesRow ? seriesRow.querySelector('.series-tab-s2-abs').checked : false;
+
+        marksData.push({
           reg_no: regNo,
-          self_learning_marks: selfLearning,
-          series_exam_marks: seriesExam
+          attendance_override_pct: attOverride !== '' ? Math.min(100.0, Math.max(0.0, parseFloat(attOverride))) : null,
+          ca1_15: ca1 !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(ca1))) : null,
+          ca2_15: ca2 !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(ca2))) : null,
+          ca3_15: ca3 !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(ca3))) : null,
+          ca4_15: ca4 !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(ca4))) : null,
+          series_1_co1_25: co1 !== '' ? Math.min(25.0, Math.max(0.0, parseFloat(co1))) : null,
+          series_1_co2_25: co2 !== '' ? Math.min(25.0, Math.max(0.0, parseFloat(co2))) : null,
+          series_1_absent: s1Abs ? 1 : 0,
+          series_2_co3_25: co3 !== '' ? Math.min(25.0, Math.max(0.0, parseFloat(co3))) : null,
+          series_2_co4_25: co4 !== '' ? Math.min(25.0, Math.max(0.0, parseFloat(co4))) : null,
+          series_2_absent: s2Abs ? 1 : 0,
+          ese_mark_60: eseMarks !== '' ? Math.min(60.0, Math.max(0.0, parseFloat(eseMarks))) : null,
+          ese_grade: eseGrade !== '' ? eseGrade : null,
+          ese_absent: eseAbsent ? 1 : 0
         });
       });
 
-      const badge = document.getElementById('ciaAutosaveBadge');
-      const btn = document.getElementById('btnSaveCia');
-      const originalText = btn ? btn.innerText : 'Save CIA Marks';
+      try {
+        const res = await fetch(`/api/r26/classroom/theory/{{ $batchSubject->id }}/evaluate/consolidated-save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({ marks_data: marksData })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          showSaveStatus('All Scores Saved', false);
+          const badge = document.getElementById('seriesMarksAutosaveBadge');
+          if (badge) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          const slBadge = document.getElementById('slAutosaveBadge');
+          if (slBadge) {
+            slBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
+            slBadge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
+          }
+          if (!isAuto) {
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                icon: 'success',
+                title: 'Saved Successfully',
+                text: 'All CIE, Self-Learning, and Series evaluation marks saved.',
+                timer: 1500,
+                showConfirmButton: false,
+                background: '#0f172a',
+                color: '#f8fafc'
+              });
+            } else {
+              alert('All evaluation records saved successfully!');
+            }
+          }
+        } else {
+          showSaveStatus('Save Failed', true);
+          if (!isAuto) alert('Failed to save marks: ' + (data.message || 'Server error'));
+        }
+      } catch (err) {
+        showSaveStatus('Error saving', true);
+        if (!isAuto) alert('Network error while saving: ' + err.message);
+      }
+    }
 
-      if (isAutoSave) {
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
-          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-      } else {
-        if (btn) {
-          btn.disabled = true;
-          btn.innerText = 'Saving...';
-        }
+    function triggerConsolidatedManualSave() {
+      executeConsolidatedSave(false);
+    }
+
+    // Quick Setup 2 Combined-CO Series Exams (50M each)
+    function quickSetupCombinedSeriesPattern() {
+      if (!confirm("Initialize 2 Combined-CO Series Examinations (50 Marks each: Series 1 = CO1+CO2, Series 2 = CO3+CO4)?")) {
+        return;
       }
 
-      fetch('/api/r26/classroom/{{ $batchSubject->id }}/cia-marks/bulk-update', {
+      fetch(`/api/r26/classroom/{{ $batchSubject->id }}/series-exams/configure`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ rows })
+        body: JSON.stringify({ mode: 'combined_co' })
       })
       .then(res => res.json())
       .then(data => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = originalText;
-        }
         if (data.status === 'SUCCESS') {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
-            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave && btn) {
-            btn.innerText = 'Saved!';
-            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
-          }
+          localStorage.setItem('activeClassroomTab', 'series');
+          window.location.href = window.location.pathname + '?tab=series';
         } else {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
-            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave) {
-            alert('Failed to save CIA marks: ' + data.message);
-          }
+          alert('Failed to configure series pattern: ' + data.message);
         }
       })
       .catch(err => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = originalText;
-        }
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
-          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-        if (!isAutoSave) {
-          alert('Error saving CIA marks: ' + err.message);
-        }
+        alert('Network error configuring series pattern: ' + err.message);
       });
     }
 
     function toggleCiaView(view) {
-      localStorage.setItem('activeCiaView', view);
-      const cardsView = document.getElementById('cia-cards-view');
-      const consolidatedView = document.getElementById('cia-consolidated-view');
-      const selfLearningView = document.getElementById('cia-self-learning-view');
-      
-      cardsView.classList.add('hidden');
-      consolidatedView.classList.add('hidden');
-      selfLearningView.classList.add('hidden');
-      
-      if (view === 'consolidated') {
-        consolidatedView.classList.remove('hidden');
-      } else if (view === 'self-learning') {
-        selfLearningView.classList.remove('hidden');
+      if (view === 'self-learning') {
+        switchTab('selflearning');
       } else {
-        cardsView.classList.remove('hidden');
+        switchTab('cia');
       }
     }
 
-    let currentSelfLearningTab = 'CO1';
+    // Realtime Self-Learning Module input handler (4 marks: M1..M4 all in 15M)
+    function handleSlaInputChange(regNo, moduleNum, val) {
+      const slaRow = document.querySelector(`.sla-student-row[data-reg-no="${regNo}"]`);
+      if (!slaRow) return;
 
-    function switchSelfLearningTab(co) {
-      localStorage.setItem('activeSelfLearningTab', co);
-      currentSelfLearningTab = co;
-      
-      // Hide all tables & config panels
-      document.querySelectorAll('.sl-table-container').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.sl-config-panel').forEach(el => el.classList.add('hidden'));
-      
-      // Show target table
-      document.getElementById('sl-table-container-' + co).classList.remove('hidden');
-      
-      // If not summary, show config panel and update column headers
-      if (co !== 'Summary') {
-        document.getElementById('sl-config-' + co).classList.remove('hidden');
-        updateActivityHeaders(co);
-      }
-      
-      // Update sub-tab styles
-      ['CO1', 'CO2', 'CO3', 'CO4', 'Summary'].forEach(item => {
-        const btn = document.getElementById('tabbtn-sl-' + item);
-        if (item === co) {
-          btn.className = "px-2 py-1 rounded-md text-[10px] font-semibold transition-all bg-blue-500/15 text-blue-400 border border-blue-500/30 cursor-pointer";
-        } else {
-          btn.className = "px-2 py-1 rounded-md text-[10px] font-semibold transition-all text-muted hover:bg-slate-900/40 cursor-pointer";
-        }
-      });
-    }
+      const m1Inp = slaRow.querySelector('.sla-m1');
+      const m2Inp = slaRow.querySelector('.sla-m2');
+      const m3Inp = slaRow.querySelector('.sla-m3');
+      const m4Inp = slaRow.querySelector('.sla-m4');
 
-    function updateActivityHeaders(co) {
-      const act3Mode = document.getElementById('cfg-' + co + '-act3_mode').value;
-      const act4Mode = document.getElementById('cfg-' + co + '-act4_mode').value;
-      const act5Mode = document.getElementById('cfg-' + co + '-act5_mode').value;
-      
-      const act3Max = parseFloat(document.getElementById('cfg-' + co + '-act3').value) || 0;
-      const act4Max = parseFloat(document.getElementById('cfg-' + co + '-act4').value) || 0;
-      const act5Max = parseFloat(document.getElementById('cfg-' + co + '-act5').value) || 0;
-      
-      document.querySelectorAll('.cfg-label-act3-' + co).forEach(el => el.innerText = act3Mode + ' (' + act3Max + 'M)');
-      document.querySelectorAll('.cfg-label-act4-' + co).forEach(el => el.innerText = act4Mode + ' (' + act4Max + 'M)');
-      document.querySelectorAll('.cfg-label-act5-' + co).forEach(el => el.innerText = act5Mode + ' (' + act5Max + 'M)');
-    }
+      const m1Val = m1Inp ? m1Inp.value.trim() : '';
+      const m2Val = m2Inp ? m2Inp.value.trim() : '';
+      const m3Val = m3Inp ? m3Inp.value.trim() : '';
+      const m4Val = m4Inp ? m4Inp.value.trim() : '';
 
-    function validateConfigSum(co) {
-      const assignment = parseFloat(document.getElementById('cfg-' + co + '-assignment').value) || 0;
-      const mcq = parseFloat(document.getElementById('cfg-' + co + '-mcq').value) || 0;
-      const act3 = parseFloat(document.getElementById('cfg-' + co + '-act3').value) || 0;
-      const act4 = parseFloat(document.getElementById('cfg-' + co + '-act4').value) || 0;
-      const act5 = parseFloat(document.getElementById('cfg-' + co + '-act5').value) || 0;
-      
-      const total = assignment + mcq + act3 + act4 + act5;
-      const statusEl = document.getElementById('cfg-' + co + '-status');
-      
-      if (total === 15) {
-        statusEl.innerText = "✓ Valid (15 Marks)";
-        statusEl.className = "font-semibold text-emerald-500 text-[11px]";
-        updateActivityHeaders(co);
-        return true;
-      } else {
-        statusEl.innerText = "⚠ Warning: Sum is " + total + " Marks (Must be 15)";
-        statusEl.className = "font-semibold text-rose-500 text-[11px] animate-pulse";
-        return false;
-      }
-    }
+      const m1 = m1Val !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(m1Val) || 0)) : 0;
+      const m2 = m2Val !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(m2Val) || 0)) : 0;
+      const m3 = m3Val !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(m3Val) || 0)) : 0;
+      const m4 = m4Val !== '' ? Math.min(15.0, Math.max(0.0, parseFloat(m4Val) || 0)) : 0;
 
-    function calculateSelfLearningRow(input, co) {
-      const tr = input.closest('tr');
-      const regNo = tr.getAttribute('data-reg-no');
-      
-      // Get configured max values
-      const maxAssignment = parseFloat(document.getElementById('cfg-' + co + '-assignment').value) || 0;
-      const maxMcq = parseFloat(document.getElementById('cfg-' + co + '-mcq').value) || 0;
-      const maxAct3 = parseFloat(document.getElementById('cfg-' + co + '-act3').value) || 0;
-      const maxAct4 = parseFloat(document.getElementById('cfg-' + co + '-act4').value) || 0;
-      const maxAct5 = parseFloat(document.getElementById('cfg-' + co + '-act5').value) || 0;
-      
-      // Validate inputs do not exceed max configurations
-      const field = input.getAttribute('data-field');
-      let val = parseFloat(input.value) || 0;
-      let limit = 0;
-      
-      if (field === 'assignment') limit = maxAssignment;
-      else if (field === 'mcq') limit = maxMcq;
-      else if (field === 'act3') limit = maxAct3;
-      else if (field === 'act4') limit = maxAct4;
-      else if (field === 'act5') limit = maxAct5;
-      
-      if (val > limit) {
-        alert("Mark cannot exceed the maximum configured marks of " + limit + "M for this activity.");
-        input.value = limit;
-        val = limit;
+      const entered = [m1Val, m2Val, m3Val, m4Val].filter(v => v !== '');
+      const avg = entered.length > 0 ? Math.min(15.0, Math.round(((m1 + m2 + m3 + m4) / 4.0) * 2) / 2) : 0.0;
+
+      const avgCell = slaRow.querySelector('.sla-row-avg');
+      if (avgCell) {
+        avgCell.textContent = avg.toFixed(1);
       }
-      
-      // Compute total for this CO row
-      const assignment = parseFloat(tr.querySelector('[data-field="assignment"]').value) || 0;
-      const mcq = parseFloat(tr.querySelector('[data-field="mcq"]').value) || 0;
-      const act3 = parseFloat(tr.querySelector('[data-field="act3"]').value) || 0;
-      const act4 = parseFloat(tr.querySelector('[data-field="act4"]').value) || 0;
-      const act5 = parseFloat(tr.querySelector('[data-field="act5"]').value) || 0;
-      
-      const rowTotal = assignment + mcq + act3 + act4 + act5;
-      tr.querySelector('[data-field="co_total"]').innerText = rowTotal.toFixed(2);
-      
-      // Update Summary Sheet cells
-      const summaryCoCell = document.getElementById('summary-' + regNo + '-' + co);
-      if (summaryCoCell) {
-        summaryCoCell.innerText = rowTotal.toFixed(2);
+
+      // Live synchronization to CIE Register row
+      const mainRow = document.querySelector(`.student-eval-row[data-reg-no="${regNo}"]`);
+      if (mainRow) {
+        const caInp = mainRow.querySelector(`.cell-ca${moduleNum}`);
+        if (caInp) caInp.value = val.trim();
+        const slCell = mainRow.querySelector('.cell-sl-total');
+        if (slCell) slCell.textContent = avg.toFixed(1);
+        recalculateRow(regNo);
       }
-      
-      // Update Summary Sheet Average
-      const co1Val = parseFloat(document.getElementById('summary-' + regNo + '-CO1').innerText) || 0;
-      const co2Val = parseFloat(document.getElementById('summary-' + regNo + '-CO2').innerText) || 0;
-      const co3Val = parseFloat(document.getElementById('summary-' + regNo + '-CO3').innerText) || 0;
-      const co4Val = parseFloat(document.getElementById('summary-' + regNo + '-CO4').innerText) || 0;
-      
-      const avg = (co1Val + co2Val + co3Val + co4Val) / 4;
-      const summaryAvgCell = document.getElementById('summary-' + regNo + '-avg');
-      if (summaryAvgCell) {
-        summaryAvgCell.innerText = avg.toFixed(2);
-      }
+
+      triggerSelfLearningAutosave();
     }
 
     let slAutosaveTimer = null;
@@ -3358,70 +3928,9 @@
     }
 
     function saveSelfLearningMarks(isAutoSave = false) {
-      // Validate all CO config sums are exactly 15 first
-      let allValid = true;
-      ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
-        if (!validateConfigSum(co)) {
-          allValid = false;
-        }
-      });
-      
       const badge = document.getElementById('slAutosaveBadge');
       const btn = document.getElementById('btnSaveSelfLearning');
-      const originalText = btn ? btn.innerText : 'Save Self-Learning';
-
-      if (!allValid) {
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Check 15M Config Sum';
-          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-        if (!isAutoSave) {
-          alert("Please correct the Max Marks configurations. The sum of max marks for each CO must equal exactly 15.");
-        }
-        return;
-      }
-
-      // Compile configurations
-      const configs = {};
-      ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
-        configs[co] = {
-          assignment: parseFloat(document.getElementById('cfg-' + co + '-assignment').value) || 0,
-          mcq: parseFloat(document.getElementById('cfg-' + co + '-mcq').value) || 0,
-          act3: parseFloat(document.getElementById('cfg-' + co + '-act3').value) || 0,
-          act3_mode: document.getElementById('cfg-' + co + '-act3_mode').value,
-          act4: parseFloat(document.getElementById('cfg-' + co + '-act4').value) || 0,
-          act4_mode: document.getElementById('cfg-' + co + '-act4_mode').value,
-          act5: parseFloat(document.getElementById('cfg-' + co + '-act5').value) || 0,
-          act5_mode: document.getElementById('cfg-' + co + '-act5_mode').value,
-        };
-      });
-
-      // Compile student rows
-      const rows = [];
-      const students = @json($studentCiaData);
-      
-      students.forEach(st => {
-        const regNo = st.reg_no;
-        const coDetails = {};
-        
-        ['CO1', 'CO2', 'CO3', 'CO4'].forEach(co => {
-          const tableRow = document.querySelector('#selfLearningTableBody-' + co + ' tr[data-reg-no="' + regNo + '"]');
-          if (tableRow) {
-            coDetails[co] = {
-              assignment: tableRow.querySelector('[data-field="assignment"]').value || 0,
-              mcq: tableRow.querySelector('[data-field="mcq"]').value || 0,
-              act3: tableRow.querySelector('[data-field="act3"]').value || 0,
-              act4: tableRow.querySelector('[data-field="act4"]').value || 0,
-              act5: tableRow.querySelector('[data-field="act5"]').value || 0,
-            };
-          }
-        });
-
-        rows.push({
-          reg_no: regNo,
-          co_details: coDetails
-        });
-      });
+      const originalText = btn ? btn.innerHTML : 'Save Self-Learning';
 
       if (isAutoSave) {
         if (badge) {
@@ -3431,65 +3940,96 @@
       } else {
         if (btn) {
           btn.disabled = true;
-          btn.innerText = 'Saving...';
+          btn.innerHTML = '<span class="material-symbols-rounded text-xs animate-spin">sync</span> Saving...';
         }
       }
 
-      fetch('/api/r26/classroom/{{ $batchSubject->id }}/self-learning/bulk-update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ configs, rows })
-      })
-      .then(res => res.json())
-      .then(data => {
+      executeConsolidatedSave(isAutoSave).then(() => {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = originalText;
+          btn.innerHTML = originalText;
         }
-        if (data.status === 'SUCCESS') {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
-            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave && btn) {
-            btn.innerText = 'Saved!';
-            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
-          }
-        } else {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
-            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave) {
-            alert('Failed to save self-learning: ' + data.message);
-          }
-        }
-      })
-      .catch(err => {
+      }).catch(() => {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = originalText;
-        }
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
-          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-        if (!isAutoSave) {
-          alert('Error saving marks: ' + err.message);
+          btn.innerHTML = originalText;
         }
       });
     }
 
     // Initialize default tabs & labels on page load
     document.addEventListener("DOMContentLoaded", function() {
-      toggleCiaView('cards');
-      switchSelfLearningTab('CO1');
-
       // Initialize Flatpickr for Lesson Plan dates
       initLessonPlanDatePickers();
+
+      // Vertical Column-wise Tab, Enter & Arrow navigation for evaluation tables
+      ['consolidatedCiaTable', 'seriesDedicatedTable', 'selfLearningCleanTable'].forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.addEventListener('keydown', function(e) {
+          const isEnter = e.key === 'Enter';
+          const isTab = e.key === 'Tab';
+          const isArrowDown = e.key === 'ArrowDown';
+          const isArrowUp = e.key === 'ArrowUp';
+
+          if (!isEnter && !isTab && !isArrowDown && !isArrowUp) return;
+
+          const input = e.target;
+          if (!input || input.tagName !== 'INPUT' || input.type === 'checkbox') return;
+
+          const row = input.closest('tr');
+          if (!row) return;
+
+          const tbody = row.closest('tbody');
+          if (!tbody) return;
+
+          // Identify target selector (e.g. .cell-s1-50, .cell-att-override, or .cell-sla-m1)
+          let targetSelector = null;
+          const targetClass = Array.from(input.classList).find(c => 
+            c.startsWith('cell-') || c.startsWith('series-tab-') || c.startsWith('sla-')
+          );
+          if (targetClass) {
+            targetSelector = '.' + targetClass;
+          } else if (input.dataset.field) {
+            targetSelector = `[data-field="${input.dataset.field}"]`;
+          }
+          if (!targetSelector) return;
+
+          const isReverse = (isTab && e.shiftKey) || (isEnter && e.shiftKey) || isArrowUp;
+          e.preventDefault();
+
+          if (input.dataset.max) {
+            const maxVal = parseFloat(input.dataset.max);
+            const currVal = parseFloat(input.value.trim());
+            if (!isNaN(currVal) && currVal > maxVal) {
+              input.blur();
+              return;
+            }
+          }
+
+          if (input.classList.contains('cell-att-override') && input.value !== (input.dataset.prevVal || '')) {
+            input.blur();
+            return;
+          }
+
+          const rows = Array.from(tbody.querySelectorAll('tr.student-eval-row, tr.series-eval-row, tr.sla-student-row, tr[data-reg-no]'));
+          const currentIndex = rows.indexOf(row);
+          if (currentIndex === -1) return;
+
+          const nextIndex = isReverse ? currentIndex - 1 : currentIndex + 1;
+          if (nextIndex >= 0 && nextIndex < rows.length) {
+            const targetRow = rows[nextIndex];
+            const nextInput = targetRow.querySelector(targetSelector);
+            if (nextInput) {
+              nextInput.focus();
+              if (typeof nextInput.select === 'function') {
+                nextInput.select();
+              }
+            }
+          }
+        });
+      });
 
       // Initialize Flatpickr for Assignment Due Date
       if (typeof flatpickr !== 'undefined') {
@@ -4774,96 +5314,11 @@
 
     let seriesMarksAutosaveTimer = null;
     function triggerSeriesMarksAutosave() {
-      const badge = document.getElementById('seriesMarksAutosaveBadge');
-      if (badge) {
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Unsaved scores...';
-        badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-      }
-      clearTimeout(seriesMarksAutosaveTimer);
-      seriesMarksAutosaveTimer = setTimeout(() => {
-        saveSeriesExamMarks(true);
-      }, 1200);
+      queueAutoSave();
     }
 
     function saveSeriesExamMarks(isAutoSave = false) {
-      const rows = [];
-      document.querySelectorAll('#seriesMarksTableBody tr').forEach(tr => {
-        const regNo = tr.getAttribute('data-reg-no');
-        const examMarks = {};
-        
-        tr.querySelectorAll('.series-mark-input').forEach(inp => {
-          const examId = inp.getAttribute('data-exam-id');
-          examMarks[examId] = parseFloat(inp.value) || 0.0;
-        });
-
-        rows.push({
-          reg_no: regNo,
-          exam_marks: examMarks
-        });
-      });
-
-      const badge = document.getElementById('seriesMarksAutosaveBadge');
-      const btn = document.getElementById('btnSaveSeriesMarks');
-      const originalText = btn ? btn.innerText : 'Save Marks';
-
-      if (isAutoSave) {
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin"></span> Saving...';
-          badge.className = 'text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-      } else {
-        if (btn) {
-          btn.disabled = true;
-          btn.innerText = 'Saving...';
-        }
-      }
-
-      fetch(`/api/r26/classroom/{{ $batchSubject->id }}/series-exams/marks/bulk-update`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ rows })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = originalText;
-        }
-        if (data.status === 'SUCCESS') {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> All Scores Saved';
-            badge.className = 'text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave && btn) {
-            btn.innerText = 'Saved!';
-            setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
-          }
-        } else {
-          if (badge) {
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Save Failed';
-            badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-          }
-          if (!isAutoSave) {
-            alert('Failed to save marks: ' + data.message);
-          }
-        }
-      })
-      .catch(err => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = originalText;
-        }
-        if (badge) {
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Error saving';
-          badge.className = 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded flex items-center gap-1 shadow-xs';
-        }
-        if (!isAutoSave) {
-          alert('Error: ' + err.message);
-        }
-      });
+      return executeConsolidatedSave(isAutoSave);
     }
 
     // Consolidated Reports Tab Sub-navigation (CIA vs ESE)
@@ -4941,7 +5396,7 @@
       const total = cie + ese;
 
       const totalElem = row.querySelector('[data-field="total_score"]');
-      if (totalElem) totalElem.innerText = total.toFixed(1);
+      if (totalElem) totalElem.innerText = Math.round(total);
 
       const selectedGrade = gradeSelect ? gradeSelect.value.trim().toUpperCase() : '';
 

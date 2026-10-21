@@ -1071,5 +1071,6 @@
       });
     }
   </script>
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

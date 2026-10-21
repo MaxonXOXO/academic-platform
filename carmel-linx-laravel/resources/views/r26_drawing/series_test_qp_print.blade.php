@@ -201,11 +201,32 @@
             .page-break { page-break-before: always; }
         }
     </style>
+    <script>
+        function handlePrintBack() {
+            if (window.opener && !window.opener.closed) {
+                window.close();
+                return;
+            }
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+            }
+        }
+        function handlePrintClose() {
+            window.close();
+            setTimeout(function() {
+                window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+            }, 300);
+        }
+    </script>
 </head>
 <body>
 
     <!-- Print Control Bar -->
     <div class="no-print btn-print-group">
+        <button onclick="handlePrintBack()" class="btn-print" style="background: #475569;">⬅ Back to Classroom</button>
+        <button onclick="handlePrintClose()" class="btn-print" style="background: #dc2626;">✖ Close Window</button>
         <a href="?doc_type=qp" class="btn-print {{ $docType == 'qp' ? '' : 'btn-print-outline' }}">📄 Question Paper (1 Page)</a>
         <a href="?doc_type=scheme" class="btn-print {{ $docType == 'scheme' ? '' : 'btn-print-outline' }}">📊 Valuation Scheme</a>
         <a href="?doc_type=key" class="btn-print {{ $docType == 'key' ? '' : 'btn-print-outline' }}">🔑 Answer Key</a>
@@ -230,21 +251,21 @@
         <tr>
             <td colspan="4" class="meta-header-title">
                 <h1>CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
-                <h2>DEPARTMENT OF {{ strtoupper($classroom->branch ?? 'Mechanical') }} ENGINEERING</h2>
+                <h2>{{ $departmentFullName ?? ('DEPARTMENT OF ' . strtoupper(getFullBranchName($classroom->branch ?? 'Civil Engineering'))) }}</h2>
                 <h3>{{ $qpData['test_title'] }} — REVISION 2026</h3>
             </td>
         </tr>
         <tr>
             <td style="width: 35%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
-            <td style="width: 25%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
+            <td style="width: 25%;"><strong>Semester:</strong> SEMESTER {{ $semester ?? ($classroom->current_semester ?? 1) }}</td>
             <td style="width: 20%;"><strong>Batch:</strong> {{ $classroom->batch_year ? $classroom->batch_year.'-'.($classroom->batch_year+3) : '2026-2029' }}</td>
-            <td style="width: 20%;"><strong>Acad Year:</strong> 2026-2027</td>
+            <td style="width: 20%;"><strong>Acad Year:</strong> {{ $assessmentYear ?? '2026 - 2027' }}</td>
         </tr>
         <tr>
             <td><strong>Modules Covered:</strong> {{ $qpData['modules_covered'] }}</td>
             <td><strong>Mapped COs:</strong> {{ $qpData['co_tags'] }}</td>
             <td><strong>Duration:</strong> {{ $qpData['duration'] }}</td>
-            <td><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks</td>
+            <td><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks (Report Date: {{ $reportDate ?? date('d-m-Y') }})</td>
         </tr>
     </table>
 
@@ -336,15 +357,15 @@
         <tr>
             <td colspan="4" class="meta-header-title">
                 <h1>CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
-                <h2>DEPARTMENT OF {{ strtoupper($classroom->branch ?? 'Mechanical') }} ENGINEERING</h2>
+                <h2>{{ $departmentFullName ?? ('DEPARTMENT OF ' . strtoupper(getFullBranchName($classroom->branch ?? 'Civil Engineering'))) }}</h2>
                 <h3 style="color: #d97706;">VALUATION SCHEME & MARKING RUBRICS — {{ $qpData['test_title'] }}</h3>
             </td>
         </tr>
         <tr>
             <td style="width: 40%;"><strong>Course:</strong> {{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} - {{ $batchSubject->subject_name }}</td>
-            <td style="width: 20%;"><strong>Semester:</strong> SEMESTER {{ $classroom->current_semester ?? 'I' }}</td>
+            <td style="width: 20%;"><strong>Semester:</strong> SEMESTER {{ $semester ?? ($classroom->current_semester ?? 1) }}</td>
             <td style="width: 20%;"><strong>Test:</strong> Series {{ $testNo }}</td>
-            <td style="width: 20%;"><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks</td>
+            <td style="width: 20%;"><strong>Max Marks:</strong> {{ $qpData['max_marks'] }} Marks (Date: {{ $reportDate ?? date('d-m-Y') }})</td>
         </tr>
     </table>
 

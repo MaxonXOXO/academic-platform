@@ -1392,6 +1392,7 @@
       const r21Options = [
         { value: "Theory", text: "Theory" },
         { value: "Practical / Lab", text: "Practical / Lab" },
+        { value: "Workshop", text: "Workshop / Practice" },
         { value: "Drawing Lab", text: "Drawing Lab" },
         { value: "Drawing Theory", text: "Drawing Theory" },
         { value: "Practicum", text: "Practicum" },

@@ -568,18 +568,18 @@
           <div class="flex items-center gap-3">
             <span class="material-symbols-rounded text-amber-400 text-2xl">account_tree</span>
             <div>
-              <h3 class="font-extrabold text-xs text-amber-300">SF Staff Leave Approval Workflow (3-Tier Clearance)</h3>
+              <h3 class="font-extrabold text-xs text-cyan-300">SF Staff Leave Approval Workflow (2-Tier Direct Sanction)</h3>
               <p class="text-[11px] text-slate-400 mt-0.5">
-                Staff applies <span class="text-slate-200">→</span>
-                <strong class="text-amber-300">Stage 1: SF Office Review</strong> (Verify balance & dates) <span class="text-slate-200">→</span>
-                <strong class="text-blue-300">Stage 2: SF Academic Coordinator</strong> <span class="text-slate-200">→</span>
-                <strong class="text-emerald-300">Stage 3: Principal Final Sanction</strong>.
+                Staff applies directly in portal <span class="text-slate-200">&rarr;</span>
+                <strong class="text-amber-300">Tier 1: Department HOD Approval (AU, CT, EL)</strong> <span class="text-slate-200">&rarr;</span>
+                <strong class="text-emerald-300">Tier 2: SF Academic Coordinator Final Approval</strong>
+                <span class="text-slate-500">(Principal approval avoided for SF staff)</span>.
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <select id="leaveFilterStatus" onchange="loadLeaveRequests()" class="theme-input text-xs">
-              <option value="pending_office">Pending Office Review</option>
+              <option value="pending_office">Pending Review</option>
               <option value="approved">Approved / In Progress</option>
               <option value="rejected">Rejected Applications</option>
               <option value="all">All Applications (Cycle)</option>
@@ -618,9 +618,9 @@
                   <th>Leave Dates</th>
                   <th>Days</th>
                   <th>Reason & Remarks</th>
-                  <th>Office Review (T1)</th>
+                  <th>HOD Review (T1)</th>
                   <th>Coordinator (T2)</th>
-                  <th>Principal (T3)</th>
+                  <th>Principal</th>
                   <th>Overall</th>
                   <th class="text-right">Action</th>
                 </tr>
@@ -1747,13 +1747,13 @@
                 <td class="font-bold text-amber-400">${l.total_days}d</td>
                 <td class="max-w-xs truncate" title="${l.reason || ''}">${l.reason || '--'}</td>
                 
-                <!-- Stage 1: Office -->
+                <!-- Stage 1: HOD -->
                 <td>
                   <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
-                    l.office_status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                    l.office_status === 'Rejected' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                    (l.hod_status === 'Approved' || l.office_status === 'Approved') ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                    (l.hod_status === 'Rejected' || l.office_status === 'Rejected') ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
                     'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  }">${l.office_status}</span>
+                  }">${l.hod_status || l.office_status}</span>
                 </td>
 
                 <!-- Stage 2: Coordinator -->
@@ -1765,13 +1765,11 @@
                   }">${l.coordinator_status}</span>
                 </td>
 
-                <!-- Stage 3: Principal -->
+                <!-- Stage 3: Principal (Bypassed for SF Staff) -->
                 <td>
-                  <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
-                    l.principal_status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                    l.principal_status === 'Rejected' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
-                    'bg-slate-800 text-slate-400'
-                  }">${l.principal_status}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-800/80 text-slate-500 border border-slate-700/50">
+                    N/A (Bypassed)
+                  </span>
                 </td>
 
                 <!-- Overall -->
@@ -2604,5 +2602,6 @@
       setPunchQuickDate('7days');
     });
   </script>
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

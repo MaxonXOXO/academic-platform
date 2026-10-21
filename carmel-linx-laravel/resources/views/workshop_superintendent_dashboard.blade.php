@@ -1080,5 +1080,6 @@
     }
   </script>
   @include('partials.support_desk_overlay')
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

@@ -44,6 +44,8 @@ class StaffLeaveController extends Controller
             $sigPayload = $mobileNo . '|' . $leaveCode . '|' . $request->from_date . '|' . microtime();
             $sigHash = hash('sha256', $sigPayload);
 
+            $isSF = $this->isSelfFinancingDepartment($department);
+
             $leave = StaffLeaveRequest::create([
                 'leave_code'           => $leaveCode,
                 'staff_mobile'         => $mobileNo,
@@ -61,16 +63,21 @@ class StaffLeaveController extends Controller
                 'staff_signature_hash' => $sigHash,
                 'submitted_at'         => now(),
                 'hod_status'           => 'Pending',
-                'coordinator_status'   => 'Pending',
-                'principal_status'     => 'Pending',
+                'coordinator_status'   => $isSF ? 'Pending' : 'N/A',
+                'principal_status'     => $isSF ? 'N/A' : 'Pending',
                 'overall_status'       => 'Pending_HOD',
             ]);
 
+            $successMsg = $isSF 
+                ? 'Leave application submitted successfully and sent to HOD for Tier-1 approval.'
+                : 'Leave application submitted successfully and sent to HOD for approval.';
+
             return response()->json([
                 'status'     => 'SUCCESS',
-                'message'    => 'Leave application submitted successfully and sent to HOD for approval.',
+                'message'    => $successMsg,
                 'leave_code' => $leaveCode,
-                'request'    => $leave
+                'request'    => $leave,
+                'is_sf'      => $isSF
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
@@ -78,7 +85,7 @@ class StaffLeaveController extends Controller
     }
 
     /**
-     * Fetch leave application history for the logged-in staff member.
+     * Fetch leave application history and complete Leave Ledger for the logged-in staff member.
      */
     public function getMyLeaveHistory()
     {
@@ -88,20 +95,76 @@ class StaffLeaveController extends Controller
         }
 
         try {
+            $staff = StaffProfile::where('mobile_no', $mobileNo)->first();
+            $dept  = $staff ? ($staff->branch ?? $staff->department ?? '') : Session::get('userBranch', '');
+            $isSF  = $this->isSelfFinancingDepartment($dept);
+
+            // Active Leave Financial Year (April 1 to March 31)
+            $cycle = SfOfficeController::getLeaveCycleDates();
+            $clQuota = (float)(\Illuminate\Support\Facades\DB::table('system_settings')->where('key', 'sf_office_annual_cl_quota')->value('value') ?: 15);
+
             $history = StaffLeaveRequest::where('staff_mobile', $mobileNo)
                 ->orderByDesc('id')
                 ->get();
 
-            $clTaken = StaffLeaveRequest::where('staff_mobile', $mobileNo)
-                ->where('leave_type', 'Casual Leave')
+            // Calculate category-wise totals in current leave cycle
+            $cycleLeaves = StaffLeaveRequest::where('staff_mobile', $mobileNo)
+                ->where('from_date', '>=', $cycle['start'])
+                ->where('from_date', '<=', $cycle['end'])
                 ->where('overall_status', '!=', 'Rejected')
-                ->sum('total_days');
+                ->get();
+
+            $clTaken  = 0.0;
+            $cclTaken = 0.0;
+            $dlTaken  = 0.0;
+            $lopTaken = 0.0;
+            $mlTaken  = 0.0;
+
+            foreach ($cycleLeaves as $l) {
+                $t = strtolower($l->leave_type);
+                $d = (float)$l->total_days;
+                if (str_contains($t, 'compensatory') || str_contains($t, 'ccl')) {
+                    $cclTaken += $d;
+                } elseif (str_contains($t, 'casual') || str_contains($t, 'cl')) {
+                    $clTaken += $d;
+                } elseif (str_contains($t, 'duty') || str_contains($t, 'dl')) {
+                    $dlTaken += $d;
+                } elseif (str_contains($t, 'loss') || str_contains($t, 'lop')) {
+                    $lopTaken += $d;
+                } elseif (str_contains($t, 'medical') || str_contains($t, 'ml')) {
+                    $mlTaken += $d;
+                }
+            }
+
+            $clBalance = max(0, $clQuota - $clTaken);
+
+            // Active CCL credits earned
+            $cclEarned = (float)\App\Models\SfStaffCclCredit::where('staff_mobile', $mobileNo)
+                ->where('status', 'Active')
+                ->where('valid_until', '>=', now()->format('Y-m-d'))
+                ->sum('earned_days');
+            $cclBalance = max(0, $cclEarned - $cclTaken);
 
             return response()->json([
                 'status'   => 'SUCCESS',
                 'leaves'   => $history,
-                'cl_total' => 15,
-                'cl_taken' => (float)$clTaken
+                'ledger'   => [
+                    'cl_quota'     => $clQuota,
+                    'cl_taken'     => (float)$clTaken,
+                    'cl_balance'   => (float)$clBalance,
+                    'ccl_earned'   => (float)$cclEarned,
+                    'ccl_taken'    => (float)$cclTaken,
+                    'ccl_balance'  => (float)$cclBalance,
+                    'dl_taken'     => (float)$dlTaken,
+                    'lop_taken'    => (float)$lopTaken,
+                    'ml_taken'     => (float)$mlTaken,
+                    'cycle_label'  => $cycle['label'],
+                    'cycle_start'  => $cycle['start'],
+                    'cycle_end'    => $cycle['end'],
+                ],
+                'cl_total' => $clQuota,
+                'cl_taken' => (float)$clTaken,
+                'is_sf'    => $isSF,
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
@@ -138,14 +201,12 @@ class StaffLeaveController extends Controller
                     $query->where('department', $department)
                           ->where('overall_status', 'Pending_HOD');
                 }
-            } elseif ($userRole === 'Academic_Coordinator' || str_contains(strtolower($userRole), 'coordinator')) {
+            } elseif ($userRole === 'Academic_Coordinator' || str_contains(strtolower($userRole), 'coordinator') || $isSfCoord) {
                 $query->where('overall_status', 'Pending_Coordinator');
             } elseif (in_array($userRole, ['Principal', 'Super_Admin', 'Admin', 'Chairman'])) {
-                $query->where(function($q) {
-                    $q->where('overall_status', 'Pending_Principal')
-                      ->orWhere('overall_status', 'Pending_HOD')
-                      ->orWhere('overall_status', 'Pending_Coordinator');
-                });
+                // Principal only sees Aided stream leaves that need Principal sanction.
+                // SF staff leaves do NOT require Principal approval (handled in 2 tiers: HOD -> Coordinator).
+                $query->where('overall_status', 'Pending_Principal');
             } else {
                 return response()->json(['status' => 'SUCCESS', 'approvals' => []]);
             }
@@ -155,6 +216,7 @@ class StaffLeaveController extends Controller
                 $req->end_date = $req->to_date ? $req->to_date->format('Y-m-d') : '';
                 $req->leave_category = $req->leave_type;
                 $req->session = $req->session_type;
+                $req->stage_to_approve = ($req->overall_status === 'Pending_Coordinator') ? 'Coordinator' : (($req->overall_status === 'Pending_Principal') ? 'Principal' : 'HOD');
                 return $req;
             });
 
@@ -170,14 +232,14 @@ class StaffLeaveController extends Controller
     }
 
     /**
-     * Helper to determine if department follows Self-Financing (SF) 3-tier hierarchy or Aided 2-tier hierarchy.
-     * SF (EL, CT, AU, General SF): HOD -> Academic Coordinator -> Principal
-     * Aided (EEE, ME, CE, GEN AIDED): HOD -> Principal (Skips Academic Coordinator)
+     * Helper to determine if department follows Self-Financing (SF) 2-tier hierarchy (AU, CT, EL, GEN_SF).
+     * SF Stream: HOD -> SF Academic Coordinator (Final Approval - Principal approval eliminated)
+     * Aided Stream: HOD -> Principal
      */
     private function isSelfFinancingDepartment($dept)
     {
-        $d = strtoupper(trim($dept));
-        if (in_array($d, ['EL', 'CT', 'AU', 'SF', 'GEN SF', 'GENERAL SF', 'ELECTRONICS', 'COMPUTER', 'AUTOMOBILE', 'COMPUTER TECH'])) {
+        $d = strtoupper(trim((string)$dept));
+        if (in_array($d, ['EL', 'CT', 'AU', 'SF', 'GEN_SF', 'GEN SF', 'GENERAL SF', 'ELECTRONICS', 'COMPUTER', 'AUTOMOBILE', 'COMPUTER TECH'])) {
             return true;
         }
         if (str_contains($d, 'SF') || str_contains($d, 'SELF')) {
@@ -187,7 +249,9 @@ class StaffLeaveController extends Controller
     }
 
     /**
-     * Process multi-stage leave approval (HOD -> Coordinator -> Principal).
+     * Process multi-stage leave approval.
+     * SF Staff (AU, CT, EL, GEN_SF): Tier 1 (HOD) -> Tier 2 (SF Academic Coordinator - FINAL APPROVAL). No Principal sanction!
+     * Aided Staff: Tier 1 (HOD) -> Tier 2 (Principal - FINAL APPROVAL).
      */
     public function processApproval(Request $request)
     {
@@ -253,11 +317,12 @@ class StaffLeaveController extends Controller
                 $leave->hod_action_at = now();
 
                 if ($isSF) {
-                    // Self-Financing Stream: Moves to Academic Coordinator
+                    // Self-Financing Stream: Moves directly to Academic Coordinator (Tier 2)
                     $leave->overall_status = 'Pending_Coordinator';
                     $leave->coordinator_status = 'Pending';
+                    $leave->principal_status = 'N/A'; // No Principal approval for SF staff
                 } else {
-                    // Aided Stream (EEE, ME, CE, GEN AIDED): Skips Academic Coordinator -> Moves straight to Principal
+                    // Aided Stream (EEE, ME, CE, GEN AIDED): Moves straight to Principal
                     $leave->overall_status = 'Pending_Principal';
                     $leave->coordinator_status = 'N/A';
                     $leave->coordinator_name = 'N/A (Aided Stream)';
@@ -268,7 +333,14 @@ class StaffLeaveController extends Controller
                 $leave->coordinator_name = $actorName;
                 $leave->coordinator_remarks = $request->remarks;
                 $leave->coordinator_action_at = now();
-                $leave->overall_status = 'Pending_Principal';
+
+                if ($isSF) {
+                    // TWO-TIER LOGIC: Coordinator approval is the FINAL sanction! No Principal approval required.
+                    $leave->overall_status = 'Approved';
+                    $leave->principal_status = 'N/A';
+                } else {
+                    $leave->overall_status = 'Pending_Principal';
+                }
             } elseif ($request->stage === 'Principal') {
                 $leave->principal_status = 'Approved';
                 $leave->principal_mobile = $mobileNo;
@@ -282,7 +354,9 @@ class StaffLeaveController extends Controller
 
             return response()->json([
                 'status'  => 'SUCCESS',
-                'message' => 'Leave application approved successfully.',
+                'message' => $isSF && $request->stage === 'Coordinator' 
+                    ? 'Leave application granted final approval by SF Academic Coordinator.'
+                    : 'Leave application approved successfully.',
                 'leave'   => $leave
             ]);
         } catch (\Exception $e) {

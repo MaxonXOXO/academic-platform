@@ -400,6 +400,9 @@
             <h1><i class="fa-solid fa-camera-rotate"></i> Staff Biometric Time Punch</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" onclick="openFacePunchLogModal()" class="refresh-btn-top" style="text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+                <i class="fa-solid fa-calendar-days"></i> Punch Log
+            </button>
             <a href="{{ Session::get('userRole') === 'HOD' ? '/dashboard/hod' : '/staff/mobile' }}" class="back-btn-right" title="Return to Home Dashboard">
                 <i class="fa-solid fa-house"></i> Back
             </a>
@@ -502,6 +505,10 @@
                     <i class="fa-solid fa-arrows-rotate me-1.5"></i> REFRESH &amp; RE-TRY SCAN
                 </button>
 
+                <button type="button" class="btn-punch" onclick="openFacePunchLogModal()" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 700;">
+                    <i class="fa-solid fa-calendar-days me-1.5"></i> VIEW MONTHLY PUNCH LOG
+                </button>
+
                 @if(!$registration)
                     <!-- Single Unified Biometric Registration Button -->
                     <button class="btn-punch btn-register" id="btnRegister" onclick="startSingleButtonRegistration()">
@@ -548,7 +555,258 @@
     <!-- Toast Notification -->
     <div class="toast" id="toastMsg">Notification message</div>
 
+    <!-- MONTHLY PUNCH LOG MODAL IN FACE PUNCH SCREEN -->
+    <div id="facePunchLogModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 12px;">
+        <div style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; max-width: 620px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.6);">
+            <!-- Modal Header -->
+            <div style="padding: 14px 18px; background: rgba(30, 41, 59, 0.8); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(56, 189, 248, 0.3);">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </span>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.92rem; color: #fff;">Monthly Attendance &amp; Punch Log</div>
+                        <div style="font-size: 0.68rem; color: #94a3b8;">{{ $staffName }} &bull; Biometric Record</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeFacePunchLogModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; padding: 0 6px; line-height: 1;">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 14px; overflow-y: auto; flex: 1;">
+                <!-- Filter Bar -->
+                <div style="background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @php
+                            $curM = (int)date('n');
+                            $curY = (int)date('Y');
+                        @endphp
+                        <select id="fpMonthSel" onchange="loadFaceMonthlyLog()" style="background: #1e293b; color: #fff; border: 1px solid #334155; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem;">
+                            @foreach([1=>'January',2=>'February',3=>'March',4=>'April',5=>'May',6=>'June',7=>'July',8=>'August',9=>'September',10=>'October',11=>'November',12=>'December'] as $mVal => $mName)
+                                <option value="{{ $mVal }}" {{ $mVal === $curM ? 'selected' : '' }}>{{ $mName }}</option>
+                            @endforeach
+                        </select>
+                        <select id="fpYearSel" onchange="loadFaceMonthlyLog()" style="background: #1e293b; color: #fff; border: 1px solid #334155; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem;">
+                            @for($y = $curY; $y >= $curY - 3; $y--)
+                                <option value="{{ $y }}" {{ $y === $curY ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                        <button type="button" onclick="loadFaceMonthlyLog()" style="background: #0284c7; border: none; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button type="button" onclick="exportFacePunchLogPDF()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; cursor: pointer;">
+                            <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 8px; text-align: center;">
+                        <div id="fpStatPresent" style="font-weight: 800; font-family: monospace; color: #34d399; font-size: 1.1rem;">—</div>
+                        <div style="font-size: 0.62rem; color: #94a3b8; font-weight: 700;">Present</div>
+                    </div>
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 8px; text-align: center;">
+                        <div id="fpStatLate" style="font-weight: 800; font-family: monospace; color: #fbbf24; font-size: 1.1rem;">—</div>
+                        <div style="font-size: 0.62rem; color: #94a3b8; font-weight: 700;">Late In</div>
+                    </div>
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 10px; padding: 8px; text-align: center;">
+                        <div id="fpStatEarlyOut" style="font-weight: 800; font-family: monospace; color: #d8b4fe; font-size: 1.1rem;">—</div>
+                        <div style="font-size: 0.62rem; color: #94a3b8; font-weight: 700;">Early Out</div>
+                    </div>
+                    <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 8px; text-align: center;">
+                        <div id="fpStatPunched" style="font-weight: 800; font-family: monospace; color: #38bdf8; font-size: 1.1rem;">—</div>
+                        <div style="font-size: 0.62rem; color: #94a3b8; font-weight: 700;">Punched</div>
+                    </div>
+                </div>
+
+                <!-- Daily Rows Container -->
+                <div id="fpTableWrap" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;">
+                    <div style="padding: 30px; text-align: center; color: #64748b; font-size: 0.8rem;">
+                        <i class="fa-solid fa-spinner fa-spin" style="color: #38bdf8; display: block; margin-bottom: 8px; font-size: 1.2rem;"></i> Loading records...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 10px 16px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.68rem; color: #64748b;">Direct terminal sync</span>
+                <button type="button" onclick="closeFacePunchLogModal()" style="background: #334155; border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.76rem; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ─── FACE PUNCH MONTHLY LOG HANDLERS ───
+        let _facePunchLogData = null;
+
+        function openFacePunchLogModal() {
+            const modal = document.getElementById('facePunchLogModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                loadFaceMonthlyLog();
+            }
+        }
+
+        function closeFacePunchLogModal() {
+            const modal = document.getElementById('facePunchLogModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function loadFaceMonthlyLog() {
+            const mSel = document.getElementById('fpMonthSel');
+            const ySel = document.getElementById('fpYearSel');
+            const wrap = document.getElementById('fpTableWrap');
+            if (!mSel || !ySel || !wrap) return;
+
+            const month = mSel.value;
+            const year  = ySel.value;
+
+            wrap.innerHTML = `<div style="padding: 30px; text-align: center; color: #64748b; font-size: 0.8rem;">
+                <i class="fa-solid fa-spinner fa-spin" style="color: #38bdf8; display: block; margin-bottom: 8px; font-size: 1.2rem;"></i> Loading punch records...
+            </div>`;
+
+            fetch(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== 'SUCCESS') {
+                    wrap.innerHTML = `<div style="padding: 24px; text-align: center; color: #f87171; font-size: 0.8rem;">Failed to load punch records: ${data.message || 'Error'}</div>`;
+                    return;
+                }
+
+                _facePunchLogData = data;
+
+                const s = data.summary || {};
+                document.getElementById('fpStatPresent').textContent = s.present ?? '0';
+                document.getElementById('fpStatLate').textContent = s.late ?? '0';
+                document.getElementById('fpStatEarlyOut').textContent = s.early_out ?? '0';
+                document.getElementById('fpStatPunched').textContent = s.total_punched ?? '0';
+
+                const yearInt = parseInt(data.year, 10) || parseInt(year, 10);
+                const monthInt = parseInt(data.month, 10) || parseInt(month, 10);
+                const daysInMonth = new Date(yearInt, monthInt, 0).getDate();
+                const records = data.records || {};
+
+                let rowsHtml = '';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayNum = String(day).padStart(2, '0');
+                    const monthNum = String(monthInt).padStart(2, '0');
+                    const dateStr = `${yearInt}-${monthNum}-${dayNum}`;
+                    const d = new Date(yearInt, monthInt - 1, day);
+                    const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+                    const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                    const rec = records[dateStr] || null;
+
+                    let inText = '—';
+                    let outText = '—';
+                    let durText = '—';
+                    let badgeHtml = '';
+                    let rowBg = 'background: rgba(15, 23, 42, 0.7);';
+
+                    if (isWeekend) {
+                        rowBg = 'background: rgba(99, 102, 241, 0.05);';
+                        badgeHtml = '<span style="background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">Weekend</span>';
+                        if (rec) {
+                            inText = rec.in_time ? `<strong style="color: #34d399; font-family: monospace;">${rec.in_time}</strong>` : '—';
+                            outText = rec.out_time ? `<strong style="color: #38bdf8; font-family: monospace;">${rec.out_time}</strong>` : '—';
+                            durText = rec.duration ? `<span style="background: #1e293b; color: #fde047; font-family: monospace; padding: 2px 4px; border-radius: 4px;">${rec.duration}</span>` : '—';
+                            badgeHtml = '<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">Duty (CCL)</span>';
+                        }
+                    } else if (rec) {
+                        inText = rec.in_time ? `<strong style="color: #34d399; font-family: monospace;">${rec.in_time}</strong>` : '<span style="color: #475569;">—</span>';
+                        outText = rec.out_time ? `<strong style="color: #38bdf8; font-family: monospace;">${rec.out_time}</strong>` : '<span style="color: #475569;">—</span>';
+                        durText = rec.duration ? `<span style="background: #1e293b; color: #fde047; font-family: monospace; padding: 2px 4px; border-radius: 4px;">${rec.duration}</span>` : '—';
+
+                        const st = rec.status || 'Present';
+                        if (st === 'Present') {
+                            badgeHtml = '<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">✓ Present</span>';
+                        } else if (st === 'Late') {
+                            badgeHtml = '<span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">⚠ Late In</span>';
+                        } else if (st === 'Early Out') {
+                            badgeHtml = '<span style="background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">↩ Early Out</span>';
+                        } else {
+                            badgeHtml = '<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">✗ Absent</span>';
+                        }
+                    } else {
+                        const dC = new Date(yearInt, monthInt - 1, day);
+                        dC.setHours(0, 0, 0, 0);
+                        if (dC < today) {
+                            badgeHtml = '<span style="background: rgba(239, 68, 68, 0.1); color: #f87171; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">✗ No Record</span>';
+                        } else if (dC.getTime() === today.getTime()) {
+                            badgeHtml = '<span style="background: #0284c7; color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;">Today</span>';
+                        } else {
+                            badgeHtml = '<span style="color: #475569; font-size: 0.65rem;">—</span>';
+                        }
+                    }
+
+                    rowsHtml += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); ${rowBg}">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 60px;">
+                            <span style="font-family: monospace; color: #fff; font-weight: 700; font-size: 0.85rem;">${dayNum}</span>
+                            <span style="color: #94a3b8; font-size: 0.75rem; font-weight: 700;">${dayName}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 14px; text-align: center; font-size: 0.78rem;">
+                            <div><small style="color: #64748b; font-size: 0.6rem; display: block;">IN</small>${inText}</div>
+                            <div><small style="color: #64748b; font-size: 0.6rem; display: block;">OUT</small>${outText}</div>
+                            <div style="min-width: 50px;">${durText}</div>
+                        </div>
+                        <div style="min-width: 75px; text-align: right;">
+                            ${badgeHtml}
+                        </div>
+                    </div>`;
+                }
+
+                wrap.innerHTML = rowsHtml;
+            })
+            .catch(err => {
+                console.error(err);
+                wrap.innerHTML = `<div style="padding: 24px; text-align: center; color: #f87171; font-size: 0.8rem;">Failed to load punch records. <button onclick="loadFaceMonthlyLog()" style="background: none; border: none; color: #38bdf8; text-decoration: underline; cursor: pointer;">Retry</button></div>`;
+            });
+        }
+
+        function exportFacePunchLogPDF() {
+            const mSel = document.getElementById('fpMonthSel');
+            const ySel = document.getElementById('fpYearSel');
+            const month = mSel ? mSel.value : (new Date().getMonth() + 1);
+            const year  = ySel ? ySel.value : new Date().getFullYear();
+            window.open(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}&format=pdf`, '_blank');
+        }
+
+        function exportFacePunchLogCSV() {
+            if (!_facePunchLogData) { alert('Please wait for records to load first.'); return; }
+            const records = _facePunchLogData.records || {};
+            const names = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+            const monthName = names[parseInt(_facePunchLogData.month, 10)] || '';
+            const year = _facePunchLogData.year;
+
+            let csv = 'Date,Day,Check-In,Check-Out,Duration,Status\n';
+            const yearInt = parseInt(year, 10);
+            const monthInt = parseInt(_facePunchLogData.month, 10);
+            const daysInMonth = new Date(yearInt, monthInt, 0).getDate();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayNum = String(day).padStart(2, '0');
+                const monthNum = String(monthInt).padStart(2, '0');
+                const dateStr = `${yearInt}-${monthNum}-${dayNum}`;
+                const d = new Date(yearInt, monthInt - 1, day);
+                const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+                const rec = records[dateStr];
+                const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                csv += `${dateStr},${dayName},${rec ? (rec.in_time || '') : ''},${rec ? (rec.out_time || '') : ''},${rec ? (rec.duration || '') : ''},${rec ? rec.status : (isWeekend ? 'Weekend' : 'No Record')}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Carmel_Face_Punch_Log_${monthName}_${year}.csv`;
+            link.click();
+        }
         const RETURN_DASHBOARD_URL = "{{ Session::get('userRole') === 'HOD' ? '/dashboard/hod' : '/staff/mobile' }}";
         const STAFF_ID = "{{ $staffId }}";
         const GEOFENCE_LAT = {{ $geofence->centroid_lat }};

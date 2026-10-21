@@ -729,8 +729,8 @@
                 <div class="row g-1.5 text-center">
                     @if($isMentor)
                     <div class="col-3">
-                        <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Subjects</span>
+                        <div class="stat-card cursor-pointer" onclick="openAssignedSubjectsModal()" style="cursor: pointer; transition: transform 0.15s, border-color 0.15s;" title="Tap to view assigned subjects & workshop access">
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;"><i class="fa-solid fa-book-open text-cyan me-1"></i>Subjects</span>
                             <strong class="text-white" style="font-size: 0.95rem;">{{ count($assignments) }}</strong>
                         </div>
                     </div>
@@ -754,8 +754,8 @@
                     </div>
                     @else
                     <div class="col-4">
-                        <div class="stat-card">
-                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;">Subjects</span>
+                        <div class="stat-card cursor-pointer" onclick="openAssignedSubjectsModal()" style="cursor: pointer; transition: transform 0.15s, border-color 0.15s;" title="Tap to view assigned subjects & workshop access">
+                            <span class="text-secondary uppercase d-block" style="font-size: 0.6rem; font-weight: 700;"><i class="fa-solid fa-book-open text-cyan me-1"></i>Subjects</span>
                             <strong class="text-white" style="font-size: 0.95rem;">{{ count($assignments) }}</strong>
                         </div>
                     </div>
@@ -873,19 +873,24 @@
                         </div>
                     </div>
 
-                    <div class="flex-shrink-0">
+                    <div class="flex-shrink-0 d-flex align-items-center gap-1.5">
                         @if($isCompleted)
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-black" style="font-size: 0.78rem;">
-                                <i class="fa-solid fa-circle-check me-1"></i> Log
-                            </a>
-                        @elseif($isPunchedIn)
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;">
-                                <i class="fa-solid fa-camera me-1"></i> Punch OUT
-                            </a>
+                            <button type="button" onclick="openMobileMonthlyPunchModal()" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-black" style="font-size: 0.78rem;" title="View Monthly Attendance & Punch Log">
+                                <i class="fa-solid fa-circle-check me-1"></i> Punch Log
+                            </button>
                         @else
-                            <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1px solid #34d399; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;">
-                                <i class="fa-solid fa-camera me-1"></i> Punch IN
-                            </a>
+                            <button type="button" onclick="openMobileMonthlyPunchModal()" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1.5 fw-bold text-cyan" style="font-size: 0.74rem;" title="Monthly Attendance & Punch Log">
+                                <i class="fa-solid fa-calendar-days me-1"></i> Punch Log
+                            </button>
+                            @if($isPunchedIn)
+                                <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;">
+                                    <i class="fa-solid fa-camera me-1"></i> Punch OUT
+                                </a>
+                            @else
+                                <a href="/sf-attendance/face-punch" class="btn btn-sm rounded-pill px-3 py-1.5 fw-black text-white shadow-sm" style="font-size: 0.8rem; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1px solid #34d399; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;">
+                                    <i class="fa-solid fa-camera me-1"></i> Punch IN
+                                </a>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -937,6 +942,20 @@
                 </div>
             </div>
             @endif
+
+                @php
+                    $r21WorkshopSubjects = collect($assignments)->filter(function($a) {
+                        $sName = strtolower($a->subject_name ?? '');
+                        $sCode = (string)($a->subject_code ?? '');
+                        $cls   = (string)($a->classroom_id ?? '');
+                        $isR21 = (strpos($cls, '2025_2028') !== false || strpos($cls, '2024_2027') !== false || strpos($cls, '2023_2026') !== false);
+                        $isMachineShop = strpos($sName, 'machine shop') !== false || strpos($sName, 'shop practice') !== false || $sCode === '5027';
+                        return $isR21 && !$isMachineShop && (
+                            strpos($sName, 'workshop') !== false ||
+                            in_array($sCode, ['3027', '3038'])
+                        );
+                    })->unique('id')->values();
+                @endphp
 
                 <!-- Timetable Day Order Selection Card -->
                 <div class="app-card border-start border-2 border-cyan" style="border: 1px solid rgba(56, 189, 248, 0.3);">
@@ -1090,6 +1109,58 @@
 
             <!-- TAB 2: TO-DO WORKS -->
             <div id="tab-todo" class="tab-pane d-none fade-in">
+                @if($r21WorkshopSubjects->isNotEmpty())
+                <!-- Rev 2021 Workshop Evaluation Card (Clean, Simple, Not in Amber) -->
+                <div class="app-card mb-3 p-3 rounded-3" style="background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 4px 14px rgba(56, 189, 248, 0.1);">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                <i class="fa-solid fa-screwdriver-wrench text-xs"></i>
+                            </span>
+                            <div>
+                                <h6 class="fw-bold text-white mb-0" style="font-size: 0.92rem;">Workshop Continuous Evaluation</h6>
+                                <span class="text-secondary" style="font-size: 0.68rem;">Revision 2021 &bull; 75M Continuous CIA</span>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); font-size: 0.68rem; font-weight: 700;">
+                            {{ $r21WorkshopSubjects->count() }} {{ Str::plural('Class', $r21WorkshopSubjects->count()) }}
+                        </span>
+                    </div>
+
+                    <!-- Workshop Subject Cards (Simple, Readable, Compact) -->
+                    <div class="d-flex flex-column gap-2">
+                        @foreach($r21WorkshopSubjects as $wsSub)
+                        @php
+                            $sem = $wsSub->semester ?? (strpos($wsSub->classroom_id, '2024') !== false ? 5 : 3);
+                        @endphp
+                        <div class="p-2.5 rounded-3" style="background: rgba(2, 6, 23, 0.7); border: 1px solid rgba(56, 189, 248, 0.2);">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="min-w-0 flex-fill">
+                                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
+                                        <span class="badge font-mono font-bold" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.7rem;">
+                                            {{ $wsSub->subject_code }}
+                                        </span>
+                                        <span class="badge rounded-pill font-bold" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); font-size: 0.66rem;">
+                                            Sem {{ $sem }}
+                                        </span>
+                                        <span class="badge rounded-pill font-mono" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); font-size: 0.66rem;">
+                                            {{ $wsSub->classroom_id }}
+                                        </span>
+                                    </div>
+                                    <div class="fw-bold text-white text-truncate" style="font-size: 0.85rem;" title="{{ $wsSub->subject_name }}">
+                                        {{ $wsSub->subject_name }}
+                                    </div>
+                                </div>
+                                <button type="button" onclick="openMobileWorkshop('{{ $wsSub->id }}')" class="btn btn-sm rounded-pill fw-bold px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-1.5 text-white flex-shrink-0" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; font-size: 0.76rem;">
+                                    <span>Evaluate</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <div class="app-card">
                     <h6 class="fw-bold text-warning mb-3" style="font-size: 0.95rem;">
                         <i class="fa-solid fa-list-check me-1"></i> Staff Works & Tasks To-Do
@@ -1108,7 +1179,13 @@
                                     <small class="text-secondary d-block" style="font-size: 0.76rem;">{{ $item->subtitle }}</small>
                                 </div>
                             </div>
-                            @if($item->type === 'attendance')
+                            @if($item->type === 'workshop_eval')
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
+                                <button type="button" onclick="openMobileWorkshop('{{ $item->subject_id }}')" class="btn btn-sm rounded-pill fw-bold px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1.5 text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; font-size: 0.74rem;">
+                                    <i class="fa-solid fa-arrow-right"></i> Open Evaluation (75M)
+                                </button>
+                            </div>
+                            @elseif($item->type === 'attendance')
                             <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-end">
                                 <button type="button" onclick="switchStaffTab(event, 'tab-classes')" class="btn btn-sm btn-cyan px-3 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.72rem;">
                                     <i class="fa-solid fa-clipboard-user me-1"></i> Take Attendance
@@ -1307,27 +1384,103 @@
             </div>
             @endif
 
-            <!-- TAB 6: STAFF LEAVE GOVERNANCE PORTAL -->
+            <!-- TAB 6: STAFF LEAVE GOVERNANCE PORTAL & LEAVE LEDGER -->
             <div id="tab-leave" class="tab-pane d-none fade-in">
                 
+                <!-- Portal Header Card -->
                 <div class="app-card border-start border-2 border-info mb-3">
-                    <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div>
-                            <h6 class="fw-bold text-white mb-0">Staff Leave Portal</h6>
-                            <small class="text-secondary" style="font-size: 0.72rem;">3-Stage Hierarchical Approval Workflow</small>
+                            <h6 class="fw-bold text-white mb-0">Staff Leave &amp; Attendance Portal</h6>
+                            <small class="text-secondary" style="font-size: 0.72rem;">2-Tier Direct Approval (HOD &rarr; SF Coordinator &bull; Principal Bypassed)</small>
                         </div>
-                        <button type="button" onclick="openStaffLeaveModal()" class="btn btn-sm btn-info fw-bold text-dark rounded-pill px-3" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); border: none;">
-                            <i class="fa-solid fa-paper-plane me-1"></i> Apply Leave
-                        </button>
+                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="openMobileMonthlyPunchModal()" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fw-bold text-cyan" style="font-size: 0.74rem;">
+                                <i class="fa-solid fa-calendar-days me-1"></i> Punch Log
+                            </button>
+                            <button type="button" onclick="openStaffLeaveModal()" class="btn btn-sm btn-info fw-bold text-dark rounded-pill px-3 py-1 shadow-sm" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); border: none; font-size: 0.76rem;">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Apply Leave
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- PENDING APPROVALS BOX (FOR HOD / COORDINATOR / PRINCIPAL) -->
+                <!-- PERSONALIZED STAFF LEAVE LEDGER CARD -->
+                <div class="app-card mb-3 p-3 rounded-3" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 14px rgba(0,0,0,0.4);">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                <i class="fa-solid fa-scale-balanced text-xs"></i>
+                            </span>
+                            <div>
+                                <h6 class="fw-bold text-white mb-0" style="font-size: 0.88rem;">My Leave Ledger</h6>
+                                <span id="mLeaveLedgerCycle" class="text-secondary font-mono" style="font-size: 0.68rem;">FY {{ date('Y') }} - {{ date('Y') + 1 }}</span>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill bg-info text-dark font-mono font-bold px-2 py-0.5" style="font-size: 0.65rem;">
+                            2-Tier Direct Approval
+                        </span>
+                    </div>
+
+                    <!-- 4 Balance Pills Grid -->
+                    <div class="row g-2 mb-2.5">
+                        <div class="col-6">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(2, 6, 23, 0.7); border: 1px solid rgba(52, 211, 153, 0.3);">
+                                <small class="text-secondary d-block" style="font-size: 0.66rem; font-weight: 700; letter-spacing: 0.3px;">CASUAL LEAVE (CL)</small>
+                                <div class="d-flex align-items-baseline justify-content-center gap-1 my-0.5">
+                                    <span id="mLedgerClBal" class="fw-black font-mono text-emerald-400 fs-5">—</span>
+                                    <span class="text-secondary small">/ <span id="mLedgerClQuota">15</span></span>
+                                </div>
+                                <span id="mLedgerClTaken" class="badge bg-emerald-950 text-emerald-300 border border-emerald-800" style="font-size: 0.62rem;">Taken: —</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(2, 6, 23, 0.7); border: 1px solid rgba(56, 189, 248, 0.3);">
+                                <small class="text-secondary d-block" style="font-size: 0.66rem; font-weight: 700; letter-spacing: 0.3px;">COMPENSATORY (CCL)</small>
+                                <div class="d-flex align-items-baseline justify-content-center gap-1 my-0.5">
+                                    <span id="mLedgerCclBal" class="fw-black font-mono text-cyan-400 fs-5">—</span>
+                                    <span class="text-secondary small">Earned: <span id="mLedgerCclEarned">—</span></span>
+                                </div>
+                                <span id="mLedgerCclTaken" class="badge bg-sky-950 text-sky-300 border border-sky-800" style="font-size: 0.62rem;">Used: —</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(2, 6, 23, 0.7); border: 1px solid rgba(168, 85, 247, 0.25);">
+                                <small class="text-secondary d-block" style="font-size: 0.66rem; font-weight: 700; letter-spacing: 0.3px;">DUTY LEAVE (DL)</small>
+                                <div class="fw-black font-mono text-purple-300 my-0.5 fs-6" id="mLedgerDlTaken">0 Days</div>
+                                <span class="badge bg-purple-950 text-purple-300 border border-purple-800" style="font-size: 0.62rem;">Official Duty</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(2, 6, 23, 0.7); border: 1px solid rgba(244, 63, 94, 0.25);">
+                                <small class="text-secondary d-block" style="font-size: 0.66rem; font-weight: 700; letter-spacing: 0.3px;">LOSS OF PAY (LOP)</small>
+                                <div class="fw-black font-mono text-rose-400 my-0.5 fs-6" id="mLedgerLopTaken">0 Days</div>
+                                <span class="badge bg-rose-950 text-rose-300 border border-rose-800" style="font-size: 0.62rem;">Unpaid / LOP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CL Progress Bar -->
+                    <div class="pt-1">
+                        <div class="d-flex justify-content-between text-secondary mb-1" style="font-size: 0.68rem;">
+                            <span>Casual Leave Consumption</span>
+                            <span id="mLedgerClPct">0% Used</span>
+                        </div>
+                        <div class="progress" style="height: 5px; background: rgba(255, 255, 255, 0.08);">
+                            <div id="mLedgerProgressBar" class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PENDING APPROVALS BOX (FOR HOD / COORDINATOR) -->
                 @if(in_array(session('userRole'), ['HOD', 'Academic_Coordinator', 'Academic Coordinator', 'Academic_Coordinator_SF', 'Gen_Dept_Coordinator_Self_Finance', 'Principal', 'Super_Admin', 'Admin']))
                 <div class="app-card border-start border-2 border-warning mb-3">
-                    <h6 class="fw-bold text-warning mb-2" style="font-size: 0.88rem;">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Pending Staff Leave Approvals
-                    </h6>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold text-warning mb-0" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> Pending Staff Leave Approvals
+                        </h6>
+                        <span id="pendingApprovalsBadgeCount" class="badge bg-warning text-dark font-mono" style="font-size: 0.65rem;">0</span>
+                    </div>
                     <div id="pendingApprovalsContainer" class="space-y-2">
                         <small class="text-secondary d-block">Loading pending approval queue...</small>
                     </div>
@@ -1341,11 +1494,16 @@
                 </div>
                 @endif
 
-                <!-- MY LEAVE APPLICATION HISTORY -->
+                <!-- MY LEAVE APPLICATION HISTORY & LEDGER ENTRIES -->
                 <div class="app-card">
-                    <h6 class="fw-bold text-white mb-3" style="font-size: 0.88rem;">
-                        <i class="fa-solid fa-list-check me-1 text-info"></i> My Leave Applications
-                    </h6>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="fw-bold text-white mb-0" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-list-check me-1 text-info"></i> My Leave Applications
+                        </h6>
+                        <button type="button" onclick="loadMyLeaveHistory()" class="btn btn-sm text-secondary p-0" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh
+                        </button>
+                    </div>
                     <div id="myLeaveHistoryContainer" class="space-y-2">
                         <small class="text-secondary d-block">Loading your leave records...</small>
                     </div>
@@ -1620,6 +1778,98 @@
                     <button type="button" id="btnSubmitStaffLeave" onclick="submitStaffLeaveRequest()" class="btn btn-sm btn-info px-4 rounded-pill fw-bold text-dark" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); border: none;">
                         <i class="fa-solid fa-paper-plane me-1"></i> Submit to HOD
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE MONTHLY PUNCH LOG MODAL -->
+    <div class="modal fade" id="mobileMonthlyPunchModal" tabindex="-1" aria-hidden="true" style="display: none; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); z-index: 1070;" onclick="if(event.target === this) closeMobileMonthlyPunchModal();">
+        <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-centered modal-lg">
+            <div class="modal-content bg-slate-950 border border-slate-800 text-white shadow-2xl rounded-0 rounded-sm-4" style="background-color: #090d16 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                
+                <!-- Modal Header -->
+                <div class="modal-header py-2.5 px-3 d-flex align-items-center justify-content-between" style="background-color: #0f172a !important; border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <i class="fa-solid fa-calendar-days text-sm"></i>
+                        </span>
+                        <div>
+                            <h6 class="modal-title fw-bold text-white mb-0" style="font-size: 0.92rem;">Monthly Attendance &amp; Punch Log</h6>
+                            <small class="text-secondary" style="font-size: 0.68rem;">Official Monthly Biometric Log &bull; Self-Financing</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="closeMobileMonthlyPunchModal()" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-3" style="max-height: 75vh; overflow-y: auto;">
+                    <!-- Month / Year Selector Bar -->
+                    <div class="p-2.5 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                <select id="mPunchMonthSel" class="form-select form-select-sm bg-slate-900 border-secondary border-opacity-50 text-white" style="font-size: 0.8rem; width: auto;" onchange="loadMobileMonthlyLog()">
+                                    @php $curM = (int)date('n'); @endphp
+                                    @foreach([1=>'January',2=>'February',3=>'March',4=>'April',5=>'May',6=>'June',7=>'July',8=>'August',9=>'September',10=>'October',11=>'November',12=>'December'] as $mVal => $mName)
+                                        <option value="{{ $mVal }}" {{ $mVal === $curM ? 'selected' : '' }}>{{ $mName }}</option>
+                                    @endforeach
+                                </select>
+                                <select id="mPunchYearSel" class="form-select form-select-sm bg-slate-900 border-secondary border-opacity-50 text-white" style="font-size: 0.8rem; width: auto;" onchange="loadMobileMonthlyLog()">
+                                    @php $curY = (int)date('Y'); @endphp
+                                    @for($y = $curY; $y >= $curY - 3; $y--)
+                                        <option value="{{ $y }}" {{ $y === $curY ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </select>
+                                <button type="button" onclick="loadMobileMonthlyLog()" class="btn btn-sm btn-cyan px-2.5 py-1 rounded-pill fw-bold text-dark" style="font-size: 0.74rem;" title="Refresh Punch Log">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                            <button type="button" onclick="exportPunchLogPDF()" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 text-rose-300" style="font-size: 0.72rem; border-color: rgba(244, 63, 94, 0.4); color: #fda4af;" title="Download Official PDF Report">
+                                <i class="fa-solid fa-file-pdf me-1 text-danger"></i> Export PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stat Pills -->
+                    <div id="mPunchSummaryGrid" class="row g-2 mb-3">
+                        <div class="col-3">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+                                <div id="mStatPresent" class="fw-black font-mono text-emerald-400" style="font-size: 1.1rem;">—</div>
+                                <small class="text-secondary d-block" style="font-size: 0.62rem; font-weight: 700;">Present</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25);">
+                                <div id="mStatLate" class="fw-black font-mono text-amber-400" style="font-size: 1.1rem;">—</div>
+                                <small class="text-secondary d-block" style="font-size: 0.62rem; font-weight: 700;">Late In</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.25);">
+                                <div id="mStatEarlyOut" class="fw-black font-mono text-purple-300" style="font-size: 1.1rem;">—</div>
+                                <small class="text-secondary d-block" style="font-size: 0.62rem; font-weight: 700;">Early Out</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 rounded-2 text-center" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25);">
+                                <div id="mStatPunched" class="fw-black font-mono text-cyan-400" style="font-size: 1.1rem;">—</div>
+                                <small class="text-secondary d-block" style="font-size: 0.62rem; font-weight: 700;">Punched</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Punch Rows Table / Container -->
+                    <div id="mMonthlyTableWrap" class="rounded-3 overflow-hidden" style="border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <div class="text-center py-4 text-secondary small">
+                            <i class="fa-solid fa-spinner fa-spin me-1 text-cyan"></i> Loading monthly records...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer py-2 px-3 bg-slate-900 border-top border-secondary border-opacity-25 d-flex justify-content-between">
+                    <span class="text-secondary" style="font-size: 0.68rem;">Automated biometric sync from campus terminals</span>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal" onclick="closeMobileMonthlyPunchModal()" style="font-size: 0.74rem;">Close</button>
                 </div>
             </div>
         </div>
@@ -1900,7 +2150,99 @@
         </div>
     </div>
 
+    <!-- Assigned Subjects & Quick Access Modal -->
+    <div class="modal fade" id="assignedSubjectsModal" tabindex="-1" aria-labelledby="assignedSubjectsModalLabel" aria-hidden="true" style="display: none; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index: 1080;">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-3" style="max-width: 480px;">
+            <div class="modal-content bg-slate-900 text-white border border-slate-700 rounded-4 shadow-2xl overflow-hidden" style="background-color: #0b1329 !important; border: 1px solid rgba(56, 189, 248, 0.25) !important;">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom p-3 bg-slate-950 d-flex align-items-center justify-content-between" style="border-bottom-color: rgba(255, 255, 255, 0.08) !important; background-color: #070d1e !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+                            <i class="fa-solid fa-book-open"></i>
+                        </span>
+                        <div>
+                            <h6 class="modal-title fw-bold text-white mb-0" id="assignedSubjectsModalLabel" style="font-size: 0.95rem;">Assigned Subjects</h6>
+                            <span class="text-secondary" style="font-size: 0.72rem;">{{ count($assignments) }} Courses Allocated</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.75rem;"></button>
+                </div>
 
+                <!-- Modal Body: Subjects List -->
+                <div class="modal-body p-3" style="max-height: 65vh; overflow-y: auto;">
+                    @if(empty($assignments) || count($assignments) === 0)
+                        <div class="text-center py-4 text-secondary">
+                            <i class="fa-solid fa-folder-open fs-2 mb-2 opacity-50"></i>
+                            <p class="mb-0 small">No subjects currently assigned to your staff profile.</p>
+                        </div>
+                    @else
+                        <div class="d-flex flex-column gap-2.5">
+                            @foreach($assignments as $subjItem)
+                                @php
+                                    $sName = strtolower($subjItem->subject_name ?? '');
+                                    $sCode = (string)($subjItem->subject_code ?? '');
+                                    $cls   = (string)($subjItem->classroom_id ?? '');
+                                    $isR21 = (strpos($cls, '2025_2028') !== false || strpos($cls, '2024_2027') !== false || strpos($cls, '2023_2026') !== false);
+                                    $isMachineShop = strpos($sName, 'machine shop') !== false || strpos($sName, 'shop practice') !== false || $sCode === '5027';
+                                    $isWorkshopR21 = $isR21 && !$isMachineShop && (
+                                        strpos($sName, 'workshop') !== false ||
+                                        in_array($sCode, ['3027', '3038'])
+                                    );
+                                @endphp
+                                <div class="p-2.5 rounded-3" style="background: {{ $isWorkshopR21 ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(15, 23, 42, 0.9))' : 'rgba(15, 23, 42, 0.75)' }}; border: 1px solid {{ $isWorkshopR21 ? 'rgba(6, 182, 212, 0.35)' : 'rgba(255, 255, 255, 0.08)' }};">
+                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-1.5">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap mb-1">
+                                                <span class="badge font-mono" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.68rem; border: 1px solid rgba(56, 189, 248, 0.3);">{{ $subjItem->subject_code }}</span>
+                                                <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; font-size: 0.65rem;">{{ $subjItem->classroom_id }}</span>
+                                                @if($isWorkshopR21)
+                                                    <span class="badge" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8; font-size: 0.62rem; font-weight: 700;">
+                                                        <i class="fa-solid fa-wrench me-0.5"></i> Workshop CIA
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <h6 class="text-white fw-bold mb-0 text-truncate" style="font-size: 0.84rem;" title="{{ $subjItem->subject_name }}">
+                                                {{ $subjItem->subject_name }}
+                                            </h6>
+                                            <div class="text-secondary" style="font-size: 0.7rem; margin-top: 2px;">
+                                                <i class="fa-solid fa-tag me-1"></i>{{ $subjItem->subject_type ?? 'Course' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Direct Action Buttons -->
+                                    <div class="d-flex align-items-center justify-content-end gap-1.5 mt-2 pt-2 border-top border-secondary border-opacity-10">
+                                        @if($isWorkshopR21)
+                                            <button type="button" onclick="openMobileWorkshop('{{ $subjItem->id }}')" class="btn btn-sm rounded-pill fw-bold px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1 text-white" style="background: linear-gradient(135deg, #0284c7, #0d9488); border: none; font-size: 0.74rem;">
+                                                <i class="fa-solid fa-screwdriver-wrench"></i> Open Mobile Workshop
+                                            </button>
+                                            <a href="/r21/classroom/workshop/{{ $subjItem->id }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-slate-300" style="font-size: 0.7rem;" title="Open Desktop Classroom View">
+                                                <i class="fa-solid fa-desktop"></i>
+                                            </a>
+                                        @elseif(str_contains(strtolower($subjItem->subject_name ?? ''), 'health') || str_contains(strtolower($subjItem->subject_name ?? ''), 'physical'))
+                                            <a href="/r26/classroom/health-physical/{{ $subjItem->id }}" class="btn btn-sm rounded-pill fw-bold text-white px-3 py-1" style="background: linear-gradient(135deg, #0891b2, #3b82f6); font-size: 0.74rem; text-decoration: none;">
+                                                <i class="fa-solid fa-person-running me-1"></i> Open H&amp;PE
+                                            </a>
+                                        @else
+                                            <button type="button" onclick="openMobileVirtualLab('{{ $subjItem->id }}')" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 text-cyan" style="font-size: 0.72rem;">
+                                                <i class="fa-solid fa-flask me-1"></i> Open Lab
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top p-2.5 bg-slate-950 d-flex justify-content-between" style="border-top-color: rgba(255, 255, 255, 0.08) !important; background-color: #070d1e !important;">
+                    <span class="text-secondary" style="font-size: 0.68rem;">Tap any course to enter continuous evaluation</span>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal" style="font-size: 0.75rem;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
@@ -1911,12 +2253,28 @@
         const desktopAttendanceUrl = @json($desktopUrl);
         let workArrangementsArray = [];
 
+        function openAssignedSubjectsModal() {
+            const modalEl = document.getElementById('assignedSubjectsModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        }
+
         function openMobileVirtualLab(subjectId) {
             if (!subjectId) {
                 alert('Virtual Lab error: Subject ID is missing.');
                 return;
             }
             window.location.href = '/staff/mobile/virtual-lab/' + subjectId;
+        }
+
+        function openMobileWorkshop(subjectId) {
+            if (!subjectId) {
+                alert('Virtual Workshop error: Subject ID is missing.');
+                return;
+            }
+            window.location.href = '/staff/mobile/workshop/' + subjectId;
         }
 
         function switchStaffTab(e, tabId) {
@@ -2087,6 +2445,233 @@
             });
         }
 
+        var _mobilePunchLogData = null;
+        window._punchLogData = null;
+
+        function getMonthName(m) {
+            const names = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+            return names[parseInt(m, 10)] || '';
+        }
+
+        function formatDateKey(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function openMobileMonthlyPunchModal() {
+            const modalEl = document.getElementById('mobileMonthlyPunchModal');
+            if (modalEl) {
+                const now = new Date();
+                const mSel = document.getElementById('mPunchMonthSel');
+                const ySel = document.getElementById('mPunchYearSel');
+                if (mSel && (!mSel.value || !mSel.dataset.initialized)) {
+                    mSel.value = String(now.getMonth() + 1);
+                    mSel.dataset.initialized = '1';
+                }
+                if (ySel && (!ySel.value || !ySel.dataset.initialized)) {
+                    ySel.value = String(now.getFullYear());
+                    ySel.dataset.initialized = '1';
+                }
+
+                // Show modal via Bootstrap 5 if available, otherwise fallback cleanly
+                try {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    } else {
+                        modalEl.style.display = 'block';
+                        modalEl.classList.add('show');
+                        document.body.classList.add('modal-open');
+                    }
+                } catch (e) {
+                    modalEl.style.display = 'block';
+                    modalEl.classList.add('show');
+                    document.body.classList.add('modal-open');
+                }
+
+                loadMobileMonthlyLog();
+            }
+        }
+
+        function closeMobileMonthlyPunchModal() {
+            const modalEl = document.getElementById('mobileMonthlyPunchModal');
+            if (modalEl) {
+                try {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                } catch (e) {}
+                modalEl.style.display = 'none';
+                modalEl.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(b => b.remove());
+            }
+        }
+
+        function loadMobileMonthlyLog() {
+            const mSel = document.getElementById('mPunchMonthSel');
+            const ySel = document.getElementById('mPunchYearSel');
+            const wrap = document.getElementById('mMonthlyTableWrap');
+            if (!mSel || !ySel || !wrap) return;
+
+            const month = mSel.value;
+            const year  = ySel.value;
+
+            wrap.innerHTML = `<div class="p-4 text-center text-secondary small">
+                <i class="fa-solid fa-spinner fa-spin fs-5 mb-2 d-block text-cyan"></i>
+                Loading biometric punch logs for ${getMonthName(month)} ${year}...
+            </div>`;
+
+            fetch(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== 'SUCCESS') {
+                    wrap.innerHTML = `<div class="p-4 text-center text-danger small">Failed to load records: ${data.message || 'Unknown error'}</div>`;
+                    return;
+                }
+
+                _mobilePunchLogData = data;
+                window._punchLogData = data;
+
+                // Update summary counters
+                const s = data.summary || {};
+                const presEl = document.getElementById('mStatPresent');
+                const lateEl = document.getElementById('mStatLate');
+                const earlyEl = document.getElementById('mStatEarlyOut');
+                const punchEl = document.getElementById('mStatPunched');
+
+                if (presEl) presEl.textContent = s.present ?? '0';
+                if (lateEl) lateEl.textContent = s.late ?? '0';
+                if (earlyEl) earlyEl.textContent = s.early_out ?? '0';
+                if (punchEl) punchEl.textContent = s.total_punched ?? '0';
+
+                // Build daily list for this month
+                const yearInt = parseInt(data.year, 10) || parseInt(year, 10);
+                const monthInt = parseInt(data.month, 10) || parseInt(month, 10);
+                const daysInMonth = new Date(yearInt, monthInt, 0).getDate();
+                const records = data.records || {};
+
+                let rowsHtml = '';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayNum = String(day).padStart(2, '0');
+                    const monthNum = String(monthInt).padStart(2, '0');
+                    const dateStr = `${yearInt}-${monthNum}-${dayNum}`;
+                    const d = new Date(yearInt, monthInt - 1, day);
+                    const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+                    const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                    const rec = records[dateStr] || null;
+
+                    let inText = '—';
+                    let outText = '—';
+                    let durText = '—';
+                    let statusBadge = '';
+                    let rowBg = 'background: rgba(15, 23, 42, 0.7);';
+
+                    if (isWeekend) {
+                        rowBg = 'background: rgba(99, 102, 241, 0.05);';
+                        statusBadge = '<span class="badge" style="background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); font-size: 0.65rem;">Weekend</span>';
+                        if (rec) {
+                            inText = rec.in_time ? `<strong class="text-emerald-400 font-mono">${rec.in_time}</strong>` : '—';
+                            outText = rec.out_time ? `<strong class="text-cyan-400 font-mono">${rec.out_time}</strong>` : '—';
+                            durText = rec.duration ? `<span class="badge bg-slate-800 text-amber-300 font-mono">${rec.duration}</span>` : '—';
+                            statusBadge = '<span class="badge bg-info-subtle text-cyan border border-info-subtle" style="font-size:0.65rem;">Duty (CCL)</span>';
+                        }
+                    } else if (rec) {
+                        inText = rec.in_time ? `<strong class="text-emerald-400 font-mono">${rec.in_time}</strong>` : '<span class="text-slate-600">—</span>';
+                        outText = rec.out_time ? `<strong class="text-cyan-400 font-mono">${rec.out_time}</strong>` : '<span class="text-slate-600">—</span>';
+                        durText = rec.duration ? `<span class="badge bg-slate-800 text-amber-300 font-mono">${rec.duration}</span>` : '—';
+
+                        const st = rec.status || 'Present';
+                        if (st === 'Present') {
+                            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.65rem;">✓ Present</span>';
+                        } else if (st === 'Late') {
+                            statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:0.65rem;">⚠ Late In</span>';
+                        } else if (st === 'Early Out') {
+                            statusBadge = '<span class="badge bg-purple-950 text-purple-300 border border-purple-800" style="font-size:0.65rem;">↩ Early Out</span>';
+                        } else {
+                            statusBadge = '<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">✗ Absent</span>';
+                        }
+                    } else {
+                        const dC = new Date(yearInt, monthInt - 1, day);
+                        dC.setHours(0, 0, 0, 0);
+                        if (dC < today) {
+                            statusBadge = '<span class="badge bg-danger-subtle text-danger" style="font-size:0.65rem;">✗ No Record</span>';
+                        } else if (dC.getTime() === today.getTime()) {
+                            statusBadge = '<span class="badge bg-info text-dark" style="font-size:0.65rem;">Today</span>';
+                        } else {
+                            statusBadge = '<span class="text-slate-600" style="font-size:0.65rem;">—</span>';
+                        }
+                    }
+
+                    rowsHtml += `<div class="d-flex align-items-center justify-content-between p-2 border-bottom border-secondary border-opacity-15" style="${rowBg}">
+                        <div class="d-flex align-items-center gap-2" style="min-width: 65px;">
+                            <span class="font-mono text-white fw-bold" style="font-size: 0.85rem;">${dayNum}</span>
+                            <span class="text-secondary small fw-bold">${dayName}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-center" style="font-size: 0.76rem;">
+                            <div><small class="text-secondary d-block" style="font-size: 0.58rem;">IN</small>${inText}</div>
+                            <div><small class="text-secondary d-block" style="font-size: 0.58rem;">OUT</small>${outText}</div>
+                            <div class="d-none d-sm-block">${durText}</div>
+                        </div>
+                        <div class="text-end" style="min-width: 80px;">
+                            ${statusBadge}
+                        </div>
+                    </div>`;
+                }
+
+                wrap.innerHTML = rowsHtml;
+            })
+            .catch(err => {
+                console.error('Punch log fetch error:', err);
+                wrap.innerHTML = `<div class="p-4 text-center text-danger small">Network error while fetching punch log. <button class="btn btn-sm btn-link text-cyan" onclick="loadMobileMonthlyLog()">Retry</button></div>`;
+            });
+        }
+
+        function exportPunchLogPDF() {
+            const mSel = document.getElementById('mPunchMonthSel');
+            const ySel = document.getElementById('mPunchYearSel');
+            const month = mSel ? mSel.value : (new Date().getMonth() + 1);
+            const year  = ySel ? ySel.value : new Date().getFullYear();
+            window.open(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}&format=pdf`, '_blank');
+        }
+
+        function exportPunchLogCSV() {
+            const data = _mobilePunchLogData || window._punchLogData;
+            if (!data) { alert('Please wait for records to load first.'); return; }
+            const records = data.records || {};
+            const month   = getMonthName(data.month);
+            const year    = data.year;
+
+            let csv = 'Date,Day,Check-In,Check-Out,Duration,Status\n';
+            const yearInt = parseInt(year, 10);
+            const monthInt = parseInt(data.month, 10);
+            const daysInMonth = new Date(yearInt, monthInt, 0).getDate();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayNum = String(day).padStart(2, '0');
+                const monthNum = String(monthInt).padStart(2, '0');
+                const dateStr = `${yearInt}-${monthNum}-${dayNum}`;
+                const d = new Date(yearInt, monthInt - 1, day);
+                const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+                const rec = records[dateStr];
+                const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                csv += `${dateStr},${dayName},${rec ? (rec.in_time || '') : ''},${rec ? (rec.out_time || '') : ''},${rec ? (rec.duration || '') : ''},${rec ? rec.status : (isWeekend ? 'Weekend' : 'No Record')}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Carmel_Punch_Log_${month}_${year}.csv`;
+            link.click();
+        }
+
         function loadMyLeaveHistory() {
             const container = document.getElementById('myLeaveHistoryContainer');
             if (!container) return;
@@ -2094,45 +2679,114 @@
             fetch('/api/staff/leave/my-history')
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'SUCCESS') {
-                    const clTotal = data.cl_total || 15;
-                    const clTaken = (data.cl_taken !== undefined) ? data.cl_taken : 0;
+                if (data.status === 'SUCCESS' && data.ledger) {
+                    const led = data.ledger;
+                    const clQuota = led.cl_quota || 15;
+                    const clTaken = led.cl_taken || 0;
+                    const clBal   = led.cl_balance || 0;
+
+                    if (document.getElementById('mLedgerClQuota')) document.getElementById('mLedgerClQuota').textContent = clQuota;
+                    if (document.getElementById('mLedgerClBal')) document.getElementById('mLedgerClBal').textContent = clBal.toFixed(1);
+                    if (document.getElementById('mLedgerClTaken')) document.getElementById('mLedgerClTaken').textContent = `Taken: ${clTaken.toFixed(1)}d`;
+
+                    if (document.getElementById('mLedgerCclBal')) document.getElementById('mLedgerCclBal').textContent = (led.ccl_balance || 0).toFixed(1);
+                    if (document.getElementById('mLedgerCclEarned')) document.getElementById('mLedgerCclEarned').textContent = (led.ccl_earned || 0).toFixed(1) + 'd';
+                    if (document.getElementById('mLedgerCclTaken')) document.getElementById('mLedgerCclTaken').textContent = `Used: ${(led.ccl_taken || 0).toFixed(1)}d`;
+
+                    if (document.getElementById('mLedgerDlTaken')) document.getElementById('mLedgerDlTaken').textContent = `${(led.dl_taken || 0).toFixed(1)} Days`;
+                    if (document.getElementById('mLedgerLopTaken')) document.getElementById('mLedgerLopTaken').textContent = `${(led.lop_taken || 0).toFixed(1)} Days`;
+
+                    if (document.getElementById('mLeaveLedgerCycle') && led.cycle_label) {
+                        document.getElementById('mLeaveLedgerCycle').textContent = `FY ${led.cycle_label}`;
+                    }
+
+                    const pct = Math.min(100, Math.round((clTaken / clQuota) * 100));
+                    if (document.getElementById('mLedgerProgressBar')) {
+                        document.getElementById('mLedgerProgressBar').style.width = `${pct}%`;
+                    }
+                    if (document.getElementById('mLedgerClPct')) {
+                        document.getElementById('mLedgerClPct').textContent = `${pct}% Used (${clTaken.toFixed(1)} / ${clQuota})`;
+                    }
+
                     const clInfo = document.getElementById('clBalanceInfo');
                     if (clInfo) {
-                        clInfo.textContent = `[Total: ${clTotal}, Taken: ${clTaken}]`;
+                        clInfo.textContent = `[Balance: ${clBal.toFixed(1)} / ${clQuota} Left]`;
                     }
                 }
+
                 if (data.status === 'SUCCESS' && data.leaves && data.leaves.length > 0) {
                     let html = '';
                     data.leaves.forEach(item => {
-                        let statusBadge = '<span class="badge bg-info text-dark">Pending HOD</span>';
-                        if (item.overall_status === 'Approved') statusBadge = '<span class="badge bg-success">Final Approved</span>';
-                        else if (item.overall_status === 'Rejected') statusBadge = '<span class="badge bg-danger">Rejected</span>';
-                        else if (item.overall_status === 'Pending_Coordinator') statusBadge = '<span class="badge bg-warning text-dark">Pending Coordinator</span>';
-                        else if (item.overall_status === 'Pending_Principal') statusBadge = '<span class="badge bg-primary">Pending Principal</span>';
+                        let statusBadge = '<span class="badge bg-info text-dark font-bold">Pending HOD</span>';
+                        if (item.overall_status === 'Approved') statusBadge = '<span class="badge bg-success font-bold"><i class="fa-solid fa-check-double me-1"></i>Final Approved</span>';
+                        else if (item.overall_status === 'Rejected') statusBadge = '<span class="badge bg-danger font-bold"><i class="fa-solid fa-xmark me-1"></i>Rejected</span>';
+                        else if (item.overall_status === 'Pending_Coordinator') statusBadge = '<span class="badge bg-warning text-dark font-bold"><i class="fa-solid fa-clock me-1"></i>Pending Coordinator</span>';
 
                         const dateStr = (item.from_date === item.to_date) ? item.from_date : `${item.from_date} to ${item.to_date}`;
-                        const cclText = item.ccl_date ? ` &bull; <span class="text-info font-mono">CCL Date: ${item.ccl_date}</span>` : '';
+                        const cclText = item.ccl_date ? ` &bull; <span class="text-cyan font-mono">Duty: ${item.ccl_date}</span>` : '';
 
-                        html += `<div class="p-2.5 rounded-3 border border-secondary border-opacity-25 bg-dark mb-2">
-                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.88rem;">
-                                ${item.leave_type} (${item.session_type})
-                            </div>
-                            <div class="text-secondary small mb-2" style="font-size: 0.75rem;">
-                                <i class="fa-regular fa-calendar me-1"></i> ${dateStr} &bull; ${item.total_days} Day(s)${cclText}
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center pt-1 border-top border-secondary border-opacity-25">
+                        // 2-Tier approval indicators
+                        let hodBadge = item.hod_status === 'Approved'
+                            ? `<span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-check me-0.5"></i> HOD Approved</span>`
+                            : (item.hod_status === 'Rejected'
+                                ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-xmark me-0.5"></i> HOD Rejected</span>`
+                                : `<span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-clock me-0.5"></i> HOD Pending</span>`);
+
+                        let coordBadge = item.coordinator_status === 'Approved'
+                            ? `<span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-check-double me-0.5"></i> Coord Sanctioned</span>`
+                            : (item.coordinator_status === 'Rejected'
+                                ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-xmark me-0.5"></i> Coord Rejected</span>`
+                                : (item.hod_status === 'Approved'
+                                    ? `<span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:0.62rem;"><i class="fa-solid fa-clock me-0.5"></i> Coord Pending</span>`
+                                    : `<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem;"><i class="fa-solid fa-hourglass-start me-0.5"></i> Awaiting HOD</span>`));
+
+                        html += `<div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark mb-2.5 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge font-mono" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.68rem; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                    ${item.leave_code || 'LEAVE'}
+                                </span>
                                 ${statusBadge}
-                                <a href="/staff/leave/${item.id}/pdf" target="_blank" class="btn btn-sm btn-outline-info py-0.5 px-2.5 rounded-pill" style="font-size: 0.72rem;">
-                                    <i class="fa-solid fa-file-pdf me-1"></i> PDF
+                            </div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.88rem;">
+                                ${item.leave_type} <span class="text-secondary small">(${item.session_type})</span>
+                            </div>
+                            <div class="text-slate-300 small mb-1.5" style="font-size: 0.75rem;">
+                                <i class="fa-regular fa-calendar me-1 text-cyan"></i> ${dateStr} &bull; <strong class="text-warning">${item.total_days} Day(s)</strong>${cclText}
+                            </div>
+                            ${item.reason ? `<div class="text-secondary small italic mb-2" style="font-size:0.72rem;">"${item.reason}"</div>` : ''}
+                            
+                            <!-- 2-Tier Approval Flow Tracker -->
+                            <div class="p-2 rounded-2 mb-2 d-flex align-items-center justify-content-between flex-wrap gap-1" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.06);">
+                                <div class="d-flex align-items-center gap-1">
+                                    <small class="text-secondary" style="font-size: 0.6rem;">T1:</small>
+                                    ${hodBadge}
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <small class="text-secondary" style="font-size: 0.6rem;">T2:</small>
+                                    ${coordBadge}
+                                </div>
+                                <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #94a3b8; font-size: 0.58rem;">
+                                    Principal: Bypassed
+                                </span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-1 border-top border-secondary border-opacity-25">
+                                <small class="text-secondary" style="font-size: 0.68rem;">
+                                    Applied: ${item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('en-GB') : 'Recently'}
+                                </small>
+                                <a href="/staff/leave/${item.id}/pdf" target="_blank" class="btn btn-sm btn-outline-info py-0.5 px-3 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-file-pdf me-1"></i> Slip
                                 </a>
                             </div>
                         </div>`;
                     });
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<small class="text-secondary d-block py-2">No leave applications submitted yet.</small>';
+                    container.innerHTML = '<small class="text-secondary d-block py-3 text-center">No leave applications recorded in this cycle.</small>';
                 }
+            })
+            .catch(() => {
+                container.innerHTML = '<small class="text-danger d-block py-2">Error loading leave history.</small>';
             });
         }
 
@@ -2143,25 +2797,30 @@
             fetch('/api/staff/leave/pending-approvals')
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'SUCCESS' && data.approvals.length > 0) {
+                const countBadge = document.getElementById('pendingApprovalsBadgeCount');
+                if (countBadge) countBadge.textContent = (data.approvals || []).length;
+
+                if (data.status === 'SUCCESS' && data.approvals && data.approvals.length > 0) {
                     let html = '';
-                    const stage = data.role === 'HOD' ? 'HOD' : (data.role === 'Principal' ? 'Principal' : 'Coordinator');
                     data.approvals.forEach(item => {
-                        const cclText = item.ccl_date ? ` &bull; <span class="text-info font-mono">CCL Date: ${item.ccl_date}</span>` : '';
+                        const targetStage = item.stage_to_approve || (data.role === 'HOD' ? 'HOD' : 'Coordinator');
+                        const tierLabel = targetStage === 'HOD' ? 'Tier 1: HOD Review' : 'Tier 2: Coordinator Final Sanction';
+                        const cclText = item.ccl_date ? ` &bull; <span class="text-cyan font-mono">CCL Date: ${item.ccl_date}</span>` : '';
+
                         html += `<div class="p-2.5 rounded-3 border border-warning border-opacity-30 bg-slate-900 mb-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <strong class="text-white small">${item.staff_name} (${item.department})</strong>
-                                <span class="badge bg-warning text-dark small">${item.leave_type}</span>
+                                <span class="badge bg-warning text-dark font-bold" style="font-size:0.65rem;">${tierLabel}</span>
                             </div>
                             <small class="text-secondary d-block mb-1" style="font-size:0.72rem;">
-                                ${item.from_date} to ${item.to_date} (${item.session_type}) &bull; ${item.total_days} Day(s)${cclText}
+                                ${item.leave_type} &bull; ${item.from_date} to ${item.to_date} (${item.session_type}) &bull; <strong class="text-warning">${item.total_days} Day(s)</strong>${cclText}
                             </small>
                             <div class="text-slate-300 small italic mb-2" style="font-size:0.75rem;">"${item.reason}"</div>
                             <div class="d-flex gap-2">
-                                <button onclick="actionLeaveApproval(${item.id}, '${stage}', 'Approved')" class="btn btn-sm btn-success py-0.5 px-3 flex-grow-1" style="font-size:0.72rem;">
-                                    <i class="fa-solid fa-check me-1"></i> Approve
+                                <button onclick="actionLeaveApproval(${item.id}, '${targetStage}', 'Approved')" class="btn btn-sm btn-success py-1 px-3 flex-grow-1 fw-bold" style="font-size:0.74rem;">
+                                    <i class="fa-solid fa-check me-1"></i> Approve (${targetStage})
                                 </button>
-                                <button onclick="actionLeaveApproval(${item.id}, '${stage}', 'Rejected')" class="btn btn-sm btn-outline-danger py-0.5 px-2" style="font-size:0.72rem;">
+                                <button onclick="actionLeaveApproval(${item.id}, '${targetStage}', 'Rejected')" class="btn btn-sm btn-outline-danger py-1 px-2.5 fw-bold" style="font-size:0.74rem;">
                                     <i class="fa-solid fa-xmark me-1"></i> Reject
                                 </button>
                             </div>
@@ -2171,6 +2830,9 @@
                 } else {
                     container.innerHTML = '<small class="text-secondary d-block py-1">No pending leave requests in your approval queue.</small>';
                 }
+            })
+            .catch(() => {
+                container.innerHTML = '<small class="text-danger d-block py-1">Error loading approvals queue.</small>';
             });
         }
 
@@ -2390,7 +3052,36 @@
                     (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) &&
                     !revCode.includes('2026') && !revCode.includes('R26');
                 
-                const virtualLabBtn = isR21Practical ? `
+                const sNameLower = (st.subject_name || (matchedAssig ? matchedAssig.subject_name : '')).toLowerCase();
+                const sCodeStr = String(st.subject_code || (matchedAssig ? matchedAssig.subject_code : ''));
+                const isMachineShop = sCodeStr.includes('5027') || sNameLower.includes('machine shop') || sNameLower.includes('shop practice');
+                const isWorkshop = isPracticalSlot && !isMachineShop && (
+                    sNameLower.includes('workshop') ||
+                    ['3027','3038'].includes(sCodeStr) ||
+                    subTypeLower.includes('workshop')
+                );
+
+                const virtualLabBtn = isR21Practical ? (
+                    isWorkshop ? `
+                            <button onclick="openMobileWorkshop('${batchSubId}')"
+                                style="
+                                    flex:1;
+                                    background: linear-gradient(135deg,#0284c7,#0d9488);
+                                    color:#fff;
+                                    border:none;
+                                    border-radius:10px;
+                                    font-size:0.76rem;
+                                    font-weight:800;
+                                    padding:8px 0;
+                                    cursor:pointer;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    gap:5px;
+                                    box-shadow: 0 2px 8px rgba(6,182,212,0.35);
+                                ">
+                                <i class="fa-solid fa-wrench"></i> Virtual Workshop
+                            </button>` : `
                             <button onclick="openMobileVirtualLab('${batchSubId}')"
                                 style="
                                     flex:1;
@@ -2409,7 +3100,8 @@
                                     box-shadow: 0 2px 8px rgba(168,85,247,0.3);
                                 ">
                                 <i class="fa-solid fa-flask"></i> Virtual Lab
-                            </button>` : '';
+                            </button>`
+                ) : '';
 
                 const progressSection = hasProgress ? `
                             <div style="margin-top:10px;">
@@ -4993,6 +5685,9 @@
                             <button onclick="loadDeskMonthlyLog()" class="desk-btn-primary">
                                 <i class="fa-solid fa-magnifying-glass"></i> Load Records
                             </button>
+                            <button onclick="exportDeskPunchLogPDF()" class="desk-btn-secondary" style="color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);">
+                                <i class="fa-solid fa-file-pdf"></i> Export PDF
+                            </button>
                             <button onclick="exportPunchLogCSV()" class="desk-btn-secondary">
                                 <i class="fa-solid fa-file-csv"></i> Export CSV
                             </button>
@@ -5192,7 +5887,7 @@
     }
 
     // ─── MONTHLY PUNCH LOG ───
-    let _punchLogData = null;
+    var _punchLogData = window._punchLogData || null;
 
     function loadDeskMonthlyLog() {
         const month = document.getElementById('deskMonthSel').value;
@@ -5206,15 +5901,16 @@
         </div>`;
         if (summaryGrid) summaryGrid.style.display = 'none';
 
-        fetch(`/api/staff/my-punch-log?month=${month}&year=${year}`)
+        fetch(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`)
         .then(r => r.json())
         .then(data => {
             if (data.status !== 'SUCCESS') {
-                wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#f87171;">Failed to load records. Please try again.</div>`;
+                wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#f87171;">Failed to load records: ${data.message || 'Error'}</div>`;
                 return;
             }
 
             _punchLogData = data;
+            window._punchLogData = data;
 
             // Update summary
             document.getElementById('deskStatPresent').textContent  = data.summary.present;
@@ -5224,16 +5920,21 @@
             if (summaryGrid) summaryGrid.style.display = 'grid';
 
             // Build table of all calendar days
-            const startDate = new Date(data.start_date);
-            const endDate   = new Date(data.end_date);
-            const records   = data.records;
+            const yearInt = parseInt(data.year, 10) || parseInt(year, 10);
+            const monthInt = parseInt(data.month, 10) || parseInt(month, 10);
+            const daysInMonth = new Date(yearInt, monthInt, 0).getDate();
+            const records = data.records || {};
 
             let rows = '';
-            let d = new Date(startDate);
-            while (d <= endDate) {
-                const dateStr = formatDateKey(d);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayNum = String(day).padStart(2, '0');
+                const monthNum = String(monthInt).padStart(2, '0');
+                const dateStr = `${yearInt}-${monthNum}-${dayNum}`;
+                const d = new Date(yearInt, monthInt - 1, day);
                 const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
-                const dayNum  = d.getDate().toString().padStart(2, '0');
                 const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
                 const record = records[dateStr] || null;
 
@@ -5246,7 +5947,12 @@
                 if (isWeekend) {
                     rowStyle = 'background:rgba(99,102,241,0.04);';
                     statusCell = '<span class="punch-status-badge holiday">Weekend</span>';
-                    inCell = '—'; outCell = '—'; durCell = '—';
+                    inCell = record && record.in_time ? `<span style="font-family:monospace;font-weight:700;color:#34d399;">${record.in_time}</span>` : '—';
+                    outCell = record && record.out_time ? `<span style="font-family:monospace;font-weight:700;color:#38bdf8;">${record.out_time}</span>` : '—';
+                    durCell = record && record.duration ? `<span style="font-family:monospace;color:#f59e0b;">${record.duration}</span>` : '—';
+                    if (record && record.in_time) {
+                        statusCell = '<span class="punch-status-badge present" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Duty (CCL)</span>';
+                    }
                 } else if (record) {
                     inCell  = record.in_time  ? `<span style="font-family:monospace;font-weight:700;color:#34d399;">${record.in_time}</span>` : '<span style="color:#64748b;">—</span>';
                     outCell = record.out_time ? `<span style="font-family:monospace;font-weight:700;color:#38bdf8;">${record.out_time}</span>` : '<span style="color:#64748b;">—</span>';
@@ -5257,10 +5963,8 @@
                     const icon = st === 'Present' ? '✓' : (st === 'Late' ? '⚠' : (st === 'Early Out' ? '↩' : '✗'));
                     statusCell = `<span class="punch-status-badge ${cls}">${icon} ${st}</span>`;
                 } else {
-                    // Weekday with no record
-                    const today = new Date();
-                    today.setHours(0,0,0,0);
-                    const dCopy = new Date(d); dCopy.setHours(0,0,0,0);
+                    const dCopy = new Date(yearInt, monthInt - 1, day);
+                    dCopy.setHours(0,0,0,0);
                     if (dCopy < today) {
                         statusCell = '<span class="punch-status-badge absent">✗ No Record</span>';
                     } else if (dCopy.getTime() === today.getTime()) {
@@ -5278,8 +5982,6 @@
                     <td>${durCell}</td>
                     <td>${statusCell}</td>
                 </tr>`;
-
-                d.setDate(d.getDate() + 1);
             }
 
             wrap.innerHTML = `
@@ -5311,6 +6013,12 @@
     function getMonthName(m) {
         const names = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
         return names[parseInt(m)] || '';
+    }
+
+    function exportDeskPunchLogPDF() {
+        const month = document.getElementById('deskMonthSel').value;
+        const year  = document.getElementById('deskYearSel').value;
+        window.open(`/api/staff/my-punch-log?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}&format=pdf`, '_blank');
     }
 
     function exportPunchLogCSV() {

@@ -13,9 +13,11 @@
   .no-print button { background: #2563eb; color: #fff; border: none; padding: 8px 24px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer; margin: 0 6px; }
   .no-print button.back-btn { background: #475569; }
 
+  .no-print button.close-btn { background: #dc2626; }
+
   .institution-header { text-align: center; border-bottom: 2.5px solid #1e3a5f; padding-bottom: 8px; margin-bottom: 14px; }
   .institution-header h1 { font-size: 16px; font-weight: 800; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.5px; }
-  .institution-header h2 { font-size: 12px; font-weight: 700; color: #334155; margin-top: 2px; }
+  .institution-header h2 { font-size: 13px; font-weight: 800; color: #0284c7; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
   .institution-header p { font-size: 10.5px; color: #475569; margin-top: 1px; }
   .report-title { display: inline-block; background: #1e3a5f; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 14px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; }
 
@@ -47,34 +49,60 @@
     .meta-table { border: 1.5px solid #000 !important; }
   }
 </style>
+<script>
+  function handlePrintBack() {
+    if (window.opener && !window.opener.closed) {
+      window.close();
+      return;
+    }
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+    }
+  }
+  function handlePrintClose() {
+    window.close();
+    setTimeout(function() {
+      window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+    }, 300);
+  }
+</script>
 </head>
 <body>
 
 <div class="no-print">
   <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Consolidated CE Report</button>
-  <button class="back-btn" onclick="window.close()"><i class="fa-solid fa-xmark"></i> Close</button>
+  <button class="back-btn" onclick="handlePrintBack()">⬅ Back to Classroom</button>
+  <button class="close-btn" onclick="handlePrintClose()">✖ Close Window</button>
 </div>
 
 <div class="report-container">
   <div class="institution-header">
     <h1>Carmel Polytechnic College, Alappuzha</h1>
-    <h2>Department of {{ getFullBranchName($classroom->department ?? $classroom->branch ?? '') }}</h2>
+    <h2>{{ $departmentFullName ?? ('DEPARTMENT OF ' . strtoupper(getFullBranchName($classroom->department ?? $classroom->branch ?? ''))) }}</h2>
     <p>Virtual Drawing Hall & CAD Laboratory — Continuous Evaluation (CE) Ledger</p>
     <div class="report-title">Consolidated Student Continuous Evaluation (CE) Mark Sheet</div>
   </div>
 
   <table class="meta-table">
     <tr>
+      <td class="lbl">Department:</td>
+      <td class="val">{{ $departmentName ?? getFullBranchName($classroom->department ?? $classroom->branch ?? '') }}</td>
+      <td class="lbl">Semester &amp; Batch:</td>
+      <td class="val">Semester {{ $semester ?? 1 }} | {{ $classroom->classroom_name ?? $batchSubject->classroom_id }}</td>
+    </tr>
+    <tr>
       <td class="lbl">Course Code & Name:</td>
       <td class="val">{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }} — {{ $batchSubject->subject_name }}</td>
-      <td class="lbl">Classroom / Batch:</td>
-      <td class="val">{{ $classroom->classroom_name ?? $batchSubject->classroom_id }} (Sem {{ $batchSubject->semester }})</td>
+      <td class="lbl">Assessment Year:</td>
+      <td class="val">{{ $assessmentYear ?? '2026 - 2027' }} (Report Date: {{ $reportDate ?? date('d-m-Y') }})</td>
     </tr>
     <tr>
       <td class="lbl">Scheme / Regulation:</td>
       <td class="val">Revision 2026 (Outcome Based Education)</td>
-      <td class="lbl">CIE Scale:</td>
-      <td class="val">Average Rubric Score (50) Scaled to 30 CIE Marks</td>
+      <td class="lbl">CIA Scale:</td>
+      <td class="val">Average Rubric Score (50) Scaled to 30 CIA Marks</td>
     </tr>
   </table>
 
@@ -82,19 +110,19 @@
     <thead>
       <tr>
         <th style="width: 45px;">Roll</th>
-        <th style="width: 90px;">Register No</th>
+        <th style="width: 95px;">Reg No / PRN</th>
         <th style="text-align: left; padding-left: 8px;">Student Name</th>
         @foreach($exercises as $ex)
         <th style="width: 60px;" title="{{ $ex['title'] }}">{{ $ex['exercise_no'] }}</th>
         @endforeach
         <th style="width: 75px; background: #0284c7; color: #fff;">CE Avg (50)</th>
-        <th style="width: 80px; background: #16a34a; color: #fff;">CIE Marks (30)</th>
+        <th style="width: 80px; background: #16a34a; color: #fff;">CIA Marks (30)</th>
       </tr>
     </thead>
     <tbody>
       @forelse($studentCeData as $row)
       <tr>
-        <td style="font-weight: 700; color: #1e3a5f;">{{ $row['roll_no'] }}</td>
+        <td style="font-weight: 700; color: #1e3a5f;">{{ $row['roll_no'] ?? '-' }}</td>
         <td><small style="font-family: monospace;">{{ $row['reg_no'] }}</small></td>
         <td class="td-left">{{ $row['name'] }}</td>
         @foreach($exercises as $ex)
@@ -137,12 +165,5 @@
   </div>
 </div>
 
-<script>
-  window.onload = function() {
-    setTimeout(function() {
-      window.print();
-    }, 500);
-  };
-</script>
 </body>
 </html>

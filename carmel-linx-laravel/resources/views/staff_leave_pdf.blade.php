@@ -352,12 +352,18 @@
 
         <!-- Section 4: Multi-Stage Approval Verification & Digital Signatures -->
         <div class="section-block">
-            <div class="section-header">4. Multi-Stage Approval & Signatures</div>
+            <div class="section-header">4. Approval & Signatures</div>
             
+            @php
+                $deptUpper = strtoupper(trim($leave->department ?? ''));
+                $isSfStaff = in_array($deptUpper, ['EL', 'CT', 'AU', 'SF', 'GEN_SF', 'GEN SF', 'GENERAL SF', 'ELECTRONICS', 'COMPUTER', 'AUTOMOBILE', 'COMPUTER TECH']) || str_contains($deptUpper, 'SF') || $leave->coordinator_status !== 'N/A';
+                $colWidth = ($isSfStaff || $leave->coordinator_status === 'N/A') ? '33.33%' : '25%';
+            @endphp
+
             <table class="signatures-table">
                 <tr>
                     <!-- Staff Signature -->
-                    <td style="width: 25%; vertical-align: top;">
+                    <td style="width: {{ $colWidth }}; vertical-align: top;">
                         <div class="stamp-box">
                             <div class="stamp-title">Staff Signature</div>
                             <div style="font-weight: 700; font-size: 11px; margin-top: 3px;">{{ $leave->staff_name }}</div>
@@ -369,7 +375,7 @@
                     </td>
 
                     <!-- Stage 1: HOD -->
-                    <td style="width: 25%; vertical-align: top;">
+                    <td style="width: {{ $colWidth }}; vertical-align: top;">
                         <div class="stamp-box">
                             <div class="stamp-title">Stage 1: HOD</div>
                             <div style="margin-top: 2px;">
@@ -389,49 +395,74 @@
                         </div>
                     </td>
 
-                    <!-- Stage 2: Academic Coordinator -->
-                    <td style="width: 25%; vertical-align: top;">
-                        <div class="stamp-box">
-                            <div class="stamp-title">Stage 2: Coordinator</div>
-                            <div style="margin-top: 2px;">
-                                @if($leave->coordinator_status === 'Approved')
-                                    <span class="badge-status badge-approved">APPROVED</span>
-                                @elseif($leave->coordinator_status === 'Rejected')
-                                    <span class="badge-status badge-rejected">REJECTED</span>
-                                @elseif($leave->coordinator_status === 'N/A')
-                                    <span class="badge-status" style="background:#e2e8f0; color:#475569;">N/A (AIDED)</span>
-                                @else
-                                    <span class="badge-status badge-pending">PENDING</span>
+                    @if($isSfStaff)
+                        <!-- Stage 2: Academic Coordinator (Final Approval for SF Staff) -->
+                        <td style="width: {{ $colWidth }}; vertical-align: top;">
+                            <div class="stamp-box">
+                                <div class="stamp-title">Final Approval: Coordinator</div>
+                                <div style="margin-top: 2px;">
+                                    @if($leave->coordinator_status === 'Approved' || $leave->overall_status === 'Approved')
+                                        <span class="badge-status badge-approved">APPROVED</span>
+                                    @elseif($leave->coordinator_status === 'Rejected' || $leave->overall_status === 'Rejected')
+                                        <span class="badge-status badge-rejected">REJECTED</span>
+                                    @else
+                                        <span class="badge-status badge-pending">PENDING</span>
+                                    @endif
+                                </div>
+                                <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->coordinator_name ?? 'Coordinator (SF)' }}</div>
+                                <div style="font-size: 9px; color: #64748b;">{{ $leave->coordinator_action_at ? \Carbon\Carbon::parse($leave->coordinator_action_at)->format('d-M-Y H:i') : '-' }}</div>
+                                @if($leave->coordinator_remarks)
+                                    <div style="font-size: 8.5px; font-style: italic; color: #475569; margin-top: 2px;">"{{ $leave->coordinator_remarks }}"</div>
                                 @endif
                             </div>
-                            <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->coordinator_name ?? 'Coordinator (SF)' }}</div>
-                            <div style="font-size: 9px; color: #64748b;">{{ $leave->coordinator_action_at ? \Carbon\Carbon::parse($leave->coordinator_action_at)->format('d-M-Y H:i') : '-' }}</div>
-                            @if($leave->coordinator_remarks)
-                                <div style="font-size: 8.5px; font-style: italic; color: #475569; margin-top: 2px;">"{{ $leave->coordinator_remarks }}"</div>
-                            @endif
-                        </div>
-                    </td>
+                        </td>
+                    @else
+                        @if($leave->coordinator_status !== 'N/A')
+                        <!-- Stage 2: Coordinator (for non-SF if applicable) -->
+                        <td style="width: 25%; vertical-align: top;">
+                            <div class="stamp-box">
+                                <div class="stamp-title">Stage 2: Coordinator</div>
+                                <div style="margin-top: 2px;">
+                                    @if($leave->coordinator_status === 'Approved')
+                                        <span class="badge-status badge-approved">APPROVED</span>
+                                    @elseif($leave->coordinator_status === 'Rejected')
+                                        <span class="badge-status badge-rejected">REJECTED</span>
+                                    @else
+                                        <span class="badge-status badge-pending">PENDING</span>
+                                    @endif
+                                </div>
+                                <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->coordinator_name ?? 'Coordinator' }}</div>
+                                <div style="font-size: 9px; color: #64748b;">{{ $leave->coordinator_action_at ? \Carbon\Carbon::parse($leave->coordinator_action_at)->format('d-M-Y H:i') : '-' }}</div>
+                                @if($leave->coordinator_remarks)
+                                    <div style="font-size: 8.5px; font-style: italic; color: #475569; margin-top: 2px;">"{{ $leave->coordinator_remarks }}"</div>
+                                @endif
+                            </div>
+                        </td>
+                        @endif
 
-                    <!-- Stage 3: Principal -->
-                    <td style="width: 25%; vertical-align: top;">
-                        <div class="stamp-box">
-                            <div class="stamp-title">Stage 3: Principal</div>
-                            <div style="margin-top: 2px;">
-                                @if($leave->principal_status === 'Approved')
-                                    <span class="badge-status badge-approved">APPROVED</span>
-                                @elseif($leave->principal_status === 'Rejected')
-                                    <span class="badge-status badge-rejected">REJECTED</span>
-                                @else
-                                    <span class="badge-status badge-pending">PENDING</span>
-                                @endif
+                        <!-- Principal (Final Approval for Aided Staff) -->
+                        <td style="width: {{ $colWidth }}; vertical-align: top;">
+                            <div class="stamp-box">
+                                <div class="stamp-title">Final Approval: Principal</div>
+                                <div style="margin-top: 2px;">
+                                    @if($leave->principal_status === 'Approved')
+                                        <span class="badge-status badge-approved">APPROVED</span>
+                                        <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->principal_name ?? 'Principal' }}</div>
+                                        <div style="font-size: 9px; color: #64748b;">{{ $leave->principal_action_at ? \Carbon\Carbon::parse($leave->principal_action_at)->format('d-M-Y H:i') : '-' }}</div>
+                                        @if($leave->principal_remarks)
+                                            <div style="font-size: 8.5px; font-style: italic; color: #475569; margin-top: 2px;">"{{ $leave->principal_remarks }}"</div>
+                                        @endif
+                                    @elseif($leave->principal_status === 'Rejected')
+                                        <span class="badge-status badge-rejected">REJECTED</span>
+                                        <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->principal_name ?? 'Principal' }}</div>
+                                    @else
+                                        <span class="badge-status badge-pending">PENDING</span>
+                                        <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->principal_name ?? 'Principal' }}</div>
+                                    @endif
+                                </div>
                             </div>
-                            <div style="font-weight: 700; font-size: 10px; margin-top: 3px;">{{ $leave->principal_name ?? 'Principal' }}</div>
-                            <div style="font-size: 9px; color: #64748b;">{{ $leave->principal_action_at ? \Carbon\Carbon::parse($leave->principal_action_at)->format('d-M-Y H:i') : '-' }}</div>
-                            @if($leave->principal_remarks)
-                                <div style="font-size: 8.5px; font-style: italic; color: #475569; margin-top: 2px;">"{{ $leave->principal_remarks }}"</div>
-                            @endif
-                        </div>
-                    </td>
+                        </td>
+                    @endif
                 </tr>
             </table>
         </div>

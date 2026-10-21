@@ -372,5 +372,6 @@
 
     document.addEventListener('DOMContentLoaded', initTheme);
   </script>
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

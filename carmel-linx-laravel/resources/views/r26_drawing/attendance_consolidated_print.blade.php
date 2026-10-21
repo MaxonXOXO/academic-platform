@@ -52,37 +52,52 @@
     body { background: #fff; padding: 0; margin: 0; font-size: 11px; }
     .report-container { border: none; box-shadow: none; padding: 4mm 5mm; max-width: 100%; width: 100%; }
     tr { page-break-inside: avoid; }
-  }
+  .no-print button.close-btn { background: #dc2626; }
 </style>
 <script>
-function goBackToDrawingLab() {
+function handlePrintBack() {
   if (window.opener && !window.opener.closed) {
     window.close();
-  } else if (document.referrer && document.referrer.length > 0) {
-    window.location.href = document.referrer;
+    return;
+  }
+  if (window.history.length > 1) {
+    window.history.back();
   } else {
     window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
   }
+}
+function handlePrintClose() {
+  window.close();
+  setTimeout(function() {
+    window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+  }, 300);
 }
 </script>
 </head>
 <body>
 
 <div class="no-print">
-  <button class="back-btn" onclick="goBackToDrawingLab()">&#8592; Back to Drawing Lab</button>
-  <button onclick="window.print()">&#128424; Print / Save as PDF</button>
+  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <button class="back-btn" onclick="handlePrintBack()">⬅ Back to Classroom</button>
+  <button class="close-btn" onclick="handlePrintClose()">✖ Close Window</button>
 </div>
 
 <div class="report-container">
 
 <div class="institution-header">
   <h1>CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
-  <h2>DEPARTMENT OF {{ strtoupper($classroom->department ?? $classroom->branch ?? 'MECHANICAL ENGINEERING') }}</h2>
+  <h2>{{ $departmentFullName ?? ('DEPARTMENT OF ' . strtoupper(getFullBranchName($classroom->department ?? $classroom->branch ?? 'Civil Engineering'))) }}</h2>
   <p>Affiliated to SBTE Kerala &nbsp;|&nbsp; Approved by AICTE, New Delhi</p>
   <div class="report-title">CONSOLIDATED A4 ATTENDANCE SUMMARY & CIA SHEET</div>
 </div>
 
 <table class="meta-table">
+  <tr>
+    <td class="lbl">Department</td>
+    <td class="val">{{ $departmentName ?? 'Civil Engineering' }}</td>
+    <td class="lbl">Semester</td>
+    <td class="val">Semester {{ $semester ?? 1 }}</td>
+  </tr>
   <tr>
     <td class="lbl">Course Name</td>
     <td class="val">{{ $batchSubject->subject_name }}</td>
@@ -90,10 +105,10 @@ function goBackToDrawingLab() {
     <td class="val">{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}</td>
   </tr>
   <tr>
-    <td class="lbl">Semester</td>
-    <td class="val">{{ $classroom->current_semester ?? $batchSubject->semester ?? 'S1' }}</td>
-    <td class="lbl">Batch / Class</td>
+    <td class="lbl">Class / Batch</td>
     <td class="val">{{ $classroom->batch ?? $classroom->division ?? $classroom->classroom_id }}</td>
+    <td class="lbl">Assessment Year</td>
+    <td class="val">{{ $assessmentYear ?? '2026 - 2027' }} (Date: {{ $reportDate ?? date('d-m-Y') }})</td>
   </tr>
   <tr>
     <td class="lbl">Faculty In-Charge</td>
@@ -103,9 +118,7 @@ function goBackToDrawingLab() {
   </tr>
   <tr>
     <td class="lbl">Total Conducted Sessions</td>
-    <td class="val">{{ $lessonPlans->count() }} Sessions (45 Contact Hours)</td>
-    <td class="lbl">Academic Year</td>
-    <td class="val">{{ date('Y') . '–' . (date('Y') + 1) }}</td>
+    <td class="val" colspan="3">{{ $lessonPlans->count() }} Sessions (45 Contact Hours)</td>
   </tr>
 </table>
 

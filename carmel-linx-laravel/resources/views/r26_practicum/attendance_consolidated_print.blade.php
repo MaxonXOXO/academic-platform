@@ -83,104 +83,74 @@ function goBackToClassroom() {
   <table>
     <thead>
       <tr>
-        <th rowspan="2" style="width: 4%">Roll</th>
-        <th rowspan="2" style="width: 12%">Reg. No.</th>
-        <th class="tleft" rowspan="2" style="width: 22%">Student Name</th>
-        <th colspan="4" style="background: #1e3a8a;">📖 Theory Lecture Hours</th>
-        <th colspan="4" style="background: #15803d;">🔬 Practical Lab Hours</th>
-        <th colspan="4" style="background: #0369a1;">📊 Consolidated Total Hours</th>
-        <th rowspan="2" style="background: #7c2d12; width: 6%">CIA Attn<br>(/5M)</th>
-        <th rowspan="2" style="background: #991b1b; width: 8%">Eligibility<br>Status</th>
-      </tr>
-      <tr>
-        <!-- Theory -->
-        <th style="background: #2563eb; width: 4.5%">Cond</th>
-        <th style="background: #2563eb; width: 4.5%">Pres</th>
-        <th style="background: #2563eb; width: 4.5%">Abs</th>
-        <th style="background: #2563eb; width: 5.5%">%</th>
-        <!-- Lab -->
-        <th style="background: #16a34a; width: 4.5%">Cond</th>
-        <th style="background: #16a34a; width: 4.5%">Pres</th>
-        <th style="background: #16a34a; width: 4.5%">Abs</th>
-        <th style="background: #16a34a; width: 5.5%">%</th>
-        <!-- Combined Total -->
-        <th style="background: #0284c7; width: 4.5%">Cond</th>
-        <th style="background: #0284c7; width: 4.5%">Pres</th>
-        <th style="background: #0284c7; width: 4.5%">Abs</th>
-        <th style="background: #0284c7; width: 5.5%">%</th>
+        <th style="width: 4%">Sl</th>
+        <th style="width: 5%">Roll</th>
+        <th style="width: 13%">Reg. No. (SBTE)</th>
+        <th class="tleft" style="width: 25%">Student Name</th>
+        <th style="width: 8%">Conducted<br>Hours</th>
+        <th style="width: 8%">Attended<br>Hours</th>
+        <th style="width: 7%">Absent<br>Hours</th>
+        <th style="width: 10%">Teams / Raw %</th>
+        <th style="width: 8%">Override %</th>
+        <th style="width: 10%">Effective %</th>
+        <th style="background: #1e3a5f; width: 6%">Attendance<br>Mark (/5M)</th>
+        <th style="background: #0f172a; width: 10%">SBTE Eligibility<br>Status</th>
       </tr>
     </thead>
     <tbody>
-      @foreach($students as $st)
+      @php $slNo = 1; @endphp
+      @foreach($attendanceSummary as $st)
         @php
-          // Theory Calculations
-          $tTot  = $theoryTotals[$st->reg_no]['total']   ?? 0;
-          $tPres = $theoryTotals[$st->reg_no]['present'] ?? 0;
-          $tAbs  = max(0, $tTot - $tPres);
-          $tPct  = $tTot > 0 ? round(($tPres / $tTot) * 100, 1) : 100.0;
-
-          // Lab Calculations
-          $lTot  = $labTotals[$st->reg_no]['total']   ?? 0;
-          $lPres = $labTotals[$st->reg_no]['present'] ?? 0;
-          $lAbs  = max(0, $lTot - $lPres);
-          $lPct  = $lTot > 0 ? round(($lPres / $lTot) * 100, 1) : 100.0;
-
-          // Consolidated Overall Hours
-          $totCond = $tTot + $lTot;
-          $totPres = $tPres + $lPres;
-          $totAbs  = $tAbs + $lAbs;
-          $overallPct = $totCond > 0 ? round(($totPres / $totCond) * 100, 1) : 100.0;
-
-          // CIA Attendance Marks (Proportional out of 5 Marks as per Table 6.4)
-          $ciaAttnMark = round(($overallPct / 100.0) * 5.0, 1);
-
-          // SBTE Eligibility Status
-          $short = ($overallPct < 75.0);
-          $status = 'ELIGIBLE';
-          $statusColor = '#15803d';
-          if ($overallPct < 65.0) {
-              $status = 'SHORTAGE';
-              $statusColor = '#dc2626';
-          } elseif ($overallPct < 75.0) {
-              $status = 'CONDONATION';
-              $statusColor = '#d97706';
+          $effPct = $st['effective_pct'];
+          $short = $st['short'];
+          $rowClass = '';
+          if ($effPct !== null && $effPct < 65.0) {
+              $rowClass = 'short-row';
           }
-
-          // Visual classes
-          $tClass = $tPct >= 75.0 ? 'pct-h' : ($tPct >= 65.0 ? 'pct-m' : 'pct-l');
-          $lClass = $lPct >= 75.0 ? 'pct-h' : ($lPct >= 65.0 ? 'pct-m' : 'pct-l');
-          $oClass = $overallPct >= 75.0 ? 'pct-h' : ($overallPct >= 65.0 ? 'pct-m' : 'pct-l');
+          $pctClass = 'pct-l';
+          if ($effPct !== null) {
+              $pctClass = $effPct >= 75.0 ? 'pct-h' : ($effPct >= 65.0 ? 'pct-m' : 'pct-l');
+          }
         @endphp
-        <tr class="{{ $short ? 'short-row' : '' }}">
-          <td>{{ $st->roll_no }}</td>
-          <td style="font-family: monospace; font-weight: 600;">{{ $st->sbte_reg_no ?: $st->reg_no }}</td>
+        <tr class="{{ $rowClass }}">
+          <td>{{ $slNo++ }}</td>
+          <td><strong>{{ $st['roll_no'] ?: '-' }}</strong></td>
+          <td style="font-family: monospace; font-weight: 600;">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
           <td class="tdleft">
-            <strong>{{ $st->name }}</strong>
-            @if($short) <span style="color:#dc2626; font-size:10px;">&#9888;</span>@endif
+            <strong>{{ $st['name'] }}</strong>
+            @if($short) <span style="color:#dc2626; font-size:10px;" title="Shortage of Attendance">&#9888;</span>@endif
           </td>
           
-          <!-- Theory Summary -->
-          <td>{{ $tTot }}</td>
-          <td style="font-weight: 600; color: #15803d;">{{ $tPres }}</td>
-          <td style="color: {{ $tAbs > 0 ? '#dc2626' : '#64748b' }};">{{ $tAbs }}</td>
-          <td class="{{ $tClass }}">{{ $tTot > 0 ? $tPct.'%' : '—' }}</td>
+          <td>{{ $st['conducted'] > 0 ? $st['conducted'] : ($st['teams_pct'] !== null ? '—' : '0') }}</td>
+          <td style="font-weight: 600; color: #15803d;">{{ $st['conducted'] > 0 ? $st['attended'] : ($st['teams_pct'] !== null ? '—' : '0') }}</td>
+          <td style="color: {{ $st['absent'] > 0 ? '#dc2626' : '#64748b' }};">{{ $st['conducted'] > 0 ? $st['absent'] : ($st['teams_pct'] !== null ? '—' : '0') }}</td>
+          
+          <td style="font-family: monospace; font-weight: 600;">
+            @if($st['raw_pct'] !== null)
+              {{ number_format($st['raw_pct'], 1) }}%
+            @else
+              <span style="color: #d97706; font-style: italic; font-size: 10px;">Not entered</span>
+            @endif
+          </td>
 
-          <!-- Lab Summary -->
-          <td>{{ $lTot }}</td>
-          <td style="font-weight: 600; color: #15803d;">{{ $lPres }}</td>
-          <td style="color: {{ $lAbs > 0 ? '#dc2626' : '#64748b' }};">{{ $lAbs }}</td>
-          <td class="{{ $lClass }}">{{ $lTot > 0 ? $lPct.'%' : '—' }}</td>
+          <td style="font-family: monospace; font-weight: 600; color: #d97706;">
+            {{ $st['override_pct'] !== null ? number_format($st['override_pct'], 1) . '%' : '—' }}
+          </td>
 
-          <!-- Consolidated Total Summary -->
-          <td style="font-weight: 700;">{{ $totCond }}</td>
-          <td style="font-weight: 700; color: #15803d;">{{ $totPres }}</td>
-          <td style="font-weight: 700; color: {{ $totAbs > 0 ? '#dc2626' : '#64748b' }};">{{ $totAbs }}</td>
-          <td class="{{ $oClass }}" style="font-size: 11.5px;">{{ $totCond > 0 ? $overallPct.'%' : '—' }}</td>
+          <td class="{{ $pctClass }}" style="font-size: 11.5px; font-family: monospace;">
+            @if($effPct !== null)
+              {{ number_format($effPct, 1) }}%
+            @else
+              <span style="color: #94a3b8; font-size: 10px;">—</span>
+            @endif
+          </td>
 
-          <!-- CIA Marks & Status -->
-          <td style="font-weight: 800; color: #1e3a5f;">{{ number_format($ciaAttnMark, 1) }}</td>
-          <td style="font-weight: 800; font-size: 10px; color: {{ $statusColor }};">
-            {{ $status }}
+          <td style="font-weight: 800; font-size: 12px; color: #1e3a5f;">
+            {{ $effPct !== null ? $st['att_mark'] : '0' }}
+          </td>
+
+          <td style="font-weight: 800; font-size: 10.5px; color: {{ $st['status_color'] }};">
+            {{ $st['status'] }}
           </td>
         </tr>
       @endforeach

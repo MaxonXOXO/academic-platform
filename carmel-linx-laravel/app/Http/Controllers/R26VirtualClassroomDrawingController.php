@@ -15,6 +15,7 @@ use App\Models\R26DrawingSlotEvaluation;
 use App\Models\R26DrawingPracticalTest;
 use App\Models\R26DrawingOeeEvaluation;
 use App\Models\R26DrawingEseMark;
+use App\Models\R26DrawingEvaluation;
 use App\Models\StaffProfile;
 
 class R26VirtualClassroomDrawingController extends Controller
@@ -60,8 +61,8 @@ class R26VirtualClassroomDrawingController extends Controller
                 'teaching_scheme' => '0:0:3:0',
                 'contact_hours' => 45,
                 'credits' => 1.5,
-                'cie_marks' => 60,
-                'ese_marks' => 40,
+                'cie_marks' => 40,
+                'ese_marks' => 60,
                 'parsed_cos' => [
                     ['id' => 'CO1', 'description' => 'Construct geometrical figures and illustrate development of surfaces.', 'cognitive_level' => 'Apply'],
                     ['id' => 'CO2', 'description' => 'Interpret projections of points and lines, orthographic projections and sectional views.', 'cognitive_level' => 'Apply'],
@@ -120,93 +121,118 @@ class R26VirtualClassroomDrawingController extends Controller
 
         // Fetch Attendance Records
         $attendanceData = DB::table('student_attendance')
-            ->where('subject_code', $batchSubject->subject_code)
+            ->where(function($q) use ($batchSubject) {
+                $q->where('subject_code', $batchSubject->subject_code)
+                  ->orWhere('subject_code', 'like', '%' . substr($batchSubject->subject_code, -4) . '%');
+            })
             ->get()
             ->groupBy('reg_no');
 
-        // Fetch Continuous Practical Evaluations (CE - Max 50 per slot)
-        $slotEvals = R26DrawingSlotEvaluation::where('batch_subject_id', $subjectId)
-            ->get()
-            ->groupBy('reg_no');
-
-        // Fetch Practical Tests Marks (CA1 & CA2 - Max 40)
-        $practicalTests = R26DrawingPracticalTest::where('batch_subject_id', $subjectId)
-            ->get()
-            ->groupBy('reg_no');
-
-        // Fetch Open-Ended Experiment Evaluations (OEE - Max 50)
-        $oeeEvals = R26DrawingOeeEvaluation::where('batch_subject_id', $subjectId)
+        // Fetch Consolidated Evaluations for R26 Drawing
+        $evaluations = R26DrawingEvaluation::where('batch_subject_id', $subjectId)
             ->get()
             ->keyBy('reg_no');
 
-        // Fetch ESE Marks (Max 40)
-        $eseMarks = R26DrawingEseMark::where('batch_subject_id', $subjectId)
-            ->get()
-            ->keyBy('reg_no');
-
-        // Map Students & Compute CIE (60) + ESE (40) = Total (100)
+        // Map Students & Compute CIE (40) + ESE (60) = Total (100)
         $studentResults = $students->map(function ($student) use (
             $attendanceData,
-            $slotEvals,
-            $practicalTests,
-            $oeeEvals,
-            $eseMarks,
+            $evaluations,
             $batchSubject
         ) {
             $regNo = $student->reg_no;
+            $eval = $evaluations->get($regNo);
 
             // 1. Attendance Marks (Max 5)
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 100.00;
+            $rawAttPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
 
-            if ($attPercentage >= 90) { $attMarks = 5; }
-            elseif ($attPercentage >= 80) { $attMarks = 4; }
-            elseif ($attPercentage >= 75) { $attMarks = 3; }
-            elseif ($attPercentage >= 70) { $attMarks = 2; }
-            elseif ($attPercentage >= 65) { $attMarks = 1; }
-            else { $attMarks = 0; }
+            $overridePct = ($eval && $eval->attendance_override_pct !== null) ? (float)$eval->attendance_override_pct : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
+            $attMarks = $effectivePct !== null ? R26DrawingEvaluation::calculateAttendanceMarks($effectivePct) : 0.0;
 
-            // 2. Continuous Evaluation (CE - Max 30 CIE Marks)
-            $stSlots = $slotEvals->get($regNo, collect());
-            $avgSlotScore50 = $stSlots->avg('total_score_50') ?: 0.00;
-            $ceMarks = round((($avgSlotScore50 / 50.0) * 30.0) * 2) / 2;
+            // 2. Self Learning Continuous Assessment (CA1 - CA4 out of 15 each)
+            $ca1 = $eval && $eval->ca1_15 !== null ? (float)$eval->ca1_15 : null;
+            $ca2 = $eval && $eval->ca2_15 !== null ? (float)$eval->ca2_15 : null;
+            $ca3 = $eval && $eval->ca3_15 !== null ? (float)$eval->ca3_15 : null;
+            $ca4 = $eval && $eval->ca4_15 !== null ? (float)$eval->ca4_15 : null;
 
-            // 3. Practical Tests CA1 & CA2 (Max 15 CIE Marks: CA1 [7.5] + CA2 [7.5])
-            $stTests = $practicalTests->get($regNo, collect());
-            $ca1 = $stTests->where('test_no', 'CA1')->first();
-            $ca2 = $stTests->where('test_no', 'CA2')->first();
-            $ca1Score = ($ca1 && !$ca1->is_absent) ? $ca1->total_score_40 : 0.00;
-            $ca2Score = ($ca2 && !$ca2->is_absent) ? $ca2->total_score_40 : 0.00;
-            
-            $ca1Marks = round((($ca1Score / 40.0) * 7.5) * 2) / 2;
-            $ca2Marks = round((($ca2Score / 40.0) * 7.5) * 2) / 2;
-            $practicalTestMarks = $ca1Marks + $ca2Marks;
+            // Scaled/Averaged Self Learning out of 15
+            $caEntered = [];
+            if ($ca1 !== null) $caEntered[] = $ca1;
+            if ($ca2 !== null) $caEntered[] = $ca2;
+            if ($ca3 !== null) $caEntered[] = $ca3;
+            if ($ca4 !== null) $caEntered[] = $ca4;
 
-            // 4. Open-Ended Experiment (OEE - Max 10 CIE Marks)
-            $stOee = $oeeEvals->get($regNo);
-            $oeeScore50 = $stOee ? floatval($stOee->total_score_50) : 0.00;
-            $oeeMarks = round((($oeeScore50 / 50.0) * 10.0) * 2) / 2;
+            if (count($caEntered) > 0) {
+                // If any entered, sum of entered divided by 4 (or average of 4 modules)
+                $selfLearning15 = round((array_sum($caEntered) / 4.0) * 2) / 2;
+            } else {
+                $selfLearning15 = 0.0;
+            }
+            if ($selfLearning15 > 15.0) $selfLearning15 = 15.0;
 
-            // Total CIE Marks (Max 60)
-            $totalCieMarks = round(($attMarks + $ceMarks + $practicalTestMarks + $oeeMarks) * 2) / 2;
-            if ($totalCieMarks > 60.0) $totalCieMarks = 60.0;
+            // 3. Series Exams (Series 1: CO1 [20] + CO2 [20] = 40M; Series 2: CO3 [20] + CO4 [20] = 40M)
+            $s1Absent = $eval ? (bool)$eval->series_1_absent : false;
+            $s2Absent = $eval ? (bool)$eval->series_2_absent : false;
 
-            // ESE Marks (Max 40)
-            $stEse = $eseMarks->get($regNo);
-            $partA = $stEse ? floatval($stEse->part_a_mcq) : 0.00;
-            $partB = $stEse ? floatval($stEse->part_b_cad) : 0.00;
-            $partC = $stEse ? floatval($stEse->part_c_viva) : 0.00;
-            $partD = $stEse ? floatval($stEse->part_d_record) : 0.00;
-            $totalEse = ($stEse && !$stEse->is_absent) ? ($partA + $partB + $partC + $partD) : 0.00;
+            $s1_co1 = $eval && $eval->series_1_co1_20 !== null ? (float)$eval->series_1_co1_20 : null;
+            $s1_co2 = $eval && $eval->series_1_co2_20 !== null ? (float)$eval->series_1_co2_20 : null;
+            $s2_co3 = $eval && $eval->series_2_co3_20 !== null ? (float)$eval->series_2_co3_20 : null;
+            $s2_co4 = $eval && $eval->series_2_co4_20 !== null ? (float)$eval->series_2_co4_20 : null;
 
-            $totalCourseMarks = $totalCieMarks + $totalEse;
+            // Compute total Series 1 (out of 40)
+            if ($s1_co1 !== null || $s1_co2 !== null) {
+                $s1Raw = min(40.0, ($s1_co1 ?? 0) + ($s1_co2 ?? 0));
+            } elseif ($eval && $eval->series_1_40 !== null) {
+                $s1Raw = (float)$eval->series_1_40;
+                // fallback distribute equally if individual CO was not entered
+                $s1_co1 = round(($s1Raw / 2.0) * 2) / 2;
+                $s1_co2 = round(($s1Raw / 2.0) * 2) / 2;
+            } else {
+                $s1Raw = null;
+            }
+
+            // Compute total Series 2 (out of 40)
+            if ($s2_co3 !== null || $s2_co4 !== null) {
+                $s2Raw = min(40.0, ($s2_co3 ?? 0) + ($s2_co4 ?? 0));
+            } elseif ($eval && $eval->series_2_40 !== null) {
+                $s2Raw = (float)$eval->series_2_40;
+                $s2_co3 = round(($s2Raw / 2.0) * 2) / 2;
+                $s2_co4 = round(($s2Raw / 2.0) * 2) / 2;
+            } else {
+                $s2Raw = null;
+            }
+
+            $s1_20 = ($s1Raw !== null && !$s1Absent) ? round(($s1Raw / 2.0) * 2) / 2 : 0.0;
+            $s2_20 = ($s2Raw !== null && !$s2Absent) ? round(($s2Raw / 2.0) * 2) / 2 : 0.0;
+
+            // Combined Series into 20 Marks: ((S1/2) + (S2/2)) / 2
+            if ($s1Raw !== null || $s2Raw !== null) {
+                $series20 = round((($s1_20 + $s2_20) / 2.0) * 2) / 2;
+            } else {
+                $series20 = 0.0;
+            }
+            if ($series20 > 20.0) $series20 = 20.0;
+
+            // 4. Total CIE / CIA Marks (Max 40)
+            // Attendance (5) + Self-Learning (15) + Series (20) = 40 Marks
+            $totalCiaMarks = round(($attMarks + $selfLearning15 + $series20) * 2) / 2;
+            if ($totalCiaMarks > 40.0) $totalCiaMarks = 40.0;
+
+            // 5. ESE (End Semester Examination - Max 60 Marks or Board Grade)
+            $eseGrade = $eval ? $eval->ese_grade : null;
+            $eseMark60 = $eval && $eval->ese_mark_60 !== null ? (float)$eval->ese_mark_60 : null;
+            $eseAbsent = $eval ? (bool)$eval->ese_absent : false;
+            $totalEse = ($eseMark60 !== null && !$eseAbsent) ? $eseMark60 : 0.0;
+
+            $totalCourseMarks = round(($totalCiaMarks + $totalEse) * 2) / 2;
 
             // Pass Criteria:
-            // 1. Min 40% in ESE = 16 / 40
+            // 1. Min 40% in ESE = 24 / 60
             // 2. Min 40% in Total Combined = 40 / 100
-            $isEsePass = ($totalEse >= 16.0);
+            $isEsePass = ($totalEse >= 24.0 || in_array(strtoupper($eseGrade ?? ''), ['S', 'A', 'B', 'C', 'D', 'E']));
             $isTotalPass = ($totalCourseMarks >= 40.0);
             $isPassed = ($isEsePass && $isTotalPass);
 
@@ -215,19 +241,30 @@ class R26VirtualClassroomDrawingController extends Controller
                 'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
-                'att_percentage' => $attPercentage,
+                'raw_att_percentage' => $rawAttPercentage,
+                'attendance_override_pct' => $overridePct,
+                'att_percentage' => $effectivePct,
                 'att_marks' => $attMarks,
-                'ce_marks' => $ceMarks,
-                'ca1_score' => $ca1Score,
-                'ca2_score' => $ca2Score,
-                'practical_test_marks' => $practicalTestMarks,
-                'oee_score' => $oeeScore50,
-                'oee_marks' => $oeeMarks,
-                'total_cie_marks' => $totalCieMarks,
-                'ese_part_a' => $partA,
-                'ese_part_b' => $partB,
-                'ese_part_c' => $partC,
-                'ese_part_d' => $partD,
+                'ca1_15' => $ca1,
+                'ca2_15' => $ca2,
+                'ca3_15' => $ca3,
+                'ca4_15' => $ca4,
+                'self_learning_15' => $selfLearning15,
+                'series_1_co1_20' => $s1_co1,
+                'series_1_co2_20' => $s1_co2,
+                'series_1_40' => $s1Raw,
+                'series_1_absent' => $s1Absent,
+                'series_1_20' => $s1_20,
+                'series_2_co3_20' => $s2_co3,
+                'series_2_co4_20' => $s2_co4,
+                'series_2_40' => $s2Raw,
+                'series_2_absent' => $s2Absent,
+                'series_2_20' => $s2_20,
+                'series_20' => $series20,
+                'total_cie_marks' => $totalCiaMarks,
+                'ese_grade' => $eseGrade,
+                'ese_mark_60' => $eseMark60,
+                'ese_absent' => $eseAbsent,
                 'total_ese' => $totalEse,
                 'total_course_marks' => $totalCourseMarks,
                 'is_passed' => $isPassed
@@ -308,10 +345,27 @@ class R26VirtualClassroomDrawingController extends Controller
         $combinedStats = [];
 
         foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold) {
-                // Strictly exclude attendance marks from outcome attainment calculation
+            $coSeriesKey = match($coTag) {
+                'CO1' => 'series_1_co1_20',
+                'CO2' => 'series_1_co2_20',
+                'CO3' => 'series_2_co3_20',
+                'CO4' => 'series_2_co4_20'
+            };
+
+            $hasSpecificCo = $studentResults->contains(function($s) use ($coSeriesKey) {
+                return isset($s[$coSeriesKey]) && $s[$coSeriesKey] !== null;
+            });
+
+            $attainedCount = $studentResults->filter(function($s) use ($cieThreshold, $coSeriesKey, $hasSpecificCo) {
+                if ($hasSpecificCo) {
+                    $coScore = (float)($s[$coSeriesKey] ?? 0);
+                    $pct = ($coScore / 20.0) * 100.0;
+                    return $pct >= $cieThreshold;
+                }
+
+                // Fallback to overall academic percentage if specific CO marks not entered yet
                 $academicScore = max(0, ($s['total_cie_marks'] ?? 0) - ($s['att_marks'] ?? 0)) + ($s['total_ese'] ?? 0);
-                $maxAcademicMarks = 90.0; // 50M academic CIE + 40M ESE
+                $maxAcademicMarks = 95.0; // 35M academic CIE (15 SL + 20 Series) + 60M ESE
                 $pct = ($academicScore / $maxAcademicMarks) * 100;
                 return $pct >= $cieThreshold;
             })->count();
@@ -383,10 +437,7 @@ class R26VirtualClassroomDrawingController extends Controller
             'drawingCourseFile',
             'lessonPlans',
             'studentResults',
-            'slotEvals',
-            'practicalTests',
-            'oeeEvals',
-            'eseMarks',
+            'evaluations',
             'assignedStaff',
             'hod',
             'mappings',
@@ -397,7 +448,12 @@ class R26VirtualClassroomDrawingController extends Controller
             'midSemSurvey',
             'exitSurvey',
             'midSemResponses',
-            'exitSurveyResponses'
+            'exitSurveyResponses',
+            'cieThreshold',
+            'targetStudentPercent',
+            'lvl3Val',
+            'lvl2Val',
+            'lvl1Val'
         ));
     }
 
@@ -486,6 +542,313 @@ class R26VirtualClassroomDrawingController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Save Consolidated Evaluation Marks (Debounced Auto-Save & Manual Submit)
+     * For R2026 Engineering Graphics / Drawing (Course 1003)
+     * Assessment: Attendance (5M) + Self-Learning (15M) + Series Exams (20M) = CIA (40M) + ESE (60M) = Total (100M)
+     */
+    public function saveConsolidatedMarks(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+
+        $request->validate([
+            'marks_data' => 'required|array'
+        ]);
+
+        $marksData = $request->input('marks_data');
+
+        // Fetch Attendance Records
+        $attendanceData = DB::table('student_attendance')
+            ->where(function($q) use ($batchSubject) {
+                $q->where('subject_code', $batchSubject->subject_code)
+                  ->orWhere('subject_code', 'like', '%' . substr($batchSubject->subject_code, -4) . '%');
+            })
+            ->get()
+            ->groupBy('reg_no');
+
+        $updatedRows = [];
+
+        foreach ($marksData as $row) {
+            $regNo = $row['reg_no'] ?? null;
+            if (!$regNo) continue;
+
+            // Attendance
+            $stAtt = $attendanceData->get($regNo, collect());
+            $totalAtt = $stAtt->count();
+            $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
+            $rawAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : null;
+
+            $overridePct = isset($row['attendance_override_pct']) && $row['attendance_override_pct'] !== '' && $row['attendance_override_pct'] !== null
+                ? (float)$row['attendance_override_pct']
+                : null;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPct;
+            $attMarks = $effectivePct !== null ? R26DrawingEvaluation::calculateAttendanceMarks($effectivePct) : 0.0;
+
+            // Self-Learning Modules 1-4 (Max 15 each)
+            $ca1 = isset($row['ca1_15']) && $row['ca1_15'] !== '' && $row['ca1_15'] !== null ? min(15.0, max(0.0, (float)$row['ca1_15'])) : null;
+            $ca2 = isset($row['ca2_15']) && $row['ca2_15'] !== '' && $row['ca2_15'] !== null ? min(15.0, max(0.0, (float)$row['ca2_15'])) : null;
+            $ca3 = isset($row['ca3_15']) && $row['ca3_15'] !== '' && $row['ca3_15'] !== null ? min(15.0, max(0.0, (float)$row['ca3_15'])) : null;
+            $ca4 = isset($row['ca4_15']) && $row['ca4_15'] !== '' && $row['ca4_15'] !== null ? min(15.0, max(0.0, (float)$row['ca4_15'])) : null;
+
+            $caEntered = [];
+            if ($ca1 !== null) $caEntered[] = $ca1;
+            if ($ca2 !== null) $caEntered[] = $ca2;
+            if ($ca3 !== null) $caEntered[] = $ca3;
+            if ($ca4 !== null) $caEntered[] = $ca4;
+
+            $selfLearning15 = count($caEntered) > 0 ? round((array_sum($caEntered) / 4.0) * 2) / 2 : 0.0;
+            if ($selfLearning15 > 15.0) $selfLearning15 = 15.0;
+
+            // Series 1 & 2 (Series 1: CO1 [20] + CO2 [20] = 40M; Series 2: CO3 [20] + CO4 [20] = 40M)
+            $s1Absent = !empty($row['series_1_absent']);
+            $s2Absent = !empty($row['series_2_absent']);
+
+            $s1_co1 = isset($row['series_1_co1_20']) && $row['series_1_co1_20'] !== '' && $row['series_1_co1_20'] !== null ? min(20.0, max(0.0, (float)$row['series_1_co1_20'])) : null;
+            $s1_co2 = isset($row['series_1_co2_20']) && $row['series_1_co2_20'] !== '' && $row['series_1_co2_20'] !== null ? min(20.0, max(0.0, (float)$row['series_1_co2_20'])) : null;
+
+            if ($s1_co1 !== null || $s1_co2 !== null) {
+                $s1_40 = min(40.0, ($s1_co1 ?? 0) + ($s1_co2 ?? 0));
+            } elseif (isset($row['series_1_40']) && $row['series_1_40'] !== '' && $row['series_1_40'] !== null) {
+                $s1_40 = min(40.0, max(0.0, (float)$row['series_1_40']));
+                $s1_co1 = round(($s1_40 / 2.0) * 2) / 2;
+                $s1_co2 = round(($s1_40 / 2.0) * 2) / 2;
+            } else {
+                $s1_40 = null;
+            }
+
+            $s2_co3 = isset($row['series_2_co3_20']) && $row['series_2_co3_20'] !== '' && $row['series_2_co3_20'] !== null ? min(20.0, max(0.0, (float)$row['series_2_co3_20'])) : null;
+            $s2_co4 = isset($row['series_2_co4_20']) && $row['series_2_co4_20'] !== '' && $row['series_2_co4_20'] !== null ? min(20.0, max(0.0, (float)$row['series_2_co4_20'])) : null;
+
+            if ($s2_co3 !== null || $s2_co4 !== null) {
+                $s2_40 = min(40.0, ($s2_co3 ?? 0) + ($s2_co4 ?? 0));
+            } elseif (isset($row['series_2_40']) && $row['series_2_40'] !== '' && $row['series_2_40'] !== null) {
+                $s2_40 = min(40.0, max(0.0, (float)$row['series_2_40']));
+                $s2_co3 = round(($s2_40 / 2.0) * 2) / 2;
+                $s2_co4 = round(($s2_40 / 2.0) * 2) / 2;
+            } else {
+                $s2_40 = null;
+            }
+
+            $s1_20 = ($s1_40 !== null && !$s1Absent) ? round(($s1_40 / 2.0) * 2) / 2 : 0.0;
+            $s2_20 = ($s2_40 !== null && !$s2Absent) ? round(($s2_40 / 2.0) * 2) / 2 : 0.0;
+
+            if ($s1_40 !== null || $s2_40 !== null) {
+                $series20 = round((($s1_20 + $s2_20) / 2.0) * 2) / 2;
+            } else {
+                $series20 = 0.0;
+            }
+            if ($series20 > 20.0) $series20 = 20.0;
+
+            // Total CIA (Max 40)
+            $totalCia40 = round(($attMarks + $selfLearning15 + $series20) * 2) / 2;
+            if ($totalCia40 > 40.0) $totalCia40 = 40.0;
+
+            // ESE (Max 60 or Board Grade)
+            $eseGrade = isset($row['ese_grade']) && !empty($row['ese_grade']) ? strtoupper(trim($row['ese_grade'])) : null;
+            $eseAbsent = !empty($row['ese_absent']);
+            $eseMark60 = isset($row['ese_mark_60']) && $row['ese_mark_60'] !== '' && $row['ese_mark_60'] !== null ? min(60.0, max(0.0, (float)$row['ese_mark_60'])) : null;
+            $totalEse = ($eseMark60 !== null && !$eseAbsent) ? $eseMark60 : 0.0;
+
+            $totalMarks100 = round(($totalCia40 + $totalEse) * 2) / 2;
+
+            $record = R26DrawingEvaluation::updateOrCreate(
+                [
+                    'batch_subject_id' => $subjectId,
+                    'reg_no' => $regNo,
+                ],
+                [
+                    'attendance_pct' => $rawAttPct,
+                    'attendance_override_pct' => $overridePct,
+                    'attendance_mark_5' => $attMarks,
+                    'ca1_15' => $ca1,
+                    'ca2_15' => $ca2,
+                    'ca3_15' => $ca3,
+                    'ca4_15' => $ca4,
+                    'self_learning_15' => $selfLearning15,
+                    'series_1_40' => $s1_40,
+                    'series_1_co1_20' => $s1_co1,
+                    'series_1_co2_20' => $s1_co2,
+                    'series_1_absent' => $s1Absent,
+                    'series_2_40' => $s2_40,
+                    'series_2_co3_20' => $s2_co3,
+                    'series_2_co4_20' => $s2_co4,
+                    'series_2_absent' => $s2Absent,
+                    'series_20' => $series20,
+                    'total_cia_40' => $totalCia40,
+                    'ese_grade' => $eseGrade,
+                    'ese_mark_60' => $eseMark60,
+                    'ese_absent' => $eseAbsent,
+                    'total_marks_100' => $totalMarks100,
+                ]
+            );
+
+            $updatedRows[$regNo] = [
+                'effective_pct' => $effectivePct,
+                'att_marks' => $attMarks,
+                'self_learning_15' => $selfLearning15,
+                'series_1_co1_20' => $s1_co1,
+                'series_1_co2_20' => $s1_co2,
+                'series_1_40' => $s1_40,
+                'series_1_20' => $s1_20,
+                'series_2_co3_20' => $s2_co3,
+                'series_2_co4_20' => $s2_co4,
+                'series_2_40' => $s2_40,
+                'series_2_20' => $s2_20,
+                'series_20' => $series20,
+                'total_cia_40' => $totalCia40,
+                'total_marks_100' => $totalMarks100,
+            ];
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Consolidated evaluation marks auto-saved successfully!',
+            'data' => $updatedRows
+        ]);
+    }
+
+    /**
+     * Save Attainment Settings
+     */
+    public function saveAttainmentSettings(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+        }
+
+        $cieThreshold = (float)$request->input('cie_threshold_percent', 50.0);
+        $targetStudentPercent = (float)$request->input('target_student_percent', 70.0);
+        $lvl3 = (float)$request->input('level3_percent', $targetStudentPercent);
+        $lvl2 = (float)$request->input('level2_percent', max(0, $targetStudentPercent - 10));
+        $lvl1 = (float)$request->input('level1_percent', max(0, $targetStudentPercent - 20));
+
+        $cf = \App\Models\CourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+        $settings = is_string($cf->attainment_settings) ? json_decode($cf->attainment_settings, true) : ($cf->attainment_settings ?: []);
+        $settings['ese_config'] = [
+            'cie_threshold_percent' => $cieThreshold,
+            'target_student_percent' => $targetStudentPercent,
+            'level3_percent' => $lvl3,
+            'level2_percent' => $lvl2,
+            'level1_percent' => $lvl1,
+        ];
+
+        $cf->attainment_settings = $settings;
+        $cf->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Attainment thresholds successfully updated!'
+        ]);
+    }
+
+    /**
+     * Print Official Consolidated CIA Register (40 Marks CIE)
+     */
+    public function printCiaRegister($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $evaluations = R26DrawingEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation')
+            ->get();
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation')
+            ->first();
+
+        $academicCtx = $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject);
+
+        return view('r26_drawing.cia_register_print', array_merge(compact(
+            'batchSubject',
+            'classroom',
+            'drawingCourseFile',
+            'students',
+            'evaluations',
+            'assignedStaff',
+            'hod'
+        ), $academicCtx));
+    }
+
+    /**
+     * Print Official Series Examination Marks Register
+     */
+    public function printSeriesRegister($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
+            ?? R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
+        $drawingCourseFile = R26DrawingCourseFile::where('batch_subject_id', $subjectId)->first();
+
+        $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
+            ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
+            ->get(['reg_no', 'name', 'sbte_reg_no', 'roll_no']);
+
+        $evaluations = R26DrawingEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
+
+        $assignedStaff = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->where('subject_staff_assignments.batch_subject_id', $subjectId)
+            ->select('staff_profiles.name', 'staff_profiles.designation')
+            ->get();
+
+        $deptCode = $classroom->department ?? $classroom->branch ?? '';
+        $hod = DB::table('staff_profiles')
+            ->where(function($q) use ($deptCode) {
+                if ($deptCode) {
+                    $q->where('branch', $deptCode);
+                }
+            })
+            ->where('designation', 'HOD')
+            ->select('name', 'designation')
+            ->first();
+
+        $academicCtx = $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject);
+
+        return view('r26_drawing.series_register_print', array_merge(compact(
+            'batchSubject',
+            'classroom',
+            'drawingCourseFile',
+            'students',
+            'evaluations',
+            'assignedStaff',
+            'hod'
+        ), $academicCtx));
     }
 
     /**
@@ -737,7 +1100,7 @@ class R26VirtualClassroomDrawingController extends Controller
         $staffMobile = Session::get('mobileNo') ?: Session::get('userId');
         $staff = StaffProfile::where('mobile_no', $staffMobile)->first();
 
-        return view('r26_drawing.lesson_plan_print', compact('batchSubject', 'classroom', 'drawingCourseFile', 'lessonPlans', 'staff', 'assignedStaffList', 'facultyNames'));
+        return view('r26_drawing.lesson_plan_print', array_merge(compact('batchSubject', 'classroom', 'drawingCourseFile', 'lessonPlans', 'staff', 'assignedStaffList', 'facultyNames'), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
     }
 
     /**
@@ -1265,9 +1628,9 @@ class R26VirtualClassroomDrawingController extends Controller
             $qpData = $this->getDefaultSeriesQuestions($testNo);
         }
 
-        return view('r26_drawing.series_test_qp_print', compact(
+        return view('r26_drawing.series_test_qp_print', array_merge(compact(
             'batchSubject', 'classroom', 'drawingCourseFile', 'staff', 'testNo', 'docType', 'qpData'
-        ));
+        ), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
     }
 
     /**
@@ -1378,7 +1741,7 @@ class R26VirtualClassroomDrawingController extends Controller
             ->select('name', 'designation')
             ->first();
 
-        return view('r26_drawing.attendance_report_print', compact(
+        return view('r26_drawing.attendance_report_print', array_merge(compact(
             'batchSubject',
             'classroom',
             'students',
@@ -1388,7 +1751,7 @@ class R26VirtualClassroomDrawingController extends Controller
             'attendanceTotals',
             'assignedStaff',
             'hod'
-        ));
+        ), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
     }
 
     /**
@@ -1491,7 +1854,7 @@ class R26VirtualClassroomDrawingController extends Controller
             ->select('name', 'designation')
             ->first();
 
-        return view('r26_drawing.attendance_consolidated_print', compact(
+        return view('r26_drawing.attendance_consolidated_print', array_merge(compact(
             'batchSubject',
             'classroom',
             'students',
@@ -1500,7 +1863,7 @@ class R26VirtualClassroomDrawingController extends Controller
             'attendanceTotals',
             'assignedStaff',
             'hod'
-        ));
+        ), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
     }
 
     /**
@@ -1586,14 +1949,14 @@ class R26VirtualClassroomDrawingController extends Controller
             ->select('name', 'designation')
             ->first();
 
-        return view('r26_drawing.exercises_list_print', compact(
+        return view('r26_drawing.exercises_list_print', array_merge(compact(
             'batchSubject',
             'classroom',
             'drawingCourseFile',
             'exercises',
             'assignedStaff',
             'hod'
-        ));
+        ), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
     }
 
     /**
@@ -1675,7 +2038,7 @@ class R26VirtualClassroomDrawingController extends Controller
             ->select('name', 'designation')
             ->first();
 
-        return view('r26_drawing.ce_consolidated_print', compact(
+        return view('r26_drawing.ce_consolidated_print', array_merge(compact(
             'batchSubject',
             'classroom',
             'drawingCourseFile',
@@ -1683,6 +2046,48 @@ class R26VirtualClassroomDrawingController extends Controller
             'studentCeData',
             'assignedStaff',
             'hod'
-        ));
+        ), $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject)));
+    }
+
+    /**
+     * Resolve Department Full Name, Semester, Assessment Year, and Report Date for Drawing Hall Reports
+     */
+    private function resolveDepartmentAndAcademicContext($classroom, $batchSubject)
+    {
+        $deptCode = $classroom->department ?? $classroom->branch ?? $batchSubject->branch ?? '';
+        $deptName = function_exists('getFullBranchName') ? getFullBranchName($deptCode) : ($deptCode ?: 'Civil Engineering');
+        
+        // Ensure Department Full Name format: e.g. "DEPARTMENT OF CIVIL ENGINEERING"
+        $upperDept = strtoupper(trim($deptName));
+        if (!str_starts_with($upperDept, 'DEPARTMENT OF')) {
+            $departmentFullName = 'DEPARTMENT OF ' . $upperDept;
+        } else {
+            $departmentFullName = $upperDept;
+        }
+
+        $semester = $classroom->current_semester ?? $batchSubject->semester ?? 1;
+        if (is_string($semester)) {
+            $semNum = preg_replace('/[^0-9]/', '', $semester);
+            $semesterNum = $semNum ? (int)$semNum : 1;
+        } else {
+            $semesterNum = (int)$semester;
+        }
+
+        $batchYear = (int)($classroom->batch_year ?? 2026);
+        $semOffset = (int)floor(($semesterNum - 1) / 2);
+        $assessStart = $batchYear + $semOffset;
+        $assessmentYear = $assessStart . ' - ' . ($assessStart + 1);
+
+        $reportDate = date('d-m-Y');
+
+        return [
+            'departmentName' => $deptName,
+            'departmentFullName' => $departmentFullName,
+            'semester' => $semesterNum,
+            'assessmentYear' => $assessmentYear,
+            'reportDate' => $reportDate,
+            'batchYear' => $batchYear,
+        ];
     }
 }
+

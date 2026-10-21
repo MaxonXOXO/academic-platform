@@ -2107,6 +2107,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const subjectId = urlParams.get('subject_id');
       const subjectName = urlParams.get('subject_name') || '';
+      const subjectCode = urlParams.get('subject_code') || urlParams.get('code') || '';
       const classroomId = urlParams.get('classroom_id') || '';
       const tabParam = urlParams.get('tab');
       const revParam = urlParams.get('revision') || 'REV2021';
@@ -2118,7 +2119,7 @@
         if (tabParam) {
           window.currentActiveVirtualTab = tabParam;
         }
-        openClassroom(classroomId, subjectId, subjectName, '', revParam, typeParam, tabParam);
+        openClassroom(classroomId, subjectId, subjectName, subjectCode, revParam, typeParam, tabParam);
       } else {
         // If a Demonstrator lands here without a subject (e.g. browser back), send them home
         if ('{{ session("userRole") }}' === 'Demonstrator') {
@@ -2365,10 +2366,14 @@
       }
       const sTypeLower = (type || '').toLowerCase();
       const sNameLower = (subjectName || '').toLowerCase();
+      const sCodeStr = String(subjectCode || '');
       const isR26 = (revision === 'REV2026' || (batchId && batchId.includes('2026')));
 
       if (isR26) {
-        if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
+        if (sCodeStr.includes('1001') || sNameLower.includes('english')) {
+          window.open(`/r26/classroom/english-1001/${subjectId}`, '_blank');
+          return;
+        } else if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
           window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
           return;
         } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
@@ -2400,6 +2405,19 @@
         // Revision 2021 Virtual Major Project Classroom (Clauses 11.2.5 & 11.3.4)
         if (sTypeLower.includes('project') || sNameLower.includes('project')) {
           window.location.href = `/r21/classroom/project/${subjectId}`;
+          return;
+        }
+
+        // Revision 2021 Virtual Mechanical Workshop Classroom
+        // (Note: 5027 Machine Shop Practice is strictly a Practical Lab subject, NOT Workshop)
+        const isMachineShop = sCodeStr.includes('5027') || sNameLower.includes('machine shop') || sNameLower.includes('shop practice');
+        const isWorkshopSubject = !isMachineShop && (
+          sNameLower.includes('workshop') || 
+          sTypeLower.includes('workshop') || 
+          ['3027', '3038'].some(c => sCodeStr.includes(c) || String(subjectId) === c)
+        );
+        if (isWorkshopSubject) {
+          window.location.href = `/r21/classroom/workshop/${subjectId}`;
           return;
         }
 

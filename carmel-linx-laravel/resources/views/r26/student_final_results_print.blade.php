@@ -435,7 +435,7 @@
                 @endphp
                 @forelse($studentCiaData as $sc)
                     @php
-                        $tot = $sc['total_cia'] + $sc['ese_marks'];
+                        $tot = round($sc['total_cia']) + round($sc['ese_marks'] ?? 0);
                         
                         // Strict Revision 2026 Grade Scale Enforcement: S, A, B, C, D, E, F
                         if ($tot >= 90) { $grade = 'S'; }
@@ -463,14 +463,14 @@
                         <td class="font-mono text-center">{{ $sc['sbte_reg_no'] ?: ($sc['reg_no'] ?? 'Unassigned') }}</td>
                         <td class="font-bold">{{ $sc['name'] }}</td>
                         <td class="text-center font-mono">{{ $sc['attendance_percent'] }}%</td>
-                        <td class="text-center font-mono">{{ number_format($sc['total_cia'], 1) }}</td>
+                        <td class="text-center font-mono">{{ number_format(round($sc['total_cia'])) }}</td>
                         <td class="text-center font-mono">
                             {{ number_format($sc['ese_marks'], 1) }}
                             @if(!empty($sc['ese_grade']))
                                 <span style="font-weight: bold; color: #1e293b;">({{ $sc['ese_grade'] }})</span>
                             @endif
                         </td>
-                        <td class="text-center font-mono font-bold">{{ number_format($tot, 1) }}</td>
+                        <td class="text-center font-mono font-bold">{{ number_format(round($tot)) }}</td>
                         <td class="text-center font-bold">{{ $grade }}</td>
                         <td class="text-center font-bold {{ $remark === 'PASSED' ? 'text-emerald-700' : 'text-rose-700' }}" style="color: {{ $remark === 'PASSED' ? '#047857' : '#b91c1c' }};">
                             {{ $remark }}

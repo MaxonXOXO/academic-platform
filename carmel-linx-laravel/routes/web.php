@@ -437,6 +437,9 @@ Route::middleware(['web'])->group(function () {
     });
 
     Route::get('/staff/mobile', [MentoringController::class, 'showStaffMobileDashboard']);
+    Route::get('/dashboard/staff/mobile', function () {
+        return redirect('/staff/mobile');
+    });
 
     Route::get('/dashboard/tutor', function () {
         $role = Session::get('userRole');
@@ -576,6 +579,8 @@ Route::middleware(['web'])->group(function () {
     Route::get('/api/r26/hod/batches', [R26DataController::class, 'getBatches']);
     Route::post('/api/r26/hod/batches', [R26DataController::class, 'createBatch']);
     Route::get('/r26/classroom/theory/{subjectId}', [R26ClassroomController::class, 'viewTheoryClassroom']);
+    Route::get('/r26/classroom/{subjectId}', [R26ClassroomController::class, 'show']);
+    Route::post('/api/r26/classroom/{subjectId}/theory-evaluations/save', [R26ClassroomController::class, 'saveConsolidatedTheoryEvaluations']);
     Route::get('/r26/classroom/course-file/{subjectId}', [R26ClassroomController::class, 'viewCourseFile']);
     Route::post('/api/r26/classroom/course-file/{subjectId}/save-doc', [R26ClassroomController::class, 'saveCourseFileDoc']);
     Route::post('/api/r26/classroom/course-file/{subjectId}/upload-doc', [R26ClassroomController::class, 'uploadCourseFileDocAttachment']);
@@ -585,6 +590,10 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/self-learning/print/{subjectId}', [R26ClassroomController::class, 'printSelfLearningReport']);
     Route::post('/api/r26/classroom/{subjectId}/lesson-plans/bulk-update', [R26ClassroomController::class, 'bulkUpdateLessonPlans']);
     Route::post('/api/r26/classroom/{subjectId}/cia-marks/bulk-update', [R26ClassroomController::class, 'bulkUpdateCiaMarks']);
+    Route::post('/api/r26/classroom/theory/{subjectId}/evaluate/consolidated-save', [R26ClassroomController::class, 'saveConsolidatedMarks']);
+    Route::post('/api/r26/classroom/{subjectId}/evaluate/consolidated-save', [R26ClassroomController::class, 'saveConsolidatedMarks']);
+    Route::get('/r26/classroom/theory/{subjectId}/print/cia-register', [R26ClassroomController::class, 'printCiaRegister']);
+    Route::get('/r26/classroom/theory/{subjectId}/print/series-register', [R26ClassroomController::class, 'printSeriesRegister']);
     Route::post('/api/r26/classroom/{subjectId}/self-learning/bulk-update', [R26ClassroomController::class, 'bulkUpdateSelfLearningMarks']);
     Route::post('/api/r26/classroom/{subjectId}/copo-matrix/save', [R26ClassroomController::class, 'saveCoPoMatrix']);
     Route::post('/api/r26/classroom/{subjectId}/assignment/{coTag}', [R26ClassroomController::class, 'saveAssignment']);
@@ -652,6 +661,11 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/ese', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveEseMarks']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/self-learning/configs', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveSelfLearningConfigs']);
     Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/self-learning/marks', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveSelfLearningMarks']);
+    Route::post('/api/r26/classroom/practicum/{subjectId}/evaluate/attendance-override', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'saveAttendanceOverride']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-cia-register', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printCiaRegisterPdf']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-internal-marks', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printInternalMarks']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-series-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesReport']);
+    Route::get('/r26/classroom/practicum/{subjectId}/print-ese-report', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printEseReport']);
     Route::get('/r26/classroom/practicum/{subjectId}/print-course-file', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printCourseFilePdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/print-self-learning-splitup', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSelfLearningSplitupPdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/print-self-learning-summary', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSelfLearningSummaryPdf']);
@@ -675,12 +689,28 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-qp/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesQpPdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-scheme/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesSchemePdf']);
     Route::get('/r26/classroom/practicum/{subjectId}/series-qp/print-key/{seriesNo}', [App\Http\Controllers\R26VirtualClassroomPracticumController::class, 'printSeriesAnswerKeyPdf']);
+    // Revision 2026 Virtual English Classroom (1001 - English for Communication - Dedicated Practicum Model)
+    Route::get('/r26/classroom/english-1001/{subjectId}', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'show']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/evaluate/consolidated-save', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'saveConsolidatedMarks']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'uploadSyllabus']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/outline/save', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'saveCourseOutline']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'bulkUpdateLessonPlans']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'generateLessonPlanApi']);
+    Route::get('/r26/classroom/english-1001/{subjectId}/print/cia-register', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printCiaRegister']);
+    Route::get('/r26/classroom/english-1001/{subjectId}/print/lesson-plan', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);
+    Route::get('/r26/classroom/english-1001/{subjectId}/print/course-log', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);
+    Route::get('/r26/classroom/english-1001/{subjectId}/print/{reportType}', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printReport']);
+
     // Revision 2026 Virtual Drawing Hall (Lab Model)
     Route::get('/r26/classroom/drawing/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'show']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/syllabus', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'uploadSyllabus']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'generateLessonPlanApi']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'bulkUpdateLessonPlans']);
     Route::get('/r26/classroom/drawing/lesson-plan/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printLessonPlan']);
+    Route::post('/api/r26/classroom/drawing/{subjectId}/evaluate/consolidated-save', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'saveConsolidatedMarks']);
+    Route::post('/api/r26/classroom/drawing/{subjectId}/attainment/save-settings', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'saveAttainmentSettings']);
+    Route::get('/r26/classroom/drawing/{subjectId}/print/cia-register', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printCiaRegister']);
+    Route::get('/r26/classroom/drawing/{subjectId}/print/series-register', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printSeriesRegister']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/evaluate/slot', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'saveSlotMarks']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/evaluate/practical-test', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'savePracticalTestMarks']);
     Route::post('/api/r26/classroom/drawing/{subjectId}/evaluate/oee', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'saveOeeMarks']);
@@ -693,6 +723,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/drawing/{subjectId}/exercises/add', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'addExerciseApi']);
     Route::get('/r26/classroom/drawing/exercises/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printExerciseList']);
     Route::get('/r26/classroom/drawing/ce-consolidated/print/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'printCeConsolidatedReport']);
+
 
     // Revision 2021 Virtual Drawing Classroom (Revision 2021 Drawing Lab - CIA 75, ESE 50)
     Route::get('/r21/classroom/drawing/{subjectId}', [App\Http\Controllers\R21VirtualClassroomDrawingController::class, 'show']);
@@ -731,6 +762,28 @@ Route::middleware(['web'])->group(function () {
     Route::post('/r21/classroom/project/{subjectId}/group-ese', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveGroupEse']);
     Route::post('/r21/classroom/project/{subjectId}/group-cia', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'saveGroupCia']);
     Route::get('/r21/classroom/project/{subjectId}/report/print', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'printReport']);
+
+    // Revision 2021 Virtual Mechanical Workshop Classroom
+    Route::get('/r21/classroom/workshop/{subjectId}', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'show']);
+    Route::post('/r21/classroom/workshop/{subjectId}/batch-setup', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveBatchSetup']);
+    Route::post('/r21/classroom/workshop/{subjectId}/work-marks', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveWorkMarks']);
+    Route::post('/r21/classroom/workshop/{subjectId}/record-marks', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveRecordMarks']);
+    Route::post('/r21/classroom/workshop/{subjectId}/test-marks', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveTestMarks']);
+    Route::post('/r21/classroom/workshop/{subjectId}/fast-cia/save', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveFastCia']);
+    Route::post('/r21/classroom/workshop/{subjectId}/attendance/save', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveAttendance']);
+    Route::post('/r21/classroom/workshop/{subjectId}/syllabus', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'uploadSyllabus']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/cia', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printConsolidatedCia']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/works', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printWorkRegister']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/consolidated-3-section', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printConsolidated3Section']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/summary', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printSummaryReport']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/internal', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printInternalReport']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/dual-batch', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printDualBatchInternal']);
+    Route::get('/r21/classroom/workshop/{subjectId}/print/attendance-log', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'printAttendanceClassLog']);
+    Route::post('/r21/classroom/workshop/{subjectId}/attainment/save', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveAttainmentSettings']);
+    Route::get('/staff/mobile/workshop/{subjectId}', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'showMobile']);
+    Route::post('/api/staff/mobile/workshop/{subjectId}/quick-save', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveMobileSectionData']);
+    Route::get('/api/staff/mobile/workshop/{subjectId}/section-attendance', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'getMobileAttendance']);
+    Route::post('/api/staff/mobile/workshop/{subjectId}/section-attendance', [App\Http\Controllers\R21VirtualClassroomWorkshopController::class, 'saveMobileSectionAttendance']);
 
     // Revision 2026 Virtual Health & Physical Education Classroom (S1 Unique Paper)
     Route::get('/r26/classroom/health-physical/{subjectId}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'show']);

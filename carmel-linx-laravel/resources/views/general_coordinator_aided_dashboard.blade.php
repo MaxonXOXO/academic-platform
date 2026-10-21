@@ -576,10 +576,14 @@
     function openClassroom(batchId, subjectId, subjectName, subjectCode, revision = 'REV2021', type = 'Theory') {
       const sTypeLower = (type || '').toLowerCase();
       const sNameLower = (subjectName || '').toLowerCase();
+      const sCodeStr = String(subjectCode || '');
       const isR26 = revision === 'REV2026' || (batchId && batchId.includes('2026'));
 
       if (isR26) {
-        if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
+        if (sCodeStr.includes('1001') || sNameLower.includes('english')) {
+          window.open(`/r26/classroom/english-1001/${subjectId}`, '_blank');
+          return;
+        } else if (sNameLower.includes('health') || sNameLower.includes('physical') || sTypeLower.includes('health') || sTypeLower.includes('physical')) {
           window.open(`/r26/classroom/health-physical/${subjectId}`, '_blank');
           return;
         } else if (sTypeLower.includes('drawing') || sNameLower.includes('drawing') || sNameLower.includes('graphics') || sNameLower.includes('cad')) {
@@ -596,7 +600,20 @@
           return;
         }
       } else {
-        window.location.href = `/dashboard/lecturer?subject_id=${subjectId}`;
+        if (sNameLower.includes('drawing') || sNameLower.includes('graphics')) {
+          window.location.href = `/r21/classroom/drawing/${subjectId}`;
+          return;
+        } else if (sTypeLower.includes('seminar') || sNameLower.includes('seminar')) {
+          window.location.href = `/r21/classroom/seminar/${subjectId}`;
+          return;
+        } else if (sTypeLower.includes('project') || sNameLower.includes('project')) {
+          window.location.href = `/r21/classroom/project/${subjectId}`;
+          return;
+        } else if (!sCodeStr.includes('5027') && !sNameLower.includes('machine shop') && !sNameLower.includes('shop practice') && (sNameLower.includes('workshop') || sTypeLower.includes('workshop') || ['3027', '3038'].some(c => sCodeStr.includes(c) || String(subjectId) === c))) {
+          window.location.href = `/r21/classroom/workshop/${subjectId}`;
+          return;
+        }
+        window.location.href = `/dashboard/lecturer?subject_id=${subjectId}&subject_name=${encodeURIComponent(subjectName)}&subject_code=${encodeURIComponent(subjectCode)}&classroom_id=${encodeURIComponent(batchId)}&revision=${encodeURIComponent(revision)}&type=${encodeURIComponent(type)}`;
       }
     }
 
@@ -670,5 +687,6 @@
     }
   </script>
   @include('partials.support_desk_overlay')
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

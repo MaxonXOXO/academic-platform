@@ -1929,10 +1929,21 @@ class MentoringController extends Controller
         $startDate = sprintf('%04d-%02d-01', $year, $month);
         $endDate   = date('Y-m-t', strtotime($startDate));
 
-        $punches = \App\Models\SfStaffTimePunch::where(function ($q) use ($staffId, $userId) {
-            $q->where('staff_id', $staffId);
-            if ($userId && $userId !== $staffId) {
-                $q->orWhere('staff_id', $userId);
+        $staff = \App\Models\StaffProfile::where('mobile_no', $userId)
+            ->orWhere('id', $userId)
+            ->first();
+
+        $identifiers = array_unique(array_filter([
+            (string)$userId,
+            (string)$staffId,
+            $staff ? (string)$staff->mobile_no : null,
+            $staff ? (string)$staff->id : null,
+        ]));
+
+        $punches = \App\Models\SfStaffTimePunch::where(function ($q) use ($identifiers, $staff) {
+            $q->whereIn('staff_id', $identifiers);
+            if ($staff && !empty($staff->name)) {
+                $q->orWhere('staff_name', $staff->name);
             }
         })
         ->whereBetween('punch_date', [$startDate, $endDate])
@@ -1985,6 +1996,33 @@ class MentoringController extends Controller
         $earlyOutCount  = collect($records)->where('status', 'Early Out')->count();
         $totalPunched   = count($records);
 
+        $summary = [
+            'total_punched'   => $totalPunched,
+            'present'         => $presentCount,
+            'late'            => $lateCount,
+            'early_out'       => $earlyOutCount,
+        ];
+
+        if ($request->input('format') === 'pdf' || $request->query('pdf')) {
+            @ini_set('pcre.jit', '0');
+            $monthName = date('F', mktime(0, 0, 0, $month, 10));
+            try {
+                $pdf = \PDF::loadView('staff_punch_log_pdf', compact('staff', 'month', 'year', 'startDate', 'endDate', 'records', 'summary'))
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'isHtml5ParserEnabled' => true,
+                        'isPhpEnabled' => false,
+                        'defaultFont' => 'sans-serif'
+                    ]);
+                $filename = "Carmel_Punch_Log_{$monthName}_{$year}.pdf";
+                return $pdf->stream($filename);
+            } catch (\Throwable $e) {
+                \Log::error('Punch log PDF generation error: ' . $e->getMessage());
+                // Fallback: render HTML report with automatic print dialog
+                return response()->view('staff_punch_log_pdf', compact('staff', 'month', 'year', 'startDate', 'endDate', 'records', 'summary'));
+            }
+        }
+
         return response()->json([
             'status'       => 'SUCCESS',
             'month'        => $month,
@@ -1992,12 +2030,7 @@ class MentoringController extends Controller
             'start_date'   => $startDate,
             'end_date'     => $endDate,
             'records'      => $records,
-            'summary'      => [
-                'total_punched'   => $totalPunched,
-                'present'         => $presentCount,
-                'late'            => $lateCount,
-                'early_out'       => $earlyOutCount,
-            ],
+            'summary'      => $summary,
         ]);
     }
 
@@ -2460,6 +2493,41 @@ class MentoringController extends Controller
 
         // 7. Staff To-Do Items
         $todos = [];
+
+        // Identify Rev 2021 Workshop Subjects (Note: 5027 Machine Shop Practice is evaluated strictly as Practical Lab)
+        $r21WorkshopSubjects = collect($assignments)->filter(function($a) {
+            $sName = strtolower($a->subject_name ?? '');
+            $sCode = (string)($a->subject_code ?? '');
+            $cls   = (string)($a->classroom_id ?? '');
+            $isR21 = (strpos($cls, '2025_2028') !== false || strpos($cls, '2024_2027') !== false || strpos($cls, '2023_2026') !== false);
+            $isMachineShop = strpos($sName, 'machine shop') !== false || strpos($sName, 'shop practice') !== false || $sCode === '5027';
+            return $isR21 && !$isMachineShop && (
+                strpos($sName, 'workshop') !== false ||
+                in_array($sCode, ['3027', '3038'])
+            );
+        })->unique('id')->values();
+        $hasR21Workshop = $r21WorkshopSubjects->isNotEmpty();
+
+        // 7.0 Workshop Continuous Evaluation To-Do (Rev 2021)
+        if ($hasR21Workshop) {
+            foreach ($r21WorkshopSubjects as $wsSub) {
+                $sem = $wsSub->semester ?? (strpos($wsSub->classroom_id, '2024') !== false ? 5 : 3);
+                $todos[] = (object) [
+                    'type' => 'workshop_eval',
+                    'title' => ($wsSub->subject_code ? ($wsSub->subject_code . ' - ') : '') . $wsSub->subject_name,
+                    'subtitle' => 'Classroom: ' . $wsSub->classroom_id . ' • Sem ' . $sem,
+                    'badge' => 'Workshop CIA',
+                    'badge_class' => 'bg-info text-dark',
+                    'icon' => 'fa-solid fa-screwdriver-wrench text-cyan',
+                    'link' => '/staff/mobile/workshop/' . $wsSub->id,
+                    'subject_id' => $wsSub->id,
+                    'classroom_id' => $wsSub->classroom_id,
+                    'semester' => $sem,
+                    'subject_code' => $wsSub->subject_code,
+                    'subject_name' => $wsSub->subject_name,
+                ];
+            }
+        }
         
         // 7.1 Student Leave Applications
         if (count($pendingLeaves) > 0) {
@@ -2474,9 +2542,9 @@ class MentoringController extends Controller
             ];
         }
 
-        // 7.2 Student Assignment Submissions Received
+        // 7.2 Student Assignment Submissions Received (skip for workshop-only staff)
         $assignmentSubmissionsCount = 0;
-        if (count($assignments) > 0 && \Illuminate\Support\Facades\Schema::hasTable('test_attempts')) {
+        if (!$hasR21Workshop && count($assignments) > 0 && \Illuminate\Support\Facades\Schema::hasTable('test_attempts')) {
             $assignmentSubmissionsCount = DB::table('test_attempts')
                 ->join('test_configs', 'test_attempts.test_id', '=', 'test_configs.test_id')
                 ->whereIn('test_configs.subject_code', $assignments->pluck('subject_code')->toArray())
@@ -2496,9 +2564,9 @@ class MentoringController extends Controller
             ];
         }
 
-        // 7.3 Series / Written Exams Declared
+        // 7.3 Series / Written Exams Declared (skip for workshop-only staff)
         $declaredSeriesCount = 0;
-        if (count($assignments) > 0 && \Illuminate\Support\Facades\Schema::hasTable('series_exams')) {
+        if (!$hasR21Workshop && count($assignments) > 0 && \Illuminate\Support\Facades\Schema::hasTable('series_exams')) {
             $declaredSeriesCount = DB::table('series_exams')
                 ->whereIn('batch_subject_id', $assignments->pluck('batch_subject_id')->toArray())
                 ->count();
@@ -2578,8 +2646,8 @@ class MentoringController extends Controller
             ];
         }
 
-        // 7.7 Daily Attendance Task
-        if (count($assignments) > 0) {
+        // 7.7 Daily Attendance Task (skip for workshop staff as attendance is taken per section in workshop module)
+        if (!$hasR21Workshop && count($assignments) > 0) {
             $todos[] = (object) [
                 'type' => 'attendance',
                 'title' => 'Mark Attendance for Today\'s Classes (' . date('d M Y') . ')',
@@ -2604,8 +2672,8 @@ class MentoringController extends Controller
             ];
         }
 
-        // 7.9 Active Online Tests
-        if (count($activeTests) > 0) {
+        // 7.9 Active Online Tests (MCQs not applicable in workshop continuous evaluation)
+        if (!$hasR21Workshop && count($activeTests) > 0) {
             $todos[] = (object) [
                 'type' => 'test',
                 'title' => count($activeTests) . ' Online MCQ Test Configurations Published',

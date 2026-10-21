@@ -451,7 +451,9 @@
                       $sTypeLower = strtolower($s->subject_type ?? '');
                       
                       if ($isR26) {
-                        if (str_contains($sNameLower, 'health') || str_contains($sNameLower, 'physical') || str_contains($sTypeLower, 'health') || str_contains($sTypeLower, 'physical')) {
+                        if (str_contains($s->subject_code ?? '', '1001') || str_contains($sNameLower, 'english')) {
+                          $targetUrl = "/r26/classroom/english-1001/{$s->subject_id}";
+                        } elseif (str_contains($sNameLower, 'health') || str_contains($sNameLower, 'physical') || str_contains($sTypeLower, 'health') || str_contains($sTypeLower, 'physical')) {
                           $targetUrl = "/r26/classroom/health-physical/{$s->subject_id}";
                         } elseif (str_contains($sTypeLower, 'drawing') || str_contains($sNameLower, 'drawing') || str_contains($sNameLower, 'graphics') || str_contains($sNameLower, 'cad')) {
                           $targetUrl = "/r26/classroom/drawing/{$s->subject_id}";
@@ -470,6 +472,8 @@
                           $targetUrl = "/r21/classroom/seminar/{$s->subject_id}";
                         } elseif (str_contains($sTypeLower, 'project') || str_contains($sNameLower, 'project')) {
                           $targetUrl = "/r21/classroom/project/{$s->subject_id}";
+                        } elseif (!str_contains($sNameLower, 'machine shop') && !str_contains($sNameLower, 'shop practice') && ($s->subject_code ?? '') !== '5027' && (str_contains($sNameLower, 'workshop') || str_contains($sTypeLower, 'workshop') || in_array($s->subject_code ?? '', ['3027', '3038']))) {
+                          $targetUrl = "/r21/classroom/workshop/{$s->subject_id}";
                         } else {
                           $targetType = $isAu3055Theory ? 'Theory' : ($s->subject_type ?? 'Practical');
                           $targetUrl = "/dashboard/lecturer?subject_id={$s->subject_id}&subject_name=" . urlencode($s->subject_name) . "&classroom_id=" . urlencode($s->classroom_id) . "&revision=" . urlencode($s->syllabus_revision_code ?? 'REV2021') . "&type=" . urlencode($targetType);
@@ -597,5 +601,6 @@
     }
   </script>
   @include('partials.support_desk_overlay')
+  @include('partials.birthday_wish_modal')
 </body>
 </html>

@@ -212,11 +212,32 @@
                 page-break-after: auto;
             }
 
-            thead {
-                display: table-header-group;
-            }
+        .no-print button.close-btn {
+            background: #dc2626;
+        }
+        @media print {
+            .no-print button.close-btn { display: none; }
         }
     </style>
+    <script>
+        function handlePrintBack() {
+            if (window.opener && !window.opener.closed) {
+                window.close();
+                return;
+            }
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+            }
+        }
+        function handlePrintClose() {
+            window.close();
+            setTimeout(function() {
+                window.location.href = "{{ url('/r26/classroom/drawing/' . $batchSubject->id) }}";
+            }, 300);
+        }
+    </script>
 </head>
 <body>
 
@@ -225,8 +246,11 @@
         <button onclick="window.print()">
             🖨️ Print Lesson Plan (A4 Landscape)
         </button>
-        <button onclick="window.close()" class="back-btn">
-            ← Back to Classroom
+        <button onclick="handlePrintBack()" class="back-btn">
+            ⬅ Back to Classroom
+        </button>
+        <button onclick="handlePrintClose()" class="close-btn">
+            ✖ Close Window
         </button>
     </div>
 
@@ -235,29 +259,29 @@
         <!-- Header Title Section -->
         <div class="header">
             <h1>Carmel Polytechnic College, Alappuzha</h1>
-            <h2>Department of {{ strtoupper($classroom?->branch ?? $batchSubject?->branch ?? 'Mechanical') }} Engineering</h2>
+            <h2>{{ $departmentFullName ?? ('DEPARTMENT OF ' . strtoupper(getFullBranchName($classroom?->branch ?? $batchSubject?->branch ?? 'Civil Engineering'))) }}</h2>
             <h3>LESSON PLAN - {{ $batchSubject->syllabus_revision_code ?? 'REVISION 2026' }} ({{ $drawingCourseFile?->contact_hours ?? 45 }} CONTACT HOURS)</h3>
         </div>
 
         <!-- Metadata Grid Table -->
         <table class="meta-table">
             <tr>
-                <td class="lbl">College Name:</td>
-                <td class="val" style="width: 34%;">Carmel Polytechnic College, Alappuzha</td>
                 <td class="lbl">Department:</td>
-                <td class="val" style="width: 34%;">{{ $classroom?->branch ?? $batchSubject?->branch ?? 'Mechanical' }} Engineering</td>
+                <td class="val" style="width: 34%;">{{ $departmentName ?? getFullBranchName($classroom?->branch ?? $batchSubject?->branch ?? 'Civil Engineering') }}</td>
+                <td class="lbl">Semester:</td>
+                <td class="val" style="width: 34%;">Semester {{ $semester ?? ($classroom?->current_semester ?? $batchSubject->semester ?? 1) }} (Assessment Year: {{ $assessmentYear ?? '2026 - 2027' }})</td>
             </tr>
             <tr>
                 <td class="lbl">Subject Code & Title:</td>
                 <td class="val">[{{ $batchSubject->formatted_subject_code ?? $batchSubject->subject_code }}] {{ $batchSubject->subject_name }}</td>
-                <td class="lbl">Academic Batch:</td>
-                <td class="val">{{ !empty($classroom?->batch_year) ? $classroom->batch_year.'-'.($classroom->batch_year+3) : ($classroom?->classroom_id ?? $batchSubject->classroom_id ?? '2026-2029') }}</td>
+                <td class="lbl">Academic Batch / Date:</td>
+                <td class="val">{{ !empty($classroom?->batch_year) ? $classroom->batch_year.'-'.($classroom->batch_year+3) : ($classroom?->classroom_id ?? $batchSubject->classroom_id ?? '2026-2029') }} &bull; Report Date: {{ $reportDate ?? date('d-m-Y') }}</td>
             </tr>
             <tr>
                 <td class="lbl">Faculty In-Charge:</td>
                 <td class="val"><strong>{{ $facultyNames ?? ($staff->name ?? 'Lecturer In Charge') }}</strong></td>
-                <td class="lbl">Semester / Duration:</td>
-                <td class="val">Semester {{ $classroom?->current_semester ?? $batchSubject->semester ?? 'I' }} • {{ $drawingCourseFile?->contact_hours ?? 45 }} Contact Hours</td>
+                <td class="lbl">Scheme / Contact Hours:</td>
+                <td class="val">Revision 2026 &bull; {{ $drawingCourseFile?->contact_hours ?? 45 }} Contact Hours (15 Slots)</td>
             </tr>
         </table>
 

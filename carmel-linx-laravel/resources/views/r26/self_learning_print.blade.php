@@ -205,78 +205,27 @@
         <table class="content-table">
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: 4%;">Roll No</th>
-                    <th rowspan="2" style="width: 10%;">Reg No</th>
-                    <th rowspan="2" style="width: 18%;" class="text-left">Student Name</th>
-                    <th colspan="5">CO1 (15M)</th>
-                    <th colspan="5">CO2 (15M)</th>
-                    <th colspan="5">CO3 (15M)</th>
-                    <th colspan="5">CO4 (15M)</th>
-                    <th rowspan="2" style="width: 6%;">Average (15M)</th>
-                </tr>
-                <tr>
-                    <!-- CO1 Activities -->
-                    <th>Asg ({{ $selfLearningConfigs['CO1']['assignment'] }}M)</th>
-                    <th>MCQ ({{ $selfLearningConfigs['CO1']['mcq'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO1']['act3_mode'] }} ({{ $selfLearningConfigs['CO1']['act3'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO1']['act4_mode'] }} ({{ $selfLearningConfigs['CO1']['act4'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO1']['act5_mode'] }} ({{ $selfLearningConfigs['CO1']['act5'] }}M)</th>
-                    <!-- CO2 Activities -->
-                    <th>Asg ({{ $selfLearningConfigs['CO2']['assignment'] }}M)</th>
-                    <th>MCQ ({{ $selfLearningConfigs['CO2']['mcq'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO2']['act3_mode'] }} ({{ $selfLearningConfigs['CO2']['act3'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO2']['act4_mode'] }} ({{ $selfLearningConfigs['CO2']['act4'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO2']['act5_mode'] }} ({{ $selfLearningConfigs['CO2']['act5'] }}M)</th>
-                    <!-- CO3 Activities -->
-                    <th>Asg ({{ $selfLearningConfigs['CO3']['assignment'] }}M)</th>
-                    <th>MCQ ({{ $selfLearningConfigs['CO3']['mcq'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO3']['act3_mode'] }} ({{ $selfLearningConfigs['CO3']['act3'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO3']['act4_mode'] }} ({{ $selfLearningConfigs['CO3']['act4'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO3']['act5_mode'] }} ({{ $selfLearningConfigs['CO3']['act5'] }}M)</th>
-                    <!-- CO4 Activities -->
-                    <th>Asg ({{ $selfLearningConfigs['CO4']['assignment'] }}M)</th>
-                    <th>MCQ ({{ $selfLearningConfigs['CO4']['mcq'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO4']['act3_mode'] }} ({{ $selfLearningConfigs['CO4']['act3'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO4']['act4_mode'] }} ({{ $selfLearningConfigs['CO4']['act4'] }}M)</th>
-                    <th>{{ $selfLearningConfigs['CO4']['act5_mode'] }} ({{ $selfLearningConfigs['CO4']['act5'] }}M)</th>
+                    <th style="width: 6%;">Roll No</th>
+                    <th style="width: 14%;">Reg No</th>
+                    <th style="width: 28%;" class="text-left">Student Name</th>
+                    <th style="width: 13%;">M1 / CA1 (15M)</th>
+                    <th style="width: 13%;">M2 / CA2 (15M)</th>
+                    <th style="width: 13%;">M3 / CA3 (15M)</th>
+                    <th style="width: 13%;">M4 / CA4 (15M)</th>
+                    <th style="width: 14%;" class="font-bold">SL Total (15M)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($studentCiaData as $sc)
                     <tr>
                         <td>{{ $sc['roll_no'] ?: '—' }}</td>
-                        <td style="font-family: monospace;">{{ $sc['reg_no'] }}</td>
+                        <td style="font-family: monospace;">{{ $sc['sbte_reg_no'] ?? $sc['reg_no'] }}</td>
                         <td class="text-left">{{ $sc['name'] }}</td>
-                        
-                        <!-- CO1 -->
-                        <td>{{ $sc['co_details']['CO1']['assignment'] }}</td>
-                        <td>{{ $sc['co_details']['CO1']['mcq'] }}</td>
-                        <td>{{ $sc['co_details']['CO1']['act3'] }}</td>
-                        <td>{{ $sc['co_details']['CO1']['act4'] }}</td>
-                        <td>{{ $sc['co_details']['CO1']['act5'] }}</td>
-                        
-                        <!-- CO2 -->
-                        <td>{{ $sc['co_details']['CO2']['assignment'] }}</td>
-                        <td>{{ $sc['co_details']['CO2']['mcq'] }}</td>
-                        <td>{{ $sc['co_details']['CO2']['act3'] }}</td>
-                        <td>{{ $sc['co_details']['CO2']['act4'] }}</td>
-                        <td>{{ $sc['co_details']['CO2']['act5'] }}</td>
-                        
-                        <!-- CO3 -->
-                        <td>{{ $sc['co_details']['CO3']['assignment'] }}</td>
-                        <td>{{ $sc['co_details']['CO3']['mcq'] }}</td>
-                        <td>{{ $sc['co_details']['CO3']['act3'] }}</td>
-                        <td>{{ $sc['co_details']['CO3']['act4'] }}</td>
-                        <td>{{ $sc['co_details']['CO3']['act5'] }}</td>
-                        
-                        <!-- CO4 -->
-                        <td>{{ $sc['co_details']['CO4']['assignment'] }}</td>
-                        <td>{{ $sc['co_details']['CO4']['mcq'] }}</td>
-                        <td>{{ $sc['co_details']['CO4']['act3'] }}</td>
-                        <td>{{ $sc['co_details']['CO4']['act4'] }}</td>
-                        <td>{{ $sc['co_details']['CO4']['act5'] }}</td>
-                        
-                        <td style="font-weight: bold; background-color: #f8fafc;">{{ $sc['self_learning_marks'] }}</td>
+                        <td>{{ $sc['ca1_15'] !== null ? number_format($sc['ca1_15'], 1) : '-' }}</td>
+                        <td>{{ $sc['ca2_15'] !== null ? number_format($sc['ca2_15'], 1) : '-' }}</td>
+                        <td>{{ $sc['ca3_15'] !== null ? number_format($sc['ca3_15'], 1) : '-' }}</td>
+                        <td>{{ $sc['ca4_15'] !== null ? number_format($sc['ca4_15'], 1) : '-' }}</td>
+                        <td style="font-weight: bold; background-color: #f8fafc;">{{ number_format($sc['self_learning_15'] ?? $sc['self_learning_marks'] ?? 0, 1) }}</td>
                     </tr>
                 @endforeach
             </tbody>

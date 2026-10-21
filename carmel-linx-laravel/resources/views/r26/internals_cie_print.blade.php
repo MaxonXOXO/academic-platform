@@ -267,7 +267,7 @@
                         <td class="text-center font-mono">{{ number_format($sc['attendance_marks'], 1) }}</td>
                         <td class="text-center font-mono">{{ number_format($sc['self_learning_marks'], 1) }}</td>
                         <td class="text-center font-mono">{{ number_format($sc['series_exam_marks'], 1) }}</td>
-                        <td class="text-center font-mono font-bold" style="font-size: 12px; background-color: #f8fafc;">{{ number_format($sc['total_cia'], 1) }}</td>
+                        <td class="text-center font-mono font-bold" style="font-size: 12px; background-color: #f8fafc;">{{ number_format(round($sc['total_cia'])) }}</td>
                     </tr>
                 @empty
                     <tr>

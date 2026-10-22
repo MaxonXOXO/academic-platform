@@ -372,6 +372,9 @@ class R26VirtualClassroomEnglishController extends Controller
             'CO4' => ['PO1' => '-', 'PO2' => '-', 'PO3' => '-', 'PO4' => '-', 'PO5' => '3', 'PO6' => '2', 'PO7' => '3'],
         ];
 
+        // Compute English 1001 Module-to-CO Attainment (Each Module M1..M4 applies equally to CO1..CO4 + Indirect Surveys)
+        $attainmentData = $this->computeEnglishAttainmentData($subjectId, $englishCourseFile, $studentResults, $mappings);
+
         return view('r26_english.virtual_classroom_english', compact(
             'batchSubject',
             'classroom',
@@ -383,7 +386,8 @@ class R26VirtualClassroomEnglishController extends Controller
             'evaluations',
             'assignedStaff',
             'hod',
-            'mappings'
+            'mappings',
+            'attainmentData'
         ));
     }
 
@@ -839,6 +843,44 @@ class R26VirtualClassroomEnglishController extends Controller
 
         $academicCtx = $this->resolveDepartmentAndAcademicContext($classroom, $batchSubject);
 
+        $copoPayload = $englishCourseFile->parsed_copo ?: [];
+        $mappings = $copoPayload['mappings'] ?? [
+            'CO1' => ['PO1' => '2', 'PO2' => '-', 'PO3' => '-', 'PO4' => '-', 'PO5' => '2', 'PO6' => '-', 'PO7' => '2'],
+            'CO2' => ['PO1' => '2', 'PO2' => '2', 'PO3' => '-', 'PO4' => '-', 'PO5' => '2', 'PO6' => '-', 'PO7' => '2'],
+            'CO3' => ['PO1' => '-', 'PO2' => '-', 'PO3' => '-', 'PO4' => '-', 'PO5' => '3', 'PO6' => '2', 'PO7' => '3'],
+            'CO4' => ['PO1' => '-', 'PO2' => '-', 'PO3' => '-', 'PO4' => '-', 'PO5' => '3', 'PO6' => '2', 'PO7' => '3'],
+        ];
+
+        $studentResultsForAtt = $students->map(function ($st) use ($evaluations) {
+            $ev = $evaluations->get($st->reg_no);
+            return [
+                'reg_no' => $st->reg_no,
+                'sl_m1_10' => $ev ? $ev->sl_m1_10 : null,
+                'sl_m2_10' => $ev ? $ev->sl_m2_10 : null,
+                'sl_m3_10' => $ev ? $ev->sl_m3_10 : null,
+                'sl_m4_10' => $ev ? $ev->sl_m4_10 : null,
+                'ce_m1_50' => $ev ? $ev->ce_m1_50 : null,
+                'ce_m2_50' => $ev ? $ev->ce_m2_50 : null,
+                'ce_m3_50' => $ev ? $ev->ce_m3_50 : null,
+                'ce_m4_50' => $ev ? $ev->ce_m4_50 : null,
+                'prac_test1_40' => $ev ? $ev->prac_test1_40 : null,
+                'prac_test1_absent' => $ev ? (bool)$ev->prac_test1_absent : false,
+                'prac_test2_40' => $ev ? $ev->prac_test2_40 : null,
+                'prac_test2_absent' => $ev ? (bool)$ev->prac_test2_absent : false,
+                'series1_50' => $ev ? $ev->series1_50 : null,
+                'series1_absent' => $ev ? (bool)$ev->series1_absent : false,
+                'series2_50' => $ev ? $ev->series2_50 : null,
+                'series2_absent' => $ev ? (bool)$ev->series2_absent : false,
+                'total_cia_40' => $ev ? $ev->total_cia_40 : 0.0,
+                'att_mark_5' => $ev ? $ev->attendance_mark_5 : 0.0,
+                'ese_grade' => $ev ? $ev->ese_grade : null,
+                'ese_absent' => $ev ? (bool)$ev->ese_absent : false,
+                'ese_mark_60' => $ev ? $ev->ese_mark_60 : null,
+            ];
+        });
+
+        $attainmentData = $this->computeEnglishAttainmentData($subjectId, $englishCourseFile, $studentResultsForAtt, $mappings);
+
         return view('r26_english.cia_register_print', array_merge(compact(
             'batchSubject',
             'classroom',
@@ -849,8 +891,292 @@ class R26VirtualClassroomEnglishController extends Controller
             'attendanceData',
             'assignedStaff',
             'hod',
-            'reportType'
+            'reportType',
+            'mappings',
+            'attainmentData'
         ), $academicCtx));
+    }
+
+    /**
+     * Save Attainment Thresholds & Manual Indirect Survey Overrides for R26 English (1001)
+     */
+    public function saveAttainmentSettings(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 401);
+        }
+
+        $englishCourseFile = R26EnglishCourseFile::firstOrCreate(['batch_subject_id' => $subjectId]);
+        $copoPayload = $englishCourseFile->parsed_copo ?: [];
+
+        $copoPayload['attainment_settings'] = [
+            'cie_threshold_percent' => (float)$request->input('cie_threshold_percent', 50.0),
+            'ese_threshold_grade' => strtoupper(trim($request->input('ese_threshold_grade', 'D'))),
+            'target_student_percent' => (float)$request->input('target_student_percent', 70.0),
+            'level3_percent' => (float)$request->input('level3_percent', 70.0),
+            'level2_percent' => (float)$request->input('level2_percent', 60.0),
+            'level1_percent' => (float)$request->input('level1_percent', 50.0),
+            'manual_indirect' => $request->input('manual_indirect', []),
+        ];
+
+        $englishCourseFile->parsed_copo = $copoPayload;
+        $englishCourseFile->save();
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Attainment settings saved.',
+        ]);
+    }
+
+    /**
+     * Compute Dedicated Rev 2026 English (1001) Attainment Data:
+     * Each Module (M1, M2, M3, M4) covers all 4 COs (CO1, CO2, CO3, CO4).
+     * Therefore, each Module's attainment level applies equally to CO1, CO2, CO3, and CO4,
+     * and the final CIA Direct CO Attainment is the average across M1..M4, combined with ESE and Indirect Surveys.
+     */
+    private function computeEnglishAttainmentData($subjectId, $englishCourseFile, $studentResults, array $mappings): array
+    {
+        $copoPayload = $englishCourseFile->parsed_copo ?: [];
+        $attSettings = $copoPayload['attainment_settings'] ?? [];
+
+        $cieThreshold = (float)($attSettings['cie_threshold_percent'] ?? 50.0);
+        $eseThresholdGrade = strtoupper(trim($attSettings['ese_threshold_grade'] ?? 'D'));
+        $targetStudentPct = (float)($attSettings['target_student_percent'] ?? 70.0);
+        $lvl3Pct = (float)($attSettings['level3_percent'] ?? $targetStudentPct);
+        $lvl2Pct = (float)($attSettings['level2_percent'] ?? max(0.0, $targetStudentPct - 10.0));
+        $lvl1Pct = (float)($attSettings['level1_percent'] ?? max(0.0, $targetStudentPct - 20.0));
+        $manualIndirect = is_array($attSettings['manual_indirect'] ?? null) ? $attSettings['manual_indirect'] : [];
+
+        $totalStudents = max(1, $studentResults->count());
+        $moduleStats = [];
+
+        // 1. Module-Wise Attainment (M1, M2, M3, M4) -> Assigned equally to CO1, CO2, CO3, CO4
+        foreach ([1, 2, 3, 4] as $m) {
+            $mKey = "M{$m}";
+            $assessed = 0;
+            $attained = 0;
+
+            foreach ($studentResults as $s) {
+                $obt = 0.0;
+                $max = 0.0;
+
+                $slVal = $s["sl_m{$m}_10"] ?? null;
+                if ($slVal !== null && $slVal !== '') {
+                    $obt += (float)$slVal;
+                    $max += 10.0;
+                }
+
+                $ceVal = $s["ce_m{$m}_50"] ?? null;
+                if ($ceVal !== null && $ceVal !== '') {
+                    $obt += (float)$ceVal;
+                    $max += 50.0;
+                }
+
+                if ($m <= 2) {
+                    if (($s['prac_test1_40'] ?? null) !== null || !empty($s['prac_test1_absent'])) {
+                        $obt += !empty($s['prac_test1_absent']) ? 0.0 : (float)$s['prac_test1_40'];
+                        $max += 40.0;
+                    }
+                    if (($s['series1_50'] ?? null) !== null || !empty($s['series1_absent'])) {
+                        $obt += !empty($s['series1_absent']) ? 0.0 : (float)$s['series1_50'];
+                        $max += 50.0;
+                    }
+                } else {
+                    if (($s['prac_test2_40'] ?? null) !== null || !empty($s['prac_test2_absent'])) {
+                        $obt += !empty($s['prac_test2_absent']) ? 0.0 : (float)$s['prac_test2_40'];
+                        $max += 40.0;
+                    }
+                    if (($s['series2_50'] ?? null) !== null || !empty($s['series2_absent'])) {
+                        $obt += !empty($s['series2_absent']) ? 0.0 : (float)$s['series2_50'];
+                        $max += 50.0;
+                    }
+                }
+
+                if ($max > 0.0) {
+                    $assessed++;
+                    $pct = ($obt / $max) * 100.0;
+                    if ($pct >= $cieThreshold) {
+                        $attained++;
+                    }
+                }
+            }
+
+            $denom = $assessed > 0 ? $assessed : $totalStudents;
+            $pct = $assessed > 0 ? round(($attained / $denom) * 100.0, 1) : 0.0;
+            $lvl = $assessed > 0 ? AttainmentService::calculateBatchLevel($pct, $lvl3Pct, $lvl2Pct, $lvl1Pct) : 0;
+
+            // Each module's attainment level applies equally to CO1, CO2, CO3, CO4
+            $moduleStats[$mKey] = [
+                'module' => "Module {$m}",
+                'assessed' => $assessed,
+                'total' => $studentResults->count(),
+                'attained' => $attained,
+                'percentage' => $pct,
+                'level' => (float)$lvl,
+                'co1' => (float)$lvl,
+                'co2' => (float)$lvl,
+                'co3' => (float)$lvl,
+                'co4' => (float)$lvl,
+            ];
+        }
+
+        // Average Module Level = Final CIA Direct Attainment for CO1, CO2, CO3, CO4
+        $avgCiaDirectLevel = round((
+            $moduleStats['M1']['level'] +
+            $moduleStats['M2']['level'] +
+            $moduleStats['M3']['level'] +
+            $moduleStats['M4']['level']
+        ) / 4.0, 2);
+
+        // 2. ESE Attainment Level
+        $eseAppeared = 0;
+        $eseMet = 0;
+        foreach ($studentResults as $s) {
+            $grade = strtoupper(trim($s['ese_grade'] ?? ''));
+            $isAbs = !empty($s['ese_absent']) || $grade === 'AB';
+            if ($isAbs) {
+                $eseAppeared++;
+            } elseif ($grade !== '' && $grade !== '-') {
+                $eseAppeared++;
+                if (AttainmentService::isGradeMet($grade, $eseThresholdGrade)) {
+                    $eseMet++;
+                }
+            }
+        }
+        $eseMetPct = $eseAppeared > 0 ? round(($eseMet / $eseAppeared) * 100.0, 1) : 0.0;
+        $eseLevel = $eseAppeared > 0 ? (float)AttainmentService::calculateBatchLevel($eseMetPct, $lvl3Pct, $lvl2Pct, $lvl1Pct) : null;
+
+        // 3. Indirect Attainment from Surveys (Course Exit Survey + Mid-Semester Survey)
+        $exitSurvey = DB::table('course_exit_surveys')
+            ->where('batch_subject_id', $subjectId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $exitResponses = $exitSurvey
+            ? DB::table('student_course_exit_responses')->where('exit_survey_id', $exitSurvey->id)->get()
+            : collect();
+
+        $midSemSurvey = DB::table('mid_semester_surveys')
+            ->where('batch_subject_id', $subjectId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $midSemResponses = $midSemSurvey
+            ? DB::table('student_survey_responses')->where('survey_id', $midSemSurvey->id)->get()
+            : collect();
+
+        $coSummary = [];
+        $combinedStats = [];
+
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            // Direct Attainment: If ESE grades exist, 40% CIA Direct + 60% ESE Direct; else 100% CIA Direct
+            $directLevel = $eseLevel !== null
+                ? round((0.40 * $avgCiaDirectLevel) + (0.60 * $eseLevel), 2)
+                : $avgCiaDirectLevel;
+
+            // Indirect Attainment from Course Exit Survey (scale 0 - 3) or manual override
+            $surveyLevel = null;
+            $surveyPct = null;
+            $surveySource = 'Pending Survey';
+
+            if ($exitResponses->count() > 0) {
+                if ($coTag === 'CO1') {
+                    $avgRating = ($exitResponses->avg('co1_q1') + $exitResponses->avg('co1_q2')) / 2.0;
+                } elseif ($coTag === 'CO2') {
+                    $avgRating = ($exitResponses->avg('co2_q3') + $exitResponses->avg('co2_q4')) / 2.0;
+                } elseif ($coTag === 'CO3') {
+                    $avgRating = ($exitResponses->avg('co3_q5') + $exitResponses->avg('co3_q6')) / 2.0;
+                } else {
+                    $avgRating = ($exitResponses->avg('co4_q7') + $exitResponses->avg('co4_q8') + $exitResponses->avg('co4_q9')) / 3.0;
+                }
+                $surveyPct = round(($avgRating / 3.0) * 100.0, 1);
+                $surveyLevel = round((float)$avgRating, 2);
+                $surveySource = 'Exit Survey (' . $exitResponses->count() . ')';
+            } elseif ($midSemResponses->count() > 0) {
+                if ($coTag === 'CO1') {
+                    $avg5 = ($midSemResponses->avg('q5') + $midSemResponses->avg('q6')) / 2.0;
+                } elseif ($coTag === 'CO2') {
+                    $avg5 = ($midSemResponses->avg('q7') + $midSemResponses->avg('q8')) / 2.0;
+                } elseif ($coTag === 'CO3') {
+                    $avg5 = ($midSemResponses->avg('q9') + $midSemResponses->avg('q10')) / 2.0;
+                } else {
+                    $avg5 = ($midSemResponses->avg('q11') + $midSemResponses->avg('q12')) / 2.0;
+                }
+                $surveyPct = round(($avg5 / 5.0) * 100.0, 1);
+                $surveyLevel = round(($avg5 / 5.0) * 3.0, 2);
+                $surveySource = 'Mid-Sem Survey (' . $midSemResponses->count() . ')';
+            }
+
+            if (isset($manualIndirect[$coTag]) && $manualIndirect[$coTag] !== '' && $manualIndirect[$coTag] !== null) {
+                $indirectLevel = min(3.0, max(0.0, round((float)$manualIndirect[$coTag], 2)));
+                $surveySource = 'Manual / Survey';
+            } elseif ($surveyLevel !== null) {
+                $indirectLevel = $surveyLevel;
+            } else {
+                $indirectLevel = 0.0;
+            }
+
+            // Overall CO Attainment = 80% Direct + 20% Indirect (or 100% Direct if Indirect is 0 and no survey yet)
+            $overallLevel = ($indirectLevel > 0.0 || $surveyLevel !== null)
+                ? round((0.80 * $directLevel) + (0.20 * $indirectLevel), 2)
+                : round((0.80 * $directLevel), 2);
+
+            $coSummary[$coTag] = [
+                'm1_level' => $moduleStats['M1']['level'],
+                'm2_level' => $moduleStats['M2']['level'],
+                'm3_level' => $moduleStats['M3']['level'],
+                'm4_level' => $moduleStats['M4']['level'],
+                'cia_direct_level' => $avgCiaDirectLevel,
+                'ese_direct_level' => $eseLevel,
+                'direct_level' => $directLevel,
+                'indirect_level' => $indirectLevel,
+                'indirect_source' => $surveySource,
+                'overall_level' => $overallLevel,
+            ];
+            $combinedStats[$coTag] = $overallLevel;
+        }
+
+        // 4. PO Attainment Calculation (PO1..PO7)
+        $poAttainments = [];
+        for ($p = 1; $p <= 7; $p++) {
+            $poKey = "PO{$p}";
+            $sumWeight = 0;
+            $sumAtt = 0.0;
+            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+                $w = isset($mappings[$coTag][$poKey]) && is_numeric($mappings[$coTag][$poKey])
+                    ? (int)$mappings[$coTag][$poKey]
+                    : 0;
+                if ($w > 0) {
+                    $sumWeight += $w;
+                    $sumAtt += $combinedStats[$coTag] * $w;
+                }
+            }
+            $poAttainments[$poKey] = [
+                'weight' => $sumWeight,
+                'attainment' => $sumWeight > 0 ? round($sumAtt / $sumWeight, 2) : null,
+            ];
+        }
+
+        return [
+            'cie_threshold_percent' => $cieThreshold,
+            'ese_threshold_grade' => $eseThresholdGrade,
+            'target_student_percent' => $targetStudentPct,
+            'level3_percent' => $lvl3Pct,
+            'level2_percent' => $lvl2Pct,
+            'level1_percent' => $lvl1Pct,
+            'manual_indirect' => $manualIndirect,
+            'module_stats' => $moduleStats,
+            'avg_cia_direct_level' => $avgCiaDirectLevel,
+            'ese_appeared' => $eseAppeared,
+            'ese_met' => $eseMet,
+            'ese_met_pct' => $eseMetPct,
+            'ese_level' => $eseLevel,
+            'exit_survey' => $exitSurvey,
+            'exit_responses_count' => $exitResponses->count(),
+            'midsem_survey' => $midSemSurvey,
+            'midsem_responses_count' => $midSemResponses->count(),
+            'co_summary' => $coSummary,
+            'po_attainments' => $poAttainments,
+        ];
     }
 
     /**

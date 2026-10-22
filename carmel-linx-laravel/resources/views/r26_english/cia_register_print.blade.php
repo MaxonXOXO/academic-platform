@@ -8,6 +8,7 @@
         'ce-marks' => 'CE: Continuous Evaluation Register (M1–M4 Out of 50 → Converted to 10 Marks)',
         'practical-test' => 'CA2 & CA3: Practical Test Marks Register (Test 1 & Test 2 Out of 40 → Average 10 Marks)',
         'series-test' => 'CA4 & CA5: Series Examination Marks Register (Series 1 & Series 2 Out of 50 → Average 10 Marks)',
+        'attainment-report' => 'CO-PO Attainment & Indirect Survey Evaluation Report (Module-to-CO Matrix Model)',
     ];
     $reportSubTitle = $reportTitles[$rType] ?? $reportTitles['cia-register'];
 @endphp
@@ -372,6 +373,118 @@
                         <td style="font-weight: 800; background: #f8fafc;">{{ $ev ? number_format($ev->series_conv_10, 1) : '0.0' }}</td>
                     </tr>
                     @endforeach
+                </tbody>
+            </table>
+
+        @elseif($rType === 'attainment-report')
+            <!-- 1. MODULE-TO-CO ATTAINMENT MATRIX (ENGLISH 1001 SPECIAL MODEL: EACH MODULE COVERS ALL 4 COs) -->
+            <h4 style="margin: 12px 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+                1. Module-Wise Direct Attainment &amp; Equal Assignment to CO1–CO4 (CIE Threshold: {{ $attainmentData['cie_threshold_percent'] ?? 50 }}%)
+            </h4>
+            <table class="data-table" style="margin-bottom: 14px;">
+                <thead>
+                    <tr>
+                        <th style="width: 110px;">Module</th>
+                        <th style="width: 120px;">Students Assessed</th>
+                        <th style="width: 120px;">Students Met Target</th>
+                        <th style="width: 100px;">Attained %</th>
+                        <th style="width: 110px;">Module Level (0–3)</th>
+                        <th>CO1 Level</th>
+                        <th>CO2 Level</th>
+                        <th>CO3 Level</th>
+                        <th>CO4 Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(['M1', 'M2', 'M3', 'M4'] as $mKey)
+                    @php $ms = $attainmentData['module_stats'][$mKey] ?? []; @endphp
+                    <tr>
+                        <td style="font-weight: 700;">{{ $ms['module'] ?? $mKey }}</td>
+                        <td>{{ $ms['assessed'] ?? 0 }} / {{ $ms['total'] ?? count($students) }}</td>
+                        <td>{{ $ms['attained'] ?? 0 }}</td>
+                        <td style="font-weight: 700;">{{ number_format($ms['percentage'] ?? 0, 1) }}%</td>
+                        <td style="font-weight: 800; background: #f8fafc;">{{ number_format($ms['level'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($ms['co1'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($ms['co2'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($ms['co3'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($ms['co4'] ?? 0, 2) }}</td>
+                    </tr>
+                    @endforeach
+                    <tr style="background: #f1f5f9; font-weight: 800;">
+                        <td colspan="5" style="text-align: right; padding-right: 12px;">Final Average CIA Direct Attainment (M1–M4 Average):</td>
+                        <td>{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 2. FINAL COURSE OUTCOME (CO) ATTAINMENT SUMMARY (DIRECT 80% + INDIRECT SURVEY 20%) -->
+            <h4 style="margin: 12px 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+                2. Final Course Outcome (CO) Attainment Summary (Direct 80% + Indirect Survey 20%)
+            </h4>
+            <table class="data-table" style="margin-bottom: 14px;">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">CO Code</th>
+                        <th>CIA Direct (Avg M1–M4)</th>
+                        <th>ESE Direct (Grade &ge; {{ $attainmentData['ese_threshold_grade'] ?? 'D' }})</th>
+                        <th>Total Direct Level (80% Wt)</th>
+                        <th>Indirect Survey Level (20% Wt)</th>
+                        <th>Survey Source</th>
+                        <th style="width: 140px;">Final Overall CO Attainment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coKey)
+                    @php $cs = $attainmentData['co_summary'][$coKey] ?? []; @endphp
+                    <tr>
+                        <td style="font-weight: 800;">{{ $coKey }}</td>
+                        <td>{{ number_format($cs['cia_direct_level'] ?? 0, 2) }}</td>
+                        <td>{{ ($cs['ese_direct_level'] ?? null) !== null ? number_format($cs['ese_direct_level'], 2) : 'Pending ESE' }}</td>
+                        <td style="font-weight: 700;">{{ number_format($cs['direct_level'] ?? 0, 2) }}</td>
+                        <td style="font-weight: 700;">{{ number_format($cs['indirect_level'] ?? 0, 2) }}</td>
+                        <td>{{ $cs['indirect_source'] ?? '-' }}</td>
+                        <td style="font-weight: 800; background: #f8fafc;">{{ number_format($cs['overall_level'] ?? 0, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <!-- 3. PROGRAM OUTCOME (PO1–PO7) ATTAINMENT TABLE -->
+            <h4 style="margin: 12px 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+                3. Program Outcome (PO1–PO7) Attainment Matrix
+            </h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">CO / PO</th>
+                        @for($p = 1; $p <= 7; $p++)
+                        <th>PO{{ $p }}</th>
+                        @endfor
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coKey)
+                    <tr>
+                        <td style="font-weight: 700;">{{ $coKey }} ({{ number_format($attainmentData['co_summary'][$coKey]['overall_level'] ?? 0, 2) }})</td>
+                        @for($p = 1; $p <= 7; $p++)
+                        @php $pKey = "PO{$p}"; @endphp
+                        <td>{{ $mappings[$coKey][$pKey] ?? '-' }}</td>
+                        @endfor
+                    </tr>
+                    @endforeach
+                    <tr style="background: #f1f5f9; font-weight: 800;">
+                        <td>PO Attainment</td>
+                        @for($p = 1; $p <= 7; $p++)
+                        @php
+                            $pKey = "PO{$p}";
+                            $pAtt = $attainmentData['po_attainments'][$pKey]['attainment'] ?? null;
+                        @endphp
+                        <td>{{ $pAtt !== null ? number_format($pAtt, 2) : '-' }}</td>
+                        @endfor
+                    </tr>
                 </tbody>
             </table>
 

@@ -238,7 +238,7 @@
                         </h1>
                     </div>
                     <p class="text-xs text-slate-400 mb-0 mt-0.5">
-                        Virtual English Communication Classroom • Batch: <strong class="text-slate-200 font-mono">{{ $batchSubject->classroom_id }}</strong>
+                        Virtual English Communication Classroom
                     </p>
                 </div>
             </div>
@@ -277,11 +277,7 @@
         <div class="glass-card p-5 sm:p-6 rounded-2xl border border-slate-800 min-h-[118px] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div class="space-y-2">
                 <div class="flex items-center flex-wrap gap-2.5 text-sm sm:text-base text-slate-200">
-                    <span class="text-amber-300 font-extrabold font-mono">{{ $batchSubject->classroom_id }}</span>
-                    <span class="text-slate-600 font-bold">•</span>
-                    <span class="text-sky-300 font-semibold">{{ $classroom->department ?? $classroom->branch }}</span>
-                    <span class="text-slate-600 font-bold">•</span>
-                    <span class="text-slate-300">Semester {{ $englishCourseFile->semester ?? 'I' }}</span>
+                    <span class="text-slate-300 font-semibold">Semester {{ $englishCourseFile->semester ?? 'I' }}</span>
                 </div>
 
                 <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-400">
@@ -361,6 +357,12 @@
                 <button onclick="switchTab('cia')" id="tab-btn-cia" class="subtab-btn px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span class="material-symbols-rounded text-sm">fact_check</span>
                     <span>CIA Register</span>
+                </button>
+
+                <!-- Attainment -->
+                <button onclick="switchTab('attainment')" id="tab-btn-attainment" class="subtab-btn px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-sm">analytics</span>
+                    <span>Attainment</span>
                 </button>
 
                 <!-- Reports -->
@@ -1101,10 +1103,6 @@
                             <span class="material-symbols-rounded text-sm">upload_file</span>
                             <span>Upload TEAMS Attendance</span>
                         </button>
-                        <button onclick="switchTab('reports')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Open Reports &amp; Print</span>
-                        </button>
                     </div>
                 </div>
 
@@ -1281,140 +1279,379 @@
         </div>
 
         <!-- ========================================================================= -->
-        <!-- TAB: REPORTS (ALL OFFICIAL PRINTABLE REGISTERS & LOGS)                    -->
+        <!-- TAB: ATTAINMENT (1001 ENGLISH REV 2026: MODULE-TO-CO EQUAL MODEL + SURVEYS)-->
+        <!-- ========================================================================= -->
+        <div id="tab-content-attainment" class="tab-pane-content hidden space-y-4">
+
+            <!-- 1. Methodology Banner & Surveys Console -->
+            <div class="glass-card p-5 border border-slate-800 space-y-4">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                        <h3 class="font-bold text-sm text-cyan-400 flex items-center gap-2">
+                            <span class="material-symbols-rounded text-base">analytics</span>
+                            <span>CO &amp; PO Attainment Engine — 1001 English for Communication (Revision 2026)</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-0 mt-0.5">
+                            <strong>Module-to-CO Equal Attainment Approach (Subject 1001 Only):</strong> Each module (<span class="font-mono text-sky-300">M1, M2, M3, M4</span>) encompasses all 4 Course Outcomes (<span class="font-mono text-amber-300">CO1, CO2, CO3, CO4</span>). If Module 1 attainment level is <strong class="text-emerald-300">2</strong>, then <span class="font-mono">CO1, CO2, CO3, CO4</span> each receive <strong class="text-emerald-300">2</strong> for Module 1, and the Final CIA Direct Attainment for each CO is the average across M1–M4, combined with ESE Direct Attainment and Indirect Surveys.
+                        </p>
+                    </div>
+                    <span class="text-xs text-emerald-400 font-semibold shrink-0">⚡ Thresholds &amp; Overrides Auto-Save</span>
+                </div>
+
+                <!-- Indirect Attainment Surveys: Mid-Sem & Course Exit Survey Controls -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <!-- Mid-Semester Survey -->
+                    <div class="p-3.5 rounded-xl bg-slate-950/75 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-rounded text-cyan-400 text-base">rate_review</span>
+                                <h4 class="font-bold text-xs text-white mb-0">Mid-Semester Feedback Survey (Indirect)</h4>
+                                <span id="eng-midsem-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Checking...</span>
+                            </div>
+                            <p id="eng-midsem-stats" class="text-[11px] text-slate-400 mb-0 mt-1">Student feedback on Modules I &amp; II for CO1–CO4 indirect evaluation.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+                            <button type="button" onclick="viewEnglishSurveyQuestions('midsem')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">visibility</span>
+                                <span>Questions</span>
+                            </button>
+                            <button type="button" id="btn-eng-midsem-init" onclick="initiateEnglishSurvey('midsem')" class="px-2.5 py-1.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-300 text-xs font-bold cursor-pointer flex items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">rocket_launch</span>
+                                <span>Initiate</span>
+                            </button>
+                            <button type="button" id="btn-eng-midsem-close" onclick="closeEnglishSurvey('midsem')" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-600/25 hover:bg-rose-600/40 border border-rose-500/40 text-rose-300 text-xs font-bold cursor-pointer items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">lock</span>
+                                <span>Close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Course Exit Survey -->
+                    <div class="p-3.5 rounded-xl bg-slate-950/75 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-rounded text-amber-400 text-base">assignment_turned_in</span>
+                                <h4 class="font-bold text-xs text-white mb-0">Course Exit Survey (Indirect CO1–CO4)</h4>
+                                <span id="eng-exit-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                    {{ strtoupper($attainmentData['exit_survey']->status ?? 'NOT_INITIATED') }}
+                                </span>
+                            </div>
+                            <p id="eng-exit-stats" class="text-[11px] text-slate-400 mb-0 mt-1">
+                                Responses: <strong class="text-slate-200">{{ $attainmentData['exit_responses_count'] ?? 0 }} / {{ count($studentResults) }}</strong> • Feeds 20% Indirect Attainment for CO1–CO4
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+                            <button type="button" onclick="viewEnglishSurveyQuestions('exit')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">visibility</span>
+                                <span>Questions</span>
+                            </button>
+                            <button type="button" id="btn-eng-exit-init" onclick="initiateEnglishSurvey('exit')" class="px-2.5 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-300 text-xs font-bold cursor-pointer flex items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">rocket_launch</span>
+                                <span>Initiate</span>
+                            </button>
+                            <button type="button" id="btn-eng-exit-close" onclick="closeEnglishSurvey('exit')" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-600/25 hover:bg-rose-600/40 border border-rose-500/40 text-rose-300 text-xs font-bold cursor-pointer items-center gap-1">
+                                <span class="material-symbols-rounded text-xs">lock</span>
+                                <span>Close</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attainment Threshold Configuration Bar -->
+                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Module Target Mark %</label>
+                        <input type="number" id="att-cfg-cie-threshold" step="1" min="1" max="100"
+                               value="{{ $attainmentData['cie_threshold_percent'] ?? 50 }}"
+                               class="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center rounded-lg no-spinners"
+                               oninput="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">ESE Target Grade Threshold</label>
+                        <select id="att-cfg-ese-grade" class="w-full px-2.5 py-1.5 text-xs font-bold text-center rounded-lg"
+                                onchange="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                            @foreach(['S','A','B','C','D','E','P'] as $gOpt)
+                            <option value="{{ $gOpt }}" {{ ($attainmentData['ese_threshold_grade'] ?? 'D') === $gOpt ? 'selected' : '' }}>Grade &ge; {{ $gOpt }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-emerald-400 mb-1">Level 3 Cutoff (% Students)</label>
+                        <input type="number" id="att-cfg-lvl3" step="1" min="1" max="100"
+                               value="{{ $attainmentData['level3_percent'] ?? 70 }}"
+                               class="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center rounded-lg no-spinners"
+                               oninput="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-sky-400 mb-1">Level 2 Cutoff (% Students)</label>
+                        <input type="number" id="att-cfg-lvl2" step="1" min="1" max="100"
+                               value="{{ $attainmentData['level2_percent'] ?? 60 }}"
+                               class="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center rounded-lg no-spinners"
+                               oninput="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-amber-400 mb-1">Level 1 Cutoff (% Students)</label>
+                        <input type="number" id="att-cfg-lvl1" step="1" min="1" max="100"
+                               value="{{ $attainmentData['level1_percent'] ?? 50 }}"
+                               class="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center rounded-lg no-spinners"
+                               oninput="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Module-wise Direct Attainment -> Assigned Equally to All 4 COs (CO1, CO2, CO3, CO4) -->
+            <div class="glass-card p-5 border border-slate-800 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-slate-800">
+                    <div>
+                        <h4 class="font-bold text-sm text-sky-400 flex items-center gap-2">
+                            <span class="material-symbols-rounded text-base">view_module</span>
+                            <span>1. Module-wise Assessment &amp; Equal Assignment to CO1, CO2, CO3, CO4 (CIA Direct Attainment)</span>
+                        </h4>
+                        <p class="text-xs text-slate-400 mb-0">
+                            Each module includes all 4 COs, so each module's attainment level (0–3) is assigned equally to <strong>CO1, CO2, CO3, and CO4</strong>. Final CIA Direct Attainment for each CO is the average across M1–M4.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-center text-xs" id="eng-module-attainment-table">
+                        <thead>
+                            <tr class="bg-slate-950 text-slate-200">
+                                <th rowspan="2" class="border border-slate-800 p-2 w-24">Module</th>
+                                <th rowspan="2" class="border border-slate-800 p-2 text-left">Assessment Components Included</th>
+                                <th rowspan="2" class="border border-slate-800 p-2 w-28">Students &ge; Target</th>
+                                <th rowspan="2" class="border border-slate-800 p-2 w-24">% Achieved</th>
+                                <th rowspan="2" class="border border-slate-800 p-2 w-28 bg-sky-950/40 text-sky-300">Module Level (0–3)</th>
+                                <th colspan="4" class="border border-slate-800 p-2 bg-amber-950/35 text-amber-300">Assigned Equally to All 4 Course Outcomes</th>
+                            </tr>
+                            <tr class="bg-slate-900 text-amber-300 font-mono text-xs">
+                                <th class="border border-slate-800 p-1.5 w-20">CO1</th>
+                                <th class="border border-slate-800 p-1.5 w-20">CO2</th>
+                                <th class="border border-slate-800 p-1.5 w-20">CO3</th>
+                                <th class="border border-slate-800 p-1.5 w-20">CO4</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-mono">
+                            @php
+                                $modCompDesc = [
+                                    'M1' => 'SL M1 (10M) + CE M1 (50M) + Practical Test 1 (40M) + Series Exam 1 (50M)',
+                                    'M2' => 'SL M2 (10M) + CE M2 (50M) + Practical Test 1 (40M) + Series Exam 1 (50M)',
+                                    'M3' => 'SL M3 (10M) + CE M3 (50M) + Practical Test 2 (40M) + Series Exam 2 (50M)',
+                                    'M4' => 'SL M4 (10M) + CE M4 (50M) + Practical Test 2 (40M) + Series Exam 2 (50M)',
+                                ];
+                            @endphp
+                            @foreach(['M1', 'M2', 'M3', 'M4'] as $mKey)
+                            @php $mRow = $attainmentData['module_stats'][$mKey] ?? []; @endphp
+                            <tr class="hover:bg-slate-800/40" data-mod-row="{{ $mKey }}">
+                                <td class="border border-slate-800 p-2 font-bold text-sky-300">{{ $mKey }}</td>
+                                <td class="border border-slate-800 p-2 text-left font-sans text-slate-300">{{ $modCompDesc[$mKey] ?? '' }}</td>
+                                <td class="border border-slate-800 p-2 text-slate-200">
+                                    <span class="mod-above-cnt">{{ $mRow['attained'] ?? 0 }}</span> / <span class="mod-app-cnt">{{ $mRow['assessed'] ?? 0 }}</span>
+                                </td>
+                                <td class="border border-slate-800 p-2 font-bold text-slate-200"><span class="mod-pct">{{ number_format($mRow['percentage'] ?? 0, 1) }}</span>%</td>
+                                <td class="border border-slate-800 p-2 font-extrabold text-sm text-sky-300 bg-sky-950/25 mod-lvl">{{ $mRow['level'] ?? 0 }}</td>
+                                <td class="border border-slate-800 p-2 font-bold text-amber-300 bg-amber-950/15 mod-co1">{{ $mRow['co1'] ?? 0 }}</td>
+                                <td class="border border-slate-800 p-2 font-bold text-amber-300 bg-amber-950/15 mod-co2">{{ $mRow['co2'] ?? 0 }}</td>
+                                <td class="border border-slate-800 p-2 font-bold text-amber-300 bg-amber-950/15 mod-co3">{{ $mRow['co3'] ?? 0 }}</td>
+                                <td class="border border-slate-800 p-2 font-bold text-amber-300 bg-amber-950/15 mod-co4">{{ $mRow['co4'] ?? 0 }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-emerald-950/30 font-mono font-extrabold text-emerald-300 text-xs">
+                                <td colspan="4" class="border border-slate-800 p-2.5 text-right font-sans">Final CIA Direct Attainment Average (M1 + M2 + M3 + M4) / 4 :</td>
+                                <td class="border border-slate-800 p-2.5 text-sm" id="mod-cia-avg-lvl">{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2.5 text-sm mod-avg-co">{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2.5 text-sm mod-avg-co">{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2.5 text-sm mod-avg-co">{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2.5 text-sm mod-avg-co">{{ number_format($attainmentData['avg_cia_direct_level'] ?? 0, 2) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Final CO Attainment Summary (Direct 80% + Indirect Survey 20%) -->
+            <div class="glass-card p-5 border border-slate-800 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-slate-800">
+                    <div>
+                        <h4 class="font-bold text-sm text-emerald-400 flex items-center gap-2">
+                            <span class="material-symbols-rounded text-base">verified</span>
+                            <span>2. Overall Course Outcome (CO1 – CO4) Attainment Summary (Direct 80% + Indirect Survey 20%)</span>
+                        </h4>
+                        <p class="text-xs text-slate-400 mb-0">
+                            <strong>Direct CO Attainment</strong> = <span class="font-mono">0.40 &times; CIA Avg + 0.60 &times; ESE Level</span> • <strong>Overall CO Attainment</strong> = <span class="font-mono">0.80 &times; Direct + 0.20 &times; Indirect (Surveys)</span>.
+                        </p>
+                    </div>
+                    <div class="text-xs font-mono text-slate-300">
+                        ESE Direct (&ge; <span id="ese-grade-lbl">{{ $attainmentData['ese_threshold_grade'] ?? 'D' }}</span>):
+                        <strong class="text-rose-300"><span id="ese-above-cnt">{{ $attainmentData['ese_met'] ?? 0 }}</span>/<span id="ese-app-cnt">{{ $attainmentData['ese_appeared'] ?? 0 }}</span> (<span id="ese-pct-val">{{ number_format($attainmentData['ese_met_pct'] ?? 0, 1) }}</span>% &rarr; Level <span id="ese-lvl-val">{{ $attainmentData['ese_level'] ?? 0 }}</span>)</strong>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-center text-xs" id="eng-co-summary-table">
+                        <thead>
+                            <tr class="bg-slate-950 text-slate-200">
+                                <th class="border border-slate-800 p-2 w-16">CO</th>
+                                <th class="border border-slate-800 p-2 text-left">Course Outcome Description</th>
+                                <th class="border border-slate-800 p-2 w-24">CIA Avg (40%)</th>
+                                <th class="border border-slate-800 p-2 w-24">ESE Level (60%)</th>
+                                <th class="border border-slate-800 p-2 w-28 bg-sky-950/35 text-sky-300">Direct Total (80%)</th>
+                                <th class="border border-slate-800 p-2 w-36 bg-amber-950/35 text-amber-300">Indirect Survey / Override (20%)</th>
+                                <th class="border border-slate-800 p-2 w-28 bg-emerald-950/45 text-emerald-300 font-extrabold">Final CO Attainment (Out of 3)</th>
+                                <th class="border border-slate-800 p-2 w-24">% Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $coDescMap = collect($englishCourseFile->parsed_cos ?? [])->keyBy('id');
+                            @endphp
+                            @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coId)
+                            @php
+                                $cRow = $attainmentData['co_summary'][$coId] ?? [];
+                                $manualInd = $attainmentData['manual_indirect'][$coId] ?? '';
+                                $overallVal = (float)($cRow['overall_level'] ?? 0);
+                            @endphp
+                            <tr class="hover:bg-slate-800/40" data-co-row="{{ $coId }}">
+                                <td class="border border-slate-800 p-2 font-mono font-bold text-amber-300">{{ $coId }}</td>
+                                <td class="border border-slate-800 p-2 text-left text-slate-300">{{ $coDescMap[$coId]['description'] ?? '' }}</td>
+                                <td class="border border-slate-800 p-2 font-mono text-slate-200 co-cia-val">{{ number_format($cRow['cia_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2 font-mono text-slate-200 co-ese-val">{{ number_format($cRow['ese_direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-2 font-mono font-bold text-sky-300 bg-sky-950/20 co-direct-val">{{ number_format($cRow['direct_level'] ?? 0, 2) }}</td>
+                                <td class="border border-slate-800 p-1.5 bg-amber-950/15">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <span class="font-mono font-bold text-amber-300 co-ind-effective">{{ number_format($cRow['indirect_level'] ?? 0, 2) }}</span>
+                                        <input type="number" step="0.1" min="0" max="3"
+                                               data-co-ind-override="{{ $coId }}"
+                                               data-survey-default="{{ $cRow['indirect_level'] ?? 0 }}"
+                                               value="{{ $manualInd !== null ? $manualInd : '' }}"
+                                               placeholder="Auto"
+                                               title="Optional manual override (0 to 3) for {{ $coId }} Indirect Survey Attainment"
+                                               class="w-16 px-1.5 py-1 text-xs font-mono text-center rounded no-spinners"
+                                               oninput="recalcEnglishAttainmentLive(); queueAttainmentSettingsSave();">
+                                    </div>
+                                </td>
+                                <td class="border border-slate-800 p-2 font-mono font-extrabold text-sm text-emerald-400 bg-emerald-950/30 co-overall-val">{{ number_format($overallVal, 2) }}</td>
+                                <td class="border border-slate-800 p-2 font-mono font-bold text-slate-200"><span class="co-pct-val">{{ number_format(($overallVal / 3.0) * 100.0, 1) }}</span>%</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. Program Outcome (PO1 – PO7) Attainment Matrix -->
+            <div class="glass-card p-5 border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <div>
+                        <h4 class="font-bold text-sm text-amber-400 flex items-center gap-2">
+                            <span class="material-symbols-rounded text-base">grid_on</span>
+                            <span>3. Program Outcome (PO1 – PO7) Attainment Matrix</span>
+                        </h4>
+                        <p class="text-xs text-slate-400 mb-0">Computed from Final CO Attainment and the CO–PO Articulation Matrix.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-center text-xs" id="eng-po-attainment-table">
+                        <thead>
+                            <tr class="bg-slate-950 text-slate-200">
+                                <th class="border border-slate-800 p-2 text-left">CO / Attainment</th>
+                                @for($p = 1; $p <= 7; $p++)
+                                <th class="border border-slate-800 p-2 font-mono">PO{{ $p }}</th>
+                                @endfor
+                            </tr>
+                        </thead>
+                        <tbody class="font-mono">
+                            @foreach(['CO1', 'CO2', 'CO3', 'CO4'] as $coTag)
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="border border-slate-800 p-2 text-left font-bold text-cyan-300">
+                                    {{ $coTag }} (<span class="po-tbl-co-val" data-co="{{ $coTag }}">{{ number_format($attainmentData['co_summary'][$coTag]['overall_level'] ?? 0, 2) }}</span>)
+                                </td>
+                                @for($p = 1; $p <= 7; $p++)
+                                @php $mVal = $mappings[$coTag]["PO{$p}"] ?? '-'; @endphp
+                                <td class="border border-slate-800 p-2 {{ $mVal !== '-' && $mVal > 0 ? 'text-slate-200 font-bold' : 'text-slate-600' }}"
+                                    data-po-map-co="{{ $coTag }}" data-po-map-po="PO{{ $p }}" data-po-weight="{{ $mVal !== '-' ? $mVal : 0 }}">
+                                    {{ $mVal }}
+                                </td>
+                                @endfor
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-amber-950/25 font-mono font-extrabold text-amber-300">
+                                <td class="border border-slate-800 p-2.5 text-left font-sans">Final PO Attainment (Out of 3):</td>
+                                @for($p = 1; $p <= 7; $p++)
+                                @php
+                                    $poAttVal = $attainmentData['po_attainments']["PO{$p}"]['attainment'] ?? null;
+                                @endphp
+                                <td class="border border-slate-800 p-2.5 text-sm" id="po-final-lvl-PO{{ $p }}">
+                                    {{ $poAttVal !== null ? number_format($poAttVal, 2) : '-' }}
+                                </td>
+                                @endfor
+                            </tr>
+                            <tr class="bg-slate-950 font-mono text-slate-300 text-[11px]">
+                                <td class="border border-slate-800 p-2 text-left font-sans font-bold">PO Attainment %:</td>
+                                @for($p = 1; $p <= 7; $p++)
+                                @php
+                                    $poAttVal = $attainmentData['po_attainments']["PO{$p}"]['attainment'] ?? null;
+                                @endphp
+                                <td class="border border-slate-800 p-2 font-bold" id="po-final-pct-PO{{ $p }}">
+                                    {{ $poAttVal !== null ? number_format(($poAttVal / 3.0) * 100.0, 1) . '%' : '-' }}
+                                </td>
+                                @endfor
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB: REPORTS (COMPACT PRINT BUTTONS — ALL PRINTING FROM HERE ONLY)        -->
         <!-- ========================================================================= -->
         <div id="tab-content-reports" class="tab-pane-content hidden space-y-4">
             <div class="glass-card p-5 border border-slate-800">
                 <div class="mb-4 pb-3 border-b border-slate-800">
-                    <h3 class="font-bold text-sm text-cyan-400 flex items-center gap-2">
-                        <span class="material-symbols-rounded text-base">print</span>
+                    <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                        <span class="material-symbols-rounded text-base text-slate-400">print</span>
                         <span>Official Printable Registers &amp; Academic Reports — 1001 English for Communication</span>
                     </h3>
-                    <p class="text-xs text-slate-400 mb-0">Generate A4 print-ready registers for Attendance, Course Log, Self Learning, CE, Practical Test, Series Test, CIA (Internal Mark Consolidated), and Consolidated Marks.</p>
+                    <p class="text-xs text-slate-400 mb-0">Select any official register or report below to open its A4 print view.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                @php
+                    $englishReportItems = [
+                        ['slug' => 'cia-register',       'icon' => 'fact_check',            'title' => 'CIA Register (Internal Mark Consolidated — 40M)',           'sub' => 'Attendance (5M), CA1 (5M), CE (10M), CA2 (10M), CA4 (10M), Total CIA (40M)'],
+                        ['slug' => 'consolidated-marks', 'icon' => 'workspace_premium',     'title' => 'Consolidated Marks Report (CIA 40M + ESE Grade)',           'sub' => 'Final rounded CIA (40M) and End Semester Examination Grade'],
+                        ['slug' => 'attendance',         'icon' => 'how_to_reg',            'title' => 'Attendance Percentage & Marks Report (5M)',                 'sub' => 'Uploaded %, Override %, Effective %, Eligibility, and Attendance Mark (5M)'],
+                        ['slug' => 'course-log',         'icon' => 'calendar_month',        'title' => 'Course Log & Lesson Planner Report (60 Hours)',             'sub' => 'Session-wise proposed/actual dates, topics, modules, COs, and hours'],
+                        ['slug' => 'ce-marks',           'icon' => 'assignment_turned_in',  'title' => 'Continuous Evaluation (CE) Mark Report (50 → 10M)',         'sub' => 'Module 1–4 CE marks out of 50, average out of 50, and converted mark out of 10'],
+                        ['slug' => 'practical-test',     'icon' => 'mic',                   'title' => 'Practical Test Mark Report (CA2 & CA3: 40 → 10M)',          'sub' => 'Practical Test 1 & Test 2 marks (40M), average (40M), and converted mark (10M)'],
+                        ['slug' => 'series-test',        'icon' => 'edit_note',             'title' => 'Series Test Mark Report (CA4 & CA5: 50 → 10M)',             'sub' => 'Series Exam 1 & Exam 2 marks (50M), average (50M), and converted mark (10M)'],
+                        ['slug' => 'self-learning',      'icon' => 'psychology',            'title' => 'Self-Learning Mark Report (CA1: 10 → 5M)',                  'sub' => 'Module 1–4 Self-Learning marks (10M), average (10M), and converted mark (5M)'],
+                        ['slug' => 'attainment-report',  'icon' => 'analytics',             'title' => 'CO & PO Attainment Report (Module-to-CO Equal Model)',      'sub' => 'Module M1–M4 equal CO1–CO4 matrix, Direct (80%) + Survey Indirect (20%), PO1–PO7'],
+                    ];
+                @endphp
 
-                    <!-- 1. CIA (Internal Mark Consolidated 40M) -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">fact_check</span>
+                <div class="divide-y divide-slate-800/80 border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60">
+                    @foreach($englishReportItems as $rItem)
+                    <div class="px-4 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-900/60 transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="material-symbols-rounded text-slate-400 text-base shrink-0">{{ $rItem['icon'] }}</span>
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold text-slate-200 truncate">{{ $rItem['title'] }}</div>
+                                <div class="text-[11px] text-slate-400 truncate">{{ $rItem['sub'] }}</div>
                             </div>
-                            <h4 class="font-bold text-xs text-white">CIA Register (Internal Mark Consolidated — 40M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Full internal assessment register with Attendance (5M), CA1 (5M), CE (10M), Practical Test Avg (10M), Series Test Avg (10M), and Total CIA (40M).</p>
                         </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/cia-register" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
+                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/{{ $rItem['slug'] }}" target="_blank"
+                           class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
                             <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print CIA Register</span>
+                            <span>Print Report</span>
                         </a>
                     </div>
-
-                    <!-- 2. Consolidated Marks (CIA 40M + ESE Grade) -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">workspace_premium</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Consolidated Marks Report (CIA 40M + ESE Grade)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Complete semester result register combining 40M Internal CIA marks (rounded off) and ESE Grade.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/consolidated-marks" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Consolidated Marks</span>
-                        </a>
-                    </div>
-
-                    <!-- 3. Attendance Report -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">how_to_reg</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Attendance Percentage &amp; Marks Report (5M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Official subject attendance report showing TEAMS uploaded %, manual override %, effective %, eligibility, and Attendance Marks out of 5.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/attendance" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Attendance Report</span>
-                        </a>
-                    </div>
-
-                    <!-- 4. Course Log / Lesson Plan Schedule -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">calendar_month</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Course Log &amp; Lesson Planner Report</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">60-hour session-wise course execution log with proposed dates, actual completion dates, modules, COs, and faculty/HOD signatures.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/course-log" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Course Log</span>
-                        </a>
-                    </div>
-
-                    <!-- 5. Continuous Evaluation (CE) Mark Report -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">assignment_turned_in</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Continuous Evaluation (CE) Mark Report (50 &rarr; 10M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Module-wise Continuous Evaluation marks (M1, M2, M3, M4 each out of 50), average out of 50, and converted mark out of 10.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/ce-marks" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print CE Mark Report</span>
-                        </a>
-                    </div>
-
-                    <!-- 6. Practical Test Mark Report (CA2 & CA3) -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">mic</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Practical Test Mark Report (CA2 &amp; CA3: 40 &rarr; 10M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Practical Test 1 (40M) &amp; Practical Test 2 (40M) marks, individual conversions out of 10, average out of 40, and final mark out of 10.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/practical-test" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Practical Test Report</span>
-                        </a>
-                    </div>
-
-                    <!-- 7. Series Test Mark Report (CA4 & CA5) -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">edit_note</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Series Test Mark Report (CA4 &amp; CA5: 50 &rarr; 10M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Series Exam 1 (50M) &amp; Series Exam 2 (50M) marks, individual conversions out of 10, average out of 50, and final mark out of 10.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/series-test" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Series Test Report</span>
-                        </a>
-                    </div>
-
-                    <!-- 8. Self-Learning Mark Report (CA1) -->
-                    <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center">
-                                <span class="material-symbols-rounded">psychology</span>
-                            </div>
-                            <h4 class="font-bold text-xs text-white">Self-Learning Mark Report (CA1: 10 &rarr; 5M)</h4>
-                            <p class="text-[11px] text-slate-400 leading-snug">Module 1–4 Self-Learning activity marks (each out of 10), average out of 10, and converted mark out of 5.</p>
-                        </div>
-                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/self-learning" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs no-underline transition-all">
-                            <span class="material-symbols-rounded text-sm">print</span>
-                            <span>Print Self-Learning Report</span>
-                        </a>
-                    </div>
-
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -1459,7 +1696,7 @@
             </div>
             <form id="uploadTeamsAttendanceForm" enctype="multipart/form-data" class="space-y-3">
                 <p class="text-xs text-slate-400 leading-relaxed mb-0">
-                    Upload the official TEAMS attendance CSV / Excel / PDF file for <strong>{{ $batchSubject->subject_code }} ({{ $batchSubject->classroom_id }})</strong>.
+                    Upload the official TEAMS attendance CSV / Excel / PDF file for <strong>{{ $batchSubject->subject_code }}</strong>.
                 </p>
                 <div>
                     <input type="file" name="attendance_file" accept=".csv,.xlsx,.xls,.pdf" required class="w-full text-xs px-2.5 py-2 border rounded-lg bg-slate-950 border-slate-800 text-slate-200">
@@ -1501,6 +1738,10 @@
                 setTimeout(() => {
                     document.querySelectorAll('.growable-textarea').forEach(el => autoGrow(el));
                 }, 20);
+            }
+            if (tabId === 'attainment') {
+                recalcEnglishAttainmentLive();
+                loadEnglishSurveyStatuses();
             }
         }
 
@@ -1751,6 +1992,9 @@
             }
             const grandTotal100 = Math.round((totalCia40 + eseEff60) * 2) / 2;
             ciaRow.querySelector('.cia-grand-100').textContent = grandTotal100.toFixed(1);
+            if (typeof recalcEnglishAttainmentLive === 'function') {
+                recalcEnglishAttainmentLive();
+            }
         }
 
         // Attendance Override Handler
@@ -2120,6 +2364,346 @@
                 btn.disabled = false;
             }
         });
+
+        // =========================================================================
+        // 1001 ENGLISH REV 2026: MODULE-TO-CO EQUAL ATTAINMENT & SURVEYS ENGINE
+        // =========================================================================
+        function pctToAttainmentLevel(pct, lvl3, lvl2, lvl1) {
+            if (pct >= lvl3) return 3;
+            if (pct >= lvl2) return 2;
+            if (pct >= lvl1) return 1;
+            return 0;
+        }
+
+        function recalcEnglishAttainmentLive() {
+            const cieThresholdPct = parseFloat(document.getElementById('att-cfg-cie-threshold')?.value) || 60.0;
+            const eseThresholdGrade = (document.getElementById('att-cfg-ese-grade')?.value || 'C').toUpperCase();
+            const lvl3Pct = parseFloat(document.getElementById('att-cfg-lvl3')?.value) || 70.0;
+            const lvl2Pct = parseFloat(document.getElementById('att-cfg-lvl2')?.value) || 60.0;
+            const lvl1Pct = parseFloat(document.getElementById('att-cfg-lvl1')?.value) || 50.0;
+
+            const modMax = 85.0; // SL(10) + CE(50) + PracShare(10) + SeriesShare(15)
+            const modTarget = (cieThresholdPct / 100.0) * modMax;
+
+            const modCounts = {
+                M1: { appeared: 0, above: 0 },
+                M2: { appeared: 0, above: 0 },
+                M3: { appeared: 0, above: 0 },
+                M4: { appeared: 0, above: 0 },
+            };
+
+            const gradeRank = { 'S': 7, 'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'P': 1, 'F': 0, 'AB': 0 };
+            const targetRank = gradeRank[eseThresholdGrade] !== undefined ? gradeRank[eseThresholdGrade] : 4;
+            let eseAppeared = 0;
+            let eseAbove = 0;
+
+            document.querySelectorAll('.student-eval-row').forEach(row => {
+                const sl1 = row.querySelector('.cia-sl-m1')?.value.trim() || '';
+                const sl2 = row.querySelector('.cia-sl-m2')?.value.trim() || '';
+                const sl3 = row.querySelector('.cia-sl-m3')?.value.trim() || '';
+                const sl4 = row.querySelector('.cia-sl-m4')?.value.trim() || '';
+
+                const ce1 = row.querySelector('.cia-ce-m1')?.value.trim() || '';
+                const ce2 = row.querySelector('.cia-ce-m2')?.value.trim() || '';
+                const ce3 = row.querySelector('.cia-ce-m3')?.value.trim() || '';
+                const ce4 = row.querySelector('.cia-ce-m4')?.value.trim() || '';
+
+                const pt1 = row.querySelector('.cia-pt1-40')?.value.trim() || '';
+                const pt2 = row.querySelector('.cia-pt2-40')?.value.trim() || '';
+                const pt1Abs = row.querySelector('.cia-pt1-abs')?.checked || false;
+                const pt2Abs = row.querySelector('.cia-pt2-abs')?.checked || false;
+
+                const s1 = row.querySelector('.cia-s1-50')?.value.trim() || '';
+                const s2 = row.querySelector('.cia-s2-50')?.value.trim() || '';
+                const s1Abs = row.querySelector('.cia-s1-abs')?.checked || false;
+                const s2Abs = row.querySelector('.cia-s2-abs')?.checked || false;
+
+                const pt1Share = (!pt1Abs && pt1 !== '') ? (Math.min(40, Math.max(0, parseFloat(pt1) || 0)) / 40.0) * 10.0 : 0.0;
+                const pt2Share = (!pt2Abs && pt2 !== '') ? (Math.min(40, Math.max(0, parseFloat(pt2) || 0)) / 40.0) * 10.0 : 0.0;
+                const s1Share = (!s1Abs && s1 !== '') ? (Math.min(50, Math.max(0, parseFloat(s1) || 0)) / 50.0) * 15.0 : 0.0;
+                const s2Share = (!s2Abs && s2 !== '') ? (Math.min(50, Math.max(0, parseFloat(s2) || 0)) / 50.0) * 15.0 : 0.0;
+
+                // M1
+                if (sl1 !== '' || ce1 !== '' || pt1 !== '' || s1 !== '') {
+                    modCounts.M1.appeared++;
+                    const m1Score = (parseFloat(sl1) || 0) + (parseFloat(ce1) || 0) + pt1Share + s1Share;
+                    if (m1Score >= modTarget) modCounts.M1.above++;
+                }
+                // M2
+                if (sl2 !== '' || ce2 !== '' || pt1 !== '' || s1 !== '') {
+                    modCounts.M2.appeared++;
+                    const m2Score = (parseFloat(sl2) || 0) + (parseFloat(ce2) || 0) + pt1Share + s1Share;
+                    if (m2Score >= modTarget) modCounts.M2.above++;
+                }
+                // M3
+                if (sl3 !== '' || ce3 !== '' || pt2 !== '' || s2 !== '') {
+                    modCounts.M3.appeared++;
+                    const m3Score = (parseFloat(sl3) || 0) + (parseFloat(ce3) || 0) + pt2Share + s2Share;
+                    if (m3Score >= modTarget) modCounts.M3.above++;
+                }
+                // M4
+                if (sl4 !== '' || ce4 !== '' || pt2 !== '' || s2 !== '') {
+                    modCounts.M4.appeared++;
+                    const m4Score = (parseFloat(sl4) || 0) + (parseFloat(ce4) || 0) + pt2Share + s2Share;
+                    if (m4Score >= modTarget) modCounts.M4.above++;
+                }
+
+                // ESE
+                const g = (row.querySelector('.cia-ese-grade')?.value || '').trim().toUpperCase();
+                const eseAbs = row.querySelector('.cia-ese-abs')?.checked || false;
+                if (g !== '' && g !== 'AB' && !eseAbs) {
+                    eseAppeared++;
+                    if ((gradeRank[g] || 0) >= targetRank) eseAbove++;
+                }
+            });
+
+            // Update Module Table (Each module's level applies equally to CO1, CO2, CO3, CO4)
+            let sumModLevels = 0;
+            ['M1', 'M2', 'M3', 'M4'].forEach(mKey => {
+                const app = modCounts[mKey].appeared;
+                const abv = modCounts[mKey].above;
+                const pct = app > 0 ? (abv / app) * 100.0 : 0.0;
+                const lvl = app > 0 ? pctToAttainmentLevel(pct, lvl3Pct, lvl2Pct, lvl1Pct) : 0;
+                sumModLevels += lvl;
+
+                const tr = document.querySelector(`tr[data-mod-row="${mKey}"]`);
+                if (tr) {
+                    tr.querySelector('.mod-above-cnt').textContent = abv;
+                    tr.querySelector('.mod-app-cnt').textContent = app;
+                    tr.querySelector('.mod-pct').textContent = pct.toFixed(1);
+                    tr.querySelector('.mod-lvl').textContent = lvl;
+                    tr.querySelector('.mod-co1').textContent = lvl;
+                    tr.querySelector('.mod-co2').textContent = lvl;
+                    tr.querySelector('.mod-co3').textContent = lvl;
+                    tr.querySelector('.mod-co4').textContent = lvl;
+                }
+            });
+
+            const ciaCoAvg = sumModLevels / 4.0;
+            const avgEl = document.getElementById('mod-cia-avg-lvl');
+            if (avgEl) avgEl.textContent = ciaCoAvg.toFixed(2);
+            document.querySelectorAll('.mod-avg-co').forEach(el => { el.textContent = ciaCoAvg.toFixed(2); });
+
+            // Update ESE Direct
+            const esePct = eseAppeared > 0 ? (eseAbove / eseAppeared) * 100.0 : 0.0;
+            const eseLvl = eseAppeared > 0 ? pctToAttainmentLevel(esePct, lvl3Pct, lvl2Pct, lvl1Pct) : 0;
+            if (document.getElementById('ese-grade-lbl')) document.getElementById('ese-grade-lbl').textContent = eseThresholdGrade;
+            if (document.getElementById('ese-above-cnt')) document.getElementById('ese-above-cnt').textContent = eseAbove;
+            if (document.getElementById('ese-app-cnt')) document.getElementById('ese-app-cnt').textContent = eseAppeared;
+            if (document.getElementById('ese-pct-val')) document.getElementById('ese-pct-val').textContent = esePct.toFixed(1);
+            if (document.getElementById('ese-lvl-val')) document.getElementById('ese-lvl-val').textContent = eseLvl;
+
+            // Update CO1..CO4 Summary Table
+            const coOveralls = {};
+            ['CO1', 'CO2', 'CO3', 'CO4'].forEach(coId => {
+                const tr = document.querySelector(`tr[data-co-row="${coId}"]`);
+                if (!tr) return;
+                const directVal = eseAppeared > 0 ? ((0.60 * ciaCoAvg) + (0.40 * eseLvl)) : ciaCoAvg;
+                const indInput = tr.querySelector(`input[data-co-ind-override="${coId}"]`);
+                const surveyDef = parseFloat(indInput?.dataset.surveyDefault) || 0.0;
+                const manualRaw = indInput ? indInput.value.trim() : '';
+                let indEffective = surveyDef;
+                if (manualRaw !== '' && !isNaN(parseFloat(manualRaw))) {
+                    indEffective = Math.min(3.0, Math.max(0.0, parseFloat(manualRaw)));
+                }
+                const overallVal = (indEffective > 0) ? ((0.80 * directVal) + (0.20 * indEffective)) : directVal;
+                const overallPct = (overallVal / 3.0) * 100.0;
+                coOveralls[coId] = overallVal;
+
+                tr.querySelector('.co-cia-val').textContent = ciaCoAvg.toFixed(2);
+                tr.querySelector('.co-ese-val').textContent = eseLvl.toFixed(2);
+                tr.querySelector('.co-direct-val').textContent = directVal.toFixed(2);
+                tr.querySelector('.co-ind-effective').textContent = indEffective.toFixed(2);
+                tr.querySelector('.co-overall-val').textContent = overallVal.toFixed(2);
+                tr.querySelector('.co-pct-val').textContent = overallPct.toFixed(1);
+
+                const poCoLbl = document.querySelector(`.po-tbl-co-val[data-co="${coId}"]`);
+                if (poCoLbl) poCoLbl.textContent = overallVal.toFixed(2);
+            });
+
+            // Update PO1..PO7 Attainment Matrix
+            for (let p = 1; p <= 7; p++) {
+                const poKey = `PO${p}`;
+                let weightedSum = 0.0;
+                let countMapped = 0;
+                ['CO1', 'CO2', 'CO3', 'CO4'].forEach(coId => {
+                    const cell = document.querySelector(`td[data-po-map-co="${coId}"][data-po-map-po="${poKey}"]`);
+                    const w = cell ? (parseFloat(cell.dataset.poWeight) || 0) : 0;
+                    if (w > 0) {
+                        weightedSum += ((coOveralls[coId] || 0) * w) / 3.0;
+                        countMapped++;
+                    }
+                });
+                const poLvlEl = document.getElementById(`po-final-lvl-${poKey}`);
+                const poPctEl = document.getElementById(`po-final-pct-${poKey}`);
+                if (countMapped > 0) {
+                    const poLvl = weightedSum / countMapped;
+                    const poPct = (poLvl / 3.0) * 100.0;
+                    if (poLvlEl) poLvlEl.textContent = poLvl.toFixed(2);
+                    if (poPctEl) poPctEl.textContent = poPct.toFixed(1) + '%';
+                } else {
+                    if (poLvlEl) poLvlEl.textContent = '-';
+                    if (poPctEl) poPctEl.textContent = '-';
+                }
+            }
+        }
+
+        let attSettingsTimer = null;
+        function queueAttainmentSettingsSave() {
+            setSaveStatus('Saving Attainment...', true);
+            if (attSettingsTimer) clearTimeout(attSettingsTimer);
+            attSettingsTimer = setTimeout(() => saveAttainmentSettings(), 700);
+        }
+
+        async function saveAttainmentSettings() {
+            const indirectOverrides = {};
+            ['CO1', 'CO2', 'CO3', 'CO4'].forEach(coId => {
+                const inp = document.querySelector(`input[data-co-ind-override="${coId}"]`);
+                if (inp) indirectOverrides[coId] = inp.value.trim();
+            });
+            const payload = {
+                cie_threshold_percent: document.getElementById('att-cfg-cie-threshold')?.value,
+                ese_threshold_grade: document.getElementById('att-cfg-ese-grade')?.value,
+                target_student_percent: document.getElementById('att-cfg-lvl3')?.value,
+                level3_percent: document.getElementById('att-cfg-lvl3')?.value,
+                level2_percent: document.getElementById('att-cfg-lvl2')?.value,
+                level1_percent: document.getElementById('att-cfg-lvl1')?.value,
+                manual_indirect: indirectOverrides
+            };
+            try {
+                const res = await fetch(`/api/r26/classroom/english-1001/${subjectId}/attainment/save-settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                if (json.status === 'SUCCESS') {
+                    setSaveStatus('Attainment Saved ✓', false);
+                }
+            } catch (e) {
+                setSaveStatus('Attainment Save Error', false);
+            }
+        }
+
+        // Indirect Survey Management (Mid-Sem & Course Exit Surveys)
+        let cachedSurveyMeta = { midsem: null, exit: null };
+
+        async function loadEnglishSurveyStatuses() {
+            try {
+                const [midRes, exitRes] = await Promise.all([
+                    fetch(`/api/r26/classroom/${subjectId}/midsem-survey/status`),
+                    fetch(`/api/r26/classroom/${subjectId}/exit-survey/status`)
+                ]);
+                const midData = await midRes.json();
+                const exitData = await exitRes.json();
+
+                if (midData.status === 'SUCCESS') {
+                    cachedSurveyMeta.midsem = midData;
+                    const badge = document.getElementById('eng-midsem-badge');
+                    const stats = document.getElementById('eng-midsem-stats');
+                    const btnInit = document.getElementById('btn-eng-midsem-init');
+                    const btnClose = document.getElementById('btn-eng-midsem-close');
+                    const st = (midData.survey_status || 'not_initiated').toUpperCase();
+                    if (badge) badge.textContent = st;
+                    if (stats) stats.innerHTML = `Responses: <strong class="text-slate-200">${midData.total_respondents || 0} / ${midData.total_enrolled || 0}</strong> (${midData.response_rate || 0}%) • Overall Satisfaction: <strong class="text-cyan-300">${midData.overall_satisfaction_pct || 0}%</strong>`;
+                    if (midData.survey_status === 'active') {
+                        btnInit?.classList.add('hidden');
+                        btnClose?.classList.remove('hidden');
+                        btnClose?.classList.add('flex');
+                    } else {
+                        btnInit?.classList.remove('hidden');
+                        btnClose?.classList.add('hidden');
+                    }
+                }
+
+                if (exitData.status === 'SUCCESS') {
+                    cachedSurveyMeta.exit = exitData;
+                    const badge = document.getElementById('eng-exit-badge');
+                    const stats = document.getElementById('eng-exit-stats');
+                    const btnInit = document.getElementById('btn-eng-exit-init');
+                    const btnClose = document.getElementById('btn-eng-exit-close');
+                    const st = (exitData.survey_status || 'not_initiated').toUpperCase();
+                    if (badge) badge.textContent = st;
+                    if (stats) stats.innerHTML = `Responses: <strong class="text-slate-200">${exitData.total_respondents || 0} / ${exitData.total_enrolled || 0}</strong> (${exitData.response_rate || 0}%) • Feeds 20% Indirect Attainment for CO1–CO4`;
+                    if (exitData.survey_status === 'active') {
+                        btnInit?.classList.add('hidden');
+                        btnClose?.classList.remove('hidden');
+                        btnClose?.classList.add('flex');
+                    } else {
+                        btnInit?.classList.remove('hidden');
+                        btnClose?.classList.add('hidden');
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function initiateEnglishSurvey(type) {
+            const endpoint = type === 'midsem'
+                ? `/api/r26/classroom/${subjectId}/midsem-survey/initiate`
+                : `/api/r26/classroom/${subjectId}/exit-survey/initiate`;
+            const label = type === 'midsem' ? 'Mid-Semester Feedback Survey' : 'Course Exit Survey';
+
+            const confirm = await Swal.fire({
+                title: `Initiate ${label}?`,
+                text: `This will open the ${label} in the Student Portal for all students of this subject.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0284c7',
+                confirmButtonText: 'Yes, Initiate Survey'
+            });
+            if (!confirm.isConfirmed) return;
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+            });
+            const json = await res.json();
+            if (json.status === 'SUCCESS') {
+                Swal.fire({ icon: 'success', title: 'Survey Initiated', text: json.message, timer: 1600, showConfirmButton: false });
+                loadEnglishSurveyStatuses();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: json.message || 'Could not initiate survey.' });
+            }
+        }
+
+        async function closeEnglishSurvey(type) {
+            const endpoint = type === 'midsem'
+                ? `/api/r26/classroom/${subjectId}/midsem-survey/close`
+                : `/api/r26/classroom/${subjectId}/exit-survey/close`;
+            const label = type === 'midsem' ? 'Mid-Semester Feedback Survey' : 'Course Exit Survey';
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+            });
+            const json = await res.json();
+            if (json.status === 'SUCCESS') {
+                Swal.fire({ icon: 'info', title: `${label} Closed`, text: json.message, timer: 1500, showConfirmButton: false });
+                loadEnglishSurveyStatuses();
+            }
+        }
+
+        async function viewEnglishSurveyQuestions(type) {
+            if (!cachedSurveyMeta[type]) {
+                await loadEnglishSurveyStatuses();
+            }
+            const data = cachedSurveyMeta[type] || {};
+            const questions = data.questions || [];
+            const title = type === 'midsem' ? 'Mid-Semester Survey Questions (Indirect)' : 'Course Exit Survey Questions (CO1–CO4 Indirect)';
+            const listHtml = questions.length
+                ? questions.map((q, i) => `<div style="text-align:left;padding:8px 10px;border-bottom:1px solid #1e293b;font-size:12px;"><strong>Q${i+1} (${q.co_id || q.id || ''}):</strong> ${q.question || q.statement || ''}</div>`).join('')
+                : '<p class="text-xs text-slate-400">Standard CO1–CO4 Indirect Assessment Survey questions configured.</p>';
+
+            Swal.fire({
+                title: title,
+                html: `<div style="max-height:320px;overflow-y:auto;">${listHtml}</div>`,
+                width: 640,
+                confirmButtonColor: '#334155',
+                confirmButtonText: 'Close'
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             attachMarkInputValidation();

@@ -696,6 +696,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/english-1001/{subjectId}/outline/save', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'saveCourseOutline']);
     Route::post('/api/r26/classroom/english-1001/{subjectId}/lesson-plan/save', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'bulkUpdateLessonPlans']);
     Route::post('/api/r26/classroom/english-1001/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'generateLessonPlanApi']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/attainment/save-settings', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'saveAttainmentSettings']);
     Route::get('/r26/classroom/english-1001/{subjectId}/print/cia-register', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printCiaRegister']);
     Route::get('/r26/classroom/english-1001/{subjectId}/print/lesson-plan', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);
     Route::get('/r26/classroom/english-1001/{subjectId}/print/course-log', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);

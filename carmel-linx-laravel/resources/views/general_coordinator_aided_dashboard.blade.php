@@ -606,7 +606,7 @@
         } else if (sTypeLower.includes('seminar') || sNameLower.includes('seminar')) {
           window.location.href = `/r21/classroom/seminar/${subjectId}`;
           return;
-        } else if (sTypeLower.includes('project') || sNameLower.includes('project')) {
+        } else if (!sCodeStr.includes('5002') && !sNameLower.includes('project management') && String(subjectId) !== '147' && (sTypeLower.includes('project') || sNameLower.includes('project'))) {
           window.location.href = `/r21/classroom/project/${subjectId}`;
           return;
         } else if (!sCodeStr.includes('5027') && !sNameLower.includes('machine shop') && !sNameLower.includes('shop practice') && (sNameLower.includes('workshop') || sTypeLower.includes('workshop') || ['3027', '3038'].some(c => sCodeStr.includes(c) || String(subjectId) === c))) {

@@ -118,7 +118,8 @@ class CourseExitSurveyController extends Controller
 
             $respondedCount = $responses->count();
 
-            $isProject = str_contains(strtolower($batchSubject->subject_name ?? ''), 'project');
+            $subjNameLower = strtolower($batchSubject->subject_name ?? '');
+            $isProject = str_contains($subjNameLower, 'project') && !str_contains($subjNameLower, 'project management') && ($batchSubject->subject_code ?? '') != '5002' && ($batchSubject->id ?? 0) != 147;
             $coKeys = $isProject ? ['CO1', 'CO2', 'CO3', 'CO4', 'CO5'] : ['CO1', 'CO2', 'CO3', 'CO4'];
 
             $averages = array_fill_keys($coKeys, 0.0);

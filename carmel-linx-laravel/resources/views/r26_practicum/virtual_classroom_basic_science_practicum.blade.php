@@ -547,44 +547,48 @@
         </div>
     </div>
 
-    <!-- 3. TOP-LEVEL TRI-MODE SWITCHER (Theory, Lab, Reports) -->
+    <!-- 3. UNIFIED PRACTICUM TAB NAVIGATION BAR (Arch-Shaped Common Design) -->
     <main class="max-w-[98%] mx-auto px-4 md:px-8 mt-4">
         
-        <div class="glass-panel p-1.5 rounded-xl mb-4 flex items-center justify-center space-x-2 max-w-4xl mx-auto">
-            <button onclick="switchMode('theory')" id="mode-btn-theory" class="mode-btn active flex-1 py-2 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 text-xs sm:text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                <span>📖 Virtual Theory Classroom</span>
-            </button>
-            <button onclick="switchMode('lab')" id="mode-btn-lab" class="mode-btn flex-1 py-2 rounded-lg font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center justify-center space-x-2 text-xs sm:text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                <span>🔬 Virtual Lab</span>
-            </button>
-            <button onclick="switchMode('reports')" id="mode-btn-reports" class="mode-btn flex-1 py-2 rounded-lg font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center justify-center space-x-2 text-xs sm:text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>📊 Reports</span>
-            </button>
+        <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg mb-4">
+            <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
+                <button onclick="switchPracticumTab('outline')" id="ptab-outline" class="tab-btn subtab-btn active px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📘 Course Outline</span>
+                </button>
+                <button onclick="switchPracticumTab('planner')" id="ptab-planner" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📅 Lesson Planner</span>
+                </button>
+                <button onclick="switchPracticumTab('sl')" id="ptab-sl" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📝 Self Learning</span>
+                </button>
+                <button onclick="switchPracticumTab('continuouseval')" id="ptab-continuouseval" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>🔬 Continuous Evaluation</span>
+                </button>
+                <button onclick="switchPracticumTab('theoryseries')" id="ptab-theoryseries" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>✍️ Theory Series</span>
+                </button>
+                <button onclick="switchPracticumTab('labseries')" id="ptab-labseries" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>🧪 Lab Series</span>
+                </button>
+                <button onclick="switchPracticumTab('cie')" id="ptab-cie" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📊 CIE Register</span>
+                </button>
+                <button onclick="switchPracticumTab('attainment')" id="ptab-attainment" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>🎯 Attainment &amp; Surveys</span>
+                </button>
+                <button onclick="switchPracticumTab('reports')" id="ptab-reports" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📈 Reports</span>
+                </button>
+                <button onclick="switchPracticumTab('materials')" id="ptab-materials" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span>📁 Pre-Lab Materials</span>
+                </button>
+            </nav>
         </div>
 
         <!-- ========================================================================= -->
         <!-- MODE A: VIRTUAL THEORY CLASSROOM (PRACTICUM)                              -->
         <!-- ========================================================================= -->
         <div id="mode-theory-container" class="space-y-5">
-            
-            <!-- Theory Sub-Tabs Navigation -->
-            <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg">
-                <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
-                    <button onclick="switchTheorySubtab('overview')" id="theory-tab-overview" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] active flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📘 Modules & COs</button>
-                    <button onclick="switchTheorySubtab('planner')" id="theory-tab-planner" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📅 Lesson Plan</button>
-                    <button onclick="switchTheorySubtab('sl')" id="theory-tab-sl" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📝 Self-Learning</button>
-                    <button onclick="switchTheorySubtab('cie')" id="theory-tab-cie" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📊 CIE Register</button>
-                    <button onclick="switchTheorySubtab('series')" id="theory-tab-series" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">✍️ Series Exams</button>
-                    <button onclick="switchTheorySubtab('ese')" id="theory-tab-ese" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">🏆 ESE Grades</button>
-                    <button onclick="switchTheorySubtab('surveys')" id="theory-tab-surveys" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📊 Surveys</button>
-                    <button onclick="switchTheorySubtab('attendance')" id="theory-tab-attendance" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📅 Attendance</button>
-                    <button onclick="switchTheorySubtab('materials')" id="theory-tab-materials" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📁 Pre-Class Hub</button>
-                    <button onclick="switchTheorySubtab('attainment')" id="theory-tab-attainment" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">🎯 Attainment & Reports</button>
-                </nav>
-            </div>
 
             <!-- Subtab 1: Theory Modules, COs & CO-PO Mapping Table -->
             <div id="theory-subcontent-overview" class="space-y-5">
@@ -694,15 +698,15 @@
             <div id="theory-subcontent-planner" class="glass-card p-5 rounded-xl border border-slate-800 hidden space-y-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
-                        <h3 class="text-lg font-bold text-white">Practicum Theory Lesson Planner ({{ $theoryHours ?? 45 }} Hours Schedule)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5">Includes {{ $theoryHours ?? 45 }} Theory Lecture Hours (L) and Series Exams (ST).</p>
+                        <h3 class="text-lg font-bold text-white">Basic Science Practicum Lesson Planner (90 Hours Schedule)</h3>
+                        <p class="text-slate-400 text-xs mt-0.5">Unified 90-hour schedule combining Theory Lecture Hours (L/ST) and Practical Lab Sessions (P/SP).</p>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <button onclick="addCustomLessonPlanRow('lp-theory-tbody', 'L')" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                        <button onclick="addLessonPlanRowBelow(null)" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                             <span>Add Row</span>
                         </button>
-                        <button onclick="saveAllLessonPlans()" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5">
+                        <button onclick="saveAllLessonPlans()" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Save All Changes</span>
                         </button>
@@ -727,15 +731,15 @@
                                 <th class="p-1.5 w-14 text-center">Batch</th>
                                 <th class="p-1.5 w-14 text-center">Hours</th>
                                 <th class="p-1.5 w-24">Remarks</th>
-                                <th class="p-1.5 w-8 text-center"></th>
+                                <th class="p-1.5 w-16 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="lp-theory-tbody" class="divide-y divide-slate-800/60 text-sm">
-                            @foreach($lessonPlans->whereIn('mode', ['L', 'ST']) as $plan)
+                            @foreach($lessonPlans->sortBy(['day_no', 'id']) as $plan)
                             <tr id="lp-row-{{ $plan->id }}" data-plan-id="{{ $plan->id }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2 font-normal text-center text-white text-xs">{{ $plan->day_no }}</td>
+                                <td class="p-2 font-normal text-center text-white text-xs lp-day-no-cell">{{ $plan->day_no }}</td>
                                 <td class="p-2">
-                                    <select id="lp-pedagogy-{{ $plan->id }}" onchange="onPedagogyChange({{ $plan->id }}, this.value); lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full {{ $plan->mode === 'L' ? 'text-blue-400' : ($plan->mode === 'P' ? 'text-emerald-400' : 'text-sky-400') }}">
+                                    <select id="lp-pedagogy-{{ $plan->id }}" onchange="onPedagogyChange('{{ $plan->id }}', this.value); lpAutoSave('{{ $plan->id }}')" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full {{ in_array($plan->mode, ['P', 'SP']) || stripos($plan->pedagogy ?? '', 'Practical') !== false ? 'text-emerald-400' : (in_array($plan->mode, ['ST']) || stripos($plan->pedagogy ?? '', 'Series') !== false ? 'text-sky-400' : 'text-blue-400') }}">
                                         <option value="Lecture (L)" {{ ($plan->pedagogy ?? 'Lecture (L)') === 'Lecture (L)' || ($plan->mode === 'L' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Lecture (L)</option>
                                         <option value="Practical Lab (P)" {{ ($plan->pedagogy ?? '') === 'Practical Lab (P)' || ($plan->mode === 'P' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Practical Lab (P)</option>
                                         <option value="Theory Series Exam (ST)" {{ ($plan->pedagogy ?? '') === 'Theory Series Exam (ST)' || ($plan->mode === 'ST' && !isset($plan->pedagogy)) ? 'selected' : '' }}>Theory Series Exam (ST)</option>
@@ -752,7 +756,7 @@
                                             $propVal = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->proposed_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $plan->proposed_date;
                                         }
                                     @endphp
-                                    <input type="text" id="lp-prop-{{ $plan->id }}" value="{{ $propVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $plan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">
+                                    <input type="text" id="lp-prop-{{ $plan->id }}" value="{{ $propVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave('{{ $plan->id }}')" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">
                                 </td>
                                 <td class="p-2">
                                     @php
@@ -761,39 +765,32 @@
                                             $actVal = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $plan->actual_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $plan->actual_date;
                                         }
                                     @endphp
-                                    <input type="text" id="lp-act-{{ $plan->id }}" value="{{ $actVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $plan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
+                                    <input type="text" id="lp-act-{{ $plan->id }}" value="{{ $actVal }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave('{{ $plan->id }}')" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
                                 </td>
                                 <td class="p-2">
-                                    <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; lpAutoSave({{ $plan->id }})">{{ $plan->topic_content }}</textarea>
+                                    <textarea id="lp-topic-{{ $plan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; lpAutoSave('{{ $plan->id }}')">{{ $plan->topic_content }}</textarea>
                                 </td>
                                 <td class="p-2 text-center">
-                                    <select id="lp-co-{{ $plan->id }}" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
+                                    <select id="lp-co-{{ $plan->id }}" onchange="lpAutoSave('{{ $plan->id }}')" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
                                         @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
                                             <option value="{{ $coOpt }}" {{ ($plan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
                                         @endforeach
                                     </select>
                                 </td>
                                 <td id="lp-batch-td-{{ $plan->id }}" class="p-2 text-center">
-                                    @if(in_array($plan->mode, ['P', 'SP']) || (isset($plan->pedagogy) && (stripos($plan->pedagogy, 'Practical') !== false || stripos($plan->pedagogy, 'Lab') !== false)))
-                                        @php
-                                            $bVal = $plan->sub_batch ?? 'A & B';
-                                            if (in_array($bVal, ['Batch A & B', 'Batch A & B (Combined)', 'A & B'])) $bVal = 'A & B';
-                                            elseif (in_array($bVal, ['Batch A', 'A'])) $bVal = 'A';
-                                            elseif (in_array($bVal, ['Batch B', 'B'])) $bVal = 'B';
-                                            else $bVal = 'ALL';
-                                        @endphp
-                                        <select id="lp-batch-{{ $plan->id }}" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
-                                            <option value="A & B" {{ $bVal === 'A & B' ? 'selected' : '' }}>A & B</option>
-                                            <option value="A" {{ $bVal === 'A' ? 'selected' : '' }}>A</option>
-                                            <option value="B" {{ $bVal === 'B' ? 'selected' : '' }}>B</option>
-                                            <option value="ALL" {{ $bVal === 'ALL' ? 'selected' : '' }}>ALL</option>
-                                        </select>
-                                    @else
-                                        <span class="px-1.5 py-0.5 rounded bg-slate-900/80 text-slate-400 font-mono text-[11px] border border-slate-800 inline-block">
-                                            ALL
-                                        </span>
-                                        <input type="hidden" id="lp-batch-{{ $plan->id }}" value="ALL">
-                                    @endif
+                                    @php
+                                        $bVal = $plan->sub_batch ?? (in_array($plan->mode, ['P', 'SP']) ? 'A & B' : 'ALL');
+                                        if (in_array($bVal, ['Batch A & B', 'Batch A & B (Combined)', 'A & B'])) $bVal = 'A & B';
+                                        elseif (in_array($bVal, ['Batch A', 'A'])) $bVal = 'A';
+                                        elseif (in_array($bVal, ['Batch B', 'B'])) $bVal = 'B';
+                                        else $bVal = 'ALL';
+                                    @endphp
+                                    <select id="lp-batch-{{ $plan->id }}" onchange="lpAutoSave('{{ $plan->id }}')" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs {{ in_array($plan->mode, ['P', 'SP']) ? 'text-emerald-400' : 'text-slate-300' }} w-full text-center">
+                                        <option value="ALL" {{ $bVal === 'ALL' ? 'selected' : '' }}>ALL</option>
+                                        <option value="A & B" {{ $bVal === 'A & B' ? 'selected' : '' }}>A & B</option>
+                                        <option value="A" {{ $bVal === 'A' ? 'selected' : '' }}>A</option>
+                                        <option value="B" {{ $bVal === 'B' ? 'selected' : '' }}>B</option>
+                                    </select>
                                 </td>
                                 <td id="lp-hours-td-{{ $plan->id }}" class="p-2 text-center font-normal">
                                     @if(in_array($plan->mode, ['P', 'SP']) || (isset($plan->pedagogy) && (stripos($plan->pedagogy, 'Practical') !== false || stripos($plan->pedagogy, 'Lab') !== false)))
@@ -803,10 +800,13 @@
                                     @endif
                                 </td>
                                 <td class="p-2 pr-3">
-                                    <input type="text" id="lp-remarks-{{ $plan->id }}" value="{{ $plan->remarks }}" placeholder="Status/Remarks" onchange="lpAutoSave({{ $plan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">
+                                    <input type="text" id="lp-remarks-{{ $plan->id }}" value="{{ $plan->remarks }}" placeholder="Status/Remarks" onchange="lpAutoSave('{{ $plan->id }}')" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">
                                 </td>
-                                <td class="p-1 text-center">
-                                    <button type="button" onclick="confirmDeleteLessonPlanRow({{ $plan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
+                                <td class="p-1 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button type="button" onclick="addLessonPlanRowBelow(this)" title="Insert row below" class="w-6 h-6 flex items-center justify-center rounded bg-blue-500/15 hover:bg-blue-500/30 border border-blue-500/30 text-sky-400 hover:text-sky-300 transition-all text-xs font-bold cursor-pointer">+</button>
+                                        <button type="button" onclick="confirmDeleteLessonPlanRow('{{ $plan->id }}')" title="Delete this row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -815,12 +815,12 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800">
-                    <button type="button" onclick="addCustomLessonPlanRow('lp-theory-tbody', 'L')" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                    <button type="button" onclick="addLessonPlanRowBelow(null)" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
                         <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        <span>Add Row (Customization)</span>
+                        <span>Add Row (At End)</span>
                     </button>
                     <div class="flex items-center space-x-3">
-                        <span class="text-xs text-slate-400 hidden md:inline">Save changes for all theory lesson plan rows.</span>
+                        <span class="text-xs text-slate-400 hidden md:inline">Save changes for all 90 hours schedule.</span>
                         <button type="button" onclick="saveAllLessonPlans()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center space-x-2 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Save All Changes</span>
@@ -1703,6 +1703,14 @@
 
             <!-- Subtab 6: Online Surveys & Indirect Attainment -->
             <div id="theory-subcontent-surveys" class="space-y-5 hidden">
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-2">
+                    <button type="button" onclick="switchAttainmentView('direct')" class="att-view-btn-direct px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                        <span>🎯 Direct CO Attainment</span>
+                    </button>
+                    <button type="button" onclick="switchAttainmentView('surveys')" class="att-view-btn-surveys px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <span>📋 Course Exit Surveys</span>
+                    </button>
+                </div>
                 
                 <!-- Top Header Card -->
                 <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
@@ -1862,155 +1870,6 @@
             </div>
 
             <!-- Subtab 7: Attendance Reports -->
-            <div id="theory-subcontent-attendance" class="space-y-5 hidden">
-                <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6" style="background-color: #020617 !important;">
-                    <!-- Top Action & Info Bar -->
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-800 pb-5">
-                        <div class="space-y-1">
-                            <div class="flex items-center space-x-2.5 flex-wrap gap-1">
-                                <h3 class="text-base md:text-lg font-bold text-white flex items-center space-x-2">
-                                    <span>📅 Common Practicum Attendance &amp; Teaching Logs</span>
-                                </h3>
-                                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider">Attendance &amp; Log Center</span>
-                            </div>
-                            <p class="text-slate-400 text-xs leading-relaxed">
-                                Practicum combines Theory and Practical sessions under a common attendance system.<br class="hidden sm:inline">
-                                Mark student session attendance, log teaching topics covered, and view/print official SBTE registers.
-                            </p>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/practicum/' . $batchSubject->id . '?mode=theory&tab=attendance') }}" 
-                               class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 flex items-center space-x-2.5 transition-all no-underline border border-blue-400/30 hover:scale-[1.02]">
-                                <svg class="w-5 h-5 text-blue-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                <span class="text-xs text-left leading-tight">
-                                    <span class="block">Class Attendance &amp;</span>
-                                    <span class="block text-blue-100">Teaching Log Entry</span>
-                                </span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- 3 Printable Reports Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <!-- Card 1: Teaching & Attendance Log Register (Log-wise) -->
-                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
-                            <div class="flex justify-between items-start">
-                                <div class="space-y-1">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-indigo-400 transition-all">Log-Wise Attendance Register</h4>
-                                    </div>
-                                    <p class="text-slate-400 text-xs leading-relaxed">
-                                        Official A4 Portrait Teaching &amp; Attendance Log Register showing session dates, hours, topics covered, present/absent count, absent student rolls, and attendance %.
-                                    </p>
-                                </div>
-                                <span class="material-symbols-rounded text-indigo-400 bg-indigo-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">menu_book</span>
-                            </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
-                                📄 Print Log Register (A4)
-                            </a>
-                        </div>
-
-                        <!-- Card 2: Detailed Course Register (Course-wise Grid) -->
-                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
-                            <div class="flex justify-between items-start">
-                                <div class="space-y-1">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-cyan-400 transition-all">Course-Wise Detailed Register</h4>
-                                    </div>
-                                    <p class="text-slate-400 text-xs leading-relaxed">
-                                        Full A4 Landscape attendance matrix showing student-by-student presence across all theory lectures and 3-hour practical lab blocks with overall totals.
-                                    </p>
-                                </div>
-                                <span class="material-symbols-rounded text-cyan-400 bg-cyan-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">view_list</span>
-                            </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
-                                📊 Print Course Matrix (A4)
-                            </a>
-                        </div>
-
-                        <!-- Card 3: Consolidated Attendance Report -->
-                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
-                            <div class="flex justify-between items-start">
-                                <div class="space-y-1">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-all">Consolidated Attendance Report</h4>
-                                    </div>
-                                    <p class="text-slate-400 text-xs leading-relaxed">
-                                        Official summary showing Theory conducted/present/absent/%, Lab conducted/present/absent/%, overall total %, CA Attendance marks (/5M), and eligibility status.
-                                    </p>
-                                </div>
-                                <span class="material-symbols-rounded text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">analytics</span>
-                            </div>
-                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
-                                📋 Print Consolidated (A4)
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Live Attendance Overview Table -->
-                    <div class="space-y-3 pt-2">
-                        <div class="flex items-center justify-between">
-                            <h4 class="text-sm font-bold text-slate-200 flex items-center space-x-2">
-                                <span>👥 Enrolled Students Attendance Status &amp; CIA Marks Preview</span>
-                            </h4>
-                            <span class="text-xs text-slate-400">{{ count($studentResults ?? []) }} Students</span>
-                        </div>
-                        <div class="overflow-x-auto rounded-xl border border-slate-800">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
-                                        <th class="p-3 text-center w-12">Roll</th>
-                                        <th class="p-3 w-32">Reg No</th>
-                                        <th class="p-3">Student Name</th>
-                                        <th class="p-3 text-center w-28">Attendance %</th>
-                                        <th class="p-3 text-center w-28">CIA Attn (/5M)</th>
-                                        <th class="p-3 text-center w-32">Eligibility</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-800/60">
-                                    @forelse($studentResults as $st)
-                                    @php
-                                        $pct = floatval($st['att_percentage'] ?? 0);
-                                        $short = ($pct < 75);
-                                        $cond = ($pct >= 65 && $pct < 75);
-                                    @endphp
-                                    <tr class="hover:bg-slate-800/30 transition-all">
-                                        <td class="p-3 text-center font-bold text-slate-400">{{ $st['roll_no'] }}</td>
-                                        <td class="p-3 font-mono text-slate-300">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
-                                        <td class="p-3 font-medium text-white">{{ $st['name'] }}</td>
-                                        <td class="p-3 text-center">
-                                            <span class="font-bold {{ $short ? 'text-rose-400' : ($cond ? 'text-amber-400' : 'text-emerald-400') }}">
-                                                {{ number_format($pct, 1) }}%
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-center font-bold text-blue-300">
-                                            {{ number_format($st['att_marks'] ?? 0, 1) }} / 5
-                                        </td>
-                                        <td class="p-3 text-center">
-                                            @if($pct >= 75)
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ELIGIBLE</span>
-                                            @elseif($pct >= 65)
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">CONDONATION</span>
-                                            @else
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">SHORTAGE</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="6" class="p-6 text-center text-slate-500">No students found.</td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Subtab 8: Study Materials & Pre-Class Hub -->
             <div id="theory-subcontent-materials" class="hidden">
                 @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum'])
@@ -2018,6 +1877,14 @@
 
             <!-- Subtab 9: Course Attainment & Reports Hub -->
             <div id="theory-subcontent-attainment" class="space-y-5 hidden">
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-2">
+                    <button type="button" onclick="switchAttainmentView('direct')" class="att-view-btn-direct px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <span>🎯 Direct CO Attainment</span>
+                    </button>
+                    <button type="button" onclick="switchAttainmentView('surveys')" class="att-view-btn-surveys px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                        <span>📋 Course Exit Surveys</span>
+                    </button>
+                </div>
                 
                 <!-- Main Header Banner -->
                 <div class="glass-card p-5 rounded-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -2227,21 +2094,8 @@
         <!-- ========================================================================= -->
         <!-- MODE B: VIRTUAL LAB (PRACTICUM)                                           -->
         <!-- ========================================================================= -->
-        <div id="mode-lab-container" class="space-y-5 hidden">
+        <div id="mode-lab-container" class="space-y-5">
             
-            <!-- Lab Sub-Tabs Navigation -->
-            <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg">
-                <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
-                    <button onclick="switchLabSubtab('roster')" id="lab-tab-roster" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] active flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">🧪 Lab Sessions</button>
-                    <button onclick="switchLabSubtab('planner')" id="lab-tab-planner" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📅 Lab Planner</button>
-                    <button onclick="switchLabSubtab('eval')" id="lab-tab-eval" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">🔬 Lab Eval</button>
-                    <button onclick="switchLabSubtab('series')" id="lab-tab-series" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📝 Lab Series</button>
-                    <button onclick="switchLabSubtab('ese')" id="lab-tab-ese" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">🏆 Lab ESE (Internal 0M)</button>
-                    <button onclick="switchLabSubtab('attendance')" id="lab-tab-attendance" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📅 Attendance &amp; Logs</button>
-                    <button onclick="switchLabSubtab('materials')" id="lab-tab-materials" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">📁 Pre-Lab Materials</button>
-                </nav>
-            </div>
-
             <div id="lab-subcontent-materials" class="hidden">
                 @include('partials.virtual_learning_hub_tab', ['roomType' => 'Practicum Lab'])
             </div>
@@ -2397,7 +2251,15 @@
             </div>
 
             <!-- Subtab 1: Experiments List (Customizable & Synced with Lesson Plan) -->
-            <div id="lab-subcontent-roster" class="glass-card p-5 rounded-xl border border-slate-800 space-y-4">
+            <div id="lab-subcontent-roster" class="glass-card p-5 rounded-xl border border-slate-800 space-y-4 hidden">
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-2">
+                    <button type="button" onclick="switchCeView('eval')" class="ce-view-btn-eval px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                        <span>🔬 Continuous Evaluation (CE 10M)</span>
+                    </button>
+                    <button type="button" onclick="switchCeView('roster')" class="ce-view-btn-roster px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <span>🧪 Experiment Roster &amp; Sessions</span>
+                    </button>
+                </div>
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
                         <h3 class="text-base md:text-lg font-bold text-white flex items-center space-x-2">
@@ -2504,236 +2366,95 @@
                 </div>
             </div>
 
-            <!-- Subtab 2: Lab Planner View -->
-            <div id="lab-subcontent-planner" class="glass-card p-5 rounded-xl border border-slate-800 hidden space-y-4">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                    <div>
-                        <h3 class="text-lg font-bold text-white">Practical Sessions Planner ({{ $practicalHours ?? 45 }} P Hours)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5">Interactive lab session planner. Evaluates topics/experiments, proposed/actual dates, sub-batches, and remarks.</p>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="saveAllLessonPlans()" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save All Changes</span>
-                        </button>
- 
-                        <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/print-lesson-plan" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 no-underline">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                            <span>Print Lesson Plan</span>
-                        </a>
-                    </div>
-                </div>
- 
-                <div class="max-h-[650px] overflow-y-auto">
-                    <table class="w-full text-left border-collapse lp-table">
-                        <thead class="sticky top-0 z-10 bg-slate-900 shadow">
-                            <tr class="border-b border-slate-800 text-slate-500 font-medium text-[10px] uppercase tracking-wider">
-                                <th class="p-1.5 w-16 text-center">Day/Hr</th>
-                                <th class="p-1.5 w-28">Pedagogy</th>
-                                <th class="p-1.5 w-24">Prop Date</th>
-                                <th class="p-1.5 w-24">Act Date</th>
-                                <th class="p-1.5 w-auto">Topic &amp; Content Description</th>
-                                <th class="p-1.5 w-16 text-center">CO</th>
-                                <th class="p-1.5 w-14 text-center">Batch</th>
-                                <th class="p-1.5 w-14 text-center">Hours</th>
-                                <th class="p-1.5 w-24">Remarks</th>
-                                <th class="p-1.5 w-8 text-center"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-sm">
-                            @php
-                                $labPlans = $lessonPlans->whereIn('mode', ['P', 'SP'])->values();
-                                $labSessions = $labPlans->chunk(3);
-                            @endphp
-                            @forelse($labSessions as $sIdx => $block)
-                            @php
-                                $firstPlan = $block->first();
-                                $blockIds = $block->pluck('id')->implode(',');
-                                $cleanTopic = preg_replace('/\s*\(Hour \d+\/\d+\)/i', '', $firstPlan->topic_content);
-                            @endphp
-                            <tr id="lp-row-{{ $firstPlan->id }}" data-plan-id="{{ $firstPlan->id }}" data-block-ids="{{ $blockIds }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2 font-normal text-center text-white text-xs">Sess {{ $sIdx + 1 }}</td>
-                                <td class="p-2">
-                                    <select id="lp-pedagogy-{{ $firstPlan->id }}" onchange="onPedagogyChange({{ $firstPlan->id }}, this.value); lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full text-emerald-400">
-                                        <option value="Practical Lab (P)" {{ ($firstPlan->pedagogy ?? '') === 'Practical Lab (P)' || ($firstPlan->mode === 'P' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Practical Lab (P)</option>
-                                        <option value="Practical Series Exam (SP)" {{ ($firstPlan->pedagogy ?? '') === 'Practical Series Exam (SP)' || ($firstPlan->mode === 'SP' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Practical Series Exam (SP)</option>
-                                        <option value="Lecture (L)" {{ ($firstPlan->pedagogy ?? 'Lecture (L)') === 'Lecture (L)' || ($firstPlan->mode === 'L' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Lecture (L)</option>
-                                        <option value="Theory Series Exam (ST)" {{ ($firstPlan->pedagogy ?? '') === 'Theory Series Exam (ST)' || ($firstPlan->mode === 'ST' && !isset($firstPlan->pedagogy)) ? 'selected' : '' }}>Theory Series Exam (ST)</option>
-                                        <option value="PPT Presentation" {{ ($firstPlan->pedagogy ?? '') === 'PPT Presentation' ? 'selected' : '' }}>PPT Presentation</option>
-                                        <option value="Demonstration" {{ ($firstPlan->pedagogy ?? '') === 'Demonstration' ? 'selected' : '' }}>Demonstration</option>
-                                        <option value="Group Activity" {{ ($firstPlan->pedagogy ?? '') === 'Group Activity' ? 'selected' : '' }}>Group Activity</option>
-                                    </select>
-                                </td>
-                                <td class="p-2">
-                                    @php
-                                        $propValPr = '';
-                                        if (!empty($firstPlan->proposed_date)) {
-                                            $propValPr = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $firstPlan->proposed_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $firstPlan->proposed_date;
-                                        }
-                                    @endphp
-                                    <input type="text" id="lp-prop-{{ $firstPlan->id }}" value="{{ $propValPr }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $firstPlan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
-                                </td>
-                                <td class="p-2">
-                                    @php
-                                        $actValPr = '';
-                                        if (!empty($firstPlan->actual_date)) {
-                                            $actValPr = preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $firstPlan->actual_date, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $firstPlan->actual_date;
-                                        }
-                                    @endphp
-                                    <input type="text" id="lp-act-{{ $firstPlan->id }}" value="{{ $actValPr }}" placeholder="dd/mm/yyyy" onchange="lpAutoSave({{ $firstPlan->id }})" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
-                                </td>
-                                <td class="p-2">
-                                    <textarea id="lp-topic-{{ $firstPlan->id }}" rows="2" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-emerald-500 outline-none resize-y leading-snug" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; lpAutoSave({{ $firstPlan->id }})">{{ $cleanTopic }}</textarea>
-                                </td>
-                                <td class="p-2 text-center">
-                                    <select id="lp-co-{{ $firstPlan->id }}" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
-                                        @foreach(['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'] as $coOpt)
-                                            <option value="{{ $coOpt }}" {{ ($firstPlan->co_id ?? 'CO1') === $coOpt ? 'selected' : '' }} style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">{{ $coOpt }}</option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td id="lp-batch-td-{{ $firstPlan->id }}" class="p-2 text-center">
-                                    @php
-                                        $bVal = $firstPlan->sub_batch ?? 'A & B';
-                                        if (in_array($bVal, ['Batch A & B', 'Batch A & B (Combined)', 'A & B'])) $bVal = 'A & B';
-                                        elseif (in_array($bVal, ['Batch A', 'A'])) $bVal = 'A';
-                                        elseif (in_array($bVal, ['Batch B', 'B'])) $bVal = 'B';
-                                        else $bVal = 'ALL';
-                                    @endphp
-                                    <select id="lp-batch-{{ $firstPlan->id }}" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
-                                        <option value="A & B" {{ $bVal === 'A & B' ? 'selected' : '' }}>A & B</option>
-                                        <option value="A" {{ $bVal === 'A' ? 'selected' : '' }}>A</option>
-                                        <option value="B" {{ $bVal === 'B' ? 'selected' : '' }}>B</option>
-                                        <option value="ALL" {{ $bVal === 'ALL' ? 'selected' : '' }}>ALL</option>
-                                    </select>
-                                </td>
-                                <td id="lp-hours-td-{{ $firstPlan->id }}" class="p-2 text-center font-normal">
-                                    <span class="px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-normal">3 Hrs</span>
-                                </td>
-                                <td class="p-2">
-                                    <input type="text" id="lp-remarks-{{ $firstPlan->id }}" value="{{ $firstPlan->remarks }}" placeholder="Status/Remarks" onchange="lpAutoSave({{ $firstPlan->id }})" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">
-                                </td>
-                                <td class="p-1 text-center">
-                                    <button type="button" onclick="confirmDeleteLessonPlanRow({{ $firstPlan->id }})" title="Delete row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="10" class="p-5 text-center text-slate-400 font-normal">No practical hours scheduled yet.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800 mt-3">
-                    <button type="button" onclick="addCustomLessonPlanRow('lp-theory-tbody', 'P')" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/35 text-sky-300 border border-blue-500/40 rounded-lg text-xs font-semibold shadow transition-all flex items-center space-x-1.5 cursor-pointer">
-                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        <span>Add Row (Customization)</span>
+            <!-- Subtab: Continuous Practical Evaluation (Single Mark Entry out of 50 -> Converted to 10 CIA Marks) -->
+            <div id="lab-subcontent-eval" class="glass-card p-5 rounded-xl border border-slate-800 hidden space-y-4">
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-2">
+                    <button type="button" onclick="switchCeView('eval')" class="ce-view-btn-eval px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <span>🔬 Continuous Evaluation (CE 10M)</span>
                     </button>
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xs text-slate-400 hidden md:inline">Save changes for all practical lab session rows.</span>
-                        <button type="button" onclick="saveAllLessonPlans()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center space-x-2 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save All Changes</span>
-                        </button>
-                    </div>
+                    <button type="button" onclick="switchCeView('roster')" class="ce-view-btn-roster px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                        <span>🧪 Experiment Roster &amp; Sessions</span>
+                    </button>
                 </div>
-            </div>
-
-            <!-- Subtab 3: Continuous Practical Evaluation -->
-            <div id="lab-subcontent-eval" class="glass-card p-5 rounded-xl border border-slate-800 hidden">
-                <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
                     <div>
-                        <h3 class="text-base font-normal text-white">Continuous Practical Evaluation (CE - 10 CIA Marks)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 2.2 Rubrics (Criteria 1 to 6 out of 50 Marks) converted to 10 CIA marks &bull; Inline editable with auto-save</p>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-rounded text-lg text-teal-400">assignment_turned_in</span>
+                            <span>Continuous Practical Evaluation (CE LAB - 10 CIA Marks)</span>
+                        </h3>
+                        <p class="text-slate-400 text-xs mt-0.5">
+                            Single combined evaluation for all 4 Modules and COs together (Max <strong>50 Marks</strong>) &bull; Converted to <strong>10 Marks</strong> (CE LAB in CIE Register) &bull; Auto-saves on typing
+                        </p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
-                            <label class="text-xs text-slate-400 font-semibold whitespace-nowrap">Experiment:</label>
-                            <select id="ce-table-exp-select" onchange="onCeTableExpChange(this.value)" class="bg-transparent text-emerald-400 font-bold text-xs outline-none cursor-pointer">
-                                <option value="Continuous Evaluation" class="bg-slate-900 text-amber-300">⭐ Continuous Evaluation (Table 2.2)</option>
-                                @php
-                                    $evalExps = $practicumCourseFile->parsed_experiments ?? [];
-                                    if (is_string($evalExps)) $evalExps = json_decode($evalExps, true) ?: [];
-                                @endphp
-                                @foreach($evalExps as $exp)
-                                @php
-                                    $expCodeVal = $exp['code'] ?? ($exp['experiment_no'] ?? '');
-                                @endphp
-                                <option value="{{ $expCodeVal }}" class="bg-slate-900 text-slate-200">{{ $expCodeVal }} - {{ $exp['title'] ?? '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                        <button onclick="openExperimentEvalModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 font-semibold text-xs shadow-sm transition-all">Evaluate Experiment</button>
+                    <div class="flex items-center gap-2.5">
+                        <span id="ce-autosave-badge" class="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
+                            <span>⚡</span> Auto-Saves on Typing
+                        </span>
+                        <button onclick="printSubtabReport('Continuous Lab Evaluation (CE - 10M) Report', 'lab-subcontent-eval')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print flex items-center gap-1 cursor-pointer">
+                            <span>🖨️</span> Print Report
+                        </button>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="ce-eval-table">
+                    <table class="w-full text-left border-collapse text-xs" id="ce-eval-table">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80 text-[10px]">
-                                <th class="p-2 text-center w-8">Roll</th>
-                                <th class="p-2 w-28">SBTE Reg No</th>
-                                <th class="p-2 min-w-[130px]">Student Name</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Prep (10M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Setup (10M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Obs (5M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Analysis (10M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Viva (10M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Work (5M)</th>
-                                <th class="p-2 text-center w-20 text-sky-400 font-bold">Total (/50)</th>
-                                <th class="p-2 text-center w-24 text-amber-300 font-bold">Converted CIA (/10M)</th>
-                                <th class="p-2 text-center w-12 no-print">Action</th>
+                            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/90 text-[11px]">
+                                <th class="p-2.5 text-center w-12 border border-slate-800">Roll</th>
+                                <th class="p-2.5 w-32 border border-slate-800">SBTE Reg No</th>
+                                <th class="p-2.5 min-w-[180px] border border-slate-800">Student Name</th>
+                                <th class="p-2.5 text-center w-52 bg-teal-950/30 text-teal-300 font-bold border border-slate-800">
+                                    Continuous Evaluation (M1–M4 &amp; COs)<br>
+                                    <span class="text-[10px] font-mono font-normal text-teal-400/80">(Max 50 Marks)</span>
+                                </th>
+                                <th class="p-2.5 text-center w-48 bg-emerald-950/40 text-emerald-300 font-bold border border-slate-800">
+                                    CE LAB Converted<br>
+                                    <span class="text-[10px] font-mono font-normal text-emerald-400/80">(Out of 10 Marks &bull; CIE Register)</span>
+                                </th>
+                                <th class="p-2.5 text-center w-24 border border-slate-800 no-print">Status</th>
                             </tr>
                         </thead>
                         <tbody id="ce-eval-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
                             @foreach($studentResults as $res)
                             @php
-                                $stExps = $experimentEvals->get($res['reg_no'], collect());
-                                $count = $stExps->count();
-                                $avgPrep = $count > 0 ? $stExps->avg('prep_punctuality') : 0;
-                                $avgSetup = $count > 0 ? $stExps->avg('setup_procedure') : 0;
-                                $avgObs = $count > 0 ? $stExps->avg('observation_recording') : 0;
-                                $avgAnalysis = $count > 0 ? $stExps->avg('analysis_interpretation') : 0;
-                                $avgViva = $count > 0 ? $stExps->avg('viva_voce') : 0;
-                                $avgWorkmanship = $count > 0 ? $stExps->avg('workmanship_discipline') : 0;
-                                $totalAvg50 = $avgPrep + $avgSetup + $avgObs + $avgAnalysis + $avgViva + $avgWorkmanship;
-                                $cia10 = round((($totalAvg50 / 50.0) * 10.0) * 2) / 2;
+                                $ce50Val = $res['ce_50'] ?? null;
+                                if ($ce50Val === null || $ce50Val === '') {
+                                    $stExps = $experimentEvals->get($res['reg_no'], collect());
+                                    $ceRec = $stExps->firstWhere('experiment_no', 'Continuous Evaluation') ?: $stExps->firstWhere('experiment_no', 'CE');
+                                    if ($ceRec) {
+                                        $ce50Val = (float)$ceRec->total_score_50;
+                                    } elseif ($stExps->count() > 0) {
+                                        $ce50Val = (float)$stExps->avg('total_score_50');
+                                    }
+                                }
+                                $ce10Conv = ($ce50Val !== null && $ce50Val !== '') 
+                                    ? min(10.0, round(((floatval($ce50Val) / 50.0) * 10.0) * 2) / 2) 
+                                    : ($res['continuous_eval_marks'] ?? 0.0);
                             @endphp
-                            <tr id="ce-row-{{ $res['reg_no'] }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
-                                <td class="p-2 font-mono text-[11px] font-bold text-emerald-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2 font-medium text-slate-200">
-                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                            <tr id="ce-row-{{ $res['reg_no'] }}" class="ce-tab-row hover:bg-slate-800/30 transition-all" data-reg-no="{{ $res['reg_no'] }}">
+                                <td class="p-2.5 text-center text-slate-400 font-bold font-mono border border-slate-800/80">{{ $res['roll_no'] ?: '-' }}</td>
+                                <td class="p-2.5 font-mono text-[11px] font-bold text-emerald-400/90 border border-slate-800/80">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2.5 font-medium text-slate-200 border border-slate-800/80">
+                                    <div class="text-xs font-bold text-white truncate max-w-[220px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-prep_punctuality" value="{{ number_format($avgPrep, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'prep_punctuality', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                <td class="p-2 text-center bg-teal-950/15 border border-slate-800/80">
+                                    <input type="number" step="0.5" min="0" max="50"
+                                           id="ce-input-50-{{ $res['reg_no'] }}"
+                                           data-reg-no="{{ $res['reg_no'] }}"
+                                           value="{{ ($ce50Val !== null && $ce50Val !== '') ? (floatval($ce50Val) == intval($ce50Val) ? intval($ce50Val) : number_format(floatval($ce50Val), 1)) : '' }}"
+                                           placeholder="-"
+                                           oninput="onPracticumCe50Input('{{ $res['reg_no'] }}', this.value)"
+                                           class="w-24 bg-slate-950 border border-slate-700 hover:border-teal-400 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-lg px-2.5 py-1 text-center font-mono font-bold text-teal-200 text-sm outline-none transition-all">
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-setup_procedure" value="{{ number_format($avgSetup, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'setup_procedure', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+                                <td class="p-2 text-center bg-emerald-950/20 border border-slate-800/80">
+                                    <span id="ce-conv-10-{{ $res['reg_no'] }}" class="font-mono font-extrabold text-sm sm:text-base text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-500/30 inline-block min-w-[50px] text-center shadow-xs">
+                                        {{ number_format($ce10Conv, 1) }}
+                                    </span>
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="5" id="ce-input-{{ $res['reg_no'] }}-observation_recording" value="{{ number_format($avgObs, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'observation_recording', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
-                                </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-analysis_interpretation" value="{{ number_format($avgAnalysis, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'analysis_interpretation', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
-                                </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="ce-input-{{ $res['reg_no'] }}-viva_voce" value="{{ number_format($avgViva, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'viva_voce', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
-                                </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="5" id="ce-input-{{ $res['reg_no'] }}-workmanship_discipline" value="{{ number_format($avgWorkmanship, 1) }}" oninput="onCeTableInput('{{ $res['reg_no'] }}', 'workmanship_discipline', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
-                                </td>
-                                <td class="p-1.5 text-center font-mono font-bold text-sky-400 text-xs">
-                                    <span id="ce-total-{{ $res['reg_no'] }}">{{ number_format($totalAvg50, 1) }}</span>
-                                </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="ce-cia-{{ $res['reg_no'] }}" value="{{ number_format($cia10, 1) }}" oninput="onCeCiaInput('{{ $res['reg_no'] }}', this.value)" class="w-14 bg-slate-950 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-black text-amber-300 text-xs outline-none transition-all" title="Direct Converted CIA mark (auto-scales criteria)">
-                                </td>
-                                <td class="p-1.5 text-center no-print">
-                                    <button type="button" onclick="openExpModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600/60 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition-all cursor-pointer">
-                                        ✏️
-                                    </button>
+                                <td class="p-2 text-center border border-slate-800/80 no-print">
+                                    <span id="ce-status-{{ $res['reg_no'] }}" class="text-[11px] font-mono text-slate-500">
+                                        {{ ($ce50Val !== null && $ce50Val !== '') ? '✓ Saved' : '—' }}
+                                    </span>
                                 </td>
                             </tr>
                             @endforeach
@@ -2746,19 +2467,12 @@
             <div id="lab-subcontent-series" class="glass-card p-5 rounded-xl border border-slate-800 hidden">
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
-                        <h3 class="text-base font-normal text-white">Practical Series Examinations</h3>
-                        <p class="text-slate-400 text-xs mt-0.5 font-normal">Table 3.1 Rubrics (Criteria 1 to 5 out of 40 Marks) &bull; Scaled to 10 CIA marks &bull; Inline editable with auto-save</p>
+                        <h3 class="text-base font-semibold text-slate-200">Practical Series Examinations (CA2 &amp; CA3)</h3>
+                        <p class="text-slate-400 text-xs mt-0.5 font-normal">4 Modular/CO Practical Tests (CO1–CO4 · 20M each) or 2 Combined Series (CA2: CO1 &amp; CO2 · 40M each, CA3: CO3 &amp; CO4 · 40M each). CIA is calculated from the 2 Series averaged and scaled to 10 Marks.</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
-                            <label class="text-xs text-slate-400 font-semibold whitespace-nowrap">Series Test:</label>
-                            <select id="series-pr-table-test-select" onchange="onSeriesPrTableTestChange(this.value)" class="bg-transparent text-amber-400 font-bold text-xs outline-none cursor-pointer">
-                                <option value="Series 1" class="bg-slate-900 text-amber-300">🧪 Practical Test 1 (CO1+CO2)</option>
-                                <option value="Series 2" class="bg-slate-900 text-sky-300">🧪 Practical Test 2 (CO3+CO4)</option>
-                            </select>
-                        </div>
-                        <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
-                        <button onclick="openSeriesPracticalModal()" class="px-3 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/35 text-sky-300 border border-sky-500/40 font-semibold text-xs shadow-sm transition-all">Enter Lab Series Test Marks</button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
+                        <button onclick="openSeriesPracticalModal()" class="header-btn px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs shadow-sm cursor-pointer">Enter Lab Series Marks</button>
                     </div>
                 </div>
  
@@ -2833,79 +2547,158 @@
                 </div><!-- /Practical QP Generator Panel -->
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs table-compact-header" id="series-pr-eval-table">
+                    <table class="w-full text-left border-collapse text-sm">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 font-normal uppercase bg-slate-900/80 text-[10px]">
-                                <th class="p-2 text-center w-8">Roll</th>
-                                <th class="p-2 w-28">SBTE Reg No</th>
-                                <th class="p-2 min-w-[130px]">Student Name</th>
-                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-1">Writeup (10M)</th>
-                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-2">Setup (10M)</th>
-                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-3">Obs/Res (8M)</th>
-                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-4">Viva (8M)</th>
-                                <th class="p-2 text-center w-16 text-sky-400 font-bold" id="th-sp-crit-5">Record (4M)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 1 (/40)</th>
-                                <th class="p-2 text-center w-16 text-emerald-400 font-bold">Test 2 (/40)</th>
-                                <th class="p-2 text-center w-16 text-indigo-300 font-bold">Avg (/40)</th>
-                                <th class="p-2 text-center w-24 text-amber-300 font-bold">Converted CIA (/10M)</th>
-                                <th class="p-2 text-center w-12 no-print">Action</th>
+                            <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
+                                <th rowspan="2" class="p-2.5 align-middle">Roll</th>
+                                <th rowspan="2" class="p-2.5 align-middle">SBTE Reg No</th>
+                                <th rowspan="2" class="p-2.5 align-middle min-w-[140px]">Student Name</th>
+                                <th colspan="3" class="p-2.5 text-center border-l border-r border-slate-800 bg-emerald-950/30 text-emerald-300 font-bold text-xs sm:text-sm">
+                                    Practical Series Exam 1 (CA2: CO1 &amp; CO2 - 40 Marks)
+                                </th>
+                                <th colspan="3" class="p-2.5 text-center border-r border-slate-800 bg-teal-950/30 text-teal-300 font-bold text-xs sm:text-sm">
+                                    Practical Series Exam 2 (CA3: CO3 &amp; CO4 - 40 Marks)
+                                </th>
+                                <th rowspan="2" class="p-2.5 text-center w-28 align-middle">Series Avg<br><span class="text-[11px] text-amber-400 font-normal">(/40)</span></th>
+                                <th rowspan="2" class="p-2.5 text-center w-28 align-middle">CIA Score<br><span class="text-[11px] text-emerald-400 font-normal">(/10M)</span></th>
+                            </tr>
+                            <tr class="border-b border-slate-800 text-slate-300 font-bold bg-slate-900/70 text-xs">
+                                <th class="p-2 text-center border-l border-slate-800/60 w-28 text-emerald-200">Test 1 (CO1)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
+                                <th class="p-2 text-center w-28 text-emerald-200">Test 2 (CO2)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
+                                <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-emerald-950/40 text-emerald-300 font-extrabold">Series 1<br><span class="text-[10px] text-emerald-400 font-mono">Tot /40</span></th>
+
+                                <th class="p-2 text-center w-28 text-teal-200">Test 3 (CO3)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
+                                <th class="p-2 text-center w-28 text-teal-200">Test 4 (CO4)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
+                                <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-teal-950/40 text-teal-300 font-extrabold">Series 2<br><span class="text-[10px] text-teal-400 font-mono">Tot /40</span></th>
                             </tr>
                         </thead>
-                        <tbody id="series-pr-eval-tbody" class="divide-y divide-slate-800/60 font-normal text-xs">
+                        <tbody class="divide-y divide-slate-800/60 text-sm sm:text-base">
                             @foreach($studentResults as $res)
                             @php
                                 $spEvals = $seriesPracticalEvals->get($res['reg_no'], collect());
-                                $sp1 = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-                                $sp2 = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-                                $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
-                                $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
-                                $avgScore = ($sp1Score + $sp2Score) / 2.0;
-                                $ciaScore = round((($avgScore / 40.0) * 10.0) * 2) / 2;
+                                $sp1 = $spEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+                                $sp2 = $spEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+                                $sp3 = $spEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+                                $sp4 = $spEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+                                $regKey = preg_replace('/[^a-zA-Z0-9_]/', '_', $res['reg_no']);
 
-                                // Initial active test is Series 1
-                                $activeW = $sp1 ? $sp1->writeup_procedure : 0;
-                                $activeS = $sp1 ? $sp1->setup_execution : 0;
-                                $activeO = $sp1 ? $sp1->observation_result : 0;
-                                $activeV = $sp1 ? $sp1->viva_voce : 0;
-                                $activeR = $sp1 ? $sp1->record_completion : 0;
+                                $spCo1Val = $sp1 ? (float)$sp1->total_score_40 : null;
+                                $spCo2Val = $sp2 ? (float)$sp2->total_score_40 : null;
+                                $spCo3Val = $sp3 ? (float)$sp3->total_score_40 : null;
+                                $spCo4Val = $sp4 ? (float)$sp4->total_score_40 : null;
+
+                                // Fallback to legacy single-series if available
+                                if ($spCo1Val === null && $spCo2Val === null) {
+                                    $legacyCa2 = $spEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                                    if ($legacyCa2) {
+                                        $spCo1Val = round(((float)$legacyCa2->total_score_40) / 2.0, 1);
+                                        $spCo2Val = round(((float)$legacyCa2->total_score_40) / 2.0, 1);
+                                    }
+                                }
+                                if ($spCo3Val === null && $spCo4Val === null) {
+                                    $legacyCa3 = $spEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                                    if ($legacyCa3) {
+                                        $spCo3Val = round(((float)$legacyCa3->total_score_40) / 2.0, 1);
+                                        $spCo4Val = round(((float)$legacyCa3->total_score_40) / 2.0, 1);
+                                    }
+                                }
+
+                                $hasSpS1 = ($spCo1Val !== null || $spCo2Val !== null);
+                                $hasSpS2 = ($spCo3Val !== null || $spCo4Val !== null);
+
+                                $spS1Tot = $hasSpS1 ? min(40.0, ($spCo1Val ?? 0) + ($spCo2Val ?? 0)) : null;
+                                $spS2Tot = $hasSpS2 ? min(40.0, ($spCo3Val ?? 0) + ($spCo4Val ?? 0)) : null;
+
+                                $spAvg40 = ($spS1Tot !== null || $spS2Tot !== null) ? ((($spS1Tot ?? 0) + ($spS2Tot ?? 0)) / 2.0) : null;
+                                $spCia10 = $spAvg40 !== null ? min(10.0, round((($spAvg40 / 40.0) * 10.0) * 2) / 2) : null;
                             @endphp
-                            <tr id="sp-row-{{ $res['reg_no'] }}" class="hover:bg-slate-800/30 transition-all">
-                                <td class="p-2 text-center text-slate-400 font-bold">{{ $res['roll_no'] }}</td>
-                                <td class="p-2 font-mono text-[11px] font-bold text-sky-400/90">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2 font-medium text-slate-200">
-                                    <div class="text-[11px] font-bold text-white truncate max-w-[140px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                            <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
+                                <td class="p-2.5 text-slate-300 font-mono font-bold text-sm">{{ $res['roll_no'] }}</td>
+                                <td class="p-2.5 font-mono text-white font-extrabold text-sm">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
+                                <td class="p-2.5 text-slate-100 text-sm font-semibold">{{ $res['name'] }}</td>
+
+                                <!-- Practical Series 1: Test 1 (CO1) -->
+                                <td class="p-2 text-center border-l border-slate-800/60">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s1"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="CO1"
+                                        min="0" max="20" step="0.5"
+                                        value="{{ $spCo1Val !== null ? number_format($spCo1Val, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="autoSaveSeriesPractical(this)"
+                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm sm:text-base outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                    >
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-writeup_procedure" value="{{ number_format($activeW, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'writeup_procedure', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+
+                                <!-- Practical Series 1: Test 2 (CO2) -->
+                                <td class="p-2 text-center">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s2"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="CO2"
+                                        min="0" max="20" step="0.5"
+                                        value="{{ $spCo2Val !== null ? number_format($spCo2Val, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="autoSaveSeriesPractical(this)"
+                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm sm:text-base outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                    >
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="sp-input-{{ $res['reg_no'] }}-setup_execution" value="{{ number_format($activeS, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'setup_execution', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+
+                                <!-- Practical Series 1: Subtotal (CO1 + CO2 / 40M) -->
+                                <td class="p-2 text-center border-r border-slate-800/60 bg-emerald-950/20">
+                                    <span id="sp-s1-tot-{{ $regKey }}" class="font-mono font-bold text-emerald-300 text-sm sm:text-base">
+                                        {{ $spS1Tot !== null ? number_format($spS1Tot, 1) . '/40' : '—' }}
+                                    </span>
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-observation_result" value="{{ number_format($activeO, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'observation_result', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+
+                                <!-- Practical Series 2: Test 3 (CO3) -->
+                                <td class="p-2 text-center">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s3"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="CO3"
+                                        min="0" max="20" step="0.5"
+                                        value="{{ $spCo3Val !== null ? number_format($spCo3Val, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="autoSaveSeriesPractical(this)"
+                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm sm:text-base outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                    >
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="8" id="sp-input-{{ $res['reg_no'] }}-viva_voce" value="{{ number_format($activeV, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'viva_voce', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+
+                                <!-- Practical Series 2: Test 4 (CO4) -->
+                                <td class="p-2 text-center">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s4"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="CO4"
+                                        min="0" max="20" step="0.5"
+                                        value="{{ $spCo4Val !== null ? number_format($spCo4Val, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="autoSaveSeriesPractical(this)"
+                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm sm:text-base outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                    >
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="4" id="sp-input-{{ $res['reg_no'] }}-record_completion" value="{{ number_format($activeR, 1) }}" oninput="onSeriesPrTableInput('{{ $res['reg_no'] }}', 'record_completion', this.value)" class="w-14 bg-slate-950 border border-slate-700 hover:border-sky-400 focus:border-sky-400 rounded px-1 py-0.5 text-center font-mono font-bold text-slate-200 text-xs outline-none transition-all">
+
+                                <!-- Practical Series 2: Subtotal (CO3 + CO4 / 40M) -->
+                                <td class="p-2 text-center border-r border-slate-800/60 bg-teal-950/20">
+                                    <span id="sp-s2-tot-{{ $regKey }}" class="font-mono font-bold text-teal-300 text-sm sm:text-base">
+                                        {{ $spS2Tot !== null ? number_format($spS2Tot, 1) . '/40' : '—' }}
+                                    </span>
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t1-{{ $res['reg_no'] }}" value="{{ number_format($sp1Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 1', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 1 Total (/40)">
+
+                                <!-- Average (/40) -->
+                                <td class="p-2.5 text-center">
+                                    <span id="sp-avg-{{ $regKey }}" class="font-mono font-extrabold text-amber-300 text-sm sm:text-base">
+                                        {{ $spAvg40 !== null ? number_format($spAvg40, 1) : '—' }}
+                                    </span>
                                 </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="40" id="sp-score-t2-{{ $res['reg_no'] }}" value="{{ number_format($sp2Score, 1) }}" oninput="onSeriesPrTotalInput('{{ $res['reg_no'] }}', 'Series 2', this.value)" class="w-14 bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 focus:border-emerald-400 rounded px-1 py-0.5 text-center font-mono font-bold text-emerald-400 text-xs outline-none transition-all" title="Test 2 Total (/40)">
-                                </td>
-                                <td class="p-1.5 text-center font-mono font-bold text-indigo-300 text-xs">
-                                    <span id="sp-avg-{{ $res['reg_no'] }}">{{ number_format($avgScore, 1) }}</span>
-                                </td>
-                                <td class="p-1.5 text-center">
-                                    <input type="number" step="0.5" min="0" max="10" id="sp-cia-{{ $res['reg_no'] }}" value="{{ number_format($ciaScore, 1) }}" oninput="onSeriesPrCiaInput('{{ $res['reg_no'] }}', this.value)" class="w-14 bg-slate-950 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded px-1 py-0.5 text-center font-mono font-black text-amber-300 text-xs outline-none transition-all" title="Direct Practical Series CIA mark (/10M)">
-                                </td>
-                                <td class="p-1.5 text-center no-print">
-                                    <button type="button" onclick="openSeriesPrModalForStudent('{{ $res['reg_no'] }}')" title="Evaluate in Card Modal" class="px-2 py-0.5 rounded bg-sky-600/30 hover:bg-sky-600/60 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition-all cursor-pointer">
-                                        ✏️
-                                    </button>
+
+                                <!-- CIA Score (/10M) -->
+                                <td class="p-2.5 text-center">
+                                    <span id="sp-cia-{{ $regKey }}" class="px-2.5 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono font-black text-sm sm:text-base inline-block">
+                                        {{ $spCia10 !== null ? number_format($spCia10, 2) . '/10' : '—' }}
+                                    </span>
                                 </td>
                             </tr>
                             @endforeach
@@ -3008,6 +2801,17 @@
         <!-- MODE C: REPORTS (PRACTICUM)                                               -->
         <!-- ========================================================================= -->
         <div id="mode-reports-container" class="space-y-6 hidden">
+            <!-- Reports Sub-Toggle (Official Dossiers vs Interactive Attendance & Logs) -->
+            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-2">
+                <button type="button" onclick="switchReportsView('dossier')" id="rep-subview-btn-dossier" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <span>📊 Official Reports Dossier</span>
+                </button>
+                <button type="button" onclick="switchReportsView('attendance')" id="rep-subview-btn-attendance" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                    <span>📅 Attendance &amp; Class Logs</span>
+                </button>
+            </div>
+
+            <div id="reports-dossier-grid" class="space-y-6">
             <!-- Header Section -->
             <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div class="flex items-center gap-3">
@@ -3136,6 +2940,158 @@
                 </div>
 
             </div>
+            </div> <!-- /reports-dossier-grid -->
+
+            <!-- Embedded Interactive Attendance & Logs (Moved into Reports as requested) -->
+            <div id="theory-subcontent-attendance" class="space-y-5 hidden">
+                <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6" style="background-color: #020617 !important;">
+                    <!-- Top Action & Info Bar -->
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-800 pb-5">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2.5 flex-wrap gap-1">
+                                <h3 class="text-base md:text-lg font-bold text-white flex items-center space-x-2">
+                                    <span>📅 Common Practicum Attendance &amp; Teaching Logs</span>
+                                </h3>
+                                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider">Attendance &amp; Log Center</span>
+                            </div>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Practicum combines Theory and Practical sessions under a common attendance system.<br class="hidden sm:inline">
+                                Mark student session attendance, log teaching topics covered, and view/print official SBTE registers.
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/practicum/' . $batchSubject->id . '?mode=theory&tab=attendance') }}" 
+                               class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 flex items-center space-x-2.5 transition-all no-underline border border-blue-400/30 hover:scale-[1.02]">
+                                <svg class="w-5 h-5 text-blue-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <span class="text-xs text-left leading-tight">
+                                    <span class="block">Class Attendance &amp;</span>
+                                    <span class="block text-blue-100">Teaching Log Entry</span>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 3 Printable Reports Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Card 1: Teaching & Attendance Log Register (Log-wise) -->
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-indigo-400 transition-all">Log-Wise Attendance Register</h4>
+                                    </div>
+                                    <p class="text-slate-400 text-xs leading-relaxed">
+                                        Official A4 Portrait Teaching &amp; Attendance Log Register showing session dates, hours, topics covered, present/absent count, absent student rolls, and attendance %.
+                                    </p>
+                                </div>
+                                <span class="material-symbols-rounded text-indigo-400 bg-indigo-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">menu_book</span>
+                            </div>
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-log-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
+                                📄 Print Log Register (A4)
+                            </a>
+                        </div>
+
+                        <!-- Card 2: Detailed Course Register (Course-wise Grid) -->
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-cyan-400 transition-all">Course-Wise Detailed Register</h4>
+                                    </div>
+                                    <p class="text-slate-400 text-xs leading-relaxed">
+                                        Full A4 Landscape attendance matrix showing student-by-student presence across all theory lectures and 3-hour practical lab blocks with overall totals.
+                                    </p>
+                                </div>
+                                <span class="material-symbols-rounded text-cyan-400 bg-cyan-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">view_list</span>
+                            </div>
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-report" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
+                                📊 Print Course Matrix (A4)
+                            </a>
+                        </div>
+
+                        <!-- Card 3: Consolidated Attendance Report -->
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-xl transition-all duration-300 group flex flex-col justify-between space-y-4" style="background-color: #020617 !important;">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        <h4 class="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-all">Consolidated Attendance Report</h4>
+                                    </div>
+                                    <p class="text-slate-400 text-xs leading-relaxed">
+                                        Official summary showing Theory conducted/present/absent/%, Lab conducted/present/absent/%, overall total %, CA Attendance marks (/5M), and eligibility status.
+                                    </p>
+                                </div>
+                                <span class="material-symbols-rounded text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl text-xl flex-shrink-0">analytics</span>
+                            </div>
+                            <a href="/r26/classroom/practicum/{{ $batchSubject->id }}/attendance-consolidated" target="_blank" class="w-full text-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition-all shadow-md no-underline block">
+                                📋 Print Consolidated (A4)
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Live Attendance Overview Table -->
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-bold text-slate-200 flex items-center space-x-2">
+                                <span>👥 Enrolled Students Attendance Status &amp; CIA Marks Preview</span>
+                            </h4>
+                            <span class="text-xs text-slate-400">{{ count($studentResults ?? []) }} Students</span>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-slate-800">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
+                                        <th class="p-3 text-center w-12">Roll</th>
+                                        <th class="p-3 w-32">Reg No</th>
+                                        <th class="p-3">Student Name</th>
+                                        <th class="p-3 text-center w-28">Attendance %</th>
+                                        <th class="p-3 text-center w-28">CIA Attn (/5M)</th>
+                                        <th class="p-3 text-center w-32">Eligibility</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/60">
+                                    @forelse($studentResults as $st)
+                                    @php
+                                        $pct = floatval($st['att_percentage'] ?? 0);
+                                        $short = ($pct < 75);
+                                        $cond = ($pct >= 65 && $pct < 75);
+                                    @endphp
+                                    <tr class="hover:bg-slate-800/30 transition-all">
+                                        <td class="p-3 text-center font-bold text-slate-400">{{ $st['roll_no'] }}</td>
+                                        <td class="p-3 font-mono text-slate-300">{{ $st['sbte_reg_no'] ?: $st['reg_no'] }}</td>
+                                        <td class="p-3 font-medium text-white">{{ $st['name'] }}</td>
+                                        <td class="p-3 text-center">
+                                            <span class="font-bold {{ $short ? 'text-rose-400' : ($cond ? 'text-amber-400' : 'text-emerald-400') }}">
+                                                {{ number_format($pct, 1) }}%
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-center font-bold text-blue-300">
+                                            {{ number_format($st['att_marks'] ?? 0, 1) }} / 5
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            @if($pct >= 75)
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ELIGIBLE</span>
+                                            @elseif($pct >= 65)
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">CONDONATION</span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">SHORTAGE</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="6" class="p-6 text-center text-slate-500">No students found.</td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     <!-- Upload Syllabus Modal -->
@@ -3522,54 +3478,198 @@
             });
         }
 
-        function switchMode(mode) {
-            document.getElementById('mode-theory-container')?.classList.add('hidden');
-            document.getElementById('mode-lab-container')?.classList.add('hidden');
-            document.getElementById('mode-reports-container')?.classList.add('hidden');
-            
-            document.getElementById('mode-btn-theory')?.classList.remove('active', 'text-white');
-            document.getElementById('mode-btn-lab')?.classList.remove('active', 'text-white');
-            document.getElementById('mode-btn-reports')?.classList.remove('active', 'text-white');
+        function switchPracticumTab(tab) {
+            const tabAlias = {
+                'overview': 'outline',
+                'courseoutline': 'outline',
+                'theory': 'outline',
+                'planner': 'planner',
+                'lessonplan': 'planner',
+                'lessonplanner': 'planner',
+                'sl': 'sl',
+                'selflearning': 'sl',
+                'eval': 'continuouseval',
+                'roster': 'continuouseval',
+                'lab': 'continuouseval',
+                'continuouseval': 'continuouseval',
+                'theoryseries': 'theoryseries',
+                'series': 'theoryseries',
+                'labseries': 'labseries',
+                'cie': 'cie',
+                'ese': 'cie',
+                'attainment': 'attainment',
+                'surveys': 'attainment',
+                'reports': 'reports',
+                'report': 'reports',
+                'dossier': 'reports',
+                'attendance': 'reports',
+                'materials': 'materials',
+                'prelab': 'materials'
+            };
+            let actualTab = tabAlias[tab] || tab;
 
-            if (mode === 'theory') {
-                document.getElementById('mode-theory-container')?.classList.remove('hidden');
-                document.getElementById('mode-btn-theory')?.classList.add('active', 'text-white');
-            } else if (mode === 'lab') {
-                document.getElementById('mode-lab-container')?.classList.remove('hidden');
-                document.getElementById('mode-btn-lab')?.classList.add('active', 'text-white');
-            } else if (mode === 'reports') {
-                document.getElementById('mode-reports-container')?.classList.remove('hidden');
-                document.getElementById('mode-btn-reports')?.classList.add('active', 'text-white');
+            const allTabs = ['outline', 'planner', 'sl', 'continuouseval', 'theoryseries', 'labseries', 'cie', 'attainment', 'reports', 'materials'];
+            if (!allTabs.includes(actualTab)) {
+                actualTab = 'outline';
             }
-            localStorage.setItem('active_mode', mode);
-        }
 
-        function switchTheorySubtab(tab) {
-            const tabs = ['overview', 'planner', 'sl', 'cie', 'series', 'ese', 'surveys', 'attendance', 'materials', 'attainment'];
-            tabs.forEach(t => {
-                document.getElementById('theory-subcontent-' + t)?.classList.add('hidden');
-                const btn = document.getElementById('theory-tab-' + t);
+            allTabs.forEach(t => {
+                const btn = document.getElementById('ptab-' + t);
                 if (btn) {
-                    if (t === tab) {
-                        btn.className = "tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl active flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]";
+                    if (t === actualTab) {
+                        btn.className = "tab-btn subtab-btn active px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px";
                     } else {
                         btn.className = "tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px";
                     }
                 }
             });
-            const sub = document.getElementById('theory-subcontent-' + tab);
-            if (sub) {
-                sub.classList.remove('hidden');
-                const inner = sub.querySelector('.tab-panel');
-                if (inner) inner.classList.remove('hidden');
+
+            const theoryTabs = ['outline', 'planner', 'sl', 'theoryseries', 'cie', 'attainment'];
+            const labTabs = ['continuouseval', 'labseries', 'materials'];
+
+            const modeTheoryContainer = document.getElementById('mode-theory-container');
+            const modeLabContainer = document.getElementById('mode-lab-container');
+            const modeReportsContainer = document.getElementById('mode-reports-container');
+
+            if (theoryTabs.includes(actualTab)) {
+                modeTheoryContainer?.classList.remove('hidden');
+                modeLabContainer?.classList.add('hidden');
+                modeReportsContainer?.classList.add('hidden');
+            } else if (labTabs.includes(actualTab)) {
+                modeTheoryContainer?.classList.add('hidden');
+                modeLabContainer?.classList.remove('hidden');
+                modeReportsContainer?.classList.add('hidden');
+            } else if (actualTab === 'reports') {
+                modeTheoryContainer?.classList.add('hidden');
+                modeLabContainer?.classList.add('hidden');
+                modeReportsContainer?.classList.remove('hidden');
             }
-            localStorage.setItem('active_theory_subtab', tab);
-            if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
-                loadSubjectMaterials();
+
+            // Hide all subcontent panels
+            const panels = [
+                'theory-subcontent-overview',
+                'theory-subcontent-planner',
+                'theory-subcontent-sl',
+                'theory-subcontent-cie',
+                'theory-subcontent-series',
+                'theory-subcontent-ese',
+                'theory-subcontent-surveys',
+                'theory-subcontent-materials',
+                'theory-subcontent-attainment',
+                'lab-subcontent-materials',
+                'lab-subcontent-attendance',
+                'lab-subcontent-roster',
+                'lab-subcontent-eval',
+                'lab-subcontent-series',
+                'lab-subcontent-ese'
+            ];
+            panels.forEach(p => {
+                document.getElementById(p)?.classList.add('hidden');
+            });
+
+            if (actualTab === 'outline') {
+                document.getElementById('theory-subcontent-overview')?.classList.remove('hidden');
+            } else if (actualTab === 'planner') {
+                document.getElementById('theory-subcontent-planner')?.classList.remove('hidden');
+                if (typeof initPracticumDatePickers === 'function') initPracticumDatePickers();
+            } else if (actualTab === 'sl') {
+                document.getElementById('theory-subcontent-sl')?.classList.remove('hidden');
+            } else if (actualTab === 'continuouseval') {
+                switchCeView('eval');
+            } else if (actualTab === 'theoryseries') {
+                document.getElementById('theory-subcontent-series')?.classList.remove('hidden');
+            } else if (actualTab === 'labseries') {
+                document.getElementById('lab-subcontent-series')?.classList.remove('hidden');
+            } else if (actualTab === 'cie') {
+                document.getElementById('theory-subcontent-cie')?.classList.remove('hidden');
+            } else if (actualTab === 'attainment') {
+                switchAttainmentView('direct');
+            } else if (actualTab === 'reports') {
+                modeReportsContainer?.classList.remove('hidden');
+                switchReportsView(tab === 'attendance' ? 'attendance' : 'dossier');
+            } else if (actualTab === 'materials') {
+                document.getElementById('lab-subcontent-materials')?.classList.remove('hidden');
+                if (typeof loadSubjectMaterials === 'function') loadSubjectMaterials();
             }
-            if (tab === 'planner' && typeof initPracticumDatePickers === 'function') {
-                initPracticumDatePickers();
+
+            try {
+                localStorage.setItem('active_practicum_tab', actualTab);
+            } catch (e) {
+                console.warn('localStorage access failed:', e);
             }
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', actualTab);
+                window.history.replaceState({}, '', url);
+            } catch (e) {
+                console.warn('history.replaceState failed:', e);
+            }
+        }
+
+        function switchCeView(view) {
+            const isEval = (view === 'eval');
+            document.getElementById('lab-subcontent-eval')?.classList.toggle('hidden', !isEval);
+            document.getElementById('lab-subcontent-roster')?.classList.toggle('hidden', isEval);
+
+            document.querySelectorAll('.ce-view-btn-eval').forEach(b => {
+                b.className = isEval
+                    ? 'ce-view-btn-eval px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'ce-view-btn-eval px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            });
+            document.querySelectorAll('.ce-view-btn-roster').forEach(b => {
+                b.className = !isEval
+                    ? 'ce-view-btn-roster px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'ce-view-btn-roster px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            });
+        }
+
+        function switchAttainmentView(view) {
+            const isDirect = (view === 'direct');
+            document.getElementById('theory-subcontent-attainment')?.classList.toggle('hidden', !isDirect);
+            document.getElementById('theory-subcontent-surveys')?.classList.toggle('hidden', isDirect);
+
+            document.querySelectorAll('.att-view-btn-direct').forEach(b => {
+                b.className = isDirect
+                    ? 'att-view-btn-direct px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'att-view-btn-direct px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            });
+            document.querySelectorAll('.att-view-btn-surveys').forEach(b => {
+                b.className = !isDirect
+                    ? 'att-view-btn-surveys px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'att-view-btn-surveys px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            });
+        }
+
+        function switchReportsView(view) {
+            const isDossier = (view === 'dossier');
+            document.getElementById('reports-dossier-grid')?.classList.toggle('hidden', !isDossier);
+            document.getElementById('theory-subcontent-attendance')?.classList.toggle('hidden', isDossier);
+
+            const btnDossier = document.getElementById('rep-subview-btn-dossier');
+            const btnAtt = document.getElementById('rep-subview-btn-attendance');
+            if (btnDossier) {
+                btnDossier.className = isDossier
+                    ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            }
+            if (btnAtt) {
+                btnAtt.className = !isDossier
+                    ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer'
+                    : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer';
+            }
+        }
+
+        // Backward compatibility aliases
+        function switchMode(mode) {
+            if (mode === 'theory') switchPracticumTab('outline');
+            else if (mode === 'lab') switchPracticumTab('continuouseval');
+            else if (mode === 'reports') switchPracticumTab('reports');
+        }
+        function switchTheorySubtab(tab) {
+            switchPracticumTab(tab);
+        }
+        function switchLabSubtab(tab) {
+            switchPracticumTab(tab);
         }
 
         // Realtime Practicum Self-Learning Module input handler (4 marks: M1..M4 all in 10M, scaled to 5M)
@@ -3918,33 +4018,7 @@
             });
         });
 
-        function switchLabSubtab(tab) {
-            const tabs = ['roster', 'planner', 'eval', 'series', 'ese', 'materials', 'attendance'];
-            tabs.forEach(t => {
-                document.getElementById('lab-subcontent-' + t)?.classList.add('hidden');
-                const btn = document.getElementById('lab-tab-' + t);
-                if (btn) {
-                    if (t === tab) {
-                        btn.className = "tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl active flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px shadow-[0_-4px_10px_rgba(59,130,246,0.2)]";
-                    } else {
-                        btn.className = "tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px";
-                    }
-                }
-            });
-            const sub = document.getElementById('lab-subcontent-' + tab);
-            if (sub) {
-                sub.classList.remove('hidden');
-                const inner = sub.querySelector('.tab-panel');
-                if (inner) inner.classList.remove('hidden');
-            }
-            localStorage.setItem('active_lab_subtab', tab);
-            if (tab === 'materials' && typeof loadSubjectMaterials === 'function') {
-                loadSubjectMaterials();
-            }
-            if (tab === 'planner' && typeof initPracticumDatePickers === 'function') {
-                initPracticumDatePickers();
-            }
-        }
+
 
         // =========================================================================
         // PRACTICUM EXPERIMENTS ROSTER CUSTOMIZATION & SYNC
@@ -4898,99 +4972,119 @@
             }
         }
 
-        function addCustomLessonPlanRow(tbodyId, defaultMode) {
-            const tbody = document.getElementById(tbodyId);
+        function addLessonPlanRowBelow(btn) {
+            const tbody = document.getElementById('lp-theory-tbody');
             if (!tbody) return;
 
-            const newId = 'new_' + Date.now();
-            const rows = tbody.querySelectorAll('tr');
-            let nextNum = rows.length + 1;
+            const curTr = btn ? btn.closest('tr') : null;
+            let defaultPedagogy = 'Lecture (L)';
+            let defaultCo = 'CO1';
+            let defaultBatch = 'ALL';
+            let defaultHours = '1 Hr';
 
-            if (rows.length > 0) {
-                const lastTr = rows[rows.length - 1];
-                const firstTdText = lastTr.querySelector('td')?.innerText || '';
-                const matches = firstTdText.match(/\d+/g);
-                if (matches && matches.length > 0) {
-                    nextNum = parseInt(matches[matches.length - 1], 10) + 1;
-                }
+            if (curTr) {
+                const curPlanId = curTr.getAttribute('data-plan-id');
+                const prevPedEl = document.getElementById('lp-pedagogy-' + curPlanId);
+                if (prevPedEl) defaultPedagogy = prevPedEl.value;
+                const prevCoEl = document.getElementById('lp-co-' + curPlanId);
+                if (prevCoEl) defaultCo = prevCoEl.value;
+                const isLab = defaultPedagogy.includes('Practical') || defaultPedagogy.includes('Lab') || defaultPedagogy.includes('(P)') || defaultPedagogy.includes('(SP)');
+                defaultHours = isLab ? '3 Hrs' : '1 Hr';
+                defaultBatch = isLab ? 'A & B' : 'ALL';
             }
 
-            const label = defaultMode === 'L' ? `${nextNum}` : `Session ${nextNum}`;
-
+            const newId = 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
             const tr = document.createElement('tr');
-            tr.id = `lp-row-${newId}`;
+            tr.id = 'lp-row-' + newId;
             tr.setAttribute('data-plan-id', newId);
             tr.className = 'hover:bg-slate-800/30 transition-all bg-slate-900/50';
 
-            tr.innerHTML = `
-                <td class="p-2 font-normal text-center text-white text-xs">${label}</td>
-                <td class="p-2">
-                    <select id="lp-pedagogy-${newId}" onchange="onPedagogyChange('${newId}', this.value)" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full text-blue-400">
-                        <option value="Lecture (L)" ${defaultMode === 'L' ? 'selected' : ''}>Lecture (L)</option>
-                        <option value="Practical Lab (P)" ${defaultMode === 'P' ? 'selected' : ''}>Practical Lab (P)</option>
-                        <option value="Theory Series Exam (ST)">Theory Series Exam (ST)</option>
-                        <option value="Practical Series Exam (SP)">Practical Series Exam (SP)</option>
-                        <option value="PPT Presentation">PPT Presentation</option>
-                        <option value="Demonstration">Demonstration</option>
-                        <option value="Group Activity">Group Activity</option>
-                    </select>
-                </td>
-                <td class="p-2">
-                    <input type="text" id="lp-prop-${newId}" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">
-                </td>
-                <td class="p-2">
-                    <input type="text" id="lp-act-${newId}" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">
-                </td>
-                <td class="p-2">
-                    <textarea id="lp-topic-${newId}" rows="2" placeholder="Enter custom lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug"></textarea>
-                </td>
-                <td class="p-2 text-center">
-                    <select id="lp-co-${newId}" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">
-                        <option value="CO1" selected style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO1</option>
-                        <option value="CO2" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO2</option>
-                        <option value="CO3" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO3</option>
-                        <option value="CO4" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO4</option>
-                        <option value="CO5" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO5</option>
-                        <option value="CO6" style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO6</option>
-                    </select>
-                </td>
-                <td id="lp-batch-td-${newId}" class="p-2 text-center">
-                    <select id="lp-batch-${newId}" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">
-                        <option value="ALL" ${defaultMode === 'L' ? 'selected' : ''}>ALL</option>
-                        <option value="A & B" ${defaultMode === 'P' ? 'selected' : ''}>A & B</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                    </select>
-                </td>
-                <td id="lp-hours-td-${newId}" class="p-2 text-center font-normal">
-                    <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-normal">${defaultMode === 'L' ? '1 Hr' : '3 Hrs'}</span>
-                </td>
-                <td class="p-2">
-                    <input type="text" id="lp-remarks-${newId}" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-400 text-xs w-full">
-                </td>
-                <td class="p-1 text-center">
-                    <button type="button" onclick="document.getElementById('lp-row-${newId}').remove()" title="Remove Row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold mx-auto">&times;</button>
-                </td>
-            `;
+            const isLab = defaultPedagogy.includes('Practical') || defaultPedagogy.includes('Lab') || defaultPedagogy.includes('(P)') || defaultPedagogy.includes('(SP)');
+            const pedClass = isLab ? 'text-emerald-400' : (defaultPedagogy.includes('Series') ? 'text-sky-400' : 'text-blue-400');
 
-            tbody.appendChild(tr);
-            initPracticumDatePickers(tr);
+            tr.innerHTML = '<td class="p-2 font-normal text-center text-white text-xs lp-day-no-cell">--</td>' +
+                '<td class="p-2">' +
+                    '<select id="lp-pedagogy-' + newId + '" onchange="onPedagogyChange(\'' + newId + '\', this.value)" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-normal text-xs w-full ' + pedClass + '">' +
+                        '<option value="Lecture (L)" ' + (defaultPedagogy === 'Lecture (L)' ? 'selected' : '') + '>Lecture (L)</option>' +
+                        '<option value="Practical Lab (P)" ' + (defaultPedagogy === 'Practical Lab (P)' ? 'selected' : '') + '>Practical Lab (P)</option>' +
+                        '<option value="Theory Series Exam (ST)" ' + (defaultPedagogy === 'Theory Series Exam (ST)' ? 'selected' : '') + '>Theory Series Exam (ST)</option>' +
+                        '<option value="Practical Series Exam (SP)" ' + (defaultPedagogy === 'Practical Series Exam (SP)' ? 'selected' : '') + '>Practical Series Exam (SP)</option>' +
+                        '<option value="PPT Presentation" ' + (defaultPedagogy === 'PPT Presentation' ? 'selected' : '') + '>PPT Presentation</option>' +
+                        '<option value="Demonstration" ' + (defaultPedagogy === 'Demonstration' ? 'selected' : '') + '>Demonstration</option>' +
+                        '<option value="Group Activity" ' + (defaultPedagogy === 'Group Activity' ? 'selected' : '') + '>Group Activity</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td class="p-2">' +
+                    '<input type="text" id="lp-prop-' + newId + '" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-200 text-xs w-full text-center font-mono focus:border-blue-500 outline-none">' +
+                '</td>' +
+                '<td class="p-2">' +
+                    '<input type="text" id="lp-act-' + newId + '" value="" placeholder="dd/mm/yyyy" class="lp-date-picker bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-emerald-400 text-xs w-full text-center font-mono focus:border-emerald-500 outline-none">' +
+                '</td>' +
+                '<td class="p-2">' +
+                    '<textarea id="lp-topic-' + newId + '" rows="2" placeholder="Enter lesson topic description..." class="bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-100 text-xs font-normal w-full focus:border-blue-500 outline-none resize-y leading-snug" oninput="this.style.height = \'\'; this.style.height = this.scrollHeight + \'px\';"></textarea>' +
+                '</td>' +
+                '<td class="p-2 text-center">' +
+                    '<select id="lp-co-' + newId + '" class="bg-slate-900 border border-amber-500/40 rounded px-1 py-1 font-mono text-xs font-bold text-amber-300 w-full focus:border-amber-400 outline-none cursor-pointer" style="background-color:#0f172a !important; color:#fcd34d !important;">' +
+                        '<option value="CO1" ' + (defaultCo === 'CO1' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO1</option>' +
+                        '<option value="CO2" ' + (defaultCo === 'CO2' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO2</option>' +
+                        '<option value="CO3" ' + (defaultCo === 'CO3' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO3</option>' +
+                        '<option value="CO4" ' + (defaultCo === 'CO4' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO4</option>' +
+                        '<option value="CO5" ' + (defaultCo === 'CO5' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO5</option>' +
+                        '<option value="CO6" ' + (defaultCo === 'CO6' ? 'selected' : '') + ' style="background-color:#0f172a; color:#fcd34d; font-weight:bold;">CO6</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td id="lp-batch-td-' + newId + '" class="p-2 text-center">' +
+                    '<select id="lp-batch-' + newId + '" class="bg-slate-900 border border-slate-700 rounded px-1 py-1 font-mono text-xs text-emerald-400 w-full text-center">' +
+                        '<option value="ALL" ' + (defaultBatch === 'ALL' ? 'selected' : '') + '>ALL</option>' +
+                        '<option value="A & B" ' + (defaultBatch === 'A & B' ? 'selected' : '') + '>A & B</option>' +
+                        '<option value="A" ' + (defaultBatch === 'A' ? 'selected' : '') + '>A</option>' +
+                        '<option value="B" ' + (defaultBatch === 'B' ? 'selected' : '') + '>B</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td id="lp-hours-td-' + newId + '" class="p-2 text-center font-normal">' +
+                    '<span class="px-1 py-0.5 rounded ' + (isLab ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30') + ' text-xs font-normal">' + defaultHours + '</span>' +
+                '</td>' +
+                '<td class="p-2 pr-3">' +
+                    '<input type="text" id="lp-remarks-' + newId + '" value="" placeholder="Status/Remarks" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-slate-400 text-xs w-full">' +
+                '</td>' +
+                '<td class="p-1 text-center whitespace-nowrap">' +
+                    '<div class="flex items-center justify-center gap-1">' +
+                        '<button type="button" onclick="addLessonPlanRowBelow(this)" title="Insert row below" class="w-6 h-6 flex items-center justify-center rounded bg-blue-500/15 hover:bg-blue-500/30 border border-blue-500/30 text-sky-400 hover:text-sky-300 transition-all text-xs font-bold cursor-pointer">+</button>' +
+                        '<button type="button" onclick="confirmDeleteLessonPlanRow(\'' + newId + '\')" title="Delete this row" class="w-6 h-6 flex items-center justify-center rounded bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition-all text-xs font-bold cursor-pointer">&times;</button>' +
+                    '</div>' +
+                '</td>';
 
-            // Automatically shift vertical scroll to max down to show the new row
-            const scrollContainer = tbody.closest('.max-h-\\[650px\\], .overflow-y-auto, div') || tbody.parentElement;
-            if (scrollContainer) {
-                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            if (curTr) {
+                curTr.after(tr);
+            } else {
+                tbody.appendChild(tr);
             }
-            setTimeout(() => {
-                tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 50);
+
+            resequenceAllLessonPlanRows();
+            initPracticumDatePickers(tr);
+            tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resequenceAllLessonPlanRows() {
+            const rows = document.querySelectorAll('#lp-theory-tbody tr[id^="lp-row-"]');
+            rows.forEach((row, idx) => {
+                const seq = idx + 1;
+                const cell = row.querySelector('.lp-day-no-cell') || row.querySelector('td:first-child');
+                if (cell) {
+                    cell.innerText = seq;
+                }
+            });
+        }
+
+        function addCustomLessonPlanRow(tbodyId, defaultMode) {
+            addLessonPlanRowBelow(null);
         }
 
         function saveAllLessonPlans() {
-            const rows = document.querySelectorAll('tr[id^="lp-row-"]');
+            const rows = document.querySelectorAll('#lp-theory-tbody tr[id^="lp-row-"]');
             const plans = [];
 
-            rows.forEach(tr => {
+            rows.forEach((tr, index) => {
                 const planId = tr.getAttribute('data-plan-id');
                 if (!planId) return;
 
@@ -5005,7 +5099,7 @@
                 const batch = document.getElementById('lp-batch-' + planId)?.value || '';
                 const remarks = document.getElementById('lp-remarks-' + planId)?.value || '';
 
-                // If new row with no text entered, never save or calculate that row
+                // If new row with no text entered, skip
                 if (planId.startsWith('new_') && !topic) {
                     return;
                 }
@@ -5013,6 +5107,7 @@
                 targetIds.forEach(id => {
                     plans.push({
                         id: id,
+                        day_no: index + 1,
                         pedagogy: pedagogy,
                         proposed_date: propDate,
                         actual_date: actDate,
@@ -5025,8 +5120,8 @@
             });
 
             Swal.fire({
-                title: 'Saving All 90 Hours...',
-                text: 'Updating complete Practicum lesson plan',
+                title: 'Saving All Lesson Plans...',
+                text: 'Updating complete 90 hours schedule',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
@@ -5087,20 +5182,29 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'SUCCESS') {
-                        // subtle toast — no modal
                         const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1800, timerProgressBar: true });
                         toast.fire({ icon: 'success', title: 'Auto-saved ✓' });
                     }
                 })
-                .catch(() => {}); // silent on network error during auto-save
+                .catch(() => {});
             }, 900);
         }
 
         // ── Delete row with SweetAlert confirmation ───────────────────────────
         function confirmDeleteLessonPlanRow(planId) {
+            const tr = document.getElementById('lp-row-' + planId);
+            if (!tr) return;
+
+            if (String(planId).startsWith('new_')) {
+                tr.remove();
+                resequenceAllLessonPlanRows();
+                Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Row removed', showConfirmButton: false, timer: 1200, background: '#0f172a', color: '#e2e8f0' });
+                return;
+            }
+
             Swal.fire({
                 title: 'Delete this row?',
-                text: 'This lesson plan entry will be permanently removed.',
+                text: 'This lesson plan row will be removed and row numbers will be resequenced.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
@@ -5112,8 +5216,7 @@
             }).then(result => {
                 if (!result.isConfirmed) return;
 
-                const tr = document.getElementById('lp-row-' + planId);
-                const blockIdsAttr = tr?.getAttribute('data-block-ids');
+                const blockIdsAttr = tr.getAttribute('data-block-ids');
                 const idsToDelete = blockIdsAttr ? blockIdsAttr.split(',') : [planId];
 
                 fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/lesson-plan/delete', {
@@ -5127,8 +5230,9 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'SUCCESS' || data.status === 'OK') {
-                        tr?.remove();
-                        Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Row deleted', showConfirmButton: false, timer: 1600, background: '#0f172a', color: '#e2e8f0' });
+                        tr.remove();
+                        resequenceAllLessonPlanRows();
+                        Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Row deleted & resequenced', showConfirmButton: false, timer: 1600, background: '#0f172a', color: '#e2e8f0' });
                     } else {
                         Swal.fire('Error', data.message || 'Could not delete.', 'error');
                     }
@@ -6025,14 +6129,130 @@
         if (s1El) s1El.innerText = s1Total !== null ? `${s1Total.toFixed(1)}/50` : '—';
         if (s2El) s2El.innerText = s2Total !== null ? `${s2Total.toFixed(1)}/50` : '—';
 
+        let ciaVal = null;
         if (s1Total !== null || s2Total !== null) {
             const avg = ((s1Total !== null ? s1Total : 0) + (s2Total !== null ? s2Total : 0)) / 2.0;
             const cia = Math.min(10, Math.round(((avg / 50.0) * 10.0) * 2) / 2);
+            ciaVal = cia;
             if (avgEl) avgEl.innerText = avg.toFixed(1);
             if (ciaEl) ciaEl.innerText = `${cia.toFixed(2)}/10`;
         } else {
             if (avgEl) avgEl.innerText = '—';
             if (ciaEl) ciaEl.innerText = '—';
+        }
+
+        // Live sync with CIE Register row
+        const cieRow = document.querySelector(`.student-cie-row[data-reg-no="${regNo}"]`);
+        if (cieRow) {
+            const thCell = cieRow.querySelector('.cell-th-tests');
+            if (thCell) {
+                thCell.textContent = ciaVal !== null ? ciaVal.toFixed(2) : '0.00';
+            }
+            if (typeof recalculatePracticumCieRow === 'function') {
+                recalculatePracticumCieRow(regNo);
+            }
+        }
+    }
+
+    // ── Inline auto-save for Practical Series Marks table ────────────────────
+    const _spAutoSaveTimers = {};
+
+    function autoSaveSeriesPractical(inputEl) {
+        const regNo   = inputEl.getAttribute('data-reg');
+        const series  = inputEl.getAttribute('data-series');
+        const val     = parseFloat(inputEl.value);
+        const score   = isNaN(val) ? null : Math.max(0, Math.min(20, val));
+
+        if (score !== null && !isNaN(val) && parseFloat(inputEl.value) > 20) {
+            inputEl.value = 20;
+        }
+
+        // Update live table totals, Avg & CIA display immediately and sync to CIE Register
+        updateSeriesPracticalRowLive(regNo);
+
+        // Debounce the save
+        const timerKey = regNo + '_' + series;
+        clearTimeout(_spAutoSaveTimers[timerKey]);
+        _spAutoSaveTimers[timerKey] = setTimeout(() => {
+            const marksData = [{
+                reg_no: regNo,
+                total_score_40: score !== null ? score : 0,
+                is_absent: score === null
+            }];
+
+            fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/series-practical', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ series_no: series, marks_data: marksData })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    // Update state cache as well
+                    if (!seriesPracticalEvalsState[regNo]) seriesPracticalEvalsState[regNo] = {};
+                    if (!seriesPracticalEvalsState[regNo][series]) seriesPracticalEvalsState[regNo][series] = { total_score_40: 0, is_absent: false };
+                    seriesPracticalEvalsState[regNo][series].total_score_40 = score !== null ? score : 0;
+                    seriesPracticalEvalsState[regNo][series].is_absent = (score === null);
+
+                    const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1400, timerProgressBar: true });
+                    toast.fire({ icon: 'success', title: 'Saved ✓' });
+                }
+            })
+            .catch(() => {});
+        }, 800);
+    }
+
+    function updateSeriesPracticalRowLive(regNo) {
+        const regKey = regNo.replace(/[^a-zA-Z0-9_]/g, '_');
+        const inp1 = document.getElementById(`sp-${regKey}-s1`);
+        const inp2 = document.getElementById(`sp-${regKey}-s2`);
+        const inp3 = document.getElementById(`sp-${regKey}-s3`);
+        const inp4 = document.getElementById(`sp-${regKey}-s4`);
+
+        const v1 = (inp1 && inp1.value !== '') ? parseFloat(inp1.value) : null;
+        const v2 = (inp2 && inp2.value !== '') ? parseFloat(inp2.value) : null;
+        const v3 = (inp3 && inp3.value !== '') ? parseFloat(inp3.value) : null;
+        const v4 = (inp4 && inp4.value !== '') ? parseFloat(inp4.value) : null;
+
+        const hasS1 = (v1 !== null || v2 !== null);
+        const hasS2 = (v3 !== null || v4 !== null);
+
+        const s1Total = hasS1 ? Math.min(40, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0)) : null;
+        const s2Total = hasS2 ? Math.min(40, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0)) : null;
+
+        const s1El = document.getElementById(`sp-s1-tot-${regKey}`);
+        const s2El = document.getElementById(`sp-s2-tot-${regKey}`);
+        const avgEl = document.getElementById(`sp-avg-${regKey}`);
+        const ciaEl = document.getElementById(`sp-cia-${regKey}`);
+
+        if (s1El) s1El.innerText = s1Total !== null ? `${s1Total.toFixed(1)}/40` : '—';
+        if (s2El) s2El.innerText = s2Total !== null ? `${s2Total.toFixed(1)}/40` : '—';
+
+        let ciaVal = null;
+        if (s1Total !== null || s2Total !== null) {
+            const avg = ((s1Total !== null ? s1Total : 0) + (s2Total !== null ? s2Total : 0)) / 2.0;
+            const cia = Math.min(10, Math.round(((avg / 40.0) * 10.0) * 2) / 2);
+            ciaVal = cia;
+            if (avgEl) avgEl.innerText = avg.toFixed(1);
+            if (ciaEl) ciaEl.innerText = `${cia.toFixed(2)}/10`;
+        } else {
+            if (avgEl) avgEl.innerText = '—';
+            if (ciaEl) ciaEl.innerText = '—';
+        }
+
+        // Live sync with CIE Register row
+        const cieRow = document.querySelector(`.student-cie-row[data-reg-no="${regNo}"]`);
+        if (cieRow) {
+            const prCell = cieRow.querySelector('.cell-pr-tests');
+            if (prCell) {
+                prCell.textContent = ciaVal !== null ? ciaVal.toFixed(2) : '0.00';
+            }
+            if (typeof recalculatePracticumCieRow === 'function') {
+                recalculatePracticumCieRow(regNo);
+            }
         }
     }
 
@@ -6041,27 +6261,21 @@
         const urlMode = urlParams.get('mode');
         const urlTab = urlParams.get('tab');
 
-        if (urlMode) {
-            switchMode(urlMode);
-            if (urlTab) {
-                if (urlMode === 'theory') switchTheorySubtab(urlTab);
-                else if (urlMode === 'lab') switchLabSubtab(urlTab);
-            }
-        } else {
-            const savedMode = localStorage.getItem('active_mode');
-            const savedTheoryTab = localStorage.getItem('active_theory_subtab');
-            const savedLabTab = localStorage.getItem('active_lab_subtab');
-
-            if (savedMode) {
-                switchMode(savedMode);
-            }
-            if (savedTheoryTab) {
-                switchTheorySubtab(savedTheoryTab);
-            }
-            if (savedLabTab) {
-                switchLabSubtab(savedLabTab);
+        let initialTab = urlTab;
+        if (!initialTab && urlMode) {
+            if (urlMode === 'theory') initialTab = 'outline';
+            else if (urlMode === 'lab') initialTab = 'continuouseval';
+            else if (urlMode === 'reports') initialTab = 'reports';
+        }
+        if (!initialTab) {
+            try {
+                initialTab = localStorage.getItem('active_practicum_tab') || 'outline';
+            } catch (e) {
+                initialTab = 'outline';
             }
         }
+
+        switchPracticumTab(initialTab);
 
         if (typeof updateExpRosterSummary === 'function') {
             updateExpRosterSummary();
@@ -6307,63 +6521,79 @@
          Practical Series Exam Evaluation Modal
     ================================================================= -->
     <div id="series-practical-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-3 sm:p-5">
-        <div class="glass-card max-w-4xl lg:max-w-5xl w-full p-4 sm:p-5 rounded-2xl border border-sky-500/30 shadow-2xl space-y-3 max-h-[92vh] flex flex-col bg-slate-950">
+        <div class="glass-card max-w-2xl w-full p-5 rounded-2xl border border-slate-700 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 flex-shrink-0">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-xl">🧪</span>
-                    <div>
-                        <h3 class="text-base font-bold text-white leading-tight">Practical Series Test Marks Evaluator (Table 3.1)</h3>
-                        <p class="text-slate-400 text-[11px] leading-tight mt-0.5">Grade student on 5 practical criteria (40 Marks) &bull; Scaled to 10 CIA marks &bull; Auto-saved</p>
-                    </div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
+                <div>
+                    <h3 class="text-lg font-bold text-white">Practical Series Exam Marks Evaluator</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Select a series test (CO1–CO4 · 20M each) and enter score for each student.</p>
                 </div>
                 <button type="button" onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
-            <!-- Series and Student Selection -->
-            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 flex-shrink-0">
-                <div class="flex items-center gap-2 w-full sm:w-1/2">
-                    <label class="text-slate-300 text-xs font-semibold whitespace-nowrap">Series Test:</label>
-                    <select id="series-pr-test-select" onchange="onSeriesPrTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-semibold outline-none w-full focus:border-amber-500 cursor-pointer">
-                        <option value="Series 1">Practical Test 1 (CO1+CO2)</option>
-                        <option value="Series 2">Practical Test 2 (CO3+CO4)</option>
+            <!-- Series Selection & Student Selection Bar -->
+            <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-3 flex-shrink-0">
+                <div class="flex items-center justify-between gap-3">
+                    <label class="text-slate-300 text-xs font-semibold">Select Practical Test:</label>
+                    <select id="series-practical-test-select" onchange="onSeriesPracticalTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-amber-400 font-bold outline-none focus:border-amber-500 cursor-pointer">
+                        <option value="CO1">Practical Series 1: Test 1 / CO1 (Max 20M)</option>
+                        <option value="CO2">Practical Series 1: Test 2 / CO2 (Max 20M)</option>
+                        <option value="CO3">Practical Series 2: Test 3 / CO3 (Max 20M)</option>
+                        <option value="CO4">Practical Series 2: Test 4 / CO4 (Max 20M)</option>
                     </select>
                 </div>
 
-                <div class="flex items-center gap-1.5 w-full sm:w-1/2">
-                    <button type="button" onclick="prevSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">◀ Prev</button>
-                    <select id="series-pr-student-select" onchange="loadSeriesPrStudent(this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 font-bold text-xs text-white outline-none focus:border-sky-500 cursor-pointer">
-                        @foreach($studentResults as $idx => $res)
-                        <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
-                        @endforeach
-                    </select>
-                    <button type="button" onclick="nextSeriesPrStudent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">Next ▶</button>
+                <div class="flex items-center justify-between gap-2">
+                    <button type="button" onclick="prevSeriesPracticalStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">
+                        <span>◀ Prev</span>
+                    </button>
+
+                    <div class="flex-1">
+                        <select id="series-practical-student-select" onchange="loadSeriesPracticalStudent(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 font-bold text-xs text-white outline-none focus:border-emerald-500 cursor-pointer">
+                            @foreach($studentResults as $idx => $res)
+                            <option value="{{ $res['reg_no'] }}" data-idx="{{ $idx }}">#{{ $res['roll_no'] }} - {{ $res['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="nextSeriesPracticalStudent()" class="header-btn px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer">
+                        <span>Next ▶</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Rubrics Form Card (Single Page Grid on Desktop) -->
-            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 flex-shrink-0" id="series-pr-rubrics-container">
-                <!-- Javascript will populate 3-col grid with small sliders & data entry fields -->
-            </div>
-
-            <!-- Live Converted Result Display -->
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs flex-shrink-0">
-                <div class="flex items-center gap-2">
-                    <span class="text-slate-400 font-semibold text-xs">Total Series Score:</span>
-                    <span id="series-pr-live-total" class="font-bold text-sky-400 text-sm font-mono">0.00 / 40.00 M</span>
+            <!-- Marks Form Card -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex-1 overflow-y-auto">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Student:</span>
+                    <span id="series-practical-student-display" class="font-bold text-white"></span>
                 </div>
-                <div class="flex items-center gap-2 text-right">
-                    <span class="text-slate-400 font-semibold text-xs">Practical Series CIA:</span>
-                    <span id="series-pr-live-cia" class="font-bold text-amber-300 text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">0.00 / 10.00 M</span>
+
+                <div class="border-t border-slate-800/80 pt-3 space-y-3">
+                    <div>
+                        <label class="block text-slate-400 text-xs font-semibold mb-1">Practical Test Mark (Max 20 Marks):</label>
+                        <input type="number" id="series-practical-total" min="0" max="20" step="0.5" oninput="onSeriesPracticalMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="series-practical-absent" onchange="toggleSeriesPracticalAbsent(this.checked)" class="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-0">
+                        <label for="series-practical-absent" class="text-xs text-slate-350 font-semibold cursor-pointer">Mark Student as Absent</label>
+                    </div>
+                </div>
+
+                <!-- Live Total Display -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400 font-semibold">Test Score:</span>
+                    <span id="series-practical-live-total" class="font-bold text-emerald-400 text-sm">0.00 / 20.00</span>
                 </div>
             </div>
 
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800 flex-shrink-0">
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800 flex-shrink-0">
                 <button type="button" onclick="closeSeriesPracticalModal()" class="header-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700 cursor-pointer">Close</button>
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="saveAndNextSeriesPrStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save & Next Student ▶</button>
-                    <button type="button" onclick="saveAllSeriesPrMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
+                    <button type="button" onclick="saveAndNextSeriesPracticalStudent()" class="header-btn px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Next Student ▶</button>
+                    <button type="button" onclick="saveAllSeriesPracticalMarks()" class="header-btn px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer">Save All Marks</button>
                 </div>
             </div>
         </div>
@@ -6694,6 +6924,113 @@
         if (ciaEl) ciaEl.value = cia.toFixed(1);
     }
 
+    let ce50AutoSaveTimers = {};
+
+    function onPracticumCe50Input(regNo, val) {
+        const raw = (val || '').trim();
+        let num = null;
+        let conv10 = 0.0;
+
+        if (raw !== '') {
+            num = parseFloat(raw);
+            if (isNaN(num)) num = 0;
+            if (num < 0) num = 0;
+            if (num > 50) num = 50;
+            conv10 = Math.min(10.0, Math.round(((num / 50.0) * 10.0) * 2) / 2);
+        }
+
+        // 1. Update CE Converted cell in table
+        const convEl = document.getElementById(`ce-conv-10-${regNo}`);
+        if (convEl) {
+            convEl.innerText = conv10.toFixed(1);
+        }
+
+        // 2. Synchronize to CE LAB cell in CIE Register immediately!
+        const cieRow = document.querySelector(`.student-cie-row[data-reg-no="${regNo}"]`);
+        if (cieRow) {
+            const ceLabCell = cieRow.querySelector('.cell-ce-lab');
+            if (ceLabCell) {
+                ceLabCell.innerText = conv10.toFixed(2);
+            }
+            if (typeof recalculatePracticumCieRow === 'function') {
+                recalculatePracticumCieRow(regNo);
+            }
+        }
+
+        // 3. Update status indicator
+        const statusEl = document.getElementById(`ce-status-${regNo}`);
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-amber-400">Saving...</span>';
+        }
+
+        // 4. Update memory state
+        if (!experimentEvalsState[regNo]) experimentEvalsState[regNo] = {};
+        if (!experimentEvalsState[regNo]['Continuous Evaluation']) {
+            experimentEvalsState[regNo]['Continuous Evaluation'] = {};
+        }
+        experimentEvalsState[regNo]['Continuous Evaluation'].total_score_50 = (num !== null ? num : 0);
+
+        // 5. Debounced auto-save
+        if (ce50AutoSaveTimers[regNo]) {
+            clearTimeout(ce50AutoSaveTimers[regNo]);
+        }
+
+        ce50AutoSaveTimers[regNo] = setTimeout(() => {
+            savePracticumCe50Mark(regNo, num);
+        }, 700);
+    }
+
+    function savePracticumCe50Mark(regNo, mark50) {
+        const bsId = {{ $batchSubject->id }};
+        const statusEl = document.getElementById(`ce-status-${regNo}`);
+        const badge = document.getElementById('ce-autosave-badge');
+
+        if (badge) {
+            badge.innerHTML = '<span class="text-amber-400 font-bold">⏳ Saving...</span>';
+        }
+
+        const csrfToken = (typeof CSRF !== 'undefined' && CSRF) ? CSRF : (document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
+
+        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/experiment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                experiment_no: 'Continuous Evaluation',
+                experiment_title: 'Continuous Evaluation (Modules I–IV)',
+                marks_data: [{
+                    reg_no: regNo,
+                    total_score_50: mark50 !== null ? mark50 : 0
+                }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS' || data.status === 'OK') {
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ Saved</span>';
+                }
+                if (badge) {
+                    badge.innerHTML = '<span class="text-emerald-400 font-bold">⚡ Auto-saved ✓</span>';
+                    setTimeout(() => {
+                        if (badge) badge.innerHTML = '<span>⚡</span> Auto-Saves on Typing';
+                    }, 2000);
+                }
+            } else {
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-rose-400 font-bold">⚠️ Error</span>';
+                }
+            }
+        })
+        .catch(err => {
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="text-rose-400 font-bold">⚠️ Error</span>';
+            }
+        });
+    }
+
     function onCeTableInput(regNo, key, val) {
         const expNo = document.getElementById('ce-table-exp-select')?.value || 'Continuous Evaluation';
         if (!experimentEvalsState[regNo]) experimentEvalsState[regNo] = {};
@@ -6997,37 +7334,38 @@
     // =====================================================================
     const seriesPracticalEvalsDb = @json($seriesPracticalEvals);
     const seriesPracticalEvalsState = {};
-    let seriesPrAutoSaveTimers = {};
 
     studentsList.forEach(s => {
         const regNo = s.reg_no;
         seriesPracticalEvalsState[regNo] = {
-            'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
-            'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
+            'CO1': { total_score_40: 0, is_absent: false },
+            'CO2': { total_score_40: 0, is_absent: false },
+            'CO3': { total_score_40: 0, is_absent: false },
+            'CO4': { total_score_40: 0, is_absent: false }
         };
 
         const dbList = seriesPracticalEvalsDb[regNo] || [];
-        dbList.forEach(rec => {
-            const sNo = rec.series_no;
+        dbList.forEach(evalRecord => {
+            const sNo = evalRecord.series_no;
             let mapped = sNo;
-            if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'Test 1' || sNo === 'CA2') mapped = 'Series 1';
-            if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'Test 2' || sNo === 'CA3') mapped = 'Series 2';
+            if (sNo === 'Series 1' || sNo === 'Test 1') mapped = 'CO1';
+            if (sNo === 'Series 2' || sNo === 'Test 2') mapped = 'CO2';
+            if (sNo === 'Series 3' || sNo === 'Test 3') mapped = 'CO3';
+            if (sNo === 'Series 4' || sNo === 'Test 4') mapped = 'CO4';
 
-            if (seriesPracticalEvalsState[regNo][mapped]) {
-                const w = parseFloat(rec.writeup_procedure) || 0;
-                const set = parseFloat(rec.setup_execution) || 0;
-                const o = parseFloat(rec.observation_result) || 0;
-                const v = parseFloat(rec.viva_voce) || 0;
-                const r = parseFloat(rec.record_completion) || 0;
-                const tot = parseFloat(rec.total_score_40) || (w + set + o + v + r);
+            // Also handle legacy combined CA2 / CA3
+            if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'CA2' || sNo === 'Practical Series 1') {
+                const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
+                seriesPracticalEvalsState[regNo]['CO1'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                seriesPracticalEvalsState[regNo]['CO2'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+            } else if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'CA3' || sNo === 'Practical Series 2') {
+                const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
+                seriesPracticalEvalsState[regNo]['CO3'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                seriesPracticalEvalsState[regNo]['CO4'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+            } else if (seriesPracticalEvalsState[regNo][mapped]) {
                 seriesPracticalEvalsState[regNo][mapped] = {
-                    writeup_procedure: w,
-                    setup_execution: set,
-                    observation_result: o,
-                    viva_voce: v,
-                    record_completion: r,
-                    total_score_40: rec.is_absent ? 0 : tot,
-                    is_absent: !!rec.is_absent
+                    total_score_40: parseFloat(evalRecord.total_score_40) || 0,
+                    is_absent: !!evalRecord.is_absent
                 };
             }
         });
@@ -7035,9 +7373,9 @@
 
     function openSeriesPracticalModal() {
         document.getElementById('series-practical-modal').classList.remove('hidden');
-        const selectStudent = document.getElementById('series-pr-student-select');
-        if (selectStudent && selectStudent.value) {
-            loadSeriesPrStudent(selectStudent.value);
+        const sel = document.getElementById('series-practical-student-select');
+        if (sel && sel.value) {
+            loadSeriesPracticalStudent(sel.value);
         }
     }
 
@@ -7045,569 +7383,116 @@
         document.getElementById('series-practical-modal').classList.add('hidden');
     }
 
-    function openSeriesPrModalForStudent(regNo) {
-        const tableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
-        const testSel = document.getElementById('series-pr-test-select');
-        if (testSel) testSel.value = tableTest;
-
-        const stSel = document.getElementById('series-pr-student-select');
-        if (stSel) stSel.value = regNo;
-
-        openSeriesPracticalModal();
-    }
-
-    function onSeriesPrTestChange(test) {
-        const tableSel = document.getElementById('series-pr-table-test-select');
-        if (tableSel && tableSel.value !== test) {
-            tableSel.value = test;
-            onSeriesPrTableTestChange(test, false);
-        }
-        const selectStudent = document.getElementById('series-pr-student-select');
-        if (selectStudent && selectStudent.value) {
-            loadSeriesPrStudent(selectStudent.value);
+    function onSeriesPracticalTestChange(test) {
+        const sel = document.getElementById('series-practical-student-select');
+        if (sel && sel.value) {
+            loadSeriesPracticalStudent(sel.value);
         }
     }
 
-    function onSeriesPrTableTestChange(test, syncModal = true) {
-        if (syncModal) {
-            const modalTestSel = document.getElementById('series-pr-test-select');
-            if (modalTestSel && modalTestSel.value !== test) {
-                modalTestSel.value = test;
-            }
-        }
-
-        studentsList.forEach(s => {
-            const regNo = s.reg_no;
-            const state = seriesPracticalEvalsState[regNo]?.[test] || {
-                writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false
-            };
-            const w = state.writeup_procedure || 0;
-            const set = state.setup_execution || 0;
-            const o = state.observation_result || 0;
-            const v = state.viva_voce || 0;
-            const r = state.record_completion || 0;
-
-            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
-            if (elW) elW.value = w.toFixed(1);
-            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
-            if (elS) elS.value = set.toFixed(1);
-            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
-            if (elO) elO.value = o.toFixed(1);
-            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
-            if (elV) elV.value = v.toFixed(1);
-            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
-            if (elR) elR.value = r.toFixed(1);
-
-            const t1 = seriesPracticalEvalsState[regNo]?.['Series 1']?.total_score_40 || 0;
-            const t2 = seriesPracticalEvalsState[regNo]?.['Series 2']?.total_score_40 || 0;
-            const avg = (t1 + t2) / 2.0;
-            const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
-
-            const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
-            if (elT1) elT1.value = t1.toFixed(1);
-            const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
-            if (elT2) elT2.value = t2.toFixed(1);
-            const elAvg = document.getElementById(`sp-avg-${regNo}`);
-            if (elAvg) elAvg.innerText = avg.toFixed(1);
-            const elCia = document.getElementById(`sp-cia-${regNo}`);
-            if (elCia) elCia.value = cia.toFixed(1);
-        });
-    }
-
-    function loadSeriesPrStudent(regNo) {
+    function loadSeriesPracticalStudent(regNo) {
         const student = studentsList.find(s => s.reg_no === regNo);
         if (!student) return;
 
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!test) return;
+        document.getElementById('series-practical-student-display').innerText = `${student.name} (${student.reg_no})`;
 
-        if (!seriesPracticalEvalsState[regNo]) {
-            seriesPracticalEvalsState[regNo] = {
-                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
-                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
-            };
-        }
+        const test = document.getElementById('series-practical-test-select').value;
+        const state = (seriesPracticalEvalsState[regNo] && seriesPracticalEvalsState[regNo][test])
+            ? seriesPracticalEvalsState[regNo][test]
+            : { total_score_40: 0, is_absent: false };
 
-        const state = seriesPracticalEvalsState[regNo][test];
-        const container = document.getElementById('series-pr-rubrics-container');
+        const totalInput = document.getElementById('series-practical-total');
+        const absentCheck = document.getElementById('series-practical-absent');
 
-        const criteria = [
-            { label: '1. Write-up / Procedure', key: 'writeup_procedure', max: 10, step: 0.5 },
-            { label: '2. Setup & Execution', key: 'setup_execution', max: 10, step: 0.5 },
-            { label: '3. Observation & Result', key: 'observation_result', max: 8, step: 0.5 },
-            { label: '4. Viva Voce', key: 'viva_voce', max: 8, step: 0.5 },
-            { label: '5. Record Completion', key: 'record_completion', max: 4, step: 0.5 }
-        ];
+        totalInput.value = state.total_score_40;
+        absentCheck.checked = state.is_absent;
+        totalInput.disabled = state.is_absent;
 
-        const testTitle = test === 'Series 1' ? 'Practical Test 1 (CO1+CO2)' : 'Practical Test 2 (CO3+CO4)';
-
-        let html = `
-            <div class="flex items-center justify-between px-1 mb-1">
-                <div class="text-[11px] text-slate-300 font-semibold truncate">
-                    Candidate: <span class="text-white font-bold">#${student.roll_no} - ${student.name}</span> <span class="text-sky-400 font-mono text-[10px]">(${student.reg_no})</span>
-                </div>
-                <div class="text-[11px] text-slate-400 font-medium">
-                    Test: <span class="text-amber-300 font-bold">${testTitle}</span>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-        `;
-
-        criteria.forEach(c => {
-            const val = state[c.key] || 0;
-            html += `
-                <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 space-y-1.5 hover:border-slate-700 transition-all">
-                    <div class="flex justify-between items-center text-[11px] font-semibold">
-                        <span class="text-slate-300 truncate" title="${c.label}">${c.label}</span>
-                        <span class="text-slate-500 text-[10px] ml-1 flex-shrink-0">Max ${c.max}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input type="number" min="0" max="${c.max}" step="${c.step}" value="${val.toFixed(1)}" id="series-pr-num-${c.key}" oninput="syncSeriesPrInput('${c.key}', this.value, ${c.max})" class="w-14 px-1 py-0.5 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-xs text-sky-400 text-center focus:border-sky-500 outline-none transition-all flex-shrink-0">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', -${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">-</button>
-                        <input type="range" min="0" max="${c.max}" step="${c.step}" value="${val}" id="series-pr-slider-${c.key}" oninput="syncSeriesPrSlider('${c.key}', this.value, ${c.max})" class="flex-1 accent-sky-500 bg-slate-900 border border-slate-800 rounded h-1.5 outline-none cursor-pointer">
-                        <button type="button" onclick="adjustSeriesPrVal('${c.key}', ${c.step}, ${c.max})" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 font-black text-xs text-white flex items-center justify-center transition-all flex-shrink-0 cursor-pointer">+</button>
-                    </div>
-                </div>
-            `;
-        });
-
-        // 6th Card: Status / Absent toggle
-        html += `
-            <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
-                <div class="flex justify-between items-center text-[11px] font-semibold">
-                    <span class="text-slate-300">Candidate Exam Status</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full ${state.is_absent ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'}">${state.is_absent ? 'ABSENT' : 'PRESENT'}</span>
-                </div>
-                <div class="flex items-center justify-between pt-1">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="series-pr-absent-check" ${state.is_absent ? 'checked' : ''} onchange="toggleSeriesPrAbsent(this.checked)" class="w-4 h-4 rounded border-slate-700 text-rose-600 focus:ring-rose-500">
-                        <span class="text-xs text-rose-300 font-semibold">Mark Absent (0/40)</span>
-                    </label>
-                    <span class="text-[10px] text-slate-500">Table 3.1 Rubric</span>
-                </div>
-            </div>
-        `;
-
-        html += `</div>`;
-
-        container.innerHTML = html;
-        updateSeriesPrLiveDisplay(regNo, test);
+        updateSeriesPracticalLiveTotal();
     }
 
-    function syncSeriesPrSlider(key, val, max) {
-        const num = parseFloat(val) || 0;
-        const regNo = document.getElementById('series-pr-student-select').value;
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!regNo || !test) return;
+    function onSeriesPracticalMarksInput() {
+        const sel = document.getElementById('series-practical-student-select');
+        const regNo = sel.value;
+        if (!regNo) return;
 
-        seriesPracticalEvalsState[regNo][test][key] = num;
-        seriesPracticalEvalsState[regNo][test].is_absent = false;
+        const test = document.getElementById('series-practical-test-select').value;
+        const rawTotal = parseFloat(document.getElementById('series-practical-total').value);
+        const total = isNaN(rawTotal) ? 0 : Math.max(0, Math.min(20, rawTotal));
 
-        const numInput = document.getElementById(`series-pr-num-${key}`);
-        if (numInput) numInput.value = num.toFixed(1);
+        if (!seriesPracticalEvalsState[regNo]) seriesPracticalEvalsState[regNo] = {};
+        if (!seriesPracticalEvalsState[regNo][test]) seriesPracticalEvalsState[regNo][test] = { total_score_40: 0, is_absent: false };
 
-        const absCheck = document.getElementById('series-pr-absent-check');
-        if (absCheck) absCheck.checked = false;
+        seriesPracticalEvalsState[regNo][test].total_score_40 = total;
 
-        updateSeriesPrLiveDisplay(regNo, test);
-        syncToSeriesPrTable(regNo, test, key, num);
-        triggerDebouncedSeriesPrAutoSave(regNo, test);
+        updateSeriesPracticalLiveTotal();
     }
 
-    function syncSeriesPrInput(key, val, max) {
-        let num = parseFloat(val);
-        if (isNaN(num)) num = 0;
-        if (num < 0) num = 0;
-        if (num > max) num = max;
+    function toggleSeriesPracticalAbsent(isAbsent) {
+        const sel = document.getElementById('series-practical-student-select');
+        const regNo = sel.value;
+        if (!regNo) return;
 
-        const regNo = document.getElementById('series-pr-student-select').value;
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!regNo || !test) return;
+        const test = document.getElementById('series-practical-test-select').value;
+        if (!seriesPracticalEvalsState[regNo]) seriesPracticalEvalsState[regNo] = {};
+        if (!seriesPracticalEvalsState[regNo][test]) seriesPracticalEvalsState[regNo][test] = { total_score_40: 0, is_absent: false };
 
-        seriesPracticalEvalsState[regNo][test][key] = num;
-        seriesPracticalEvalsState[regNo][test].is_absent = false;
+        seriesPracticalEvalsState[regNo][test].is_absent = isAbsent;
 
-        const slider = document.getElementById(`series-pr-slider-${key}`);
-        if (slider) slider.value = num;
+        const totalInput = document.getElementById('series-practical-total');
 
-        const absCheck = document.getElementById('series-pr-absent-check');
-        if (absCheck) absCheck.checked = false;
-
-        updateSeriesPrLiveDisplay(regNo, test);
-        syncToSeriesPrTable(regNo, test, key, num);
-        triggerDebouncedSeriesPrAutoSave(regNo, test);
-    }
-
-    function adjustSeriesPrVal(key, delta, max) {
-        const slider = document.getElementById(`series-pr-slider-${key}`);
-        if (!slider) return;
-
-        let current = parseFloat(slider.value) || 0;
-        let next = Math.max(0, Math.min(max, Math.round((current + delta) * 2) / 2));
-        slider.value = next;
-        syncSeriesPrSlider(key, next, max);
-    }
-
-    function toggleSeriesPrAbsent(checked) {
-        const regNo = document.getElementById('series-pr-student-select').value;
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!regNo || !test) return;
-
-        const state = seriesPracticalEvalsState[regNo][test];
-        state.is_absent = !!checked;
-
-        if (checked) {
-            state.writeup_procedure = 0;
-            state.setup_execution = 0;
-            state.observation_result = 0;
-            state.viva_voce = 0;
-            state.record_completion = 0;
-            state.total_score_40 = 0;
+        if (isAbsent) {
+            totalInput.value = 0;
+            totalInput.disabled = true;
+            seriesPracticalEvalsState[regNo][test].total_score_40 = 0;
         } else {
-            state.total_score_40 = (state.writeup_procedure || 0) +
-                                   (state.setup_execution || 0) +
-                                   (state.observation_result || 0) +
-                                   (state.viva_voce || 0) +
-                                   (state.record_completion || 0);
+            totalInput.disabled = false;
         }
-
-        loadSeriesPrStudent(regNo);
-        syncAllToSeriesPrTableRow(regNo);
-        triggerDebouncedSeriesPrAutoSave(regNo, test);
+        updateSeriesPracticalLiveTotal();
     }
 
-    function updateSeriesPrLiveDisplay(regNo, test) {
-        const state = seriesPracticalEvalsState[regNo]?.[test];
-        if (!state) return;
+    function updateSeriesPracticalLiveTotal() {
+        const total = parseFloat(document.getElementById('series-practical-total').value) || 0;
+        const isAbsent = document.getElementById('series-practical-absent').checked;
 
-        const total = state.is_absent ? 0 : (
-            (state.writeup_procedure || 0) +
-            (state.setup_execution || 0) +
-            (state.observation_result || 0) +
-            (state.viva_voce || 0) +
-            (state.record_completion || 0)
-        );
-
-        state.total_score_40 = total;
-
-        const cia = Math.round(((total / 40.0) * 10.0) * 2) / 2;
-
-        const liveTotal = document.getElementById('series-pr-live-total');
-        if (liveTotal) liveTotal.innerText = `${total.toFixed(1)} / 40.0 M`;
-        const liveCia = document.getElementById('series-pr-live-cia');
-        if (liveCia) liveCia.innerText = `${cia.toFixed(1)} / 10.0 M`;
+        const displayTotal = isAbsent ? 0 : total;
+        document.getElementById('series-practical-live-total').innerText = `${displayTotal.toFixed(2)} / 20.00`;
     }
 
-    function syncToSeriesPrTable(regNo, test, key, val) {
-        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
-        if (currentTableTest === test) {
-            const tableInput = document.getElementById(`sp-input-${regNo}-${key}`);
-            if (tableInput) tableInput.value = parseFloat(val).toFixed(1);
-        }
-
-        syncAllToSeriesPrTableRow(regNo);
-    }
-
-    function syncAllToSeriesPrTableRow(regNo) {
-        const state1 = seriesPracticalEvalsState[regNo]?.['Series 1'] || { total_score_40: 0 };
-        const state2 = seriesPracticalEvalsState[regNo]?.['Series 2'] || { total_score_40: 0 };
-
-        const t1 = state1.is_absent ? 0 : (state1.total_score_40 || 0);
-        const t2 = state2.is_absent ? 0 : (state2.total_score_40 || 0);
-        const avg = (t1 + t2) / 2.0;
-        const cia = Math.round(((avg / 40.0) * 10.0) * 2) / 2;
-
-        const elT1 = document.getElementById(`sp-score-t1-${regNo}`);
-        if (elT1) elT1.value = t1.toFixed(1);
-        const elT2 = document.getElementById(`sp-score-t2-${regNo}`);
-        if (elT2) elT2.value = t2.toFixed(1);
-        const elAvg = document.getElementById(`sp-avg-${regNo}`);
-        if (elAvg) elAvg.innerText = avg.toFixed(1);
-        const elCia = document.getElementById(`sp-cia-${regNo}`);
-        if (elCia) elCia.value = cia.toFixed(1);
-    }
-
-    function onSeriesPrTableInput(regNo, key, val) {
-        const test = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
-        if (!seriesPracticalEvalsState[regNo]) {
-            seriesPracticalEvalsState[regNo] = {
-                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
-                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
-            };
-        }
-
-        const maxMap = {
-            writeup_procedure: 10,
-            setup_execution: 10,
-            observation_result: 8,
-            viva_voce: 8,
-            record_completion: 4
-        };
-        const max = maxMap[key] || 10;
-
-        let num = parseFloat(val);
-        if (isNaN(num)) num = 0;
-        if (num < 0) num = 0;
-        if (num > max) num = max;
-
-        const state = seriesPracticalEvalsState[regNo][test];
-        state[key] = num;
-        state.is_absent = false;
-        state.total_score_40 = (state.writeup_procedure || 0) +
-                               (state.setup_execution || 0) +
-                               (state.observation_result || 0) +
-                               (state.viva_voce || 0) +
-                               (state.record_completion || 0);
-
-        syncAllToSeriesPrTableRow(regNo);
-
-        // Sync modal if open on same student and test
-        const modalStudent = document.getElementById('series-pr-student-select')?.value;
-        const modalTest = document.getElementById('series-pr-test-select')?.value;
-        if (modalStudent === regNo && modalTest === test) {
-            const numEl = document.getElementById(`series-pr-num-${key}`);
-            if (numEl) numEl.value = num.toFixed(1);
-            const sliderEl = document.getElementById(`series-pr-slider-${key}`);
-            if (sliderEl) sliderEl.value = num;
-            updateSeriesPrLiveDisplay(regNo, test);
-        }
-
-        triggerDebouncedSeriesPrAutoSave(regNo, test);
-    }
-
-    function onSeriesPrTotalInput(regNo, test, val) {
-        if (!seriesPracticalEvalsState[regNo]) {
-            seriesPracticalEvalsState[regNo] = {
-                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
-                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
-            };
-        }
-
-        let num = parseFloat(val);
-        if (isNaN(num)) num = 0;
-        if (num < 0) num = 0;
-        if (num > 40) num = 40;
-
-        const state = seriesPracticalEvalsState[regNo][test];
-        state.is_absent = false;
-        state.total_score_40 = num;
-
-        // Scale 5 criteria proportionately:
-        // writeup: 25% (10/40), setup: 25% (10/40), obs: 20% (8/40), viva: 20% (8/40), record: 10% (4/40)
-        const w = Math.min(10, Math.round((num * 0.25) * 2) / 2);
-        const set = Math.min(10, Math.round((num * 0.25) * 2) / 2);
-        const o = Math.min(8, Math.round((num * 0.20) * 2) / 2);
-        const v = Math.min(8, Math.round((num * 0.20) * 2) / 2);
-        const r = Math.min(4, Math.max(0, Math.round((num - (w + set + o + v)) * 2) / 2));
-
-        state.writeup_procedure = w;
-        state.setup_execution = set;
-        state.observation_result = o;
-        state.viva_voce = v;
-        state.record_completion = r;
-
-        // If currently displayed in table criteria columns, update them
-        const currentTableTest = document.getElementById('series-pr-table-test-select')?.value || 'Series 1';
-        if (currentTableTest === test) {
-            const elW = document.getElementById(`sp-input-${regNo}-writeup_procedure`);
-            if (elW) elW.value = w.toFixed(1);
-            const elS = document.getElementById(`sp-input-${regNo}-setup_execution`);
-            if (elS) elS.value = set.toFixed(1);
-            const elO = document.getElementById(`sp-input-${regNo}-observation_result`);
-            if (elO) elO.value = o.toFixed(1);
-            const elV = document.getElementById(`sp-input-${regNo}-viva_voce`);
-            if (elV) elV.value = v.toFixed(1);
-            const elR = document.getElementById(`sp-input-${regNo}-record_completion`);
-            if (elR) elR.value = r.toFixed(1);
-        }
-
-        syncAllToSeriesPrTableRow(regNo);
-
-        // Sync modal if open on same student
-        const modalStudent = document.getElementById('series-pr-student-select')?.value;
-        const modalTest = document.getElementById('series-pr-test-select')?.value;
-        if (modalStudent === regNo && modalTest === test) {
-            loadSeriesPrStudent(regNo);
-        }
-
-        triggerDebouncedSeriesPrAutoSave(regNo, test);
-    }
-
-    function onSeriesPrCiaInput(regNo, val) {
-        if (!seriesPracticalEvalsState[regNo]) {
-            seriesPracticalEvalsState[regNo] = {
-                'Series 1': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false },
-                'Series 2': { writeup_procedure: 0, setup_execution: 0, observation_result: 0, viva_voce: 0, record_completion: 0, total_score_40: 0, is_absent: false }
-            };
-        }
-
-        let cia = parseFloat(val);
-        if (isNaN(cia)) cia = 0;
-        if (cia < 0) cia = 0;
-        if (cia > 10) cia = 10;
-
-        const targetAvg40 = cia * 4.0;
-
-        // Apply targetAvg40 to both tests
-        onSeriesPrTotalInput(regNo, 'Series 1', targetAvg40);
-        onSeriesPrTotalInput(regNo, 'Series 2', targetAvg40);
-    }
-
-    function triggerDebouncedSeriesPrAutoSave(regNo, test) {
-        const timerKey = `${regNo}_${test}`;
-        if (seriesPrAutoSaveTimers[timerKey]) {
-            clearTimeout(seriesPrAutoSaveTimers[timerKey]);
-        }
-        showSeriesPrAutoSaveIndicator('saving');
-        seriesPrAutoSaveTimers[timerKey] = setTimeout(() => {
-            saveSingleSeriesPrStudentMarks(regNo, test);
-        }, 750);
-    }
-
-    function showSeriesPrAutoSaveIndicator(status) {
-        let indicator = document.getElementById('series-pr-autosave-indicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'series-pr-autosave-indicator';
-            document.body.appendChild(indicator);
-        }
-
-        if (status === 'saving') {
-            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-amber-300 border border-amber-500/40 opacity-100';
-            indicator.innerHTML = '<span class="inline-block animate-spin">⏳</span> Saving practical series marks...';
-        } else if (status === 'saved') {
-            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-slate-900 text-sky-400 border border-sky-500/40 opacity-100';
-            indicator.innerHTML = '<span>✓</span> Practical Series Auto-saved';
-            setTimeout(() => {
-                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
-            }, 2000);
-        } else if (status === 'error') {
-            indicator.className = 'fixed bottom-4 right-4 z-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 opacity-100';
-            indicator.innerHTML = '<span>⚠️</span> Auto-save error';
-            setTimeout(() => {
-                if (indicator) indicator.classList.replace('opacity-100', 'opacity-0');
-            }, 3000);
-        }
-    }
-
-    function saveSingleSeriesPrStudentMarks(regNo, test) {
-        const state = seriesPracticalEvalsState[regNo]?.[test];
-        if (!state) return;
-
-        const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
-        const bsId = {{ $batchSubject->id }};
-
-        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF
-            },
-            body: JSON.stringify({
-                series_no: dbSeriesName,
-                marks_data: [{
-                    reg_no: regNo,
-                    writeup_procedure: state.writeup_procedure,
-                    setup_execution: state.setup_execution,
-                    observation_result: state.observation_result,
-                    viva_voce: state.viva_voce,
-                    record_completion: state.record_completion,
-                    is_absent: state.is_absent
-                }]
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'SUCCESS') {
-                showSeriesPrAutoSaveIndicator('saved');
-            } else {
-                showSeriesPrAutoSaveIndicator('error');
-            }
-        })
-        .catch(err => {
-            showSeriesPrAutoSaveIndicator('error');
-        });
-    }
-
-    function prevSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
+    function prevSeriesPracticalStudent() {
+        const sel = document.getElementById('series-practical-student-select');
         if (!sel || sel.selectedIndex <= 0) return;
         sel.selectedIndex--;
-        loadSeriesPrStudent(sel.value);
+        loadSeriesPracticalStudent(sel.value);
     }
 
-    function nextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
+    function nextSeriesPracticalStudent() {
+        const sel = document.getElementById('series-practical-student-select');
         if (!sel || sel.selectedIndex >= sel.options.length - 1) return;
         sel.selectedIndex++;
-        loadSeriesPrStudent(sel.value);
+        loadSeriesPracticalStudent(sel.value);
     }
 
-    function saveAndNextSeriesPrStudent() {
-        const sel = document.getElementById('series-pr-student-select');
-        const regNo = sel.value;
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!regNo || !test) return;
-
-        const state = seriesPracticalEvalsState[regNo][test];
-        const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
-        const bsId = {{ $batchSubject->id }};
-
-        fetch(`/api/r26/classroom/practicum/${bsId}/evaluate/series-practical`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF
-            },
-            body: JSON.stringify({
-                series_no: dbSeriesName,
-                marks_data: [{
-                    reg_no: regNo,
-                    writeup_procedure: state.writeup_procedure,
-                    setup_execution: state.setup_execution,
-                    observation_result: state.observation_result,
-                    viva_voce: state.viva_voce,
-                    record_completion: state.record_completion,
-                    is_absent: state.is_absent
-                }]
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'SUCCESS') {
-                showSeriesPrAutoSaveIndicator('saved');
-                nextSeriesPrStudent();
-            } else {
-                alert('Auto-save error: ' + data.message);
-            }
-        });
+    function saveAndNextSeriesPracticalStudent() {
+        nextSeriesPracticalStudent();
     }
 
-    function saveAllSeriesPrMarks() {
+    function saveAllSeriesPracticalMarks() {
+        const test = document.getElementById('series-practical-test-select').value;
         const marksData = [];
-        const test = document.getElementById('series-pr-test-select').value;
-        if (!test) return;
-
-        const dbSeriesName = (test === 'Series 1') ? 'Test 1 (CO1+CO2)' : 'Test 2 (CO3+CO4)';
 
         Object.keys(seriesPracticalEvalsState).forEach(regNo => {
             const state = seriesPracticalEvalsState[regNo][test];
-            if (state) {
-                marksData.push({
-                    reg_no: regNo,
-                    writeup_procedure: state.writeup_procedure,
-                    setup_execution: state.setup_execution,
-                    observation_result: state.observation_result,
-                    viva_voce: state.viva_voce,
-                    record_completion: state.record_completion,
-                    is_absent: state.is_absent
-                });
-            }
+            marksData.push({
+                reg_no: regNo,
+                total_score_40: state.total_score_40,
+                is_absent: state.is_absent
+            });
         });
 
         Swal.fire({
-            title: 'Saving Series Test Marks...',
-            text: `Saving scores for ${dbSeriesName}`,
+            title: 'Saving Practical Series Marks...',
+            text: `Updating scores for ${test}`,
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -7616,9 +7501,9 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ series_no: dbSeriesName, marks_data: marksData })
+            body: JSON.stringify({ series_no: test, marks_data: marksData })
         })
         .then(res => res.json())
         .then(data => {
@@ -7630,7 +7515,7 @@
                     text: data.message,
                     timer: 1500,
                     showConfirmButton: false
-                });
+                }).then(() => location.reload());
             } else {
                 Swal.fire('Error', data.message, 'error');
             }

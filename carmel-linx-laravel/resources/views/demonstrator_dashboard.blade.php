@@ -470,7 +470,7 @@
                           $targetUrl = "/r21/classroom/drawing/{$s->subject_id}";
                         } elseif (str_contains($sTypeLower, 'seminar') || str_contains($sNameLower, 'seminar')) {
                           $targetUrl = "/r21/classroom/seminar/{$s->subject_id}";
-                        } elseif (str_contains($sTypeLower, 'project') || str_contains($sNameLower, 'project')) {
+                        } elseif (($s->subject_id ?? '') != 147 && ($s->subject_code ?? '') !== '5002' && !str_contains($sNameLower, 'project management') && (str_contains($sTypeLower, 'project') || str_contains($sNameLower, 'project'))) {
                           $targetUrl = "/r21/classroom/project/{$s->subject_id}";
                         } elseif (!str_contains($sNameLower, 'machine shop') && !str_contains($sNameLower, 'shop practice') && ($s->subject_code ?? '') !== '5027' && (str_contains($sNameLower, 'workshop') || str_contains($sTypeLower, 'workshop') || in_array($s->subject_code ?? '', ['3027', '3038']))) {
                           $targetUrl = "/r21/classroom/workshop/{$s->subject_id}";

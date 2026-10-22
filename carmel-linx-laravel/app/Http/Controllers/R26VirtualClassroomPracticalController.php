@@ -42,7 +42,7 @@ class R26VirtualClassroomPracticalController extends Controller
     }
 
     /**
-     * Compute attendance mark per student as per Table 2.1.
+     * Compute attendance mark per student as per Table 2.1 (Rev 2026 rubric).
      */
     private function computeAttendanceMark(float $pct): int
     {
@@ -77,7 +77,10 @@ class R26VirtualClassroomPracticalController extends Controller
             $open50 = $openLog ? floatval($openLog->total_score_50) : 0;
             $scaled10 = round(($open50 / 50) * 10, 2);
 
-            // 3. Series avg → scale to 15M
+            // 3. Combined CE (40M) = Daywork 30M + Open Ended 10M
+            $ceTotal40 = round($scaled30 + $scaled10, 2);
+
+            // 4. Series avg → scale to 15M (Two series tests in 40 -> avg in 40 -> converted to 15)
             $seriesNums = [];
             foreach (['Series 1', 'Series 2'] as $sName) {
                 if (isset($seriesExamLogs[$sName])) {
@@ -88,28 +91,151 @@ class R26VirtualClassroomPracticalController extends Controller
             $avg40 = count($seriesNums) > 0 ? array_sum($seriesNums) / count($seriesNums) : 0;
             $scaled15 = round(($avg40 / 40) * 15, 2);
 
-            // 4. Attendance → 5M
+            // 5. Attendance → 5M
             $att5 = $attendanceMarks[$regNo]['mark'] ?? 5;
 
-            $cia60 = round($scaled30 + $scaled10 + $scaled15 + $att5, 2);
+            // 6. Total CIA (60M) strictly rounded off without decimal!
+            $cia60 = (int)round($scaled30 + $scaled10 + $scaled15 + $att5);
 
+            // 7. ESE Mark (40M)
             $eseRec = $eseMarks->get($regNo);
             $ese40 = $eseRec ? floatval($eseRec->ese_score) : 0.00;
+            $eseAbsent = $eseRec ? (bool)$eseRec->is_absent : false;
+
+            // 8. Grand Total (100M)
+            $grandTotal100 = (int)round($cia60 + $ese40);
+
+            // 9. SBTE Grade Calculation
+            if ($eseAbsent) {
+                $grade = 'AB';
+            } elseif ($ese40 < 16.0 && $ese40 > 0) {
+                $grade = 'F';
+            } elseif ($grandTotal100 >= 90) {
+                $grade = 'S';
+            } elseif ($grandTotal100 >= 80) {
+                $grade = 'A';
+            } elseif ($grandTotal100 >= 70) {
+                $grade = 'B';
+            } elseif ($grandTotal100 >= 60) {
+                $grade = 'C';
+            } elseif ($grandTotal100 >= 50) {
+                $grade = 'D';
+            } elseif ($grandTotal100 >= 40) {
+                $grade = 'E';
+            } else {
+                $grade = 'F';
+            }
 
             $scores[$regNo] = [
-                'raw_exp_avg'        => round($avgExp50, 2),
-                'scaled_lab_work_30' => $scaled30,
-                'raw_open_ended'     => round($open50, 2),
+                'raw_exp_avg'          => round($avgExp50, 2),
+                'scaled_lab_work_30'   => $scaled30,
+                'raw_open_ended'       => round($open50, 2),
                 'scaled_open_ended_10' => $scaled10,
-                'raw_series_avg'     => round($avg40, 2),
-                'scaled_series_15'   => $scaled15,
-                'attendance_mark_5'  => $att5,
-                'total_cia_60'       => $cia60,
-                'ese_score_40'       => $ese40,
-                'grand_total_100'    => round($cia60 + $ese40, 2),
+                'ce_total_40'          => $ceTotal40,
+                'raw_series_avg'       => round($avg40, 2),
+                'scaled_series_15'     => $scaled15,
+                'attendance_mark_5'    => $att5,
+                'total_cia_60'         => $cia60,
+                'ese_score_40'         => $ese40,
+                'ese_absent'           => $eseAbsent,
+                'grand_total_100'      => $grandTotal100,
+                'grade'                => $grade,
             ];
         }
         return $scores;
+    }
+
+    /**
+     * Compute direct, indirect and PO attainment data for Revision 2026 Practical.
+     */
+    private function computeAttainmentData($batchSubject, $students, $consolidatedScores): array
+    {
+        $subjectId = $batchSubject->id;
+        $pcf     = R26PracticalCourseFile::where('batch_subject_id', $subjectId)->first();
+        $copo    = $pcf ? json_decode($pcf->parsed_copo, true) : [];
+        $mappings = $copo['mappings'] ?? [];
+
+        $cf = CourseFile::where('batch_subject_id', $subjectId)->first();
+        $settings = [];
+        if ($cf && $cf->attainment_settings) {
+            $settings = is_string($cf->attainment_settings) ? json_decode($cf->attainment_settings, true) : $cf->attainment_settings;
+        }
+        $eseConfig = $settings['ese_config'] ?? [];
+        $cieThreshold = (float)($eseConfig['cie_threshold_percent'] ?? 50.0);
+        $targetStudentPercent = (float)($eseConfig['target_student_percent'] ?? 70.0);
+        $lvl3Val = (float)($eseConfig['level3_percent'] ?? $targetStudentPercent);
+        $lvl2Val = (float)($eseConfig['level2_percent'] ?? max(0, $targetStudentPercent - 10));
+        $lvl1Val = (float)($eseConfig['level1_percent'] ?? max(0, $targetStudentPercent - 20));
+
+        $directStats = [];
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $totalAssessed = 0; $totalMet = 0;
+            foreach ($students as $st) {
+                $sc = $consolidatedScores[$st->reg_no] ?? [];
+                $coScore = match($coTag) {
+                    'CO1' => ($sc['scaled_open_ended_10'] ?? 0),
+                    'CO2' => ($sc['scaled_lab_work_30'] ?? 0) * 0.5,
+                    'CO3' => ($sc['scaled_lab_work_30'] ?? 0) * 0.5,
+                    'CO4' => ($sc['scaled_series_15'] ?? 0),
+                    default => 0
+                };
+                $eseCo = ($sc['ese_score_40'] ?? 0) / 4;
+                $pct   = (($coScore + $eseCo) / 25) * 100;
+                if ($pct >= $cieThreshold) $totalMet++;
+                $totalAssessed++;
+            }
+            $met  = $totalAssessed > 0 ? ($totalMet / $totalAssessed) * 100 : 0;
+            $lvl  = \App\Services\AttainmentService::calculateBatchLevel($met, $lvl3Val, $lvl2Val, $lvl1Val);
+            $directStats[$coTag] = ['met_percent' => round($met, 1), 'level' => $lvl];
+        }
+
+        $exitSurvey = DB::table('course_exit_surveys')->where('batch_subject_id', $subjectId)->first();
+        $exitResponses = DB::table('student_course_exit_responses')
+            ->join('course_exit_surveys', 'student_course_exit_responses.exit_survey_id', '=', 'course_exit_surveys.id')
+            ->where('course_exit_surveys.batch_subject_id', $subjectId)->get();
+        $n = count($exitResponses);
+        $indirectStats = [];
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $lvl = 0.0;
+            if ($n > 0) {
+                $avg = match($coTag) {
+                    'CO1' => ($exitResponses->avg('co1_q1') + $exitResponses->avg('co1_q2')) / 2,
+                    'CO2' => ($exitResponses->avg('co2_q3') + $exitResponses->avg('co2_q4')) / 2,
+                    'CO3' => ($exitResponses->avg('co3_q5') + $exitResponses->avg('co3_q6')) / 2,
+                    'CO4' => ($exitResponses->avg('co4_q7') + $exitResponses->avg('co4_q8') + $exitResponses->avg('co4_q9')) / 3,
+                    default => 0
+                };
+                $lvl = round($avg, 2);
+            }
+            $indirectStats[$coTag] = ['level' => $lvl];
+        }
+
+        $combinedStats = [];
+        $poAttainments = [];
+        foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+            $combined = \App\Services\AttainmentService::calculateOverallAttainment($directStats[$coTag]['level'], $indirectStats[$coTag]['level'], 0.80, 0.20);
+            $combinedStats[$coTag] = round($combined, 2);
+        }
+        for ($p = 1; $p <= 11; $p++) {
+            $poName = "PO$p"; $sw = 0; $sa = 0;
+            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+                $corr = isset($mappings[$coTag][$poName]) ? (int)$mappings[$coTag][$poName] : 0;
+                if ($corr > 0) { $sw += $corr; $sa += $combinedStats[$coTag] * $corr; }
+            }
+            $poAttainments[$poName] = ['value' => $sw > 0 ? round($sa / $sw, 2) : 0.0, 'weight' => $sw];
+        }
+
+        return [
+            'directStats' => $directStats,
+            'indirectStats' => $indirectStats,
+            'combinedStats' => $combinedStats,
+            'poAttainments' => $poAttainments,
+            'mappings' => $mappings,
+            'exitSurvey' => $exitSurvey,
+            'exitResponsesCount' => $n,
+            'cieThreshold' => $cieThreshold,
+            'targetStudentPercent' => $targetStudentPercent,
+        ];
     }
 
     /**
@@ -159,16 +285,59 @@ class R26VirtualClassroomPracticalController extends Controller
         $seriesExams    = R26PracticalSeriesExam::where('batch_subject_id', $subjectId)->get()->keyBy('exam_name');
         $eseMarks       = R26PracticalEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
+        // Official Subject Attendance (TEAMS upload + override support)
+        $subjectOfficialAttendance = DB::table('subject_official_attendances')
+            ->where(function ($query) use ($subjectId, $batchSubject) {
+                $query->where('batch_subject_id', $subjectId)
+                      ->orWhere(function ($q) use ($batchSubject) {
+                          $q->where('subject_code', $batchSubject->subject_code)
+                            ->where('classroom_id', $batchSubject->classroom_id);
+                      });
+            })
+            ->get()
+            ->keyBy('reg_no');
+
         // Attendance
         $attendanceMarks = [];
         foreach ($students as $student) {
+            $stOfficial = $subjectOfficialAttendance->get($student->reg_no)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
+
+            $teamsPct = null;
+            if ($stOfficial) {
+                if ($stOfficial->teams_percentage !== null) {
+                    $teamsPct = (float)$stOfficial->teams_percentage;
+                } elseif ($stOfficial->final_percentage !== null) {
+                    $teamsPct = (float)$stOfficial->final_percentage;
+                }
+            }
+
             $total   = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->count();
             $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->whereIn('status', ['Present', 'Late'])->count();
-            $pct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
-            $attendanceMarks[$student->reg_no] = ['percentage' => $pct, 'mark' => $this->computeAttendanceMark($pct)];
+            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
+
+            $rawPct = $teamsPct !== null ? $teamsPct : $logPct;
+
+            $overridePct = null;
+            if ($stOfficial && $stOfficial->override_percentage !== null && $stOfficial->override_percentage !== '') {
+                $overridePct = (float)$stOfficial->override_percentage;
+            }
+
+            $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
+            $attMark = $this->computeAttendanceMark($effectivePct);
+
+            $attendanceMarks[$student->reg_no] = [
+                'teams_percentage'    => $teamsPct,
+                'raw_percentage'      => $rawPct,
+                'override_percentage' => $overridePct,
+                'effective_percentage'=> $effectivePct,
+                'percentage'          => $effectivePct,
+                'mark'                => $attMark,
+            ];
         }
 
         $consolidatedScores = $this->buildConsolidatedScores($students, $experimentLogs, $openEndedLogs, $seriesExamLogs, $eseMarks, $attendanceMarks);
+        $attainmentData     = $this->computeAttainmentData($batchSubject, $students, $consolidatedScores);
 
         // Fetch all assigned staff members for this lab/subject
         $assignedStaffList = \App\Models\SubjectStaffAssignment::where('batch_subject_id', $subjectId)
@@ -196,12 +365,30 @@ class R26VirtualClassroomPracticalController extends Controller
         // Parser mode indicator
         $parseModeLabel = 'AI Off - Local';
 
+        $userRole = Session::get('userRole');
+        $dashboardUrl = match ($userRole) {
+            'Superadmin' => '/dashboard/superadmin',
+            'Chairman' => '/dashboard/chairman',
+            'Admin' => '/dashboard/admin',
+            'Principal' => '/dashboard/principal',
+            'HOD' => '/dashboard/hod',
+            'Tutor' => '/dashboard/tutor',
+            'General_Coordinator_Aided' => '/dashboard/general-coordinator-aided',
+            'General_Coordinator_SF' => '/dashboard/general-coordinator-sf',
+            'Academic_Coordinator' => '/dashboard/academic-coordinator',
+            'Demonstrator' => '/dashboard/demonstrator',
+            'Trade_Instructor', 'Trade Instructor' => '/dashboard/tradeinstructor',
+            'Workshop_Superintendent', 'Workshop' => '/dashboard/workshop',
+            default => '/dashboard/lecturer',
+        };
+
         return view('r26_practical.virtual_classroom_practical', compact(
             'batchSubject', 'classroom', 'students', 'labBatches',
             'practicalCourseFile', 'staff', 'assignedStaffList',
             'lessonPlans', 'experimentLogs', 'openEndedLogs',
             'seriesExamLogs', 'seriesExams', 'eseMarks',
-            'attendanceMarks', 'consolidatedScores', 'parseModeLabel'
+            'attendanceMarks', 'consolidatedScores', 'parseModeLabel',
+            'attainmentData', 'dashboardUrl'
         ));
     }
 
@@ -472,12 +659,12 @@ class R26VirtualClassroomPracticalController extends Controller
         LessonPlan::where('batch_subject_id', $subjectId)->delete();
 
         // Determine target sub-batches based on batch and mode inputs
-        if ($selectedBatch === 'A') {
-            $targetSubBatches = ['Batch A'];
-        } elseif ($selectedBatch === 'B') {
-            $targetSubBatches = ['Batch B'];
+        if ($selectedBatch === 'A' || $selectedBatch === 'Batch 1') {
+            $targetSubBatches = ['Batch 1'];
+        } elseif ($selectedBatch === 'B' || $selectedBatch === 'Batch 2') {
+            $targetSubBatches = ['Batch 2'];
         } else {
-            $targetSubBatches = ($mode === 'split') ? ['Batch A', 'Batch B'] : ['Whole'];
+            $targetSubBatches = ($mode === 'split') ? ['Batch 1', 'Batch 2'] : ['Full Batch'];
         }
 
         // 1. Filter out non-experiment rows (like Tests or OEE that were parsed from syllabus)
@@ -589,6 +776,7 @@ class R26VirtualClassroomPracticalController extends Controller
     public function bulkUpdateLessonPlans(Request $request, $subjectId)
     {
         $plans = $request->input('plans', []);
+        $savedIds = [];
         foreach ($plans as $id => $data) {
             $actualDate = $data['actual_date'] ?? null;
             $status     = $data['status'] ?? 'Pending';
@@ -597,6 +785,7 @@ class R26VirtualClassroomPracticalController extends Controller
             }
 
             $updateData = [
+                'day_no'          => (int)($data['day_no'] ?? 1),
                 'topic_content'   => $data['topic_content'] ?? '',
                 'co_id'           => $data['co_id'] ?? 'CO1',
                 'allocated_hours' => (int)($data['allocated_hours'] ?? 1),
@@ -610,9 +799,17 @@ class R26VirtualClassroomPracticalController extends Controller
                 $updateData['sub_batch'] = $data['sub_batch'];
             }
 
-            LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update($updateData);
+            if (str_starts_with((string)$id, 'new_') || !is_numeric($id)) {
+                $created = LessonPlan::create(array_merge($updateData, [
+                    'batch_subject_id' => $subjectId,
+                ]));
+                $savedIds[$id] = $created->id;
+            } else {
+                LessonPlan::where('id', $id)->where('batch_subject_id', $subjectId)->update($updateData);
+                $savedIds[$id] = $id;
+            }
         }
-        return response()->json(['success' => true, 'message' => 'Lesson plan saved!']);
+        return response()->json(['success' => true, 'status' => 'SUCCESS', 'message' => 'Lesson plan saved!', 'id_map' => $savedIds]);
     }
 
     public function deleteLessonPlanRow(Request $request, $subjectId, $planId)
@@ -622,6 +819,55 @@ class R26VirtualClassroomPracticalController extends Controller
             ->delete();
 
         return response()->json(['success' => true, 'status' => 'SUCCESS', 'message' => 'Row deleted successfully.']);
+    }
+
+    /**
+     * Save Attendance Override for CIA Register (Rev 2026 Practical).
+     */
+    public function saveAttendanceOverride(Request $request, $subjectId)
+    {
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $regNo = $request->input('reg_no');
+        $rawOverride = $request->input('override_percentage');
+
+        if ($rawOverride !== null && $rawOverride !== '') {
+            $overridePct = min(100.0, max(0.0, (float)$rawOverride));
+        } else {
+            $overridePct = null;
+        }
+
+        $existing = DB::table('subject_official_attendances')
+            ->where('batch_subject_id', $subjectId)
+            ->where('reg_no', $regNo)
+            ->first();
+
+        $rawPct = $existing ? (float)($existing->teams_percentage ?: 100.0) : 100.0;
+        $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
+        $attMark5 = $this->computeAttendanceMark($effectivePct);
+
+        DB::table('subject_official_attendances')->updateOrInsert(
+            [
+                'batch_subject_id' => $subjectId,
+                'reg_no' => $regNo,
+            ],
+            [
+                'subject_code' => $batchSubject->subject_code,
+                'classroom_id' => $batchSubject->classroom_id,
+                'override_percentage' => $overridePct,
+                'final_percentage' => $effectivePct,
+                'attendance_mark' => $attMark5,
+                'final_mark' => $attMark5,
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Attendance override saved',
+            'override_percentage' => $overridePct,
+            'effective_percentage' => $effectivePct,
+            'attendance_mark' => $attMark5,
+        ]);
     }
 
     /**
@@ -713,6 +959,54 @@ class R26VirtualClassroomPracticalController extends Controller
             );
         }
         return response()->json(['success' => true, 'message' => 'Series exam marks saved!']);
+    }
+
+    /**
+     * Save Series 1 & Series 2 direct scores in bulk without modal splitup.
+     */
+    public function saveSeriesBulkDirect(Request $request, $subjectId)
+    {
+        $staff    = $this->getStaff();
+        $assessor = $staff?->mobile_no ?? Session::get('userId');
+        $marks    = $request->input('marks', []);
+
+        foreach ($marks as $regNo => $data) {
+            if (isset($data['series_1']) && $data['series_1'] !== '' && $data['series_1'] !== null) {
+                $score1 = min(40.0, max(0.0, (float)$data['series_1']));
+                R26PracticalSeriesEvaluation::updateOrCreate(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'series_no'        => 'Series 1',
+                        'reg_no'           => $regNo,
+                    ],
+                    [
+                        'total_score_40'     => $score1,
+                        'assessor_mobile_no' => $assessor,
+                    ]
+                );
+            }
+
+            if (isset($data['series_2']) && $data['series_2'] !== '' && $data['series_2'] !== null) {
+                $score2 = min(40.0, max(0.0, (float)$data['series_2']));
+                R26PracticalSeriesEvaluation::updateOrCreate(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'series_no'        => 'Series 2',
+                        'reg_no'           => $regNo,
+                    ],
+                    [
+                        'total_score_40'     => $score2,
+                        'assessor_mobile_no' => $assessor,
+                    ]
+                );
+            }
+        }
+
+        return response()->json([
+            'status'  => 'SUCCESS',
+            'success' => true,
+            'message' => 'Series marks updated successfully!',
+        ]);
     }
 
     /**
@@ -870,18 +1164,64 @@ class R26VirtualClassroomPracticalController extends Controller
         $seriesExamLogs = R26PracticalSeriesEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('series_no');
         $eseMarks       = R26PracticalEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
+        // Official Subject Attendance (TEAMS upload + override support)
+        $subjectOfficialAttendance = DB::table('subject_official_attendances')
+            ->where(function ($query) use ($subjectId, $batchSubject) {
+                $query->where('batch_subject_id', $subjectId)
+                      ->orWhere(function ($q) use ($batchSubject) {
+                          $q->where('subject_code', $batchSubject->subject_code)
+                            ->where('classroom_id', $batchSubject->classroom_id);
+                      });
+            })
+            ->get()
+            ->keyBy('reg_no');
+
         $attendanceMarks = [];
-        foreach ($students as $st) {
-            $total   = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $st->reg_no)->count();
-            $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $st->reg_no)->whereIn('status', ['Present', 'Late'])->count();
-            $pct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
-            $attendanceMarks[$st->reg_no] = ['percentage' => $pct, 'mark' => $this->computeAttendanceMark($pct)];
+        foreach ($students as $student) {
+            $stOfficial = $subjectOfficialAttendance->get($student->reg_no)
+                ?: (!empty($student->sbte_reg_no) ? $subjectOfficialAttendance->get($student->sbte_reg_no) : null);
+
+            $teamsPct = null;
+            if ($stOfficial) {
+                if ($stOfficial->teams_percentage !== null) {
+                    $teamsPct = (float)$stOfficial->teams_percentage;
+                } elseif ($stOfficial->final_percentage !== null) {
+                    $teamsPct = (float)$stOfficial->final_percentage;
+                }
+            }
+
+            $total   = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->count();
+            $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->whereIn('status', ['Present', 'Late'])->count();
+            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
+
+            $rawPct = $teamsPct !== null ? $teamsPct : $logPct;
+
+            $overridePct = null;
+            if ($stOfficial && $stOfficial->override_percentage !== null && $stOfficial->override_percentage !== '') {
+                $overridePct = (float)$stOfficial->override_percentage;
+            }
+
+            $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
+            $attMark = $this->computeAttendanceMark($effectivePct);
+
+            $attendanceMarks[$student->reg_no] = [
+                'teams_percentage'    => $teamsPct,
+                'raw_percentage'      => $rawPct,
+                'override_percentage' => $overridePct,
+                'effective_percentage'=> $effectivePct,
+                'percentage'          => $effectivePct,
+                'mark'                => $attMark,
+            ];
         }
 
         $consolidatedScores = $this->buildConsolidatedScores($students, $experimentLogs, $openEndedLogs, $seriesExamLogs, $eseMarks, $attendanceMarks);
 
-        if ($type === 'cia') {
-            return view('r26_practical.reports_print', compact('batchSubject', 'classroom', 'students', 'labBatches', 'attendanceMarks', 'consolidatedScores'));
+        if (in_array($type, ['cia', 'consolidated', 'attendance', 'series', 'ce'])) {
+            return view('r26_practical.reports_print', compact(
+                'batchSubject', 'classroom', 'students', 'labBatches',
+                'attendanceMarks', 'consolidatedScores', 'type',
+                'seriesExamLogs', 'experimentLogs', 'openEndedLogs'
+            ));
         }
 
         if ($type === 'plan') {

@@ -678,7 +678,8 @@ class ConsolidatedCiaReportController extends Controller
         if (str_contains($type, 'seminar') || str_contains($name, 'seminar')) {
             return 75;
         }
-        if (str_contains($type, 'project') || str_contains($name, 'project')) {
+        $isCt5002Theory = ($subject->id == 147 || ($subject->subject_code ?? '') == '5002' || str_contains($name, 'project management'));
+        if (!$isCt5002Theory && (str_contains($type, 'project') || str_contains($name, 'project'))) {
             return 75;
         }
 
@@ -824,8 +825,9 @@ class ConsolidatedCiaReportController extends Controller
             return ['mark' => null, 'is_generated' => false];
         }
 
-        // 4. Major Project Subjects
-        if (str_contains($type, 'project') || str_contains($name, 'project')) {
+        // 4. Major Project Subjects (Exclude CT 5002 Project Management and Software Engineering)
+        $isCt5002Theory = ($subject->id == 147 || $sCode == '5002' || str_contains($name, 'project management'));
+        if (!$isCt5002Theory && (str_contains($type, 'project') || str_contains($name, 'project'))) {
             $projEval = $projectEvals->filter(function($e) use ($regNo, $sbteRegNo) {
                 return $e->reg_no === $regNo || ($sbteRegNo && $e->reg_no === $sbteRegNo);
             })->first();

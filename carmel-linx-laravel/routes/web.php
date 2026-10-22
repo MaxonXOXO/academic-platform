@@ -635,10 +635,12 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/experiment', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/open-ended', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/series', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveSeriesExamMarks']);
+    Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/series-bulk', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveSeriesBulkDirect']);
     Route::post('/api/r26/classroom/practical/{subjectId}/series-exams/configure', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'configureSeriesExam']);
     Route::post('/api/r26/classroom/practical/{subjectId}/ese-marks', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveEseMarks']);
     Route::get('/r26/classroom/practical/{subjectId}/print/{type}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'printReport']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lab-batch', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'assignLabBatch']);
+    Route::post('/api/r26/classroom/practical/{subjectId}/attendance-override', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveAttendanceOverride']);
     Route::get('/r26/classroom/practical/course-file/{subjectId}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'viewCourseFile']);
     Route::post('/api/r26/classroom/practical/course-file/{subjectId}/save-doc', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveCourseFileDoc']);
     Route::post('/api/r26/classroom/practical/course-file/{subjectId}/upload-doc', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'uploadCourseFileDocAttachment']);

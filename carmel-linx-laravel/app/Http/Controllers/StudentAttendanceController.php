@@ -493,10 +493,11 @@ class StudentAttendanceController extends Controller
             $sCode = $subj->subject_code;
             $maxCia = 50;
             $isAu3055Theory = ($subj->id == 110 || ($sCode == '3055' && (str_contains($subj->classroom_id ?? '', 'AU') || ($subj->branch ?? '') === 'AU' || str_contains(strtolower($subj->subject_name ?? ''), 'automobile'))));
+            $isCt5002Theory = ($subj->id == 147 || $sCode == '5002' || str_contains(strtolower($subj->subject_name ?? ''), 'project management'));
             $type = strtolower($subj->subject_type ?? '');
             $name = strtolower($subj->subject_name ?? '');
 
-            if (!$isAu3055Theory && (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab') || str_contains($type, 'drawing') || str_contains($name, 'drawing') || str_contains($type, 'seminar') || str_contains($name, 'seminar') || str_contains($type, 'project') || str_contains($name, 'project'))) {
+            if (!$isAu3055Theory && !$isCt5002Theory && (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab') || str_contains($type, 'drawing') || str_contains($name, 'drawing') || str_contains($type, 'seminar') || str_contains($name, 'seminar') || str_contains($type, 'project') || str_contains($name, 'project'))) {
                 $maxCia = 75;
             }
 

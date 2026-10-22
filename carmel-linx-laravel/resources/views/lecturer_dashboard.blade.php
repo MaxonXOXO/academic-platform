@@ -2403,7 +2403,9 @@
         }
 
         // Revision 2021 Virtual Major Project Classroom (Clauses 11.2.5 & 11.3.4)
-        if (sTypeLower.includes('project') || sNameLower.includes('project')) {
+        // (Note: CT 5002 Project Management and Software Engineering is strictly a Theory subject)
+        const isCt5002Theory = (String(subjectId) === '147' || sCodeStr.includes('5002') || sNameLower.includes('project management'));
+        if (!isCt5002Theory && (sTypeLower.includes('project') || sNameLower.includes('project'))) {
           window.location.href = `/r21/classroom/project/${subjectId}`;
           return;
         }

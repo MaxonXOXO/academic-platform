@@ -29,6 +29,12 @@ class R21VirtualClassroomMajorProjectController extends Controller
 
         $batchSubject = BatchSubject::findOrFail($subjectId);
 
+        // CT 5002 Special Case: Project Management and Software Engineering is strictly a Theory subject.
+        $isCt5002Theory = ($subjectId == 147 || ($batchSubject->subject_code ?? '') == '5002' || str_contains(strtolower($batchSubject->subject_name ?? ''), 'project management'));
+        if ($isCt5002Theory) {
+            return redirect("/dashboard/lecturer?subject_id={$batchSubject->id}&subject_name=" . urlencode($batchSubject->subject_name) . "&subject_code=" . urlencode($batchSubject->subject_code) . "&classroom_id=" . urlencode($batchSubject->classroom_id) . "&revision=REV2021&type=Theory");
+        }
+
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {
             $classroom = DB::table('r26_class_management')->where('classroom_id', $batchSubject->classroom_id)->first();

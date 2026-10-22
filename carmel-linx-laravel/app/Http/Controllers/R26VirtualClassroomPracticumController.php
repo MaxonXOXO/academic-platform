@@ -132,7 +132,7 @@ class R26VirtualClassroomPracticumController extends Controller
             ->orderBy('day_no', 'asc')
             ->get();
 
-        if ($lessonPlans->count() < 90) {
+        if ($lessonPlans->count() === 0) {
             $this->generate90HourLessonPlan($batchSubject, $practicumCourseFile);
             $lessonPlans = LessonPlan::where('batch_subject_id', $subjectId)
                 ->orderBy('day_no', 'asc')
@@ -354,10 +354,19 @@ class R26VirtualClassroomPracticumController extends Controller
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
 
-            // 3. Continuous Practical Evaluation (Max 10 CIA Marks)
+            // 3. Continuous Practical Evaluation (Single combined entry for M1–M4 & COs out of 50 -> Converted to 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
-            $avgExpScore50 = $stExps->avg('total_score_50') ?: 0.00;
-            $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
+            $ceRecord = $stExps->firstWhere('experiment_no', 'Continuous Evaluation')
+                     ?: $stExps->firstWhere('experiment_no', 'CE');
+            if ($ceRecord) {
+                $ceScore50 = (float)$ceRecord->total_score_50;
+            } elseif ($stExps->count() > 0) {
+                $ceScore50 = (float)($stExps->avg('total_score_50') ?: 0.00);
+            } else {
+                $ceScore50 = null;
+            }
+            $ceScore50Effective = $ceScore50 !== null ? min(50.0, max(0.0, $ceScore50)) : 0.00;
+            $continuousEvalMarks = $ceScore50 !== null ? min(10.0, round((($ceScore50Effective / 50.0) * 10.0) * 2) / 2) : 0.00;
 
             // 4. Theory Series Exam Marks (Max 10 CIA Marks)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
@@ -451,14 +460,64 @@ class R26VirtualClassroomPracticumController extends Controller
                 $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
             }
 
-            // 5. Practical Series Exam Marks (2 Tests: Test 1 CO1+CO2 & Test 2 CO3+CO4 - Max 10 CIA Marks)
+            // 5. Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
-            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
-            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
-            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            if ($isBasicScience) {
+                $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+                $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+                $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+                $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+                // Check legacy combined CA2 / CA3 if CO1/CO2 were not entered individually
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    if ($legacySp1) {
+                        $half = round(((float)$legacySp1->total_score_40) / 2.0, 1);
+                        $co1PrScore = $half;
+                        $co2PrScore = $half;
+                    } else {
+                        $co1PrScore = 0.00;
+                        $co2PrScore = 0.00;
+                    }
+                } else {
+                    $co1PrScore = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $co2PrScore = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
+
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    if ($legacySp2) {
+                        $half = round(((float)$legacySp2->total_score_40) / 2.0, 1);
+                        $co3PrScore = $half;
+                        $co4PrScore = $half;
+                    } else {
+                        $co3PrScore = 0.00;
+                        $co4PrScore = 0.00;
+                    }
+                } else {
+                    $co3PrScore = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $co4PrScore = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = min(40.0, $co1PrScore + $co2PrScore);
+                $sp2Total = min(40.0, $co3PrScore + $co4PrScore);
+
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+            } else {
+                $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+                $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+                $sp1Score = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                $sp2Score = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
+                $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+                $co1PrScore = 0.0;
+                $co2PrScore = 0.0;
+                $co3PrScore = 0.0;
+                $co4PrScore = 0.0;
+                $sp1Total = $sp1Score;
+                $sp2Total = $sp2Score;
+            }
 
             // Consolidated Total CIA Marks (Max 40) - Whole Number
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
@@ -533,6 +592,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 'm2' => $valM2,
                 'm3' => $valM3,
                 'm4' => $valM4,
+                'ce_50' => $ceScore50,
                 'continuous_eval_marks' => $continuousEvalMarks,
                 'co1_theory_mark' => $co1Score,
                 'co2_theory_mark' => $co2Score,
@@ -542,6 +602,13 @@ class R26VirtualClassroomPracticumController extends Controller
                 'series2_theory_total' => $series2Total,
                 'series_theory_avg' => $avgTheorySeries50,
                 'series_theory_marks' => $seriesTheoryMarks,
+                'co1_practical_mark' => $co1PrScore,
+                'co2_practical_mark' => $co2PrScore,
+                'co3_practical_mark' => $co3PrScore,
+                'co4_practical_mark' => $co4PrScore,
+                'series1_practical_total' => $sp1Total,
+                'series2_practical_total' => $sp2Total,
+                'series_practical_avg' => $avgPracticalSeries40,
                 'series_practical_marks' => $seriesPracticalMarks,
                 'total_cia_marks' => $totalCiaMarks,
                 'ese_theory' => $eseTheory,
@@ -931,7 +998,12 @@ class R26VirtualClassroomPracticumController extends Controller
             $p4 = floatval($row['analysis_interpretation'] ?? 0);
             $p5 = floatval($row['viva_voce'] ?? 0);
             $p6 = floatval($row['workmanship_discipline'] ?? 0);
-            $total50 = $p1 + $p2 + $p3 + $p4 + $p5 + $p6;
+            if (isset($row['total_score_50'])) {
+                $total50 = floatval($row['total_score_50']);
+            } else {
+                $total50 = $p1 + $p2 + $p3 + $p4 + $p5 + $p6;
+            }
+            $total50 = min(50.0, max(0.0, $total50));
 
             R26PracticumExperimentEvaluation::updateOrCreate(
                 [
@@ -940,7 +1012,7 @@ class R26VirtualClassroomPracticumController extends Controller
                     'reg_no' => $regNo
                 ],
                 [
-                    'experiment_title' => $expTitle,
+                    'experiment_title' => $expTitle ?: 'Continuous Evaluation (Modules I–IV)',
                     'prep_punctuality' => $p1,
                     'setup_procedure' => $p2,
                     'observation_recording' => $p3,
@@ -1013,7 +1085,12 @@ class R26VirtualClassroomPracticumController extends Controller
             $o = floatval($row['observation_result'] ?? 0);
             $v = floatval($row['viva_voce'] ?? 0);
             $r = floatval($row['record_completion'] ?? 0);
-            $total40 = $w + $s + $o + $v + $r;
+
+            if (isset($row['total_score_40'])) {
+                $total40 = floatval($row['total_score_40']);
+            } else {
+                $total40 = $w + $s + $o + $v + $r;
+            }
             $isAbsent = !empty($row['is_absent']);
 
             R26PracticumSeriesPractical::updateOrCreate(
@@ -1108,8 +1185,16 @@ class R26VirtualClassroomPracticumController extends Controller
             $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
 
             $stExps = $experimentEvals->get($regNo, collect());
-            $avgExpScore50 = $stExps->avg('total_score_50') ?: 0.00;
-            $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
+            $ceRecord = $stExps->firstWhere('experiment_no', 'Continuous Evaluation')
+                     ?: $stExps->firstWhere('experiment_no', 'CE');
+            if ($ceRecord) {
+                $ceScore50 = (float)$ceRecord->total_score_50;
+            } elseif ($stExps->count() > 0) {
+                $ceScore50 = (float)($stExps->avg('total_score_50') ?: 0.00);
+            } else {
+                $ceScore50 = 0.00;
+            }
+            $continuousEvalMarks = min(10.0, round(((min(50.0, max(0.0, $ceScore50)) / 50.0) * 10.0) * 2) / 2);
 
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
             $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
@@ -1126,10 +1211,33 @@ class R26VirtualClassroomPracticumController extends Controller
             $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
 
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->where('series_no', 'Series 1')->first();
-            $sp2 = $stSpEvals->where('series_no', 'Series 2')->first();
-            $avgPracticalSeries40 = (($sp1 ? $sp1->total_score_40 : 0) + ($sp2 ? $sp2->total_score_40 : 0)) / 2.0;
-            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+            if (!$sp1 && !$sp2) {
+                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
+                $sp2Pr = $sp1Pr;
+            } else {
+                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+            }
+
+            if (!$sp3 && !$sp4) {
+                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
+                $sp4Pr = $sp3Pr;
+            } else {
+                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+            }
+
+            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
+            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
+            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
 
             $totalCiaMarks = round(($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
 
@@ -1624,19 +1732,24 @@ class R26VirtualClassroomPracticumController extends Controller
                 $propDate = $this->parseDateForStorage($item['proposed_date'] ?? null);
                 $actDate = $this->parseDateForStorage($item['actual_date'] ?? null);
 
+                $updateData = [
+                    'topic_content' => $topicText,
+                    'proposed_date' => $propDate,
+                    'actual_date' => $actDate,
+                    'co_id' => $item['co_id'] ?? 'CO1',
+                    'sub_batch' => $item['sub_batch'] ?? '',
+                    'pedagogy' => $pedagogy,
+                    'mode' => $mode,
+                    'remarks' => $item['remarks'] ?? '',
+                    'status' => $actDate ? 'Completed' : 'Pending'
+                ];
+                if (isset($item['day_no'])) {
+                    $updateData['day_no'] = $item['day_no'];
+                }
+
                 LessonPlan::where('id', $item['id'])
                     ->where('batch_subject_id', $subjectId)
-                    ->update([
-                        'topic_content' => $topicText,
-                        'proposed_date' => $propDate,
-                        'actual_date' => $actDate,
-                        'co_id' => $item['co_id'] ?? 'CO1',
-                        'sub_batch' => $item['sub_batch'] ?? '',
-                        'pedagogy' => $pedagogy,
-                        'mode' => $mode,
-                        'remarks' => $item['remarks'] ?? '',
-                        'status' => $actDate ? 'Completed' : 'Pending'
-                    ]);
+                    ->update($updateData);
             }
 
             // Step 2: Insert new rows (in the order they appear in the DOM)
@@ -1687,34 +1800,37 @@ class R26VirtualClassroomPracticumController extends Controller
                 }
 
                 $hoursCount = ($mode === 'P' || $mode === 'SP') ? 3 : 1;
+                $rowDayNo = $item['day_no'] ?? $newDayNo;
 
-                // Shift existing rows >= $newDayNo by $hoursCount so space is made cleanly
-                LessonPlan::where('batch_subject_id', $subjectId)
-                    ->where('day_no', '>=', $newDayNo)
-                    ->increment('day_no', $hoursCount);
+                LessonPlan::create([
+                    'batch_subject_id' => $subjectId,
+                    'day_no' => $rowDayNo,
+                    'topic_content' => $topicText,
+                    'proposed_date' => $propDate,
+                    'actual_date' => $actDate,
+                    'co_id' => $item['co_id'] ?? 'CO1',
+                    'sub_batch' => $item['sub_batch'] ?? (($mode === 'P' || $mode === 'SP') ? 'Batch A & B' : 'ALL'),
+                    'allocated_hours' => $hoursCount,
+                    'pedagogy' => $pedagogy,
+                    'mode' => $mode,
+                    'remarks' => $item['remarks'] ?? '',
+                    'status' => $actDate ? 'Completed' : 'Pending'
+                ]);
 
-                $lastDayAssigned = $newDayNo;
-                for ($h = 0; $h < $hoursCount; $h++) {
-                    $curDay = $newDayNo + $h;
-                    $hourSuffix = ($hoursCount > 1) ? ' (Hour ' . ($h + 1) . '/' . $hoursCount . ')' : '';
-                    LessonPlan::create([
-                        'batch_subject_id' => $subjectId,
-                        'day_no' => $curDay,
-                        'topic_content' => $topicText . $hourSuffix,
-                        'proposed_date' => $propDate,
-                        'actual_date' => $actDate,
-                        'co_id' => $item['co_id'] ?? 'CO1',
-                        'sub_batch' => $item['sub_batch'] ?? (($mode === 'P' || $mode === 'SP') ? 'Batch A & B' : 'ALL'),
-                        'allocated_hours' => 1,
-                        'pedagogy' => $pedagogy,
-                        'mode' => $mode,
-                        'remarks' => $item['remarks'] ?? '',
-                        'status' => $actDate ? 'Completed' : 'Pending'
-                    ]);
-                    $lastDayAssigned = $curDay;
+                $createdNewMap[$item['id']] = $rowDayNo;
+            }
+
+            // Resequence all rows strictly by day_no asc, id asc to guarantee sequence 1..N
+            $allLp = LessonPlan::where('batch_subject_id', $subjectId)
+                ->orderBy('day_no', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+            foreach ($allLp as $seqIdx => $lpRow) {
+                $expectedSeq = $seqIdx + 1;
+                if ((int)$lpRow->day_no !== $expectedSeq) {
+                    $lpRow->day_no = $expectedSeq;
+                    $lpRow->save();
                 }
-
-                $createdNewMap[$item['id']] = $lastDayAssigned;
             }
         });
 
@@ -1737,6 +1853,19 @@ class R26VirtualClassroomPracticumController extends Controller
         LessonPlan::whereIn('id', $ids)
             ->where('batch_subject_id', $subjectId)
             ->delete();
+
+        // Resequence remaining rows so day_no remains strictly sequential (1, 2, 3...)
+        $remaining = LessonPlan::where('batch_subject_id', $subjectId)
+            ->orderBy('day_no', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+        foreach ($remaining as $idx => $plan) {
+            $expected = $idx + 1;
+            if ((int)$plan->day_no !== $expected) {
+                $plan->day_no = $expected;
+                $plan->save();
+            }
+        }
 
         return response()->json(['status' => 'SUCCESS', 'message' => count($ids) . ' row(s) deleted.']);
     }
@@ -2243,8 +2372,16 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // Continuous Practical Evaluation (Max 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
-            $avgExpScore50 = $stExps->avg('total_score_50') ?: 0.00;
-            $continuousEvalMarks = round((($avgExpScore50 / 50.0) * 10.0) * 2) / 2;
+            $ceRecord = $stExps->firstWhere('experiment_no', 'Continuous Evaluation')
+                     ?: $stExps->firstWhere('experiment_no', 'CE');
+            if ($ceRecord) {
+                $ceScore50 = (float)$ceRecord->total_score_50;
+            } elseif ($stExps->count() > 0) {
+                $ceScore50 = (float)($stExps->avg('total_score_50') ?: 0.00);
+            } else {
+                $ceScore50 = 0.00;
+            }
+            $continuousEvalMarks = min(10.0, round(((min(50.0, max(0.0, $ceScore50)) / 50.0) * 10.0) * 2) / 2);
 
             // Theory Series Exam Marks (4 Tests: CO1, CO2, CO3, CO4 - Max 10 CIA Marks)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
@@ -2261,14 +2398,44 @@ class R26VirtualClassroomPracticumController extends Controller
             $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
             $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
 
-            // Practical Series Exam Marks (2 Tests - Max 10 CIA Marks)
+            // Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
-            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
-            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
-            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            if ($isBasicScience) {
+                $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+                $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+                $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+                $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
+                    $sp2Pr = $sp1Pr;
+                } else {
+                    $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
+
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
+                    $sp4Pr = $sp3Pr;
+                } else {
+                    $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
+                $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+            } else {
+                $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
+                $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
+                $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
+                $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
+                $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
+                $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            }
 
             // Consolidated Total CIA Marks (Max 40) - Whole Number
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
@@ -2333,6 +2500,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 'm2' => $valM2,
                 'm3' => $valM3,
                 'm4' => $valM4,
+                'ce_50' => $ceScore50,
                 'continuous_eval_marks' => $continuousEvalMarks,
                 'series_theory_marks' => $seriesTheoryMarks,
                 'series_practical_marks' => $seriesPracticalMarks,
@@ -4161,9 +4329,16 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 3. Continuous Practical Evaluation (10M)
             $stExpEvals = $experimentEvals->get($regNo, collect());
-            $expCount = $stExpEvals->count();
-            $avgExpScore40 = $expCount > 0 ? ($stExpEvals->sum('total_score_40') / $expCount) : 0.00;
-            $continuousEvalMarks = round((($avgExpScore40 / 40.0) * 10.0) * 2) / 2;
+            $ceRecord = $stExpEvals->firstWhere('experiment_no', 'Continuous Evaluation')
+                     ?: $stExpEvals->firstWhere('experiment_no', 'CE');
+            if ($ceRecord) {
+                $ceScore50 = (float)$ceRecord->total_score_50;
+            } elseif ($stExpEvals->count() > 0) {
+                $ceScore50 = (float)($stExpEvals->avg('total_score_50') ?: 0.00);
+            } else {
+                $ceScore50 = 0.00;
+            }
+            $continuousEvalMarks = min(10.0, round(((min(50.0, max(0.0, $ceScore50)) / 50.0) * 10.0) * 2) / 2);
 
             // 4. Theory Series Marks (10M)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
@@ -4202,12 +4377,33 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 5. Practical Series Marks (10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
-            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
-            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
-            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+            if (!$sp1 && !$sp2) {
+                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
+                $sp2Pr = $sp1Pr;
+            } else {
+                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+            }
+
+            if (!$sp3 && !$sp4) {
+                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
+                $sp4Pr = $sp3Pr;
+            } else {
+                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+            }
+
+            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
+            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
+            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
 
             $totalSeries20 = round(($seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
@@ -4487,9 +4683,16 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 3. Continuous Practical Evaluation
             $stExpEvals = $experimentEvals->get($regNo, collect());
-            $expCount = $stExpEvals->count();
-            $avgExpScore40 = $expCount > 0 ? ($stExpEvals->sum('total_score_40') / $expCount) : 0.00;
-            $continuousEvalMarks = round((($avgExpScore40 / 40.0) * 10.0) * 2) / 2;
+            $ceRecord = $stExpEvals->firstWhere('experiment_no', 'Continuous Evaluation')
+                     ?: $stExpEvals->firstWhere('experiment_no', 'CE');
+            if ($ceRecord) {
+                $ceScore50 = (float)$ceRecord->total_score_50;
+            } elseif ($stExpEvals->count() > 0) {
+                $ceScore50 = (float)($stExpEvals->avg('total_score_50') ?: 0.00);
+            } else {
+                $ceScore50 = 0.00;
+            }
+            $continuousEvalMarks = min(10.0, round(((min(50.0, max(0.0, $ceScore50)) / 50.0) * 10.0) * 2) / 2);
 
             // 4. Theory Series
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
@@ -4528,12 +4731,33 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 5. Practical Series
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-            $sp1Score = $sp1 ? $sp1->total_score_40 : 0.00;
-            $sp2Score = $sp2 ? $sp2->total_score_40 : 0.00;
-            $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
-            $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
+            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+            if (!$sp1 && !$sp2) {
+                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
+                $sp2Pr = $sp1Pr;
+            } else {
+                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+            }
+
+            if (!$sp3 && !$sp4) {
+                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
+                $sp4Pr = $sp3Pr;
+            } else {
+                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+            }
+
+            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
+            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
+            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
 
             // Consolidated Total CIA Marks (Max 40) - Whole Number
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);

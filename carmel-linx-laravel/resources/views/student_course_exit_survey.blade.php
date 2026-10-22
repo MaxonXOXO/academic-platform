@@ -54,7 +54,8 @@
       <div class="px-2 py-1 text-xs text-teal-400 font-bold uppercase tracking-wider">Course Outcome specific questions (Required)</div>
 
       @php
-        $isProject = str_contains(strtolower($survey->subject_name ?? ''), 'project');
+        $sNameLower = strtolower($survey->subject_name ?? '');
+        $isProject = str_contains($sNameLower, 'project') && !str_contains($sNameLower, 'project management') && ($survey->subject_code ?? '') != '5002';
 
         if ($isProject) {
           $defaultQuestions = [

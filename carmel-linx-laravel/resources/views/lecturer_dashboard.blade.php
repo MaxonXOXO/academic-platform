@@ -4007,7 +4007,7 @@
                   <th class="p-3 w-16 text-center">Hrs</th>
                   <th class="p-3 w-28">Pedagogy</th>
                   <th class="p-3 w-32">Remarks</th>
-                  <th class="p-3 w-10 text-center">Action</th>
+                  <th class="p-3 w-16 text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -4081,9 +4081,14 @@
                 onchange="markPlanDirty(${lp.id})">
             </td>
             <td class="p-2 text-center">
-              <button onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
-                <span class="material-symbols-rounded text-base">close</span>
-              </button>
+              <div class="flex items-center justify-center gap-0.5">
+                <button type="button" onclick="addLessonPlanRow(this)" class="text-sky-400 hover:text-sky-300 hover:bg-sky-500/20 p-1 rounded transition cursor-pointer" title="Add row below">
+                  <span class="material-symbols-rounded text-base block">add</span>
+                </button>
+                <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
+                  <span class="material-symbols-rounded text-base block">close</span>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -4139,26 +4144,34 @@
       });
     }
 
-    function addLessonPlanRow() {
+    window._newLpRowSeq = (window._newLpRowSeq || 0);
+
+    function addLessonPlanRow(afterBtn = null) {
       const tbody = document.querySelector('#lessonPlanTable tbody');
       if (!tbody) return;
 
+      const refRow = (afterBtn && typeof afterBtn.closest === 'function') ? afterBtn.closest('tr') : null;
       const rowCount = tbody.querySelectorAll('tr').length;
       const nextDayNo = rowCount + 1;
-      const tempId = 'new_' + Date.now();
+      const tempId = 'new_' + Date.now() + '_' + (++window._newLpRowSeq);
+
+      const defaultCo = refRow ? (refRow.querySelector('[data-field="co_id"]')?.value || '') : '';
+      const defaultHrs = refRow ? (refRow.querySelector('[data-field="allocated_hours"]')?.value || 1) : 1;
+      const defaultSubBatch = refRow ? (refRow.querySelector('[data-field="sub_batch"]')?.value || refRow.getAttribute('data-sub-batch') || 'Whole') : 'Whole';
 
       let coList = (window.currentCos && window.currentCos.length > 0)
         ? window.currentCos.map(c => c.id || c.co_id)
         : ['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6'];
-      let coOptionsHtml = `<option value="">--</option>` + coList.map(c => `<option value="${c}">${c}</option>`).join('');
+      let coOptionsHtml = `<option value="">--</option>` + coList.map(c => `<option value="${c}" ${c === defaultCo ? 'selected' : ''}>${c}</option>`).join('');
 
       const tr = document.createElement('tr');
-      tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/20 transition-premium';
+      tr.className = 'border-b border-slate-800/40 hover:bg-slate-900/20 transition-premium course-planner-row';
       tr.setAttribute('data-lp-id', tempId);
+      tr.setAttribute('data-sub-batch', defaultSubBatch);
 
       tr.innerHTML = `
         <td class="p-2 text-center text-xs font-bold text-slate-600">
-          <input type="number" value="${nextDayNo}" data-field="day_no" class="w-10 bg-slate-900/80 border border-slate-700/60 text-center text-slate-300 text-xs rounded py-0.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" onchange="markPlanDirty('${tempId}')">
+          <input type="number" value="${nextDayNo}" data-field="day_no" class="w-10 bg-slate-900/80 border border-slate-700/60 text-center text-slate-300 text-xs font-bold rounded py-0.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" onchange="markPlanDirty('${tempId}')">
         </td>
         <td class="p-2 text-center">
           <select data-field="co_id" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-blue-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${tempId}')">
@@ -4168,9 +4181,9 @@
         ${window.isCurrentSubjectPractical ? `
         <td class="p-2 text-center">
           <select data-field="sub_batch" class="bg-slate-900/80 border border-slate-700/60 rounded px-1.5 py-1 text-sky-400 text-xs font-bold focus:outline-none focus:border-blue-500/50" onchange="markPlanDirty('${tempId}'); this.closest('tr').setAttribute('data-sub-batch', this.value);">
-            <option value="Whole">Full</option>
-            <option value="Batch A">A</option>
-            <option value="Batch B">B</option>
+            <option value="Full Batch" ${defaultSubBatch==='Full Batch'||defaultSubBatch==='Whole'||defaultSubBatch==='Full'||!defaultSubBatch?'selected':''}>Full Batch</option>
+            <option value="Batch 1" ${defaultSubBatch==='Batch 1'||defaultSubBatch==='Batch A'||defaultSubBatch==='1'||defaultSubBatch==='A'?'selected':''}>Batch 1</option>
+            <option value="Batch 2" ${defaultSubBatch==='Batch 2'||defaultSubBatch==='Batch B'||defaultSubBatch==='2'||defaultSubBatch==='B'?'selected':''}>Batch 2</option>
           </select>
         </td>
         ` : ''}
@@ -4184,7 +4197,7 @@
           <input type="date" value="" data-field="actual_date" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-emerald-400 text-xs focus:outline-none focus:border-blue-500/50 font-mono" onchange="markPlanDirty('${tempId}')">
         </td>
         <td class="p-2 text-center">
-          <input type="text" value="1" data-field="allocated_hours" class="w-10 bg-slate-900/80 border border-slate-700/60 text-center text-slate-300 text-xs rounded py-0.5 focus:outline-none font-mono" onchange="markPlanDirty('${tempId}')">
+          <input type="number" min="1" max="10" value="${defaultHrs}" data-field="allocated_hours" class="w-12 bg-slate-900/80 border border-slate-700/60 hover:border-blue-500/50 text-center text-sky-300 text-xs font-bold font-mono rounded py-1 focus:outline-none focus:border-blue-500" onchange="markPlanDirty('${tempId}')">
         </td>
         <td class="p-2">
           ${renderPedagogySelect('Lecture', tempId)}
@@ -4193,16 +4206,29 @@
           <input type="text" value="" data-field="remarks" class="w-full bg-slate-900/80 border border-slate-700/60 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none focus:border-blue-500/50" placeholder="Remarks..." onchange="markPlanDirty('${tempId}')">
         </td>
         <td class="p-2 text-center">
-          <button onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
-            <span class="material-symbols-rounded text-base">close</span>
-          </button>
+          <div class="flex items-center justify-center gap-0.5">
+            <button type="button" onclick="addLessonPlanRow(this)" class="text-sky-400 hover:text-sky-300 hover:bg-sky-500/20 p-1 rounded transition cursor-pointer" title="Add row below">
+              <span class="material-symbols-rounded text-base block">add</span>
+            </button>
+            <button type="button" onclick="deleteLessonPlanRow(this)" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-1 rounded transition cursor-pointer" title="Delete row">
+              <span class="material-symbols-rounded text-base block">close</span>
+            </button>
+          </div>
         </td>
       `;
 
-      tbody.appendChild(tr);
+      if (refRow && refRow.parentNode === tbody) {
+        refRow.insertAdjacentElement('afterend', tr);
+      } else {
+        tbody.appendChild(tr);
+      }
       markPlanDirty(tempId);
+      resequenceLessonPlanRows();
       const textarea = tr.querySelector('textarea');
-      if (textarea) autoGrowTextarea(textarea);
+      if (textarea) {
+        autoGrowTextarea(textarea);
+        textarea.focus();
+      }
     }
 
     function resequenceLessonPlanRows() {
@@ -4284,11 +4310,15 @@
       const btnTop = document.getElementById('btnSavePlan');
       const btnBottom = document.getElementById('btnSavePlanBottom');
       const btnSaveNow = document.getElementById('btnSaveNowBottom');
+      resequenceLessonPlanRows();
       const rows = [];
-      document.querySelectorAll('#lessonPlanTable tbody tr[data-lp-id]').forEach(row => {
+      document.querySelectorAll('#lessonPlanTable tbody tr[data-lp-id]').forEach((row, index) => {
         const lpId = row.getAttribute('data-lp-id');
         const data = collectPlanRow(lpId, row);
-        if (data) rows.push(data);
+        if (data) {
+          data.day_no = index + 1;
+          rows.push(data);
+        }
       });
       if (rows.length === 0) { alert('Nothing to save.'); return; }
 

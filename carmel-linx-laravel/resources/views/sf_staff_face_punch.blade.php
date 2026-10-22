@@ -40,7 +40,7 @@
         .mobile-header {
             background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(12px);
-            padding: 12px 16px;
+            padding: 8px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -51,12 +51,12 @@
         }
 
         .mobile-header h1 {
-            font-size: 1.02rem;
+            font-size: 0.95rem;
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 6px;
-            color: #60a5fa;
+            color: var(--text-light);
             margin: 0;
         }
 
@@ -101,7 +101,7 @@
         .container {
             max-width: 480px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 8px 12px 16px;
         }
 
         /* Staff Info Card */
@@ -184,7 +184,7 @@
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 20px 16px;
+            padding: 10px 14px 16px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -195,8 +195,8 @@
         .screen-flash-box {
             background: #ffffff;
             border-radius: 20px;
-            padding: 20px 12px 14px;
-            margin-bottom: 16px;
+            padding: 10px 10px 8px;
+            margin-bottom: 10px;
             position: relative;
             box-shadow: 0 0 35px rgba(255, 255, 255, 0.95), inset 0 0 15px rgba(255, 255, 255, 1);
             border: 2px solid #ffffff;
@@ -397,12 +397,9 @@
 
     <header class="mobile-header">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <h1><i class="fa-solid fa-camera-rotate"></i> Staff Biometric Time Punch</h1>
+            <h1><i class="fa-solid fa-user-circle" style="color: #60a5fa;"></i> {{ $staffName }}</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <button type="button" onclick="openFacePunchLogModal()" class="refresh-btn-top" style="text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
-                <i class="fa-solid fa-calendar-days"></i> Punch Log
-            </button>
             <a href="{{ Session::get('userRole') === 'HOD' ? '/dashboard/hod' : '/staff/mobile' }}" class="back-btn-right" title="Return to Home Dashboard">
                 <i class="fa-solid fa-house"></i> Back
             </a>
@@ -410,30 +407,42 @@
     </header>
 
     <div class="container">
-        <!-- Staff Identity & Shift Info Card -->
-        <div class="staff-card">
-            <div class="staff-info">
-                <div class="staff-name"><i class="fa-solid fa-user-circle"></i> {{ $staffName }}</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">ID: {{ $staffId }}</div>
+        @php
+            $hasInPunch = $todayPunch && $todayPunch->in_time;
+            $hasOutPunch = $todayPunch && $todayPunch->out_time;
+            $isAlreadyCompleted = $hasInPunch && $hasOutPunch;
+            $nextPunchType = ($hasInPunch && !$hasOutPunch) ? 'OUT' : 'IN';
+        @endphp
+
+        <!-- Circular Camera Viewfinder at Top -->
+        <div class="camera-card">
+            <!-- Screen Flashlight Ring Light Box (Pure White Outer Space Illuminates Face) -->
+            <div class="screen-flash-box" id="screenFlashBox">
+                <div class="viewfinder-wrapper" id="viewfinderWrapper" style="margin-bottom: 4px;">
+                    <video id="videoFeed" autoplay muted playsinline></video>
+                    <div class="face-guide-circle" id="faceCircle"></div>
+                </div>
             </div>
 
-            <div class="shift-info-bar">
-                <span><i class="fa-regular fa-clock"></i> Shift: <b>9:00 AM - 4:00 PM</b></span>
-                @if($todayPunch && $todayPunch->in_time && $todayPunch->out_time)
-                    @php
-                        $tIn = strtotime($todayPunch->in_time);
-                        $tOut = strtotime($todayPunch->out_time);
-                        $diffMinutes = round(abs($tOut - $tIn) / 60);
-                        $hrs = floor($diffMinutes / 60);
-                        $mins = $diffMinutes % 60;
-                    @endphp
-                    <span style="color:#34d399; font-weight:700;"><i class="fa-solid fa-business-time"></i> {{ $hrs }}h {{ $mins }}m in Campus</span>
-                @else
-                    <span><i class="fa-solid fa-building-user"></i> Self-Financing Staff</span>
-                @endif
+            <!-- Instruction Pill Bar below camera circle (Zero border clipping) -->
+            <div class="guide-instructions" id="guideText">
+                <i class="fa-solid fa-face-smile me-1.5" style="color: #38bdf8;"></i> Align your face inside circle
             </div>
 
-            <div class="status-grid">
+            <!-- Indicator Pills -->
+            <div class="indicator-pills" style="margin-bottom: 12px;">
+                <div class="pill-badge warning" id="gpsBadge">
+                    <span><i class="fa-solid fa-location-crosshairs"></i> GPS Premises:</span>
+                    <span id="gpsText">Acquiring Location...</span>
+                </div>
+                <div class="pill-badge warning" id="livenessBadge">
+                    <span><i class="fa-solid fa-user-shield"></i> Face Verification:</span>
+                    <span id="livenessText">{{ $registration ? 'Align Face inside Circle' : 'Smile & Click Register' }}</span>
+                </div>
+            </div>
+
+            <!-- Morning IN & Evening OUT Time Below Verification Fields -->
+            <div class="status-grid" style="margin-top: 0; margin-bottom: 14px;">
                 <div class="status-box">
                     <label>Morning IN</label>
                     <span style="color: #34d399;" id="dispInTime">
@@ -447,55 +456,12 @@
                     </span>
                 </div>
             </div>
-        </div>
-
-        @php
-            $hasInPunch = $todayPunch && $todayPunch->in_time;
-            $hasOutPunch = $todayPunch && $todayPunch->out_time;
-            $isAlreadyCompleted = $hasInPunch && $hasOutPunch;
-            $nextPunchType = ($hasInPunch && !$hasOutPunch) ? 'OUT' : 'IN';
-        @endphp
-
-        <!-- Circular Camera Viewfinder -->
-        <div class="camera-card">
-            <!-- Screen Flashlight Ring Light Box (Pure White Outer Space Illuminates Face) -->
-            <div class="screen-flash-box" id="screenFlashBox">
-                <div class="viewfinder-wrapper" id="viewfinderWrapper">
-                    <video id="videoFeed" autoplay muted playsinline></video>
-                    <div class="face-guide-circle" id="faceCircle"></div>
-                </div>
-            </div>
-
-            <!-- Instruction Pill Bar below camera circle (Zero border clipping) -->
-            <div class="guide-instructions" id="guideText">
-                <i class="fa-solid fa-face-smile me-1.5" style="color: #38bdf8;"></i> Align your face inside circle
-            </div>
-
-            <!-- Indicator Pills -->
-            <div class="indicator-pills">
-                <div class="pill-badge warning" id="gpsBadge">
-                    <span><i class="fa-solid fa-location-crosshairs"></i> GPS Premises:</span>
-                    <span id="gpsText">Acquiring Location...</span>
-                </div>
-                <div class="pill-badge warning" id="livenessBadge">
-                    <span><i class="fa-solid fa-user-shield"></i> Face Verification:</span>
-                    <span id="livenessText">{{ $registration ? 'Align Face inside Circle' : 'Smile & Click Register' }}</span>
-                </div>
-            </div>
 
             @if($isAlreadyCompleted)
-                <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 14px; text-align: center;">
-                    <div style="font-size: 1.05rem; color: #34d399; font-weight:800; margin-bottom: 6px;">
+                <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 14px; border-radius: 14px; text-align: center; margin-bottom: 12px;">
+                    <div style="font-size: 1rem; color: #34d399; font-weight:800;">
                         <i class="fa-solid fa-circle-check"></i> Attendance Completed For Today!
                     </div>
-                    <div style="font-size: 0.8rem; color: #94a3b8;">
-                        Morning IN ({{ date('h:i A', strtotime($todayPunch->in_time)) }}) &amp; Evening OUT ({{ date('h:i A', strtotime($todayPunch->out_time)) }}) recorded.
-                    </div>
-                </div>
-            @elseif($hasInPunch && !$hasOutPunch)
-                <div id="inPunchBanner" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 12px; border-radius: 12px; font-size: 0.8rem; color: #34d399; margin-bottom: 14px; text-align: center;">
-                    <i class="fa-solid fa-circle-check" style="color:#34d399;"></i> Morning IN logged at <strong>{{ date('h:i A', strtotime($todayPunch->in_time)) }}</strong>.<br>
-                    <span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-shield-halved"></i> Aligning face will auto-record Evening OUT punch.</span>
                 </div>
             @endif
 

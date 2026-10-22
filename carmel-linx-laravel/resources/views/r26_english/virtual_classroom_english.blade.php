@@ -795,7 +795,7 @@
         </div>
 
         <!-- ========================================================================= -->
-        <!-- TAB: CONTINUOUS EVALUATION (CE: M1, M2, M3, M4 each out of 50 -> 10M)     -->
+        <!-- TAB: CONTINUOUS EVALUATION (CE: M1–M4 Combined Single Entry 50M -> 10M)   -->
         <!-- ========================================================================= -->
         <div id="tab-content-ce" class="tab-pane-content hidden space-y-4">
             <div class="glass-card p-5 border border-slate-800">
@@ -803,10 +803,10 @@
                     <div>
                         <h3 class="font-bold text-sm text-teal-400 flex items-center gap-2">
                             <span class="material-symbols-rounded text-base">assignment_turned_in</span>
-                            <span>CE: Continuous Evaluation (M1, M2, M3, M4 — Each Out of 50 &rarr; Converted to 10 Marks)</span>
+                            <span>CE: Continuous Evaluation (Modules M1–M4 Combined — Out of 50 Marks &rarr; Converted to 10 Marks)</span>
                         </h3>
                         <p class="text-xs text-slate-400 mb-0">
-                            Tentative Schedule: <strong>By 7th Week</strong> • Enter Continuous Evaluation marks for Module 1–4 (Max <strong>50 Marks</strong> each). Automatically computes Average (out of 50), converts to <strong>10 Marks</strong>, and auto-saves immediately.
+                            Tentative Schedule: <strong>By 7th Week</strong> • Enter the single Continuous Evaluation mark covering Modules I–IV (Max <strong>50 Marks</strong>). Automatically converts to <strong>10 Marks</strong> and auto-saves immediately.
                         </p>
                     </div>
                     <span class="text-xs text-emerald-400 font-bold">⚡ Auto-Saves on Typing</span>
@@ -818,45 +818,36 @@
                             <tr class="bg-slate-950/90 text-slate-300">
                                 <th class="border border-slate-800 text-center w-12">Roll</th>
                                 <th class="border border-slate-800 w-32">Reg No</th>
-                                <th class="border border-slate-800 min-w-[180px]">Student Name</th>
-                                <th class="border border-slate-800 text-center w-32 bg-teal-950/30 text-teal-300">M1 CE Mark<br><span class="text-[11px] font-mono">(Max 50)</span></th>
-                                <th class="border border-slate-800 text-center w-32 bg-teal-950/30 text-teal-300">M2 CE Mark<br><span class="text-[11px] font-mono">(Max 50)</span></th>
-                                <th class="border border-slate-800 text-center w-32 bg-teal-950/30 text-teal-300">M3 CE Mark<br><span class="text-[11px] font-mono">(Max 50)</span></th>
-                                <th class="border border-slate-800 text-center w-32 bg-teal-950/30 text-teal-300">M4 CE Mark<br><span class="text-[11px] font-mono">(Max 50)</span></th>
-                                <th class="border border-slate-800 text-center w-28 bg-slate-900 text-slate-200">Average<br><span class="text-[11px] font-mono">(Out of 50)</span></th>
-                                <th class="border border-slate-800 text-center w-32 bg-emerald-950/40 text-emerald-300 font-bold">CE Converted<br><span class="text-[11px] font-mono">(Out of 10 Marks)</span></th>
+                                <th class="border border-slate-800 min-w-[200px]">Student Name</th>
+                                <th class="border border-slate-800 text-center w-44 bg-teal-950/30 text-teal-300">Continuous Evaluation (M1–M4)<br><span class="text-[11px] font-mono">(Max 50 Marks)</span></th>
+                                <th class="border border-slate-800 text-center w-40 bg-emerald-950/40 text-emerald-300 font-bold">CE Converted<br><span class="text-[11px] font-mono">(Out of 10 Marks)</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($studentResults as $st)
+                            @php $ceSingleVal = $st['ce_50'] ?? $st['ce_m1_50'] ?? null; @endphp
                             <tr class="ce-tab-row hover:bg-slate-800/40" data-reg-no="{{ $st['reg_no'] }}">
                                 <td class="border border-slate-800 text-center font-mono text-sky-400">{{ $st['roll_no'] ?: '-' }}</td>
                                 <td class="border border-slate-800 font-mono text-slate-300">{{ $st['reg_no'] }}</td>
                                 <td class="border border-slate-800 font-semibold text-white">{{ $st['name'] }}</td>
-                                @foreach(['m1' => 'M1', 'm2' => 'M2', 'm3' => 'M3', 'm4' => 'M4'] as $mKey => $mLabel)
-                                @php $colName = "ce_{$mKey}_50"; @endphp
                                 <td class="border border-slate-800 p-2 text-center">
                                     <input type="number" step="0.5" min="0" max="50"
-                                           value="{{ $st[$colName] !== null ? $st[$colName] : '' }}"
+                                           value="{{ $ceSingleVal !== null ? $ceSingleVal : '' }}"
                                            data-max="50"
-                                           data-field-name="Continuous Evaluation {{ $mLabel }} (Out of 50)"
+                                           data-field-name="Continuous Evaluation (Out of 50)"
                                            data-reg-no="{{ $st['reg_no'] }}"
                                            data-student-name="{{ addslashes($st['name']) }}"
-                                           data-sync-target=".cia-ce-{{ $mKey }}"
+                                           data-sync-target=".cia-ce-50"
                                            placeholder="-"
-                                           class="tab-ce-{{ $mKey }} mark-entry-lg no-spinners font-mono"
-                                           oninput="syncInputToCia('{{ $st['reg_no'] }}', '.cia-ce-{{ $mKey }}', this.value); queueAutoSave();">
-                                </td>
-                                @endforeach
-                                <td class="border border-slate-800 text-center font-mono font-bold text-sm text-slate-200 tab-ce-avg-50">
-                                    {{ number_format($st['ce_avg_50'] ?? 0, 2) }}
+                                           class="tab-ce-50 mark-entry-lg no-spinners font-mono"
+                                           oninput="syncInputToCia('{{ $st['reg_no'] }}', '.cia-ce-50', this.value); queueAutoSave();">
                                 </td>
                                 <td class="border border-slate-800 text-center font-mono font-extrabold text-base text-emerald-400 bg-emerald-950/20 tab-ce-conv-10">
                                     {{ number_format($st['ce_conv_10'] ?? 0, 1) }}
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="9" class="text-center text-slate-400 py-6 italic">No enrolled students found.</td></tr>
+                            <tr><td colspan="5" class="text-center text-slate-400 py-6 italic">No enrolled students found.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -1215,11 +1206,8 @@
                                     <span class="cia-ce-conv-10 text-sm font-extrabold text-teal-300 bg-teal-950/50 px-2.5 py-1 rounded border border-teal-500/40 inline-block font-mono min-w-[52px]">
                                         {{ number_format($st['ce_conv_10'] ?? 0, 1) }}
                                     </span>
-                                    <span class="cia-ce-avg-50 hidden">{{ number_format($st['ce_avg_50'] ?? 0, 1) }}</span>
-                                    @foreach(['m1', 'm2', 'm3', 'm4'] as $mKey)
-                                    @php $colName = "ce_{$mKey}_50"; @endphp
-                                    <input type="hidden" class="cia-ce-{{ $mKey }}" value="{{ $st[$colName] !== null ? $st[$colName] : '' }}">
-                                    @endforeach
+                                    @php $ceSingleCiaVal = $st['ce_50'] ?? $st['ce_m1_50'] ?? null; @endphp
+                                    <input type="hidden" class="cia-ce-50" value="{{ $ceSingleCiaVal !== null ? $ceSingleCiaVal : '' }}">
                                 </td>
 
                                 <!-- CA2 Practical Test Final Total (Out of 10) -->
@@ -1627,7 +1615,7 @@
                         ['slug' => 'consolidated-marks', 'icon' => 'workspace_premium',     'title' => 'Consolidated Marks Report (CIA 40M + ESE Grade)',           'sub' => 'Final rounded CIA (40M) and End Semester Examination Grade'],
                         ['slug' => 'attendance',         'icon' => 'how_to_reg',            'title' => 'Attendance Percentage & Marks Report (5M)',                 'sub' => 'Uploaded %, Override %, Effective %, Eligibility, and Attendance Mark (5M)'],
                         ['slug' => 'course-log',         'icon' => 'calendar_month',        'title' => 'Course Log & Lesson Planner Report (60 Hours)',             'sub' => 'Session-wise proposed/actual dates, topics, modules, COs, and hours'],
-                        ['slug' => 'ce-marks',           'icon' => 'assignment_turned_in',  'title' => 'Continuous Evaluation (CE) Mark Report (50 → 10M)',         'sub' => 'Module 1–4 CE marks out of 50, average out of 50, and converted mark out of 10'],
+                        ['slug' => 'ce-marks',           'icon' => 'assignment_turned_in',  'title' => 'Continuous Evaluation (CE) Mark Report (50 → 10M)',         'sub' => 'Combined Module 1–4 CE mark out of 50 and converted mark out of 10'],
                         ['slug' => 'practical-test',     'icon' => 'mic',                   'title' => 'Practical Test Mark Report (CA2 & CA3: 40 → 10M)',          'sub' => 'Practical Test 1 & Test 2 marks (40M), average (40M), and converted mark (10M)'],
                         ['slug' => 'series-test',        'icon' => 'edit_note',             'title' => 'Series Test Mark Report (CA4 & CA5: 50 → 10M)',             'sub' => 'Series Exam 1 & Exam 2 marks (50M), average (50M), and converted mark (10M)'],
                         ['slug' => 'self-learning',      'icon' => 'psychology',            'title' => 'Self-Learning Mark Report (CA1: 10 → 5M)',                  'sub' => 'Module 1–4 Self-Learning marks (10M), average (10M), and converted mark (5M)'],
@@ -1885,24 +1873,19 @@
                 slTabRow.querySelector('.tab-sl-conv-5').textContent = slConv5.toFixed(1);
             }
 
-            // 3. CE: Continuous Evaluation (M1..M4 out of 50 -> Avg 50 -> Conv 10)
-            const ceVals = ['m1', 'm2', 'm3', 'm4'].map(k => ciaRow.querySelector(`.cia-ce-${k}`).value.trim());
-            const ceHasAny = ceVals.some(v => v !== '');
-            const ceNums = ceVals.map(v => v !== '' ? Math.min(50.0, Math.max(0.0, parseFloat(v) || 0)) : 0.0);
-            const ceAvg50 = ceHasAny ? ((ceNums[0] + ceNums[1] + ceNums[2] + ceNums[3]) / 4.0) : 0.0;
-            const ceConv10 = ceHasAny ? Math.min(10.0, Math.round(((ceAvg50 / 50.0) * 10.0) * 2) / 2) : 0.0;
+            // 3. CE: Continuous Evaluation (Single combined M1–M4 entry out of 50 -> Conv 10)
+            const ceVal = ciaRow.querySelector('.cia-ce-50').value.trim();
+            const ceHasAny = (ceVal !== '');
+            const ceNum50 = ceHasAny ? Math.min(50.0, Math.max(0.0, parseFloat(ceVal) || 0)) : 0.0;
+            const ceConv10 = ceHasAny ? Math.min(10.0, Math.round(((ceNum50 / 50.0) * 10.0) * 2) / 2) : 0.0;
 
-            ciaRow.querySelector('.cia-ce-avg-50').textContent = ceAvg50.toFixed(1);
             ciaRow.querySelector('.cia-ce-conv-10').textContent = ceConv10.toFixed(1);
 
             // Sync CE Tab
             const ceTabRow = document.querySelector(`.ce-tab-row[data-reg-no="${regNo}"]`);
             if (ceTabRow) {
-                ['m1', 'm2', 'm3', 'm4'].forEach((k, idx) => {
-                    const inp = ceTabRow.querySelector(`.tab-ce-${k}`);
-                    if (inp && document.activeElement !== inp) inp.value = ceVals[idx];
-                });
-                ceTabRow.querySelector('.tab-ce-avg-50').textContent = ceAvg50.toFixed(2);
+                const inp = ceTabRow.querySelector('.tab-ce-50');
+                if (inp && document.activeElement !== inp) inp.value = ceVal;
                 ceTabRow.querySelector('.tab-ce-conv-10').textContent = ceConv10.toFixed(1);
             }
 
@@ -2159,10 +2142,8 @@
                     sl_m2_10: row.querySelector('.cia-sl-m2').value.trim(),
                     sl_m3_10: row.querySelector('.cia-sl-m3').value.trim(),
                     sl_m4_10: row.querySelector('.cia-sl-m4').value.trim(),
-                    ce_m1_50: row.querySelector('.cia-ce-m1').value.trim(),
-                    ce_m2_50: row.querySelector('.cia-ce-m2').value.trim(),
-                    ce_m3_50: row.querySelector('.cia-ce-m3').value.trim(),
-                    ce_m4_50: row.querySelector('.cia-ce-m4').value.trim(),
+                    ce_50: row.querySelector('.cia-ce-50').value.trim(),
+                    ce_m1_50: row.querySelector('.cia-ce-50').value.trim(),
                     prac_test1_40: row.querySelector('.cia-pt1-40').value.trim(),
                     prac_test1_absent: row.querySelector('.cia-pt1-abs').checked ? 1 : 0,
                     prac_test2_40: row.querySelector('.cia-pt2-40').value.trim(),
@@ -2403,10 +2384,11 @@
                 const sl3 = row.querySelector('.cia-sl-m3')?.value.trim() || '';
                 const sl4 = row.querySelector('.cia-sl-m4')?.value.trim() || '';
 
-                const ce1 = row.querySelector('.cia-ce-m1')?.value.trim() || '';
-                const ce2 = row.querySelector('.cia-ce-m2')?.value.trim() || '';
-                const ce3 = row.querySelector('.cia-ce-m3')?.value.trim() || '';
-                const ce4 = row.querySelector('.cia-ce-m4')?.value.trim() || '';
+                const ceSingle = row.querySelector('.cia-ce-50')?.value.trim() || '';
+                const ce1 = ceSingle;
+                const ce2 = ceSingle;
+                const ce3 = ceSingle;
+                const ce4 = ceSingle;
 
                 const pt1 = row.querySelector('.cia-pt1-40')?.value.trim() || '';
                 const pt2 = row.querySelector('.cia-pt2-40')?.value.trim() || '';

@@ -1105,6 +1105,18 @@ Syllabus Text:
             ->where('batch_subject_id', $subjectId)
             ->delete();
 
+        $remainingPlans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)
+            ->orderBy('day_no', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+        foreach ($remainingPlans as $idx => $plan) {
+            $expectedDayNo = $idx + 1;
+            if ((int) $plan->day_no !== $expectedDayNo) {
+                $plan->day_no = $expectedDayNo;
+                $plan->save();
+            }
+        }
+
         return response()->json(['status' => 'SUCCESS', 'message' => 'Row deleted successfully.']);
     }
 
@@ -1488,7 +1500,7 @@ Syllabus Text:
         }
 
         $courseFile = CourseFile::where('batch_subject_id', $subjectId)->first();
-        $lessonPlans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->orderBy('id', 'asc')->get();
+        $lessonPlans = \App\Models\LessonPlan::where('batch_subject_id', $subjectId)->orderBy('day_no', 'asc')->orderBy('id', 'asc')->get();
         
         // Get enrolled students
         $students = \App\Models\Student::getClassroomStudentsQuery($batchSubject->classroom_id)

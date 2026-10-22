@@ -229,15 +229,17 @@ class R26VirtualClassroomEnglishController extends Controller
             $slAvg10 = $slHasAny ? round($slSum / 4.0, 2) : 0.0;
             $slConv5 = $slHasAny ? min(5.0, round((($slAvg10 / 10.0) * 5.0) * 2) / 2) : 0.0;
 
-            // 3. CE: Continuous Evaluation (M1, M2, M3, M4 each out of 50 -> Avg out of 50 -> Converted to 10)
-            $ceM1 = ($eval && $eval->ce_m1_50 !== null) ? (float)$eval->ce_m1_50 : null;
-            $ceM2 = ($eval && $eval->ce_m2_50 !== null) ? (float)$eval->ce_m2_50 : null;
-            $ceM3 = ($eval && $eval->ce_m3_50 !== null) ? (float)$eval->ce_m3_50 : null;
-            $ceM4 = ($eval && $eval->ce_m4_50 !== null) ? (float)$eval->ce_m4_50 : null;
-
-            $ceHasAny = ($ceM1 !== null || $ceM2 !== null || $ceM3 !== null || $ceM4 !== null);
-            $ceSum = ($ceM1 ?? 0.0) + ($ceM2 ?? 0.0) + ($ceM3 ?? 0.0) + ($ceM4 ?? 0.0);
-            $ceAvg50 = $ceHasAny ? round($ceSum / 4.0, 2) : 0.0;
+            // 3. CE: Continuous Evaluation (Single combined M1–M4 entry out of 50 -> Converted to 10)
+            $ceMark50 = null;
+            if ($eval) {
+                if ($eval->ce_m1_50 !== null) {
+                    $ceMark50 = (float)$eval->ce_m1_50;
+                } elseif ($eval->ce_avg_50 !== null && (float)$eval->ce_avg_50 > 0) {
+                    $ceMark50 = (float)$eval->ce_avg_50;
+                }
+            }
+            $ceHasAny = ($ceMark50 !== null);
+            $ceAvg50 = $ceHasAny ? round(min(50.0, max(0.0, $ceMark50)), 2) : 0.0;
             $ceConv10 = $ceHasAny ? min(10.0, round((($ceAvg50 / 50.0) * 10.0) * 2) / 2) : 0.0;
 
             // 4. CA2 & CA3: Practical Tests (Test 1 & Test 2 each out of 40 -> Converted to 10 each -> Average 10)
@@ -310,11 +312,9 @@ class R26VirtualClassroomEnglishController extends Controller
                 'sl_m4_10' => $slM4,
                 'sl_avg_10' => $slAvg10,
                 'sl_conv_5' => $slConv5,
-                // CE: Continuous Evaluation (M1..M4 out of 50 -> Avg 50 -> Conv 10)
-                'ce_m1_50' => $ceM1,
-                'ce_m2_50' => $ceM2,
-                'ce_m3_50' => $ceM3,
-                'ce_m4_50' => $ceM4,
+                // CE: Continuous Evaluation (Single combined M1–M4 entry out of 50 -> Conv 10)
+                'ce_50' => $ceMark50,
+                'ce_m1_50' => $ceMark50,
                 'ce_avg_50' => $ceAvg50,
                 'ce_conv_10' => $ceConv10,
                 // CA2 & CA3: Practical Tests (Test 1 & Test 2 out of 40 -> Avg 40 -> Conv 10)
@@ -471,15 +471,16 @@ class R26VirtualClassroomEnglishController extends Controller
             $slAvg10 = $slHasAny ? round($slSum / 4.0, 2) : 0.0;
             $slConv5 = $slHasAny ? min(5.0, round((($slAvg10 / 10.0) * 5.0) * 2) / 2) : 0.0;
 
-            // 3. CE: Continuous Evaluation (M1..M4 each out of 50 -> Avg out of 50 -> Converted to 10)
-            $ceM1 = (isset($row['ce_m1_50']) && $row['ce_m1_50'] !== '' && $row['ce_m1_50'] !== null) ? min(50.0, max(0.0, (float)$row['ce_m1_50'])) : null;
-            $ceM2 = (isset($row['ce_m2_50']) && $row['ce_m2_50'] !== '' && $row['ce_m2_50'] !== null) ? min(50.0, max(0.0, (float)$row['ce_m2_50'])) : null;
-            $ceM3 = (isset($row['ce_m3_50']) && $row['ce_m3_50'] !== '' && $row['ce_m3_50'] !== null) ? min(50.0, max(0.0, (float)$row['ce_m3_50'])) : null;
-            $ceM4 = (isset($row['ce_m4_50']) && $row['ce_m4_50'] !== '' && $row['ce_m4_50'] !== null) ? min(50.0, max(0.0, (float)$row['ce_m4_50'])) : null;
+            // 3. CE: Continuous Evaluation (Single combined M1–M4 entry out of 50 -> Converted to 10)
+            $rawCeInput = $row['ce_50'] ?? ($row['ce_m1_50'] ?? null);
+            $ceMark50 = ($rawCeInput !== '' && $rawCeInput !== null) ? min(50.0, max(0.0, (float)$rawCeInput)) : null;
+            $ceM1 = $ceMark50;
+            $ceM2 = null;
+            $ceM3 = null;
+            $ceM4 = null;
 
-            $ceHasAny = ($ceM1 !== null || $ceM2 !== null || $ceM3 !== null || $ceM4 !== null);
-            $ceSum = ($ceM1 ?? 0.0) + ($ceM2 ?? 0.0) + ($ceM3 ?? 0.0) + ($ceM4 ?? 0.0);
-            $ceAvg50 = $ceHasAny ? round($ceSum / 4.0, 2) : 0.0;
+            $ceHasAny = ($ceMark50 !== null);
+            $ceAvg50 = $ceHasAny ? round($ceMark50, 2) : 0.0;
             $ceConv10 = $ceHasAny ? min(10.0, round((($ceAvg50 / 50.0) * 10.0) * 2) / 2) : 0.0;
 
             // 4. CA2 & CA3: Practical Tests (Test 1 & Test 2 each out of 40 -> Avg 40 -> Converted to 10)
@@ -859,10 +860,8 @@ class R26VirtualClassroomEnglishController extends Controller
                 'sl_m2_10' => $ev ? $ev->sl_m2_10 : null,
                 'sl_m3_10' => $ev ? $ev->sl_m3_10 : null,
                 'sl_m4_10' => $ev ? $ev->sl_m4_10 : null,
-                'ce_m1_50' => $ev ? $ev->ce_m1_50 : null,
-                'ce_m2_50' => $ev ? $ev->ce_m2_50 : null,
-                'ce_m3_50' => $ev ? $ev->ce_m3_50 : null,
-                'ce_m4_50' => $ev ? $ev->ce_m4_50 : null,
+                'ce_50' => $ev ? ($ev->ce_m1_50 ?? $ev->ce_avg_50) : null,
+                'ce_m1_50' => $ev ? ($ev->ce_m1_50 ?? $ev->ce_avg_50) : null,
                 'prac_test1_40' => $ev ? $ev->prac_test1_40 : null,
                 'prac_test1_absent' => $ev ? (bool)$ev->prac_test1_absent : false,
                 'prac_test2_40' => $ev ? $ev->prac_test2_40 : null,
@@ -967,7 +966,7 @@ class R26VirtualClassroomEnglishController extends Controller
                     $max += 10.0;
                 }
 
-                $ceVal = $s["ce_m{$m}_50"] ?? null;
+                $ceVal = $s['ce_50'] ?? ($s['ce_m1_50'] ?? null);
                 if ($ceVal !== null && $ceVal !== '') {
                     $obt += (float)$ceVal;
                     $max += 50.0;

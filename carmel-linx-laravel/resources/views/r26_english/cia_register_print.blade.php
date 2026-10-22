@@ -269,7 +269,7 @@
             </table>
 
         @elseif($rType === 'ce-marks')
-            <!-- CE CONTINUOUS EVALUATION REPORT TABLE -->
+            <!-- CE CONTINUOUS EVALUATION REPORT TABLE (SINGLE ENTRY OUT OF 50 -> CONVERTED TO 10) -->
             <table class="data-table">
                 <thead>
                     <tr>
@@ -277,27 +277,22 @@
                         <th style="width: 45px;">Roll No</th>
                         <th style="width: 110px;">Reg No / PRN</th>
                         <th>Student Name</th>
-                        <th style="width: 90px;">Module 1 CE (Max 50)</th>
-                        <th style="width: 90px;">Module 2 CE (Max 50)</th>
-                        <th style="width: 90px;">Module 3 CE (Max 50)</th>
-                        <th style="width: 90px;">Module 4 CE (Max 50)</th>
-                        <th style="width: 100px;">Average (Out of 50)</th>
-                        <th style="width: 120px;">CE Converted (Max 10)</th>
+                        <th style="width: 150px;">Continuous Evaluation (M1–M4)<br>(Max 50 Marks)</th>
+                        <th style="width: 150px;">CE Converted<br>(Max 10 Marks)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($students as $index => $student)
-                    @php $ev = $evaluations->get($student->reg_no); @endphp
+                    @php
+                        $ev = $evaluations->get($student->reg_no);
+                        $ceMark50 = $ev ? ($ev->ce_m1_50 !== null ? (float)$ev->ce_m1_50 : ($ev->ce_avg_50 > 0 ? (float)$ev->ce_avg_50 : null)) : null;
+                    @endphp
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $student->roll_no ?: '-' }}</td>
                         <td>{{ $student->sbte_reg_no ?: $student->reg_no }}</td>
                         <td class="text-left" style="font-weight: 600;">{{ $student->name }}</td>
-                        <td>{{ $ev && $ev->ce_m1_50 !== null ? number_format($ev->ce_m1_50, 1) : '-' }}</td>
-                        <td>{{ $ev && $ev->ce_m2_50 !== null ? number_format($ev->ce_m2_50, 1) : '-' }}</td>
-                        <td>{{ $ev && $ev->ce_m3_50 !== null ? number_format($ev->ce_m3_50, 1) : '-' }}</td>
-                        <td>{{ $ev && $ev->ce_m4_50 !== null ? number_format($ev->ce_m4_50, 1) : '-' }}</td>
-                        <td style="font-weight: 700;">{{ $ev ? number_format($ev->ce_avg_50, 2) : '0.00' }}</td>
+                        <td style="font-weight: 700;">{{ $ceMark50 !== null ? number_format($ceMark50, 1) : '-' }}</td>
                         <td style="font-weight: 800; background: #f8fafc;">{{ $ev ? number_format($ev->ce_conv_10, 1) : '0.0' }}</td>
                     </tr>
                     @endforeach

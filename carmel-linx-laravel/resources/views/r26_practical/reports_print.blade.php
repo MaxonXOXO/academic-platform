@@ -210,10 +210,10 @@
                     <td class="font-mono bold">{{ $student->reg_no }}</td>
                     <td class="text-left bold">{{ $student->name }}</td>
                     <td>{{ $batchVal }}</td>
-                    <td class="font-mono">{{ $att['teams_percentage'] !== null ? number_format($att['teams_percentage'], 1).'%' : (isset($att['raw_percentage']) ? number_format($att['raw_percentage'], 1).'%' : '—') }}</td>
+                    <td class="font-mono">{{ $att['teams_percentage'] !== null ? number_format($att['teams_percentage'], 1).'%' : (($att['raw_percentage'] ?? null) !== null ? number_format($att['raw_percentage'], 1).'%' : '—') }}</td>
                     <td class="font-mono">{{ $att['override_percentage'] !== null ? number_format($att['override_percentage'], 1).'%' : '—' }}</td>
-                    <td class="font-mono bold">{{ number_format($att['effective_percentage'] ?? 100, 1) }}%</td>
-                    <td class="highlight-col font-mono">{{ $att['mark'] ?? 5 }} / 5</td>
+                    <td class="font-mono bold">{{ isset($att['effective_percentage']) && $att['effective_percentage'] !== null ? number_format($att['effective_percentage'], 1).'%' : '—' }}</td>
+                    <td class="highlight-col font-mono">{{ $att['mark'] ?? 0 }} / 5</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -339,7 +339,7 @@
                     <td class="font-mono">{{ number_format($sc['scaled_open_ended_10'] ?? 0, 2) }}</td>
                     <td class="font-mono bold">{{ number_format($sc['ce_total_40'] ?? 0, 2) }}</td>
                     <td class="font-mono">{{ number_format($sc['scaled_series_15'] ?? 0, 2) }}</td>
-                    <td class="font-mono">{{ $sc['attendance_mark_5'] ?? 5 }}</td>
+                    <td class="font-mono">{{ $sc['attendance_mark_5'] ?? 0 }}</td>
                     <td class="highlight-col font-mono bold">{{ $sc['total_cia_60'] ?? 0 }}</td>
                     <td class="font-mono">{{ number_format($sc['ese_score_40'] ?? 0, 2) }}</td>
                     <td class="highlight-col font-mono bold">{{ $sc['grand_total_100'] ?? 0 }}</td>
@@ -383,7 +383,7 @@
                     <td>{{ $batchVal }}</td>
                     <td class="font-mono">{{ number_format($sc['ce_total_40'] ?? 0, 2) }}</td>
                     <td class="font-mono">{{ number_format($sc['scaled_series_15'] ?? 0, 2) }}</td>
-                    <td class="font-mono">{{ $sc['attendance_mark_5'] ?? 5 }}</td>
+                    <td class="font-mono">{{ $sc['attendance_mark_5'] ?? 0 }}</td>
                     <td class="highlight-col font-mono bold">{{ $sc['total_cia_60'] ?? 0 }}</td>
                     <td class="font-mono">{{ number_format($sc['ese_score_40'] ?? 0, 2) }}</td>
                     <td class="highlight-col font-mono bold">{{ $sc['grand_total_100'] ?? 0 }}</td>

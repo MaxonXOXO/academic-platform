@@ -42,6 +42,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         // Fetch classroom (check R26 table first, then fallback to standard)
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {
@@ -1347,6 +1352,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
@@ -1611,6 +1621,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
             ?: ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         $departmentName = $this->getDepartmentName($batchSubject, $classroom);
@@ -1629,6 +1644,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) {
             abort(404, 'Subject not found.');
+        }
+
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
         }
 
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()
@@ -2479,6 +2499,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         $isPractical = (str_contains(strtolower($batchSubject->subject_type ?? ''), 'lab') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'practical') || str_contains(strtolower($batchSubject->subject_type ?? ''), 'drawing'));
         if ($isPractical) {
             return app(\App\Http\Controllers\VirtualClassroomPracticalController::class)->printSeriesReport($subjectId);
@@ -3194,6 +3219,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {
             $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
@@ -3325,6 +3355,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) {
             abort(404, 'Subject not found.');
+        }
+
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
         }
 
         $classroom = R26ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first()

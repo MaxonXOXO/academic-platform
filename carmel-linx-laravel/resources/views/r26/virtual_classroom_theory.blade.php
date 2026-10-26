@@ -1235,7 +1235,7 @@
 
                       <!-- Total CIE (40M) - LARGE FONT GREEN TEXT AND NUMBERS -->
                       <td class="border-0 text-center py-3 bg-emerald-950/30">
-                        <span class="cell-cie-total text-base sm:text-xl font-black text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/50 shadow font-mono inline-block min-w-[55px]">
+                        <span class="cell-cie-total text-xl sm:text-2xl font-black text-emerald-400 bg-emerald-950/60 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 shadow font-mono inline-block min-w-[58px]">
                           {{ number_format(round($st['total_cia_40'] ?? 0)) }}
                         </span>
                       </td>

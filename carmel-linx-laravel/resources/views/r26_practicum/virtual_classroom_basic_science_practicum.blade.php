@@ -289,6 +289,13 @@
             padding: 0.4rem 0.6rem !important;
         }
 
+        .ce-input-50 {
+            font-size: 1.5rem !important; /* 24px */
+            font-weight: 900 !important;
+            height: 3rem !important;
+            line-height: 1 !important;
+        }
+
         /* Compact Font Size Specifically for 90-Hour Dense Lesson Planner */
         .lp-table input, .lp-table select, .lp-table td, .lp-table th, .lp-table span, .lp-table button {
             font-size: 0.8125rem !important;
@@ -1052,7 +1059,7 @@
                                                data-reg-no="{{ $st['reg_no'] }}"
                                                data-student-name="{{ addslashes($st['name']) }}"
                                                placeholder="{{ $st['raw_att_percentage'] !== null ? number_format($st['raw_att_percentage'], 1) : '-' }}"
-                                               class="cell-att-override no-spinners w-16 text-center px-1.5 py-1.5 text-sm font-bold font-mono rounded bg-slate-950 border border-slate-700 text-slate-100 focus:border-amber-400 outline-none transition-all {{ $st['attendance_override_pct'] !== null ? 'has-override' : '' }}" 
+                                               class="cell-att-override no-spinners w-20 text-center px-2 py-1.5 text-sm font-bold font-mono rounded bg-slate-950 border border-slate-700 text-slate-100 focus:border-amber-400 outline-none transition-all {{ $st['attendance_override_pct'] !== null ? 'has-override' : '' }}" 
                                                title="{{ $st['attendance_override_pct'] !== null ? 'Active Override: ' . $st['attendance_override_pct'] . '%' : 'Click to override attendance percentage' }}"
                                                onfocus="this.dataset.prevVal = this.value;"
                                                onchange="handleAttendanceOverrideChange(this, '{{ $st['reg_no'] }}', '{{ addslashes($st['name']) }}');">
@@ -1097,7 +1104,7 @@
 
                                 <!-- Total CIE (40M) - LARGE FONT GREEN TEXT AND NUMBERS -->
                                 <td class="border-0 text-center py-3 bg-emerald-950/30">
-                                    <span class="cell-cie-total text-base sm:text-xl font-black text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/50 shadow font-mono inline-block min-w-[55px]">
+                                    <span class="cell-cie-total text-xl sm:text-2xl font-black text-emerald-400 bg-emerald-950/60 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 shadow font-mono inline-block min-w-[58px]">
                                         {{ number_format(round($st['total_cia_marks'] ?? 0)) }}
                                     </span>
                                 </td>
@@ -1344,7 +1351,7 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
+                        <table class="w-full text-left border-collapse text-sm" id="practicumTheorySeriesTable">
                             <thead>
                                 <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
                                     <th rowspan="2" class="p-2.5 align-middle">Roll</th>
@@ -1424,7 +1431,7 @@
                                             value="{{ $co1Val !== null ? number_format($co1Val, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             oninput="autoSaveSeriesTheory(this)"
-                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm sm:text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
+                                            class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-sky-300 text-lg sm:text-xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
 
@@ -1438,7 +1445,7 @@
                                             value="{{ $co2Val !== null ? number_format($co2Val, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             oninput="autoSaveSeriesTheory(this)"
-                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-sky-300 text-sm sm:text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
+                                            class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-sky-300 text-lg sm:text-xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
 
@@ -1459,7 +1466,7 @@
                                             value="{{ $co3Val !== null ? number_format($co3Val, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             oninput="autoSaveSeriesTheory(this)"
-                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-indigo-300 text-sm sm:text-base outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
+                                            class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-indigo-300 text-lg sm:text-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
 
@@ -1473,7 +1480,7 @@
                                             value="{{ $co4Val !== null ? number_format($co4Val, 1, '.', '') : '' }}"
                                             placeholder="—"
                                             oninput="autoSaveSeriesTheory(this)"
-                                            class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-indigo-300 text-sm sm:text-base outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
+                                            class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-indigo-300 text-lg sm:text-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 no-spinners transition-all mx-auto block"
                                         >
                                     </td>
 
@@ -1689,7 +1696,7 @@
                                     <td class="p-3.5 text-center text-sky-300 font-mono font-bold">{{ number_format($res['series_theory_marks'], 2) }}</td>
                                     <td class="p-3.5 text-center text-indigo-300 font-mono font-bold">{{ number_format($res['series_practical_marks'], 2) }}</td>
                                     <td class="p-3.5 text-center">
-                                        <span class="px-3 py-1 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-mono font-black text-base sm:text-lg inline-block shadow-sm">
+                                        <span class="px-3.5 py-1.5 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-mono font-black text-lg sm:text-xl inline-block shadow-sm">
                                             {{ number_format($res['total_cia_marks'], 2) }} <span class="text-xs text-slate-400 font-normal">/ 40</span>
                                         </span>
                                     </td>
@@ -2378,11 +2385,11 @@
                 </div>
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <span class="material-symbols-rounded text-lg text-teal-400">assignment_turned_in</span>
+                        <h3 class="text-sm md:text-base font-bold text-white flex items-center gap-1.5">
+                            <span class="material-symbols-rounded text-base text-teal-400">assignment_turned_in</span>
                             <span>Continuous Practical Evaluation (CE LAB - 10 CIA Marks)</span>
                         </h3>
-                        <p class="text-slate-400 text-xs mt-0.5">
+                        <p class="text-slate-400 text-[11px] mt-0.5">
                             Single combined evaluation for all 4 Modules and COs together (Max <strong>50 Marks</strong>) &bull; Converted to <strong>10 Marks</strong> (CE LAB in CIE Register) &bull; Auto-saves on typing
                         </p>
                     </div>
@@ -2434,8 +2441,8 @@
                             <tr id="ce-row-{{ $res['reg_no'] }}" class="ce-tab-row hover:bg-slate-800/30 transition-all" data-reg-no="{{ $res['reg_no'] }}">
                                 <td class="p-2.5 text-center text-slate-400 font-bold font-mono border border-slate-800/80">{{ $res['roll_no'] ?: '-' }}</td>
                                 <td class="p-2.5 font-mono text-[11px] font-bold text-emerald-400/90 border border-slate-800/80">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
-                                <td class="p-2.5 font-medium text-slate-200 border border-slate-800/80">
-                                    <div class="text-xs font-bold text-white truncate max-w-[220px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
+                                <td class="p-2 font-medium text-slate-200 border border-slate-800/80">
+                                    <div class="text-[11px] sm:text-xs font-semibold text-slate-100 truncate max-w-[200px]" title="{{ $res['name'] }}">{{ $res['name'] }}</div>
                                 </td>
                                 <td class="p-2 text-center bg-teal-950/15 border border-slate-800/80">
                                     <input type="number" step="0.5" min="0" max="50"
@@ -2444,7 +2451,7 @@
                                            value="{{ ($ce50Val !== null && $ce50Val !== '') ? (floatval($ce50Val) == intval($ce50Val) ? intval($ce50Val) : number_format(floatval($ce50Val), 1)) : '' }}"
                                            placeholder="-"
                                            oninput="onPracticumCe50Input('{{ $res['reg_no'] }}', this.value)"
-                                           class="w-24 bg-slate-950 border border-slate-700 hover:border-teal-400 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 rounded-lg px-2.5 py-1 text-center font-mono font-bold text-teal-200 text-sm outline-none transition-all">
+                                           class="ce-input-50 w-28 md:w-32 bg-slate-950 border-2 border-slate-700 hover:border-teal-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/30 rounded-xl px-3 py-1.5 text-center font-mono font-black text-teal-200 text-xl md:text-2xl outline-none transition-all shadow-inner">
                                 </td>
                                 <td class="p-2 text-center bg-emerald-950/20 border border-slate-800/80">
                                     <span id="ce-conv-10-{{ $res['reg_no'] }}" class="font-mono font-extrabold text-sm sm:text-base text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-500/30 inline-block min-w-[50px] text-center shadow-xs">
@@ -2547,7 +2554,7 @@
                 </div><!-- /Practical QP Generator Panel -->
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
+                    <table class="w-full text-left border-collapse text-sm" id="practicumPracticalSeriesTable">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-200 font-bold bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider">
                                 <th rowspan="2" class="p-2.5 align-middle">Roll</th>
@@ -2627,7 +2634,7 @@
                                         value="{{ $spCo1Val !== null ? number_format($spCo1Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm sm:text-base outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-emerald-300 text-lg sm:text-xl outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2641,7 +2648,7 @@
                                         value="{{ $spCo2Val !== null ? number_format($spCo2Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm sm:text-base outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-emerald-300 text-lg sm:text-xl outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2662,7 +2669,7 @@
                                         value="{{ $spCo3Val !== null ? number_format($spCo3Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm sm:text-base outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-teal-300 text-lg sm:text-xl outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2676,7 +2683,7 @@
                                         value="{{ $spCo4Val !== null ? number_format($spCo4Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[95px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm sm:text-base outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-teal-300 text-lg sm:text-xl outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -3964,7 +3971,7 @@
 
         // Setup Vertical Tab/Enter/Arrow Column-wise Navigation
         document.addEventListener("DOMContentLoaded", function() {
-            ['practicumConsolidatedCiaTable', 'practicumSelfLearningCleanTable'].forEach(containerId => {
+            ['practicumConsolidatedCiaTable', 'practicumSelfLearningCleanTable', 'ce-eval-table', 'practicumTheorySeriesTable', 'practicumPracticalSeriesTable'].forEach(containerId => {
                 const container = document.getElementById(containerId);
                 if (!container) return;
 
@@ -3977,7 +3984,7 @@
                     if (!isEnter && !isTab && !isArrowDown && !isArrowUp) return;
 
                     const input = e.target;
-                    if (!input || input.tagName !== 'INPUT' || input.type === 'checkbox') return;
+                    if (!input || input.tagName !== 'INPUT' || input.type === 'checkbox' || input.type === 'hidden') return;
 
                     const row = input.closest('tr');
                     if (!row) return;
@@ -3987,26 +3994,41 @@
 
                     let targetSelector = null;
                     const targetClass = Array.from(input.classList).find(c => 
-                        c.startsWith('cell-') || c.startsWith('sla-')
+                        c.startsWith('cell-') || c.startsWith('sla-') || c.startsWith('ce-input-')
                     );
                     if (targetClass) {
                         targetSelector = '.' + targetClass;
+                    } else if (input.dataset.series) {
+                        targetSelector = `input[data-series="${input.dataset.series}"]`;
+                    } else if (input.dataset.co) {
+                        targetSelector = `input[data-co="${input.dataset.co}"]`;
                     } else if (input.dataset.module) {
                         targetSelector = `[data-module="${input.dataset.module}"]`;
                     }
-                    if (!targetSelector) return;
+                    if (!targetSelector) {
+                        const rowInputs = Array.from(row.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"])'));
+                        const colIdx = rowInputs.indexOf(input);
+                        if (colIdx !== -1) targetSelector = colIdx;
+                    }
+                    if (targetSelector === null) return;
 
                     const isReverse = (isTab && e.shiftKey) || (isEnter && e.shiftKey) || isArrowUp;
                     e.preventDefault();
 
-                    const rows = Array.from(tbody.querySelectorAll('tr.student-cie-row, tr.practicum-sla-student-row, tr[data-reg-no]'));
+                    const rows = Array.from(tbody.querySelectorAll('tr.student-cie-row, tr.practicum-sla-student-row, tr.ce-tab-row, tr[data-reg-no], tr[data-reg]'));
                     const currentIndex = rows.indexOf(row);
                     if (currentIndex === -1) return;
 
                     const nextIndex = isReverse ? currentIndex - 1 : currentIndex + 1;
                     if (nextIndex >= 0 && nextIndex < rows.length) {
                         const targetRow = rows[nextIndex];
-                        const nextInput = targetRow.querySelector(targetSelector);
+                        let nextInput = null;
+                        if (typeof targetSelector === 'string') {
+                            nextInput = targetRow.querySelector(targetSelector);
+                        } else if (typeof targetSelector === 'number') {
+                            const nextInputs = Array.from(targetRow.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"])'));
+                            nextInput = nextInputs[targetSelector];
+                        }
                         if (nextInput) {
                             nextInput.focus();
                             if (typeof nextInput.select === 'function') {

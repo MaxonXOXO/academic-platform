@@ -770,6 +770,50 @@ class R26VirtualClassroomEnglishController extends Controller
     }
 
     /**
+     * Upload TEAMS Official Subject Attendance for Revision 2026 English (1001)
+     * Maps attendance percentages and maps conducted session dates into actual_date fields.
+     */
+    public function uploadTeamsAttendance(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.'], 401);
+        }
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+
+        // Map attendance_file to file if needed
+        if ($request->hasFile('attendance_file') && !$request->hasFile('file')) {
+            $request->files->set('file', $request->file('attendance_file'));
+        }
+
+        $request->merge(['batch_subject_id' => $subjectId]);
+
+        // Forward to SbteSubjectLogImportController
+        $importController = app(SbteSubjectLogImportController::class);
+        $response = $importController->importPdf($request);
+
+        // Ensure actual_date in r26_english_lesson_plans is synchronized
+        SbteSubjectLogImportController::executeLessonPlanSync((int)$subjectId);
+
+        return $response;
+    }
+
+    /**
+     * Manually synchronize English Lesson Plan actual_date fields from class_logs_attendance.
+     */
+    public function syncLessonPlanDates($subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized access.'], 401);
+        }
+
+        $result = SbteSubjectLogImportController::executeLessonPlanSync((int)$subjectId);
+        return response()->json($result);
+    }
+
+    /**
      * Print Official CIA Register for R26 English (1001)
      */
     public function printCiaRegister($subjectId)
@@ -1272,7 +1316,7 @@ class R26VirtualClassroomEnglishController extends Controller
             R26EnglishLessonPlan::create([
                 'batch_subject_id' => $batchSubject->id,
                 'day_no' => $day,
-                'proposed_date' => now()->addDays($day * 2)->toDateString(),
+                'proposed_date' => null,
                 'actual_date' => null,
                 'topic_content' => $s['topic'],
                 'module_id' => $s['mod'],

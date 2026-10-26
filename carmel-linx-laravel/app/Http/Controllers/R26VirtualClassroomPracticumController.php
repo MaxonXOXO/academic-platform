@@ -36,6 +36,11 @@ class R26VirtualClassroomPracticumController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 English (1001)
+        if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
+            return redirect('/r26/classroom/english-1001/' . $subjectId);
+        }
+
         // Fetch classroom details
         $classroom = ClassManagement::where('classroom_id', $batchSubject->classroom_id)->first();
         if (!$classroom) {

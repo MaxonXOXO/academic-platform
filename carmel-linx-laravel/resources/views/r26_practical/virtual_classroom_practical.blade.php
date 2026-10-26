@@ -87,11 +87,27 @@
             padding: 0.4rem 0.45rem !important;
             line-height: 1.35 !important;
         }
-        table input, table select, table textarea {
+        table input:not(.series-input-s1):not(.series-input-s2):not(.cell-att-override), 
+        table select, 
+        table textarea {
             font-size: 0.8125rem !important; /* ~13px */
             font-weight: 600 !important;
             padding: 0.25rem 0.4rem !important;
             line-height: 1.25 !important;
+        }
+
+        /* Prominent Mark Entry Fields */
+        .series-input-s1,
+        .series-input-s2 {
+            font-size: 1.5rem !important; /* 24px prominent large font */
+            font-weight: 900 !important;
+            height: 3rem !important;
+            line-height: 1 !important;
+        }
+
+        .cell-att-override {
+            font-size: 1.125rem !important;
+            font-weight: 800 !important;
         }
 
         /* ── Sticky Arched Tabs Container ─────────────────── */
@@ -107,24 +123,24 @@
             position: relative;
             white-space: nowrap;
             transition: all 0.2s ease;
-            font-size: 0.95rem !important;
-            font-weight: 700 !important;
-            padding: 0.75rem 1.25rem !important;
-            border-top-left-radius: 0.85rem !important;
-            border-top-right-radius: 0.85rem !important;
+            font-size: 0.8125rem !important;
+            font-weight: 500 !important;
+            padding: 0.5rem 0.95rem !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
             border-top: 2px solid transparent !important;
             border-left: 2px solid transparent !important;
             border-right: 2px solid transparent !important;
             border-bottom: 2px solid transparent !important;
             outline: none !important;
-            color: #cbd5e1 !important;
+            color: #94a3b8 !important;
             background: transparent !important;
-            gap: 0.5rem !important;
+            gap: 0.45rem !important;
         }
 
         .subtab-btn:hover {
-            color: #ffffff !important;
-            background-color: rgba(255, 255, 255, 0.06) !important;
+            color: #f1f5f9 !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
         }
 
         .subtab-btn.active {
@@ -133,13 +149,13 @@
             border-left-color: #60a5fa !important;
             border-right-color: #60a5fa !important;
             border-bottom-color: transparent !important;
-            background-color: rgba(59, 130, 246, 0.14) !important;
-            box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.25) !important;
-            font-weight: 800 !important;
+            background-color: rgba(59, 130, 246, 0.12) !important;
+            box-shadow: 0 -4px 10px rgba(59, 130, 246, 0.2) !important;
+            font-weight: 600 !important;
         }
 
         .subtab-btn .material-symbols-rounded {
-            font-size: 1.35rem !important;
+            font-size: 1.15rem !important;
         }
 
         /* ── Cards & Panels ───────────────────────────────── */
@@ -242,81 +258,87 @@
 
     <!-- ═══ 1. TOP APP HEADER ═════════════════════════════════════════════ -->
     <header id="vl-header" class="bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-        <!-- Row 1: Brand Logo · Title · Batch ID · Faculty · Return Action -->
-        <div class="flex items-center justify-between gap-4 px-4 md:px-6 py-3 min-h-[76px]">
-            <!-- Left: Logo & Subject Info -->
-            <div class="flex items-center gap-4 min-w-0">
-                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" class="shrink-0 group" title="Carmel Linx Dashboard">
-                    <img src="/logo.jpg" alt="Carmel Linx" class="h-12 w-12 rounded-xl object-contain bg-white/10 p-1 border border-slate-700 shadow-md group-hover:border-blue-400 transition">
+        <!-- Row 1: Brand Logo · Carmel Linx · Virtual Lab Pill · Faculty · Actions -->
+        <div class="flex items-center justify-between gap-4 px-4 md:px-6 py-2.5 min-h-[64px]">
+            <!-- Left: Logo, Carmel Linx Brand, and Virtual Lab R-2026 Pill -->
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="{{ $dashboardUrl ?? '/dashboard/lecturer' }}" class="shrink-0 group flex items-center" title="Carmel Linx Dashboard">
+                    <img src="/logo.jpg" alt="Carmel Linx" class="h-10 w-10 md:h-11 md:w-11 rounded-xl object-contain bg-white/10 p-0.5 border border-slate-700 shadow-md group-hover:border-blue-400 transition">
                 </a>
 
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap mb-1">
-                        <span class="px-3 py-1 rounded-md bg-blue-600 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm">
-                            <i class="fa-solid fa-flask-vial text-xs"></i> VIRTUAL LAB · {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}
-                        </span>
-                        <span class="px-3 py-1 rounded-md font-mono text-sm font-black text-sky-400 bg-sky-500/15 border border-sky-500/30 shrink-0">
-                            {{ $batchSubject->subject_code }}
-                        </span>
-                        <span class="px-3 py-1 rounded-md font-mono text-sm font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 shrink-0">
-                            Batch ID: {{ $batchSubject->classroom_id }}
-                        </span>
-                    </div>
-
-                    <h1 class="text-lg md:text-xl lg:text-2xl font-extrabold text-white truncate m-0 font-heading tracking-tight leading-tight">
-                        {{ $practicalCourseFile?->course_title ?: $batchSubject->subject_name }}
-                    </h1>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="font-extrabold text-white text-base md:text-lg lg:text-xl tracking-tight">Carmel Linx</span>
+                    <span class="px-3 py-1 rounded-lg bg-blue-600 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm shrink-0">
+                        <i class="fa-solid fa-flask-vial text-xs"></i> Virtual Lab {{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }}
+                    </span>
                 </div>
             </div>
 
             <!-- Right: Faculty Name, Fullscreen, Return Button -->
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="hidden sm:flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-200 shadow-sm">
-                    <i class="fa-solid fa-chalkboard-user text-blue-400 text-base"></i>
-                    <span class="text-slate-300 font-medium">Faculty:</span>
-                    <strong class="text-white font-bold">{{ $staff?->name ?? 'Faculty' }}</strong>
-                </div>
+            <div class="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
+                @if(isset($assignedStaffList) && count($assignedStaffList) > 0)
+                    <div class="hidden sm:flex items-center gap-2 flex-wrap">
+                        @foreach($assignedStaffList as $st)
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs md:text-sm text-slate-200 shadow-sm">
+                            <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i>
+                            <span class="text-slate-400 font-medium">{{ $st['designation'] }}:</span>
+                            <strong class="text-white font-bold">{{ $st['name'] }}</strong>
+                        </div>
+                        @endforeach
+                    </div>
+                @elseif($staff)
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs md:text-sm text-slate-200 shadow-sm">
+                        <i class="fa-solid fa-chalkboard-user text-blue-400 text-sm"></i>
+                        <span class="text-slate-400 font-medium">Faculty:</span>
+                        <strong class="text-white font-bold">{{ $staff->name }}</strong>
+                    </div>
+                @endif
 
-                <button onclick="toggleFullscreen()" id="fullscreen-btn" class="exp-btn-touch px-3.5 py-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 text-sm font-bold flex items-center gap-2 cursor-pointer shadow-sm" title="Toggle Fullscreen">
-                    <i class="fa-solid fa-expand text-sm"></i>
+                <button onclick="toggleFullscreen()" id="fullscreen-btn" class="exp-btn-touch px-3 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 text-xs md:text-sm font-bold flex items-center gap-1.5 cursor-pointer shadow-sm" title="Toggle Fullscreen">
+                    <i class="fa-solid fa-expand text-xs"></i>
                     <span class="hidden md:inline">Fullscreen</span>
                 </button>
 
-                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm md:text-base font-black flex items-center gap-2 no-underline shadow-md cursor-pointer" title="Return to Staff Dashboard">
-                    <i class="fa-solid fa-arrow-left text-sm"></i>
+                <a href="javascript:void(0)" onclick="handleVirtualLabBack(event)" class="exp-btn-touch px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs md:text-sm font-black flex items-center gap-1.5 no-underline shadow-md cursor-pointer" title="Return to Staff Dashboard">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
                     <span>Back</span>
                 </a>
             </div>
         </div>
 
-        <!-- Row 2: Subheader Bar (Branch - Batch Code, Sem) -->
-        <div class="flex items-center gap-3 px-4 md:px-6 py-2.5 bg-slate-950/90 border-t border-slate-800 text-sm overflow-x-auto scrollbar-none">
-            <span class="px-3.5 py-1.5 rounded-lg bg-blue-500/15 border border-blue-500/35 text-blue-300 font-bold flex items-center gap-2 shrink-0 text-sm shadow-sm">
-                <i class="fa-solid fa-graduation-cap text-blue-400 text-base"></i>
-                <span>{{ $classroom?->branch ?? 'Branch' }} - {{ $batchSubject->classroom_id }}, Sem {{ $batchSubject->semester }}</span>
-            </span>
+        <!-- Row 2: Card Below (Subject Name · Code · Batch Code Pill) -->
+        <div class="flex items-center justify-between gap-3 px-4 md:px-6 py-2.5 bg-slate-950/95 border-t border-slate-800 text-xs md:text-sm overflow-x-auto scrollbar-none flex-wrap">
+            <div class="flex items-center gap-2.5 flex-wrap min-w-0">
+                <!-- Subject Name -->
+                <h1 class="text-lg md:text-xl lg:text-2xl font-black text-white truncate m-0 font-heading tracking-tight leading-tight">
+                    {{ $practicalCourseFile?->course_title ?: $batchSubject->subject_name }}
+                </h1>
 
-            <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 flex items-center gap-2 shrink-0 text-sm">
-                <i class="fa-solid fa-calendar text-slate-400"></i>
-                <span class="text-slate-300">Batch Year:</span>
-                <strong class="text-white font-bold">{{ $classroom?->batch_year ?? '2026' }}</strong>
-            </span>
-
-            @if(isset($assignedStaffList) && count($assignedStaffList) > 0)
-                @foreach($assignedStaffList as $st)
-                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 shrink-0 flex items-center gap-2 text-sm">
-                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i>
-                    <span class="text-slate-300">{{ $st['designation'] }}:</span>
-                    <strong class="text-white font-bold">{{ $st['name'] }}</strong>
+                <!-- Subject Code -->
+                <span class="px-3 py-1 rounded-lg font-mono text-xs md:text-sm font-black text-sky-400 bg-sky-500/15 border border-sky-500/30 shrink-0">
+                    {{ $batchSubject->subject_code }}
                 </span>
-                @endforeach
-            @endif
 
-            <span class="ml-auto px-3.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold shrink-0 flex items-center gap-2 text-sm shadow-sm">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
-                <span class="text-amber-200">Parse:</span>
-                <strong class="text-amber-100 font-bold">{{ $parseModeLabel }}</strong>
-            </span>
+                <!-- Batch Code Pill -->
+                <span class="px-3 py-1 rounded-lg font-mono text-xs md:text-sm font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 shrink-0">
+                    {{ $batchSubject->classroom_id }}
+                </span>
+
+                @if($batchSubject->semester)
+                <span class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-300 bg-slate-900 border border-slate-700 shrink-0">
+                    Sem {{ $batchSubject->semester }}
+                </span>
+                @endif
+            </div>
+
+            <!-- Right: Parse indicator -->
+            <div class="flex items-center gap-2 ml-auto shrink-0">
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium flex items-center gap-1.5 text-xs shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>
+                    <span class="text-amber-200">Parse:</span>
+                    <strong class="text-amber-100 font-semibold">{{ $parseModeLabel }}</strong>
+                </span>
+            </div>
         </div>
     </header>
 
@@ -328,50 +350,50 @@
             <nav class="flex flex-wrap md:flex-nowrap items-center gap-2 overflow-x-auto scrollbar-none no-scrollbar">
 
                 <!-- 1. Course Outline -->
-                <button onclick="switchTab('outline')" id="tab-btn-outline" class="subtab-btn active px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">menu_book</span>
+                <button onclick="switchTab('outline')" id="tab-btn-outline" class="subtab-btn active px-3.5 py-2 text-xs md:text-sm font-semibold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">menu_book</span>
                     <span>Course Outline</span>
                 </button>
 
                 <!-- 2. Lesson Planner -->
-                <button onclick="switchTab('lesson_plan')" id="tab-btn-lesson_plan" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">calendar_month</span>
+                <button onclick="switchTab('lesson_plan')" id="tab-btn-lesson_plan" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">calendar_month</span>
                     <span>Lesson Planner</span>
                 </button>
 
                 <!-- 3. Continuous Evaluation (CE) -->
-                <button onclick="switchTab('ce')" id="tab-btn-ce" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">assignment_turned_in</span>
+                <button onclick="switchTab('ce')" id="tab-btn-ce" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">assignment_turned_in</span>
                     <span>Continuous Evaluation (CE)</span>
                 </button>
 
                 <!-- 4. Series Test -->
-                <button onclick="switchTab('series_test')" id="tab-btn-series_test" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">edit_note</span>
+                <button onclick="switchTab('series_test')" id="tab-btn-series_test" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">edit_note</span>
                     <span>Series Test</span>
                 </button>
 
                 <!-- 5. CIA Register -->
-                <button onclick="switchTab('cia_register')" id="tab-btn-cia_register" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">fact_check</span>
+                <button onclick="switchTab('cia_register')" id="tab-btn-cia_register" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">fact_check</span>
                     <span>CIA Register</span>
                 </button>
 
                 <!-- 6. Attainment Table -->
-                <button onclick="switchTab('attainment')" id="tab-btn-attainment" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">analytics</span>
+                <button onclick="switchTab('attainment')" id="tab-btn-attainment" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">analytics</span>
                     <span>Attainment Table</span>
                 </button>
 
                 <!-- 7. Reports -->
-                <button onclick="switchTab('reports')" id="tab-btn-reports" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">print</span>
+                <button onclick="switchTab('reports')" id="tab-btn-reports" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">print</span>
                     <span>Reports</span>
                 </button>
 
                 <!-- 8. Preclass Hub -->
-                <button onclick="switchTab('preclass_hub')" id="tab-btn-preclass_hub" class="subtab-btn px-4 md:px-5 py-2.5 md:py-3 text-sm md:text-base font-bold text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-lg md:text-xl">hub</span>
+                <button onclick="switchTab('preclass_hub')" id="tab-btn-preclass_hub" class="subtab-btn px-3.5 py-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                    <span class="material-symbols-rounded text-base md:text-lg">hub</span>
                     <span>Preclass Hub</span>
                 </button>
 
@@ -504,7 +526,7 @@
                                         if ($poVal === '-') $poVal = '';
                                     @endphp
                                     <td class="p-1 border-b border-r border-slate-700 text-center">
-                                        <input type="text" maxlength="1" value="{{ $poVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-7 h-7 md:w-8 md:h-8 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-emerald-400 focus:border-blue-500 outline-none text-xs md:text-sm" data-co="{{ $coId }}" data-target="PO{{ $p }}">
+                                        <input type="text" maxlength="1" value="{{ $poVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-8 h-8 md:w-9 md:h-9 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-emerald-400 focus:border-blue-500 outline-none text-xs md:text-sm" data-co="{{ $coId }}" data-target="PO{{ $p }}">
                                     </td>
                                     @endfor
                                     @for($s = 1; $s <= 3; $s++)
@@ -513,7 +535,7 @@
                                         if ($psoVal === '-') $psoVal = '';
                                     @endphp
                                     <td class="p-1 border-b border-r border-slate-700 text-center">
-                                        <input type="text" maxlength="1" value="{{ $psoVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-7 h-7 md:w-8 md:h-8 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-sky-300 focus:border-blue-500 outline-none text-xs md:text-sm" data-co="{{ $coId }}" data-target="PSO{{ $s }}">
+                                        <input type="text" maxlength="1" value="{{ $psoVal }}" oninput="this.value=this.value.replace(/[^1-3]/g,'')" class="w-8 h-8 md:w-9 md:h-9 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-sky-300 focus:border-blue-500 outline-none text-xs md:text-sm" data-co="{{ $coId }}" data-target="PSO{{ $s }}">
                                     </td>
                                     @endfor
                                 </tr>
@@ -587,7 +609,7 @@
                                         </select>
                                     </td>
                                     <td class="p-2 text-center">
-                                        <input type="number" min="1" max="6" class="exp-hours w-16 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="{{ $exp['hours'] ?? 2 }}">
+                                        <input type="number" min="1" max="6" class="exp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="{{ $exp['hours'] ?? 2 }}">
                                     </td>
                                     <td class="p-2 text-center">
                                         <button type="button" onclick="removeExperimentRow(this)" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 inline-flex items-center justify-center transition cursor-pointer text-xs" title="Delete">
@@ -695,7 +717,7 @@
                                     </select>
                                 </td>
                                 <td class="p-1.5 text-center">
-                                    <input type="number" min="1" max="6" value="{{ $plan->allocated_hours ?? 1 }}" class="lp-hours w-16 bg-slate-950 border border-slate-800 rounded-lg px-1.5 py-1 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
+                                    <input type="number" min="1" max="6" value="{{ $plan->allocated_hours ?? 1 }}" class="lp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
                                 </td>
                                 <td class="p-1.5">
                                     <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden" oninput="autoGrowTextarea(this); triggerLpAutoSave()">{{ $plan->topic_content }}</textarea>
@@ -754,12 +776,12 @@
                 <!-- Top Header & Subtabs -->
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
                     <div>
-                        <h2 class="text-xl md:text-2xl font-black text-white flex items-center gap-2.5 font-heading">
-                            <span class="material-symbols-rounded text-emerald-400 text-2xl">assignment_turned_in</span>
+                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2 font-heading">
+                            <span class="material-symbols-rounded text-emerald-400 text-xl">assignment_turned_in</span>
                             <span>Continuous Evaluation (CE) — 40 Marks Total</span>
                         </h2>
-                        <p class="text-sm md:text-base text-slate-300 mt-1.5 font-medium">
-                            Assesses day-to-day laboratory work (Daywork Log out of 50 $\to$ scaled to 30M) and Open-Ended Experiments (out of 50 $\to$ scaled to 10M).
+                        <p class="text-xs md:text-sm text-slate-300 mt-0.5 font-medium">
+                            Assesses day-to-day laboratory work (Daywork Log out of 50 &rarr; scaled to 30M) and Open-Ended Experiments (out of 50 &rarr; scaled to 10M).
                         </p>
                     </div>
 
@@ -825,11 +847,11 @@
 
                 <!-- Subtab Switcher (Daywork Log vs Open Ended) -->
                 <div class="flex items-center gap-2.5 mt-5 border-b border-slate-800 pb-2.5">
-                    <button onclick="switchCeSubtab('daywork')" id="ce-subtab-btn-daywork" class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center gap-2 cursor-pointer shadow-sm">
-                        <i class="fa-solid fa-flask text-sm"></i> 1. Daywork Log (Table 2.2 · 30M)
+                    <button onclick="switchCeSubtab('daywork')" id="ce-subtab-btn-daywork" class="px-3.5 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center gap-2 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-flask text-xs md:text-sm"></i> 1. Daywork Log (Table 2.2 · 30M)
                     </button>
-                    <button onclick="switchCeSubtab('open_ended')" id="ce-subtab-btn-open_ended" class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold text-slate-300 hover:text-white border border-transparent flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-lightbulb text-sm text-amber-400"></i> 2. Open-Ended Experiments (Table 2.3 · 10M)
+                    <button onclick="switchCeSubtab('open_ended')" id="ce-subtab-btn-open_ended" class="px-3.5 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-medium text-slate-300 hover:text-white border border-transparent flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-lightbulb text-xs md:text-sm text-amber-400"></i> 2. Open-Ended Experiments (Table 2.3 · 10M)
                     </button>
                 </div>
 
@@ -874,7 +896,7 @@
                                         {{ $student->roll_no ?? ($index + 1) }}
                                     </span>
                                     <div>
-                                        <h4 class="text-base md:text-lg font-bold text-white">{{ $student->name }}</h4>
+                                        <h4 class="text-sm md:text-base font-semibold text-white">{{ $student->name }}</h4>
                                         <span class="text-xs md:text-sm font-mono font-semibold text-slate-400">{{ $student->reg_no }}</span>
                                     </div>
                                 </div>
@@ -936,7 +958,7 @@
                                         {{ $student->roll_no ?? ($index + 1) }}
                                     </span>
                                     <div>
-                                        <h4 class="text-base md:text-lg font-bold text-white">{{ $student->name }}</h4>
+                                        <h4 class="text-sm md:text-base font-semibold text-white">{{ $student->name }}</h4>
                                         <span class="text-xs md:text-sm font-mono font-semibold text-slate-400">{{ $student->reg_no }}</span>
                                     </div>
                                 </div>
@@ -980,12 +1002,12 @@
                     </div>
 
                     <!-- Subtab switcher -->
-                    <div class="flex items-center gap-2 border border-slate-700 p-1.5 rounded-xl bg-slate-950">
-                        <button onclick="switchSeriesSubtab('qp')" id="series-subtab-btn-qp" class="px-4 py-2 rounded-lg text-sm font-black bg-purple-600 text-white cursor-pointer transition flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-question text-sm"></i> 1. QP Setup &amp; Scheme
+                    <div class="flex items-center gap-1.5 border border-slate-700 p-1 rounded-xl bg-slate-950">
+                        <button onclick="switchSeriesSubtab('qp')" id="series-subtab-btn-qp" class="px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold bg-purple-600 text-white cursor-pointer transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-question text-xs md:text-sm"></i> 1. QP Setup &amp; Scheme
                         </button>
-                        <button onclick="switchSeriesSubtab('marks')" id="series-subtab-btn-marks" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-300 hover:text-white cursor-pointer transition flex items-center gap-2">
-                            <i class="fa-solid fa-signature text-sm"></i> 2. Series Mark Entry
+                        <button onclick="switchSeriesSubtab('marks')" id="series-subtab-btn-marks" class="px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium text-slate-300 hover:text-white cursor-pointer transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-signature text-xs md:text-sm"></i> 2. Series Mark Entry
                         </button>
                     </div>
                 </div>
@@ -1063,14 +1085,14 @@
                         <table class="w-full text-left text-xs md:text-sm border-collapse">
                             <thead>
                                 <tr class="bg-slate-950 text-slate-200 font-bold uppercase text-[11px] md:text-xs border-b border-slate-700">
-                                    <th class="py-2 px-2 w-12 text-center">Roll</th>
-                                    <th class="py-2 px-2 w-32">Register No</th>
-                                    <th class="py-2 px-2">Student Name</th>
-                                    <th class="py-2 px-2 w-28 text-center">Batch</th>
-                                    <th class="py-2 px-2 w-36 text-center text-purple-300">Series 1 (40M)</th>
-                                    <th class="py-2 px-2 w-36 text-center text-purple-300">Series 2 (40M)</th>
-                                    <th class="py-2 px-2 w-32 text-center text-slate-200">Average (40M)</th>
-                                    <th class="py-2 px-2 w-36 text-center text-amber-300 bg-purple-950/40">Series CIA (15M)</th>
+                                    <th class="py-2.5 px-2.5 w-12 text-center">Roll</th>
+                                    <th class="py-2.5 px-2.5 w-32">Register No</th>
+                                    <th class="py-2.5 px-2.5">Student Name</th>
+                                    <th class="py-2.5 px-2.5 w-28 text-center">Batch</th>
+                                    <th class="py-2.5 px-3 w-44 text-center text-purple-300 font-bold">Series 1 (40M)</th>
+                                    <th class="py-2.5 px-3 w-44 text-center text-purple-300 font-bold">Series 2 (40M)</th>
+                                    <th class="py-2.5 px-2.5 w-32 text-center text-slate-200">Average (40M)</th>
+                                    <th class="py-2.5 px-2.5 w-36 text-center text-amber-300 bg-purple-950/40">SERIES AVRG. (15M)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
@@ -1083,9 +1105,10 @@
                                     $s1Val = $series1Log ? floatval($series1Log->total_score_40) : null;
                                     $s2Val = $series2Log ? floatval($series2Log->total_score_40) : null;
                                     $sNums = array_filter([$s1Val, $s2Val], fn($v) => $v !== null);
-                                    $avg40 = count($sNums) > 0 ? (array_sum($sNums) / count($sNums)) : 0;
-                                    $scaled15 = round(($avg40 / 40) * 15, 2);
-                                    $rounded15 = (int)round($scaled15);
+                                    $hasSeries = count($sNums) > 0;
+                                    $avg40 = $hasSeries ? (array_sum($sNums) / count($sNums)) : null;
+                                    $scaled15 = $avg40 !== null ? round(($avg40 / 40) * 15, 2) : null;
+                                    $rounded15 = $scaled15 !== null ? (int)round($scaled15) : null;
                                 @endphp
                                 <tr class="student-row hover:bg-slate-900/50 transition" 
                                     data-reg-no="{{ $student->reg_no }}" 
@@ -1098,27 +1121,31 @@
                                             {{ $batchVal }}
                                         </span>
                                     </td>
-                                    <td class="p-1.5 text-center">
+                                    <td class="p-2 text-center">
                                         <input type="number" min="0" max="40" step="0.5" 
-                                               class="series-input-s1 w-20 md:w-24 px-2 py-1 bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-lg text-xs md:text-sm text-center font-mono font-bold text-purple-300 outline-none"
+                                               class="series-input-s1 w-28 md:w-32 px-3 py-2 bg-slate-950 border-2 border-slate-700 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 rounded-xl text-xl md:text-2xl text-center font-mono font-black text-purple-200 outline-none shadow-inner transition-all"
                                                data-reg-no="{{ $student->reg_no }}"
                                                value="{{ $s1Val !== null ? $s1Val : '' }}"
                                                placeholder="—"
                                                oninput="calcSeriesRow(this)">
                                     </td>
-                                    <td class="p-1.5 text-center">
+                                    <td class="p-2 text-center">
                                         <input type="number" min="0" max="40" step="0.5" 
-                                               class="series-input-s2 w-20 md:w-24 px-2 py-1 bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-lg text-xs md:text-sm text-center font-mono font-bold text-purple-300 outline-none"
+                                               class="series-input-s2 w-28 md:w-32 px-3 py-2 bg-slate-950 border-2 border-slate-700 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 rounded-xl text-xl md:text-2xl text-center font-mono font-black text-purple-200 outline-none shadow-inner transition-all"
                                                data-reg-no="{{ $student->reg_no }}"
                                                value="{{ $s2Val !== null ? $s2Val : '' }}"
                                                placeholder="—"
                                                oninput="calcSeriesRow(this)">
                                     </td>
-                                    <td class="py-2 px-2 text-center font-mono text-slate-200 text-xs md:text-sm font-semibold" id="series-row-avg-{{ $student->reg_no }}">
-                                        {{ number_format($avg40, 2) }}
+                                    <td class="py-2 px-2 text-center font-mono text-slate-200 text-sm md:text-base font-bold" id="series-row-avg-{{ $student->reg_no }}">
+                                        {{ $avg40 !== null ? number_format($avg40, 2) : '—' }}
                                     </td>
-                                    <td class="py-2 px-2 text-center font-mono text-amber-300 bg-purple-950/40 text-xs md:text-sm font-bold" id="series-row-scaled-{{ $student->reg_no }}">
-                                        {{ number_format($scaled15, 2) }} <span class="text-xs text-amber-400 font-normal">({{ $rounded15 }})</span>
+                                    <td class="py-2 px-2 text-center font-mono text-amber-300 bg-purple-950/40 text-sm md:text-base font-black" id="series-row-scaled-{{ $student->reg_no }}">
+                                        @if($scaled15 !== null)
+                                            {{ number_format($scaled15, 2) }} <span class="text-xs text-amber-400 font-semibold">({{ $rounded15 }})</span>
+                                        @else
+                                            —
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -1176,9 +1203,9 @@
                                 <th class="py-2 px-1.5 w-24 text-center text-emerald-400">Atten (5M)</th>
                                 <th class="py-2 px-1.5 w-24 text-center">CE (40M)</th>
                                 <th class="py-2 px-1.5 w-24 text-center text-purple-400">Series (15M)</th>
-                                <th class="py-2 px-1.5 w-28 text-center font-bold text-white bg-slate-900">CIA Total (60M)</th>
+                                <th class="py-2.5 px-2 w-32 text-center font-black text-emerald-400 bg-emerald-500/20 border-x border-emerald-500/30 text-xs md:text-sm">CIA Total (60M)</th>
                                 <th class="py-2 px-1.5 w-24 text-center text-sky-400">ESE (40M)</th>
-                                <th class="py-2 px-1.5 w-28 text-center text-emerald-400 font-bold">Total (100M)</th>
+                                <th class="py-2 px-1.5 w-28 text-center text-cyan-300 font-bold">Total (100M)</th>
                                 <th class="py-2 px-1.5 w-20 text-center text-amber-300 font-bold">Grade</th>
                             </tr>
                         </thead>
@@ -1205,7 +1232,7 @@
 
                                 <!-- TEAMS Uploaded % -->
                                 <td class="py-2 px-1.5 text-center font-mono text-slate-200 text-xs md:text-sm font-semibold">
-                                    {{ $attInfo['teams_percentage'] !== null ? number_format($attInfo['teams_percentage'], 1) . '%' : (isset($attInfo['raw_percentage']) ? number_format($attInfo['raw_percentage'], 1) . '%' : '—') }}
+                                    {{ $attInfo['teams_percentage'] !== null ? number_format($attInfo['teams_percentage'], 1) . '%' : (($attInfo['raw_percentage'] ?? null) !== null ? number_format($attInfo['raw_percentage'], 1) . '%' : '—') }}
                                 </td>
 
                                 <!-- Attendance Override % (ONLY editable field) -->
@@ -1219,12 +1246,12 @@
                                            data-reg-no="{{ $student->reg_no }}"
                                            data-prev-val="{{ $attInfo['override_percentage'] ?? '' }}"
                                            onchange="saveAttendanceOverrideAjax(this, '{{ $student->reg_no }}')"
-                                           class="cell-att-override {{ $hasOverride ? 'has-override' : '' }} w-18 md:w-20 px-1.5 py-1 text-center text-xs md:text-sm font-mono font-bold">
+                                           class="cell-att-override {{ $hasOverride ? 'has-override' : '' }} w-20 md:w-24 px-2 py-1.5 text-center text-xs md:text-sm font-mono font-bold rounded-lg border-2 border-slate-700 focus:border-amber-400 bg-slate-950">
                                 </td>
 
                                 <!-- Attendance Mark (5M) -->
                                 <td class="py-2 px-1.5 text-center font-mono font-black text-emerald-400 text-xs md:text-sm" id="cia-att-mark-{{ $student->reg_no }}">
-                                    {{ $score['attendance_mark_5'] ?? 5 }}
+                                    {{ $score['attendance_mark_5'] ?? 0 }}
                                 </td>
 
                                 <!-- CE Total (40M) -->
@@ -1237,9 +1264,11 @@
                                     {{ $score['scaled_series_15'] ?? '0.00' }}
                                 </td>
 
-                                <!-- Total CIA (60M) rounded without decimal! -->
-                                <td class="py-2 px-1.5 text-center font-mono font-black text-white bg-slate-900/90 text-sm shadow-inner" id="cia-total-{{ $student->reg_no }}">
-                                    {{ $score['total_cia_60'] ?? 0 }}
+                                <!-- Total CIA (60M) rounded without decimal! Prominent large font & emerald green color -->
+                                <td class="py-2.5 px-2 text-center align-middle bg-emerald-950/30 border-x border-emerald-500/30">
+                                    <span class="font-mono font-black text-emerald-400 bg-emerald-950/70 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 shadow-md text-xl md:text-2xl tracking-tight inline-block min-w-[58px] text-center" id="cia-total-{{ $student->reg_no }}">
+                                        {{ $score['total_cia_60'] ?? 0 }}
+                                    </span>
                                 </td>
 
                                 <!-- ESE (40M) -->
@@ -1248,7 +1277,7 @@
                                 </td>
 
                                 <!-- Grand Total (100M) -->
-                                <td class="py-2 px-1.5 text-center font-mono font-black text-emerald-400 text-sm" id="cia-grand-{{ $student->reg_no }}">
+                                <td class="py-2 px-1.5 text-center font-mono font-black text-cyan-300 text-sm" id="cia-grand-{{ $student->reg_no }}">
                                     {{ $score['grand_total_100'] ?? 0 }}
                                 </td>
 
@@ -1362,128 +1391,133 @@
         <!-- ========================================================================= -->
         <div id="tab-content-reports" class="tab-pane-content hidden space-y-4">
             <div class="glass-panel p-6 space-y-6">
-                <!-- Header -->
-                <div class="pb-4 border-b border-slate-800">
-                    <h2 class="text-xl md:text-2xl font-black text-white flex items-center gap-2.5 font-heading">
-                        <span class="material-symbols-rounded text-sky-400 text-2xl">print</span>
-                        <span>Laboratory Reports &amp; Printable Marksheets</span>
-                    </h2>
-                    <p class="text-sm md:text-base text-slate-300 mt-1.5 font-medium">Generate official printable PDFs with department letterheads, NBA rubrics, and faculty signatures.</p>
+                <!-- Banner / Intro -->
+                <div class="glass-card p-4 rounded-xl border border-slate-800 flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300">
+                            <span class="material-symbols-rounded text-xl">description</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-white mb-0.5">Official Academic &amp; Evaluation Reports</h3>
+                            <p class="text-xs text-slate-400 mb-0">Direct institutional print registers and dossiers formatted for SBTE Kerala Revision 2026 compliance.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-400 text-xs font-mono font-medium">Revision 2026 Practical</span>
+                    </div>
                 </div>
 
-                <!-- Report Cards Grid (All 8 Professional Lab Reports) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Report 1: Attendance Report -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-emerald-500/60 transition shadow-md">
+                <!-- Reports 3-Column Grid (Grouped as in other classes, neutral slate buttons) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    
+                    <!-- Group 1: Evaluation Marksheets -->
+                    <div class="glass-card p-5 rounded-xl border border-slate-800 flex flex-col justify-between gap-4">
                         <div>
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">how_to_reg</span>
+                            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-800/80">
+                                <span class="material-symbols-rounded text-slate-400 text-lg">fact_check</span>
+                                <h4 class="font-bold text-white text-xs uppercase tracking-wider">Evaluation Marksheets</h4>
                             </div>
-                            <h3 class="text-base font-bold text-white">Subject Attendance Report</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Detailed attendance statement with TEAMS upload %, faculty overrides, and 5-mark scaling.</p>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-3">Continuous Internal Assessment (CIA 60M), Consolidated Register, Series Exams, and Daywork evaluations.</p>
                         </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/attendance" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print Attendance
-                        </a>
+                        <div class="flex flex-col gap-2">
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/cia" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">badge</span>
+                                    <span>CIA Mark Register (60M)</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/consolidated" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">grade</span>
+                                    <span>Consolidated Mark Sheet (100M)</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/series" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">edit_note</span>
+                                    <span>Series Test Mark Sheet (15M)</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/ce" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">science</span>
+                                    <span>Continuous Evaluation (CE - 40M)</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Report 2: Consolidated Marksheet (100M) -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-blue-500/60 transition shadow-md">
+                    <!-- Group 2: Attendance & Execution Logs -->
+                    <div class="glass-card p-5 rounded-xl border border-slate-800 flex flex-col justify-between gap-4">
                         <div>
-                            <div class="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">fact_check</span>
+                            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-800/80">
+                                <span class="material-symbols-rounded text-slate-400 text-lg">how_to_reg</span>
+                                <h4 class="font-bold text-white text-xs uppercase tracking-wider">Attendance &amp; Class Logs</h4>
                             </div>
-                            <h3 class="text-base font-bold text-white">Consolidated Mark Sheet (100M)</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Complete register with Daywork (30M), Open-Ended (10M), Series (15M), Attendance (5M), CIA (60M), ESE (40M) and Grades.</p>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-3">Unified course attendance register with TEAMS upload %, faculty overrides, and session execution logs.</p>
                         </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/consolidated" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print Consolidated
-                        </a>
+                        <div class="flex flex-col gap-2">
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/attendance" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">how_to_reg</span>
+                                    <span>Subject Attendance Report (5M)</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode('/r26/classroom/practical/' . $batchSubject->id . '?tab=reports') }}" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">history_edu</span>
+                                    <span>Class Attendance &amp; Teaching Log Entry</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Report 3: CIA Internal Marksheet (60M) -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-indigo-500/60 transition shadow-md">
+                    <!-- Group 3: Curriculum & Lab Planning -->
+                    <div class="glass-card p-5 rounded-xl border border-slate-800 flex flex-col justify-between gap-4">
                         <div>
-                            <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">assignment_turned_in</span>
+                            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-800/80">
+                                <span class="material-symbols-rounded text-slate-400 text-lg">science</span>
+                                <h4 class="font-bold text-white text-xs uppercase tracking-wider">Curriculum &amp; Course Dossier</h4>
                             </div>
-                            <h3 class="text-base font-bold text-white">Internal Mark CIA Report (60M)</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Official internal mark register out of 60 rounded off without decimals for SBTE Kerala submission.</p>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-3">Planned semester syllabus delivery, Lesson Planner timeline, CO-PO Attainment, and Course File portfolio.</p>
                         </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/cia" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print CIA (60M)
-                        </a>
+                        <div class="flex flex-col gap-2">
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/plan" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">calendar_month</span>
+                                    <span>Lesson Planner &amp; Log</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/attainment" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">analytics</span>
+                                    <span>CO-PO Attainment Report</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+
+                            <a href="/r26/classroom/practical/course-file/{{ $batchSubject->id }}" target="_blank" class="w-full px-3.5 py-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-sm no-underline">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-sm text-slate-400">folder_open</span>
+                                    <span>Official Course File Dossier</span>
+                                </span>
+                                <span class="material-symbols-rounded text-sm text-slate-500">arrow_forward</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Report 4: Series Test Marksheet (15M) -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-purple-500/60 transition shadow-md">
-                        <div>
-                            <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">edit_note</span>
-                            </div>
-                            <h3 class="text-base font-bold text-white">Series Test Mark Sheet (15M)</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Series Exam 1 (40M) &amp; Series 2 (40M), average calculation, and converted 15 Marks breakdown.</p>
-                        </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/series" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print Series (15M)
-                        </a>
-                    </div>
-
-                    <!-- Report 5: Continuous Evaluation Marksheet (40M) -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-teal-500/60 transition shadow-md">
-                        <div>
-                            <div class="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">science</span>
-                            </div>
-                            <h3 class="text-base font-bold text-white">Continuous Evaluation Mark Sheet (40M)</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Comprehensive breakdown of day-to-day lab work (30M) and open-ended practicals (10M).</p>
-                        </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/ce" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print CE (40M)
-                        </a>
-                    </div>
-
-                    <!-- Report 6: Lesson Planner -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-emerald-500/60 transition shadow-md">
-                        <div>
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">calendar_month</span>
-                            </div>
-                            <h3 class="text-base font-bold text-white">Lesson Planner &amp; Log</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Proposed vs actual timeline schedule with faculty workload allocation and syllabus tracking.</p>
-                        </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/plan" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print Plan
-                        </a>
-                    </div>
-
-                    <!-- Report 7: Attainment -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-cyan-500/60 transition shadow-md">
-                        <div>
-                            <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">analytics</span>
-                            </div>
-                            <h3 class="text-base font-bold text-white">CO-PO Attainment Report</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Direct and indirect NBA course articulation summary with target thresholds and matrix weights.</p>
-                        </div>
-                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/attainment" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-print text-sm"></i> Print Attainment
-                        </a>
-                    </div>
-
-                    <!-- Report 8: Course File Portfolio -->
-                    <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between hover:border-amber-500/60 transition shadow-md">
-                        <div>
-                            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-3 text-lg font-bold">
-                                <span class="material-symbols-rounded">folder_open</span>
-                            </div>
-                            <h3 class="text-base font-bold text-white">Official Course File</h3>
-                            <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">Complete 25-document statutory portfolio for SITTTR and NBA accreditation compliance audit.</p>
-                        </div>
-                        <a href="/r26/classroom/practical/course-file/{{ $batchSubject->id }}" target="_blank" class="mt-4 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm flex items-center justify-center gap-2 no-underline shadow">
-                            <i class="fa-solid fa-folder-open text-sm"></i> View Portfolio
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1739,22 +1773,26 @@
             const s2Val = s2Input && s2Input.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(s2Input.value))) : null;
 
             let validScores = [];
-            if (s1Val !== null) validScores.push(s1Val);
-            if (s2Val !== null) validScores.push(s2Val);
-
-            const avg40 = validScores.length > 0 ? (validScores.reduce((a, b) => a + b, 0) / validScores.length) : 0;
-            const scaled15 = Math.round(((avg40 / 40) * 15) * 100) / 100;
-            const roundedSeries = Math.round(scaled15);
+            if (s1Val !== null && !isNaN(s1Val)) validScores.push(s1Val);
+            if (s2Val !== null && !isNaN(s2Val)) validScores.push(s2Val);
 
             const avgEl = document.getElementById(`series-row-avg-${regNo}`);
-            if (avgEl) avgEl.innerText = avg40.toFixed(2);
-
             const scaledEl = document.getElementById(`series-row-scaled-${regNo}`);
-            if (scaledEl) scaledEl.innerHTML = `${scaled15.toFixed(2)} <span class="text-xs text-amber-400/80 font-normal">(${roundedSeries})</span>`;
-
-            // Update in CIA register
             const ciaSeriesEl = document.getElementById(`cia-series-${regNo}`);
-            if (ciaSeriesEl) ciaSeriesEl.innerText = scaled15.toFixed(2);
+
+            if (validScores.length > 0) {
+                const avg40 = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                const scaled15 = Math.round(((avg40 / 40) * 15) * 100) / 100;
+                const roundedSeries = Math.round(scaled15);
+
+                if (avgEl) avgEl.innerText = avg40.toFixed(2);
+                if (scaledEl) scaledEl.innerHTML = `${scaled15.toFixed(2)} <span class="text-xs text-amber-400 font-semibold">(${roundedSeries})</span>`;
+                if (ciaSeriesEl) ciaSeriesEl.innerText = scaled15.toFixed(2);
+            } else {
+                if (avgEl) avgEl.innerText = '—';
+                if (scaledEl) scaledEl.innerText = '—';
+                if (ciaSeriesEl) ciaSeriesEl.innerText = '0.00';
+            }
 
             recalculateCIA(regNo);
         }
@@ -1935,8 +1973,8 @@
             const seriesEl = document.getElementById(`cia-series-${regNo}`);
             if (seriesEl) seriesEl.innerText = scaled31.toFixed(2);
 
-            // Attendance 5M
-            const att = attendanceMarks[regNo] && attendanceMarks[regNo].mark !== undefined ? attendanceMarks[regNo].mark : 5;
+            // Attendance 5M (default 0 if no upload/log)
+            const att = attendanceMarks[regNo] && attendanceMarks[regNo].mark !== undefined ? attendanceMarks[regNo].mark : 0;
             const attEl = document.getElementById(`cia-att-mark-${regNo}`);
             if (attEl) attEl.innerText = att;
 
@@ -2208,7 +2246,7 @@
                             <td class="p-2"><input type="text" class="exp-title w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium" value="${esc(exp.title)}" placeholder="Experiment title..."></td>
                             <td class="p-2"><input type="text" class="exp-desc w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-300 text-xs md:text-sm" value="${esc(exp.description)}" placeholder="Description / scope..."></td>
                             <td class="p-2 text-center"><select class="exp-co w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sky-400 font-bold text-xs md:text-sm text-center">${coOptions}</select></td>
-                            <td class="p-2 text-center"><input type="number" min="1" max="6" class="exp-hours w-16 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="${exp.hours || 2}"></td>
+                            <td class="p-2 text-center"><input type="number" min="1" max="6" class="exp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="${exp.hours || 2}"></td>
                             <td class="p-2 text-center">
                                 <button type="button" onclick="removeExperimentRow(this)" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 inline-flex items-center justify-center transition cursor-pointer text-xs" title="Delete">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
@@ -2252,7 +2290,7 @@
                             <option value="CO1">CO1</option><option value="CO2">CO2</option><option value="CO3">CO3</option><option value="CO4">CO4</option><option value="CO5">CO5</option><option value="CO6">CO6</option>
                         </select>
                     </td>
-                    <td class="p-2 text-center"><input type="number" min="1" max="6" class="exp-hours w-16 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="2"></td>
+                    <td class="p-2 text-center"><input type="number" min="1" max="6" class="exp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="2"></td>
                     <td class="p-2 text-center">
                         <button type="button" onclick="removeExperimentRow(this)" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 inline-flex items-center justify-center transition cursor-pointer text-xs" title="Delete">
                             <i class="fa-solid fa-trash-can text-xs"></i>
@@ -2430,7 +2468,7 @@
                     </select>
                 </td>
                 <td class="p-1.5 text-center">
-                    <input type="number" min="1" max="6" value="${defaultHours}" class="lp-hours w-16 bg-slate-950 border border-slate-800 rounded-lg px-1.5 py-1 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
+                    <input type="number" min="1" max="6" value="${defaultHours}" class="lp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
                 </td>
                 <td class="p-1.5">
                     <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden" oninput="autoGrowTextarea(this); triggerLpAutoSave()"></textarea>
@@ -2656,14 +2694,14 @@
                 const val = stateScores[r.key] || 0;
                 const html = `
                     <div class="bg-slate-950 p-4 rounded-2xl border border-slate-700">
-                        <div class="flex justify-between font-bold text-sm mb-2">
+                        <div class="flex justify-between font-bold text-sm mb-2.5">
                             <span class="text-slate-200 text-sm md:text-base font-semibold">${r.label}</span>
-                            <span class="text-emerald-400 font-mono font-black text-base" id="modal-val-${r.key}">${val}</span>
+                            <span class="text-emerald-400 font-mono font-black text-lg md:text-xl" id="modal-val-${r.key}">${val}</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <button onclick="stepSlider('${r.key}', -${r.step})" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-white font-bold cursor-pointer text-base">-</button>
-                            <input type="range" id="slider-${r.key}" min="0" max="${r.max}" step="${r.step}" value="${val}" oninput="syncModalSlider('${regNo}', '${r.key}', '${type}')" class="flex-grow h-2 bg-slate-700 rounded-lg cursor-pointer">
-                            <button onclick="stepSlider('${r.key}', ${r.step})" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-white font-bold cursor-pointer text-base">+</button>
+                            <button onclick="stepSlider('${r.key}', -${r.step})" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-black cursor-pointer text-lg flex items-center justify-center shrink-0 shadow-sm">-</button>
+                            <input type="range" id="slider-${r.key}" min="0" max="${r.max}" step="${r.step}" value="${val}" oninput="syncModalSlider('${regNo}', '${r.key}', '${type}')" class="flex-grow h-3 bg-slate-700 rounded-lg cursor-pointer accent-emerald-500">
+                            <button onclick="stepSlider('${r.key}', ${r.step})" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-black cursor-pointer text-lg flex items-center justify-center shrink-0 shadow-sm">+</button>
                         </div>
                     </div>
                 `;
@@ -2869,6 +2907,47 @@
                 alert("Failed to update survey.");
             }
         }
+
+        // Row-to-row vertical Tab/Enter/Arrow keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const isEnter = e.key === 'Enter';
+            const isTab = e.key === 'Tab';
+            const isArrowDown = e.key === 'ArrowDown';
+            const isArrowUp = e.key === 'ArrowUp';
+            if (!isEnter && !isTab && !isArrowDown && !isArrowUp) return;
+
+            const input = e.target;
+            if (!input || input.tagName !== 'INPUT' || input.type === 'checkbox' || input.type === 'hidden') return;
+            if (!input.classList.contains('series-input-s1') && !input.classList.contains('series-input-s2') && !input.classList.contains('cell-att-override')) return;
+
+            const row = input.closest('tr');
+            if (!row) return;
+            const tbody = row.closest('tbody');
+            if (!tbody) return;
+
+            const isReverse = (isTab && e.shiftKey) || (isEnter && e.shiftKey) || isArrowUp;
+
+            let selector = null;
+            if (input.classList.contains('series-input-s1')) selector = '.series-input-s1';
+            else if (input.classList.contains('series-input-s2')) selector = '.series-input-s2';
+            else if (input.classList.contains('cell-att-override')) selector = '.cell-att-override';
+            if (!selector) return;
+
+            const visibleRows = Array.from(tbody.querySelectorAll('tr.student-row')).filter(r => r.offsetParent !== null);
+            const currentIndex = visibleRows.indexOf(row);
+            if (currentIndex === -1) return;
+
+            const nextIndex = isReverse ? currentIndex - 1 : currentIndex + 1;
+            if (nextIndex >= 0 && nextIndex < visibleRows.length) {
+                e.preventDefault();
+                const nextRow = visibleRows[nextIndex];
+                const nextInput = nextRow.querySelector(selector);
+                if (nextInput) {
+                    nextInput.focus();
+                    if (typeof nextInput.select === 'function') nextInput.select();
+                }
+            }
+        });
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {

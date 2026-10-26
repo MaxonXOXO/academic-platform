@@ -91,8 +91,8 @@ class R26VirtualClassroomPracticalController extends Controller
             $avg40 = count($seriesNums) > 0 ? array_sum($seriesNums) / count($seriesNums) : 0;
             $scaled15 = round(($avg40 / 40) * 15, 2);
 
-            // 5. Attendance → 5M
-            $att5 = $attendanceMarks[$regNo]['mark'] ?? 5;
+            // 5. Attendance → 5M (default 0 if no upload/log)
+            $att5 = $attendanceMarks[$regNo]['mark'] ?? 0;
 
             // 6. Total CIA (60M) strictly rounded off without decimal!
             $cia60 = (int)round($scaled30 + $scaled10 + $scaled15 + $att5);
@@ -314,7 +314,7 @@ class R26VirtualClassroomPracticalController extends Controller
 
             $total   = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->count();
             $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->whereIn('status', ['Present', 'Late'])->count();
-            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
+            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : null;
 
             $rawPct = $teamsPct !== null ? $teamsPct : $logPct;
 
@@ -324,7 +324,7 @@ class R26VirtualClassroomPracticalController extends Controller
             }
 
             $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
-            $attMark = $this->computeAttendanceMark($effectivePct);
+            $attMark = $effectivePct !== null ? $this->computeAttendanceMark($effectivePct) : 0;
 
             $attendanceMarks[$student->reg_no] = [
                 'teams_percentage'    => $teamsPct,
@@ -841,9 +841,14 @@ class R26VirtualClassroomPracticalController extends Controller
             ->where('reg_no', $regNo)
             ->first();
 
-        $rawPct = $existing ? (float)($existing->teams_percentage ?: 100.0) : 100.0;
+        $rawPct = ($existing && $existing->teams_percentage !== null) ? (float)$existing->teams_percentage : null;
+        if ($rawPct === null) {
+            $total = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $regNo)->count();
+            $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $regNo)->whereIn('status', ['Present', 'Late'])->count();
+            $rawPct = $total > 0 ? round(($present / $total) * 100, 2) : null;
+        }
         $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
-        $attMark5 = $this->computeAttendanceMark($effectivePct);
+        $attMark5 = $effectivePct !== null ? $this->computeAttendanceMark($effectivePct) : 0;
 
         DB::table('subject_official_attendances')->updateOrInsert(
             [
@@ -1192,7 +1197,7 @@ class R26VirtualClassroomPracticalController extends Controller
 
             $total   = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->count();
             $present = DB::table('student_attendance')->where('subject_code', $batchSubject->subject_code)->where('reg_no', $student->reg_no)->whereIn('status', ['Present', 'Late'])->count();
-            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : 100.00;
+            $logPct = $total > 0 ? round(($present / $total) * 100, 2) : null;
 
             $rawPct = $teamsPct !== null ? $teamsPct : $logPct;
 
@@ -1202,7 +1207,7 @@ class R26VirtualClassroomPracticalController extends Controller
             }
 
             $effectivePct = $overridePct !== null ? $overridePct : $rawPct;
-            $attMark = $this->computeAttendanceMark($effectivePct);
+            $attMark = $effectivePct !== null ? $this->computeAttendanceMark($effectivePct) : 0;
 
             $attendanceMarks[$student->reg_no] = [
                 'teams_percentage'    => $teamsPct,

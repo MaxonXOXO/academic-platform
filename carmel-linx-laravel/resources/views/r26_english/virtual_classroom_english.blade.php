@@ -297,6 +297,14 @@
                     <span class="material-symbols-rounded text-base">upload_file</span>
                     <span>Upload TEAMS Attendance %</span>
                 </button>
+                <button onclick="switchTab('attainment')" class="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 font-bold transition-all flex items-center space-x-1.5 text-xs cursor-pointer shadow-md">
+                    <span class="material-symbols-rounded text-base text-purple-300">analytics</span>
+                    <span>Attainment</span>
+                </button>
+                <button onclick="switchTab('reports')" class="px-3.5 py-2 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 font-bold transition-all flex items-center space-x-1.5 text-xs cursor-pointer shadow-md">
+                    <span class="material-symbols-rounded text-base text-emerald-300">print</span>
+                    <span>Reports</span>
+                </button>
                 <button onclick="openSyllabusModal()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 border border-sky-500 text-white font-bold transition-all flex items-center space-x-1.5 text-xs cursor-pointer shadow-md">
                     <span class="material-symbols-rounded text-base">cloud_upload</span>
                     <span>Upload Syllabus</span>
@@ -314,8 +322,8 @@
     <!-- 3. MAIN ARCHED TABBED NAVIGATION (NO SERIAL NUMBERS IN TABS + REPORTS TAB) -->
     <main class="max-w-[99%] mx-auto px-4 md:px-8 mt-4">
 
-        <div class="tab-nav-container bg-slate-950/90 border border-slate-800/80 p-2 rounded-2xl shadow-lg mb-4">
-            <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
+        <div class="tab-nav-container bg-slate-950/90 border border-slate-800/80 p-2.5 rounded-2xl shadow-lg mb-4">
+            <nav class="flex flex-wrap items-center gap-1.5">
 
                 <!-- Course Outline -->
                 <button onclick="switchTab('outline')" id="tab-btn-outline" class="subtab-btn active px-3.5 py-2 text-xs font-bold border-t-2 border-x-2 border-b-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
@@ -360,15 +368,17 @@
                 </button>
 
                 <!-- Attainment -->
-                <button onclick="switchTab('attainment')" id="tab-btn-attainment" class="subtab-btn px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-sm">analytics</span>
+                <button onclick="switchTab('attainment')" id="tab-btn-attainment" class="subtab-btn px-3.5 py-2 text-xs font-bold text-purple-300 hover:text-purple-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px bg-purple-950/20">
+                    <span class="material-symbols-rounded text-sm text-purple-400">analytics</span>
                     <span>Attainment</span>
+                    <span class="px-1.5 py-0.5 bg-purple-500/30 text-purple-200 text-[10px] rounded font-mono font-bold">CO-PO</span>
                 </button>
 
                 <!-- Reports -->
-                <button onclick="switchTab('reports')" id="tab-btn-reports" class="subtab-btn px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
-                    <span class="material-symbols-rounded text-sm">print</span>
+                <button onclick="switchTab('reports')" id="tab-btn-reports" class="subtab-btn px-3.5 py-2 text-xs font-bold text-emerald-300 hover:text-emerald-200 border-t-2 border-x-2 border-b-transparent border-transparent rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px bg-emerald-950/20">
+                    <span class="material-symbols-rounded text-sm text-emerald-400">print</span>
                     <span>Reports</span>
+                    <span class="px-1.5 py-0.5 bg-emerald-500/30 text-emerald-200 text-[10px] rounded font-mono font-bold">A4 Print</span>
                 </button>
 
             </nav>
@@ -620,6 +630,14 @@
                         <p class="text-xs text-slate-400 mb-0">All fields auto-save automatically on edit. Topic field expands automatically as you type.</p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="syncLessonPlanDates()" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">sync</span>
+                            <span>Sync Actual Dates</span>
+                        </button>
+                        <button onclick="openTeamsAttendanceModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">upload_file</span>
+                            <span>Upload TEAMS Attendance</span>
+                        </button>
                         <button onclick="generateLessonTimeline()" class="px-3 py-1.5 rounded-lg bg-sky-600/30 hover:bg-sky-600/50 border border-sky-500/40 text-sky-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
                             <span class="material-symbols-rounded text-sm">refresh</span>
                             <span>Reset / Generate Default</span>
@@ -1086,6 +1104,18 @@
                     </div>
 
                     <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="switchTab('attainment')" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">analytics</span>
+                            <span>Attainment</span>
+                        </button>
+                        <button onclick="switchTab('reports')" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-rounded text-sm">print</span>
+                            <span>Reports</span>
+                        </button>
+                        <a href="/r26/classroom/english-1001/{{ $batchSubject->id }}/print/cia-register" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer no-underline">
+                            <span class="material-symbols-rounded text-sm">print</span>
+                            <span>Print CIA Register</span>
+                        </a>
                         <a href="/staff/attendance-log?subject_id={{ $batchSubject->id }}&return_to={{ urlencode(request()->getRequestUri()) }}" class="px-3 py-1.5 rounded-lg bg-blue-600/25 hover:bg-blue-600/40 border border-blue-500/40 text-blue-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1 cursor-pointer no-underline">
                             <span class="material-symbols-rounded text-sm">co_present</span>
                             <span>Attendance &amp; Log</span>
@@ -1722,6 +1752,12 @@
                 targetBtn.classList.add('active');
             }
 
+            try {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tabId);
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
+
             if (tabId === 'lessonplan') {
                 setTimeout(() => {
                     document.querySelectorAll('.growable-textarea').forEach(el => autoGrow(el));
@@ -1730,6 +1766,42 @@
             if (tabId === 'attainment') {
                 recalcEnglishAttainmentLive();
                 loadEnglishSurveyStatuses();
+            }
+        }
+
+        async function syncLessonPlanDates() {
+            try {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Syncing Attendance Dates...',
+                        text: 'Populating English Lesson Plan Actual Date fields from verified class logs.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                }
+                const res = await fetch(`/api/r26/classroom/english-1001/${subjectId}/lesson-plan/sync-dates`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+                const json = await res.json();
+                if (json.status === 'SUCCESS') {
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({ icon: 'success', title: 'Dates Synced!', text: json.message, timer: 1500, showConfirmButton: false });
+                    }
+                    window.location.reload();
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'info', title: 'Notice', text: json.message || 'No dates to sync.' });
+                    } else {
+                        alert(json.message || 'No dates to sync.');
+                    }
+                }
+            } catch (err) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to sync attendance dates.' });
+                } else {
+                    alert('Failed to sync attendance dates.');
+                }
             }
         }
 
@@ -2324,6 +2396,13 @@
         document.getElementById('uploadTeamsAttendanceForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            const fileInput = this.querySelector('input[name="attendance_file"]') || this.querySelector('input[type="file"]');
+            if (fileInput && fileInput.files[0]) {
+                formData.set('file', fileInput.files[0]);
+                formData.set('attendance_file', fileInput.files[0]);
+            }
+            formData.set('batch_subject_id', subjectId);
+
             const btn = document.getElementById('uploadTeamsBtn');
             btn.disabled = true;
             try {
@@ -2334,7 +2413,7 @@
                 });
                 const json = await res.json();
                 if (json.status === 'SUCCESS' || res.ok) {
-                    await Swal.fire({ icon: 'success', title: 'Attendance Uploaded!', text: json.message || 'Official TEAMS attendance updated.', timer: 1500, showConfirmButton: false });
+                    await Swal.fire({ icon: 'success', title: 'Attendance Uploaded!', text: json.message || 'Official TEAMS attendance updated and session dates synced to actual dates.', timer: 1800, showConfirmButton: false });
                     window.location.reload();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Upload Error', text: json.message || 'Failed to parse attendance file.' });
@@ -2690,6 +2769,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             attachMarkInputValidation();
             document.querySelectorAll('.growable-textarea').forEach(el => autoGrow(el));
+
+            // Deep-link to requested tab (?tab=reports or ?tab=attainment, etc.)
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const reqTab = urlParams.get('tab');
+                if (reqTab && document.getElementById(`tab-content-${reqTab}`)) {
+                    switchTab(reqTab);
+                }
+            } catch (e) {}
         });
     </script>
 </body>

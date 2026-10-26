@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\BatchSubject;
 use App\Models\Student;
 use App\Models\LessonPlan;
+use App\Models\R26EnglishLessonPlan;
 use App\Models\PracticalExperiment;
 use App\Models\PracticalEvaluation;
 use App\Models\AuditLog;
@@ -833,11 +834,22 @@ class SbteSubjectLogImportController extends Controller
         }
         $matchedStudentsCount = max($matchedStudentsCount, count($matchedRegNos));
 
+        // Detect Rev 2026 English specifically
+        $isR26English = ($batchSubject->syllabus_revision_code === 'REV2026')
+            && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false);
+
         // Fetch lesson plans & practical experiments
-        $lessonPlans = LessonPlan::where("batch_subject_id", $batchSubject->id)
-            ->orderBy("day_no", "asc")
-            ->orderBy("id", "asc")
-            ->get();
+        if ($isR26English) {
+            $lessonPlans = R26EnglishLessonPlan::where("batch_subject_id", $batchSubject->id)
+                ->orderBy("day_no", "asc")
+                ->orderBy("id", "asc")
+                ->get();
+        } else {
+            $lessonPlans = LessonPlan::where("batch_subject_id", $batchSubject->id)
+                ->orderBy("day_no", "asc")
+                ->orderBy("id", "asc")
+                ->get();
+        }
 
         $practicalExperiments = PracticalExperiment::where("batch_subject_id", $batchSubject->id)
             ->orderByRaw("CAST(experiment_no AS UNSIGNED), experiment_no ASC")
@@ -944,8 +956,32 @@ class SbteSubjectLogImportController extends Controller
                             $usedLpIds[] = $assignedLp->id;
                             $assignedLp->status = "Completed";
                             $assignedLp->actual_date = $date;
-                            $assignedLp->actual_hours = 1;
+                            if (isset($assignedLp->actual_hours)) {
+                                $assignedLp->actual_hours = 1;
+                            }
                             $assignedLp->save();
+                            $mappedLpCount++;
+                            $lpSeqIndex++;
+                        } elseif ($isR26English) {
+                            $maxDayNo = DB::table("r26_english_lesson_plans")->where("batch_subject_id", $batchSubject->id)->max("day_no") ?: 0;
+                            $newDayNo = $maxDayNo + 1;
+                            $newLp = R26EnglishLessonPlan::create([
+                                "batch_subject_id" => $batchSubject->id,
+                                "day_no" => $newDayNo,
+                                "co_tag" => "CO4",
+                                "module_id" => "M4",
+                                "topic_content" => "Extra Class / Communication Practicum {$newDayNo}",
+                                "allocated_hours" => 2,
+                                "proposed_date" => null,
+                                "actual_date" => $date,
+                                "mode" => "P",
+                                "pedagogy" => "Language Lab Practicum",
+                                "remarks" => "Auto-created from TEAMS Attendance Import",
+                                "status" => "Completed",
+                            ]);
+                            $assignedTopic = $newLp->topic_content;
+                            $assignedLpId = $newLp->id;
+                            $usedLpIds[] = $newLp->id;
                             $mappedLpCount++;
                             $lpSeqIndex++;
                         } elseif ($batchSubject->subject_type === "Theory") {
@@ -1382,7 +1418,14 @@ class SbteSubjectLogImportController extends Controller
             $studentRegNos = $classroomStudents->pluck("reg_no")->toArray();
         }
 
-        $lessonPlans = LessonPlan::where("batch_subject_id", $batchSubject->id)->orderBy("id", "asc")->get();
+        $isR26English = ($batchSubject->syllabus_revision_code === 'REV2026')
+            && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false);
+
+        if ($isR26English) {
+            $lessonPlans = R26EnglishLessonPlan::where("batch_subject_id", $batchSubject->id)->orderBy("day_no", "asc")->orderBy("id", "asc")->get();
+        } else {
+            $lessonPlans = LessonPlan::where("batch_subject_id", $batchSubject->id)->orderBy("id", "asc")->get();
+        }
         $practicalExperiments = PracticalExperiment::where("batch_subject_id", $batchSubject->id)->orderByRaw("CAST(experiment_no AS UNSIGNED), experiment_no ASC")->get();
 
         $importedSessionsCount = 0;
@@ -1679,10 +1722,20 @@ class SbteSubjectLogImportController extends Controller
             return ['status' => 'ERROR', 'message' => 'Subject not found.'];
         }
 
-        $lessonPlans = LessonPlan::where('batch_subject_id', $batchSubjectId)
-            ->orderBy('day_no', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+        $isR26English = ($batchSubject->syllabus_revision_code === 'REV2026')
+            && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false);
+
+        if ($isR26English) {
+            $lessonPlans = R26EnglishLessonPlan::where('batch_subject_id', $batchSubjectId)
+                ->orderBy('day_no', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
+            $lessonPlans = LessonPlan::where('batch_subject_id', $batchSubjectId)
+                ->orderBy('day_no', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+        }
 
         $practicalExperiments = PracticalExperiment::where('batch_subject_id', $batchSubjectId)
             ->orderByRaw('CAST(experiment_no AS UNSIGNED), experiment_no ASC')
@@ -1752,7 +1805,56 @@ class SbteSubjectLogImportController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($isTheory || ($lessonPlans->isNotEmpty() && $practicalExperiments->isEmpty() && !$hasSplitBatches)) {
+            if ($isR26English) {
+                // English REV2026: sequential 1-to-1 mapping of unique class session dates to r26_english_lesson_plans.actual_date
+                $uniqueDates = $validLogs->pluck('date')->unique()->sort()->values();
+                $syncedCount = 0;
+                foreach ($uniqueDates as $idx => $date) {
+                    $assignedLp = $lessonPlans->get($idx);
+                    if ($assignedLp) {
+                        $assignedLp->status = 'Completed';
+                        $assignedLp->actual_date = $date;
+                        $assignedLp->save();
+                        $syncedCount++;
+                    } else {
+                        // Create extra row if attendance dates exceed initial sessions
+                        $maxDayNo = DB::table('r26_english_lesson_plans')->where('batch_subject_id', $batchSubjectId)->max('day_no') ?: 0;
+                        $newDayNo = $maxDayNo + 1;
+                        R26EnglishLessonPlan::create([
+                            'batch_subject_id' => $batchSubjectId,
+                            'day_no' => $newDayNo,
+                            'co_tag' => 'CO4',
+                            'module_id' => 'M4',
+                            'topic_content' => "Extra English Practicum Session {$newDayNo}",
+                            'allocated_hours' => 2,
+                            'proposed_date' => null,
+                            'actual_date' => $date,
+                            'mode' => 'P',
+                            'pedagogy' => 'Language Lab Practicum',
+                            'remarks' => 'Auto-synced from Class Attendance Logs',
+                            'status' => 'Completed',
+                        ]);
+                        $syncedCount++;
+                    }
+                }
+
+                // Reset remaining unconducted lesson plans to Pending with null actual_date
+                for ($p = count($uniqueDates); $p < $lessonPlans->count(); $p++) {
+                    $pendingLp = $lessonPlans->get($p);
+                    if ($pendingLp) {
+                        $pendingLp->status = 'Pending';
+                        $pendingLp->actual_date = null;
+                        $pendingLp->save();
+                    }
+                }
+
+                DB::commit();
+                return [
+                    'status' => 'SUCCESS',
+                    'message' => "Successfully synchronized {$syncedCount} conducted session dates into English Actual Date fields.",
+                    'synced_count' => $syncedCount
+                ];
+            } elseif ($isTheory || ($lessonPlans->isNotEmpty() && $practicalExperiments->isEmpty() && !$hasSplitBatches)) {
                 // For Theory subjects: Each conducted class hour maps 1-to-1 chronologically to sequential lesson plans
                 foreach ($validLogs as $idx => $log) {
                     $assignedLp = $lessonPlans->get($idx);

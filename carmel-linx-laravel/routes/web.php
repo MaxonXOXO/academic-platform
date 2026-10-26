@@ -703,6 +703,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/r26/classroom/english-1001/{subjectId}/print/lesson-plan', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);
     Route::get('/r26/classroom/english-1001/{subjectId}/print/course-log', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printLessonPlan']);
     Route::get('/r26/classroom/english-1001/{subjectId}/print/{reportType}', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'printReport']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/upload-teams-attendance', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'uploadTeamsAttendance']);
+    Route::post('/api/classroom/subject/{subjectId}/upload-teams-attendance', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'uploadTeamsAttendance']);
+    Route::post('/api/r26/classroom/english-1001/{subjectId}/lesson-plan/sync-dates', [App\Http\Controllers\R26VirtualClassroomEnglishController::class, 'syncLessonPlanDates']);
 
     // Revision 2026 Virtual Drawing Hall (Lab Model)
     Route::get('/r26/classroom/drawing/{subjectId}', [App\Http\Controllers\R26VirtualClassroomDrawingController::class, 'show']);

@@ -1833,7 +1833,9 @@ Syllabus Text:
 
                     // 4. Attendance Mark (out of 15)
                     $activeAttPct = $student->final_percentage ?? ($student->teams_percentage ?? 0.0);
-                    $attMark15 = (int)\App\Services\AttainmentService::calculateR21AttendanceMark($activeAttPct, 15.0);
+                    $attMark15 = ($pEval && $pEval->attendance_marks !== null && $pEval->attendance_marks !== '')
+                        ? (float)$pEval->attendance_marks
+                        : (int)\App\Services\AttainmentService::calculateR21AttendanceMark($activeAttPct, 15.0);
                     $student->attendance_marks = $attMark15;
 
                     // 5. Total CIA (out of 75)
@@ -5405,7 +5407,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             // Consolidated eval
             $eval = $evaluations->where('reg_no', $regNo)->first();
             $microProject = $eval ? (float)$eval->micro_project : 0.00;
-            $attendanceMarks = $suggestedAttendanceMarks;
+            $attendanceMarks = ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') ? (float)$eval->attendance_marks : $suggestedAttendanceMarks;
             $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
             if ($boardExam === null) {
                 $bGrade = \DB::table('student_board_grades')
@@ -7051,7 +7053,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
             $avgLabWork = (float)$eval->lab_work_marks;
         }
         $microProject = $eval ? (float)$eval->micro_project : 0.00;
-        $attendanceMarks = $calculatedAttendanceMarks;
+        $attendanceMarks = ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') ? (float)$eval->attendance_marks : $calculatedAttendanceMarks;
         $boardExam = $eval ? $eval->board_exam_marks : null;
 
         $totalInternal = (int)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);

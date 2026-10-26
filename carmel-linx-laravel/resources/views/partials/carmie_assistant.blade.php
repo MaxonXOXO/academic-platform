@@ -25,8 +25,8 @@
 
   <!-- FLOATING ACTION BUTTON (BOTTOM-RIGHT) -->
   <div id="carmieFabWrapper" class="fixed bottom-6 right-6 z-[9999] flex items-center gap-3">
-    <!-- Initial Greeting Balloon (Auto-dismisses or closeable) -->
-    <div id="carmieGreetingBubble" class="hidden sm:flex items-center gap-2.5 bg-slate-900/95 border border-rose-500/40 text-slate-100 text-xs font-semibold px-3.5 py-2 rounded-2xl shadow-xl shadow-rose-950/40 backdrop-blur-md animate-bounce cursor-pointer" onclick="toggleCarmieChat()">
+    <!-- Initial Greeting Balloon (Hidden) -->
+    <div id="carmieGreetingBubble" class="hidden items-center gap-2.5 bg-slate-900/95 border border-rose-500/40 text-slate-100 text-xs font-semibold px-3.5 py-2 rounded-2xl shadow-xl shadow-rose-950/40 backdrop-blur-md animate-bounce cursor-pointer" onclick="toggleCarmieChat()">
       <span class="text-base">🌸</span>
       <span>Need help? Ask <strong>Carmie</strong>!</span>
       <button type="button" onclick="dismissCarmieGreeting(event)" class="text-slate-400 hover:text-white ml-1 text-sm leading-none">&times;</button>

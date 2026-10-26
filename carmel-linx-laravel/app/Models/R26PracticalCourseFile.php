@@ -29,6 +29,7 @@ class R26PracticalCourseFile extends Model
         'ese_marks',
         'total_hours',
         'parsed_cos',
+        'parsed_modules',
         'parsed_copo',
         'parsed_experiments',
         'manual_experiments',
@@ -48,7 +49,17 @@ class R26PracticalCourseFile extends Model
      */
     public function getCosArray(): array
     {
-        return $this->parsed_cos ? json_decode($this->parsed_cos, true) ?? [] : [];
+        if (is_array($this->parsed_cos)) return $this->parsed_cos;
+        return !empty($this->parsed_cos) ? (json_decode($this->parsed_cos, true) ?: []) : [];
+    }
+
+    /**
+     * Helper: get parsed modules as PHP array
+     */
+    public function getModulesArray(): array
+    {
+        if (is_array($this->parsed_modules)) return $this->parsed_modules;
+        return !empty($this->parsed_modules) ? (json_decode($this->parsed_modules, true) ?: []) : [];
     }
 
     /**
@@ -56,7 +67,8 @@ class R26PracticalCourseFile extends Model
      */
     public function getCoPoArray(): array
     {
-        return $this->parsed_copo ? json_decode($this->parsed_copo, true) ?? [] : [];
+        if (is_array($this->parsed_copo)) return $this->parsed_copo;
+        return !empty($this->parsed_copo) ? (json_decode($this->parsed_copo, true) ?: []) : [];
     }
 
     /**
@@ -64,10 +76,13 @@ class R26PracticalCourseFile extends Model
      */
     public function getExperimentsArray(): array
     {
-        $manual = $this->manual_experiments ? json_decode($this->manual_experiments, true) : null;
+        $manual = is_array($this->manual_experiments) 
+            ? $this->manual_experiments 
+            : (!empty($this->manual_experiments) ? json_decode($this->manual_experiments, true) : null);
         if ($manual && count($manual) > 0) {
             return $manual;
         }
-        return $this->parsed_experiments ? json_decode($this->parsed_experiments, true) ?? [] : [];
+        if (is_array($this->parsed_experiments)) return $this->parsed_experiments;
+        return !empty($this->parsed_experiments) ? (json_decode($this->parsed_experiments, true) ?: []) : [];
     }
 }

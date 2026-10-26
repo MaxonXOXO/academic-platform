@@ -1142,7 +1142,7 @@ class VirtualClassroomPracticalController extends Controller
 
             $eval = $evaluations->get($regNo);
             $microProject = $eval ? (float)$eval->micro_project : 0.00;
-            $attendanceMarks = $suggestedAttendance;
+            $attendanceMarks = ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') ? (float)$eval->attendance_marks : $suggestedAttendance;
             
             // ESE Board Marks or Grade
             $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
@@ -1658,7 +1658,7 @@ class VirtualClassroomPracticalController extends Controller
 
         $microProject = $eval ? (float)$eval->micro_project : 0.00;
         $openEndedTopic = $eval ? ($eval->open_ended_topic ?: ($eval->open_ended_project_topic ?: '')) : '';
-        $attendanceMarks = $suggestedAttendance;
+        $attendanceMarks = ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') ? (float)$eval->attendance_marks : $suggestedAttendance;
 
         $boardExam = $eval ? ($eval->board_exam_marks !== null ? $eval->board_exam_marks : null) : null;
         if ($boardExam === null) {

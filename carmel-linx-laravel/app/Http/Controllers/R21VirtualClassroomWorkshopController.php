@@ -637,6 +637,26 @@ class R21VirtualClassroomWorkshopController extends Controller
                     ['override_mark' => $att15, 'final_attendance_mark' => $att15]
                 );
             }
+
+            // Synchronize with student_semester_marks table
+            if ($totalCia !== null) {
+                try {
+                    $bs = BatchSubject::find($subjectId);
+                    if ($bs) {
+                        \App\Models\StudentSemesterMarks::updateOrCreate(
+                            [
+                                'reg_no'       => $regNo,
+                                'subject_code' => $bs->subject_code,
+                                'semester'     => $bs->semester
+                            ],
+                            [
+                                'subject_name'   => $bs->subject_name,
+                                'internal_marks' => $totalCia,
+                            ]
+                        );
+                    }
+                } catch (\Throwable $e) {}
+            }
         }
 
         return response()->json([
@@ -754,6 +774,7 @@ class R21VirtualClassroomWorkshopController extends Controller
         $allocations = R21WorkshopStudentAllocation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
         $workEvals = R21WorkshopWorkEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no')->map(fn($items) => $items->keyBy('section_name'));
         $sectionEvals = R21WorkshopSectionEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no')->map(fn($items) => $items->keyBy('section_name'));
+        $ciaSummaries = R21WorkshopCiaSummary::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
         return view('r21_workshop.work_evaluation_print', compact(
             'batchSubject',
@@ -762,7 +783,8 @@ class R21VirtualClassroomWorkshopController extends Controller
             'students',
             'allocations',
             'workEvals',
-            'sectionEvals'
+            'sectionEvals',
+            'ciaSummaries'
         ));
     }
 

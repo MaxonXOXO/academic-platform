@@ -687,7 +687,7 @@
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded text-xs font-bold uppercase">SBTE Regulation 2021</span>
+                <span id="progBadgeScheme" class="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded text-xs font-bold uppercase">SBTE Regulation</span>
                 <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Series Exam CO1-CO4</span>
                 <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs font-bold">Class Rank</span>
                 <h3 class="font-black text-white text-lg">Student Semester Progress Report</h3>
@@ -714,7 +714,7 @@
             <div><strong>Class / Batch:</strong> <span id="progBannerClass">-</span></div>
             <div><strong>Department:</strong> <span id="progBannerDept">-</span></div>
             <div><strong>Semester:</strong> <span id="progBannerSem">-</span></div>
-            <div><strong>Scheme:</strong> <span class="text-sky-400 font-bold">Revision 2021 (REV2021)</span></div>
+            <div><strong>Scheme:</strong> <span id="progBannerScheme" class="text-sky-400 font-bold">SBTE Curriculum</span></div>
             <div><strong>Tutor:</strong> <span id="progBannerTutor">-</span></div>
           </div>
 
@@ -3816,7 +3816,8 @@
         </div>
       `;
 
-      fetch('/api/tutor/progress-report')
+      const cid = window.supervisedClassroomId || document.getElementById('filterClassroom')?.value || '';
+      fetch('/api/tutor/progress-report' + (cid ? '?classroom_id=' + encodeURIComponent(cid) : ''))
         .then(res => res.json())
         .then(res => {
           if (res.status === 'SUCCESS') {
@@ -3828,6 +3829,8 @@
             if (document.getElementById('progBannerDept')) document.getElementById('progBannerDept').innerText = (cls.branch_name || cls.branch_code) + ' (' + (cls.branch_code || '') + ')';
             if (document.getElementById('progBannerSem')) document.getElementById('progBannerSem').innerText = 'Semester ' + (cls.semester || 1) + ' (S' + (cls.semester || 1) + ')';
             if (document.getElementById('progBannerTutor')) document.getElementById('progBannerTutor').innerText = cls.tutor_name || 'Assigned Tutor';
+            if (document.getElementById('progBannerScheme')) document.getElementById('progBannerScheme').innerText = cls.scheme_name || (cls.revision === 'REV2026' ? 'Revision 2026 (REV2026)' : 'Revision 2021 (REV2021)');
+            if (document.getElementById('progBadgeScheme')) document.getElementById('progBadgeScheme').innerText = 'SBTE Regulation ' + (cls.revision === 'REV2026' ? '2026' : '2021');
 
             // Summary cards
             const sum = res.summary || {};
@@ -3923,24 +3926,24 @@
 
       subjects.forEach(s => {
         headerRow1 += `
-          <th colspan="5" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name}">
+          <th colspan="3" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name}">
             <span class="font-bold text-xs text-sky-400 font-mono">${s.subject_code}</span>
-            <span class="text-[0.62rem] text-slate-400 font-normal block truncate max-w-[160px] mx-auto">${s.subject_name}</span>
+            <span class="text-[0.62rem] text-slate-400 font-normal block truncate max-w-[140px] mx-auto">${s.subject_name}</span>
           </th>
         `;
 
         headerRow2 += `
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO1</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO2</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO3</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">CO4</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800">Tot</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">S1 (100)</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">S2 (100)</th>
+          <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800">Avg (100)</th>
         `;
       });
 
       headerRow1 += `
         <th rowspan="2" class="p-2.5 text-center bg-indigo-950/40 text-indigo-300 font-black border-r border-slate-800">Grand Total</th>
-        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/30 text-emerald-300 font-bold border-r border-slate-800">Total Attd %</th>
+        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/30 text-emerald-300 font-bold border-r border-slate-800">Tutor Attd %</th>
+        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/20 text-emerald-400 font-bold border-r border-slate-800">Act. Pts</th>
+        <th rowspan="2" class="p-2.5 text-center bg-slate-900/60 text-slate-300 font-bold border-r border-slate-800">Assignments<br><span class="text-[0.6rem] font-normal text-slate-400">(Done / Pend)</span></th>
         <th rowspan="2" class="p-2.5 text-center bg-amber-950/30 text-amber-300 font-black border-r border-slate-800">Class Rank</th>
         <th rowspan="2" class="p-2.5 text-center text-slate-300">Action</th>
       `;
@@ -3949,16 +3952,16 @@
       filtered.forEach((st, idx) => {
         let subjCols = '';
         subjects.forEach(s => {
-          const sData = st.subjects ? st.subjects[s.id] : null;
-          const co = sData ? sData.co_marks : { CO1: null, CO2: null, CO3: null, CO4: null };
+          const sData = st.subjects ? (st.subjects[s.id] || Object.values(st.subjects).find(x => x.subject_code === s.subject_code)) : null;
+          const s1 = sData ? sData.series_1 : null;
+          const s2 = sData ? sData.series_2 : null;
+          const tot = sData ? sData.subject_total : null;
 
           subjCols += `
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO1 !== null ? co.CO1 : '<span class="text-slate-600">-</span>'}</td>
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO2 !== null ? co.CO2 : '<span class="text-slate-600">-</span>'}</td>
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO3 !== null ? co.CO3 : '<span class="text-slate-600">-</span>'}</td>
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${co.CO4 !== null ? co.CO4 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${s1 !== null ? s1 : '<span class="text-slate-600">-</span>'}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${s2 !== null ? s2 : '<span class="text-slate-600">-</span>'}</td>
             <td class="p-1.5 text-center font-mono font-bold text-[0.75rem] text-indigo-300 bg-indigo-950/20 border-r border-b border-slate-800/80">
-              ${(sData && sData.subject_total !== null) ? sData.subject_total : '<span class="text-slate-600">-</span>'}
+              ${tot !== null ? tot : '<span class="text-slate-600">-</span>'}
             </td>
           `;
         });
@@ -3978,6 +3981,17 @@
           rankBadgeHtml = `<span class="px-2 py-0.5 rounded font-bold text-xs bg-slate-800 text-slate-300 border border-slate-700">#${st.class_rank}</span>`;
         }
 
+        let assgHtml = '<span class="text-slate-600">-</span>';
+        if (st.assignments && st.assignments.total > 0) {
+          const isAllDone = st.assignments.pending === 0;
+          assgHtml = `
+            <div class="font-bold text-xs ${isAllDone ? 'text-emerald-400' : 'text-amber-400'}">
+              ${st.assignments.submitted}/${st.assignments.total}
+            </div>
+            ${st.assignments.pending > 0 ? `<div class="text-[0.62rem] text-rose-400">(${st.assignments.pending} pend)</div>` : `<div class="text-[0.62rem] text-emerald-500">All done</div>`}
+          `;
+        }
+
         rowsHtml += `
           <tr class="hover:bg-slate-800/40 transition-colors">
             <td class="p-2.5 font-mono font-bold text-center text-cyan-400 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
@@ -3991,7 +4005,13 @@
             </td>
             <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/10">
               <div class="font-mono font-bold text-xs ${attStatusClass}">${st.overall_attendance}%</div>
-              <div class="text-[0.62rem] text-slate-400">${st.total_attended}/${st.total_conducted}</div>
+              <div class="text-[0.62rem] text-slate-400">${st.status}</div>
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/5">
+              <div class="font-mono font-bold text-xs text-emerald-400">${st.activity_points > 0 ? st.activity_points : '<span class="text-slate-600">-</span>'}</div>
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800">
+              ${assgHtml}
             </td>
             <td class="p-2.5 text-center border-r border-b border-slate-800 bg-amber-950/10">
               ${rankBadgeHtml}
@@ -4006,7 +4026,7 @@
       });
 
       if (filtered.length === 0) {
-        rowsHtml = `<tr><td colspan="${(subjects.length * 5) + 7}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
+        rowsHtml = `<tr><td colspan="${(subjects.length * 3) + 9}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
       }
 
       wrapper.innerHTML = `

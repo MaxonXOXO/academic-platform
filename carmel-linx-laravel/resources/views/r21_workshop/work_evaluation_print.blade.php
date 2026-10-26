@@ -146,7 +146,10 @@
           }
 
           $overallAvg20 = count($secAvgs) > 0 ? round(array_sum($secAvgs) / count($secAvgs), 2) : 0.0;
-          $scaled375 = round(($overallAvg20 / 20.0) * 37.5, 2);
+          $stSummary = isset($ciaSummaries) ? $ciaSummaries->get($st->reg_no) : null;
+          $scaled375 = ($stSummary && $stSummary->override_work_375 !== null) 
+              ? (float)$stSummary->override_work_375 
+              : round(($overallAvg20 / 20.0) * 37.5, 2);
         @endphp
         <tr>
           <td>{{ $idx + 1 }}</td>

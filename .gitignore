@@ -15,3 +15,7 @@ carmel-linx-laravel/public/build
 carmel-linx-laravel/database/backups/*.sql
 !carmel-linx-laravel/database/backups/carmel_linx_db_backup_20260811_191442.sql
 
+__pycache__/
+*.py[cod]
+
+

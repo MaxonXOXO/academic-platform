@@ -361,6 +361,8 @@ class R21VirtualClassroomDrawingController extends Controller
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)->orderByRollOrName()->get();
         $attMap = $this->calculateAttendanceMap($batchSubject, $students, 15.0);
         $attEvals = R21DrawingAttendanceEvaluation::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
+        $sheetEvals = R21DrawingSheetEvaluation::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
+        $seriesTests = R21DrawingSeriesTest::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
 
         foreach ($records as $r) {
             $regNo = $r['reg_no'] ?? null;
@@ -404,6 +406,44 @@ class R21VirtualClassroomDrawingController extends Controller
                     'board_exam_marks'   => $eseMark,
                 ]
             );
+
+            // Compute total CIA and immediately sync to student_semester_marks table
+            $stSheets = $sheetEvals->get($regNo, collect());
+            $validSheets = $stSheets->where('is_absent', false);
+            $avgSheetScore = $validSheets->count() > 0 ? $validSheets->avg('total_score_100') : 0.00;
+            $calcContinuous = round((($avgSheetScore / 100.0) * 37.5) * 2) / 2;
+            $continuousMark = ($contOverride !== null) ? $contOverride : $calcContinuous;
+
+            $stTests = $seriesTests->get($regNo, collect());
+            $t1 = $stTests->where('test_no', 'Test 1')->first();
+            $t2 = $stTests->where('test_no', 'Test 2')->first();
+            $t1Score = ($t1 && !$t1->is_absent && $t1->total_score_100 !== null) ? round((floatval($t1->total_score_100) / 100.0) * 15.0, 2) : null;
+            $t2Score = ($t2 && !$t2->is_absent && $t2->total_score_100 !== null) ? round((floatval($t2->total_score_100) / 100.0) * 15.0, 2) : null;
+            if ($t1Score !== null && $t2Score !== null) {
+                $seriesAvg = round(($t1Score + $t2Score) / 2.0, 2);
+            } elseif ($t1Score !== null) {
+                $seriesAvg = $t1Score;
+            } elseif ($t2Score !== null) {
+                $seriesAvg = $t2Score;
+            } else {
+                $seriesAvg = 0.00;
+            }
+
+            $totalCia = min(75, (int)round($continuousMark + $openEnded + $seriesAvg + $attMarkToSave));
+
+            try {
+                \App\Models\StudentSemesterMarks::updateOrCreate(
+                    [
+                        'reg_no'       => $regNo,
+                        'subject_code' => $batchSubject->subject_code,
+                        'semester'     => $batchSubject->semester
+                    ],
+                    [
+                        'subject_name'   => $batchSubject->subject_name,
+                        'internal_marks' => $totalCia,
+                    ]
+                );
+            } catch (\Throwable $e) {}
         }
 
         return response()->json([

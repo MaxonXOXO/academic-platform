@@ -135,19 +135,30 @@ class TutorController extends Controller
             ->where('semester', $semester)
             ->get(['id', 'subject_code', 'subject_name', 'subject_type', 'syllabus_revision_code']);
 
-        // Order subjects logically: Theory first, Practical second, Drawing, Seminar, Project
+        // Determine revision & scheme
+        $isRev2026 = (str_contains($classroomId, '2026') || ($classroom->batch_year ?? null) == 2026 || $rawSubjects->pluck('syllabus_revision_code')->contains('REV2026'));
+        $revision = $isRev2026 ? 'REV2026' : 'REV2021';
+        $schemeName = $isRev2026 ? 'Revision 2026 (SBTE Kerala)' : 'Revision 2021 (Diploma Engineering)';
+
+        // Order subjects logically: Theory first, Practical second, Drawing, Seminar, Project (deduplicated by subject_code)
         $typePriority = [
             'Theory' => 1,
             'Theory / Lecture' => 1,
+            'Theory Courses' => 1,
+            'Practicum Course' => 2,
+            'Practicum Courses' => 2,
             'Practical / Lab' => 2,
             'Practical' => 2,
             'Lab' => 2,
+            'Laboratory/Workshop Courses' => 2,
+            'Laboratory/Works' => 2,
             'Drawing' => 3,
+            'Drawing Courses' => 3,
             'Seminar' => 4,
             'Project' => 5
         ];
 
-        $subjects = $rawSubjects->sortBy(function ($s) use ($typePriority) {
+        $subjects = $rawSubjects->unique('subject_code')->sortBy(function ($s) use ($typePriority) {
             $p = $typePriority[$s->subject_type] ?? 9;
             return sprintf('%02d_%s', $p, $s->subject_code);
         })->values();
@@ -158,12 +169,72 @@ class TutorController extends Controller
         // 2. Fetch Students for this Classroom
         $students = Student::getClassroomStudentsQuery($classroomId)
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
-            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile']);
+            ->get(['reg_no', 'name', 'roll_no', 'sbte_reg_no', 'phone', 'guardian_mobile', 'admission_type']);
 
         $studentRegNos = $students->pluck('reg_no')->toArray();
 
         // 3. Gather Series Exam / Written Test Marks for all subjects & students
-        // Query A: academic_marks (Theory, Written Test, Series Test, Summative)
+        // Query A1: Rev 2026 Theory Evaluations (series_1_co1_25, series_1_co2_25, series_2_co3_25, series_2_co4_25)
+        $r26TheoryEvals = collect();
+        if (Schema::hasTable('r26_theory_evaluations') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26TheoryEvals = DB::table('r26_theory_evaluations')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A2: Rev 2026 Practicum Series Theory (Series 1, Series 2, CO1, CO2, CO3, CO4)
+        $r26PracticumTheoryEvals = collect();
+        if (Schema::hasTable('r26_practicum_series_theory') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26PracticumTheoryEvals = DB::table('r26_practicum_series_theory')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A3: Rev 2026 Drawing Evaluations (series_1_co1_20, series_1_co2_20, series_2_co3_20, series_2_co4_20)
+        $r26DrawingEvals = collect();
+        if (Schema::hasTable('r26_drawing_evaluations') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26DrawingEvals = DB::table('r26_drawing_evaluations')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A4: Rev 2026 English Evaluations (series1_50, series2_50)
+        $r26EnglishEvals = collect();
+        if (Schema::hasTable('r26_english_evaluations') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26EnglishEvals = DB::table('r26_english_evaluations')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A5: Rev 2026 Practicum Practical Evaluations (r26_practicum_series_practical - max 40)
+        $r26PracticumPracticalEvals = collect();
+        if (Schema::hasTable('r26_practicum_series_practical') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26PracticumPracticalEvals = DB::table('r26_practicum_series_practical')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A6: Rev 2026 Practical Standalone Evaluations (r26_practical_series_evaluations - max 40)
+        $r26PracticalSeriesEvals = collect();
+        if (Schema::hasTable('r26_practical_series_evaluations') && !empty($subjectIds) && !empty($studentRegNos)) {
+            $r26PracticalSeriesEvals = DB::table('r26_practical_series_evaluations')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
+        // Query A7: academic_marks (Theory, Written Test, Series Test, Summative - strictly excluding Self Study / Assignment / MCQ)
         $academicMarks = collect();
         if (Schema::hasTable('academic_marks') && !empty($studentRegNos) && !empty($subjectCodes)) {
             $academicMarks = DB::table('academic_marks')
@@ -202,7 +273,16 @@ class TutorController extends Controller
                 ->get();
         }
 
-        // 4. Gather Attendance Data (aligned with Attendance Consolidated Register)
+        // 4. Gather Authoritative Attendance Uploaded by Tutor (tutor_class_attendances in total)
+        $tutorClassAttendances = collect();
+        if (Schema::hasTable('tutor_class_attendances') && !empty($studentRegNos)) {
+            $tutorClassAttendances = DB::table('tutor_class_attendances')
+                ->where('classroom_id', $classroomId)
+                ->whereIn('reg_no', $studentRegNos)
+                ->get()
+                ->keyBy('reg_no');
+        }
+
         $studentAttGrouped = collect();
         if (Schema::hasTable('student_attendance') && !empty($subjectCodes)) {
             $studentAttQuery = DB::table('student_attendance')
@@ -220,182 +300,460 @@ class TutorController extends Controller
             $classLogsBySubject = $classLogs->groupBy('batch_subject_id');
         }
 
-        $assignedLabBatches = collect();
-        if (Schema::hasTable('r26_student_lab_batches') && !empty($subjectIds)) {
-            $assignedLabBatches = DB::table('r26_student_lab_batches')
-                ->whereIn('batch_subject_id', $subjectIds)
-                ->get()
-                ->groupBy('batch_subject_id');
+        // 5. Gather Activity Points Cumulated across ALL Semesters
+        $activityPointsMap = [];
+        if (Schema::hasTable('activity_point_claims') && !empty($studentRegNos)) {
+            $claims = DB::table('activity_point_claims')
+                ->whereIn('reg_no', $studentRegNos)
+                ->whereIn('status', ['Verified', 'Approved'])
+                ->groupBy('reg_no')
+                ->select('reg_no', DB::raw('SUM(points_awarded) as total'))
+                ->get();
+            foreach ($claims as $c) {
+                $activityPointsMap[$c->reg_no] = (float)$c->total;
+            }
+        }
+        if (Schema::hasTable('student_semester_summary') && !empty($studentRegNos)) {
+            $summaries = DB::table('student_semester_summary')
+                ->whereIn('reg_no', $studentRegNos)
+                ->groupBy('reg_no')
+                ->select('reg_no', DB::raw('SUM(activity_points) as total'))
+                ->get();
+            foreach ($summaries as $s) {
+                $activityPointsMap[$s->reg_no] = max($activityPointsMap[$s->reg_no] ?? 0.0, (float)$s->total);
+            }
+        }
+        if (Schema::hasTable('extracurricular_activities') && !empty($studentRegNos)) {
+            $extras = DB::table('extracurricular_activities')
+                ->whereIn('reg_no', $studentRegNos)
+                ->whereIn('status', ['Verified', 'Approved'])
+                ->groupBy('reg_no')
+                ->select('reg_no', DB::raw('SUM(points_awarded) as total'))
+                ->get();
+            foreach ($extras as $e) {
+                $activityPointsMap[$e->reg_no] = max($activityPointsMap[$e->reg_no] ?? 0.0, (float)$e->total);
+            }
         }
 
-        // 5. Build Student Report Rows with Subject Series Marks & Attendance
+        // 6. Gather Semester Assignments (Total Given vs Completed / Pending)
+        $classroomAssignments = collect();
+        if (Schema::hasTable('academic_marks') && !empty($studentRegNos) && !empty($subjectIds)) {
+            $classroomAssignments = DB::table('academic_marks')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->where('category', 'like', '%assign%')
+                ->get();
+        }
+        $distinctTasksCount = $classroomAssignments->unique(fn($r) => $r->subject_code . '_' . ($r->co_tag ?? 'CO1'))->count();
+
+        // 6b. Pre-analyze Series Exam Conduction per Subject
+        $subjMeta = [];
+        foreach ($subjects as $s) {
+            $sId = $s->id;
+            $sCode = $s->subject_code;
+
+            // Theory Series 2 Conduction Check
+            $isTheoryS2Conducted = false;
+            if ($r26TheoryEvals->has($sId)) {
+                $teAll = $r26TheoryEvals->get($sId, collect());
+                $isTheoryS2Conducted = $teAll->filter(function($row) {
+                    return (float)($row->series_2_50 ?? 0) > 0 || !empty($row->series_2_absent) || (float)($row->series_2_co3_25 ?? 0) > 0 || (float)($row->series_2_co4_25 ?? 0) > 0;
+                })->count() > 1;
+            }
+
+            // Practicum Series Mode & Conduction Check
+            $practicumTheoryMode = 'TWO_PART_SERIES';
+            $isPracticumS2Conducted = false;
+            if ($r26PracticumTheoryEvals->has($sId)) {
+                $pstAll = $r26PracticumTheoryEvals->get($sId, collect());
+                $maxS1 = (float)$pstAll->where('series_no', 'Series 1')->max('total_score_50');
+                $maxS2 = (float)$pstAll->where('series_no', 'Series 2')->max('total_score_50');
+                $hasExplicitCo = $pstAll->whereIn('series_no', ['CO1', 'CO2', 'CO3', 'CO4', 'Series 3', 'Series 4'])->isNotEmpty();
+
+                if (!$hasExplicitCo && $maxS1 > 25.0) {
+                    $practicumTheoryMode = 'SINGLE_50_SERIES';
+                    $isPracticumS2Conducted = $pstAll->where('series_no', 'Series 2')->filter(fn($r) => (float)$r->total_score_50 > 0 || !empty($r->is_absent))->count() > 1;
+                } else {
+                    $practicumTheoryMode = 'TWO_PART_SERIES';
+                    $isPracticumS2Conducted = $pstAll->whereIn('series_no', ['Series 3', 'Series 4', 'CO3', 'CO4'])->filter(fn($r) => (float)$r->total_score_50 > 0 || !empty($r->is_absent))->count() > 1;
+                }
+            }
+
+            // Practical Series 2 Conduction Check
+            $isPracticalS2Conducted = false;
+            if ($r26PracticumPracticalEvals->has($sId)) {
+                $pspAll = $r26PracticumPracticalEvals->get($sId, collect());
+                $isPracticalS2Conducted = $pspAll->whereIn('series_no', ['Series 2', 'Test 2', 'CA3', 'Test 2 (CO3+CO4)', 'CO3', 'CO4'])->filter(fn($r) => (float)$r->total_score_40 > 0 || !empty($r->is_absent))->count() > 1;
+            }
+
+            // Drawing Series 2 Conduction Check
+            $isDrawingS2Conducted = false;
+            if ($r26DrawingEvals->has($sId)) {
+                $deAll = $r26DrawingEvals->get($sId, collect());
+                $isDrawingS2Conducted = $deAll->filter(function($row) {
+                    return (float)($row->series_2_40 ?? 0) > 0 || !empty($row->series_2_absent) || (float)($row->series_2_co3_20 ?? 0) > 0 || (float)($row->series_2_co4_20 ?? 0) > 0;
+                })->count() > 1;
+            }
+
+            // Academic Marks Series 2 Conduction Check
+            $isAcademicS2Conducted = false;
+            if ($academicMarks->isNotEmpty()) {
+                $isAcademicS2Conducted = $academicMarks->filter(function($m) use ($sId, $sCode) {
+                    $matchSubj = (isset($m->batch_subject_id) && $m->batch_subject_id == $sId) || ($m->subject_code == $sCode);
+                    if (!$matchSubj) return false;
+                    $cat = $m->category ?? '';
+                    if (stripos($cat, 'Self') !== false || stripos($cat, 'Assignment') !== false || stripos($cat, 'Mcq') !== false) return false;
+                    return (stripos($cat, 'Series 2') !== false || stripos($cat, 'Series Exam 2') !== false || in_array($m->co_tag ?? '', ['CO3', 'CO4', 'CO3,CO4'])) && (float)$m->marks_obtained > 0;
+                })->count() > 1;
+            }
+
+            $subjMeta[$sId] = [
+                'theory_s2_conducted'    => $isTheoryS2Conducted,
+                'practicum_theory_mode'  => $practicumTheoryMode,
+                'practicum_s2_conducted' => $isPracticumS2Conducted,
+                'practical_s2_conducted' => $isPracticalS2Conducted,
+                'drawing_s2_conducted'   => $isDrawingS2Conducted,
+                'academic_s2_conducted'  => $isAcademicS2Conducted,
+            ];
+        }
+
+        // 7. Build Student Report Rows with Subject Series Marks & Attendance
         $studentsData = [];
         $totalConductedClasswide = 0;
         $totalAttendedClasswide = 0;
 
         foreach ($students as $stud) {
             $regNo = $stud->reg_no;
-            $stStudAtt = $studentAttGrouped->get($regNo, collect());
+            $isLet = ($stud->admission_type === 'LET') || str_ends_with(strtoupper($regNo), 'L');
+            $activityGoal = $isLet ? 40 : 60;
+
+            // Attendance uploaded by tutor in total (authoritative)
+            $tutorOfficial = $tutorClassAttendances->get($regNo);
+            if ($tutorOfficial) {
+                $overallAttPct = (float)($tutorOfficial->final_percentage ?? $tutorOfficial->attendance_percentage);
+                $status = $tutorOfficial->eligibility_status ?: ($overallAttPct >= 75.0 ? 'Eligible' : ($overallAttPct >= 65.0 ? 'Condonation' : 'Detained'));
+                $studentTotalAttended = (int)$tutorOfficial->attended_hours;
+                $studentTotalConducted = (int)$tutorOfficial->total_hours;
+            } else {
+                // Fallback to calculated class logs / student attendance
+                $stStudAtt = $studentAttGrouped->get($regNo, collect());
+                $studentTotalAttended = 0;
+                $studentTotalConducted = 0;
+
+                foreach ($subjects as $subj) {
+                    $sLogs = $classLogsBySubject->get($subj->id, collect());
+                    $stSubjAttRecords = $stStudAtt->where('subject_code', $subj->subject_code);
+                    if ($stSubjAttRecords->isNotEmpty()) {
+                        $studentTotalConducted += $stSubjAttRecords->count();
+                        $studentTotalAttended += $stSubjAttRecords->whereIn('status', ['Present', 'Late'])->count();
+                    } elseif ($sLogs->isNotEmpty()) {
+                        $studentTotalConducted += $sLogs->count();
+                        $cAtt = 0;
+                        foreach ($sLogs as $log) {
+                            $pArr = json_decode($log->present_students ?? '[]', true) ?: [];
+                            if (in_array($regNo, $pArr)) $cAtt++;
+                        }
+                        $studentTotalAttended += $cAtt;
+                    }
+                }
+
+                $overallAttPct = $studentTotalConducted > 0 
+                    ? round(($studentTotalAttended / $studentTotalConducted) * 100, 1) 
+                    : 100.0;
+
+                if ($overallAttPct >= 75.0) {
+                    $status = 'Eligible';
+                } elseif ($overallAttPct >= 65.0) {
+                    $status = 'Condonation';
+                } else {
+                    $status = 'Detained';
+                }
+            }
+
+            $totalConductedClasswide += $studentTotalConducted;
+            $totalAttendedClasswide += $studentTotalAttended;
+
+            $statusBadge = $status === 'Eligible' ? 'status-eligible' : ($status === 'Condonation' ? 'status-condonation' : 'status-detained');
+
+            // Cumulative Activity Points
+            $cumulatedActivityPoints = (float)($activityPointsMap[$regNo] ?? 0.0);
+
+            // Assignment completion stats
+            $stAssg = $classroomAssignments->where('reg_no', $regNo);
+            $submittedCount = $stAssg->where('marks_obtained', '>', 0)->unique(fn($r) => $r->subject_code . '_' . ($r->co_tag ?? 'CO1'))->count();
+            if ($submittedCount === 0 && $stAssg->count() > 0) {
+                $submittedCount = $stAssg->unique(fn($r) => $r->subject_code . '_' . ($r->co_tag ?? 'CO1'))->count();
+            }
+            $pendingCount = max(0, $distinctTasksCount - $submittedCount);
 
             $subjectMarksData = [];
             $studentGrandTotalMarks = 0.0;
+            $studentSubjectsWithMarksCount = 0;
             $hasAnySeriesMark = false;
-            $studentTotalAttended = 0;
-            $studentTotalConducted = 0;
 
             foreach ($subjects as $subj) {
                 $subjId = $subj->id;
                 $sCode = $subj->subject_code;
 
-                // --- Calculate Attendance for this subject ---
-                $sLogs = $classLogsBySubject->get($subjId, collect());
-                $stSubjAttRecords = $stStudAtt->where('subject_code', $sCode);
+                $s1_100 = null;
+                $s2_100 = null;
 
-                $isPractical = stripos($subj->subject_type ?? '', 'pract') !== false || stripos($subj->subject_type ?? '', 'lab') !== false;
-
-                // Resolve student's lab batch (1 or 2)
-                $labBatch = null;
-                $sBatches = $assignedLabBatches->get($subjId, collect())->keyBy('reg_no');
-                if ($sBatches->has($regNo)) {
-                    $labBatch = (string)$sBatches->get($regNo)->lab_batch;
-                } elseif (!empty($subj->lab_batch_cutoff) && $stud->roll_no !== null) {
-                    $labBatch = ((int)$stud->roll_no <= (int)$subj->lab_batch_cutoff) ? '1' : '2';
-                } else {
-                    $labBatch = '1';
-                }
-
-                $conducted = 0;
-                $attended = 0;
-
-                if ($sLogs->isNotEmpty()) {
-                    $slots1 = [];
-                    $slots2 = [];
-                    $slotsWhole = [];
-                    $studentSlots = [];
-
-                    foreach ($sLogs as $log) {
-                        $slotKey = $log->date . '_P' . $log->period;
-                        $sb = (string)($log->sub_batch ?? 'Whole');
-                        if ($sb === '1' || $sb === 1) {
-                            $slots1[$slotKey] = true;
-                        } elseif ($sb === '2' || $sb === 2) {
-                            $slots2[$slotKey] = true;
-                        } else {
-                            $slotsWhole[$slotKey] = true;
+                // 1. Check Rev 2026 English Evaluations (r26_english_evaluations - max 50)
+                if ($r26EnglishEvals->has($subjId) && $r26EnglishEvals->get($subjId)->isNotEmpty()) {
+                    $ee = $r26EnglishEvals->get($subjId)->where('reg_no', $regNo)->first();
+                    if ($ee) {
+                        if ($ee->series1_50 !== null) {
+                            $s1_100 = min(100.0, max(0.0, round(((float)$ee->series1_50 / 50.0) * 100.0, 1)));
                         }
-
-                        $pArr = json_decode($log->present_students ?? '[]', true) ?: [];
-                        if (in_array($regNo, $pArr)) {
-                            $studentSlots[$slotKey] = true;
+                        if ($ee->series2_50 !== null) {
+                            $s2_100 = min(100.0, max(0.0, round(((float)$ee->series2_50 / 50.0) * 100.0, 1)));
                         }
                     }
-
-                    if ($isPractical) {
-                        $b1Count = count($slots1) + count($slotsWhole);
-                        $b2Count = count($slots2) + count($slotsWhole);
-                        $conducted = ($labBatch === '2') ? ($b2Count ?: $sLogs->count()) : ($b1Count ?: $sLogs->count());
-                    } else {
-                        $conducted = (count($slots1) + count($slots2) + count($slotsWhole)) ?: $sLogs->count();
-                    }
-                    $attended = min($conducted, count($studentSlots));
-                } elseif ($stSubjAttRecords->isNotEmpty()) {
-                    $conducted = $stSubjAttRecords->count();
-                    $attended = $stSubjAttRecords->whereIn('status', ['Present', 'Late'])->count();
                 }
 
-                // Authoritative attendance percentage:
-                // Teams uploaded attendance in student_attendance is purely official for attendance percentage & CIA
-                if ($stSubjAttRecords->isNotEmpty()) {
-                    if ($isPractical && !empty($labBatch)) {
-                        $stSubjAttRecordsFiltered = $stSubjAttRecords->filter(function($att) use ($labBatch) {
-                            $sb = (string)($att->sub_batch ?? 'Whole');
-                            if ($sb === $labBatch || $sb === 'Whole') return true;
-                            return in_array($att->status, ['Present', 'Late']);
-                        });
-                        if ($stSubjAttRecordsFiltered->isNotEmpty()) {
-                            $stSubjAttRecords = $stSubjAttRecordsFiltered;
+                // 2. Check Rev 2026 Theory Evaluations (r26_theory_evaluations - max 50)
+                if ($s1_100 === null && $r26TheoryEvals->has($subjId)) {
+                    $te = $r26TheoryEvals->get($subjId)->where('reg_no', $regNo)->first();
+                    if ($te) {
+                        $rawS1 = null;
+                        if ($te->series_1_50 !== null) {
+                            $rawS1 = (float)$te->series_1_50;
+                        } elseif ($te->series_1_co1_25 !== null || $te->series_1_co2_25 !== null) {
+                            $rawS1 = (float)($te->series_1_co1_25 ?? 0) + (float)($te->series_1_co2_25 ?? 0);
                         }
-                    }
-                    $offTot = $stSubjAttRecords->count();
-                    $offPres = $stSubjAttRecords->whereIn('status', ['Present', 'Late'])->count();
-                    $subjAttPct = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 100.0;
-                    if ($conducted == 0) {
-                        $conducted = $offTot;
-                        $attended = $offPres;
-                    }
-                } else {
-                    $subjAttPct = $conducted > 0 ? round(($attended / $conducted) * 100, 1) : 100.0;
-                }
+                        if ($rawS1 !== null) {
+                            $s1_100 = min(100.0, max(0.0, round(($rawS1 / 50.0) * 100.0, 1)));
+                        }
 
-                $studentTotalConducted += $conducted;
-                $studentTotalAttended += $attended;
-
-                // --- Resolve Series Exam Marks for CO1, CO2, CO3, CO4 ---
-                $coMarks = [
-                    'CO1' => null,
-                    'CO2' => null,
-                    'CO3' => null,
-                    'CO4' => null
-                ];
-
-                // Check academic_marks
-                $stAcademic = $academicMarks->where('reg_no', $regNo)->filter(function($m) use ($subjId, $sCode) {
-                    return (isset($m->batch_subject_id) && $m->batch_subject_id == $subjId) || ($m->subject_code == $sCode);
-                });
-
-                foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                    // Priority 1: Category Written Test / Series Test / Summative
-                    $m = $stAcademic->where('co_tag', $co)
-                        ->whereIn('category', ['Written Test', 'Series Test', 'Summative', 'Series Exam', 'Test', 'Internal Assessment'])
-                        ->first();
-
-                    if (!$m) {
-                        // Fallback: any category for this CO
-                        $m = $stAcademic->where('co_tag', $co)->first();
-                    }
-
-                    if ($m && is_numeric($m->marks_obtained)) {
-                        $coMarks[$co] = (float)$m->marks_obtained;
-                        $hasAnySeriesMark = true;
-                    }
-                }
-
-                // Check practical_test_marks if practical subject and CO marks still missing
-                $stPractical = $practicalMarks->where('reg_no', $regNo)->where('batch_subject_id', $subjId);
-                if ($stPractical->isNotEmpty()) {
-                    foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $co) {
-                        if ($coMarks[$co] === null) {
-                            $pm = $stPractical->where('co_tag', $co)->first();
-                            if ($pm && is_numeric($pm->marks_obtained)) {
-                                $coMarks[$co] = (float)$pm->marks_obtained;
-                                $hasAnySeriesMark = true;
+                        if ($subjMeta[$subjId]['theory_s2_conducted'] ?? false) {
+                            $rawS2 = null;
+                            if ($te->series_2_50 !== null) {
+                                $rawS2 = (float)$te->series_2_50;
+                            } elseif ($te->series_2_co3_25 !== null || $te->series_2_co4_25 !== null) {
+                                $rawS2 = (float)($te->series_2_co3_25 ?? 0) + (float)($te->series_2_co4_25 ?? 0);
+                            }
+                            if ($rawS2 !== null) {
+                                $s2_100 = min(100.0, max(0.0, round(($rawS2 / 50.0) * 100.0, 1)));
                             }
                         }
                     }
                 }
 
-                // Check drawing tests if drawing subject
-                $stDraw = $drawingTests->where('reg_no', $regNo)->where('batch_subject_id', $subjId);
-                if ($stDraw->isNotEmpty()) {
-                    $t1 = $stDraw->where('test_no', 'Test 1')->first();
-                    $t2 = $stDraw->where('test_no', 'Test 2')->first();
-                    if ($t1 && is_numeric($t1->total_score_100)) {
-                        if ($coMarks['CO1'] === null) $coMarks['CO1'] = round($t1->total_score_100 / 2, 1);
-                        if ($coMarks['CO2'] === null) $coMarks['CO2'] = round($t1->total_score_100 / 2, 1);
-                        $hasAnySeriesMark = true;
-                    }
-                    if ($t2 && is_numeric($t2->total_score_100)) {
-                        if ($coMarks['CO3'] === null) $coMarks['CO3'] = round($t2->total_score_100 / 2, 1);
-                        if ($coMarks['CO4'] === null) $coMarks['CO4'] = round($t2->total_score_100 / 2, 1);
-                        $hasAnySeriesMark = true;
+                // 3. Check Rev 2026 Practicum Theory + Practical Evaluations
+                $thS1_100 = null;
+                $thS2_100 = null;
+                $prS1_100 = null;
+                $prS2_100 = null;
+
+                if ($s1_100 === null && $r26PracticumTheoryEvals->has($subjId)) {
+                    $pstList = $r26PracticumTheoryEvals->get($subjId)->where('reg_no', $regNo);
+                    if ($pstList->isNotEmpty()) {
+                        $pMode = $subjMeta[$subjId]['practicum_theory_mode'] ?? 'TWO_PART_SERIES';
+                        if ($pMode === 'TWO_PART_SERIES') {
+                            // Revision 2026 Practicum: Series 1 = CO1 (max 25) + CO2 (max 25) -> Total max 50
+                            $co1 = $pstList->whereIn('series_no', ['Series 1', 'CO1'])->first();
+                            $co2 = $pstList->whereIn('series_no', ['Series 2', 'CO2'])->first();
+                            if ($co1 || $co2) {
+                                $totS1 = ($co1 ? (float)$co1->total_score_50 : 0.0) + ($co2 ? (float)$co2->total_score_50 : 0.0);
+                                $thS1_100 = min(100.0, max(0.0, round(($totS1 / 50.0) * 100.0, 1)));
+                            }
+
+                            // Series 2 = CO3 (max 25) + CO4 (max 25) -> Total max 50 (only if conducted)
+                            if ($subjMeta[$subjId]['practicum_s2_conducted'] ?? false) {
+                                $co3 = $pstList->whereIn('series_no', ['Series 3', 'CO3'])->first();
+                                $co4 = $pstList->whereIn('series_no', ['Series 4', 'CO4'])->first();
+                                if ($co3 || $co4) {
+                                    $totS2 = ($co3 ? (float)$co3->total_score_50 : 0.0) + ($co4 ? (float)$co4->total_score_50 : 0.0);
+                                    $thS2_100 = min(100.0, max(0.0, round(($totS2 / 50.0) * 100.0, 1)));
+                                }
+                            }
+                        } else {
+                            // Standard single 50M series exam per session
+                            $pS1 = $pstList->where('series_no', 'Series 1')->first();
+                            if ($pS1 && $pS1->total_score_50 !== null) {
+                                $thS1_100 = min(100.0, max(0.0, round(((float)$pS1->total_score_50 / 50.0) * 100.0, 1)));
+                            }
+                            if ($subjMeta[$subjId]['practicum_s2_conducted'] ?? false) {
+                                $pS2 = $pstList->where('series_no', 'Series 2')->first();
+                                if ($pS2 && $pS2->total_score_50 !== null) {
+                                    $thS2_100 = min(100.0, max(0.0, round(((float)$pS2->total_score_50 / 50.0) * 100.0, 1)));
+                                }
+                            }
+                        }
                     }
                 }
 
-                // Subject Total Series Marks
-                $subjValidScores = array_filter($coMarks, fn($v) => $v !== null);
-                $subjTotal = !empty($subjValidScores) ? array_sum($subjValidScores) : null;
-                if ($subjTotal !== null) {
-                    $studentGrandTotalMarks += $subjTotal;
+                if ($s1_100 === null && $r26PracticumPracticalEvals->has($subjId)) {
+                    $pspList = $r26PracticumPracticalEvals->get($subjId)->where('reg_no', $regNo);
+                    if ($pspList->isNotEmpty()) {
+                        $pr1 = $pspList->whereIn('series_no', ['Series 1', 'Test 1', 'CA2', 'Test 1 (CO1+CO2)', 'CO1', 'CO2'])->first();
+                        if ($pr1 && $pr1->total_score_40 !== null) {
+                            $prS1_100 = min(100.0, max(0.0, round(((float)$pr1->total_score_40 / 40.0) * 100.0, 1)));
+                        }
+
+                        if ($subjMeta[$subjId]['practical_s2_conducted'] ?? false) {
+                            $pr2 = $pspList->whereIn('series_no', ['Series 2', 'Test 2', 'CA3', 'Test 2 (CO3+CO4)', 'CO3', 'CO4'])->first();
+                            if ($pr2 && $pr2->total_score_40 !== null) {
+                                $prS2_100 = min(100.0, max(0.0, round(((float)$pr2->total_score_40 / 40.0) * 100.0, 1)));
+                            }
+                        }
+                    }
+                }
+
+                if ($thS1_100 !== null || $prS1_100 !== null) {
+                    $s1_100 = ($thS1_100 !== null && $prS1_100 !== null) ? round(($thS1_100 + $prS1_100) / 2.0, 1) : ($thS1_100 !== null ? $thS1_100 : $prS1_100);
+                }
+                if ($thS2_100 !== null || $prS2_100 !== null) {
+                    $s2_100 = ($thS2_100 !== null && $prS2_100 !== null) ? round(($thS2_100 + $prS2_100) / 2.0, 1) : ($thS2_100 !== null ? $thS2_100 : $prS2_100);
+                }
+
+                // 4. Check Rev 2026 Practical Standalone Evaluations (r26_practical_series_evaluations - max 40)
+                if ($s1_100 === null && $r26PracticalSeriesEvals->has($subjId)) {
+                    $pseList = $r26PracticalSeriesEvals->get($subjId)->where('reg_no', $regNo);
+                    if ($pseList->isNotEmpty()) {
+                        $ps1 = $pseList->whereIn('series_no', ['Series 1', 'Test 1', '1'])->first();
+                        if ($ps1 && $ps1->total_score_40 !== null) {
+                            $s1_100 = min(100.0, max(0.0, round(((float)$ps1->total_score_40 / 40.0) * 100.0, 1)));
+                        }
+                        if ($subjMeta[$subjId]['practical_s2_conducted'] ?? false) {
+                            $ps2 = $pseList->whereIn('series_no', ['Series 2', 'Test 2', '2'])->first();
+                            if ($ps2 && $ps2->total_score_40 !== null) {
+                                $s2_100 = min(100.0, max(0.0, round(((float)$ps2->total_score_40 / 40.0) * 100.0, 1)));
+                            }
+                        }
+                    }
+                }
+
+                // 5. Check Rev 2026 Drawing Evaluations (r26_drawing_evaluations - max 40)
+                if ($s1_100 === null && $r26DrawingEvals->has($subjId)) {
+                    $de = $r26DrawingEvals->get($subjId)->where('reg_no', $regNo)->first();
+                    if ($de) {
+                        $rawS1 = null;
+                        if ($de->series_1_40 !== null) {
+                            $rawS1 = (float)$de->series_1_40;
+                        } elseif ($de->series_1_co1_20 !== null || $de->series_1_co2_20 !== null) {
+                            $rawS1 = (float)($de->series_1_co1_20 ?? 0) + (float)($de->series_1_co2_20 ?? 0);
+                        }
+                        if ($rawS1 !== null) {
+                            $s1_100 = min(100.0, max(0.0, round(($rawS1 / 40.0) * 100.0, 1)));
+                        }
+
+                        if ($subjMeta[$subjId]['drawing_s2_conducted'] ?? false) {
+                            $rawS2 = null;
+                            if ($de->series_2_40 !== null) {
+                                $rawS2 = (float)$de->series_2_40;
+                            } elseif ($de->series_2_co3_20 !== null || $de->series_2_co4_20 !== null) {
+                                $rawS2 = (float)($de->series_2_co3_20 ?? 0) + (float)($de->series_2_co4_20 ?? 0);
+                            }
+                            if ($rawS2 !== null) {
+                                $s2_100 = min(100.0, max(0.0, round(($rawS2 / 40.0) * 100.0, 1)));
+                            }
+                        }
+                    }
+                }
+
+                // 6. Check Rev 2021 Drawing Tests (r21_drawing_series_tests - max 100)
+                if ($s1_100 === null && $drawingTests->isNotEmpty()) {
+                    $stDraw = $drawingTests->where('reg_no', $regNo)->where('batch_subject_id', $subjId);
+                    if ($stDraw->isNotEmpty()) {
+                        $t1 = $stDraw->where('test_no', 'Test 1')->first();
+                        if ($t1 && is_numeric($t1->total_score_100)) {
+                            $s1_100 = min(100.0, max(0.0, round((float)$t1->total_score_100, 1)));
+                        }
+                        $t2 = $stDraw->where('test_no', 'Test 2')->first();
+                        if ($t2 && is_numeric($t2->total_score_100)) {
+                            $s2_100 = min(100.0, max(0.0, round((float)$t2->total_score_100, 1)));
+                        }
+                    }
+                }
+
+                // 7. Check academic_marks (Theory, Series Exam 1 & 2 - max 50)
+                if (($s1_100 === null || $s2_100 === null) && $academicMarks->isNotEmpty()) {
+                    $stAcademic = $academicMarks->where('reg_no', $regNo)->filter(function($m) use ($subjId, $sCode) {
+                        return (isset($m->batch_subject_id) && $m->batch_subject_id == $subjId) || ($m->subject_code == $sCode);
+                    });
+
+                    if ($s1_100 === null) {
+                        $s1Rows = $stAcademic->filter(function($row) {
+                            $cat = $row->category ?? '';
+                            if (stripos($cat, 'Self') !== false || stripos($cat, 'Assignment') !== false || stripos($cat, 'Mcq') !== false) return false;
+                            return (stripos($cat, 'Series 1') !== false || stripos($cat, 'Series Exam 1') !== false || str_contains($row->co_tag ?? '', 'CO1,CO2') || in_array($row->co_tag ?? '', ['CO1', 'CO2']));
+                        });
+                        if ($s1Rows->isNotEmpty()) {
+                            $comb = $s1Rows->whereIn('co_tag', ['CO1,CO2', 'All', ''])->first();
+                            if ($comb && is_numeric($comb->marks_obtained)) {
+                                $maxM = (float)($comb->max_marks ?: 50);
+                                $s1_100 = min(100.0, max(0.0, round(((float)$comb->marks_obtained / $maxM) * 100.0, 1)));
+                            } else {
+                                $c1 = $s1Rows->where('co_tag', 'CO1')->first();
+                                $c2 = $s1Rows->where('co_tag', 'CO2')->first();
+                                if ($c1 || $c2) {
+                                    $tot = (float)($c1->marks_obtained ?? 0) + (float)($c2->marks_obtained ?? 0);
+                                    $maxM = ((float)($c1->max_marks ?? 25)) + ((float)($c2->max_marks ?? 25)) ?: 50;
+                                    $s1_100 = min(100.0, max(0.0, round(($tot / $maxM) * 100.0, 1)));
+                                }
+                            }
+                        }
+                    }
+
+                    if ($s2_100 === null && ($subjMeta[$subjId]['academic_s2_conducted'] ?? false)) {
+                        $s2Rows = $stAcademic->filter(function($row) {
+                            $cat = $row->category ?? '';
+                            if (stripos($cat, 'Self') !== false || stripos($cat, 'Assignment') !== false || stripos($cat, 'Mcq') !== false) return false;
+                            return (stripos($cat, 'Series 2') !== false || stripos($cat, 'Series Exam 2') !== false || str_contains($row->co_tag ?? '', 'CO3,CO4') || in_array($row->co_tag ?? '', ['CO3', 'CO4']));
+                        });
+                        if ($s2Rows->isNotEmpty()) {
+                            $comb = $s2Rows->whereIn('co_tag', ['CO3,CO4', 'All', ''])->first();
+                            if ($comb && is_numeric($comb->marks_obtained)) {
+                                $maxM = (float)($comb->max_marks ?: 50);
+                                $s2_100 = min(100.0, max(0.0, round(((float)$comb->marks_obtained / $maxM) * 100.0, 1)));
+                            } else {
+                                $c3 = $s2Rows->where('co_tag', 'CO3')->first();
+                                $c4 = $s2Rows->where('co_tag', 'CO4')->first();
+                                if ($c3 || $c4) {
+                                    $tot = (float)($c3->marks_obtained ?? 0) + (float)($c4->marks_obtained ?? 0);
+                                    $maxM = ((float)($c3->max_marks ?? 25)) + ((float)($c4->max_marks ?? 25)) ?: 50;
+                                    $s2_100 = min(100.0, max(0.0, round(($tot / $maxM) * 100.0, 1)));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 8. Practical Test Marks (Fallback for R21 Practical - max 40)
+                if (($s1_100 === null || $s2_100 === null) && $practicalMarks->isNotEmpty()) {
+                    $stPrac = $practicalMarks->where('reg_no', $regNo)->where('batch_subject_id', $subjId);
+                    if ($stPrac->isNotEmpty()) {
+                        if ($s1_100 === null) {
+                            $p1 = $stPrac->whereIn('co_tag', ['Test 1', 'CO1', 'CO2'])->first();
+                            if ($p1 && is_numeric($p1->marks_obtained)) {
+                                $s1_100 = min(100.0, max(0.0, round(((float)$p1->marks_obtained / 40.0) * 100.0, 1)));
+                            }
+                        }
+                        if ($s2_100 === null) {
+                            $p2 = $stPrac->whereIn('co_tag', ['Test 2', 'CO3', 'CO4'])->first();
+                            if ($p2 && is_numeric($p2->marks_obtained)) {
+                                $s2_100 = min(100.0, max(0.0, round(((float)$p2->marks_obtained / 40.0) * 100.0, 1)));
+                            }
+                        }
+                    }
+                }
+
+                // Apply Redefined Series Rule:
+                // If series 1 is only available, show that only as total.
+                // If 1 and 2 are both available, take total and average as total.
+                $subjSeriesMark = null;
+                if ($s1_100 !== null && $s2_100 !== null) {
+                    $subjSeriesMark = round(($s1_100 + $s2_100) / 2.0, 1);
+                } elseif ($s1_100 !== null) {
+                    $subjSeriesMark = $s1_100;
+                } elseif ($s2_100 !== null) {
+                    $subjSeriesMark = $s2_100;
+                }
+
+                if ($subjSeriesMark !== null) {
+                    $studentGrandTotalMarks += $subjSeriesMark;
+                    $studentSubjectsWithMarksCount++;
+                    $hasAnySeriesMark = true;
                 }
 
                 $subjectMarksData[$subjId] = [
@@ -403,34 +761,18 @@ class TutorController extends Controller
                     'subject_code' => $sCode,
                     'subject_name' => $subj->subject_name,
                     'subject_type' => $subj->subject_type,
-                    'co_marks'     => $coMarks,
-                    'subject_total'=> $subjTotal !== null ? round($subjTotal, 1) : null,
-                    'attendance'   => [
-                        'attended'   => $attended,
-                        'conducted'  => $conducted,
-                        'percentage' => $subjAttPct
+                    'series_1'     => $s1_100 !== null ? round($s1_100, 1) : null,
+                    'series_2'     => $s2_100 !== null ? round($s2_100, 1) : null,
+                    'subject_total'=> $subjSeriesMark !== null ? round($subjSeriesMark, 1) : null,
+                    'has_s1'       => $s1_100 !== null,
+                    'has_s2'       => $s2_100 !== null,
+                    'co_marks'     => [
+                        'CO1' => $s1_100 !== null ? round($s1_100 / 2, 1) : null,
+                        'CO2' => $s1_100 !== null ? round($s1_100 / 2, 1) : null,
+                        'CO3' => $s2_100 !== null ? round($s2_100 / 2, 1) : null,
+                        'CO4' => $s2_100 !== null ? round($s2_100 / 2, 1) : null,
                     ]
                 ];
-            }
-
-            // Total Attendance %
-            $overallAttPct = $studentTotalConducted > 0 
-                ? round(($studentTotalAttended / $studentTotalConducted) * 100, 1) 
-                : 100.0;
-
-            $totalConductedClasswide += $studentTotalConducted;
-            $totalAttendedClasswide += $studentTotalAttended;
-
-            // Attendance eligibility status (SBTE Kerala Clause 10)
-            if ($overallAttPct >= 75.0) {
-                $status = 'Eligible';
-                $statusBadge = 'status-eligible';
-            } elseif ($overallAttPct >= 65.0) {
-                $status = 'Condonation';
-                $statusBadge = 'status-condonation';
-            } else {
-                $status = 'Detained';
-                $statusBadge = 'status-detained';
             }
 
             $studentsData[] = [
@@ -442,11 +784,19 @@ class TutorController extends Controller
                 'guardian_mobile'     => $stud->guardian_mobile,
                 'has_marks'           => $hasAnySeriesMark,
                 'grand_total_marks'   => round($studentGrandTotalMarks, 1),
+                'average_series_pct'  => $studentSubjectsWithMarksCount > 0 ? round($studentGrandTotalMarks / $studentSubjectsWithMarksCount, 1) : null,
                 'total_attended'      => $studentTotalAttended,
                 'total_conducted'     => $studentTotalConducted,
                 'overall_attendance'  => $overallAttPct,
                 'status'              => $status,
                 'status_badge'        => $statusBadge,
+                'activity_points'     => $cumulatedActivityPoints,
+                'activity_goal'       => $activityGoal,
+                'assignments'         => [
+                    'total'     => $distinctTasksCount,
+                    'submitted' => $submittedCount,
+                    'pending'   => $pendingCount
+                ],
                 'subjects'            => $subjectMarksData,
                 'class_rank'          => null, // Computed below
             ];
@@ -538,8 +888,8 @@ class TutorController extends Controller
                 'branch_code'   => $branchCode,
                 'branch_name'   => $branchName,
                 'semester'      => $semester,
-                'revision'      => 'REV2021',
-                'scheme_name'   => 'Revision 2021 (Diploma Engineering)',
+                'revision'      => $revision,
+                'scheme_name'   => $schemeName,
                 'tutor_name'    => $tutorProfile->name ?? 'Class Tutor',
                 'tutor_mobile'  => $classroom->tutor_mobile_no ?? '',
                 'date'          => date('d-m-Y')

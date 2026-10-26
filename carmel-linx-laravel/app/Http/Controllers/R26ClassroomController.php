@@ -578,10 +578,10 @@ class R26ClassroomController extends Controller
                 ['batch_subject_id' => $subjectId],
                 [
                     'syllabus_pdf_path' => $path,
-                    'parsed_cos' => json_encode($cos),
-                    'parsed_modules' => json_encode($modules),
-                    'parsed_copo' => json_encode($packedCopo),
-                    'parsed_textbooks' => json_encode(['Textbook Reference 1', 'Textbook Reference 2'])
+                    'parsed_cos' => $cos,
+                    'parsed_modules' => $modules,
+                    'parsed_copo' => $packedCopo,
+                    'parsed_textbooks' => ['Textbook Reference 1', 'Textbook Reference 2']
                 ]
             );
 

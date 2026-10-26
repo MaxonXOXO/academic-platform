@@ -152,7 +152,7 @@ class R26VirtualClassroomPracticalController extends Controller
     {
         $subjectId = $batchSubject->id;
         $pcf     = R26PracticalCourseFile::where('batch_subject_id', $subjectId)->first();
-        $copo    = $pcf ? json_decode($pcf->parsed_copo, true) : [];
+        $copo    = ($pcf && !empty($pcf->parsed_copo)) ? (is_array($pcf->parsed_copo) ? $pcf->parsed_copo : (json_decode($pcf->parsed_copo, true) ?: [])) : [];
         $mappings = $copo['mappings'] ?? [];
 
         $cf = CourseFile::where('batch_subject_id', $subjectId)->first();
@@ -415,9 +415,12 @@ class R26VirtualClassroomPracticalController extends Controller
             // 1. Store file in dedicated R26 practical folder (never r26_syllabi which is shared)
             $file = $request->file('syllabus_file');
             $storedPath = $file->store('r26_practical_syllabi', 'public');
+            if (!$storedPath) {
+                throw new \Exception('Failed to store syllabus PDF.');
+            }
             $fullPath = storage_path('app/public/' . $storedPath);
 
-            // 2. Run Python parser (same parser used by R26 Theory — it extracts COs, CO-PO, credits)
+            // 2. Run Python parser (extracts metadata, COs, CO-PO, modules, and experiments)
             $pyPath = base_path('app/Services/r26_syllabus_parser.py');
             $pythonBin = file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3';
             $sitePkg = '/home/carmel/.local/lib/python3.14/site-packages';
@@ -425,47 +428,41 @@ class R26VirtualClassroomPracticalController extends Controller
             $jsonOutput = shell_exec($command);
             $parsedResult = json_decode($jsonOutput, true);
 
-            // Default values
-            $courseTitle    = $batchSubject->subject_name;
-            $courseCode     = $batchSubject->subject_code;
-            $credits        = 1;
-            $teachingScheme = '0:0:2:0';
-            $cieMks         = 60;
-            $eseMks         = 40;
-            $totalHours     = 30;
-            $cosArray       = [];
-            $copoMatrix     = [];
-
-            if (!empty($parsedResult) && $parsedResult['status'] === 'SUCCESS') {
-                $d = $parsedResult['data'];
-                if (!empty($d['course_title']))   $courseTitle    = $d['course_title'];
-                if (!empty($d['course_code']))     $courseCode     = $d['course_code'];
-                if (!empty($d['credits']))         $credits        = (int)$d['credits'];
-                if (!empty($d['teaching_scheme'])) $teachingScheme = $d['teaching_scheme'];
-                if (!empty($d['cie_marks']))       $cieMks         = (int)$d['cie_marks'];
-                if (!empty($d['ese_marks']))       $eseMks         = (int)$d['ese_marks'];
-                if (!empty($d['total_hours']))     $totalHours     = (int)$d['total_hours'];
-                if (!empty($d['cos']))             $cosArray       = $d['cos'];
-                if (!empty($d['copo_matrix']))     $copoMatrix     = $d['copo_matrix'];
+            if (!$parsedResult || ($parsedResult['status'] ?? '') !== 'SUCCESS') {
+                throw new \Exception($parsedResult['message'] ?? 'Failed to parse syllabus PDF.');
             }
 
-            // 3. Extract full PDF text for experiment parsing (using inline python dump)
-            $dumpPy = storage_path('app/scratch_r26_dump.py');
-            file_put_contents($dumpPy,
-                "import pypdf, sys\n" .
-                "sys.stdout.reconfigure(encoding='utf-8')\n" .
-                "r = pypdf.PdfReader(sys.argv[1])\n" .
-                "print(''.join([p.extract_text() for p in r.pages]))\n"
-            );
-            $cmdDump = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($dumpPy) . " " . escapeshellarg($fullPath) . " 2>&1";
-            $pdfText = shell_exec($cmdDump);
-            @unlink($dumpPy);
+            $d = $parsedResult['data'];
+            $courseTitle    = !empty($d['course_title']) ? $d['course_title'] : $batchSubject->subject_name;
+            $courseCode     = !empty($d['course_code']) ? $d['course_code'] : $batchSubject->subject_code;
+            $credits        = !empty($d['credits']) ? (int)$d['credits'] : 1;
+            $teachingScheme = !empty($d['teaching_scheme']) ? $d['teaching_scheme'] : '0:0:2:0';
+            $cieMks         = !empty($d['cie_marks']) ? (int)$d['cie_marks'] : 60;
+            $eseMks         = !empty($d['ese_marks']) ? (int)$d['ese_marks'] : 40;
+            $totalHours     = !empty($d['total_hours']) ? (int)$d['total_hours'] : 30;
+            $cosArray       = !empty($d['cos']) ? $d['cos'] : [];
+            $copoMatrix     = !empty($d['copo_matrix']) ? $d['copo_matrix'] : [];
+            $modulesArray   = !empty($d['modules']) ? $d['modules'] : [];
+            $experiments    = !empty($d['experiments']) ? $d['experiments'] : [];
 
-            // 4. Parse experiments from "Detailed Syllabus" section
-            $experiments = $this->parseExperimentsFromText((string)$pdfText);
+            // Fallback for experiments if python parser returned empty
+            if (empty($experiments)) {
+                $dumpPy = storage_path('app/scratch_r26_dump.py');
+                file_put_contents($dumpPy,
+                    "import pypdf, sys\n" .
+                    "sys.stdout.reconfigure(encoding='utf-8')\n" .
+                    "r = pypdf.PdfReader(sys.argv[1])\n" .
+                    "print(''.join([p.extract_text() for p in r.pages]))\n"
+                );
+                $cmdDump = "PYTHONIOENCODING=utf-8 PYTHONPATH={$sitePkg}:\$PYTHONPATH {$pythonBin} " . escapeshellarg($dumpPy) . " " . escapeshellarg($fullPath) . " 2>&1";
+                $pdfText = shell_exec($cmdDump);
+                @unlink($dumpPy);
+                $experiments = $this->parseExperimentsFromText((string)$pdfText);
+            }
 
             // 5. Build CO-PO payload (includes scheme info alongside the mapping)
             $copoPayload = [
+                'credit'         => $credits,
                 'credits'        => $credits,
                 'l_t_p_r'        => $teachingScheme,
                 'cie_marks'      => $cieMks,
@@ -487,6 +484,7 @@ class R26VirtualClassroomPracticalController extends Controller
                     'ese_marks'           => $eseMks,
                     'total_hours'         => $totalHours,
                     'parsed_cos'          => json_encode($cosArray),
+                    'parsed_modules'      => json_encode($modulesArray),
                     'parsed_copo'         => json_encode($copoPayload),
                     'parsed_experiments'  => json_encode($experiments),
                     'manual_experiments'  => null, // reset manual on re-upload
@@ -496,7 +494,7 @@ class R26VirtualClassroomPracticalController extends Controller
 
             return response()->json([
                 'status'       => 'SUCCESS',
-                'message'      => 'Syllabus uploaded & parsed! Found ' . count($cosArray) . ' COs and ' . count($experiments) . ' experiments.',
+                'message'      => 'Syllabus uploaded & parsed! Found ' . count($cosArray) . ' COs, ' . count($modulesArray) . ' modules, and ' . count($experiments) . ' experiments.',
                 'reload'       => true,
             ]);
 
@@ -597,7 +595,7 @@ class R26VirtualClassroomPracticalController extends Controller
         if (!$pcf) return response()->json(['success' => false, 'message' => 'Upload syllabus first.']);
 
         $mappings = $request->input('mappings', []);
-        $copo = json_decode($pcf->parsed_copo, true) ?: [];
+        $copo = (!empty($pcf->parsed_copo)) ? (is_array($pcf->parsed_copo) ? $pcf->parsed_copo : (json_decode($pcf->parsed_copo, true) ?: [])) : [];
         $copo['mappings'] = $mappings;
         $pcf->parsed_copo = json_encode($copo);
         $pcf->save();
@@ -1237,7 +1235,7 @@ class R26VirtualClassroomPracticalController extends Controller
 
         if ($type === 'attainment') {
             $pcf     = R26PracticalCourseFile::where('batch_subject_id', $subjectId)->first();
-            $copo    = $pcf ? json_decode($pcf->parsed_copo, true) : [];
+            $copo    = ($pcf && !empty($pcf->parsed_copo)) ? (is_array($pcf->parsed_copo) ? $pcf->parsed_copo : (json_decode($pcf->parsed_copo, true) ?: [])) : [];
             $mappings = $copo['mappings'] ?? [];
 
             $cf = CourseFile::where('batch_subject_id', $subjectId)->first();

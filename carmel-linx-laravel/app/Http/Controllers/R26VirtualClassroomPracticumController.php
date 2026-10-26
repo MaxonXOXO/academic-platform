@@ -325,36 +325,47 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // 2. Self-Learning Marks (Max 5 CIA Marks)
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
-            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
-            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
-            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
-            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+            
+            $resolveSlMark = function($coTag) use ($stSlMarks) {
+                // Priority 1: Direct module entry
+                $direct = $stSlMarks->firstWhere('category', "Self Study: {$coTag}");
+                if ($direct && $direct->marks_obtained !== null) {
+                    return (float)$direct->marks_obtained;
+                }
+                // Priority 2: Activities under this CO
+                $coActs = $stSlMarks->where('co_tag', $coTag);
+                $nonZero = $coActs->where('marks_obtained', '>', 0);
+                if ($nonZero->count() > 0) {
+                    return (float)$nonZero->avg('marks_obtained');
+                }
+                return null;
+            };
 
-            $valM1 = $m1Rec ? (float)$m1Rec->marks_obtained : null;
-            $valM2 = $m2Rec ? (float)$m2Rec->marks_obtained : null;
-            $valM3 = $m3Rec ? (float)$m3Rec->marks_obtained : null;
-            $valM4 = $m4Rec ? (float)$m4Rec->marks_obtained : null;
+            $valM1 = $resolveSlMark('CO1');
+            $valM2 = $resolveSlMark('CO2');
+            $valM3 = $resolveSlMark('CO3');
+            $valM4 = $resolveSlMark('CO4');
 
-            $caEntered = [];
-            if ($valM1 !== null) $caEntered[] = $valM1;
-            if ($valM2 !== null) $caEntered[] = $valM2;
-            if ($valM3 !== null) $caEntered[] = $valM3;
-            if ($valM4 !== null) $caEntered[] = $valM4;
+            $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
 
             if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / 4.0;
-                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $rawAvg10 = array_sum($caEntered) / count($caEntered);
+                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
                 $slScoreRaw10 = $rawAvg10;
+            } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                $rawAvg10 = 0.00;
+                $slMarks = 0.00;
+                $slScoreRaw10 = 0.00;
             } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
                 $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
                 if ($maxPossible <= 0) $maxPossible = 10.0;
-                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
                 $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
                 $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
@@ -374,96 +385,48 @@ class R26VirtualClassroomPracticumController extends Controller
             $continuousEvalMarks = $ceScore50 !== null ? min(10.0, round((($ceScore50Effective / 50.0) * 10.0) * 2) / 2) : 0.00;
 
             // 4. Theory Series Exam Marks (Max 10 CIA Marks)
+            // Series 1 (CO1 [25] + CO2 [25] -> Max 50), Series 2 (CO3 [25] + CO4 [25] -> Max 50)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
-            if ($isBasicScience) {
-                // Basic Science: 4 Modular / CO Tests (CO1, CO2, CO3, CO4 - 25M each)
-                // Series 1 (CA4: CO1 + CO2 - Max 50), Series 2 (CA5: CO3 + CO4 - Max 50)
-                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
-                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
-                $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
-                $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
+            $st1 = $stStEvals->firstWhere('series_no', 'CO1') ?: $stStEvals->firstWhere('series_no', 'Series 1');
+            $st2 = $stStEvals->firstWhere('series_no', 'CO2') ?: $stStEvals->firstWhere('series_no', 'Series 2');
+            $st3 = $stStEvals->firstWhere('series_no', 'CO3') ?: $stStEvals->firstWhere('series_no', 'Series 3');
+            $st4 = $stStEvals->firstWhere('series_no', 'CO4') ?: $stStEvals->firstWhere('series_no', 'Series 4');
 
-                // Check legacy CA4 / CA5 if Series 1/2 were entered directly as combined
-                if (!$st1 && !$st2) {
-                    $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4'])->first();
-                    if ($legacyCa4) {
-                        $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
-                        $co1Score = $half;
-                        $co2Score = $half;
-                    } else {
-                        $co1Score = 0.00;
-                        $co2Score = 0.00;
-                    }
+            if (!$st1 && !$st2) {
+                $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4', 'Series Exam 1', 'Series 1 (CA4)'])->first();
+                if ($legacyCa4) {
+                    $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
+                    $co1Score = $half;
+                    $co2Score = $half;
                 } else {
-                    $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
-                    $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
+                    $co1Score = null;
+                    $co2Score = null;
                 }
-
-                if (!$st3 && !$st4) {
-                    $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5'])->first();
-                    if ($legacyCa5) {
-                        $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
-                        $co3Score = $half;
-                        $co4Score = $half;
-                    } else {
-                        $co3Score = 0.00;
-                        $co4Score = 0.00;
-                    }
-                } else {
-                    $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
-                    $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
-                }
-
-                $series1Total = min(50.0, $co1Score + $co2Score);
-                $series2Total = min(50.0, $co3Score + $co4Score);
-
-                $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
-                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
             } else {
-                // Program Core: 4 CO Tests (CO1, CO2, CO3, CO4 - 25M each)
-                // Series 1 (CA4: CO1 + CO2 - Max 50), Series 2 (CA5: CO3 + CO4 - Max 50)
-                $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
-                $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
-                $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
-                $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
-
-                // Check legacy CA4 / CA5 if Series 1/2 were entered directly as combined
-                if (!$st1 && !$st2) {
-                    $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4'])->first();
-                    if ($legacyCa4) {
-                        $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
-                        $co1Score = $half;
-                        $co2Score = $half;
-                    } else {
-                        $co1Score = 0.00;
-                        $co2Score = 0.00;
-                    }
-                } else {
-                    $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
-                    $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
-                }
-
-                if (!$st3 && !$st4) {
-                    $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5'])->first();
-                    if ($legacyCa5) {
-                        $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
-                        $co3Score = $half;
-                        $co4Score = $half;
-                    } else {
-                        $co3Score = 0.00;
-                        $co4Score = 0.00;
-                    }
-                } else {
-                    $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
-                    $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
-                }
-
-                $series1Total = min(50.0, $co1Score + $co2Score);
-                $series2Total = min(50.0, $co3Score + $co4Score);
-
-                $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
-                $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+                $co1Score = $st1 ? ($st1->is_absent ? 0.0 : (float)$st1->total_score_50) : null;
+                $co2Score = $st2 ? ($st2->is_absent ? 0.0 : (float)$st2->total_score_50) : null;
             }
+
+            if (!$st3 && !$st4) {
+                $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5', 'Series Exam 2', 'Series 2 (CA5)'])->first();
+                if ($legacyCa5) {
+                    $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
+                    $co3Score = $half;
+                    $co4Score = $half;
+                } else {
+                    $co3Score = null;
+                    $co4Score = null;
+                }
+            } else {
+                $co3Score = $st3 ? ($st3->is_absent ? 0.0 : (float)$st3->total_score_50) : null;
+                $co4Score = $st4 ? ($st4->is_absent ? 0.0 : (float)$st4->total_score_50) : null;
+            }
+
+            $series1Total = min(50.0, ($co1Score ?? 0) + ($co2Score ?? 0));
+            $series2Total = min(50.0, ($co3Score ?? 0) + ($co4Score ?? 0));
+
+            $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
+            $seriesTheoryMarks = min(10.0, round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2);
 
             // 5. Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
@@ -510,18 +473,48 @@ class R26VirtualClassroomPracticumController extends Controller
                 $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
                 $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
             } else {
-                $sp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2'])->first();
-                $sp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3'])->first();
-                $sp1Score = $sp1 ? (float)$sp1->total_score_40 : 0.00;
-                $sp2Score = $sp2 ? (float)$sp2->total_score_40 : 0.00;
-                $avgPracticalSeries40 = ($sp1Score + $sp2Score) / 2.0;
-                $seriesPracticalMarks = round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2;
-                $co1PrScore = 0.0;
-                $co2PrScore = 0.0;
-                $co3PrScore = 0.0;
-                $co4PrScore = 0.0;
-                $sp1Total = $sp1Score;
-                $sp2Total = $sp2Score;
+                // Program Core: Modular CO Lab series model (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
+                $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
+                $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
+                $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
+                $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+
+                // Check legacy combined Test 1 / Test 2 if CO1/CO2 were not entered individually
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    if ($legacySp1) {
+                        $half = round(((float)$legacySp1->total_score_40) / 2.0, 1);
+                        $co1PrScore = $half;
+                        $co2PrScore = $half;
+                    } else {
+                        $co1PrScore = 0.00;
+                        $co2PrScore = 0.00;
+                    }
+                } else {
+                    $co1PrScore = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $co2PrScore = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
+
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    if ($legacySp2) {
+                        $half = round(((float)$legacySp2->total_score_40) / 2.0, 1);
+                        $co3PrScore = $half;
+                        $co4PrScore = $half;
+                    } else {
+                        $co3PrScore = 0.00;
+                        $co4PrScore = 0.00;
+                    }
+                } else {
+                    $co3PrScore = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $co4PrScore = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = min(40.0, $co1PrScore + $co2PrScore);
+                $sp2Total = min(40.0, $co3PrScore + $co4PrScore);
+
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
             }
 
             // Consolidated Total CIA Marks (Max 40) - Whole Number
@@ -873,6 +866,9 @@ class R26VirtualClassroomPracticumController extends Controller
         try {
             $file = $request->file('syllabus_file');
             $path = $file->store('r26_practicum_syllabi', 'public');
+            if (!$path) {
+                throw new \Exception('Failed to store syllabus PDF in storage.');
+            }
 
             $pyPath = base_path('app/Services/r26_syllabus_parser.py');
             $fullPdfPath = storage_path('app/public/' . $path);
@@ -1432,11 +1428,12 @@ class R26VirtualClassroomPracticumController extends Controller
             $coId = 'CO' . (ctype_digit(strval($mId)) ? $mId : ($mId === 'I' ? 1 : ($mId === 'II' ? 2 : ($mId === 'III' ? 3 : 4))));
             $title = $m['title'] ?? 'Module Topic';
             $content = $m['content'] ?? $title;
-            $parts = array_filter(array_map('trim', explode(',', $content)));
+            $parts = array_values(array_filter(array_map('trim', explode(',', $content))));
+            $cnt = count($parts);
             $mHrs = intval($m['hours'] ?? 11);
 
             for ($h = 1; $h <= $mHrs; $h++) {
-                $sub = $parts[($h - 1) % count($parts)] ?? $title;
+                $sub = ($cnt > 0) ? ($parts[($h - 1) % $cnt] ?? $title) : $title;
                 $theoryList[] = [
                     'topic' => "Module {$mId}: " . $sub,
                     'co_id' => $coId,
@@ -1620,7 +1617,7 @@ class R26VirtualClassroomPracticumController extends Controller
                     'remarks' => 'Practical Lab Session'
                 ]);
             } else {
-                $top = $theoryList[$tIdx % count($theoryList)];
+                $top = !empty($theoryList) ? $theoryList[$tIdx % count($theoryList)] : ['topic' => 'General Topic ' . $day, 'co_id' => 'CO1'];
                 $tIdx++;
                 LessonPlan::create([
                     'batch_subject_id' => $subjectId,
@@ -2090,12 +2087,6 @@ class R26VirtualClassroomPracticumController extends Controller
 
                 if (array_key_exists('m1', $row) || array_key_exists('m2', $row) || array_key_exists('m3', $row) || array_key_exists('m4', $row) || array_key_exists('ca1', $row)) {
                     // Direct 4-module entries
-                    DB::table('academic_marks')
-                        ->where('reg_no', $regNo)
-                        ->where('batch_subject_id', $subjectId)
-                        ->where('category', 'like', 'Self Study:%')
-                        ->delete();
-
                     $modules = [
                         'CO1' => $row['m1'] ?? ($row['ca1'] ?? null),
                         'CO2' => $row['m2'] ?? ($row['ca2'] ?? null),
@@ -2105,6 +2096,13 @@ class R26VirtualClassroomPracticumController extends Controller
 
                     foreach ($modules as $coTag => $score) {
                         if ($score !== null && $score !== '') {
+                            DB::table('academic_marks')
+                                ->where('reg_no', $regNo)
+                                ->where('batch_subject_id', $subjectId)
+                                ->where('co_tag', $coTag)
+                                ->where('category', 'like', 'Self Study:%')
+                                ->delete();
+
                             DB::table('academic_marks')->insert([
                                 'mark_id' => (string) \Illuminate\Support\Str::uuid(),
                                 'reg_no' => $regNo,
@@ -2173,9 +2171,11 @@ class R26VirtualClassroomPracticumController extends Controller
                 return response()->json(['status' => 'ERROR', 'message' => 'Student registration number required.'], 422);
             }
 
+            $finalMark = 0;
             if ($overridePct !== null && $overridePct !== '') {
                 $pctVal = min(100.0, max(0.0, floatval($overridePct)));
                 $attMark = ($pctVal >= 90) ? 5 : (($pctVal >= 80) ? 4 : (($pctVal >= 75) ? 3 : (($pctVal >= 70) ? 2 : (($pctVal >= 65) ? 1 : 0))));
+                $finalMark = $attMark;
 
                 \App\Models\SubjectOfficialAttendance::updateOrCreate(
                     [
@@ -2205,12 +2205,19 @@ class R26VirtualClassroomPracticumController extends Controller
                     if ($record->teams_percentage !== null) {
                         $record->final_percentage = $record->teams_percentage;
                         $record->final_mark = $record->attendance_mark;
+                        $finalMark = (int)round((float)($record->attendance_mark ?? 0));
+                    } else {
+                        $finalMark = 0;
                     }
                     $record->save();
                 }
             }
 
-            return response()->json(['status' => 'SUCCESS', 'message' => 'Attendance override updated successfully.']);
+            return response()->json([
+                'status' => 'SUCCESS',
+                'message' => 'Attendance override updated successfully.',
+                'att_mark' => $finalMark
+            ]);
         } catch (\Throwable $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()], 500);
         }
@@ -2341,36 +2348,45 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // Self-Learning Marks (Max 5 CIA Marks)
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
-            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
-            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
-            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
-            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
+            
+            $resolveSlMark = function($coTag) use ($stSlMarks) {
+                $direct = $stSlMarks->firstWhere('category', "Self Study: {$coTag}");
+                if ($direct && $direct->marks_obtained !== null) {
+                    return (float)$direct->marks_obtained;
+                }
+                $coActs = $stSlMarks->where('co_tag', $coTag);
+                $nonZero = $coActs->where('marks_obtained', '>', 0);
+                if ($nonZero->count() > 0) {
+                    return (float)$nonZero->avg('marks_obtained');
+                }
+                return null;
+            };
 
-            $valM1 = $m1Rec ? (float)$m1Rec->marks_obtained : null;
-            $valM2 = $m2Rec ? (float)$m2Rec->marks_obtained : null;
-            $valM3 = $m3Rec ? (float)$m3Rec->marks_obtained : null;
-            $valM4 = $m4Rec ? (float)$m4Rec->marks_obtained : null;
+            $valM1 = $resolveSlMark('CO1');
+            $valM2 = $resolveSlMark('CO2');
+            $valM3 = $resolveSlMark('CO3');
+            $valM4 = $resolveSlMark('CO4');
 
-            $caEntered = [];
-            if ($valM1 !== null) $caEntered[] = $valM1;
-            if ($valM2 !== null) $caEntered[] = $valM2;
-            if ($valM3 !== null) $caEntered[] = $valM3;
-            if ($valM4 !== null) $caEntered[] = $valM4;
+            $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
 
             if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / 4.0;
-                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $rawAvg10 = array_sum($caEntered) / count($caEntered);
+                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
                 $slScoreRaw10 = $rawAvg10;
+            } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                $rawAvg10 = 0.00;
+                $slMarks = 0.00;
+                $slScoreRaw10 = 0.00;
             } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
                 $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
                 if ($maxPossible <= 0) $maxPossible = 10.0;
-                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
                 $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
                 $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
@@ -2390,18 +2406,45 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // Theory Series Exam Marks (4 Tests: CO1, CO2, CO3, CO4 - Max 10 CIA Marks)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
-            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1'])->first();
-            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2'])->first();
-            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3'])->first();
-            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4'])->first();
-            $co1Score = $st1 ? (float)$st1->total_score_50 : 0.00;
-            $co2Score = $st2 ? (float)$st2->total_score_50 : 0.00;
-            $co3Score = $st3 ? (float)$st3->total_score_50 : 0.00;
-            $co4Score = $st4 ? (float)$st4->total_score_50 : 0.00;
-            $series1Total = $co1Score + $co2Score;
-            $series2Total = $co3Score + $co4Score;
+            $st1 = $stStEvals->firstWhere('series_no', 'CO1') ?: $stStEvals->firstWhere('series_no', 'Series 1');
+            $st2 = $stStEvals->firstWhere('series_no', 'CO2') ?: $stStEvals->firstWhere('series_no', 'Series 2');
+            $st3 = $stStEvals->firstWhere('series_no', 'CO3') ?: $stStEvals->firstWhere('series_no', 'Series 3');
+            $st4 = $stStEvals->firstWhere('series_no', 'CO4') ?: $stStEvals->firstWhere('series_no', 'Series 4');
+
+            if (!$st1 && !$st2) {
+                $legacyCa4 = $stStEvals->whereIn('series_no', ['CA4', 'Series Exam 1', 'Series 1 (CA4)'])->first();
+                if ($legacyCa4) {
+                    $half = round(((float)$legacyCa4->total_score_50) / 2.0, 2);
+                    $co1Score = $half;
+                    $co2Score = $half;
+                } else {
+                    $co1Score = null;
+                    $co2Score = null;
+                }
+            } else {
+                $co1Score = $st1 ? ($st1->is_absent ? 0.0 : (float)$st1->total_score_50) : null;
+                $co2Score = $st2 ? ($st2->is_absent ? 0.0 : (float)$st2->total_score_50) : null;
+            }
+
+            if (!$st3 && !$st4) {
+                $legacyCa5 = $stStEvals->whereIn('series_no', ['CA5', 'Series Exam 2', 'Series 2 (CA5)'])->first();
+                if ($legacyCa5) {
+                    $half = round(((float)$legacyCa5->total_score_50) / 2.0, 2);
+                    $co3Score = $half;
+                    $co4Score = $half;
+                } else {
+                    $co3Score = null;
+                    $co4Score = null;
+                }
+            } else {
+                $co3Score = $st3 ? ($st3->is_absent ? 0.0 : (float)$st3->total_score_50) : null;
+                $co4Score = $st4 ? ($st4->is_absent ? 0.0 : (float)$st4->total_score_50) : null;
+            }
+
+            $series1Total = min(50.0, ($co1Score ?? 0) + ($co2Score ?? 0));
+            $series2Total = min(50.0, ($co3Score ?? 0) + ($co4Score ?? 0));
             $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
-            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            $seriesTheoryMarks = min(10.0, round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2);
 
             // Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
@@ -2629,13 +2672,39 @@ class R26VirtualClassroomPracticumController extends Controller
         $studentResults = $students->map(function ($student) use ($slAcademicMarks) {
             $regNo = $student->reg_no;
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
-            $slScoreRaw = $stSlMarks->count() > 0 ? ($stSlMarks->avg('marks_obtained') ?: 0.00) : 0.00;
-            $slMarks = round(($slScoreRaw / 10.0) * 5.0, 2);
+            
+            $resolveSlMark = function($coTag) use ($stSlMarks) {
+                $direct = $stSlMarks->firstWhere('category', "Self Study: {$coTag}");
+                if ($direct && $direct->marks_obtained !== null) {
+                    return (float)$direct->marks_obtained;
+                }
+                $coActs = $stSlMarks->where('co_tag', $coTag);
+                $nonZero = $coActs->where('marks_obtained', '>', 0);
+                if ($nonZero->count() > 0) {
+                    return (float)$nonZero->avg('marks_obtained');
+                }
+                return null;
+            };
 
-            $coScores = ['CO1' => 0.0, 'CO2' => 0.0, 'CO3' => 0.0, 'CO4' => 0.0];
-            foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
-                $coMarks = $stSlMarks->where('co_tag', $coTag);
-                $coScores[$coTag] = $coMarks->count() > 0 ? round($coMarks->avg('marks_obtained'), 2) : 0.00;
+            $valM1 = $resolveSlMark('CO1');
+            $valM2 = $resolveSlMark('CO2');
+            $valM3 = $resolveSlMark('CO3');
+            $valM4 = $resolveSlMark('CO4');
+
+            $coScores = [
+                'CO1' => $valM1 !== null ? round($valM1, 2) : 0.0,
+                'CO2' => $valM2 !== null ? round($valM2, 2) : 0.0,
+                'CO3' => $valM3 !== null ? round($valM3, 2) : 0.0,
+                'CO4' => $valM4 !== null ? round($valM4, 2) : 0.0,
+            ];
+
+            $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
+            if (count($caEntered) > 0) {
+                $slScoreRaw = array_sum($caEntered) / count($caEntered);
+                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+            } else {
+                $slScoreRaw = 0.00;
+                $slMarks = 0.00;
             }
 
             return [
@@ -3649,9 +3718,6 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
                 if ($effectivePct >= 75.0) {
                     $status = 'ELIGIBLE';
                     $statusColor = '#15803d';
-                } elseif ($effectivePct >= 65.0) {
-                    $status = 'CONDONATION';
-                    $statusColor = '#d97706';
                 } else {
                     $status = 'SHORTAGE';
                     $statusColor = '#dc2626';
@@ -4307,28 +4373,41 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 2. Self-Learning Marks
             $stSlMarks = $slAcademicMarks->get($regNo, collect());
-            $m1Rec = $stSlMarks->where('co_tag', 'CO1')->first();
-            $m2Rec = $stSlMarks->where('co_tag', 'CO2')->first();
-            $m3Rec = $stSlMarks->where('co_tag', 'CO3')->first();
-            $m4Rec = $stSlMarks->where('co_tag', 'CO4')->first();
-            $caEntered = [];
-            if ($m1Rec && $m1Rec->marks_obtained !== null) $caEntered[] = (float)$m1Rec->marks_obtained;
-            if ($m2Rec && $m2Rec->marks_obtained !== null) $caEntered[] = (float)$m2Rec->marks_obtained;
-            if ($m3Rec && $m3Rec->marks_obtained !== null) $caEntered[] = (float)$m3Rec->marks_obtained;
-            if ($m4Rec && $m4Rec->marks_obtained !== null) $caEntered[] = (float)$m4Rec->marks_obtained;
+            
+            $resolveSlMark = function($coTag) use ($stSlMarks) {
+                $direct = $stSlMarks->firstWhere('category', "Self Study: {$coTag}");
+                if ($direct && $direct->marks_obtained !== null) {
+                    return (float)$direct->marks_obtained;
+                }
+                $coActs = $stSlMarks->where('co_tag', $coTag);
+                $nonZero = $coActs->where('marks_obtained', '>', 0);
+                if ($nonZero->count() > 0) {
+                    return (float)$nonZero->avg('marks_obtained');
+                }
+                return null;
+            };
+
+            $valM1 = $resolveSlMark('CO1');
+            $valM2 = $resolveSlMark('CO2');
+            $valM3 = $resolveSlMark('CO3');
+            $valM4 = $resolveSlMark('CO4');
+
+            $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
 
             if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / 4.0;
-                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $rawAvg10 = array_sum($caEntered) / count($caEntered);
+                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
+            } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                $slMarks = 0.00;
             } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
                 $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
                 if ($maxPossible <= 0) $maxPossible = 10.0;
-                $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
 
@@ -4347,10 +4426,10 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 4. Theory Series Marks (10M)
             $stStEvals = $seriesTheoryEvals->get($regNo, collect());
-            $st1 = $stStEvals->whereIn('series_no', ['Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)'])->first();
-            $st2 = $stStEvals->whereIn('series_no', ['Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)'])->first();
-            $st3 = $stStEvals->whereIn('series_no', ['Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)'])->first();
-            $st4 = $stStEvals->whereIn('series_no', ['Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)'])->first();
+            $st1 = $stStEvals->firstWhere('series_no', 'CO1') ?: $stStEvals->firstWhere('series_no', 'Series 1');
+            $st2 = $stStEvals->firstWhere('series_no', 'CO2') ?: $stStEvals->firstWhere('series_no', 'Series 2');
+            $st3 = $stStEvals->firstWhere('series_no', 'CO3') ?: $stStEvals->firstWhere('series_no', 'Series 3');
+            $st4 = $stStEvals->firstWhere('series_no', 'CO4') ?: $stStEvals->firstWhere('series_no', 'Series 4');
             $co1Score = $st1 ? ($st1->is_absent ? 0.0 : (float)$st1->total_score_50) : null;
             $co2Score = $st2 ? ($st2->is_absent ? 0.0 : (float)$st2->total_score_50) : null;
             $co3Score = $st3 ? ($st3->is_absent ? 0.0 : (float)$st3->total_score_50) : null;
@@ -4378,7 +4457,7 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             $series1Total = min(50.0, ($co1Score ?? 0) + ($co2Score ?? 0));
             $series2Total = min(50.0, ($co3Score ?? 0) + ($co4Score ?? 0));
             $avgTheorySeries50 = ($series1Total + $series2Total) / 2.0;
-            $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
+            $seriesTheoryMarks = min(10.0, round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2);
 
             // 5. Practical Series Marks (10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
@@ -4473,10 +4552,10 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // Theory Series
             $stThEvals = $seriesTheoryEvals->get($regNo, collect());
-            $s1 = $stThEvals->whereIn('series_no', ['Series 1', 'CO1', 'Test 1', 'Test 1 (CO1)'])->first();
-            $s2 = $stThEvals->whereIn('series_no', ['Series 2', 'CO2', 'Test 2', 'Test 2 (CO2)'])->first();
-            $s3 = $stThEvals->whereIn('series_no', ['Series 3', 'CO3', 'Test 3', 'Test 3 (CO3)'])->first();
-            $s4 = $stThEvals->whereIn('series_no', ['Series 4', 'CO4', 'Test 4', 'Test 4 (CO4)'])->first();
+            $s1 = $stThEvals->firstWhere('series_no', 'CO1') ?: $stThEvals->firstWhere('series_no', 'Series 1');
+            $s2 = $stThEvals->firstWhere('series_no', 'CO2') ?: $stThEvals->firstWhere('series_no', 'Series 2');
+            $s3 = $stThEvals->firstWhere('series_no', 'CO3') ?: $stThEvals->firstWhere('series_no', 'Series 3');
+            $s4 = $stThEvals->firstWhere('series_no', 'CO4') ?: $stThEvals->firstWhere('series_no', 'Series 4');
 
             $valCo1 = $s1 ? ($s1->is_absent ? 0.0 : (float)$s1->total_score_50) : null;
             $valCo2 = $s2 ? ($s2->is_absent ? 0.0 : (float)$s2->total_score_50) : null;

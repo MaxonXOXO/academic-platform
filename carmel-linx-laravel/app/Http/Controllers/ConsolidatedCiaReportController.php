@@ -299,6 +299,16 @@ class ConsolidatedCiaReportController extends Controller
                 ->groupBy('batch_subject_id');
         }
 
+        // F. Workshop CIA Summaries (R21 Workshop Practice)
+        $workshopSummaries = collect();
+        if (Schema::hasTable('r21_workshop_cia_summaries') && !empty($subjectIds)) {
+            $workshopSummaries = DB::table('r21_workshop_cia_summaries')
+                ->whereIn('batch_subject_id', $subjectIds)
+                ->whereIn('reg_no', $allLookupRegs)
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
+
         // F. Tutor-Uploaded TEAMS Duty Hours & Special Attendance Credits (Exam Eligibility)
         $specialAttendanceRecords = collect();
         if (Schema::hasTable('tutor_special_attendances')) {
@@ -491,7 +501,8 @@ class ConsolidatedCiaReportController extends Controller
                     $drawingTests->get($sId, collect()),
                     $seminarEvals->get($sId, collect()),
                     $projectEvals->get($sId, collect()),
-                    $semesterMarks
+                    $semesterMarks,
+                    $workshopSummaries->get($sId, collect())
                 );
 
                 $markVal = $ciaResult['mark'];
@@ -703,7 +714,8 @@ class ConsolidatedCiaReportController extends Controller
         $drawTests,
         $seminarEvals,
         $projectEvals,
-        $semesterMarks
+        $semesterMarks,
+        $wsSummaries = null
     ): array {
         $type = strtolower($subject->subject_type ?? '');
         $name = strtolower($subject->subject_name ?? '');
@@ -711,14 +723,191 @@ class ConsolidatedCiaReportController extends Controller
         $sId = $subject->id;
 
         $isAu3055Theory = ($subject->id == 110 || ($subject->subject_code == '3055' && (str_contains($subject->classroom_id ?? '', 'AU') || ($subject->branch ?? '') === 'AU' || str_contains(strtolower($subject->subject_name ?? ''), 'automobile'))));
+        $isCt5002Theory = ($subject->id == 147 || $sCode == '5002' || str_contains($name, 'project management'));
 
-        // 1. Practical / Lab Subjects
+        // 1. Workshop Subjects (General Workshop Practice, Mechanical Workshop, etc.)
+        $isWorkshop = (str_contains($type, 'workshop') || str_contains($name, 'workshop') || in_array($sCode, ['3027', '1008', '2008']) || ($wsSummaries && $wsSummaries->isNotEmpty()));
+        if (!$isAu3055Theory && $isWorkshop) {
+            $wsSummary = $wsSummaries ? ($wsSummaries->where('reg_no', $regNo)->first() ?: ($sbteRegNo ? $wsSummaries->where('reg_no', $sbteRegNo)->first() : null)) : null;
+
+            if ($wsSummary) {
+                if ($wsSummary->override_total_cia !== null) {
+                    $tot = min(75, max(0, (int)round($wsSummary->override_total_cia)));
+                    return ['mark' => $tot, 'is_generated' => true];
+                }
+
+                $work375 = ($wsSummary->override_work_375 !== null)
+                    ? (float)$wsSummary->override_work_375
+                    : (float)($wsSummary->work_score_375 ?? 0);
+
+                $rec75 = ($wsSummary->override_open_ended_75 !== null)
+                    ? (float)$wsSummary->override_open_ended_75
+                    : (float)($wsSummary->open_ended_75 ?? 0);
+
+                $test15 = ($wsSummary->override_test_15 !== null)
+                    ? (float)$wsSummary->override_test_15
+                    : (float)($wsSummary->test_avg_15 ?? 0);
+
+                if ($wsSummary->override_attendance_15 !== null) {
+                    $att15 = (float)$wsSummary->override_attendance_15;
+                } elseif (!empty($wsSummary->attendance_15) && (float)$wsSummary->attendance_15 > 0) {
+                    $att15 = (float)$wsSummary->attendance_15;
+                } else {
+                    $att15 = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+                }
+
+                if ($work375 > 0 || $rec75 > 0 || $test15 > 0 || $wsSummary->override_work_375 !== null || $wsSummary->override_open_ended_75 !== null || $wsSummary->override_test_15 !== null || $wsSummary->override_attendance_15 !== null) {
+                    $tot = (int)round($work375 + $rec75 + $test15 + $att15);
+                    return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
+                }
+            }
+
+            // Fallback to student_semester_marks if present
+            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
+                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
+            })->first();
+            if ($preMark && is_numeric($preMark->internal_marks)) {
+                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
+            }
+
+            return ['mark' => null, 'is_generated' => false];
+        }
+
+        // 2. Drawing Subjects (Building Drawing, Structural Drawing, Machine Drawing, CAD, etc.)
+        $isDrawing = (str_contains($type, 'drawing') || str_contains($name, 'drawing'));
+        if (!$isAu3055Theory && $isDrawing) {
+            $eval = $pracEvals->where('reg_no', $regNo)->first()
+                ?: ($sbteRegNo ? $pracEvals->where('reg_no', $sbteRegNo)->first() : null);
+
+            $stSheets = $drawSheets->filter(function($s) use ($regNo, $sbteRegNo) {
+                return $s->reg_no === $regNo || ($sbteRegNo && $s->reg_no === $sbteRegNo);
+            });
+            $validSheets = $stSheets->where('is_absent', false);
+            $avgSheet = $validSheets->count() > 0 ? $validSheets->avg('total_score_100') : null;
+
+            $stTests = $drawTests->filter(function($t) use ($regNo, $sbteRegNo) {
+                return $t->reg_no === $regNo || ($sbteRegNo && $t->reg_no === $sbteRegNo);
+            });
+            $testScores = [];
+            foreach ($stTests as $t) {
+                if (!$t->is_absent && is_numeric($t->total_score_100)) {
+                    $testScores[] = round(((float)$t->total_score_100 / 100.0) * 15.0, 2);
+                }
+            }
+            $drawTestAvg = count($testScores) > 0 ? (array_sum($testScores) / count($testScores)) : 0.0;
+
+            // Attendance mark (max 15): check faculty override in practical_evaluations first!
+            if ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') {
+                $drawAtt = min(15.0, max(0.0, (float)$eval->attendance_marks));
+            } else {
+                $drawAtt = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+            }
+
+            // Open-ended mark (max 7.5) from practical_evaluations (micro_project)
+            $openEnded = ($eval && $eval->micro_project !== null && $eval->micro_project !== '') ? min(7.5, max(0.0, (float)$eval->micro_project)) : 0.0;
+
+            // Continuous work mark (max 37.5): check faculty override in lab_work_marks!
+            $hasContinuousOverride = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
+            if ($hasContinuousOverride) {
+                $continuous = min(37.5, max(0.0, (float)$eval->lab_work_marks));
+            } elseif ($avgSheet !== null) {
+                $continuous = round((($avgSheet / 100.0) * 37.5) * 2) / 2;
+            } else {
+                $continuous = 0.0;
+            }
+
+            if ($hasContinuousOverride || $eval || $avgSheet !== null || count($testScores) > 0) {
+                $tot = (int)round($continuous + $openEnded + $drawTestAvg + $drawAtt);
+                return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
+            }
+
+            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
+                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
+            })->first();
+            if ($preMark && is_numeric($preMark->internal_marks)) {
+                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
+            }
+
+            return ['mark' => null, 'is_generated' => false];
+        }
+
+        // 3. Seminar Subjects
+        if (str_contains($type, 'seminar') || str_contains($name, 'seminar')) {
+            // Check AcademicMark (category = Seminar)
+            $stAcademic = $academicMarks->filter(function($m) use ($regNo, $sbteRegNo, $sId, $sCode) {
+                $matchReg = ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo));
+                $matchSubj = (isset($m->batch_subject_id) && $m->batch_subject_id == $sId) || ($m->subject_code == $sCode);
+                return $matchReg && $matchSubj && $m->category === 'Seminar';
+            })->first();
+
+            if ($stAcademic && is_numeric($stAcademic->marks_obtained)) {
+                return ['mark' => min(75, max(0, (int)round($stAcademic->marks_obtained))), 'is_generated' => true];
+            }
+
+            $stSemEvals = $seminarEvals->filter(function($e) use ($regNo, $sbteRegNo) {
+                return $e->reg_no === $regNo || ($sbteRegNo && $e->reg_no === $sbteRegNo);
+            });
+
+            if ($stSemEvals->isNotEmpty()) {
+                $avgRelevance = (float)$stSemEvals->avg(fn($e) => $e->relevance ?? $e->relevance_score ?? 0);
+                $avgLiterature = (float)$stSemEvals->avg(fn($e) => $e->literature ?? $e->literature_score ?? 0);
+                $avgPresentation = (float)$stSemEvals->avg(fn($e) => $e->presentation ?? $e->presentation_score ?? 0);
+                $avgInteraction = (float)$stSemEvals->avg(fn($e) => $e->interaction ?? $e->interaction_score ?? 0);
+                $avgReport = (float)$stSemEvals->avg(fn($e) => $e->report ?? $e->report_score ?? 0);
+                $avgAtt = (float)$stSemEvals->avg(fn($e) => $e->attendance ?? 0);
+
+                $seminarComp = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
+                $attComp = ($avgAtt > 0) ? $avgAtt : AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+                $tot = min(75, (int)round($seminarComp + $attComp));
+                return ['mark' => $tot, 'is_generated' => true];
+            }
+
+            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
+                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
+            })->first();
+            if ($preMark && is_numeric($preMark->internal_marks)) {
+                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
+            }
+
+            return ['mark' => null, 'is_generated' => false];
+        }
+
+        // 4. Major Project Subjects (Exclude CT 5002 Project Management and Software Engineering)
+        if (!$isCt5002Theory && (str_contains($type, 'project') || str_contains($name, 'project'))) {
+            $projEval = $projectEvals->filter(function($e) use ($regNo, $sbteRegNo) {
+                return $e->reg_no === $regNo || ($sbteRegNo && $e->reg_no === $sbteRegNo);
+            })->first();
+
+            if ($projEval) {
+                if ($projEval->total_cia_75 !== null && (float)$projEval->total_cia_75 > 0) {
+                    return ['mark' => min(75, (int)round($projEval->total_cia_75)), 'is_generated' => true];
+                }
+                if ($projEval->formative_diary_marks > 0 || $projEval->summative_dept_marks > 0) {
+                    $diary = (float)($projEval->formative_diary_marks ?? 0);
+                    $review = (float)($projEval->summative_dept_marks ?? 0);
+                    $projAtt = (float)($projEval->attendance_marks ?? AttainmentService::calculateR21AttendanceMark($attPct, 15.0));
+                    $tot = min(75, (int)round($diary + $review + $projAtt));
+                    return ['mark' => $tot, 'is_generated' => true];
+                }
+            }
+
+            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
+                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
+            })->first();
+            if ($preMark && is_numeric($preMark->internal_marks)) {
+                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
+            }
+
+            return ['mark' => null, 'is_generated' => false];
+        }
+
+        // 5. Practical / Lab Subjects
         if (!$isAu3055Theory && (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab'))) {
             $eval = $pracEvals->where('reg_no', $regNo)->first()
                 ?: ($sbteRegNo ? $pracEvals->where('reg_no', $sbteRegNo)->first() : null);
 
             $hasDirect = ($eval && $eval->lab_work_marks !== null && $eval->lab_work_marks !== '');
-            $micro = ($eval && $eval->micro_project !== null) ? (float)$eval->micro_project : 0.0;
+            $micro = ($eval && $eval->micro_project !== null) ? min(7.5, max(0.0, (float)$eval->micro_project)) : 0.0;
 
             // Practical series tests (max 15)
             $stTests = $pracTests->filter(function($t) use ($regNo, $sbteRegNo) {
@@ -734,11 +923,15 @@ class ConsolidatedCiaReportController extends Controller
             }
             $testAvg = count($tScores) > 0 ? (array_sum($tScores) / count($tScores)) : 0.0;
 
-            // Attendance marks (max 15)
-            $attMark = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+            // Attendance marks (max 15): check faculty override in practical_evaluations first!
+            if ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') {
+                $attMark = min(15.0, max(0.0, (float)$eval->attendance_marks));
+            } else {
+                $attMark = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+            }
 
             if ($hasDirect) {
-                $labWork = (float)$eval->lab_work_marks;
+                $labWork = min(37.5, max(0.0, (float)$eval->lab_work_marks));
                 $tot = (int)round($labWork + $micro + $testAvg + $attMark);
                 return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
             }
@@ -759,98 +952,7 @@ class ConsolidatedCiaReportController extends Controller
             return ['mark' => null, 'is_generated' => false];
         }
 
-        // 2. Drawing Subjects
-        if (!$isAu3055Theory && (str_contains($type, 'drawing') || str_contains($name, 'drawing'))) {
-            $stSheets = $drawSheets->filter(function($s) use ($regNo, $sbteRegNo) {
-                return $s->reg_no === $regNo || ($sbteRegNo && $s->reg_no === $sbteRegNo);
-            });
-            $validSheets = $stSheets->where('is_absent', false);
-            $avgSheet = $validSheets->count() > 0 ? $validSheets->avg('total_score_100') : null;
-
-            $stTests = $drawTests->filter(function($t) use ($regNo, $sbteRegNo) {
-                return $t->reg_no === $regNo || ($sbteRegNo && $t->reg_no === $sbteRegNo);
-            });
-            $testScores = [];
-            foreach ($stTests as $t) {
-                if (!$t->is_absent && is_numeric($t->total_score_100)) {
-                    $testScores[] = round(((float)$t->total_score_100 / 100.0) * 15.0, 2);
-                }
-            }
-            $drawTestAvg = count($testScores) > 0 ? (array_sum($testScores) / count($testScores)) : 0.0;
-
-            // Attendance (max 15)
-            $drawAtt = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
-
-            if ($avgSheet !== null || count($testScores) > 0) {
-                $continuous = ($avgSheet !== null) ? round((($avgSheet / 100.0) * 37.5) * 2) / 2 : 0.0;
-                $tot = (int)round($continuous + $drawTestAvg + $drawAtt);
-                return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
-            }
-
-            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
-                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
-            })->first();
-            if ($preMark && is_numeric($preMark->internal_marks)) {
-                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
-            }
-
-            return ['mark' => null, 'is_generated' => false];
-        }
-
-        // 3. Seminar Subjects
-        if (str_contains($type, 'seminar') || str_contains($name, 'seminar')) {
-            $semEval = $seminarEvals->filter(function($e) use ($regNo, $sbteRegNo) {
-                return $e->reg_no === $regNo || ($sbteRegNo && $e->reg_no === $sbteRegNo);
-            })->first();
-
-            if ($semEval) {
-                $rep = (float)($semEval->report_score ?? 0);
-                $pres = (float)($semEval->presentation_score ?? 0);
-                $rel = (float)($semEval->relevance_score ?? 0);
-                $lit = (float)($semEval->literature_score ?? 0);
-                $int = (float)($semEval->interaction_score ?? 0);
-                $seminarComp = round(($rep + $pres + $rel + $lit + $int) / 100.0 * 60.0, 1);
-                $attComp = AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
-                $tot = min(75, (int)round($seminarComp + $attComp));
-                return ['mark' => $tot, 'is_generated' => true];
-            }
-
-            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
-                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
-            })->first();
-            if ($preMark && is_numeric($preMark->internal_marks)) {
-                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
-            }
-
-            return ['mark' => null, 'is_generated' => false];
-        }
-
-        // 4. Major Project Subjects (Exclude CT 5002 Project Management and Software Engineering)
-        $isCt5002Theory = ($subject->id == 147 || $sCode == '5002' || str_contains($name, 'project management'));
-        if (!$isCt5002Theory && (str_contains($type, 'project') || str_contains($name, 'project'))) {
-            $projEval = $projectEvals->filter(function($e) use ($regNo, $sbteRegNo) {
-                return $e->reg_no === $regNo || ($sbteRegNo && $e->reg_no === $sbteRegNo);
-            })->first();
-
-            if ($projEval && ($projEval->formative_diary_marks > 0 || $projEval->summative_dept_marks > 0)) {
-                $diary = (float)($projEval->formative_diary_marks ?? 0);
-                $review = (float)($projEval->summative_dept_marks ?? 0);
-                $projAtt = (float)($projEval->attendance_marks ?? AttainmentService::calculateR21AttendanceMark($attPct, 15.0));
-                $tot = min(75, (int)round($diary + $review + $projAtt));
-                return ['mark' => $tot, 'is_generated' => true];
-            }
-
-            $preMark = $semesterMarks->filter(function($m) use ($regNo, $sbteRegNo, $sCode) {
-                return ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) && $m->subject_code == $sCode;
-            })->first();
-            if ($preMark && is_numeric($preMark->internal_marks)) {
-                return ['mark' => (int)round($preMark->internal_marks), 'is_generated' => true];
-            }
-
-            return ['mark' => null, 'is_generated' => false];
-        }
-
-        // 5. Theory Subjects (Default)
+        // 6. Theory Subjects (Default)
         $stAcademic = $academicMarks->filter(function($m) use ($regNo, $sbteRegNo, $sId, $sCode) {
             $matchReg = ($m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo));
             $matchSubj = (isset($m->batch_subject_id) && $m->batch_subject_id == $sId) || ($m->subject_code == $sCode);

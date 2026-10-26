@@ -340,20 +340,14 @@
           const reopenBtn = document.getElementById('reopenBirthdayWidgetBtn');
           const countBadge = document.getElementById('reopenBirthdayCountBadge');
 
-          // If the user has ALREADY WISHED/REPLIED today (from mobile or desktop):
-          if (data.has_wished) {
-            if (reopenBtn) reopenBtn.style.display = 'none';
-            return;
-          }
-
-          // If user has NOT wished yet today:
+          // Keep floating birthday button visible anytime there are birthdays today (even after wishing)
           if (reopenBtn && countBadge) {
             countBadge.innerText = data.celebrants.length;
             reopenBtn.style.display = 'flex';
           }
 
-          // Auto-open modal ONLY if user has NOT wished AND has NOT dismissed popup in this session
-          if (!isDismissed) {
+          // Auto-open modal ONLY if user has NOT wished yet AND has NOT dismissed popup in this session
+          if (!isDismissed && !data.has_wished) {
             openBirthdayModal();
           }
         } else {
@@ -471,9 +465,9 @@
         renderWishesFeed(data.wishes || []);
         triggerBirthdayConfetti();
 
-        // Hide floating button since wish has been submitted
+        // Keep floating button accessible so user can check other wishes or celebrants anytime
         const reopenBtn = document.getElementById('reopenBirthdayWidgetBtn');
-        if (reopenBtn) reopenBtn.style.display = 'none';
+        if (reopenBtn) reopenBtn.style.display = 'flex';
 
         // Display feedback banner
         const feed = document.getElementById('birthdayWishesFeed');

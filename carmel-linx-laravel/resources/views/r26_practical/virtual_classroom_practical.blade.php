@@ -440,12 +440,14 @@
 
                 <!-- Scheme parameters -->
                 @php
-                    $copoDecoded = $practicalCourseFile ? json_decode($practicalCourseFile->parsed_copo, true) : [];
+                    $copoDecoded = ($practicalCourseFile && !empty($practicalCourseFile->parsed_copo))
+                        ? (is_array($practicalCourseFile->parsed_copo) ? $practicalCourseFile->parsed_copo : (json_decode($practicalCourseFile->parsed_copo, true) ?: []))
+                        : [];
                 @endphp
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5 mt-6">
                     <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
                         <span class="text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Credits</span>
-                        <span class="text-xl md:text-2xl font-black text-sky-400 mt-1 block font-mono" id="meta-credits">{{ $copoDecoded['credit'] ?? '1' }}</span>
+                        <span class="text-xl md:text-2xl font-black text-sky-400 mt-1 block font-mono" id="meta-credits">{{ $copoDecoded['credit'] ?? ($copoDecoded['credits'] ?? ($practicalCourseFile->credits ?? '1')) }}</span>
                     </div>
                     <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
                         <span class="text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Proposed Hours</span>
@@ -472,7 +474,9 @@
                     </h3>
                     <div class="space-y-3" id="co-outcomes-container">
                         @php
-                            $cosList = $practicalCourseFile ? json_decode($practicalCourseFile->parsed_cos, true) : [];
+                            $cosList = ($practicalCourseFile && !empty($practicalCourseFile->parsed_cos))
+                                ? (is_array($practicalCourseFile->parsed_cos) ? $practicalCourseFile->parsed_cos : (json_decode($practicalCourseFile->parsed_cos, true) ?: []))
+                                : [];
                         @endphp
                         @forelse($cosList as $co)
                         <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800 flex gap-4 items-start">
@@ -485,6 +489,69 @@
                         @empty
                         <div class="text-sm text-slate-400 italic p-4 bg-slate-900/40 rounded-xl border border-slate-800">Syllabus outcomes not uploaded yet. Upload syllabus PDF to parse Course Outcomes.</div>
                         @endforelse
+                    </div>
+                </div>
+
+                <!-- Course Modules (M1 – M4) -->
+                <div class="mt-8 pt-6 border-t border-slate-800">
+                    <div class="flex items-center justify-between mb-3.5">
+                        <h3 class="text-sm md:text-base font-black text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-blue-400"></i>
+                            <span>Course Modules (M1 &ndash; M4)</span>
+                        </h3>
+                        <span class="text-xs text-slate-400 font-mono">{{ $practicalCourseFile?->total_hours ?? 30 }} Hours Total</span>
+                    </div>
+
+                    @php
+                        $modulesList = ($practicalCourseFile && !empty($practicalCourseFile->parsed_modules))
+                            ? (is_array($practicalCourseFile->parsed_modules) ? $practicalCourseFile->parsed_modules : (json_decode($practicalCourseFile->parsed_modules, true) ?: []))
+                            : [];
+
+                        $defaultPracticalModules = [
+                            [
+                                'module_id' => 'I',
+                                'title' => 'Hardware, Linux GUI & Connectivity',
+                                'hours' => 6,
+                                'content' => 'Expt 1: Hardware & Software Exploration; Expt 2: File and Folder Management in a Linux GUI; Expt 3: Web & Connectivity'
+                            ],
+                            [
+                                'module_id' => 'II',
+                                'title' => 'Office Productivity & Cloud Collaboration',
+                                'hours' => 10,
+                                'content' => 'Expt 4: Professional Documentation; Expt 5: Spreadsheet Basics; Expt 6: Presentation Design; Expt 7: Cloud Collaboration; Series Test 1: Series Test 1'
+                            ],
+                            [
+                                'module_id' => 'III',
+                                'title' => 'Data Analysis, Visualization & AI Dashboards',
+                                'hours' => 6,
+                                'content' => 'Expt 8: Data Analysis; Expt 9: Data Visualization; Expt 10: AI Slide Generation'
+                            ],
+                            [
+                                'module_id' => 'IV',
+                                'title' => 'Generative AI Tools & Digital Graphic Design',
+                                'hours' => 8,
+                                'content' => 'Expt 11: Generative Pre-trained Transformer (GPT) Guided Learning; Expt 12: Graphic Design; Series Test 2: Series Test 2; OEE: Open-Ended Experiment'
+                            ]
+                        ];
+
+                        $displayModules = !empty($modulesList) ? $modulesList : $defaultPracticalModules;
+                    @endphp
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($displayModules as $idx => $mod)
+                        <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4 space-y-2 hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black font-mono bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                    MODULE {{ $mod['module_id'] ?? ($idx + 1) }}
+                                </span>
+                                <span class="text-xs font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                    {{ $mod['hours'] ?? 8 }} Hours
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-100 leading-snug">{{ $mod['title'] ?? ('Module ' . ($mod['module_id'] ?? ($idx + 1))) }}</h4>
+                            <p class="text-xs text-slate-300 leading-relaxed">{{ $mod['content'] ?? '' }}</p>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
 
@@ -599,7 +666,7 @@
                                         <input type="text" class="exp-title w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium" value="{{ $exp['title'] ?? '' }}" placeholder="Experiment title...">
                                     </td>
                                     <td class="p-2">
-                                        <input type="text" class="exp-desc w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-300 text-xs md:text-sm" value="{{ $exp['description'] ?? '' }}" placeholder="Details...">
+                                        <input type="text" class="exp-desc w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-300 text-xs md:text-sm" value="{{ $exp['description'] ?? ($exp['student_learning_outcome'] ?? '') }}" placeholder="Details...">
                                     </td>
                                     <td class="p-2 text-center">
                                         <select class="exp-co w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sky-400 font-bold text-xs md:text-sm text-center">
@@ -2096,7 +2163,7 @@
 
         // Experiments Inventory Management
         let localExperiments = @json($practicalCourseFile ? ($practicalCourseFile->getExperimentsArray()) : []);
-        const pdfParsedExperiments = @json($practicalCourseFile ? (json_decode($practicalCourseFile->parsed_experiments, true) ?? []) : []);
+        const pdfParsedExperiments = @json(($practicalCourseFile && !empty($practicalCourseFile->parsed_experiments)) ? (is_array($practicalCourseFile->parsed_experiments) ? $practicalCourseFile->parsed_experiments : (json_decode($practicalCourseFile->parsed_experiments, true) ?: [])) : []);
 
         function initExperimentSelect() {
             const select = document.getElementById('exp_select');
@@ -2244,7 +2311,7 @@
                         <tr class="border-b border-slate-800 hover:bg-slate-900/40 transition">
                             <td class="p-2 text-center"><input type="text" class="exp-no w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-100 font-mono text-xs md:text-sm font-bold text-center" value="${esc(exp.expt_no || ('Exp ' + (idx + 1)))}"></td>
                             <td class="p-2"><input type="text" class="exp-title w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium" value="${esc(exp.title)}" placeholder="Experiment title..."></td>
-                            <td class="p-2"><input type="text" class="exp-desc w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-300 text-xs md:text-sm" value="${esc(exp.description)}" placeholder="Description / scope..."></td>
+                            <td class="p-2"><input type="text" class="exp-desc w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-300 text-xs md:text-sm" value="${esc(exp.description || exp.student_learning_outcome || '')}" placeholder="Description / scope..."></td>
                             <td class="p-2 text-center"><select class="exp-co w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-sky-400 font-bold text-xs md:text-sm text-center">${coOptions}</select></td>
                             <td class="p-2 text-center"><input type="number" min="1" max="6" class="exp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center text-slate-100 text-xs md:text-sm font-mono font-bold" value="${exp.hours || 2}"></td>
                             <td class="p-2 text-center">

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Progress Report (REV2021) - {{ $classroom['id'] }}</title>
+    <title>Student Progress Report ({{ $classroom['revision'] ?? 'REV2026' }}) - {{ $classroom['id'] }}</title>
     <style>
         @page {
             size: A4 landscape;
@@ -233,7 +233,7 @@
 
     <div class="action-bar">
         <span style="font-size: 11px; font-weight: 600; color: #4b5563;">
-            Showing {{ count($students) }} Students across {{ count($subjects) }} Subjects (REV2021)
+            Showing {{ count($students) }} Students across {{ count($subjects) }} Subjects ({{ $classroom['revision'] ?? 'REV2026' }})
         </span>
         <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&mode=all_cards" target="_blank" class="btn btn-secondary" title="Print Individual Report Card Slips for Parent-Teacher Meeting">
             PTM Student Cards View
@@ -319,24 +319,25 @@
             <tr>
                 <th rowspan="2" style="width: 2.2%;">#</th>
                 <th rowspan="2" style="width: 3.5%;">Roll<br>No</th>
-                <th rowspan="2" style="width: 7.5%;">SBTE<br>Reg No</th>
+                <th rowspan="2" style="width: 7%;">SBTE<br>Reg No</th>
                 <th rowspan="2" style="width: 12%;">Student Name</th>
                 @foreach($subjects as $subj)
-                    <th colspan="5" class="subj-header" title="{{ $subj->subject_name }}">
-                        {{ $subj->subject_code }}
+                    <th colspan="3" class="subj-header" title="{{ $subj->subject_name }}">
+                        <span style="font-size: 8.5px; font-weight: 800; color: #1e3a8a;">{{ $subj->subject_code }}</span><br>
+                        <span style="font-size: 6.5px; font-weight: normal; color: #475569;">{{ \Illuminate\Support\Str::limit($subj->subject_name, 22) }}</span>
                     </th>
                 @endforeach
-                <th rowspan="2" class="col-grand" style="width: 5%;">Grand<br>Total</th>
-                <th rowspan="2" class="col-att" style="width: 5.5%;">Total<br>Attd %</th>
-                <th rowspan="2" style="width: 4.5%; background-color: #fef9c3; color: #854d0e; font-weight: 800;">Class<br>Rank</th>
+                <th rowspan="2" class="col-grand" style="width: 4.5%;">Grand<br>Total</th>
+                <th rowspan="2" class="col-att" style="width: 5.5%;">Tutor<br>Attd %</th>
+                <th rowspan="2" style="width: 4%; background-color: #f0fdf4; color: #166534; font-weight: 700;">Act.<br>Pts</th>
+                <th rowspan="2" style="width: 5.5%; background-color: #f8fafc; color: #334155; font-weight: 700;">Assignments<br><span style="font-size: 6px; font-weight: normal;">(Done / Pend)</span></th>
+                <th rowspan="2" style="width: 4%; background-color: #fef9c3; color: #854d0e; font-weight: 800;">Class<br>Rank</th>
             </tr>
             <tr>
                 @foreach($subjects as $subj)
-                    <th class="co-sub">CO1</th>
-                    <th class="co-sub">CO2</th>
-                    <th class="co-sub">CO3</th>
-                    <th class="co-sub">CO4</th>
-                    <th class="co-sub col-tot">Tot</th>
+                    <th class="co-sub">S1<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                    <th class="co-sub">S2<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                    <th class="co-sub col-tot">Avg<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
                 @endforeach
             </tr>
         </thead>
@@ -350,15 +351,15 @@
 
                     @foreach($subjects as $subj)
                         @php
-                            $sData = $st['subjects'][$subj->id] ?? null;
-                            $co = $sData['co_marks'] ?? ['CO1'=>null,'CO2'=>null,'CO3'=>null,'CO4'=>null];
+                            $sData = $st['subjects'][$subj->id] ?? collect($st['subjects'])->firstWhere('subject_code', $subj->subject_code);
+                            $s1 = $sData['series_1'] ?? null;
+                            $s2 = $sData['series_2'] ?? null;
+                            $tot = $sData['subject_total'] ?? null;
                         @endphp
-                        <td>{{ $co['CO1'] !== null ? $co['CO1'] : '-' }}</td>
-                        <td>{{ $co['CO2'] !== null ? $co['CO2'] : '-' }}</td>
-                        <td>{{ $co['CO3'] !== null ? $co['CO3'] : '-' }}</td>
-                        <td>{{ $co['CO4'] !== null ? $co['CO4'] : '-' }}</td>
+                        <td>{{ $s1 !== null ? $s1 : '-' }}</td>
+                        <td>{{ $s2 !== null ? $s2 : '-' }}</td>
                         <td class="col-tot">
-                            {{ ($sData && $sData['subject_total'] !== null) ? $sData['subject_total'] : '-' }}
+                            {{ $tot !== null ? $tot : '-' }}
                         </td>
                     @endforeach
 
@@ -367,12 +368,33 @@
                         {{ $st['grand_total_marks'] > 0 ? $st['grand_total_marks'] : '-' }}
                     </td>
 
-                    <!-- Total Attendance % -->
+                    <!-- Total Attendance % (Uploaded by Tutor in Total) -->
                     <td class="col-att">
                         <div style="font-size: 8px; font-weight: 800;">{{ $st['overall_attendance'] }}%</div>
                         <div style="font-size: 6.5px;" class="{{ $st['status_badge'] }}">
                             {{ $st['status'] }}
                         </div>
+                    </td>
+
+                    <!-- Activity Points (Cumulated All Semesters) -->
+                    <td style="font-weight: 700; color: #166534; background-color: #f0fdf4;">
+                        {{ $st['activity_points'] > 0 ? $st['activity_points'] : '-' }}
+                    </td>
+
+                    <!-- Assignments (Done / Pending) -->
+                    <td style="font-size: 7.5px;">
+                        @if(($st['assignments']['total'] ?? 0) > 0)
+                            <span style="font-weight: 700; color: {{ ($st['assignments']['pending'] ?? 0) == 0 ? '#15803d' : '#b45309' }};">
+                                {{ $st['assignments']['submitted'] }}/{{ $st['assignments']['total'] }}
+                            </span>
+                            @if(($st['assignments']['pending'] ?? 0) > 0)
+                                <span style="font-size: 6.5px; color: #b91c1c; display: block;">
+                                    ({{ $st['assignments']['pending'] }} pend)
+                                </span>
+                            @endif
+                        @else
+                            <span style="color: #94a3b8;">-</span>
+                        @endif
                     </td>
 
                     <!-- Class Rank -->
@@ -384,7 +406,7 @@
                         @elseif($st['class_rank'] === 3)
                             <span class="rank-badge rank-top3">Rank 3</span>
                         @elseif($st['class_rank'] !== null)
-                            <span class="rank-badge rank-general">{{ $st['class_rank'] }}</span>
+                            <span class="rank-badge rank-general">#{{ $st['class_rank'] }}</span>
                         @else
                             <span style="color: #94a3b8;">-</span>
                         @endif
@@ -392,7 +414,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ (count($subjects) * 5) + 7 }}" style="padding: 20px; text-align: center; color: #64748b;">
+                    <td colspan="{{ (count($subjects) * 3) + 9 }}" style="padding: 20px; text-align: center; color: #64748b;">
                         No students found in this classroom.
                     </td>
                 </tr>

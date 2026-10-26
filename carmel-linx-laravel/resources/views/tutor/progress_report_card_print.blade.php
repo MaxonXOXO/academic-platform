@@ -228,7 +228,7 @@
             <div class="header">
                 <h1>CARMEL POLYTECHNIC COLLEGE, ALAPPUZHA</h1>
                 <h2>STATE BOARD OF TECHNICAL EDUCATION, KERALA</h2>
-                <h3>STUDENT ACADEMIC PROGRESS REPORT CARD (REVISION 2021)</h3>
+                <h3>STUDENT ACADEMIC PROGRESS REPORT CARD ({{ strtoupper($classroom['scheme_name'] ?? 'REVISION ' . ($classroom['revision'] ?? '2026')) }})</h3>
                 <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
                     Continuous Internal Evaluation (CIE) & Series Examination Progress Record
                 </div>
@@ -253,51 +253,37 @@
                 </tr>
             </table>
 
-            <!-- Subject-wise Series Exam & Attendance Table -->
+            <!-- Subject-wise Series Exam Marks Table (Normalized out of 100) -->
             <table class="marks-table">
                 <thead>
                     <tr>
-                        <th style="width: 4%;">#</th>
-                        <th style="width: 9%;">Code</th>
-                        <th style="width: 32%;">Subject / Course Name</th>
-                        <th style="width: 12%;">Type</th>
-                        <th style="width: 7%;">CO1</th>
-                        <th style="width: 7%;">CO2</th>
-                        <th style="width: 7%;">CO3</th>
-                        <th style="width: 7%;">CO4</th>
-                        <th style="width: 8%; background-color: #e2e8f0;">Total</th>
-                        <th style="width: 14%; background-color: #dbeafe;">Attendance</th>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 12%;">Course Code</th>
+                        <th style="width: 43%;">Course / Subject Name</th>
+                        <th style="width: 13%;">Course Type</th>
+                        <th style="width: 9%;">Series 1<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
+                        <th style="width: 9%;">Series 2<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
+                        <th style="width: 9%; background-color: #e2e8f0;">Series Avg<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @php $idx = 1; @endphp
                     @foreach($subjects as $subj)
                         @php
-                            $sData = $st['subjects'][$subj->id] ?? null;
-                            $co = $sData['co_marks'] ?? ['CO1'=>null,'CO2'=>null,'CO3'=>null,'CO4'=>null];
-                            $att = $sData['attendance'] ?? ['attended'=>0, 'conducted'=>0, 'percentage'=>100];
+                            $sData = $st['subjects'][$subj->id] ?? collect($st['subjects'])->firstWhere('subject_code', $subj->subject_code);
+                            $s1 = $sData['series_1'] ?? null;
+                            $s2 = $sData['series_2'] ?? null;
+                            $tot = $sData['subject_total'] ?? null;
                         @endphp
                         <tr>
                             <td style="color: #64748b;">{{ $idx++ }}</td>
                             <td style="font-weight: 700; color: #1e3a8a;">{{ $subj->subject_code }}</td>
                             <td class="align-left" style="font-weight: 600;">{{ $subj->subject_name }}</td>
                             <td style="color: #4b5563; font-size: 8.5px;">{{ $subj->subject_type }}</td>
-                            <td>{{ $co['CO1'] !== null ? $co['CO1'] : '-' }}</td>
-                            <td>{{ $co['CO2'] !== null ? $co['CO2'] : '-' }}</td>
-                            <td>{{ $co['CO3'] !== null ? $co['CO3'] : '-' }}</td>
-                            <td>{{ $co['CO4'] !== null ? $co['CO4'] : '-' }}</td>
-                            <td style="font-weight: 700; background-color: #f8fafc;">
-                                {{ ($sData && $sData['subject_total'] !== null) ? $sData['subject_total'] : '-' }}
-                            </td>
-                            <td style="background-color: #f0fdf4;">
-                                @if($att['conducted'] > 0)
-                                    <strong style="color: {{ $att['percentage'] >= 75 ? '#15803d' : ($att['percentage'] >= 65 ? '#b45309' : '#b91c1c') }}">
-                                        {{ $att['percentage'] }}%
-                                    </strong> 
-                                    <span style="font-size: 8px; color: #64748b;">({{ $att['attended'] }}/{{ $att['conducted'] }})</span>
-                                @else
-                                    <span style="color: #94a3b8;">100%</span>
-                                @endif
+                            <td style="font-weight: 600;">{{ $s1 !== null ? $s1 : '-' }}</td>
+                            <td style="font-weight: 600;">{{ $s2 !== null ? $s2 : '-' }}</td>
+                            <td style="font-weight: 800; background-color: #f8fafc; color: #1e3a8a;">
+                                {{ $tot !== null ? $tot : '-' }}
                             </td>
                         </tr>
                     @endforeach
@@ -313,9 +299,31 @@
                     </div>
                 </div>
                 <div class="summary-box">
-                    <div class="label">Semester Attendance</div>
+                    <div class="label">Total Attendance %</div>
                     <div class="val" style="color: {{ $st['overall_attendance'] >= 75 ? '#15803d' : ($st['overall_attendance'] >= 65 ? '#b45309' : '#b91c1c') }};">
                         {{ $st['overall_attendance'] }}%
+                    </div>
+                    <div style="font-size: 8px; color: #64748b; margin-top: 1px;">{{ $st['status'] }}</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Activity Points (All Sems)</div>
+                    <div class="val" style="color: #166534;">
+                        {{ $st['activity_points'] }} <span style="font-size: 9px; font-weight: normal; color: #64748b;">/ {{ $st['activity_goal'] ?? 60 }}</span>
+                    </div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Assignments Status</div>
+                    <div class="val" style="font-size: 13px; color: {{ ($st['assignments']['pending'] ?? 0) == 0 ? '#15803d' : '#b45309' }};">
+                        @if(($st['assignments']['total'] ?? 0) > 0)
+                            {{ $st['assignments']['submitted'] }} / {{ $st['assignments']['total'] }}
+                            @if(($st['assignments']['pending'] ?? 0) > 0)
+                                <span style="font-size: 8.5px; color: #b91c1c; font-weight: normal; display: block;">({{ $st['assignments']['pending'] }} Pending)</span>
+                            @else
+                                <span style="font-size: 8.5px; color: #15803d; font-weight: normal; display: block;">(All Done)</span>
+                            @endif
+                        @else
+                            <span style="color: #94a3b8;">-</span>
+                        @endif
                     </div>
                 </div>
                 <div class="summary-box">
@@ -331,7 +339,7 @@
                 </div>
                 <div class="summary-box">
                     <div class="label">Attendance Eligibility</div>
-                    <div class="val" style="font-size: 13px; color: {{ $st['status'] === 'Eligible' ? '#15803d' : ($st['status'] === 'Condonation' ? '#b45309' : '#b91c1c') }};">
+                    <div class="val" style="font-size: 12px; color: {{ $st['status'] === 'Eligible' ? '#15803d' : ($st['status'] === 'Condonation' ? '#b45309' : '#b91c1c') }};">
                         {{ $st['status'] }}
                     </div>
                 </div>
@@ -339,7 +347,7 @@
 
             <!-- SBTE Kerala Attendance Compliance Note -->
             <div class="eligibility-box">
-                <strong>SBTE Regulation 2021 (Clause 10 Note):</strong> 
+                <strong>SBTE Regulation {{ ($classroom['revision'] ?? '') === 'REV2026' ? '2026' : '2021' }} (Clause 10 Note):</strong> 
                 Minimum 75% aggregate semester attendance is mandatory to appear for the End Semester Board Examination (ESE). 
                 Students having attendance between 65% - 74.9% are in Condonation shortage. Attendance below 65% results in detention.
             </div>

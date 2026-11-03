@@ -17,8 +17,8 @@
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 10px;
-      line-height: 1.25;
+      font-size: 11px;
+      line-height: 1.3;
       color: #0f172a;
       background: #ffffff;
       -webkit-print-color-adjust: exact;
@@ -78,20 +78,20 @@
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 4px;
+      gap: 5px;
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 4px;
-      padding: 4px 8px;
+      padding: 5px 9px;
       margin-bottom: 6px;
-      font-size: 9.5px;
+      font-size: 11px;
     }
     .meta-item {
       display: flex;
       flex-direction: column;
     }
     .meta-label {
-      font-size: 7.5px;
+      font-size: 8.5px;
       font-weight: 800;
       text-transform: uppercase;
       color: #64748b;
@@ -100,6 +100,7 @@
     .meta-val {
       font-weight: 800;
       color: #0f172a;
+      font-size: 11px;
     }
 
     /* Lock Stamp Banner */
@@ -129,11 +130,11 @@
       width: 100%;
       border-collapse: collapse;
       table-layout: auto;
-      font-size: 9px;
+      font-size: 10.5px;
     }
     table.cia-table th, table.cia-table td {
       border: 1px solid #94a3b8;
-      padding: 2.5px 3.5px;
+      padding: 3.5px 4.5px;
       vertical-align: middle;
     }
     table.cia-table th {
@@ -143,9 +144,9 @@
       text-align: center;
     }
     table.cia-table th.subj-th {
-      font-size: 8px;
-      padding: 2px 2px;
-      max-width: 68px;
+      font-size: 9.5px;
+      padding: 2.5px 3px;
+      max-width: 75px;
       word-break: break-word;
       line-height: 1.15;
     }
@@ -156,7 +157,7 @@
       text-align: center;
       font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
-      font-size: 9.5px;
+      font-size: 11px;
     }
     .mark-fail {
       color: #dc2626;
@@ -174,13 +175,13 @@
       color: #166534;
       font-weight: 800;
       text-align: center;
-      font-size: 8.5px;
+      font-size: 9.5px;
     }
     .status-fail {
       color: #991b1b;
       font-weight: 800;
       text-align: center;
-      font-size: 8.5px;
+      font-size: 9.5px;
     }
 
     /* Faculty Section */
@@ -191,7 +192,7 @@
       page-break-inside: avoid;
     }
     .faculty-title {
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -201,8 +202,8 @@
     .faculty-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
-      font-size: 8.5px;
+      gap: 6px;
+      font-size: 9.5px;
     }
     .faculty-card {
       background: #f8fafc;
@@ -213,11 +214,12 @@
     .faculty-name {
       font-weight: 800;
       color: #0f172a;
+      font-size: 10px;
     }
     .faculty-subjs {
       color: #64748b;
-      font-size: 7.5px;
-      line-height: 1.1;
+      font-size: 8.5px;
+      line-height: 1.15;
       margin-top: 1px;
     }
 

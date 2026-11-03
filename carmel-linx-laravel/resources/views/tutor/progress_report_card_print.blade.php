@@ -208,12 +208,19 @@
     </style>
 </head>
 <body>
+@php
+    $scale = request('scale', '100');
+    $isOriginal = ($scale === 'original');
+@endphp
 
     <div class="action-bar">
         <span style="font-size: 12px; font-weight: 600; color: #4b5563;">
-            Student Progress Report Cards (PTM Mode) - {{ count($students) }} Student Card(s)
+            Student Progress Report Cards (PTM Mode) - {{ count($students) }} Student Card(s) | Mode: <strong style="color: {{ $isOriginal ? '#d97706' : '#0284c7' }}">{{ $isOriginal ? 'Original Weighted (Staff Entry)' : '100-Scale (Normalized)' }}</strong>
         </span>
-        <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&mode=consolidated" class="btn btn-secondary">
+        <a href="/tutor/progress-report/student-print?classroom_id={{ $classroom['id'] }}{{ request('reg_no') ? '&reg_no=' . urlencode(request('reg_no')) : '' }}&scale={{ $isOriginal ? '100' : 'original' }}" class="btn" style="background-color: {{ $isOriginal ? '#4b5563' : '#d97706' }};">
+            {{ $isOriginal ? 'Switch to 100-Scale' : 'Switch to Original Staff Marks' }}
+        </a>
+        <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&mode=consolidated{{ $isOriginal ? '&scale=original' : '' }}" class="btn btn-secondary">
             Switch to Broadsheet Register
         </a>
         <button class="btn" onclick="window.print()">
@@ -253,7 +260,7 @@
                 </tr>
             </table>
 
-            <!-- Subject-wise Series Exam Marks Table (Normalized out of 100) -->
+            <!-- Subject-wise Series Exam Marks Table -->
             <table class="marks-table">
                 <thead>
                     <tr>
@@ -261,9 +268,9 @@
                         <th style="width: 12%;">Course Code</th>
                         <th style="width: 43%;">Course / Subject Name</th>
                         <th style="width: 13%;">Course Type</th>
-                        <th style="width: 9%;">Series 1<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
-                        <th style="width: 9%;">Series 2<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
-                        <th style="width: 9%; background-color: #e2e8f0;">Series Avg<br><span style="font-size: 7.5px; font-weight: normal;">(Max 100)</span></th>
+                        <th style="width: 9%;">Series 1<br><span style="font-size: 7.5px; font-weight: normal;">{{ $isOriginal ? '(Staff Mark)' : '(Max 100)' }}</span></th>
+                        <th style="width: 9%;">Series 2<br><span style="font-size: 7.5px; font-weight: normal;">{{ $isOriginal ? '(Staff Mark)' : '(Max 100)' }}</span></th>
+                        <th style="width: 9%; background-color: #e2e8f0;">{{ $isOriginal ? 'Total Marks' : 'Series Avg' }}<br><span style="font-size: 7.5px; font-weight: normal;">{{ $isOriginal ? '(Weighted)' : '(Max 100)' }}</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -271,19 +278,33 @@
                     @foreach($subjects as $subj)
                         @php
                             $sData = $st['subjects'][$subj->id] ?? collect($st['subjects'])->firstWhere('subject_code', $subj->subject_code);
-                            $s1 = $sData['series_1'] ?? null;
-                            $s2 = $sData['series_2'] ?? null;
-                            $tot = $sData['subject_total'] ?? null;
+                            if ($isOriginal) {
+                                $s1 = $sData['raw_series_1'] ?? null;
+                                $s2 = $sData['raw_series_2'] ?? null;
+                                $tot = $sData['raw_total'] ?? null;
+                                $m1 = $subj->max_series_1 ?? 50;
+                                $m2 = $subj->max_series_2 ?? 50;
+                                $mTot = $subj->max_total ?? 50;
+                            } else {
+                                $s1 = $sData['series_1'] ?? null;
+                                $s2 = $sData['series_2'] ?? null;
+                                $tot = $sData['subject_total'] ?? null;
+                            }
                         @endphp
                         <tr>
                             <td style="color: #64748b;">{{ $idx++ }}</td>
                             <td style="font-weight: 700; color: #1e3a8a;">{{ $subj->subject_code }}</td>
-                            <td class="align-left" style="font-weight: 600;">{{ $subj->subject_name }}</td>
+                            <td class="align-left" style="font-weight: 600;">
+                                {{ $subj->subject_name }}
+                                @if(!empty($subj->faculty_names) && $subj->faculty_names !== 'Not Assigned')
+                                    <div style="font-size: 8px; color: #059669; font-weight: 500;">Faculty: {{ $subj->faculty_names }}</div>
+                                @endif
+                            </td>
                             <td style="color: #4b5563; font-size: 8.5px;">{{ $subj->subject_type }}</td>
-                            <td style="font-weight: 600;">{{ $s1 !== null ? $s1 : '-' }}</td>
-                            <td style="font-weight: 600;">{{ $s2 !== null ? $s2 : '-' }}</td>
+                            <td style="font-weight: 600;">{{ $s1 !== null ? ($isOriginal ? $s1 . ' / ' . $m1 : $s1 . ' / 100') : '-' }}</td>
+                            <td style="font-weight: 600;">{{ $s2 !== null ? ($isOriginal ? $s2 . ' / ' . $m2 : $s2 . ' / 100') : '-' }}</td>
                             <td style="font-weight: 800; background-color: #f8fafc; color: #1e3a8a;">
-                                {{ $tot !== null ? $tot : '-' }}
+                                {{ $tot !== null ? ($isOriginal ? $tot . ' / ' . $mTot : $tot . ' / 100') : '-' }}
                             </td>
                         </tr>
                     @endforeach
@@ -295,7 +316,12 @@
                 <div class="summary-box">
                     <div class="label">Grand Total Series Marks</div>
                     <div class="val" style="color: #1e3a8a;">
-                        {{ $st['grand_total_marks'] > 0 ? $st['grand_total_marks'] : '0.0' }}
+                        @if($isOriginal)
+                            {{ ($st['raw_grand_total_marks'] ?? 0) > 0 ? $st['raw_grand_total_marks'] : '0.0' }}
+                            <span style="font-size: 10px; font-weight: normal; color: #64748b;">/ {{ $st['raw_max_grand_total'] ?? '-' }}</span>
+                        @else
+                            {{ $st['grand_total_marks'] > 0 ? $st['grand_total_marks'] : '0.0' }}
+                        @endif
                     </div>
                 </div>
                 <div class="summary-box">

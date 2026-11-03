@@ -1,3 +1,6 @@
+@php
+    $isChemistry = $isChemistry ?? (str_contains(strtoupper(trim(str_replace([' ', '-'], '', $batchSubject->subject_code ?? ''))), '2003') || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry'));
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -290,10 +293,73 @@
         }
 
         .ce-input-50 {
-            font-size: 1.5rem !important; /* 24px */
-            font-weight: 900 !important;
-            height: 3rem !important;
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            height: 2.25rem !important;
+            width: 5.5rem !important;
             line-height: 1 !important;
+            border-radius: 0.5rem !important;
+        }
+
+        .sp-input {
+            height: 2.15rem !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            max-width: 85px !important;
+            border-radius: 0.5rem !important;
+            padding: 0.25rem 0.45rem !important;
+        }
+
+        .cell-sla-m1, .cell-sla-m2, .cell-sla-m3, .cell-sla-m4 {
+            height: 2.15rem !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            width: 5.25rem !important;
+            border-radius: 0.5rem !important;
+        }
+
+        /* 19.5" and 22" Desktop Monitor Responsive Optimization */
+        @media (min-width: 1024px) {
+            .header-main-bar {
+                min-height: 58px !important;
+                padding-top: 0.6rem !important;
+                padding-bottom: 0.6rem !important;
+            }
+            .classroom-header-title {
+                font-size: 1.05rem !important;
+                white-space: nowrap !important;
+                letter-spacing: -0.01em !important;
+                line-height: 1.25 !important;
+            }
+            .tab-nav-container {
+                padding: 0.35rem 0.5rem !important;
+                margin-bottom: 0.85rem !important;
+            }
+            .tab-nav-container nav {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                gap: 0.3rem !important;
+                scrollbar-width: thin !important;
+                scrollbar-color: rgba(59, 130, 246, 0.4) transparent !important;
+            }
+            .tab-btn, .subtab-btn {
+                padding: 0.35rem 0.65rem !important;
+                font-size: 0.75rem !important;
+                border-top-left-radius: 0.65rem !important;
+                border-top-right-radius: 0.65rem !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+            table th {
+                font-size: 0.72rem !important;
+                padding: 0.4rem 0.5rem !important;
+                white-space: nowrap !important;
+            }
+            table td {
+                font-size: 0.8rem !important;
+                padding: 0.35rem 0.5rem !important;
+            }
         }
 
         /* Compact Font Size Specifically for 90-Hour Dense Lesson Planner */
@@ -438,23 +504,23 @@
     @endphp
 
     <!-- 1. TOP HEADER CONTAINER -->
-    <header class="glass-panel sticky top-0 z-40 border-b border-slate-800 px-4 md:px-8 py-3.5 md:py-4.5 min-h-[72px] flex items-center">
-        <div class="max-w-[98%] mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3 w-full">
+    <header class="glass-panel header-main-bar sticky top-0 z-40 border-b border-slate-800 px-4 md:px-6 py-2.5 min-h-[58px] flex items-center">
+        <div class="max-w-[98%] mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-2.5 w-full">
             
             <!-- Left: Subject Details -->
-            <div class="flex items-center space-x-3.5 w-full xl:w-auto">
+            <div class="flex items-center space-x-3 w-full xl:w-auto flex-nowrap overflow-x-auto scrollbar-none">
                 <div class="flex flex-col items-start shrink-0">
-                    <a href="{{ $dashboardUrl }}" class="flex items-center gap-2 shrink-0 no-underline text-white group" title="Return to Dashboard">
-                        <span class="material-symbols-rounded text-emerald-400 text-xl group-hover:scale-105 transition-transform">school</span>
-                        <span class="font-extrabold text-white text-base tracking-tight group-hover:text-emerald-300 transition-colors">Carmel Linx</span>
+                    <a href="{{ $dashboardUrl }}" class="flex items-center gap-1.5 shrink-0 no-underline text-white group" title="Return to Dashboard">
+                        <span class="material-symbols-rounded text-emerald-400 text-lg group-hover:scale-105 transition-transform">school</span>
+                        <span class="font-extrabold text-white text-sm tracking-tight group-hover:text-emerald-300 transition-colors">Carmel Linx</span>
                     </a>
-                    <span class="mt-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold tracking-wide shadow-xs whitespace-nowrap">
+                    <span class="mt-0.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold tracking-wide shadow-xs whitespace-nowrap">
                         Basic Science Practicum ({{ (str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), '2021') || str_contains(strtoupper($batchSubject->syllabus_revision_code ?? ''), 'R21')) ? 'R-2021' : 'R-2026' }})
                     </span>
                 </div>
-                <div class="h-9 w-px bg-slate-800 hidden sm:block shrink-0 mx-1"></div>
-                <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
-                    <h1 class="text-lg md:text-xl font-bold text-white tracking-tight flex items-center flex-wrap gap-1.5">
+                <div class="h-8 w-px bg-slate-800 hidden sm:block shrink-0 mx-0.5"></div>
+                <div class="flex items-center space-x-2 flex-nowrap shrink-0">
+                    <h1 class="classroom-header-title text-sm sm:text-base lg:text-lg font-bold text-white tracking-tight flex items-center gap-1.5 whitespace-nowrap">
                         <span class="font-black text-white font-mono">{{ $batchSubject->subject_code }}</span>
                         <span class="text-slate-500 font-normal">|</span>
                         <span>{{ $batchSubject->subject_name }}</span>
@@ -557,36 +623,36 @@
     <!-- 3. UNIFIED PRACTICUM TAB NAVIGATION BAR (Arch-Shaped Common Design) -->
     <main class="max-w-[98%] mx-auto px-4 md:px-8 mt-4">
         
-        <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-2 rounded-2xl shadow-lg mb-4">
-            <nav class="flex flex-wrap md:flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
-                <button onclick="switchPracticumTab('outline')" id="ptab-outline" class="tab-btn subtab-btn active px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+        <div class="tab-nav-container bg-slate-950/80 border border-slate-800/80 p-1.5 rounded-2xl shadow-lg mb-4">
+            <nav class="flex flex-nowrap items-center gap-1 overflow-x-auto scrollbar-thin">
+                <button onclick="switchPracticumTab('outline')" id="ptab-outline" class="tab-btn subtab-btn active px-2.5 py-1.5 text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📘 Course Outline</span>
                 </button>
-                <button onclick="switchPracticumTab('planner')" id="ptab-planner" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('planner')" id="ptab-planner" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📅 Lesson Planner</span>
                 </button>
-                <button onclick="switchPracticumTab('sl')" id="ptab-sl" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('sl')" id="ptab-sl" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📝 Self Learning</span>
                 </button>
-                <button onclick="switchPracticumTab('continuouseval')" id="ptab-continuouseval" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('continuouseval')" id="ptab-continuouseval" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>🔬 Continuous Evaluation</span>
                 </button>
-                <button onclick="switchPracticumTab('theoryseries')" id="ptab-theoryseries" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('theoryseries')" id="ptab-theoryseries" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>✍️ Theory Series</span>
                 </button>
-                <button onclick="switchPracticumTab('labseries')" id="ptab-labseries" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('labseries')" id="ptab-labseries" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>🧪 Lab Series</span>
                 </button>
-                <button onclick="switchPracticumTab('cie')" id="ptab-cie" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('cie')" id="ptab-cie" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📊 CIE Register</span>
                 </button>
-                <button onclick="switchPracticumTab('attainment')" id="ptab-attainment" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('attainment')" id="ptab-attainment" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>🎯 Attainment &amp; Surveys</span>
                 </button>
-                <button onclick="switchPracticumTab('reports')" id="ptab-reports" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('reports')" id="ptab-reports" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📈 Reports</span>
                 </button>
-                <button onclick="switchPracticumTab('materials')" id="ptab-materials" class="tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px">
+                <button onclick="switchPracticumTab('materials')" id="ptab-materials" class="tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px">
                     <span>📁 Pre-Lab Materials</span>
                 </button>
             </nav>
@@ -842,10 +908,10 @@
                     <div>
                         <h3 class="font-bold text-sm text-cyan-400 flex items-center gap-2">
                             <span class="material-symbols-rounded text-base">local_library</span>
-                            <span>Self-Learning Assessment (CA1 - 5 CIA Marks)</span>
+                            <span>Self-Learning Assessment (CA1 - {{ $isChemistry ? '10 CIA Marks' : '5 CIA Marks' }})</span>
                         </h3>
                         <p class="text-xs text-slate-400 mt-0.5">
-                            Enter 4 module marks: M1, M2, M3, M4 evaluated out of 10 Marks each. Average scaled to 5 CIA Marks for CIE Register.
+                            Enter 4 module marks: M1, M2, M3, M4 evaluated out of {{ $isChemistry ? '15' : '10' }} Marks each. Average scaled to {{ $isChemistry ? '10' : '5' }} CIA Marks for CIE Register.
                         </p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
@@ -879,11 +945,11 @@
                                 <th class="py-3 px-3 w-14 text-center">Roll</th>
                                 <th class="py-3 px-3 w-32">SBTE Reg No</th>
                                 <th class="py-3 px-3 min-w-[180px]">Student Name</th>
-                                <th class="py-3 px-3 w-28 text-center text-blue-300 bg-blue-950/20">M1 (10)</th>
-                                <th class="py-3 px-3 w-28 text-center text-sky-300 bg-sky-950/20">M2 (10)</th>
-                                <th class="py-3 px-3 w-28 text-center text-cyan-300 bg-cyan-950/20">M3 (10)</th>
-                                <th class="py-3 px-3 w-28 text-center text-indigo-300 bg-indigo-950/20">M4 (10)</th>
-                                <th class="py-3 px-3 w-32 text-center text-amber-300 bg-amber-950/30">SL Total (5M)</th>
+                                <th class="py-3 px-3 w-28 text-center text-blue-300 bg-blue-950/20">M1 ({{ $isChemistry ? 15 : 10 }})</th>
+                                <th class="py-3 px-3 w-28 text-center text-sky-300 bg-sky-950/20">M2 ({{ $isChemistry ? 15 : 10 }})</th>
+                                <th class="py-3 px-3 w-28 text-center text-cyan-300 bg-cyan-950/20">M3 ({{ $isChemistry ? 15 : 10 }})</th>
+                                <th class="py-3 px-3 w-28 text-center text-indigo-300 bg-indigo-950/20">M4 ({{ $isChemistry ? 15 : 10 }})</th>
+                                <th class="py-3 px-3 w-32 text-center text-amber-300 bg-amber-950/30">SL Total ({{ $isChemistry ? '10M' : '5M' }})</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm font-normal">
@@ -895,58 +961,58 @@
                                 
                                 <!-- M1 -->
                                 <td class="py-2.5 px-3 text-center bg-blue-950/10 border-0">
-                                    <input type="number" step="0.5" min="0" max="10" 
+                                    <input type="number" step="0.5" min="0" max="{{ $isChemistry ? 15 : 10 }}" 
                                            value="{{ $st['m1'] !== null ? $st['m1'] : '' }}" 
                                            data-prev-val="{{ $st['m1'] !== null ? $st['m1'] : '' }}"
-                                           data-max="10"
-                                           data-field-name="M1 (Max 10M)"
+                                           data-max="{{ $isChemistry ? 15 : 10 }}"
+                                           data-field-name="M1 (Max {{ $isChemistry ? '15M' : '10M' }})"
                                            data-reg-no="{{ $st['reg_no'] }}"
                                            data-module="1"
                                            placeholder="-" 
                                            class="cell-sla-m1 sla-m1 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400/40 outline-none transition-all"
-                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 1, this.value);">
+                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 1, this.value, this);">
                                 </td>
 
                                 <!-- M2 -->
                                 <td class="py-2.5 px-3 text-center bg-sky-950/10 border-0">
-                                    <input type="number" step="0.5" min="0" max="10" 
+                                    <input type="number" step="0.5" min="0" max="{{ $isChemistry ? 15 : 10 }}" 
                                            value="{{ $st['m2'] !== null ? $st['m2'] : '' }}" 
                                            data-prev-val="{{ $st['m2'] !== null ? $st['m2'] : '' }}"
-                                           data-max="10"
-                                           data-field-name="M2 (Max 10M)"
+                                           data-max="{{ $isChemistry ? 15 : 10 }}"
+                                           data-field-name="M2 (Max {{ $isChemistry ? '15M' : '10M' }})"
                                            data-reg-no="{{ $st['reg_no'] }}"
                                            data-module="2"
                                            placeholder="-" 
                                            class="cell-sla-m2 sla-m2 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-sky-400 focus:ring-1 focus:ring-sky-400/40 outline-none transition-all"
-                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 2, this.value);">
+                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 2, this.value, this);">
                                 </td>
 
                                 <!-- M3 -->
                                 <td class="py-2.5 px-3 text-center bg-cyan-950/10 border-0">
-                                    <input type="number" step="0.5" min="0" max="10" 
+                                    <input type="number" step="0.5" min="0" max="{{ $isChemistry ? 15 : 10 }}" 
                                            value="{{ $st['m3'] !== null ? $st['m3'] : '' }}" 
                                            data-prev-val="{{ $st['m3'] !== null ? $st['m3'] : '' }}"
-                                           data-max="10"
-                                           data-field-name="M3 (Max 10M)"
+                                           data-max="{{ $isChemistry ? 15 : 10 }}"
+                                           data-field-name="M3 (Max {{ $isChemistry ? '15M' : '10M' }})"
                                            data-reg-no="{{ $st['reg_no'] }}"
                                            data-module="3"
                                            placeholder="-" 
                                            class="cell-sla-m3 sla-m3 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 outline-none transition-all"
-                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 3, this.value);">
+                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 3, this.value, this);">
                                 </td>
 
                                 <!-- M4 -->
                                 <td class="py-2.5 px-3 text-center bg-indigo-950/10 border-0">
-                                    <input type="number" step="0.5" min="0" max="10" 
+                                    <input type="number" step="0.5" min="0" max="{{ $isChemistry ? 15 : 10 }}" 
                                            value="{{ $st['m4'] !== null ? $st['m4'] : '' }}" 
                                            data-prev-val="{{ $st['m4'] !== null ? $st['m4'] : '' }}"
-                                           data-max="10"
-                                           data-field-name="M4 (Max 10M)"
+                                           data-max="{{ $isChemistry ? 15 : 10 }}"
+                                           data-field-name="M4 (Max {{ $isChemistry ? '15M' : '10M' }})"
                                            data-reg-no="{{ $st['reg_no'] }}"
                                            data-module="4"
                                            placeholder="-" 
                                            class="cell-sla-m4 sla-m4 no-spinners w-20 sm:w-24 text-center px-2 py-1.5 text-sm font-bold font-mono text-slate-100 bg-slate-950/80 border border-slate-700/60 rounded-lg focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/40 outline-none transition-all"
-                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 4, this.value);">
+                                           oninput="handlePracticumSlaChange('{{ $st['reg_no'] }}', 4, this.value, this);">
                                 </td>
 
                                 <!-- SL Total (5M) -->
@@ -975,7 +1041,7 @@
                             <span>Continuous Internal Assessment (CIE) Register - Rev 2026</span>
                         </h3>
                         <p class="text-xs text-slate-400 mt-0.5">
-                            Scheme: Attendance (5M) + CA1 Self Learning (5M) + CE Continuous Lab (10M) + CA4/5 Theory Tests (10M) + CA2/3 Practical Tests (10M) = <strong class="text-amber-400">CIE 40 Marks</strong> | ESE ({{ $practicumCourseFile->ese_marks ?? 60 }}M)
+                            Scheme: Attendance (5M) + CA1 Self Learning ({{ $isChemistry ? '10M' : '5M' }}) + CE Continuous Lab (10M) + CA4/5 Theory Tests (10M) + CA2/3 Practical Tests (10M) = <strong class="text-amber-400">CIE 40 Marks</strong> | ESE ({{ $practicumCourseFile->ese_marks ?? 60 }}M)
                         </p>
                     </div>
 
@@ -1014,7 +1080,7 @@
                                 <th rowspan="2" class="border-0 min-w-[170px] py-2.5">Student Name</th>
                                 <th colspan="3" class="border-0 text-center bg-blue-950/40 text-blue-300 py-1.5">Attendance (5M)</th>
                                 <th rowspan="2" class="border-0 text-center w-28 bg-amber-950/40 text-amber-300 py-2.5">
-                                    CA1 SL (5M)<br>
+                                    CA1 SL ({{ $isChemistry ? '10M' : '5M' }})<br>
                                     <button type="button" onclick="switchTheorySubtab('sl')" class="mt-1 px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded text-[10px] font-semibold transition cursor-pointer">Edit SLA &rarr;</button>
                                 </th>
                                 <th rowspan="2" class="border-0 text-center w-24 bg-sky-950/40 text-sky-300 py-2.5">CE Lab<br>(10M)</th>
@@ -1413,8 +1479,8 @@
                                     $s1Tot = $hasS1 ? min(50.0, ($co1Val ?? 0) + ($co2Val ?? 0)) : null;
                                     $s2Tot = $hasS2 ? min(50.0, ($co3Val ?? 0) + ($co4Val ?? 0)) : null;
 
-                                    $avg50 = ($s1Tot !== null || $s2Tot !== null) ? ((($s1Tot ?? 0) + ($s2Tot ?? 0)) / 2.0) : null;
-                                    $cia10 = $avg50 !== null ? round((($avg50 / 50.0) * 10.0) * 2) / 2 : null;
+                                    $avg50 = ((($s1Tot ?? 0) + ($s2Tot ?? 0)) / 2.0);
+                                    $cia10 = round((($avg50 / 50.0) * 10.0) * 2) / 2;
                                 @endphp
                                 <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
                                     <td class="p-2.5 text-slate-300 font-mono font-bold text-sm">{{ $res['roll_no'] }}</td>
@@ -1494,14 +1560,14 @@
                                     <!-- Average (/50) -->
                                     <td class="p-2.5 text-center">
                                         <span id="st-avg-{{ $regKey }}" class="font-mono font-extrabold text-amber-300 text-sm sm:text-base">
-                                            {{ $avg50 !== null ? number_format($avg50, 1) : '—' }}
+                                            {{ number_format($avg50, 1) }}
                                         </span>
                                     </td>
 
                                     <!-- CIA Score (/10M) -->
                                     <td class="p-2.5 text-center">
                                         <span id="st-cia-{{ $regKey }}" class="px-2.5 py-1 rounded-xl bg-blue-500/20 text-sky-300 border border-blue-500/30 font-mono font-black text-sm sm:text-base inline-block">
-                                            {{ $cia10 !== null ? number_format($cia10, 2) . '/10' : '—' }}
+                                            {{ number_format($cia10, 2) . '/10' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -2570,13 +2636,13 @@
                                 <th rowspan="2" class="p-2.5 text-center w-28 align-middle">CIA Score<br><span class="text-[11px] text-emerald-400 font-normal">(/10M)</span></th>
                             </tr>
                             <tr class="border-b border-slate-800 text-slate-300 font-bold bg-slate-900/70 text-xs">
-                                <th class="p-2 text-center border-l border-slate-800/60 w-28 text-emerald-200">Test 1 (CO1)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
-                                <th class="p-2 text-center w-28 text-emerald-200">Test 2 (CO2)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
-                                <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-emerald-950/40 text-emerald-300 font-extrabold">Series 1<br><span class="text-[10px] text-emerald-400 font-mono">Tot /40</span></th>
+                                <th class="p-2 text-center border-l border-slate-800/60 w-32 bg-emerald-950/40 text-emerald-300 font-extrabold">Series 1<br><span class="text-[10px] text-emerald-400 font-mono">Tot /40</span></th>
+                                <th class="p-2 text-center w-28 text-emerald-200">Test 1 (CO1)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
+                                <th class="p-2 text-center border-r border-slate-800/60 w-28 text-emerald-200">Test 2 (CO2)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
 
+                                <th class="p-2 text-center w-32 bg-teal-950/40 text-teal-300 font-extrabold">Series 2<br><span class="text-[10px] text-teal-400 font-mono">Tot /40</span></th>
                                 <th class="p-2 text-center w-28 text-teal-200">Test 3 (CO3)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
-                                <th class="p-2 text-center w-28 text-teal-200">Test 4 (CO4)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
-                                <th class="p-2 text-center border-r border-slate-800/60 w-28 bg-teal-950/40 text-teal-300 font-extrabold">Series 2<br><span class="text-[10px] text-teal-400 font-mono">Tot /40</span></th>
+                                <th class="p-2 text-center border-r border-slate-800/60 w-28 text-teal-200">Test 4 (CO4)<br><span class="text-[10px] text-slate-400 font-normal">Max 20M</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/60 text-sm sm:text-base">
@@ -2616,16 +2682,30 @@
                                 $spS1Tot = $hasSpS1 ? min(40.0, ($spCo1Val ?? 0) + ($spCo2Val ?? 0)) : null;
                                 $spS2Tot = $hasSpS2 ? min(40.0, ($spCo3Val ?? 0) + ($spCo4Val ?? 0)) : null;
 
-                                $spAvg40 = ($spS1Tot !== null || $spS2Tot !== null) ? ((($spS1Tot ?? 0) + ($spS2Tot ?? 0)) / 2.0) : null;
-                                $spCia10 = $spAvg40 !== null ? min(10.0, round((($spAvg40 / 40.0) * 10.0) * 2) / 2) : null;
+                                $spAvg40 = ((($spS1Tot ?? 0) + ($spS2Tot ?? 0)) / 2.0);
+                                $spCia10 = min(10.0, round((($spAvg40 / 40.0) * 10.0) * 2) / 2);
                             @endphp
                             <tr class="hover:bg-slate-800/20 transition-all" data-reg="{{ $res['reg_no'] }}">
                                 <td class="p-2.5 text-slate-300 font-mono font-bold text-sm">{{ $res['roll_no'] }}</td>
                                 <td class="p-2.5 font-mono text-white font-extrabold text-sm">{{ $res['sbte_reg_no'] ?: $res['reg_no'] }}</td>
                                 <td class="p-2.5 text-slate-100 text-sm font-semibold">{{ $res['name'] }}</td>
 
-                                <!-- Practical Series 1: Test 1 (CO1) -->
-                                <td class="p-2 text-center border-l border-slate-800/60">
+                                <!-- Practical Series 1: Total (Max 40M) -->
+                                <td class="p-2 text-center border-l border-slate-800/60 bg-emerald-950/20">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s1-tot"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="Series 1"
+                                        min="0" max="40" step="0.5"
+                                        value="{{ $spS1Tot !== null ? number_format($spS1Tot, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="onSeriesPracticalSeriesTotalInput(this, 1)"
+                                        class="sp-input w-full max-w-[95px] bg-slate-900 border border-emerald-500/50 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                    >
+                                </td>
+
+                                <!-- Practical Series 1: Test 1 (CO1 - Max 20M) -->
+                                <td class="p-2 text-center">
                                     <input type="number"
                                         id="sp-{{ $regKey }}-s1"
                                         data-reg="{{ $res['reg_no'] }}"
@@ -2634,12 +2714,12 @@
                                         value="{{ $spCo1Val !== null ? number_format($spCo1Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-emerald-300 text-lg sm:text-xl outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
-                                <!-- Practical Series 1: Test 2 (CO2) -->
-                                <td class="p-2 text-center">
+                                <!-- Practical Series 1: Test 2 (CO2 - Max 20M) -->
+                                <td class="p-2 text-center border-r border-slate-800/60">
                                     <input type="number"
                                         id="sp-{{ $regKey }}-s2"
                                         data-reg="{{ $res['reg_no'] }}"
@@ -2648,18 +2728,25 @@
                                         value="{{ $spCo2Val !== null ? number_format($spCo2Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-emerald-300 text-lg sm:text-xl outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
-                                <!-- Practical Series 1: Subtotal (CO1 + CO2 / 40M) -->
-                                <td class="p-2 text-center border-r border-slate-800/60 bg-emerald-950/20">
-                                    <span id="sp-s1-tot-{{ $regKey }}" class="font-mono font-bold text-emerald-300 text-sm sm:text-base">
-                                        {{ $spS1Tot !== null ? number_format($spS1Tot, 1) . '/40' : '—' }}
-                                    </span>
+                                <!-- Practical Series 2: Total (Max 40M) -->
+                                <td class="p-2 text-center bg-teal-950/20">
+                                    <input type="number"
+                                        id="sp-{{ $regKey }}-s2-tot"
+                                        data-reg="{{ $res['reg_no'] }}"
+                                        data-series="Series 2"
+                                        min="0" max="40" step="0.5"
+                                        value="{{ $spS2Tot !== null ? number_format($spS2Tot, 1, '.', '') : '' }}"
+                                        placeholder="—"
+                                        oninput="onSeriesPracticalSeriesTotalInput(this, 2)"
+                                        class="sp-input w-full max-w-[95px] bg-slate-900 border border-teal-500/50 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                    >
                                 </td>
 
-                                <!-- Practical Series 2: Test 3 (CO3) -->
+                                <!-- Practical Series 2: Test 3 (CO3 - Max 20M) -->
                                 <td class="p-2 text-center">
                                     <input type="number"
                                         id="sp-{{ $regKey }}-s3"
@@ -2669,12 +2756,12 @@
                                         value="{{ $spCo3Val !== null ? number_format($spCo3Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-teal-300 text-lg sm:text-xl outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
-                                <!-- Practical Series 2: Test 4 (CO4) -->
-                                <td class="p-2 text-center">
+                                <!-- Practical Series 2: Test 4 (CO4 - Max 20M) -->
+                                <td class="p-2 text-center border-r border-slate-800/60">
                                     <input type="number"
                                         id="sp-{{ $regKey }}-s4"
                                         data-reg="{{ $res['reg_no'] }}"
@@ -2683,28 +2770,21 @@
                                         value="{{ $spCo4Val !== null ? number_format($spCo4Val, 1, '.', '') : '' }}"
                                         placeholder="—"
                                         oninput="autoSaveSeriesPractical(this)"
-                                        class="w-full max-w-[110px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-center font-black text-teal-300 text-lg sm:text-xl outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
                                     >
-                                </td>
-
-                                <!-- Practical Series 2: Subtotal (CO3 + CO4 / 40M) -->
-                                <td class="p-2 text-center border-r border-slate-800/60 bg-teal-950/20">
-                                    <span id="sp-s2-tot-{{ $regKey }}" class="font-mono font-bold text-teal-300 text-sm sm:text-base">
-                                        {{ $spS2Tot !== null ? number_format($spS2Tot, 1) . '/40' : '—' }}
-                                    </span>
                                 </td>
 
                                 <!-- Average (/40) -->
                                 <td class="p-2.5 text-center">
                                     <span id="sp-avg-{{ $regKey }}" class="font-mono font-extrabold text-amber-300 text-sm sm:text-base">
-                                        {{ $spAvg40 !== null ? number_format($spAvg40, 1) : '—' }}
+                                        {{ number_format($spAvg40, 1) }}
                                     </span>
                                 </td>
 
                                 <!-- CIA Score (/10M) -->
                                 <td class="p-2.5 text-center">
                                     <span id="sp-cia-{{ $regKey }}" class="px-2.5 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono font-black text-sm sm:text-base inline-block">
-                                        {{ $spCia10 !== null ? number_format($spCia10, 2) . '/10' : '—' }}
+                                        {{ number_format($spCia10, 2) . '/10' }}
                                     </span>
                                 </td>
                             </tr>
@@ -3524,9 +3604,9 @@
                 const btn = document.getElementById('ptab-' + t);
                 if (btn) {
                     if (t === actualTab) {
-                        btn.className = "tab-btn subtab-btn active px-3.5 py-2 text-[11px] md:text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px";
+                        btn.className = "tab-btn subtab-btn active px-2.5 py-1.5 text-xs font-bold text-blue-400 bg-blue-500/5 border-t-2 border-x-2 border-b-transparent border-blue-400 rounded-t-xl shadow-[0_-4px_10px_rgba(59,130,246,0.2)] flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px";
                     } else {
-                        btn.className = "tab-btn subtab-btn px-3.5 py-2 text-[11px] md:text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap -mb-px";
+                        btn.className = "tab-btn subtab-btn px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 border-t-2 border-x-2 border-b-transparent border-transparent hover:border-slate-800/80 rounded-t-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap -mb-px";
                     }
                 }
             });
@@ -3679,10 +3759,25 @@
             switchPracticumTab(tab);
         }
 
-        // Realtime Practicum Self-Learning Module input handler (4 marks: M1..M4 all in 10M, scaled to 5M)
-        function handlePracticumSlaChange(regNo, moduleNum, val) {
+        // Realtime Practicum Self-Learning Module input handler (4 marks: M1..M4 evaluated out of 15M -> 10M for Chemistry, 10M -> 5M for others)
+        const isChemSla = {{ $isChemistry ? 'true' : 'false' }};
+        const maxModSla = isChemSla ? 15.0 : 10.0;
+        const maxConvSla = isChemSla ? 10.0 : 5.0;
+
+        function handlePracticumSlaChange(regNo, moduleNum, val, inputEl) {
             const slaRow = document.querySelector(`.practicum-sla-student-row[data-reg-no="${regNo}"]`);
             if (!slaRow) return;
+
+            if (inputEl && val !== '') {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num > maxModSla) {
+                    inputEl.value = maxModSla;
+                    val = maxModSla;
+                } else if (!isNaN(num) && num < 0) {
+                    inputEl.value = 0;
+                    val = 0;
+                }
+            }
 
             const m1Inp = slaRow.querySelector('.cell-sla-m1');
             const m2Inp = slaRow.querySelector('.cell-sla-m2');
@@ -3694,25 +3789,26 @@
             const m3Val = m3Inp ? m3Inp.value.trim() : '';
             const m4Val = m4Inp ? m4Inp.value.trim() : '';
 
-            const m1 = m1Val !== '' ? Math.min(10.0, Math.max(0.0, parseFloat(m1Val) || 0)) : 0;
-            const m2 = m2Val !== '' ? Math.min(10.0, Math.max(0.0, parseFloat(m2Val) || 0)) : 0;
-            const m3 = m3Val !== '' ? Math.min(10.0, Math.max(0.0, parseFloat(m3Val) || 0)) : 0;
-            const m4 = m4Val !== '' ? Math.min(10.0, Math.max(0.0, parseFloat(m4Val) || 0)) : 0;
+            const m1 = m1Val !== '' ? Math.min(maxModSla, Math.max(0.0, parseFloat(m1Val) || 0)) : 0;
+            const m2 = m2Val !== '' ? Math.min(maxModSla, Math.max(0.0, parseFloat(m2Val) || 0)) : 0;
+            const m3 = m3Val !== '' ? Math.min(maxModSla, Math.max(0.0, parseFloat(m3Val) || 0)) : 0;
+            const m4 = m4Val !== '' ? Math.min(maxModSla, Math.max(0.0, parseFloat(m4Val) || 0)) : 0;
 
             const entered = [m1Val, m2Val, m3Val, m4Val].filter(v => v !== '');
-            const rawAvg10 = entered.length > 0 ? (m1 + m2 + m3 + m4) / 4.0 : 0.0;
-            const sl5 = entered.length > 0 ? Math.min(5.0, Math.round(((rawAvg10 / 10.0) * 5.0) * 2) / 2) : 0.0;
+            // Missing/unentered modules treat default value as 0 (divisor 4.0)
+            const rawAvg = (m1 + m2 + m3 + m4) / 4.0;
+            const slConv = Math.min(maxConvSla, Math.round(((rawAvg / maxModSla) * maxConvSla) * 2) / 2);
 
             const avgCell = slaRow.querySelector('.sla-row-avg');
             if (avgCell) {
-                avgCell.textContent = sl5.toFixed(2);
+                avgCell.textContent = slConv.toFixed(2);
             }
 
             // Live synchronization to CIE Register row
             const cieRow = document.querySelector(`.student-cie-row[data-reg-no="${regNo}"]`);
             if (cieRow) {
                 const slCell = cieRow.querySelector('.cell-sl-total');
-                if (slCell) slCell.textContent = sl5.toFixed(2);
+                if (slCell) slCell.textContent = slConv.toFixed(2);
                 recalculatePracticumCieRow(regNo);
             }
 
@@ -3781,7 +3877,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ students: studentsData })
+                body: JSON.stringify({ students: studentsData, marks_data: studentsData })
             })
             .then(res => res.json())
             .then(data => {
@@ -6159,8 +6255,8 @@
             if (avgEl) avgEl.innerText = avg.toFixed(1);
             if (ciaEl) ciaEl.innerText = `${cia.toFixed(2)}/10`;
         } else {
-            if (avgEl) avgEl.innerText = '—';
-            if (ciaEl) ciaEl.innerText = '—';
+            if (avgEl) avgEl.innerText = '0.0';
+            if (ciaEl) ciaEl.innerText = '0.00/10';
         }
 
         // Live sync with CIE Register row
@@ -6178,6 +6274,76 @@
 
     // ── Inline auto-save for Practical Series Marks table ────────────────────
     const _spAutoSaveTimers = {};
+
+    function onSeriesPracticalSeriesTotalInput(inputEl, seriesNum) {
+        const regNo = inputEl.getAttribute('data-reg');
+        const regKey = regNo.replace(/[^a-zA-Z0-9_]/g, '_');
+        let rawVal = inputEl.value.trim();
+        let val = parseFloat(rawVal);
+
+        if (!isNaN(val) && val > 40) {
+            inputEl.value = 40;
+            val = 40;
+        } else if (!isNaN(val) && val < 0) {
+            inputEl.value = 0;
+            val = 0;
+        }
+
+        const seriesName = (seriesNum === 1) ? 'Series 1' : 'Series 2';
+        const coAInp = document.getElementById(seriesNum === 1 ? `sp-${regKey}-s1` : `sp-${regKey}-s3`);
+        const coBInp = document.getElementById(seriesNum === 1 ? `sp-${regKey}-s2` : `sp-${regKey}-s4`);
+
+        if (isNaN(val) || rawVal === '') {
+            if (coAInp) coAInp.value = '';
+            if (coBInp) coBInp.value = '';
+        } else {
+            const half = Math.round((val / 2.0) * 10) / 10;
+            if (coAInp) coAInp.value = half.toFixed(1);
+            if (coBInp) coBInp.value = half.toFixed(1);
+        }
+
+        updateSeriesPracticalRowLive(regNo);
+
+        // Debounce save for Series 1 / Series 2 (Backend automatically updates both Series total & COs)
+        const timerKey = regNo + '_' + seriesName;
+        clearTimeout(_spAutoSaveTimers[timerKey]);
+        _spAutoSaveTimers[timerKey] = setTimeout(() => {
+            const isAbsent = isNaN(val) || rawVal === '';
+            const marksData = [{
+                reg_no: regNo,
+                total_score_40: !isAbsent ? val : 0,
+                is_absent: isAbsent
+            }];
+
+            fetch('/api/r26/classroom/practicum/{{ $batchSubject->id }}/evaluate/series-practical', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ series_no: seriesName, marks_data: marksData })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    if (!seriesPracticalEvalsState[regNo]) seriesPracticalEvalsState[regNo] = {};
+                    const halfScore = isAbsent ? null : Math.round((val / 2.0) * 10) / 10;
+                    if (seriesNum === 1) {
+                        seriesPracticalEvalsState[regNo]['CO1'] = { total_score_40: halfScore !== null ? halfScore : 0, is_absent: isAbsent };
+                        seriesPracticalEvalsState[regNo]['CO2'] = { total_score_40: halfScore !== null ? halfScore : 0, is_absent: isAbsent };
+                        seriesPracticalEvalsState[regNo]['Series 1'] = { total_score_40: !isAbsent ? val : 0, is_absent: isAbsent };
+                    } else {
+                        seriesPracticalEvalsState[regNo]['CO3'] = { total_score_40: halfScore !== null ? halfScore : 0, is_absent: isAbsent };
+                        seriesPracticalEvalsState[regNo]['CO4'] = { total_score_40: halfScore !== null ? halfScore : 0, is_absent: isAbsent };
+                        seriesPracticalEvalsState[regNo]['Series 2'] = { total_score_40: !isAbsent ? val : 0, is_absent: isAbsent };
+                    }
+                    const toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1400, timerProgressBar: true });
+                    toast.fire({ icon: 'success', title: 'Saved ✓' });
+                }
+            })
+            .catch(() => {});
+        }, 800);
+    }
 
     function autoSaveSeriesPractical(inputEl) {
         const regNo   = inputEl.getAttribute('data-reg');
@@ -6233,25 +6399,46 @@
         const inp2 = document.getElementById(`sp-${regKey}-s2`);
         const inp3 = document.getElementById(`sp-${regKey}-s3`);
         const inp4 = document.getElementById(`sp-${regKey}-s4`);
+        const inpS1Tot = document.getElementById(`sp-${regKey}-s1-tot`);
+        const inpS2Tot = document.getElementById(`sp-${regKey}-s2-tot`);
+        const spanS1Tot = document.getElementById(`sp-s1-tot-${regKey}`);
+        const spanS2Tot = document.getElementById(`sp-s2-tot-${regKey}`);
 
         const v1 = (inp1 && inp1.value !== '') ? parseFloat(inp1.value) : null;
         const v2 = (inp2 && inp2.value !== '') ? parseFloat(inp2.value) : null;
         const v3 = (inp3 && inp3.value !== '') ? parseFloat(inp3.value) : null;
         const v4 = (inp4 && inp4.value !== '') ? parseFloat(inp4.value) : null;
 
-        const hasS1 = (v1 !== null || v2 !== null);
-        const hasS2 = (v3 !== null || v4 !== null);
+        let s1Total = null;
+        if (v1 !== null || v2 !== null) {
+            s1Total = Math.min(40, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0));
+        } else if (inpS1Tot && inpS1Tot.value !== '') {
+            s1Total = Math.min(40, parseFloat(inpS1Tot.value) || 0);
+        }
 
-        const s1Total = hasS1 ? Math.min(40, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0)) : null;
-        const s2Total = hasS2 ? Math.min(40, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0)) : null;
+        let s2Total = null;
+        if (v3 !== null || v4 !== null) {
+            s2Total = Math.min(40, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0));
+        } else if (inpS2Tot && inpS2Tot.value !== '') {
+            s2Total = Math.min(40, parseFloat(inpS2Tot.value) || 0);
+        }
 
-        const s1El = document.getElementById(`sp-s1-tot-${regKey}`);
-        const s2El = document.getElementById(`sp-s2-tot-${regKey}`);
+        if (inpS1Tot && document.activeElement !== inpS1Tot) {
+            inpS1Tot.value = s1Total !== null ? s1Total.toFixed(1) : '';
+        }
+        if (spanS1Tot) {
+            spanS1Tot.innerText = s1Total !== null ? `${s1Total.toFixed(1)}/40` : '—';
+        }
+
+        if (inpS2Tot && document.activeElement !== inpS2Tot) {
+            inpS2Tot.value = s2Total !== null ? s2Total.toFixed(1) : '';
+        }
+        if (spanS2Tot) {
+            spanS2Tot.innerText = s2Total !== null ? `${s2Total.toFixed(1)}/40` : '—';
+        }
+
         const avgEl = document.getElementById(`sp-avg-${regKey}`);
         const ciaEl = document.getElementById(`sp-cia-${regKey}`);
-
-        if (s1El) s1El.innerText = s1Total !== null ? `${s1Total.toFixed(1)}/40` : '—';
-        if (s2El) s2El.innerText = s2Total !== null ? `${s2Total.toFixed(1)}/40` : '—';
 
         let ciaVal = null;
         if (s1Total !== null || s2Total !== null) {
@@ -6261,8 +6448,8 @@
             if (avgEl) avgEl.innerText = avg.toFixed(1);
             if (ciaEl) ciaEl.innerText = `${cia.toFixed(2)}/10`;
         } else {
-            if (avgEl) avgEl.innerText = '—';
-            if (ciaEl) ciaEl.innerText = '—';
+            if (avgEl) avgEl.innerText = '0.0';
+            if (ciaEl) ciaEl.innerText = '0.00/10';
         }
 
         // Live sync with CIE Register row

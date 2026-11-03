@@ -223,7 +223,7 @@
                     <th style="text-align: center; width: 65px;">CO2</th>
                     <th style="text-align: center; width: 65px;">CO3</th>
                     <th style="text-align: center; width: 65px;">CO4</th>
-                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Assign Avg<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">{{ ($isR21 ?? true) ? 'Best 2 (/20)' : 'Best 3 (/20)' }}</span></th>
+                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Assign Avg<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">{{ ($isR21 ?? true) ? 'Best 2 (/20)' : 'Best 3 (/20)' }}</span></th>
                 </tr>
             </thead>
             <tbody>

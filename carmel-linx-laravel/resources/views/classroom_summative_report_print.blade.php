@@ -219,11 +219,11 @@
                     <th>Student Name</th>
                     <th>College Adm No</th>
                     <th>SBTE Reg No</th>
-                    <th style="text-align: center; width: 65px;">CO1<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 1</span></th>
-                    <th style="text-align: center; width: 65px;">CO2<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 2</span></th>
-                    <th style="text-align: center; width: 65px;">CO3<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 3</span></th>
-                    <th style="text-align: center; width: 65px;">CO4<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Test 4</span></th>
-                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Written Avg<br><span style="font-size: 8px; font-weight: normal; color: var(--text-muted);">Best 2 (/20)</span></th>
+                    <th style="text-align: center; width: 65px;">CO1<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">Test 1</span></th>
+                    <th style="text-align: center; width: 65px;">CO2<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">Test 2</span></th>
+                    <th style="text-align: center; width: 65px;">CO3<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">Test 3</span></th>
+                    <th style="text-align: center; width: 65px;">CO4<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">Test 4</span></th>
+                    <th style="text-align: center; width: 85px; background: #f1f5f9;">Written Avg<br><span style="font-size: 10px; font-weight: normal; color: var(--text-muted);">Best 2 (/20)</span></th>
                 </tr>
             </thead>
             <tbody>

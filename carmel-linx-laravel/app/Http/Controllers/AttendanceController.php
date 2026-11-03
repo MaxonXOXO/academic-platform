@@ -838,6 +838,23 @@ class AttendanceController extends Controller
             $classroom = $allClasses->first();
         }
 
+        // If still not resolved and user is admin/principal/HOD, fallback to active department classroom
+        if (!$classroom) {
+            $userBranch = Session::get('userBranch');
+            if ($userBranch) {
+                $classroom = DB::table('class_management')->where('branch', $userBranch)->first();
+                if (!$classroom && Schema::hasTable('r26_class_management')) {
+                    $classroom = DB::table('r26_class_management')->where('branch', $userBranch)->first();
+                }
+            }
+            if (!$classroom) {
+                $classroom = DB::table('class_management')->first();
+                if (!$classroom && Schema::hasTable('r26_class_management')) {
+                    $classroom = DB::table('r26_class_management')->first();
+                }
+            }
+        }
+
         if (!$classroom) {
             return response()->json([
                 'status' => 'ERROR',

@@ -15,42 +15,18 @@ class BackupController extends Controller
     public function backupDatabaseToDrive()
     {
         try {
-            $tables = DB::select('SHOW TABLES');
-            $dbNameKey = 'Tables_in_' . config('database.connections.mysql.database');
-            
-            $sqlContent = "-- Carmel Linx Database Backup\n";
-            $sqlContent .= "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
-
-            foreach ($tables as $table) {
-                $tableName = $table->$dbNameKey;
-                
-                // Drop table if exists for clean restoration
-                $sqlContent .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
-
-                // Fetch structure
-                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                $createTableKey = 'Create Table';
-                $sqlContent .= $createTable[0]->$createTableKey . ";\n\n";
-
-                // Fetch rows
-                $rows = DB::table($tableName)->get();
-                foreach ($rows as $row) {
-                    $rowArray = (array)$row;
-                    $columns = array_keys($rowArray);
-                    $escapedValues = array_map(function ($value) {
-                        if (is_null($value)) return 'NULL';
-                        return "'" . addslashes($value) . "'";
-                    }, array_values($rowArray));
-
-                    $sqlContent .= "INSERT INTO `{$tableName}` (`" . implode("`, `", $columns) . "`) VALUES (" . implode(", ", $escapedValues) . ");\n";
-                }
-                $sqlContent .= "\n\n";
-            }
-
-            // Save backup locally in temp folder
             $fileName = 'backup_' . date('Y_m_d_His') . '.sql';
-            Storage::disk('local')->put('backups/' . $fileName, $sqlContent);
-            $filePath = storage_path('app/backups/' . $fileName);
+            $tempDir = storage_path('app/backups');
+            if (!file_exists($tempDir)) {
+                @mkdir($tempDir, 0777, true);
+                @chmod($tempDir, 0777);
+            }
+            if (!is_writable($tempDir)) {
+                $tempDir = sys_get_temp_dir();
+            }
+            $filePath = $tempDir . '/' . $fileName;
+
+            $this->generateSqlDumpFile($filePath);
 
             // Upload to Google Drive via API
             $driveResponse = $this->uploadFileToGoogleDrive($filePath, $fileName);
@@ -70,7 +46,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Download instant local SQL backup directly to browser.
+     * Download instant local SQL backup directly to browser without memory exhaustion.
      */
     public function downloadLocalBackup()
     {
@@ -80,23 +56,108 @@ class BackupController extends Controller
         }
 
         try {
-            $tables = DB::select('SHOW TABLES');
-            $dbNameKey = 'Tables_in_' . config('database.connections.mysql.database');
-            
-            $sqlContent = "-- Carmel Linx Database Backup\n";
-            $sqlContent .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
-            $sqlContent .= "-- Database: " . config('database.connections.mysql.database') . "\n\n";
+            $fileName = 'carmel_linx_backup_' . date('Y-m-d_His') . '.sql';
+            $tempDir = storage_path('app/backups');
+            if (!file_exists($tempDir)) {
+                @mkdir($tempDir, 0777, true);
+                @chmod($tempDir, 0777);
+            }
+            if (!is_writable($tempDir)) {
+                $tempDir = sys_get_temp_dir();
+            }
+            $filePath = $tempDir . '/' . $fileName;
 
-            foreach ($tables as $table) {
-                $tableName = $table->$dbNameKey;
-                
-                $sqlContent .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+            $this->generateSqlDumpFile($filePath);
 
-                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                $createTableKey = 'Create Table';
-                $sqlContent .= $createTable[0]->$createTableKey . ";\n\n";
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'application/x-sql',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            ])->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Backup failed: ' . $e->getMessage()], 500);
+        }
+    }
 
-                $rows = DB::table($tableName)->get();
+    /**
+     * Generate SQL dump file to specified file path safely without memory exhaustion.
+     */
+    private function generateSqlDumpFile(&$filePath)
+    {
+        $dbHost = config('database.connections.mysql.host', '127.0.0.1');
+        $dbPort = config('database.connections.mysql.port', '3306');
+        $dbName = config('database.connections.mysql.database');
+        $dbUser = config('database.connections.mysql.username');
+        $dbPass = config('database.connections.mysql.password');
+
+        // 1. Primary: Use mysqldump (fast, memory-free, handles large databases effortlessly)
+        if (function_exists('exec')) {
+            $cmd = sprintf(
+                'mysqldump --host=%s --port=%s --user=%s --password=%s --default-character-set=utf8mb4 --single-transaction --routines --triggers --events --add-drop-table %s > %s 2>&1',
+                escapeshellarg($dbHost),
+                escapeshellarg($dbPort),
+                escapeshellarg($dbUser),
+                escapeshellarg($dbPass),
+                escapeshellarg($dbName),
+                escapeshellarg($filePath)
+            );
+            exec($cmd, $output, $returnVar);
+            if ($returnVar === 0 && file_exists($filePath) && filesize($filePath) > 0) {
+                @chmod($filePath, 0666);
+                return true;
+            }
+
+            // If mysqldump failed due to directory permission, retry in system temp dir
+            $tempDumpPath = sys_get_temp_dir() . '/' . basename($filePath);
+            $cmd2 = sprintf(
+                'mysqldump --host=%s --port=%s --user=%s --password=%s --default-character-set=utf8mb4 --single-transaction --routines --triggers --events --add-drop-table %s > %s 2>&1',
+                escapeshellarg($dbHost),
+                escapeshellarg($dbPort),
+                escapeshellarg($dbUser),
+                escapeshellarg($dbPass),
+                escapeshellarg($dbName),
+                escapeshellarg($tempDumpPath)
+            );
+            exec($cmd2, $output2, $returnVar2);
+            if ($returnVar2 === 0 && file_exists($tempDumpPath) && filesize($tempDumpPath) > 0) {
+                @chmod($tempDumpPath, 0666);
+                $filePath = $tempDumpPath;
+                return true;
+            }
+        }
+
+        // 2. Fallback: PHP streaming chunk-by-chunk to disk without memory exhaustion
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
+        $fileHandle = @fopen($filePath, 'w');
+        if (!$fileHandle) {
+            $fallbackPath = sys_get_temp_dir() . '/' . basename($filePath);
+            $fileHandle = @fopen($fallbackPath, 'w');
+            if ($fileHandle) {
+                $filePath = $fallbackPath;
+            } else {
+                $lastErr = error_get_last()['message'] ?? 'Permission denied';
+                throw new \Exception("Unable to open backup file for writing at {$filePath}: {$lastErr}");
+            }
+        }
+
+        fwrite($fileHandle, "-- Carmel Linx Database Backup\n");
+        fwrite($fileHandle, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
+        fwrite($fileHandle, "-- Database: " . $dbName . "\n\n");
+        fwrite($fileHandle, "SET FOREIGN_KEY_CHECKS=0;\n\n");
+
+        $tables = DB::select('SHOW TABLES');
+        $dbNameKey = 'Tables_in_' . $dbName;
+
+        foreach ($tables as $table) {
+            $tableName = $table->$dbNameKey;
+            fwrite($fileHandle, "DROP TABLE IF EXISTS `{$tableName}`;\n");
+
+            $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
+            $createTableKey = 'Create Table';
+            fwrite($fileHandle, $createTable[0]->$createTableKey . ";\n\n");
+
+            DB::table($tableName)->orderBy(DB::raw('1'))->chunk(500, function ($rows) use ($fileHandle, $tableName) {
                 foreach ($rows as $row) {
                     $rowArray = (array)$row;
                     $columns = array_keys($rowArray);
@@ -105,20 +166,18 @@ class BackupController extends Controller
                         return "'" . addslashes($value) . "'";
                     }, array_values($rowArray));
 
-                    $sqlContent .= "INSERT INTO `{$tableName}` (`" . implode("`, `", $columns) . "`) VALUES (" . implode(", ", $escapedValues) . ");\n";
+                    fwrite($fileHandle, "INSERT INTO `{$tableName}` (`" . implode("`, `", $columns) . "`) VALUES (" . implode(", ", $escapedValues) . ");\n");
                 }
-                $sqlContent .= "\n\n";
-            }
+            });
 
-            $fileName = 'carmel_linx_backup_' . date('Y-m-d_His') . '.sql';
-
-            return response($sqlContent, 200, [
-                'Content-Type' => 'application/x-sql',
-                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Backup failed: ' . $e->getMessage()], 500);
+            fwrite($fileHandle, "\n\n");
         }
+
+        fwrite($fileHandle, "SET FOREIGN_KEY_CHECKS=1;\n");
+        fclose($fileHandle);
+        @chmod($filePath, 0666);
+
+        return true;
     }
 
     /**
@@ -142,7 +201,42 @@ class BackupController extends Controller
                 return response()->json(['status' => 'ERROR', 'message' => 'Invalid file format. Please select a valid .sql backup file.'], 422);
             }
 
-            $sqlContent = file_get_contents($file->getRealPath());
+            $realPath = $file->getRealPath();
+            if (!file_exists($realPath) || filesize($realPath) === 0) {
+                return response()->json(['status' => 'ERROR', 'message' => 'The uploaded SQL file is empty.'], 422);
+            }
+
+            $dbHost = config('database.connections.mysql.host', '127.0.0.1');
+            $dbPort = config('database.connections.mysql.port', '3306');
+            $dbName = config('database.connections.mysql.database');
+            $dbUser = config('database.connections.mysql.username');
+            $dbPass = config('database.connections.mysql.password');
+
+            // 1. Primary: Use mysql CLI client (memory-safe, fast)
+            if (function_exists('exec')) {
+                $cmd = sprintf(
+                    'mysql --host=%s --port=%s --user=%s --password=%s --default-character-set=utf8mb4 %s < %s 2>&1',
+                    escapeshellarg($dbHost),
+                    escapeshellarg($dbPort),
+                    escapeshellarg($dbUser),
+                    escapeshellarg($dbPass),
+                    escapeshellarg($dbName),
+                    escapeshellarg($realPath)
+                );
+                exec($cmd, $output, $returnVar);
+                if ($returnVar === 0) {
+                    return response()->json([
+                        'status' => 'SUCCESS',
+                        'message' => 'Database successfully restored from "' . $file->getClientOriginalName() . '"!'
+                    ]);
+                }
+            }
+
+            // 2. Fallback: PHP memory increase & unprepared statement
+            ini_set('memory_limit', '512M');
+            set_time_limit(300);
+
+            $sqlContent = file_get_contents($realPath);
             if (empty(trim($sqlContent))) {
                 return response()->json(['status' => 'ERROR', 'message' => 'The uploaded SQL file is empty.'], 422);
             }

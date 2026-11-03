@@ -21,7 +21,7 @@
             color: #0f172a;
             margin: 0 auto;
             padding: 4px;
-            font-size: 10px;
+            font-size: 11px;
             line-height: 1.35;
             max-width: 194mm;
             background: #fff;
@@ -126,13 +126,13 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 10px;
-            font-size: 8.5px;
+            font-size: 10px;
         }
 
         .roster-table th,
         .roster-table td {
             border: 1px solid #64748b;
-            padding: 3px 2px;
+            padding: 4px 3px;
             text-align: center;
             vertical-align: middle;
         }
@@ -149,30 +149,31 @@
             background-color: #f1f5f9;
             color: #0f172a;
             font-weight: 800;
-            font-size: 8px;
+            font-size: 9.5px;
             text-transform: uppercase;
             line-height: 1.15;
         }
 
         .roster-table th.grp-hdr {
             background-color: #e2e8f0;
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.3px;
         }
 
         .roster-table td.name-cell {
             text-align: left;
-            padding-left: 4px;
+            padding-left: 5px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 120px;
+            max-width: 135px;
+            font-size: 10px;
         }
 
         .roster-table td.reg-cell {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 8px;
+            font-size: 9.5px;
             font-weight: 600;
             white-space: nowrap;
         }
@@ -193,9 +194,9 @@
         }
 
         .status-badge {
-            font-size: 7.5px;
+            font-size: 9px;
             font-weight: 800;
-            padding: 1px 3px;
+            padding: 1.5px 4px;
             border-radius: 2px;
             display: inline-block;
         }

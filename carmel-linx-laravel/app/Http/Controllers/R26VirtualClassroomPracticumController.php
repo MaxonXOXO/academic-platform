@@ -124,10 +124,10 @@ class R26VirtualClassroomPracticumController extends Controller
                     'Textbook of Electrical Technology: Part 1 - B.L. Thereja'
                 ],
                 'self_learning_configs' => [
-                    'CO1' => ['assignment' => 5.0, 'mcq' => 5.0],
-                    'CO2' => ['assignment' => 5.0, 'mcq' => 5.0],
-                    'CO3' => ['assignment' => 5.0, 'mcq' => 5.0],
-                    'CO4' => ['assignment' => 5.0, 'mcq' => 5.0]
+                    'CO1' => ['assignment' => 10.0, 'mcq' => 5.0],
+                    'CO2' => ['assignment' => 10.0, 'mcq' => 5.0],
+                    'CO3' => ['assignment' => 10.0, 'mcq' => 5.0],
+                    'CO4' => ['assignment' => 10.0, 'mcq' => 5.0]
                 ]
             ]
         );
@@ -143,9 +143,17 @@ class R26VirtualClassroomPracticumController extends Controller
                 ->orderBy('day_no', 'asc')
                 ->get();
         } else {
-            // Self-healing: if no actual class logs have been recorded yet, reset all pre-completed default entries to Pending
+            // Self-healing: ensure actual_date is synced from class logs if logs exist, or reset to Pending if no logs
             $classLogsCount = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->count();
-            if ($classLogsCount === 0) {
+            if ($classLogsCount > 0) {
+                $actualDatesCount = $lessonPlans->whereNotNull('actual_date')->count();
+                if ($actualDatesCount === 0 || $actualDatesCount < $classLogsCount) {
+                    \App\Http\Controllers\SbteSubjectLogImportController::executeLessonPlanSync((int)$subjectId);
+                    $lessonPlans = LessonPlan::where('batch_subject_id', $subjectId)
+                        ->orderBy('day_no', 'asc')
+                        ->get();
+                }
+            } elseif ($classLogsCount === 0) {
                 $hasCompleted = LessonPlan::where('batch_subject_id', $subjectId)->where('status', 'Completed')->exists();
                 if ($hasCompleted) {
                     LessonPlan::where('batch_subject_id', $subjectId)->update([
@@ -262,6 +270,11 @@ class R26VirtualClassroomPracticumController extends Controller
         ->keyBy('reg_no');
 
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
+        $subjectCodeClean = strtoupper(trim(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')));
+        $isChemistry = str_contains($subjectCodeClean, '2003') ||
+                       str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry');
+        $isEl1041 = str_contains($subjectCodeClean, '1041') ||
+                    str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
 
         // Map Students and Compute Consolidated CIA & ESE Scores
         $studentResults = $students->map(function ($student) use (
@@ -275,7 +288,9 @@ class R26VirtualClassroomPracticumController extends Controller
             $slSubmissions,
             $practicumCourseFile,
             $batchSubject,
-            $subjectType
+            $subjectType,
+            $isChemistry,
+            $isEl1041
         ) {
             $regNo = $student->reg_no;
             $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
@@ -347,28 +362,83 @@ class R26VirtualClassroomPracticumController extends Controller
             $valM4 = $resolveSlMark('CO4');
 
             $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
+            $mSum = (float)($valM1 ?? 0) + (float)($valM2 ?? 0) + (float)($valM3 ?? 0) + (float)($valM4 ?? 0);
 
-            if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / count($caEntered);
-                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
-                $slScoreRaw10 = $rawAvg10;
-            } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
-                $rawAvg10 = 0.00;
-                $slMarks = 0.00;
-                $slScoreRaw10 = 0.00;
-            } elseif ($stSlMarks->count() > 0) {
-                $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
-                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
-                if ($maxPossible <= 0) $maxPossible = 10.0;
-                $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
-                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+            $isChemistry = str_contains(strtoupper($batchSubject->subject_code ?? ''), '2003')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry');
+
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+
+            if ($isChemistry) {
+                // In Rev 2026 2003A Chemistry: M1, M2, M3, M4 are out of 15, converted into 10 CIA Marks (missing modules treated as 0)
+                if (count($caEntered) > 0) {
+                    $rawAvg15 = $mSum / 4.0;
+                    $slMarks = min(10.0, round((($rawAvg15 / 15.0) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg15 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 15.0;
+                    if ($maxPossible <= 0) $maxPossible = 15.0;
+                    $slMarks = min(10.0, round((($slScoreRaw / $maxPossible) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(10.0, round((($slScoreRaw / 15.0) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                }
+                if ($slMarks > 10.0) $slMarks = 10.0;
+            } elseif ($isEl1041) {
+                // In Rev 2026 EL-1041 Elementary Concepts of Electronics: M1, M2, M3, M4 are out of 15, average out of 15, then converted to 5 CIA Marks
+                if (count($caEntered) > 0) {
+                    $rawAvg15 = $mSum / 4.0;
+                    $slMarks = min(5.0, round((($rawAvg15 / 15.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $rawAvg15;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg15 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 15.0;
+                    if ($maxPossible <= 0) $maxPossible = 15.0;
+                    $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $slScoreRaw;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(5.0, round((($slScoreRaw / 15.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $slScoreRaw;
+                }
+                if ($slMarks > 5.0) $slMarks = 5.0;
             } else {
-                $stSub = $slSubmissions->get($regNo, collect());
-                $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
-                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                if (count($caEntered) > 0) {
+                    $rawAvg10 = $mSum / 4.0;
+                    $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $rawAvg10;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg10 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                    if ($maxPossible <= 0) $maxPossible = 10.0;
+                    $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                }
+                if ($slMarks > 5.0) $slMarks = 5.0;
             }
-            if ($slMarks > 5.0) $slMarks = 5.0;
 
             // 3. Continuous Practical Evaluation (Single combined entry for M1–M4 & COs out of 50 -> Converted to 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
@@ -431,14 +501,14 @@ class R26VirtualClassroomPracticumController extends Controller
             // 5. Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
             if ($isBasicScience) {
-                $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-                $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-                $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-                $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+                $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+                $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+                $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+                $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
 
-                // Check legacy combined CA2 / CA3 if CO1/CO2 were not entered individually
+                // Check combined Series 1 / CA2 if CO1/CO2 were not entered individually
                 if (!$sp1 && !$sp2) {
-                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
                     if ($legacySp1) {
                         $half = round(((float)$legacySp1->total_score_40) / 2.0, 1);
                         $co1PrScore = $half;
@@ -453,7 +523,7 @@ class R26VirtualClassroomPracticumController extends Controller
                 }
 
                 if (!$sp3 && !$sp4) {
-                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
                     if ($legacySp2) {
                         $half = round(((float)$legacySp2->total_score_40) / 2.0, 1);
                         $co3PrScore = $half;
@@ -840,7 +910,9 @@ class R26VirtualClassroomPracticumController extends Controller
             'midSemSurvey',
             'exitSurvey',
             'midSemResponses',
-            'exitSurveyResponses'
+            'exitSurveyResponses',
+            'isChemistry',
+            'isEl1041'
         ));
     }
 
@@ -1110,6 +1182,49 @@ class R26VirtualClassroomPracticumController extends Controller
                     'is_absent' => $isAbsent
                 ]
             );
+
+            // Auto-split Series 1 / Series 2 (out of 40) into COs (out of 20 each) for attainment
+            if ($seriesNo === 'Series 1' || $seriesNo === 'CA2' || $seriesNo === 'Test 1 (CO1+CO2)') {
+                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 1);
+                foreach (['CO1', 'CO2'] as $coKey) {
+                    R26PracticumSeriesPractical::updateOrCreate(
+                        ['batch_subject_id' => $subjectId, 'series_no' => $coKey, 'reg_no' => $regNo],
+                        ['total_score_40' => min(20.0, $half), 'is_absent' => $isAbsent]
+                    );
+                }
+            } elseif ($seriesNo === 'Series 2' || $seriesNo === 'CA3' || $seriesNo === 'Test 2 (CO3+CO4)') {
+                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 1);
+                foreach (['CO3', 'CO4'] as $coKey) {
+                    R26PracticumSeriesPractical::updateOrCreate(
+                        ['batch_subject_id' => $subjectId, 'series_no' => $coKey, 'reg_no' => $regNo],
+                        ['total_score_40' => min(20.0, $half), 'is_absent' => $isAbsent]
+                    );
+                }
+            } elseif (in_array($seriesNo, ['CO1', 'CO2'])) {
+                $otherCo = ($seriesNo === 'CO1') ? 'CO2' : 'CO1';
+                $otherRec = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->where('series_no', $otherCo)
+                    ->first();
+                $otherScore = $otherRec ? (float)$otherRec->total_score_40 : 0.0;
+                $combTotal = min(40.0, ($isAbsent ? 0.0 : $total40) + $otherScore);
+                R26PracticumSeriesPractical::updateOrCreate(
+                    ['batch_subject_id' => $subjectId, 'series_no' => 'Series 1', 'reg_no' => $regNo],
+                    ['total_score_40' => $combTotal, 'is_absent' => ($isAbsent && ($otherRec ? $otherRec->is_absent : true))]
+                );
+            } elseif (in_array($seriesNo, ['CO3', 'CO4'])) {
+                $otherCo = ($seriesNo === 'CO3') ? 'CO4' : 'CO3';
+                $otherRec = R26PracticumSeriesPractical::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->where('series_no', $otherCo)
+                    ->first();
+                $otherScore = $otherRec ? (float)$otherRec->total_score_40 : 0.0;
+                $combTotal = min(40.0, ($isAbsent ? 0.0 : $total40) + $otherScore);
+                R26PracticumSeriesPractical::updateOrCreate(
+                    ['batch_subject_id' => $subjectId, 'series_no' => 'Series 2', 'reg_no' => $regNo],
+                    ['total_score_40' => $combTotal, 'is_absent' => ($isAbsent && ($otherRec ? $otherRec->is_absent : true))]
+                );
+            }
         }
 
         return response()->json(['status' => 'SUCCESS', 'message' => 'Practical Series Exam marks saved successfully!']);
@@ -1181,9 +1296,12 @@ class R26VirtualClassroomPracticumController extends Controller
 
             $attMarks = ($attPercentage >= 90) ? 5 : (($attPercentage >= 80) ? 4 : (($attPercentage >= 75) ? 3 : (($attPercentage >= 70) ? 2 : (($attPercentage >= 65) ? 1 : 0))));
 
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+            $baseMax = $isEl1041 ? 15.0 : 10.0;
             $stSub = $slSubmissions->get($regNo, collect());
             $slScoreRaw = $stSub->avg('score') ?: 0.00;
-            $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+            $slMarks = min(5.0, round((($slScoreRaw / $baseMax) * 5.0) * 2) / 2);
 
             $stExps = $experimentEvals->get($regNo, collect());
             $ceRecord = $stExps->firstWhere('experiment_no', 'Continuous Evaluation')
@@ -1480,10 +1598,9 @@ class R26VirtualClassroomPracticumController extends Controller
         // Build 90 Hours Schedule
         $tIdx = 0;
         $pIdx = 0;
-        $startDate = now()->startOfWeek();
 
         for ($day = 1; $day <= 90; $day++) {
-            $proposedDate = $startDate->copy()->addDays(floor(($day - 1) * 1.2))->format('Y-m-d');
+            $proposedDate = null; // Proposed dates are manually entered by staff as per requirement
             
             // Special Exam Hours
             if ($day == 23) {
@@ -2058,7 +2175,13 @@ class R26VirtualClassroomPracticumController extends Controller
         try {
             $batchSubject = BatchSubject::findOrFail($subjectId);
             $userId = Session::get('userId');
-            $marksData = $request->input('marks_data', []);
+            $marksData = $request->input('marks_data', $request->input('students', []));
+
+            $isChemistry = str_contains(strtoupper($batchSubject->subject_code ?? ''), '2003')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry');
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+            $maxModMarks = ($isChemistry || $isEl1041) ? 15 : 10;
 
             // Ensure syllabus_registry entry exists for foreign key constraint
             $existsInRegistry = DB::table('syllabus_registry')
@@ -2110,8 +2233,8 @@ class R26VirtualClassroomPracticumController extends Controller
                                 'subject_code' => $batchSubject->subject_code,
                                 'category' => 'Self Study: ' . $coTag,
                                 'co_tag' => $coTag,
-                                'max_marks' => 10,
-                                'marks_obtained' => min(10.0, max(0.0, floatval($score))),
+                                'max_marks' => $maxModMarks,
+                                'marks_obtained' => min((float)$maxModMarks, max(0.0, floatval($score))),
                                 'entered_by' => $enteredBy,
                                 'created_at' => now(),
                                 'updated_at' => now()
@@ -2140,8 +2263,8 @@ class R26VirtualClassroomPracticumController extends Controller
                                 'subject_code' => $batchSubject->subject_code,
                                 'category' => 'Self Study: ' . $actName,
                                 'co_tag' => $coTag,
-                                'max_marks' => 10,
-                                'marks_obtained' => $score,
+                                'max_marks' => $maxModMarks,
+                                'marks_obtained' => min((float)$maxModMarks, max(0.0, $score)),
                                 'entered_by' => $enteredBy,
                                 'created_at' => now(),
                                 'updated_at' => now()
@@ -2368,28 +2491,83 @@ class R26VirtualClassroomPracticumController extends Controller
             $valM4 = $resolveSlMark('CO4');
 
             $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
+            $mSum = (float)($valM1 ?? 0) + (float)($valM2 ?? 0) + (float)($valM3 ?? 0) + (float)($valM4 ?? 0);
 
-            if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / count($caEntered);
-                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
-                $slScoreRaw10 = $rawAvg10;
-            } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
-                $rawAvg10 = 0.00;
-                $slMarks = 0.00;
-                $slScoreRaw10 = 0.00;
-            } elseif ($stSlMarks->count() > 0) {
-                $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
-                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
-                if ($maxPossible <= 0) $maxPossible = 10.0;
-                $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
-                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+            $isChemistry = str_contains(strtoupper($batchSubject->subject_code ?? ''), '2003')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry');
+
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+
+            if ($isChemistry) {
+                // In Rev 2026 2003A Chemistry: M1, M2, M3, M4 are out of 15, converted into 10 CIA Marks (missing modules treated as 0)
+                if (count($caEntered) > 0) {
+                    $rawAvg15 = $mSum / 4.0;
+                    $slMarks = min(10.0, round((($rawAvg15 / 15.0) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg15 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 15.0;
+                    if ($maxPossible <= 0) $maxPossible = 15.0;
+                    $slMarks = min(10.0, round((($slScoreRaw / $maxPossible) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(10.0, round((($slScoreRaw / 15.0) * 10.0) * 2) / 2);
+                    $slScoreRaw10 = $slMarks;
+                }
+                if ($slMarks > 10.0) $slMarks = 10.0;
+            } elseif ($isEl1041) {
+                // In Rev 2026 EL-1041 Elementary Concepts of Electronics: M1, M2, M3, M4 are out of 15, average out of 15, then converted to 5 CIA Marks
+                if (count($caEntered) > 0) {
+                    $rawAvg15 = $mSum / 4.0;
+                    $slMarks = min(5.0, round((($rawAvg15 / 15.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $rawAvg15;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg15 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 15.0;
+                    if ($maxPossible <= 0) $maxPossible = 15.0;
+                    $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $slScoreRaw;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(5.0, round((($slScoreRaw / 15.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $slScoreRaw;
+                }
+                if ($slMarks > 5.0) $slMarks = 5.0;
             } else {
-                $stSub = $slSubmissions->get($regNo, collect());
-                $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
-                $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                if (count($caEntered) > 0) {
+                    $rawAvg10 = $mSum / 4.0;
+                    $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = $rawAvg10;
+                } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
+                    $rawAvg10 = 0.00;
+                    $slMarks = 0.00;
+                    $slScoreRaw10 = 0.00;
+                } elseif ($stSlMarks->count() > 0) {
+                    $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
+                    $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
+                    if ($maxPossible <= 0) $maxPossible = 10.0;
+                    $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                } else {
+                    $stSub = $slSubmissions->get($regNo, collect());
+                    $slScoreRaw = $stSub->avg('score') ?: 0.00;
+                    $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+                    $slScoreRaw10 = ($slMarks / 5.0) * 10.0;
+                }
+                if ($slMarks > 5.0) $slMarks = 5.0;
             }
-            if ($slMarks > 5.0) $slMarks = 5.0;
 
             // Continuous Practical Evaluation (Max 10 CIA Marks)
             $stExps = $experimentEvals->get($regNo, collect());
@@ -2698,10 +2876,14 @@ class R26VirtualClassroomPracticumController extends Controller
                 'CO4' => $valM4 !== null ? round($valM4, 2) : 0.0,
             ];
 
+            $mSum = (float)($valM1 ?? 0) + (float)($valM2 ?? 0) + (float)($valM3 ?? 0) + (float)($valM4 ?? 0);
             $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
             if (count($caEntered) > 0) {
-                $slScoreRaw = array_sum($caEntered) / count($caEntered);
-                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+                $slScoreRaw = $mSum / 4.0;
+                $baseMax = $isEl1041 ? 15.0 : 10.0;
+                $slMarks = min(5.0, round((($slScoreRaw / $baseMax) * 5.0) * 2) / 2);
             } else {
                 $slScoreRaw = 0.00;
                 $slMarks = 0.00;
@@ -4392,22 +4574,27 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             $valM3 = $resolveSlMark('CO3');
             $valM4 = $resolveSlMark('CO4');
 
+            $mSum = (float)($valM1 ?? 0) + (float)($valM2 ?? 0) + (float)($valM3 ?? 0) + (float)($valM4 ?? 0);
             $caEntered = array_filter([$valM1, $valM2, $valM3, $valM4], fn($v) => $v !== null && $v > 0);
 
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+            $baseMax = $isEl1041 ? 15.0 : 10.0;
+
             if (count($caEntered) > 0) {
-                $rawAvg10 = array_sum($caEntered) / count($caEntered);
-                $slMarks = min(5.0, round((($rawAvg10 / 10.0) * 5.0) * 2) / 2);
+                $rawAvg = $mSum / 4.0;
+                $slMarks = min(5.0, round((($rawAvg / $baseMax) * 5.0) * 2) / 2);
             } elseif ($valM1 !== null || $valM2 !== null || $valM3 !== null || $valM4 !== null) {
                 $slMarks = 0.00;
             } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
-                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
-                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: $baseMax;
+                if ($maxPossible <= 0) $maxPossible = $baseMax;
                 $slMarks = min(5.0, round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2);
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = min(5.0, round((($slScoreRaw / 10.0) * 5.0) * 2) / 2);
+                $slMarks = min(5.0, round((($slScoreRaw / $baseMax) * 5.0) * 2) / 2);
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
 
@@ -4696,15 +4883,15 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         $eseMarks = R26PracticumEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
+        $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
 
         $studentResults = $students->map(function ($student) use (
             $attendanceData, $subjectOfficialAttendances, $experimentEvals,
             $seriesTheoryEvals, $seriesPracticalEvals, $eseMarks,
             $slAcademicMarks, $slSubmissions, $practicumCourseFile,
-            $batchSubject, $subjectType
+            $batchSubject, $subjectType, $isBasicScience
         ) {
             $regNo = $student->reg_no;
-            $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
 
             // 1. Attendance Marks
             $stAtt = $attendanceData->get($regNo, collect());
@@ -4750,18 +4937,22 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             if ($m3Rec && $m3Rec->marks_obtained !== null) $caEntered[] = (float)$m3Rec->marks_obtained;
             if ($m4Rec && $m4Rec->marks_obtained !== null) $caEntered[] = (float)$m4Rec->marks_obtained;
 
+            $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041')
+                || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+            $baseMax = $isEl1041 ? 15.0 : 10.0;
+
             if (count($caEntered) > 0) {
                 $rawAvg10 = array_sum($caEntered) / 4.0;
-                $slMarks = round((($rawAvg10 / 10.0) * 5.0) * 2) / 2;
+                $slMarks = round((($rawAvg10 / $baseMax) * 5.0) * 2) / 2;
             } elseif ($stSlMarks->count() > 0) {
                 $slScoreRaw = $stSlMarks->avg('marks_obtained') ?: 0.00;
-                $maxPossible = $stSlMarks->avg('max_marks') ?: 10.0;
-                if ($maxPossible <= 0) $maxPossible = 10.0;
+                $maxPossible = $stSlMarks->avg('max_marks') ?: $baseMax;
+                if ($maxPossible <= 0) $maxPossible = $baseMax;
                 $slMarks = round((($slScoreRaw / $maxPossible) * 5.0) * 2) / 2;
             } else {
                 $stSub = $slSubmissions->get($regNo, collect());
                 $slScoreRaw = $stSub->avg('score') ?: 0.00;
-                $slMarks = round((($slScoreRaw / 10.0) * 5.0) * 2) / 2;
+                $slMarks = round((($slScoreRaw / $baseMax) * 5.0) * 2) / 2;
             }
             if ($slMarks > 5.0) $slMarks = 5.0;
 

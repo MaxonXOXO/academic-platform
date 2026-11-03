@@ -26,7 +26,7 @@
             background-color: #f1f5f9;
             color: var(--text-main);
             line-height: 1.4;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .a4-container {
@@ -141,13 +141,13 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10.5px;
+            font-size: 11.5px;
             margin-bottom: 16px;
         }
 
         th, td {
             border: 1px solid #cbd5e1;
-            padding: 5px 6px;
+            padding: 6px 7px;
             text-align: center;
         }
 
@@ -156,14 +156,14 @@
             color: #1e293b;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 9.5px;
+            font-size: 10.5px;
             letter-spacing: 0.3px;
         }
 
         .group-header {
             background-color: #f1f5f9;
             font-weight: 800;
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .student-name {
@@ -172,32 +172,33 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 160px;
+            max-width: 170px;
+            font-size: 11.5px;
         }
 
         .student-reg {
             font-family: monospace;
             font-weight: 700;
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .total-cie-cell {
             font-weight: 800;
             color: #1e3a8a;
             background-color: #eff6ff;
-            font-size: 11px;
+            font-size: 12.5px;
         }
 
         .badge-eligible {
             color: #059669;
-            font-weight: 700;
-            font-size: 9px;
+            font-weight: 800;
+            font-size: 10px;
         }
 
         .badge-shortage {
             color: #dc2626;
-            font-weight: 700;
-            font-size: 9px;
+            font-weight: 800;
+            font-size: 10px;
         }
 
         .footer {

@@ -710,13 +710,16 @@
           </div>
 
           <!-- Metadata Context Banner -->
-          <div id="progClassroomBanner" class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-300 flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div id="progClassroomBanner" class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-300 flex flex-wrap items-center justify-between gap-4 mb-4">
             <div><strong>Class / Batch:</strong> <span id="progBannerClass">-</span></div>
             <div><strong>Department:</strong> <span id="progBannerDept">-</span></div>
             <div><strong>Semester:</strong> <span id="progBannerSem">-</span></div>
             <div><strong>Scheme:</strong> <span id="progBannerScheme" class="text-sky-400 font-bold">SBTE Curriculum</span></div>
             <div><strong>Tutor:</strong> <span id="progBannerTutor">-</span></div>
           </div>
+
+          <!-- Faculty Mark Entry Status & Audit Card -->
+          <div id="progFacultyStatusWrapper" class="mb-4"></div>
 
           <!-- Stats Overview Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
@@ -742,7 +745,7 @@
             </div>
           </div>
 
-          <!-- Filter & Search Toolbar -->
+          <!-- Filter & Search Toolbar with Scale Switcher -->
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-2 flex-wrap">
               <button onclick="filterProgressReport('all')" class="prog-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
@@ -750,9 +753,20 @@
               <button onclick="filterProgressReport('shortage')" class="prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="shortage">Attd Shortage (&lt;75%)</button>
               <button onclick="filterProgressReport('hasMarks')" class="prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="hasMarks">Marks Recorded</button>
             </div>
-            <div class="relative w-full sm:w-64">
-              <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
-              <input type="text" id="progSearchInput" onkeyup="renderProgressReportTable()" placeholder="Search name, roll, reg no..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Mark Scale Toggle Button Group -->
+              <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5" title="Switch between 100 Normalized and Original Staff Entry Marks">
+                <button id="progScale100Btn" onclick="setProgressScale('100')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm cursor-pointer">
+                  100-Scale
+                </button>
+                <button id="progScaleRawBtn" onclick="setProgressScale('original')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition-all cursor-pointer">
+                  Original Staff Marks
+                </button>
+              </div>
+              <div class="relative w-full sm:w-56">
+                <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+                <input type="text" id="progSearchInput" onkeyup="renderProgressReportTable()" placeholder="Search name, roll, reg no..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+              </div>
             </div>
           </div>
 
@@ -3805,6 +3819,105 @@
     // ==========================================
     let progressReportDataCache = null;
     let currentProgressFilter = 'all';
+    let currentProgressScale = '100'; // '100' (Normalized) or 'original' (Raw Staff Entry)
+
+    function setProgressScale(scale) {
+      currentProgressScale = scale;
+      const btn100 = document.getElementById('progScale100Btn');
+      const btnRaw = document.getElementById('progScaleRawBtn');
+      if (btn100 && btnRaw) {
+        if (scale === '100') {
+          btn100.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm cursor-pointer';
+          btnRaw.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition-all cursor-pointer';
+        } else {
+          btnRaw.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-600 text-white transition-all shadow-sm cursor-pointer';
+          btn100.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-indigo-300 transition-all cursor-pointer';
+        }
+      }
+
+      // Update print button hrefs with scale query parameter
+      if (progressReportDataCache && progressReportDataCache.classroom) {
+        const clsId = progressReportDataCache.classroom.id;
+        if (document.getElementById('btnPrintProgressReport')) {
+          document.getElementById('btnPrintProgressReport').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(clsId) + (currentProgressScale === 'original' ? '&scale=original' : '');
+        }
+        if (document.getElementById('btnPrintAllStudentCards')) {
+          document.getElementById('btnPrintAllStudentCards').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(clsId) + '&mode=all_cards' + (currentProgressScale === 'original' ? '&scale=original' : '');
+        }
+      }
+
+      renderProgressReportTable();
+    }
+
+    function renderFacultyStatusCard(data) {
+      const container = document.getElementById('progFacultyStatusWrapper');
+      if (!container) return;
+      const list = data.faculty_mark_status || [];
+      if (!list.length) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+
+      let rows = '';
+      list.forEach(item => {
+        let badgeColor = 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+        if (item.badge_class === 'emerald') badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+        if (item.badge_class === 'amber') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+
+        rows += `
+          <tr class="hover:bg-slate-850/60 text-xs border-b border-slate-800/60">
+            <td class="p-2 font-mono font-bold text-sky-400">${item.subject_code}</td>
+            <td class="p-2 font-bold text-slate-200">${item.subject_name}</td>
+            <td class="p-2 text-slate-300">
+              <span class="font-medium">${item.faculty_names}</span>
+            </td>
+            <td class="p-2 text-center font-mono ${item.s1_status.includes('Completed') ? 'text-emerald-400 font-bold' : (item.s1_status.includes('Partial') ? 'text-amber-400 font-bold' : 'text-rose-400')}">
+              ${item.s1_status}
+            </td>
+            <td class="p-2 text-center font-mono ${item.s2_status.includes('Completed') ? 'text-emerald-400 font-bold' : (item.s2_status.includes('Partial') ? 'text-amber-400 font-bold' : (item.s2_status === 'Not Conducted' ? 'text-slate-500' : 'text-rose-400'))}">
+              ${item.s2_status}
+            </td>
+            <td class="p-2 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase border ${badgeColor}">
+                ${item.overall_status}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <details class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-md transition-all group" ${data.has_unentered_staff ? 'open' : ''}>
+          <summary class="font-bold text-xs text-slate-200 flex items-center justify-between cursor-pointer select-none">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="material-symbols-rounded text-base text-amber-400">shield_person</span>
+              <span class="text-white font-bold">Class Assigned Faculty Mark Entry Status</span>
+              ${data.has_unentered_staff 
+                ? '<span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full text-[10px] font-bold animate-pulse">Unentered Marks Detected</span>' 
+                : '<span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[10px] font-bold">All Completed</span>'}
+            </div>
+            <span class="text-[11px] text-indigo-400 group-open:text-slate-400 hover:underline">Toggle Audit Breakdown</span>
+          </summary>
+          <div class="mt-3.5 overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-950 text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                  <th class="p-2.5">Sub Code</th>
+                  <th class="p-2.5">Subject Name</th>
+                  <th class="p-2.5">Assigned Faculty (Designation)</th>
+                  <th class="p-2.5 text-center">Series 1 Entry</th>
+                  <th class="p-2.5 text-center">Series 2 Entry</th>
+                  <th class="p-2.5 text-center">Audit Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 bg-slate-900/40">${rows}</tbody>
+            </table>
+          </div>
+        </details>
+      `;
+    }
 
     function loadStudentProgressReport() {
       const wrapper = document.getElementById('progTableWrapper');
@@ -3848,12 +3961,15 @@
               }
             }
 
-            // Update print button hrefs with classroom_id
+            // Render Faculty Status Audit Card
+            renderFacultyStatusCard(res);
+
+            // Update print button hrefs with classroom_id and active scale
             if (document.getElementById('btnPrintProgressReport')) {
-              document.getElementById('btnPrintProgressReport').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id);
+              document.getElementById('btnPrintProgressReport').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id) + (currentProgressScale === 'original' ? '&scale=original' : '');
             }
             if (document.getElementById('btnPrintAllStudentCards')) {
-              document.getElementById('btnPrintAllStudentCards').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id) + '&mode=all_cards';
+              document.getElementById('btnPrintAllStudentCards').href = '/tutor/progress-report/print?classroom_id=' + encodeURIComponent(cls.id) + '&mode=all_cards' + (currentProgressScale === 'original' ? '&scale=original' : '');
             }
 
             renderProgressReportTable();
@@ -3867,6 +3983,7 @@
           }
         })
         .catch(err => {
+          console.error("Progress report loading error:", err);
           wrapper.innerHTML = `
             <div class="py-8 text-center text-rose-400 text-xs">
               <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
@@ -3890,6 +4007,7 @@
 
     function renderProgressReportTable() {
       if (!progressReportDataCache) return;
+      const clsId = progressReportDataCache?.classroom?.id || window.supervisedClassroomId || '';
       const subjects = progressReportDataCache.subjects || [];
       const allStudents = progressReportDataCache.students || [];
       const query = (document.getElementById('progSearchInput')?.value || '').toLowerCase();
@@ -3915,6 +4033,8 @@
       const wrapper = document.getElementById('progTableWrapper');
       if (!wrapper) return;
 
+      const isOriginalScale = (currentProgressScale === 'original');
+
       // Multi-tier header
       let headerRow1 = `
         <th rowspan="2" class="p-2.5 text-center w-12 text-cyan-400 font-mono font-bold border-r border-slate-800">Roll</th>
@@ -3925,22 +4045,51 @@
       let headerRow2 = '';
 
       subjects.forEach(s => {
+        const max1 = s.max_series_1 || 50;
+        const max2 = s.max_series_2 || 50;
+        const maxTot = s.max_total || 50;
+        const facNames = s.faculty_names || 'Not Assigned';
+
         headerRow1 += `
-          <th colspan="3" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name}">
+          <th colspan="3" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name} (${facNames})">
             <span class="font-bold text-xs text-sky-400 font-mono">${s.subject_code}</span>
             <span class="text-[0.62rem] text-slate-400 font-normal block truncate max-w-[140px] mx-auto">${s.subject_name}</span>
+            <span class="text-[0.58rem] text-emerald-400/80 block truncate max-w-[140px] mx-auto">${facNames}</span>
           </th>
         `;
 
-        headerRow2 += `
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">S1 (100)</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-400 bg-slate-950/60 border-r border-slate-800">S2 (100)</th>
-          <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800">Avg (100)</th>
-        `;
+        if (isOriginalScale) {
+          headerRow2 += `
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-amber-300 bg-slate-950/60 border-r border-slate-800" title="Series 1: Actual /${max1} (& 100-Scale)">
+              S1 (/${max1})<br><span class="text-[0.55rem] font-normal text-indigo-400">(& 100)</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-amber-300 bg-slate-950/60 border-r border-slate-800" title="Series 2: Actual /${max2} (& 100-Scale)">
+              S2 (/${max2})<br><span class="text-[0.55rem] font-normal text-indigo-400">(& 100)</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-black text-amber-300 bg-indigo-950/40 border-r border-slate-800" title="Total: Actual /${maxTot} (& 100-Scale)">
+              Tot (/${maxTot})<br><span class="text-[0.55rem] font-normal text-cyan-400">(& 100)</span>
+            </th>
+          `;
+        } else {
+          headerRow2 += `
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-300 bg-slate-950/60 border-r border-slate-800" title="Series 1: 100 Normalized (& Actual /${max1})">
+              S1 (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${max1})</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-300 bg-slate-950/60 border-r border-slate-800" title="Series 2: 100 Normalized (& Actual /${max2})">
+              S2 (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${max2})</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800" title="Average: 100 Scale (& Actual /${maxTot})">
+              Avg (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${maxTot})</span>
+            </th>
+          `;
+        }
       });
 
       headerRow1 += `
-        <th rowspan="2" class="p-2.5 text-center bg-indigo-950/40 text-indigo-300 font-black border-r border-slate-800">Grand Total</th>
+        <th rowspan="2" class="p-2.5 text-center bg-indigo-950/40 text-indigo-300 font-black border-r border-slate-800">
+          Grand Total<br>
+          <span class="text-[0.58rem] font-normal text-slate-400">${isOriginalScale ? '(Staff Marks & 100)' : '(100 Scale & Staff)'}</span>
+        </th>
         <th rowspan="2" class="p-2.5 text-center bg-emerald-950/30 text-emerald-300 font-bold border-r border-slate-800">Tutor Attd %</th>
         <th rowspan="2" class="p-2.5 text-center bg-emerald-950/20 text-emerald-400 font-bold border-r border-slate-800">Act. Pts</th>
         <th rowspan="2" class="p-2.5 text-center bg-slate-900/60 text-slate-300 font-bold border-r border-slate-800">Assignments<br><span class="text-[0.6rem] font-normal text-slate-400">(Done / Pend)</span></th>
@@ -3953,15 +4102,70 @@
         let subjCols = '';
         subjects.forEach(s => {
           const sData = st.subjects ? (st.subjects[s.id] || Object.values(st.subjects).find(x => x.subject_code === s.subject_code)) : null;
-          const s1 = sData ? sData.series_1 : null;
-          const s2 = sData ? sData.series_2 : null;
-          const tot = sData ? sData.subject_total : null;
+          const max1 = sData?.max_series_1 || s.max_series_1 || 50;
+          const max2 = sData?.max_series_2 || s.max_series_2 || 50;
+          const maxTot = sData?.max_total || s.max_total || 50;
+
+          let s1Display = '<span class="text-slate-600">-</span>';
+          let s2Display = '<span class="text-slate-600">-</span>';
+          let totDisplay = '<span class="text-slate-600">-</span>';
+
+          if (sData) {
+            // S1 Cell: Show both Actual and 100
+            if (sData.raw_series_1 !== null) {
+              if (isOriginalScale) {
+                s1Display = `
+                  <div class="font-mono font-bold text-amber-300 text-xs">${sData.raw_series_1} <span class="text-[0.6rem] font-normal text-slate-400">/${max1}</span></div>
+                  <div class="font-mono text-[0.62rem] text-indigo-400/90">${sData.series_1 !== null ? sData.series_1 : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                s1Display = `
+                  <div class="font-mono font-bold text-indigo-300 text-xs">${sData.series_1 !== null ? sData.series_1 : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80">${sData.raw_series_1} <span class="text-[0.55rem] text-slate-500">/${max1}</span></div>
+                `;
+              }
+            } else {
+              s1Display = `<span class="text-rose-400/80 font-sans text-[0.62rem]" title="Staff Mark Not Entered">Pending</span>`;
+            }
+
+            // S2 Cell: Show both Actual and 100
+            if (sData.raw_series_2 !== null) {
+              if (isOriginalScale) {
+                s2Display = `
+                  <div class="font-mono font-bold text-amber-300 text-xs">${sData.raw_series_2} <span class="text-[0.6rem] font-normal text-slate-400">/${max2}</span></div>
+                  <div class="font-mono text-[0.62rem] text-indigo-400/90">${sData.series_2 !== null ? sData.series_2 : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                s2Display = `
+                  <div class="font-mono font-bold text-indigo-300 text-xs">${sData.series_2 !== null ? sData.series_2 : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80">${sData.raw_series_2} <span class="text-[0.55rem] text-slate-500">/${max2}</span></div>
+                `;
+              }
+            } else {
+              s2Display = `<span class="text-slate-500 font-sans text-[0.62rem]">-</span>`;
+            }
+
+            // Total / Avg Cell: Show both Actual and 100
+            if (sData.raw_total !== null || sData.subject_total !== null) {
+              if (isOriginalScale) {
+                totDisplay = `
+                  <div class="font-mono font-black text-amber-300 text-xs">${sData.raw_total !== null ? sData.raw_total : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/${maxTot}</span></div>
+                  <div class="font-mono text-[0.62rem] text-cyan-400 font-medium">${sData.subject_total !== null ? sData.subject_total : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                totDisplay = `
+                  <div class="font-mono font-black text-indigo-300 text-xs">${sData.subject_total !== null ? sData.subject_total : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80 font-medium">${sData.raw_total !== null ? sData.raw_total : '-'} <span class="text-[0.55rem] text-slate-500">/${maxTot}</span></div>
+                `;
+              }
+            }
+          }
 
           subjCols += `
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${s1 !== null ? s1 : '<span class="text-slate-600">-</span>'}</td>
-            <td class="p-1.5 text-center font-mono text-[0.7rem] text-slate-300 border-r border-b border-slate-800/80">${s2 !== null ? s2 : '<span class="text-slate-600">-</span>'}</td>
-            <td class="p-1.5 text-center font-mono font-bold text-[0.75rem] text-indigo-300 bg-indigo-950/20 border-r border-b border-slate-800/80">
-              ${tot !== null ? tot : '<span class="text-slate-600">-</span>'}
+            <td class="p-1.5 text-center font-mono text-[0.7rem] border-r border-b border-slate-800/80">${s1Display}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] border-r border-b border-slate-800/80">${s2Display}</td>
+            <td class="p-1.5 text-center font-mono font-bold text-[0.75rem] bg-indigo-950/20 border-r border-b border-slate-800/80">
+              ${totDisplay}
             </td>
           `;
         });
@@ -3992,6 +4196,23 @@
           `;
         }
 
+        let grandDisplay = '<span class="text-slate-600">-</span>';
+        if (isOriginalScale) {
+          if (st.raw_grand_total_marks > 0 || st.grand_total_marks > 0) {
+            grandDisplay = `
+              <div class="font-mono font-black text-amber-300 text-xs">${st.raw_grand_total_marks} <span class="text-[0.6rem] text-slate-400 font-normal">/ ${st.raw_max_grand_total || '-'}</span></div>
+              <div class="font-mono text-[0.62rem] text-indigo-400">${st.grand_total_marks} <span class="text-[0.55rem] text-slate-500">/100 scale</span></div>
+            `;
+          }
+        } else {
+          if (st.grand_total_marks > 0 || st.raw_grand_total_marks > 0) {
+            grandDisplay = `
+              <div class="font-mono font-black text-indigo-300 text-xs">${st.grand_total_marks} <span class="text-[0.6rem] text-slate-400 font-normal">pts</span></div>
+              <div class="font-mono text-[0.62rem] text-amber-400/80">${st.raw_grand_total_marks} <span class="text-[0.55rem] text-slate-500">/ ${st.raw_max_grand_total || '-'} staff</span></div>
+            `;
+          }
+        }
+
         rowsHtml += `
           <tr class="hover:bg-slate-800/40 transition-colors">
             <td class="p-2.5 font-mono font-bold text-center text-cyan-400 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
@@ -4000,8 +4221,8 @@
               ${st.name}
             </td>
             ${subjCols}
-            <td class="p-2.5 text-center font-mono font-black text-sm text-indigo-300 bg-indigo-950/20 border-r border-b border-slate-800">
-              ${st.grand_total_marks > 0 ? st.grand_total_marks : '<span class="text-slate-600">-</span>'}
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-indigo-950/20">
+              ${grandDisplay}
             </td>
             <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/10">
               <div class="font-mono font-bold text-xs ${attStatusClass}">${st.overall_attendance}%</div>
@@ -4017,7 +4238,7 @@
               ${rankBadgeHtml}
             </td>
             <td class="p-2.5 text-center border-b border-slate-800">
-              <a href="/tutor/progress-report/student-print?reg_no=${encodeURIComponent(st.reg_no)}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
+              <a href="/tutor/progress-report/student-print?classroom_id=${encodeURIComponent(clsId)}&reg_no=${encodeURIComponent(st.reg_no)}${isOriginalScale ? '&scale=original' : ''}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
                 <span class="material-symbols-rounded text-sm">print</span> Card
               </a>
             </td>
@@ -4199,7 +4420,7 @@
       }
 
       let theadHtml = `
-        <tr class="border-b border-slate-800 bg-slate-950 text-[0.68rem] text-slate-400 uppercase tracking-wider font-extrabold">
+        <tr class="border-b border-slate-800 bg-slate-950 text-xs text-slate-300 uppercase tracking-wider font-extrabold">
           <th class="p-2.5 text-center w-10 border-r border-slate-800">Sl</th>
           <th class="p-2.5 text-center w-12 border-r border-slate-800">Roll</th>
           <th class="p-2.5 text-center w-28 border-r border-slate-800">Reg No</th>
@@ -4208,28 +4429,28 @@
 
       subjects.forEach(s => {
         theadHtml += `
-          <th class="p-2 text-center border-r border-slate-800 min-w-[85px]" title="${s.subject_name}">
-            <span class="font-mono font-bold text-xs text-sky-400 block">${s.subject_code}</span>
-            <span class="text-[0.60rem] text-slate-400 block truncate max-w-[100px] mx-auto font-normal">${s.subject_name}</span>
-            <span class="text-[0.62rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
+          <th class="p-2.5 text-center border-r border-slate-800 min-w-[90px]" title="${s.subject_name}">
+            <span class="font-mono font-bold text-sm text-sky-400 block">${s.subject_code}</span>
+            <span class="text-[0.70rem] text-slate-400 block truncate max-w-[110px] mx-auto font-normal">${s.subject_name}</span>
+            <span class="text-[0.70rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
           </th>
         `;
       });
 
       theadHtml += `
-          <th class="p-2.5 text-center w-20 border-r border-slate-800 text-emerald-400">Attn (%)</th>
-          <th class="p-2.5 text-center w-20 text-indigo-400">Result</th>
+          <th class="p-2.5 text-center w-24 border-r border-slate-800 text-emerald-400">Attn (%)</th>
+          <th class="p-2.5 text-center w-24 text-indigo-400">Result</th>
         </tr>
       `;
 
       let tbodyHtml = '';
       students.forEach((st, idx) => {
         tbodyHtml += `
-          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-xs font-medium">
-            <td class="p-2 text-center border-r border-slate-800 text-slate-500 font-mono">${idx + 1}</td>
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-300 font-bold">${st.roll_no || '-'}</td>
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-400 text-[11px]">${st.sbte_reg_no || st.reg_no}</td>
-            <td class="p-2 text-left border-r border-slate-800 font-bold text-slate-200 truncate max-w-[180px]">${st.name}</td>
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-sm font-medium">
+            <td class="p-2.5 text-center border-r border-slate-800 text-slate-400 font-mono text-xs">${idx + 1}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-slate-200 font-bold text-sm">${st.roll_no || '-'}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-slate-300 text-xs">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2.5 text-left border-r border-slate-800 font-bold text-white truncate max-w-[200px] text-sm">${st.name}</td>
         `;
 
         subjects.forEach(s => {
@@ -4241,11 +4462,11 @@
           let markHtml = '<span class="text-slate-600">-</span>';
           if (isGen && val !== null) {
             markHtml = isPass
-              ? `<span class="font-mono font-bold text-slate-200">${val}</span>`
-              : `<span class="font-mono font-black text-rose-400 underline" title="Below 40% Pass Mark">${val}</span>`;
+              ? `<span class="font-mono font-bold text-slate-100 text-sm">${val}</span>`
+              : `<span class="font-mono font-black text-rose-400 underline text-sm" title="Below 40% Pass Mark">${val}</span>`;
           }
 
-          tbodyHtml += `<td class="p-2 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
+          tbodyHtml += `<td class="p-2.5 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
         });
 
         const attPct = parseFloat(st.overall_attendance || 100);
@@ -4253,14 +4474,14 @@
 
         let resBadge = '<span class="text-slate-500">-</span>';
         if (st.overall_result === 'PASSED') {
-          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
+          resBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
         } else if (st.overall_result === 'FAILED') {
-          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
+          resBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
         }
 
         tbodyHtml += `
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-xs ${attColor}">${attPct.toFixed(1)}%</td>
-            <td class="p-2 text-center">${resBadge}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-sm ${attColor}">${attPct.toFixed(1)}%</td>
+            <td class="p-2.5 text-center">${resBadge}</td>
           </tr>
         `;
       });

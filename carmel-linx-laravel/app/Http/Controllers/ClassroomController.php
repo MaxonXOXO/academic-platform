@@ -1715,7 +1715,7 @@ Syllabus Text:
 
                 $hasT1 = ($t1Co1 !== null || $t1Co2 !== null);
                 $hasT2 = ($t2Co3 !== null || $t2Co4 !== null);
-                $avgTests = ($hasT1 || $hasT2) ? round(($scoreT1 + $scoreT2) / (($hasT1 && $hasT2) ? 2 : 1), 2) : 0.0;
+                $avgTests = ($hasT1 || $hasT2) ? round(((float)$scoreT1 + (float)$scoreT2) / 2.0, 2) : 0.0;
 
                 $pEval = $pracEvaluations->where('reg_no', $student->reg_no)->first();
                 $boardExam = $pEval ? $pEval->board_exam_marks : null;
@@ -2895,10 +2895,10 @@ Return ONLY valid JSON matching this exact structure:
             }
             rsort($scores);
             if ($isR21) {
-                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA
-                $bestAvg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-');
+                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA (missing/unentered treats as 0)
+                $bestAvg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0] / 2.0, 1) : 0.0);
             } else {
-                $bestAvg = count($scores) >= 3 ? round(($scores[0] + $scores[1] + $scores[2]) / 3.0, 1) : (count($scores) === 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-'));
+                $bestAvg = count($scores) >= 3 ? round(($scores[0] + $scores[1] + $scores[2]) / 3.0, 1) : (count($scores) === 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0] / 2.0, 1) : 0.0));
             }
             $student->assignment_marks = $coMarks;
             $student->best3_avg = $bestAvg;
@@ -3158,7 +3158,8 @@ Return ONLY valid JSON matching this exact structure:
                 }
             }
             rsort($scores);
-            $best2Avg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0], 1) : '-');
+            // Missing/unentered tests treat default value as 0
+            $best2Avg = count($scores) >= 2 ? round(($scores[0] + $scores[1]) / 2.0, 1) : (count($scores) === 1 ? round($scores[0] / 2.0, 1) : 0.0);
             $student->summative_marks = $coMarks;
             $student->best2_avg = $best2Avg;
             return $student;
@@ -3287,17 +3288,17 @@ Return ONLY valid JSON matching this exact structure:
             }
 
             if ($isR21) {
-                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA
+                // SBTE Revision 2021 Regulation: Best 2 out of highest assignment marks from all COs for CIA (missing/absent treats as 0)
                 rsort($assignScores);
                 if (count($assignScores) >= 2) {
                     $assignAvg = round(($assignScores[0] + $assignScores[1]) / 2.0, 1);
                 } elseif (count($assignScores) === 1) {
-                    $assignAvg = round($assignScores[0], 1);
+                    $assignAvg = round($assignScores[0] / 2.0, 1);
                 } else {
                     $assignAvg = 0.0;
                 }
             } else {
-                $assignAvg = $assignCount > 0 ? round($assignSum / 4, 1) : 0;
+                $assignAvg = $assignCount > 0 ? round($assignSum / 4, 1) : 0.0;
             }
 
             // Summative Written Test Marks
@@ -3315,12 +3316,12 @@ Return ONLY valid JSON matching this exact structure:
             }
 
             if ($isR21) {
-                // SBTE Revision 2021 Regulation: Best 2 out of highest test marks
+                // SBTE Revision 2021 Regulation: Best 2 out of highest test marks (missing/absent treats as 0)
                 rsort($summScores);
                 if (count($summScores) >= 2) {
                     $summAvg = round(($summScores[0] + $summScores[1]) / 2.0, 1);
                 } elseif (count($summScores) === 1) {
-                    $summAvg = round($summScores[0], 1);
+                    $summAvg = round($summScores[0] / 2.0, 1);
                 } else {
                     $summAvg = 0.0;
                 }
@@ -3334,7 +3335,10 @@ Return ONLY valid JSON matching this exact structure:
 
             if ($officialRec) {
                 $attPercent = (float)$officialRec->final_percentage;
-                $attMarks = (int)$officialRec->final_mark;
+                $maxMarks = (float)($officialRec->max_attendance_marks ?: 10.0);
+                $attMarks = $officialRec->override_mark !== null
+                    ? (int)$officialRec->override_mark
+                    : (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, $maxMarks);
             } else {
                 $stAtt = $officialAttendance->get($student->reg_no, collect());
                 if ($stAtt->isEmpty() && !empty($student->sbte_reg_no)) {
@@ -3666,7 +3670,10 @@ Return ONLY valid JSON matching this exact structure:
 
             if ($officialRec) {
                 $attPercent = (float)$officialRec->final_percentage;
-                $attMarks = (int)$officialRec->final_mark;
+                $maxMarks = (float)($officialRec->max_attendance_marks ?: 10.0);
+                $attMarks = $officialRec->override_mark !== null
+                    ? (int)$officialRec->override_mark
+                    : (int)\App\Services\AttainmentService::calculateR21AttendanceMark($attPercent, $maxMarks);
                 $presentHours = (int)$officialRec->attended_hours;
                 $absentHours = max(0, (int)$officialRec->total_hours - $presentHours);
             } else {
@@ -6263,7 +6270,7 @@ Do not wrap it in markdown or add extra text. Return ONLY the raw JSON.";
 
             $hasT1 = ($t1Co1 !== null || $t1Co2 !== null);
             $hasT2 = ($t2Co3 !== null || $t2Co4 !== null);
-            $avgTests = ($hasT1 || $hasT2) ? round(($scoreT1 + $scoreT2) / (($hasT1 && $hasT2) ? 2 : 1), 2) : 0.0;
+            $avgTests = ($hasT1 || $hasT2) ? round(((float)$scoreT1 + (float)$scoreT2) / 2.0, 2) : 0.0;
 
             // Total CIA (75) = Tests Avg [15] + Lab Work Avg [37.5] + Micro Project [7.5] + Attendance Marks [15]
             $totalInternal = (float)round($avgTests + $avgLabWork + $microProject + $attendanceMarks);

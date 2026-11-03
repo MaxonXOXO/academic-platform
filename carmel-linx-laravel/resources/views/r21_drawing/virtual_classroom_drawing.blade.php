@@ -2248,16 +2248,12 @@
             const t1 = (!t1Absent && t1Input.value !== '') ? Math.min(15.0, Math.max(0, parseFloat(t1Input.value) || 0)) : null;
             const t2 = (!t2Absent && t2Input.value !== '') ? Math.min(15.0, Math.max(0, parseFloat(t2Input.value) || 0)) : null;
 
-            let avg = 0;
-            if (t1 !== null && t2 !== null) {
-                avg = Math.round(((t1 + t2) / 2.0) * 100) / 100;
-            } else if (t1 !== null) {
-                avg = t1;
-            } else if (t2 !== null) {
-                avg = t2;
-            }
+            // 2 series tests: missing or absent test treated as 0 (divisor 2.0)
+            const s1 = t1 !== null ? t1 : 0.0;
+            const s2 = t2 !== null ? t2 : 0.0;
+            const avg = Math.round(((s1 + s2) / 2.0) * 100) / 100;
 
-            row.querySelector('.val-series-avg').innerText = avg;
+            row.querySelector('.val-series-avg').innerText = avg.toFixed(2);
 
             // Sync with Consolidated CIA Register
             const regNo = row.getAttribute('data-reg-no');

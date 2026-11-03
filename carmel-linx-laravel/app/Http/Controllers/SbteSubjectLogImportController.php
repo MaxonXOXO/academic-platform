@@ -1278,7 +1278,7 @@ class SbteSubjectLogImportController extends Controller
                         "final_percentage" => DB::raw("COALESCE(override_percentage, {$officialPct})"),
                         "max_attendance_marks" => $maxAttMarks,
                         "attendance_mark" => $officialMark,
-                        "final_mark" => DB::raw("COALESCE(override_mark, {$officialMark})"),
+                        "final_mark" => DB::raw("CASE WHEN override_mark IS NOT NULL THEN override_mark WHEN override_percentage IS NOT NULL THEN ROUND((override_percentage / 100.0) * {$maxAttMarks}) ELSE {$officialMark} END"),
                         "source" => $sourceType,
                         "updated_at" => now(),
                     ]
@@ -1656,7 +1656,7 @@ class SbteSubjectLogImportController extends Controller
                         "final_percentage" => DB::raw("COALESCE(override_percentage, {$officialPct})"),
                         "max_attendance_marks" => $maxAttMarks,
                         "attendance_mark" => $officialMark,
-                        "final_mark" => DB::raw("COALESCE(override_mark, {$officialMark})"),
+                        "final_mark" => DB::raw("CASE WHEN override_mark IS NOT NULL THEN override_mark WHEN override_percentage IS NOT NULL THEN ROUND((override_percentage / 100.0) * {$maxAttMarks}) ELSE {$officialMark} END"),
                         "source" => $sourceType,
                         "updated_at" => now(),
                     ]

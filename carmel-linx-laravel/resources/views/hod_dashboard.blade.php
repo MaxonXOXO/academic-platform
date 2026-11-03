@@ -296,6 +296,12 @@
       <button id="navConsolidatedCia" onclick="switchPanel('consolidatedCia')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
         <span class="material-symbols-rounded text-base text-amber-400">assignment_turned_in</span> Consolidated CIA
       </button>
+      <button id="navSemesterAttendance" onclick="switchPanel('semesterAttendance')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
+        <span class="material-symbols-rounded text-base text-emerald-400">how_to_reg</span> Semester Attendance
+      </button>
+      <button id="navProgressReports" onclick="switchPanel('progressReports')" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">
+        <span class="material-symbols-rounded text-base text-sky-400">monitoring</span> Progress Reports & Staff Audit
+      </button>
       <a href="/dashboard/lecturer" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block mobile-link">
          <span class="material-symbols-rounded text-base">calendar_view_week</span> My Batches
       </a>
@@ -698,6 +704,203 @@
           <!-- Faculty In-Charge Directory -->
           <div id="hodCiaFacultyDirectory" class="mt-6 pt-4 border-t border-slate-800">
             <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: SEMESTER ATTENDANCE REGISTER (CLAUSE 10 / RULE 7) -->
+      <div id="panelSemesterAttendance" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-xs font-bold uppercase">SBTE Clause 10 / Rule 7</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Consolidated Register</span>
+                <h3 class="font-black text-white text-lg">Semester Attendance Register</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Authoritative continuous semester attendance register: Total conducted hours, attended hours, attendance %, and exam eligibility status across department classrooms.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadHodSemesterAttendance()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh
+              </button>
+              <a id="btnHodPrintAttRegister" href="/tutor/attendance/report/print" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4 Landscape)
+              </a>
+              <a id="btnHodPrintAllAttCards" href="/tutor/attendance/report/print?mode=all_cards" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">badge</span> Print Student Attendance Cards
+              </a>
+            </div>
+          </div>
+
+          <!-- Classroom / Batch & Period Selector -->
+          <div class="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="text-xs font-bold text-slate-400">Classroom:</span>
+              <select id="hodAttBatchSelect" onchange="onHodAttBatchChange()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <option value="">Loading classrooms...</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-300 flex-wrap">
+              <div><strong>Batch:</strong> <span id="hodAttBatchLabel">-</span></div>
+              <div><strong>Semester:</strong> <span id="hodAttSemLabel">-</span></div>
+              <div><strong>Total Hours:</strong> <span id="hodAttTotalHoursLabel" class="font-mono text-emerald-400 font-bold">-</span></div>
+              <div><strong>Tutor:</strong> <span id="hodAttTutorLabel">-</span></div>
+            </div>
+          </div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Students</div>
+              <div class="text-xl font-black text-white font-mono" id="hodAttCardTotal">0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Avg Attd</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="hodAttCardAvg">0%</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible (≥75%)</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="hodAttCardEligible">0</div>
+            </div>
+            <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-amber-400">Condonation (65-75%)</div>
+              <div class="text-xl font-black text-amber-300 font-mono" id="hodAttCardCondonation">0</div>
+            </div>
+            <div class="p-3 bg-rose-950/20 border border-rose-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-rose-400">Detained (&lt;65%)</div>
+              <div class="text-xl font-black text-rose-400 font-mono" id="hodAttCardDetained">0</div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="filterHodAttendance('all')" class="hod-att-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
+              <button onclick="filterHodAttendance('eligible')" class="hod-att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="eligible">Eligible (≥75%)</button>
+              <button onclick="filterHodAttendance('condonation')" class="hod-att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="condonation">Condonation Shortage</button>
+              <button onclick="filterHodAttendance('detained')" class="hod-att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="detained">Detained</button>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+              <input type="text" id="hodAttSearchInput" onkeyup="renderHodAttendanceTable()" placeholder="Search name, roll, reg no..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="hodAttTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-emerald-400">progress_activity</span>
+              <div class="text-xs mt-2">Select a classroom to compile attendance register...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: STUDENT PROGRESS REPORTS & STAFF MARK AUDIT -->
+      <div id="panelProgressReports" class="hidden space-y-6">
+        <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="hodProgBadgeScheme" class="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded text-xs font-bold uppercase">SBTE Regulation</span>
+                <span class="px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded text-xs font-bold">Series Exam CO1-CO4</span>
+                <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs font-bold">Faculty Mark Entry Audit</span>
+                <h3 class="font-black text-white text-lg">Student Progress Reports & Staff Mark Audit</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Continuous internal assessment progress report with Series Exam marks, class rank, attendance percentage, and class assigned staff mark entry audit.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="loadHodProgressReports()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium cursor-pointer">
+                <span class="material-symbols-rounded text-sm">refresh</span> Refresh
+              </button>
+              <a id="btnHodPrintProgReport" href="/tutor/progress-report/print" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">print</span> Print Register (A4 Landscape)
+              </a>
+              <a id="btnHodPrintAllProgCards" href="/tutor/progress-report/print?mode=all_cards" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium shadow-md cursor-pointer">
+                <span class="material-symbols-rounded text-sm">badge</span> Print PTM Report Cards
+              </a>
+            </div>
+          </div>
+
+          <!-- Classroom / Batch & Context Selector -->
+          <div class="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="text-xs font-bold text-slate-400">Classroom:</span>
+              <select id="hodProgBatchSelect" onchange="onHodProgBatchChange()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="">Loading classrooms...</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-300 flex-wrap">
+              <div><strong>Batch:</strong> <span id="hodProgBannerClass">-</span></div>
+              <div><strong>Semester:</strong> <span id="hodProgBannerSem">-</span></div>
+              <div><strong>Scheme:</strong> <span id="hodProgBannerScheme" class="text-sky-400 font-bold">-</span></div>
+              <div><strong>Tutor:</strong> <span id="hodProgBannerTutor">-</span></div>
+            </div>
+          </div>
+
+          <!-- Faculty Mark Entry Status & Audit Card -->
+          <div id="hodProgFacultyStatusWrapper" class="mb-4"></div>
+
+          <!-- Stats Overview Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-slate-400">Total Students</div>
+              <div class="text-xl font-black text-white font-mono" id="hodProgCardTotal">0</div>
+            </div>
+            <div class="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-amber-400">Class Topper (#1)</div>
+              <div class="text-sm font-black text-amber-300 truncate" id="hodProgCardTopper">N/A</div>
+            </div>
+            <div class="p-3 bg-indigo-950/20 border border-indigo-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-indigo-400">Avg Series Score</div>
+              <div class="text-xl font-black text-indigo-300 font-mono" id="hodProgCardAvgMarks">0.0</div>
+            </div>
+            <div class="p-3 bg-blue-950/20 border border-blue-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-blue-400">Class Average Attd</div>
+              <div class="text-xl font-black text-blue-300 font-mono" id="hodProgCardAvgAtt">0%</div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-center">
+              <div class="text-[0.68rem] uppercase font-bold text-emerald-400">Eligible Attd (≥75%)</div>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="hodProgCardEligible">0</div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar with Scale Switcher -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="filterHodProgressReports('all')" class="hod-prog-filter-btn px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold border border-slate-700" data-filter="all">All Students</button>
+              <button onclick="filterHodProgressReports('top10')" class="hod-prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-amber-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="top10">Top 10 Ranks</button>
+              <button onclick="filterHodProgressReports('shortage')" class="hod-prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-rose-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="shortage">Attd Shortage (&lt;75%)</button>
+              <button onclick="filterHodProgressReports('hasMarks')" class="hod-prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-emerald-400 rounded-lg text-xs font-bold border border-slate-800" data-filter="hasMarks">Marks Recorded</button>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Mark Scale Toggle Button Group -->
+              <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5" title="Switch between 100 Normalized and Original Staff Entry Marks">
+                <button id="hodProgScale100Btn" onclick="setHodProgressScale('100')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm cursor-pointer">
+                  100-Scale
+                </button>
+                <button id="hodProgScaleRawBtn" onclick="setHodProgressScale('original')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition-all cursor-pointer">
+                  Original Staff Marks
+                </button>
+              </div>
+              <div class="relative w-full sm:w-56">
+                <span class="material-symbols-rounded absolute left-3 top-2 text-slate-400 text-sm">search</span>
+                <input type="text" id="hodProgSearchInput" onkeyup="renderHodProgressReportsTable()" placeholder="Search name, roll, reg no..." class="w-full pl-8 pr-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Report Table Container -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 custom-scrollbar" id="hodProgTableWrapper">
+            <div class="py-12 text-center text-slate-400">
+              <span class="material-symbols-rounded text-3xl animate-spin text-indigo-400">progress_activity</span>
+              <div class="text-xs mt-2">Select a classroom to compile progress report...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1459,7 +1662,7 @@
 
     function switchPanel(panelId) {
       activePanel = panelId;
-      const panels = ['directory', 'batches', 'subjects', 'audit', 'profile', 'consolidatedCia'];
+      const panels = ['directory', 'batches', 'subjects', 'audit', 'profile', 'consolidatedCia', 'semesterAttendance', 'progressReports'];
       
       panels.forEach(id => {
         const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -1480,7 +1683,9 @@
         'subjects': 'Curriculum & Staff Allocation',
         'audit': 'Department Audit Trail',
         'profile': 'My HOD Profile',
-        'consolidatedCia': 'Consolidated CIA Mark Report'
+        'consolidatedCia': 'Consolidated CIA Mark Report',
+        'semesterAttendance': 'Semester Attendance Register',
+        'progressReports': 'Student Progress Reports & Staff Audit'
       };
       document.getElementById('panelTitle').innerText = titles[panelId] || 'Overview';
 
@@ -1490,6 +1695,8 @@
       if (panelId === 'audit') loadAuditTrail();
       if (panelId === 'profile') loadSelfSecurityLogs();
       if (panelId === 'consolidatedCia') loadHodConsolidatedCia();
+      if (panelId === 'semesterAttendance') loadHodSemesterAttendance();
+      if (panelId === 'progressReports') loadHodProgressReports();
     }
 
     function loadBatchesForSubjects() {
@@ -5180,7 +5387,7 @@
       }
 
       let theadHtml = `
-        <tr class="border-b border-slate-800 bg-slate-950 text-[0.68rem] text-slate-400 uppercase tracking-wider font-extrabold">
+        <tr class="border-b border-slate-800 bg-slate-950 text-xs text-slate-300 uppercase tracking-wider font-extrabold">
           <th class="p-2.5 text-center w-10 border-r border-slate-800">Sl</th>
           <th class="p-2.5 text-center w-12 border-r border-slate-800">Roll</th>
           <th class="p-2.5 text-center w-28 border-r border-slate-800">Reg No</th>
@@ -5189,28 +5396,28 @@
 
       subjects.forEach(s => {
         theadHtml += `
-          <th class="p-2 text-center border-r border-slate-800 min-w-[85px]" title="${s.subject_name}">
-            <span class="font-mono font-bold text-xs text-sky-400 block">${s.subject_code}</span>
-            <span class="text-[0.60rem] text-slate-400 block truncate max-w-[100px] mx-auto font-normal">${s.subject_name}</span>
-            <span class="text-[0.62rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
+          <th class="p-2.5 text-center border-r border-slate-800 min-w-[90px]" title="${s.subject_name}">
+            <span class="font-mono font-bold text-sm text-sky-400 block">${s.subject_code}</span>
+            <span class="text-[0.70rem] text-slate-400 block truncate max-w-[110px] mx-auto font-normal">${s.subject_name}</span>
+            <span class="text-[0.70rem] text-amber-400 font-extrabold block">[Max: ${s.max_cia}]</span>
           </th>
         `;
       });
 
       theadHtml += `
-          <th class="p-2.5 text-center w-20 border-r border-slate-800 text-emerald-400">Attn (%)</th>
-          <th class="p-2.5 text-center w-20 text-indigo-400">Result</th>
+          <th class="p-2.5 text-center w-24 border-r border-slate-800 text-emerald-400">Attn (%)</th>
+          <th class="p-2.5 text-center w-24 text-indigo-400">Result</th>
         </tr>
       `;
 
       let tbodyHtml = '';
       students.forEach((st, idx) => {
         tbodyHtml += `
-          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-xs font-medium">
-            <td class="p-2 text-center border-r border-slate-800 text-slate-500 font-mono">${idx + 1}</td>
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-300 font-bold">${st.roll_no || '-'}</td>
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-slate-400 text-[11px]">${st.sbte_reg_no || st.reg_no}</td>
-            <td class="p-2 text-left border-r border-slate-800 font-bold text-slate-200 truncate max-w-[180px]">${st.name}</td>
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors text-sm font-medium">
+            <td class="p-2.5 text-center border-r border-slate-800 text-slate-400 font-mono text-xs">${idx + 1}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-slate-200 font-bold text-sm">${st.roll_no || '-'}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-slate-300 text-xs">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2.5 text-left border-r border-slate-800 font-bold text-white truncate max-w-[200px] text-sm">${st.name}</td>
         `;
 
         subjects.forEach(s => {
@@ -5222,11 +5429,11 @@
           let markHtml = '<span class="text-slate-600">-</span>';
           if (isGen && val !== null) {
             markHtml = isPass
-              ? `<span class="font-mono font-bold text-slate-200">${val}</span>`
-              : `<span class="font-mono font-black text-rose-400 underline" title="Below 40% Pass Mark">${val}</span>`;
+              ? `<span class="font-mono font-bold text-slate-100 text-sm">${val}</span>`
+              : `<span class="font-mono font-black text-rose-400 underline text-sm" title="Below 40% Pass Mark">${val}</span>`;
           }
 
-          tbodyHtml += `<td class="p-2 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
+          tbodyHtml += `<td class="p-2.5 text-center border-r border-slate-800 bg-slate-950/20">${markHtml}</td>`;
         });
 
         const attPct = parseFloat(st.overall_attendance || 100);
@@ -5234,14 +5441,14 @@
 
         let resBadge = '<span class="text-slate-500">-</span>';
         if (st.overall_result === 'PASSED') {
-          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
+          resBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>';
         } else if (st.overall_result === 'FAILED') {
-          resBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
+          resBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>';
         }
 
         tbodyHtml += `
-            <td class="p-2 text-center border-r border-slate-800 font-mono text-xs ${attColor}">${attPct.toFixed(1)}%</td>
-            <td class="p-2 text-center">${resBadge}</td>
+            <td class="p-2.5 text-center border-r border-slate-800 font-mono text-sm ${attColor}">${attPct.toFixed(1)}%</td>
+            <td class="p-2.5 text-center">${resBadge}</td>
           </tr>
         `;
       });
@@ -5364,6 +5571,781 @@
         })
         .catch(err => console.error("Failed to load system AI status:", err));
     });
+
+    // ==========================================
+    // HOD: SEMESTER ATTENDANCE REGISTER LOGIC
+    // ==========================================
+    let selectedHodAttClassroom = null;
+    let hodAttDataCache = null;
+    let currentHodAttFilter = 'all';
+
+    function loadHodBatchesForAttendance(preselectClassroomId = null) {
+      const select = document.getElementById('hodAttBatchSelect');
+      if (!select) return Promise.resolve(null);
+
+      const p1 = fetch('/api/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+      const p2 = fetch('/api/r26/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+
+      return Promise.all([p1, p2])
+        .then(([res1, res2]) => {
+          let b1 = (res1.status === 'SUCCESS' && Array.isArray(res1.batches)) ? res1.batches : [];
+          let b2 = (res2.status === 'SUCCESS' && Array.isArray(res2.batches)) ? res2.batches : [];
+          
+          const map = new Map();
+          b1.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          b2.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          let combined = Array.from(map.values());
+
+          combined.sort((x, y) => {
+            if ((y.batch_year || 0) !== (x.batch_year || 0)) {
+              return (y.batch_year || 0) - (x.batch_year || 0);
+            }
+            return (x.classroom_id || '').localeCompare(y.classroom_id || '');
+          });
+
+          select.innerHTML = '<option value="">-- Choose a Classroom --</option>';
+          combined.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.classroom_id;
+            opt.textContent = `${b.classroom_id} (Sem ${b.current_semester || 1})${b.is_r26 || b.batch_year === 2026 ? ' [REV2026]' : ''}`;
+            select.appendChild(opt);
+          });
+
+          if (preselectClassroomId && map.has(preselectClassroomId)) {
+            select.value = preselectClassroomId;
+          } else if (selectedHodAttClassroom && map.has(selectedHodAttClassroom)) {
+            select.value = selectedHodAttClassroom;
+          } else if (combined.length > 0 && !select.value) {
+            select.value = combined[0].classroom_id;
+          }
+
+          selectedHodAttClassroom = select.value;
+          return select.value;
+        });
+    }
+
+    function onHodAttBatchChange() {
+      const select = document.getElementById('hodAttBatchSelect');
+      if (!select) return;
+      selectedHodAttClassroom = select.value;
+      loadHodSemesterAttendance(selectedHodAttClassroom);
+    }
+
+    function loadHodSemesterAttendance(classroomId = null) {
+      const wrapper = document.getElementById('hodAttTableWrapper');
+      const batchSelect = document.getElementById('hodAttBatchSelect');
+
+      if (!batchSelect || batchSelect.options.length <= 1) {
+        loadHodBatchesForAttendance(classroomId || selectedHodAttClassroom).then(chosenCid => {
+          if (chosenCid) {
+            loadHodSemesterAttendance(chosenCid);
+          } else if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-12 text-center text-slate-400 text-xs">
+                No active classrooms found for your department.
+              </div>
+            `;
+          }
+        });
+        return;
+      }
+
+      let cid = classroomId || batchSelect.value || selectedHodAttClassroom;
+      if (!cid) {
+        if (wrapper) {
+          wrapper.innerHTML = `
+            <div class="py-12 text-center text-slate-400 text-xs">
+              Please choose a classroom from the dropdown above.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      selectedHodAttClassroom = cid;
+      if (batchSelect.value !== cid) batchSelect.value = cid;
+
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <span class="material-symbols-rounded text-3xl animate-spin text-emerald-400">progress_activity</span>
+            <div class="text-xs mt-2">Compiling semester attendance register...</div>
+          </div>
+        `;
+      }
+
+      fetch(`/api/tutor/attendance/consolidated?classroom_id=${encodeURIComponent(cid)}`)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            hodAttDataCache = res;
+
+            // Context Labels
+            const cls = res.classroom || {};
+            if (document.getElementById('hodAttBatchLabel')) document.getElementById('hodAttBatchLabel').innerText = cls.batch || cls.id || '-';
+            if (document.getElementById('hodAttSemLabel')) document.getElementById('hodAttSemLabel').innerText = 'Semester ' + (cls.semester || 1);
+            if (document.getElementById('hodAttTotalHoursLabel')) document.getElementById('hodAttTotalHoursLabel').innerText = (cls.working_hours || 0) + ' hrs';
+            if (document.getElementById('hodAttTutorLabel')) document.getElementById('hodAttTutorLabel').innerText = cls.tutor_name || 'Assigned Tutor';
+
+            // Summary Stats Cards
+            const sum = res.summary || {};
+            if (document.getElementById('hodAttCardTotal')) document.getElementById('hodAttCardTotal').innerText = sum.total_students || 0;
+            if (document.getElementById('hodAttCardAvg')) document.getElementById('hodAttCardAvg').innerText = (sum.average_attendance || 0) + '%';
+            if (document.getElementById('hodAttCardEligible')) document.getElementById('hodAttCardEligible').innerText = sum.eligible_count || 0;
+            if (document.getElementById('hodAttCardCondonation')) document.getElementById('hodAttCardCondonation').innerText = sum.condonation_count || 0;
+            if (document.getElementById('hodAttCardDetained')) document.getElementById('hodAttCardDetained').innerText = sum.detained_count || 0;
+
+            // Update print links
+            if (document.getElementById('btnHodPrintAttRegister')) {
+              document.getElementById('btnHodPrintAttRegister').href = `/tutor/attendance/report/print?classroom_id=${encodeURIComponent(cls.id)}`;
+            }
+            if (document.getElementById('btnHodPrintAllAttCards')) {
+              document.getElementById('btnHodPrintAllAttCards').href = `/tutor/attendance/report/print?classroom_id=${encodeURIComponent(cls.id)}&mode=all_cards`;
+            }
+
+            renderHodAttendanceTable();
+          } else {
+            if (wrapper) {
+              wrapper.innerHTML = `
+                <div class="py-8 text-center text-rose-400 text-xs">
+                  <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                  <div>${res.message || 'Failed to load semester attendance report.'}</div>
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(err => {
+          if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
+                <div>Network error loading attendance register. Please try again.</div>
+              </div>
+            `;
+          }
+        });
+    }
+
+    function filterHodAttendance(filterType) {
+      currentHodAttFilter = filterType;
+      document.querySelectorAll('.hod-att-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filterType) {
+          btn.className = 'hod-att-filter-btn px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm';
+        } else {
+          btn.className = 'hod-att-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-white rounded-lg text-xs font-bold border border-slate-800';
+        }
+      });
+      renderHodAttendanceTable();
+    }
+
+    function renderHodAttendanceTable() {
+      if (!hodAttDataCache) return;
+      const allStudents = hodAttDataCache.students || [];
+      const query = (document.getElementById('hodAttSearchInput')?.value || '').toLowerCase();
+
+      const filtered = allStudents.filter(st => {
+        let matchesFilter = true;
+        if (currentHodAttFilter === 'eligible') matchesFilter = (st.status === 'Eligible');
+        else if (currentHodAttFilter === 'condonation') matchesFilter = (st.status === 'Condonation');
+        else if (currentHodAttFilter === 'detained') matchesFilter = (st.status === 'Detained');
+
+        const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
+        const matchesSearch = text.includes(query);
+
+        return matchesFilter && matchesSearch;
+      });
+
+      const wrapper = document.getElementById('hodAttTableWrapper');
+      if (!wrapper) return;
+
+      let rowsHtml = '';
+      filtered.forEach((st, idx) => {
+        const attBadge = st.status === 'Eligible'
+          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+          : (st.status === 'Condonation' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30');
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/40 text-xs border-b border-slate-800/60">
+            <td class="p-2.5 font-mono font-bold text-center text-cyan-400">${st.roll_no || (idx + 1)}</td>
+            <td class="p-2.5 font-mono text-white">${st.sbte_reg_no || st.reg_no}</td>
+            <td class="p-2.5 font-bold text-slate-200 truncate max-w-[200px]" title="${st.name}">${st.name}</td>
+            <td class="p-2.5 text-center font-mono text-slate-300">${st.total_hours || 0} hrs</td>
+            <td class="p-2.5 text-center font-mono text-slate-300">${st.attended_hours || 0} hrs</td>
+            <td class="p-2.5 text-center font-mono font-bold text-emerald-400">${st.attendance_percentage}%</td>
+            <td class="p-2.5 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase border ${attBadge}">
+                ${st.status}
+              </span>
+            </td>
+            <td class="p-2.5 text-center">
+              <a href="/tutor/attendance/student-print?classroom_id=${encodeURIComponent(selectedHodAttClassroom)}&reg_no=${encodeURIComponent(st.reg_no)}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700" title="Print Attendance Card for ${st.name}">
+                <span class="material-symbols-rounded text-sm">print</span> Card
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="8" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
+      }
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950 text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <th class="p-2.5 text-center w-12">Roll</th>
+              <th class="p-2.5 w-28">SBTE Reg No</th>
+              <th class="p-2.5">Student Name</th>
+              <th class="p-2.5 text-center">Conducted</th>
+              <th class="p-2.5 text-center">Attended</th>
+              <th class="p-2.5 text-center">Attendance %</th>
+              <th class="p-2.5 text-center">Eligibility Status</th>
+              <th class="p-2.5 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 bg-slate-900/30">${rowsHtml}</tbody>
+        </table>
+      `;
+    }
+
+    // ==========================================
+    // HOD: STUDENT PROGRESS REPORTS & STAFF AUDIT
+    // ==========================================
+    let selectedHodProgClassroom = null;
+    let hodProgDataCache = null;
+    let currentHodProgFilter = 'all';
+    let currentHodProgScale = '100'; // '100' or 'original'
+
+    function loadHodBatchesForProgress(preselectClassroomId = null) {
+      const select = document.getElementById('hodProgBatchSelect');
+      if (!select) return Promise.resolve(null);
+
+      const p1 = fetch('/api/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+      const p2 = fetch('/api/r26/hod/batches').then(res => res.json()).catch(() => ({status: 'ERROR', batches: []}));
+
+      return Promise.all([p1, p2])
+        .then(([res1, res2]) => {
+          let b1 = (res1.status === 'SUCCESS' && Array.isArray(res1.batches)) ? res1.batches : [];
+          let b2 = (res2.status === 'SUCCESS' && Array.isArray(res2.batches)) ? res2.batches : [];
+          
+          const map = new Map();
+          b1.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          b2.forEach(b => { if (b && b.classroom_id) map.set(b.classroom_id, b); });
+          let combined = Array.from(map.values());
+
+          combined.sort((x, y) => {
+            if ((y.batch_year || 0) !== (x.batch_year || 0)) {
+              return (y.batch_year || 0) - (x.batch_year || 0);
+            }
+            return (x.classroom_id || '').localeCompare(y.classroom_id || '');
+          });
+
+          select.innerHTML = '<option value="">-- Choose a Classroom --</option>';
+          combined.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.classroom_id;
+            opt.textContent = `${b.classroom_id} (Sem ${b.current_semester || 1})${b.is_r26 || b.batch_year === 2026 ? ' [REV2026]' : ''}`;
+            select.appendChild(opt);
+          });
+
+          if (preselectClassroomId && map.has(preselectClassroomId)) {
+            select.value = preselectClassroomId;
+          } else if (selectedHodProgClassroom && map.has(selectedHodProgClassroom)) {
+            select.value = selectedHodProgClassroom;
+          } else if (combined.length > 0 && !select.value) {
+            select.value = combined[0].classroom_id;
+          }
+
+          selectedHodProgClassroom = select.value;
+          return select.value;
+        });
+    }
+
+    function onHodProgBatchChange() {
+      const select = document.getElementById('hodProgBatchSelect');
+      if (!select) return;
+      selectedHodProgClassroom = select.value;
+      loadHodProgressReports(selectedHodProgClassroom);
+    }
+
+    function setHodProgressScale(scale) {
+      currentHodProgScale = scale;
+      const btn100 = document.getElementById('hodProgScale100Btn');
+      const btnRaw = document.getElementById('hodProgScaleRawBtn');
+      if (btn100 && btnRaw) {
+        if (scale === '100') {
+          btn100.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm cursor-pointer';
+          btnRaw.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition-all cursor-pointer';
+        } else {
+          btnRaw.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-600 text-white transition-all shadow-sm cursor-pointer';
+          btn100.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-indigo-300 transition-all cursor-pointer';
+        }
+      }
+
+      if (hodProgDataCache && hodProgDataCache.classroom) {
+        const clsId = hodProgDataCache.classroom.id;
+        if (document.getElementById('btnHodPrintProgReport')) {
+          document.getElementById('btnHodPrintProgReport').href = `/tutor/progress-report/print?classroom_id=${encodeURIComponent(clsId)}${currentHodProgScale === 'original' ? '&scale=original' : ''}`;
+        }
+        if (document.getElementById('btnHodPrintAllProgCards')) {
+          document.getElementById('btnHodPrintAllProgCards').href = `/tutor/progress-report/print?classroom_id=${encodeURIComponent(clsId)}&mode=all_cards${currentHodProgScale === 'original' ? '&scale=original' : ''}`;
+        }
+      }
+
+      renderHodProgressReportsTable();
+    }
+
+    function renderHodFacultyStatusCard(data) {
+      const container = document.getElementById('hodProgFacultyStatusWrapper');
+      if (!container) return;
+      const list = data.faculty_mark_status || [];
+      if (!list.length) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+
+      let rows = '';
+      list.forEach(item => {
+        let badgeColor = 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+        if (item.badge_class === 'emerald') badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+        if (item.badge_class === 'amber') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+
+        rows += `
+          <tr class="hover:bg-slate-850/60 text-xs border-b border-slate-800/60">
+            <td class="p-2 font-mono font-bold text-sky-400">${item.subject_code}</td>
+            <td class="p-2 font-bold text-slate-200">${item.subject_name}</td>
+            <td class="p-2 text-slate-300">
+              <span class="font-medium">${item.faculty_names}</span>
+            </td>
+            <td class="p-2 text-center font-mono ${item.s1_status.includes('Completed') ? 'text-emerald-400 font-bold' : (item.s1_status.includes('Partial') ? 'text-amber-400 font-bold' : 'text-rose-400')}">
+              ${item.s1_status}
+            </td>
+            <td class="p-2 text-center font-mono ${item.s2_status.includes('Completed') ? 'text-emerald-400 font-bold' : (item.s2_status.includes('Partial') ? 'text-amber-400 font-bold' : (item.s2_status === 'Not Conducted' ? 'text-slate-500' : 'text-rose-400'))}">
+              ${item.s2_status}
+            </td>
+            <td class="p-2 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase border ${badgeColor}">
+                ${item.overall_status}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <details class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-md transition-all group" ${data.has_unentered_staff ? 'open' : ''}>
+          <summary class="font-bold text-xs text-slate-200 flex items-center justify-between cursor-pointer select-none">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="material-symbols-rounded text-base text-amber-400">shield_person</span>
+              <span class="text-white font-bold">Class Assigned Faculty Mark Entry Status</span>
+              ${data.has_unentered_staff 
+                ? '<span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full text-[10px] font-bold animate-pulse">Unentered Marks Detected</span>' 
+                : '<span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[10px] font-bold">All Completed</span>'}
+            </div>
+            <span class="text-[11px] text-indigo-400 group-open:text-slate-400 hover:underline">Toggle Audit Breakdown</span>
+          </summary>
+          <div class="mt-3.5 overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-950 text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                  <th class="p-2.5">Sub Code</th>
+                  <th class="p-2.5">Subject Name</th>
+                  <th class="p-2.5">Assigned Faculty (Designation)</th>
+                  <th class="p-2.5 text-center">Series 1 Entry</th>
+                  <th class="p-2.5 text-center">Series 2 Entry</th>
+                  <th class="p-2.5 text-center">Audit Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 bg-slate-900/40">${rows}</tbody>
+            </table>
+          </div>
+        </details>
+      `;
+    }
+
+    function loadHodProgressReports(classroomId = null) {
+      const wrapper = document.getElementById('hodProgTableWrapper');
+      const batchSelect = document.getElementById('hodProgBatchSelect');
+
+      if (!batchSelect || batchSelect.options.length <= 1) {
+        loadHodBatchesForProgress(classroomId || selectedHodProgClassroom).then(chosenCid => {
+          if (chosenCid) {
+            loadHodProgressReports(chosenCid);
+          } else if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-12 text-center text-slate-400 text-xs">
+                No active classrooms found for your department.
+              </div>
+            `;
+          }
+        });
+        return;
+      }
+
+      let cid = classroomId || batchSelect.value || selectedHodProgClassroom;
+      if (!cid) {
+        if (wrapper) {
+          wrapper.innerHTML = `
+            <div class="py-12 text-center text-slate-400 text-xs">
+              Please choose a classroom from the dropdown above.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      selectedHodProgClassroom = cid;
+      if (batchSelect.value !== cid) batchSelect.value = cid;
+
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <span class="material-symbols-rounded text-3xl animate-spin text-indigo-400">progress_activity</span>
+            <div class="text-xs mt-2">Compiling student progress report & series marks...</div>
+          </div>
+        `;
+      }
+
+      fetch(`/api/tutor/progress-report?classroom_id=${encodeURIComponent(cid)}`)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'SUCCESS') {
+            hodProgDataCache = res;
+
+            // Metadata banner
+            const cls = res.classroom || {};
+            if (document.getElementById('hodProgBannerClass')) document.getElementById('hodProgBannerClass').innerText = cls.batch || cls.id || '-';
+            if (document.getElementById('hodProgBannerSem')) document.getElementById('hodProgBannerSem').innerText = 'Semester ' + (cls.semester || 1) + ' (S' + (cls.semester || 1) + ')';
+            if (document.getElementById('hodProgBannerTutor')) document.getElementById('hodProgBannerTutor').innerText = cls.tutor_name || 'Assigned Tutor';
+            if (document.getElementById('hodProgBannerScheme')) document.getElementById('hodProgBannerScheme').innerText = cls.scheme_name || (cls.revision === 'REV2026' ? 'Revision 2026 (REV2026)' : 'Revision 2021 (REV2021)');
+            if (document.getElementById('hodProgBadgeScheme')) document.getElementById('hodProgBadgeScheme').innerText = 'SBTE Regulation ' + (cls.revision === 'REV2026' ? '2026' : '2021');
+
+            // Summary cards
+            const sum = res.summary || {};
+            if (document.getElementById('hodProgCardTotal')) document.getElementById('hodProgCardTotal').innerText = sum.total_students || 0;
+            if (document.getElementById('hodProgCardAvgMarks')) document.getElementById('hodProgCardAvgMarks').innerText = (sum.average_marks || 0) + 'M';
+            if (document.getElementById('hodProgCardAvgAtt')) document.getElementById('hodProgCardAvgAtt').innerText = (sum.average_attendance || 0) + '%';
+            if (document.getElementById('hodProgCardEligible')) document.getElementById('hodProgCardEligible').innerText = sum.eligible_count || 0;
+
+            if (document.getElementById('hodProgCardTopper')) {
+              if (sum.topper) {
+                document.getElementById('hodProgCardTopper').innerText = sum.topper.name + ' (' + sum.topper.marks + 'M)';
+                document.getElementById('hodProgCardTopper').title = 'Topper: ' + sum.topper.name + ' | Roll #' + sum.topper.roll_no + ' | Score: ' + sum.topper.marks + 'M | Attd: ' + sum.topper.attendance + '%';
+              } else {
+                document.getElementById('hodProgCardTopper').innerText = 'N/A';
+              }
+            }
+
+            // Render Faculty Status Audit Card
+            renderHodFacultyStatusCard(res);
+
+            // Update print button hrefs with classroom_id and active scale
+            if (document.getElementById('btnHodPrintProgReport')) {
+              document.getElementById('btnHodPrintProgReport').href = `/tutor/progress-report/print?classroom_id=${encodeURIComponent(cls.id)}${currentHodProgScale === 'original' ? '&scale=original' : ''}`;
+            }
+            if (document.getElementById('btnHodPrintAllProgCards')) {
+              document.getElementById('btnHodPrintAllProgCards').href = `/tutor/progress-report/print?classroom_id=${encodeURIComponent(cls.id)}&mode=all_cards${currentHodProgScale === 'original' ? '&scale=original' : ''}`;
+            }
+
+            renderHodProgressReportsTable();
+          } else {
+            if (wrapper) {
+              wrapper.innerHTML = `
+                <div class="py-8 text-center text-rose-400 text-xs">
+                  <span class="material-symbols-rounded text-2xl mb-1">error</span>
+                  <div>${res.message || 'Failed to load student progress report.'}</div>
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(err => {
+          console.error("Progress report loading error:", err);
+          if (wrapper) {
+            wrapper.innerHTML = `
+              <div class="py-8 text-center text-rose-400 text-xs">
+                <span class="material-symbols-rounded text-2xl mb-1">wifi_off</span>
+                <div>Network error loading progress report. Please try again.</div>
+              </div>
+            `;
+          }
+        });
+    }
+
+    function filterHodProgressReports(filterType) {
+      currentHodProgFilter = filterType;
+      document.querySelectorAll('.hod-prog-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filterType) {
+          btn.className = 'hod-prog-filter-btn px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow-sm';
+        } else {
+          btn.className = 'hod-prog-filter-btn px-3 py-1 bg-slate-900 text-slate-400 hover:text-white rounded-lg text-xs font-bold border border-slate-800';
+        }
+      });
+      renderHodProgressReportsTable();
+    }
+
+    function renderHodProgressReportsTable() {
+      if (!hodProgDataCache) return;
+      const subjects = hodProgDataCache.subjects || [];
+      const allStudents = hodProgDataCache.students || [];
+      const query = (document.getElementById('hodProgSearchInput')?.value || '').toLowerCase();
+
+      const filtered = allStudents.filter(st => {
+        let matchesTab = true;
+        if (currentHodProgFilter === 'top10') {
+          matchesTab = st.class_rank !== null && st.class_rank <= 10;
+        } else if (currentHodProgFilter === 'shortage') {
+          matchesTab = st.overall_attendance < 75.0;
+        } else if (currentHodProgFilter === 'hasMarks') {
+          matchesTab = st.has_marks;
+        }
+
+        const text = ((st.roll_no || '') + ' ' + (st.sbte_reg_no || '') + ' ' + (st.name || '')).toLowerCase();
+        const matchesSearch = text.includes(query);
+
+        return matchesTab && matchesSearch;
+      });
+
+      const wrapper = document.getElementById('hodProgTableWrapper');
+      if (!wrapper) return;
+
+      const isOriginalScale = (currentHodProgScale === 'original');
+
+      // Multi-tier header
+      let headerRow1 = `
+        <th rowspan="2" class="p-2.5 text-center w-12 text-cyan-400 font-mono font-bold border-r border-slate-800">Roll</th>
+        <th rowspan="2" class="p-2.5 text-left w-24 text-slate-300 border-r border-slate-800">SBTE Reg No</th>
+        <th rowspan="2" class="p-2.5 text-left min-w-[150px] text-slate-300 border-r border-slate-800">Student Name</th>
+      `;
+
+      let headerRow2 = '';
+
+      subjects.forEach(s => {
+        const max1 = s.max_series_1 || 50;
+        const max2 = s.max_series_2 || 50;
+        const maxTot = s.max_total || 50;
+        const facNames = s.faculty_names || 'Not Assigned';
+
+        headerRow1 += `
+          <th colspan="3" class="p-2 text-center text-slate-200 border-r border-b border-slate-800 bg-slate-900/80 whitespace-nowrap" title="${s.subject_name} (${facNames})">
+            <span class="font-bold text-xs text-sky-400 font-mono">${s.subject_code}</span>
+            <span class="text-[0.62rem] text-slate-400 font-normal block truncate max-w-[140px] mx-auto">${s.subject_name}</span>
+            <span class="text-[0.58rem] text-emerald-400/80 block truncate max-w-[140px] mx-auto">${facNames}</span>
+          </th>
+        `;
+
+        if (isOriginalScale) {
+          headerRow2 += `
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-amber-300 bg-slate-950/60 border-r border-slate-800" title="Series 1: Actual /${max1} (& 100-Scale)">
+              S1 (/${max1})<br><span class="text-[0.55rem] font-normal text-indigo-400">(& 100)</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-amber-300 bg-slate-950/60 border-r border-slate-800" title="Series 2: Actual /${max2} (& 100-Scale)">
+              S2 (/${max2})<br><span class="text-[0.55rem] font-normal text-indigo-400">(& 100)</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-black text-amber-300 bg-indigo-950/40 border-r border-slate-800" title="Total: Actual /${maxTot} (& 100-Scale)">
+              Tot (/${maxTot})<br><span class="text-[0.55rem] font-normal text-cyan-400">(& 100)</span>
+            </th>
+          `;
+        } else {
+          headerRow2 += `
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-300 bg-slate-950/60 border-r border-slate-800" title="Series 1: 100 Normalized (& Actual /${max1})">
+              S1 (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${max1})</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-bold text-slate-300 bg-slate-950/60 border-r border-slate-800" title="Series 2: 100 Normalized (& Actual /${max2})">
+              S2 (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${max2})</span>
+            </th>
+            <th class="p-1.5 text-center text-[0.62rem] font-black text-indigo-300 bg-indigo-950/40 border-r border-slate-800" title="Average: 100 Scale (& Actual /${maxTot})">
+              Avg (100)<br><span class="text-[0.55rem] font-normal text-amber-400/90">(& /${maxTot})</span>
+            </th>
+          `;
+        }
+      });
+
+      headerRow1 += `
+        <th rowspan="2" class="p-2.5 text-center bg-indigo-950/40 text-indigo-300 font-black border-r border-slate-800">
+          Grand Total<br>
+          <span class="text-[0.58rem] font-normal text-slate-400">${isOriginalScale ? '(Staff Marks & 100)' : '(100 Scale & Staff)'}</span>
+        </th>
+        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/30 text-emerald-300 font-bold border-r border-slate-800">Tutor Attd %</th>
+        <th rowspan="2" class="p-2.5 text-center bg-emerald-950/20 text-emerald-400 font-bold border-r border-slate-800">Act. Pts</th>
+        <th rowspan="2" class="p-2.5 text-center bg-slate-900/60 text-slate-300 font-bold border-r border-slate-800">Assignments<br><span class="text-[0.6rem] font-normal text-slate-400">(Done / Pend)</span></th>
+        <th rowspan="2" class="p-2.5 text-center bg-amber-950/30 text-amber-300 font-black border-r border-slate-800">Class Rank</th>
+        <th rowspan="2" class="p-2.5 text-center text-slate-300">Action</th>
+      `;
+
+      let rowsHtml = '';
+      filtered.forEach((st, idx) => {
+        let subjCols = '';
+        subjects.forEach(s => {
+          const sData = st.subjects ? (st.subjects[s.id] || Object.values(st.subjects).find(x => x.subject_code === s.subject_code)) : null;
+          const max1 = sData?.max_series_1 || s.max_series_1 || 50;
+          const max2 = sData?.max_series_2 || s.max_series_2 || 50;
+          const maxTot = sData?.max_total || s.max_total || 50;
+
+          let s1Display = '<span class="text-slate-600">-</span>';
+          let s2Display = '<span class="text-slate-600">-</span>';
+          let totDisplay = '<span class="text-slate-600">-</span>';
+
+          if (sData) {
+            // S1 Cell: Show both Actual and 100
+            if (sData.raw_series_1 !== null) {
+              if (isOriginalScale) {
+                s1Display = `
+                  <div class="font-mono font-bold text-amber-300 text-xs">${sData.raw_series_1} <span class="text-[0.6rem] font-normal text-slate-400">/${max1}</span></div>
+                  <div class="font-mono text-[0.62rem] text-indigo-400/90">${sData.series_1 !== null ? sData.series_1 : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                s1Display = `
+                  <div class="font-mono font-bold text-indigo-300 text-xs">${sData.series_1 !== null ? sData.series_1 : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80">${sData.raw_series_1} <span class="text-[0.55rem] text-slate-500">/${max1}</span></div>
+                `;
+              }
+            } else {
+              s1Display = `<span class="text-rose-400/80 font-sans text-[0.62rem]" title="Staff Mark Not Entered">Pending</span>`;
+            }
+
+            // S2 Cell: Show both Actual and 100
+            if (sData.raw_series_2 !== null) {
+              if (isOriginalScale) {
+                s2Display = `
+                  <div class="font-mono font-bold text-amber-300 text-xs">${sData.raw_series_2} <span class="text-[0.6rem] font-normal text-slate-400">/${max2}</span></div>
+                  <div class="font-mono text-[0.62rem] text-indigo-400/90">${sData.series_2 !== null ? sData.series_2 : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                s2Display = `
+                  <div class="font-mono font-bold text-indigo-300 text-xs">${sData.series_2 !== null ? sData.series_2 : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80">${sData.raw_series_2} <span class="text-[0.55rem] text-slate-500">/${max2}</span></div>
+                `;
+              }
+            } else {
+              s2Display = `<span class="text-slate-500 font-sans text-[0.62rem]">-</span>`;
+            }
+
+            // Total / Avg Cell: Show both Actual and 100
+            if (sData.raw_total !== null || sData.subject_total !== null) {
+              if (isOriginalScale) {
+                totDisplay = `
+                  <div class="font-mono font-black text-amber-300 text-xs">${sData.raw_total !== null ? sData.raw_total : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/${maxTot}</span></div>
+                  <div class="font-mono text-[0.62rem] text-cyan-400 font-medium">${sData.subject_total !== null ? sData.subject_total : '-'} <span class="text-[0.55rem] text-slate-500">/100</span></div>
+                `;
+              } else {
+                totDisplay = `
+                  <div class="font-mono font-black text-indigo-300 text-xs">${sData.subject_total !== null ? sData.subject_total : '-'} <span class="text-[0.6rem] font-normal text-slate-400">/100</span></div>
+                  <div class="font-mono text-[0.62rem] text-amber-400/80 font-medium">${sData.raw_total !== null ? sData.raw_total : '-'} <span class="text-[0.55rem] text-slate-500">/${maxTot}</span></div>
+                `;
+              }
+            }
+          }
+
+          subjCols += `
+            <td class="p-1.5 text-center font-mono text-[0.7rem] border-r border-b border-slate-800/80">${s1Display}</td>
+            <td class="p-1.5 text-center font-mono text-[0.7rem] border-r border-b border-slate-800/80">${s2Display}</td>
+            <td class="p-1.5 text-center font-mono font-bold text-[0.75rem] bg-indigo-950/20 border-r border-b border-slate-800/80">
+              ${totDisplay}
+            </td>
+          `;
+        });
+
+        const attStatusClass = st.status === 'Eligible'
+          ? 'text-emerald-400'
+          : (st.status === 'Condonation' ? 'text-amber-400' : 'text-rose-400');
+
+        let rankBadgeHtml = '<span class="text-slate-600">-</span>';
+        if (st.class_rank === 1) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-sm">👑 Rank 1</span>';
+        } else if (st.class_rank === 2) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-300/20 text-slate-200 border border-slate-400/40">🥈 Rank 2</span>';
+        } else if (st.class_rank === 3) {
+          rankBadgeHtml = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40">🥉 Rank 3</span>';
+        } else if (st.class_rank !== null) {
+          rankBadgeHtml = `<span class="px-2 py-0.5 rounded font-bold text-xs bg-slate-800 text-slate-300 border border-slate-700">#${st.class_rank}</span>`;
+        }
+
+        let assgHtml = '<span class="text-slate-600">-</span>';
+        if (st.assignments && st.assignments.total > 0) {
+          const isAllDone = st.assignments.pending === 0;
+          assgHtml = `
+            <div class="font-bold text-xs ${isAllDone ? 'text-emerald-400' : 'text-amber-400'}">
+              ${st.assignments.submitted}/${st.assignments.total}
+            </div>
+            ${st.assignments.pending > 0 ? `<div class="text-[0.62rem] text-rose-400">(${st.assignments.pending} pend)</div>` : `<div class="text-[0.62rem] text-emerald-500">All done</div>`}
+          `;
+        }
+
+        let grandDisplay = '<span class="text-slate-600">-</span>';
+        if (isOriginalScale) {
+          if (st.raw_grand_total_marks > 0 || st.grand_total_marks > 0) {
+            grandDisplay = `
+              <div class="font-mono font-black text-amber-300 text-xs">${st.raw_grand_total_marks} <span class="text-[0.6rem] text-slate-400 font-normal">/ ${st.raw_max_grand_total || '-'}</span></div>
+              <div class="font-mono text-[0.62rem] text-indigo-400">${st.grand_total_marks} <span class="text-[0.55rem] text-slate-500">/100 scale</span></div>
+            `;
+          }
+        } else {
+          if (st.grand_total_marks > 0 || st.raw_grand_total_marks > 0) {
+            grandDisplay = `
+              <div class="font-mono font-black text-indigo-300 text-xs">${st.grand_total_marks} <span class="text-[0.6rem] text-slate-400 font-normal">pts</span></div>
+              <div class="font-mono text-[0.62rem] text-amber-400/80">${st.raw_grand_total_marks} <span class="text-[0.55rem] text-slate-500">/ ${st.raw_max_grand_total || '-'} staff</span></div>
+            `;
+          }
+        }
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="p-2.5 font-mono font-bold text-center text-cyan-400 text-xs border-r border-b border-slate-800">${st.roll_no || '-'}</td>
+            <td class="p-2.5 font-mono text-white text-xs border-r border-b border-slate-800">${st.sbte_reg_no}</td>
+            <td class="p-2.5 font-bold text-slate-200 text-xs border-r border-b border-slate-800 truncate max-w-[180px]" title="${st.name}">
+              ${st.name}
+            </td>
+            ${subjCols}
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-indigo-950/20">
+              ${grandDisplay}
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/10">
+              <div class="font-mono font-bold text-xs ${attStatusClass}">${st.overall_attendance}%</div>
+              <div class="text-[0.62rem] text-slate-400">${st.status}</div>
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-emerald-950/5">
+              <div class="font-mono font-bold text-xs text-emerald-400">${st.activity_points > 0 ? st.activity_points : '<span class="text-slate-600">-</span>'}</div>
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800">
+              ${assgHtml}
+            </td>
+            <td class="p-2.5 text-center border-r border-b border-slate-800 bg-amber-950/10">
+              ${rankBadgeHtml}
+            </td>
+            <td class="p-2.5 text-center border-b border-slate-800">
+              <a href="/tutor/progress-report/student-print?classroom_id=${encodeURIComponent(selectedHodProgClassroom)}&reg_no=${encodeURIComponent(st.reg_no)}${isOriginalScale ? '&scale=original' : ''}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-slate-700/60" title="Print Progress Card for ${st.name}">
+                <span class="material-symbols-rounded text-sm">print</span> Card
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="${(subjects.length * 3) + 9}" class="p-8 text-center text-slate-400 text-xs">No students matching the selected criteria.</td></tr>`;
+      }
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse min-w-[900px]">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950 text-[0.7rem] uppercase tracking-wider">
+              ${headerRow1}
+            </tr>
+            <tr class="border-b border-slate-800 bg-slate-950/80">
+              ${headerRow2}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 bg-slate-900/30">
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
   </script>
 
   <!-- SUBJECT PROGRESS POPUP CARD -->

@@ -230,15 +230,10 @@ class R21VirtualClassroomDrawingController extends Controller
             $t1Score15 = ($t1Raw !== null) ? round(($t1Raw / 100.0) * 15.0, 2) : null;
             $t2Score15 = ($t2Raw !== null) ? round(($t2Raw / 100.0) * 15.0, 2) : null;
 
-            if ($t1Score15 !== null && $t2Score15 !== null) {
-                $avgSeries15 = round(($t1Score15 + $t2Score15) / 2.0, 2);
-            } elseif ($t1Score15 !== null) {
-                $avgSeries15 = $t1Score15;
-            } elseif ($t2Score15 !== null) {
-                $avgSeries15 = $t2Score15;
-            } else {
-                $avgSeries15 = 0.00;
-            }
+            // 2 series tests: missing or absent test treated as 0
+            $avgSeries15 = ($t1Score15 !== null || $t2Score15 !== null)
+                ? round(((float)($t1Score15 ?? 0) + (float)($t2Score15 ?? 0)) / 2.0, 2)
+                : 0.00;
             if ($avgSeries15 > $summativeMax) $avgSeries15 = $summativeMax;
 
             // E. Total CIA (Max 75.0 - Whole Number)
@@ -419,15 +414,10 @@ class R21VirtualClassroomDrawingController extends Controller
             $t2 = $stTests->where('test_no', 'Test 2')->first();
             $t1Score = ($t1 && !$t1->is_absent && $t1->total_score_100 !== null) ? round((floatval($t1->total_score_100) / 100.0) * 15.0, 2) : null;
             $t2Score = ($t2 && !$t2->is_absent && $t2->total_score_100 !== null) ? round((floatval($t2->total_score_100) / 100.0) * 15.0, 2) : null;
-            if ($t1Score !== null && $t2Score !== null) {
-                $seriesAvg = round(($t1Score + $t2Score) / 2.0, 2);
-            } elseif ($t1Score !== null) {
-                $seriesAvg = $t1Score;
-            } elseif ($t2Score !== null) {
-                $seriesAvg = $t2Score;
-            } else {
-                $seriesAvg = 0.00;
-            }
+            // 2 series tests: missing or absent test treated as 0
+            $seriesAvg = ($t1Score !== null || $t2Score !== null)
+                ? round(((float)($t1Score ?? 0) + (float)($t2Score ?? 0)) / 2.0, 2)
+                : 0.00;
 
             $totalCia = min(75, (int)round($continuousMark + $openEnded + $seriesAvg + $attMarkToSave));
 
@@ -821,15 +811,10 @@ class R21VirtualClassroomDrawingController extends Controller
             $t1Score = ($t1 && !$t1->is_absent && $t1->total_score_100 !== null) ? round((floatval($t1->total_score_100) / 100.0) * 15.0, 2) : null;
             $t2Score = ($t2 && !$t2->is_absent && $t2->total_score_100 !== null) ? round((floatval($t2->total_score_100) / 100.0) * 15.0, 2) : null;
 
-            if ($t1Score !== null && $t2Score !== null) {
-                $seriesAvg = round(($t1Score + $t2Score) / 2.0, 2);
-            } elseif ($t1Score !== null) {
-                $seriesAvg = $t1Score;
-            } elseif ($t2Score !== null) {
-                $seriesAvg = $t2Score;
-            } else {
-                $seriesAvg = 0.00;
-            }
+            // 2 series tests: missing or absent test treated as 0
+            $seriesAvg = ($t1Score !== null || $t2Score !== null)
+                ? round(((float)($t1Score ?? 0) + (float)($t2Score ?? 0)) / 2.0, 2)
+                : 0.00;
 
             // Total CIA (Max 75 - Whole Number)
             $totalCia = (int)round($continuousMark + $openEndedMark + $seriesAvg + $attMark);

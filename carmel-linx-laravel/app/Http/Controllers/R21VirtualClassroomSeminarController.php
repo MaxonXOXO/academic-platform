@@ -28,10 +28,13 @@ class R21VirtualClassroomSeminarController extends Controller
      *   6. Attendance: 10% (7.5 Marks)
      * Total: 100% = 75 Marks
      */
-    public function show($subjectId)
+    public function show(Request $request, $subjectId)
     {
         $userId = Session::get('userId');
         if (!$userId) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
+            }
             return redirect('/')->with('error', 'Please log in to continue.');
         }
 
@@ -98,6 +101,12 @@ class R21VirtualClassroomSeminarController extends Controller
         $classLogs = DB::table('class_logs_attendance')
             ->where('batch_subject_id', $subjectId)
             ->get();
+
+        // Centralized Authoritative Official Attendance (including overrides) from subject_official_attendances
+        $subjectOfficialAttendances = DB::table('subject_official_attendances')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->keyBy('reg_no');
 
         // Department Guides
         $deptCode = $classroom->department ?? $classroom->branch ?? '';
@@ -175,8 +184,9 @@ class R21VirtualClassroomSeminarController extends Controller
         }
 
         // Process student results
-        $studentResults = $students->map(function ($student) use ($seminarRegs, $allEvaluations, $myEvaluations, $labBatches, $subjectAttendance, $overallAttendance, $classLogs, $staffProfiles) {
+        $studentResults = $students->map(function ($student) use ($seminarRegs, $allEvaluations, $myEvaluations, $labBatches, $subjectAttendance, $overallAttendance, $classLogs, $staffProfiles, $subjectOfficialAttendances) {
             $regNo = $student->reg_no;
+            $sbteRegNo = $student->sbte_reg_no;
             $reg = $seminarRegs->get($regNo);
             $myEval = $myEvaluations->get($regNo);
             $stAllEvals = $allEvaluations->where('reg_no', $regNo);
@@ -187,34 +197,63 @@ class R21VirtualClassroomSeminarController extends Controller
             });
             $evalCount = $validEvals->count();
 
-            // Authoritative Attendance percentage and mark from uploaded TEAMS attendance
-            $stAtt = $subjectAttendance->get($regNo);
+            // Official Attendance Record from subject_official_attendances
+            $offRecord = $subjectOfficialAttendances->get($regNo) ?: ($sbteRegNo ? $subjectOfficialAttendances->get($sbteRegNo) : null);
+
+            // Raw Attendance percentage from uploaded TEAMS attendance / class logs
+            $stAtt = $subjectAttendance->get($regNo) ?: ($sbteRegNo ? $subjectAttendance->get($sbteRegNo) : null);
             if (!$stAtt || $stAtt->isEmpty()) {
-                $stAtt = $overallAttendance->get($regNo);
+                $stAtt = $overallAttendance->get($regNo) ?: ($sbteRegNo ? $overallAttendance->get($sbteRegNo) : null);
             }
 
             if ($stAtt && $stAtt->isNotEmpty()) {
                 $totalAtt = $stAtt->count();
                 $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
+                $calculatedRawPct = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } elseif ($classLogs->isNotEmpty()) {
                 $totalAtt = $classLogs->count();
                 $present = 0;
                 foreach ($classLogs as $cl) {
                     $pList = json_decode($cl->present_students, true) ?: [];
-                    if (in_array($regNo, $pList)) {
+                    if (in_array($regNo, $pList) || ($sbteRegNo && in_array($sbteRegNo, $pList))) {
                         $present++;
                     }
                 }
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
+                $calculatedRawPct = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } else {
-                $attPercentage = 0.0;
+                $calculatedRawPct = 0.0;
             }
 
-            // Rev 2021: Attendance mark directly converted to max marks (Max 7.5M per Clause 11.2.6)
-            $savedAttMark = $validEvals->isNotEmpty() ? (float)$validEvals->first()->attendance : null;
-            $calculatedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
-            $attendanceMark = ($savedAttMark !== null && $savedAttMark > 0) ? $savedAttMark : $calculatedAttMark;
+            $rawAttPercentage = ($offRecord && $offRecord->teams_percentage !== null)
+                ? (float)$offRecord->teams_percentage
+                : $calculatedRawPct;
+
+            // Attendance Override Determination
+            $hasAttOverride = ($offRecord && $offRecord->override_percentage !== null);
+            if ($hasAttOverride) {
+                $attPercentage = (float)$offRecord->override_percentage;
+            } elseif ($offRecord && $offRecord->final_percentage !== null) {
+                $attPercentage = (float)$offRecord->final_percentage;
+            } else {
+                $attPercentage = $rawAttPercentage;
+            }
+
+            // Rev 2021: Statutory Attendance mark (Max 7.5M per Clause 11.2.6)
+            $savedAttMark = $stAllEvals->where('attendance', '>', 0)->isNotEmpty()
+                ? (float)$stAllEvals->where('attendance', '>', 0)->first()->attendance
+                : null;
+
+            if ($offRecord && $offRecord->override_mark !== null) {
+                $attendanceMark = min(7.5, max(0.0, (float)$offRecord->override_mark));
+            } elseif ($hasAttOverride) {
+                $attendanceMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            } elseif ($savedAttMark !== null && $savedAttMark > 0) {
+                $attendanceMark = $savedAttMark;
+            } elseif ($offRecord && $offRecord->final_mark !== null && (float)$offRecord->final_mark > 0) {
+                $attendanceMark = min(7.5, max(0.0, (float)$offRecord->final_mark));
+            } else {
+                $attendanceMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            }
 
             // Averaged rubrics across all assessors for the 5 presentation components (Max 67.5M)
             $avgRelevance = $evalCount > 0 ? round($validEvals->avg('relevance'), 2) : null;
@@ -281,6 +320,8 @@ class R21VirtualClassroomSeminarController extends Controller
                 'guide_name' => $reg && $reg->guide ? $reg->guide->name : null,
                 'guide_mobile_no' => $reg ? $reg->guide_mobile_no : null,
                 'att_percentage' => $attPercentage,
+                'raw_att_percentage' => $rawAttPercentage,
+                'has_att_override' => $hasAttOverride,
                 'attendance_mark' => $attendanceMark,
                 'suggested_att_mark' => $attendanceMark,
                 'seminar_score' => $seminarScore,
@@ -387,72 +428,35 @@ class R21VirtualClassroomSeminarController extends Controller
 
         $request->validate([
             'reg_no' => 'required|string',
-            'relevance' => 'required|numeric|min:0|max:7.5',
-            'literature' => 'required|numeric|min:0|max:7.5',
-            'presentation' => 'required|numeric|min:0|max:37.5',
-            'interaction' => 'required|numeric|min:0|max:7.5',
-            'report' => 'required|numeric|min:0|max:7.5',
+            'relevance' => 'nullable|numeric|min:0|max:7.5',
+            'literature' => 'nullable|numeric|min:0|max:7.5',
+            'presentation' => 'nullable|numeric|min:0|max:37.5',
+            'interaction' => 'nullable|numeric|min:0|max:7.5',
+            'report' => 'nullable|numeric|min:0|max:7.5',
             'attendance' => 'nullable|numeric|min:0|max:7.5',
+            'att_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $regNo = $request->input('reg_no');
-        $relevance = round((float)$request->input('relevance'), 2);
-        $literature = round((float)$request->input('literature'), 2);
-        $presentation = round((float)$request->input('presentation'), 2);
-        $interaction = round((float)$request->input('interaction'), 2);
-        $report = round((float)$request->input('report'), 2);
+        $inRel = $request->input('relevance');
+        $inLit = $request->input('literature');
+        $inPres = $request->input('presentation');
+        $inInterctn = $request->input('interaction');
+        $inReport = $request->input('report');
 
-        // Authoritative Attendance from uploaded TEAMS attendance for this student (with override support)
-        $attOverride = $request->input('attendance');
-        $attPctOverride = $request->input('att_percentage');
-        $attPercentage = null;
+        $hasInRel = ($inRel !== null && $inRel !== '');
+        $hasInLit = ($inLit !== null && $inLit !== '');
+        $hasInPres = ($inPres !== null && $inPres !== '');
+        $hasInInterctn = ($inInterctn !== null && $inInterctn !== '');
+        $hasInReport = ($inReport !== null && $inReport !== '');
 
-        if ($attPctOverride !== null && $attPctOverride !== '') {
-            $attPercentage = min(100.0, max(0.0, (float)$attPctOverride));
-        }
+        $inRelVal = $hasInRel ? min(7.5, max(0.0, round((float)$inRel, 2))) : 0.0;
+        $inLitVal = $hasInLit ? min(7.5, max(0.0, round((float)$inLit, 2))) : 0.0;
+        $inPresVal = $hasInPres ? min(37.5, max(0.0, round((float)$inPres, 2))) : 0.0;
+        $inInterctnVal = $hasInInterctn ? min(7.5, max(0.0, round((float)$inInterctn, 2))) : 0.0;
+        $inReportVal = $hasInReport ? min(7.5, max(0.0, round((float)$inReport, 2))) : 0.0;
 
-        if ($attOverride !== null && $attOverride !== '') {
-            $attendance = min(7.5, max(0.0, round((float)$attOverride, 2)));
-            if ($attPercentage === null) {
-                $attPercentage = round(($attendance / 7.5) * 100, 1);
-            }
-        } elseif ($attPercentage !== null) {
-            $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
-        } else {
-            $officialAttendance = DB::table('student_attendance')
-                ->where('reg_no', $regNo)
-                ->where('subject_code', $batchSubject->subject_code)
-                ->get();
-
-            if ($officialAttendance->isEmpty()) {
-                $officialAttendance = DB::table('student_attendance')
-                    ->where('reg_no', $regNo)
-                    ->get();
-            }
-
-            if ($officialAttendance->isNotEmpty()) {
-                $offTot = $officialAttendance->count();
-                $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
-            } else {
-                $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
-                if ($classLogs->isNotEmpty()) {
-                    $offTot = $classLogs->count();
-                    $offPres = 0;
-                    foreach ($classLogs as $cl) {
-                        $pList = json_decode($cl->present_students, true) ?: [];
-                        if (in_array($regNo, $pList)) $offPres++;
-                    }
-                    $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
-                } else {
-                    $attPercentage = 0.0;
-                }
-            }
-
-            $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
-        }
-
-        $totalScore = min(75.0, round($relevance + $literature + $presentation + $interaction + $report + $attendance, 2));
+        $hasNonZeroRubric = ($inRelVal > 0 || $inLitVal > 0 || $inPresVal > 0 || $inInterctnVal > 0 || $inReportVal > 0);
 
         // Check if an assessor was selected from modal or use current user
         $requestedAssessor = $request->input('assessor_mobile_no');
@@ -473,30 +477,188 @@ class R21VirtualClassroomSeminarController extends Controller
             }
         }
 
-        // 1. Save assessor evaluation
-        SeminarEvaluation::updateOrCreate(
+        // Look up existing evaluations for this student to preserve rubric marks during attendance override
+        $existingEval = SeminarEvaluation::where('batch_subject_id', $subjectId)
+            ->where('reg_no', $regNo)
+            ->where('assessor_mobile_no', $assessorMobile)
+            ->first();
+        if (!$existingEval) {
+            $existingEval = SeminarEvaluation::where('batch_subject_id', $subjectId)
+                ->where('reg_no', $regNo)
+                ->first();
+        }
+
+        $existingHasMarks = $existingEval && ((float)$existingEval->report > 0 || (float)$existingEval->presentation > 0 || (float)$existingEval->relevance > 0);
+
+        if ($hasNonZeroRubric) {
+            $relevance = $inRelVal;
+            $literature = $inLitVal;
+            $presentation = $inPresVal;
+            $interaction = $inInterctnVal;
+            $report = $inReportVal;
+            $shouldSaveEvaluation = true;
+        } elseif ($existingHasMarks) {
+            // Preserve existing evaluation rubrics!
+            $relevance = (float)$existingEval->relevance;
+            $literature = (float)$existingEval->literature;
+            $presentation = (float)$existingEval->presentation;
+            $interaction = (float)$existingEval->interaction;
+            $report = (float)$existingEval->report;
+            $shouldSaveEvaluation = true;
+        } else {
+            $relevance = 0.0;
+            $literature = 0.0;
+            $presentation = 0.0;
+            $interaction = 0.0;
+            $report = 0.0;
+            $shouldSaveEvaluation = false;
+        }
+
+        // Centralized attendance record lookup from subject_official_attendances
+        $existingOfficial = DB::table('subject_official_attendances')
+            ->where('batch_subject_id', $subjectId)
+            ->where('reg_no', $regNo)
+            ->first();
+
+        $rawTeamsPct = ($existingOfficial && $existingOfficial->teams_percentage !== null)
+            ? (float)$existingOfficial->teams_percentage
+            : null;
+        $totalHours = $existingOfficial ? (int)$existingOfficial->total_hours : 0;
+        $attendedHours = $existingOfficial ? (int)$existingOfficial->attended_hours : 0;
+
+        if ($rawTeamsPct === null) {
+            $officialAttendance = DB::table('student_attendance')
+                ->where('reg_no', $regNo)
+                ->where('subject_code', $batchSubject->subject_code)
+                ->get();
+
+            if ($officialAttendance->isEmpty()) {
+                $officialAttendance = DB::table('student_attendance')
+                    ->where('reg_no', $regNo)
+                    ->get();
+            }
+
+            if ($officialAttendance->isNotEmpty()) {
+                $totalHours = $officialAttendance->count();
+                $attendedHours = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
+                $rawTeamsPct = ($totalHours > 0) ? round(($attendedHours / $totalHours) * 100, 1) : 0.0;
+            } else {
+                $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
+                if ($classLogs->isNotEmpty()) {
+                    $totalHours = $classLogs->count();
+                    $attendedHours = 0;
+                    foreach ($classLogs as $cl) {
+                        $pList = json_decode($cl->present_students, true) ?: [];
+                        if (in_array($regNo, $pList)) $attendedHours++;
+                    }
+                    $rawTeamsPct = ($totalHours > 0) ? round(($attendedHours / $totalHours) * 100, 1) : 0.0;
+                } else {
+                    $rawTeamsPct = 0.0;
+                }
+            }
+        }
+
+        // Attendance override calculation
+        $attOverride = $request->input('attendance');
+        $attPctOverride = $request->input('att_percentage');
+        $attPercentage = null;
+
+        if ($attPctOverride !== null && $attPctOverride !== '') {
+            $attPercentage = min(100.0, max(0.0, round((float)$attPctOverride, 1)));
+        }
+
+        if ($attOverride !== null && $attOverride !== '') {
+            $attendance = min(7.5, max(0.0, round((float)$attOverride, 2)));
+            if ($attPercentage === null) {
+                $attPercentage = round(($attendance / 7.5) * 100, 1);
+            }
+        } elseif ($attPercentage !== null) {
+            $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+        } else {
+            $attPercentage = $rawTeamsPct;
+            $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+        }
+
+        $calculatedRawMark = \App\Services\AttainmentService::calculateR21AttendanceMark($rawTeamsPct, 7.5);
+        $isOverridden = ($attPctOverride !== null && $attPctOverride !== '') 
+            ? (abs($attPercentage - $rawTeamsPct) > 0.05) 
+            : ($existingOfficial && $existingOfficial->override_percentage !== null);
+
+        // Persist to subject_official_attendances (authoritative centralized attendance table)
+        DB::table('subject_official_attendances')->updateOrInsert(
             [
                 'batch_subject_id' => $subjectId,
                 'reg_no' => $regNo,
-                'assessor_mobile_no' => $assessorMobile
             ],
             [
-                'relevance' => $relevance,
-                'literature' => $literature,
-                'presentation' => $presentation,
-                'interaction' => $interaction,
-                'report' => $report,
-                'attendance' => $attendance,
-                'total_score' => $totalScore
+                'subject_code' => $batchSubject->subject_code,
+                'classroom_id' => $batchSubject->classroom_id,
+                'total_hours' => $totalHours,
+                'attended_hours' => $attendedHours,
+                'teams_percentage' => $rawTeamsPct,
+                'override_percentage' => $isOverridden ? $attPercentage : null,
+                'final_percentage' => $attPercentage,
+                'max_attendance_marks' => 7.50,
+                'attendance_mark' => $calculatedRawMark,
+                'override_mark' => $isOverridden ? $attendance : null,
+                'final_mark' => $attendance,
+                'source' => $isOverridden ? 'SEMINAR_ATTENDANCE_OVERRIDE' : ($existingOfficial->source ?? 'TEAMS_UPLOAD'),
+                'updated_at' => now(),
             ]
         );
 
+        if ($shouldSaveEvaluation) {
+            $totalScore = min(75.0, round($relevance + $literature + $presentation + $interaction + $report + $attendance, 2));
+
+            // 1. Save assessor evaluation
+            SeminarEvaluation::updateOrCreate(
+                [
+                    'batch_subject_id' => $subjectId,
+                    'reg_no' => $regNo,
+                    'assessor_mobile_no' => $assessorMobile
+                ],
+                [
+                    'relevance' => $relevance,
+                    'literature' => $literature,
+                    'presentation' => $presentation,
+                    'interaction' => $interaction,
+                    'report' => $report,
+                    'attendance' => $attendance,
+                    'total_score' => $totalScore
+                ]
+            );
+
+            // Synchronize attendance across all evaluations for this student in this seminar
+            SeminarEvaluation::where('batch_subject_id', $subjectId)
+                ->where('reg_no', $regNo)
+                ->update([
+                    'attendance' => $attendance,
+                    'total_score' => DB::raw('LEAST(75.0, ROUND(relevance + literature + presentation + interaction + report + ' . (float)$attendance . ', 2))')
+                ]);
+        } else {
+            // If student already has evaluations, keep them synchronized with the new attendance mark
+            SeminarEvaluation::where('batch_subject_id', $subjectId)
+                ->where('reg_no', $regNo)
+                ->update([
+                    'attendance' => $attendance,
+                    'total_score' => DB::raw('LEAST(75.0, ROUND(relevance + literature + presentation + interaction + report + ' . (float)$attendance . ', 2))')
+                ]);
+            $totalScore = $attendance;
+        }
+
         // 2. Also update Topic, Guide and Presentation Date if provided
         if ($request->has('topic') && !empty(trim($request->input('topic') ?? ''))) {
+            $existingReg = StudentSeminarRegistration::where('batch_subject_id', $subjectId)
+                ->where('reg_no', $regNo)
+                ->first();
+
             $guideMobile = trim($request->input('guide_mobile_no') ?? '');
             if ($guideMobile === '' || !StaffProfile::where('mobile_no', $guideMobile)->exists()) {
-                $guideMobile = null;
+                $guideMobile = $existingReg ? $existingReg->guide_mobile_no : ($userId ?: DB::table('subject_staff_assignments')->where('batch_subject_id', $subjectId)->value('staff_mobile_no') ?: StaffProfile::value('mobile_no'));
             }
+
+            $presDate = $request->input('presentation_date') ?: ($existingReg ? $existingReg->presentation_date : date('Y-m-d'));
+
             StudentSeminarRegistration::updateOrCreate(
                 [
                     'batch_subject_id' => $subjectId,
@@ -504,7 +666,7 @@ class R21VirtualClassroomSeminarController extends Controller
                 ],
                 [
                     'topic' => trim($request->input('topic')),
-                    'presentation_date' => $request->input('presentation_date') ?: null,
+                    'presentation_date' => $presDate,
                     'guide_mobile_no' => $guideMobile
                 ]
             );
@@ -515,61 +677,54 @@ class R21VirtualClassroomSeminarController extends Controller
             ->where('reg_no', $regNo)
             ->get();
 
-        $evalCount = $studentAllEvals->count();
-        $avgRelevance = round($studentAllEvals->avg('relevance'), 2);
-        $avgLiterature = round($studentAllEvals->avg('literature'), 2);
-        $avgPresentation = round($studentAllEvals->avg('presentation'), 2);
-        $avgInteraction = round($studentAllEvals->avg('interaction'), 2);
-        $avgReport = round($studentAllEvals->avg('report'), 2);
-        $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
-        $averageScore = min(75, (int)round($seminarComponent + $attendance));
+        $validStudentEvals = $studentAllEvals->filter(function ($ev) {
+            return ((float)$ev->relevance > 0 || (float)$ev->literature > 0 || (float)$ev->presentation > 0 || (float)$ev->interaction > 0 || (float)$ev->report > 0);
+        });
 
-        // 4. Upsert into AcademicMark as Continuous Internal Assessment (CIA / ESE Mark for S5) out of 75
-        DB::table('syllabus_registry')->updateOrInsert(
-            ['subject_code' => $batchSubject->subject_code],
-            [
-                'subject_name' => $batchSubject->subject_name,
-                'revision_year' => 2021,
-                'co_count' => 6,
-                'cia_marks' => 75,
-                'ese_marks' => 0,
-                'credits' => 1.5,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]
-        );
-
-        $existingMark = AcademicMark::where('reg_no', $regNo)
-            ->where(function($q) use ($batchSubject, $subjectId) {
-                $q->where('batch_subject_id', $subjectId)
-                  ->orWhere('subject_code', $batchSubject->subject_code);
-            })
-            ->where('category', 'Seminar')
-            ->first();
-
-        if ($existingMark) {
-            $existingMark->batch_subject_id = $subjectId;
-            $existingMark->marks_obtained = $averageScore;
-            $existingMark->max_marks = 75;
-            $existingMark->co_tag = 'CO1';
-            $existingMark->entered_by = $assessorMobile;
-            $existingMark->save();
-        } else {
-            $newMark = new AcademicMark();
-            $newMark->batch_subject_id = $subjectId;
-            $newMark->reg_no = $regNo;
-            $newMark->subject_code = $batchSubject->subject_code;
-            $newMark->category = 'Seminar';
-            $newMark->co_tag = 'CO1';
-            $newMark->max_marks = 75;
-            $newMark->marks_obtained = $averageScore;
-            $newMark->entered_by = $assessorMobile;
-            $newMark->save();
-        }
+        $evalCount = $validStudentEvals->count();
+        $avgRelevance = $evalCount > 0 ? round($validStudentEvals->avg('relevance'), 2) : null;
+        $avgLiterature = $evalCount > 0 ? round($validStudentEvals->avg('literature'), 2) : null;
+        $avgPresentation = $evalCount > 0 ? round($validStudentEvals->avg('presentation'), 2) : null;
+        $avgInteraction = $evalCount > 0 ? round($validStudentEvals->avg('interaction'), 2) : null;
+        $avgReport = $evalCount > 0 ? round($validStudentEvals->avg('report'), 2) : null;
+        $seminarComponent = $evalCount > 0 ? round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2) : 0.0;
+        $averageScore = $evalCount > 0 ? min(75, (int)round($seminarComponent + $attendance)) : 0;
 
         // Decisive final step: isCompleted is strictly based on RPRT mark > 0
         $isCompleted = ($avgReport !== null && (float)$avgReport > 0);
         $gradeData = self::calculateSbteGrade($averageScore, $isCompleted);
+
+        // 4. Upsert into AcademicMark only if the student has completed seminar (RPRT mark > 0)
+        if ($isCompleted) {
+            DB::table('syllabus_registry')->updateOrInsert(
+                ['subject_code' => $batchSubject->subject_code],
+                [
+                    'subject_name' => $batchSubject->subject_name,
+                    'revision_year' => 2021,
+                    'co_count' => 6,
+                    'cia_marks' => 75,
+                    'ese_marks' => 0,
+                    'credits' => 1.5,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]
+            );
+
+            AcademicMark::updateOrCreate(
+                [
+                    'reg_no' => $regNo,
+                    'subject_code' => $batchSubject->subject_code,
+                    'category' => 'Seminar'
+                ],
+                [
+                    'batch_subject_id' => $subjectId,
+                    'co_tag' => 'CO1',
+                    'max_marks' => 75,
+                    'marks_obtained' => $averageScore,
+                    'entered_by' => $assessorMobile
+                ]
+            );
+        }
 
         // Total completed seminars count for the subject (strictly based on report mark > 0)
         $completedStudentsCount = SeminarEvaluation::where('batch_subject_id', $subjectId)
@@ -614,6 +769,8 @@ class R21VirtualClassroomSeminarController extends Controller
                 'avg_report' => $avgReport,
                 'attendance_mark' => $attendance,
                 'att_percentage' => $attPercentage,
+                'raw_att_percentage' => $rawTeamsPct,
+                'has_att_override' => $isOverridden,
                 'eval_count' => $evalCount,
                 'is_completed' => $isCompleted,
                 'letter_grade' => $gradeData['grade'],
@@ -641,41 +798,102 @@ class R21VirtualClassroomSeminarController extends Controller
         }
 
         $batchSubject = BatchSubject::findOrFail($subjectId);
-        $evaluations = $request->input('evaluations', []);
-        if (!is_array($evaluations) || empty($evaluations)) {
+        $rawEvaluations = $request->input('evaluations', []);
+        if (!is_array($rawEvaluations) || empty($rawEvaluations)) {
             return response()->json(['status' => 'ERROR', 'message' => 'No evaluations provided.'], 422);
         }
+
+        // Deduplicate incoming evaluations by reg_no (in case multiple rows were submitted)
+        $evaluations = collect($rawEvaluations)->unique('reg_no')->values();
+
+        $requestedAssessor = $request->input('assessor_mobile_no');
+        if ($requestedAssessor && StaffProfile::where('mobile_no', $requestedAssessor)->exists()) {
+            $assessorMobile = $requestedAssessor;
+        } else {
+            $assessorMobile = $userId;
+            if (!StaffProfile::where('mobile_no', $assessorMobile)->exists()) {
+                $fallback = DB::table('subject_staff_assignments')->where('batch_subject_id', $subjectId)->value('staff_mobile_no') ?: StaffProfile::value('mobile_no');
+                if ($fallback) $assessorMobile = $fallback;
+            }
+        }
+
+        // Centralized attendance lookup
+        $subjectOfficialAttendances = DB::table('subject_official_attendances')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->keyBy('reg_no');
+
+        // Preload all existing evaluations for this subject to preserve rubric evaluations during batch saves
+        $existingEvaluations = SeminarEvaluation::where('batch_subject_id', $subjectId)
+            ->get()
+            ->groupBy('reg_no');
 
         $savedCount = 0;
         foreach ($evaluations as $item) {
             $regNo = $item['reg_no'] ?? null;
             if (!$regNo) continue;
 
-            $relevance = isset($item['relevance']) ? min(7.5, max(0.0, round((float)$item['relevance'], 2))) : 0.0;
-            $literature = isset($item['literature']) ? min(7.5, max(0.0, round((float)$item['literature'], 2))) : 0.0;
-            $presentation = isset($item['presentation']) ? min(37.5, max(0.0, round((float)$item['presentation'], 2))) : 0.0;
-            $interaction = isset($item['interaction']) ? min(7.5, max(0.0, round((float)$item['interaction'], 2))) : 0.0;
-            $report = isset($item['report']) ? min(7.5, max(0.0, round((float)$item['report'], 2))) : 0.0;
+            $stExistingEvals = $existingEvaluations->get($regNo);
+            $existingEvalForAssessor = $stExistingEvals ? $stExistingEvals->firstWhere('assessor_mobile_no', $assessorMobile) : null;
+            $fallbackEval = $stExistingEvals ? $stExistingEvals->first() : null;
+            $existingEval = $existingEvalForAssessor ?: $fallbackEval;
 
-            // Only save if at least one seminar rubric mark was actually entered
-            if ($relevance == 0 && $literature == 0 && $presentation == 0 && $interaction == 0 && $report == 0) {
+            $hasInRel = isset($item['relevance']) && $item['relevance'] !== '' && $item['relevance'] !== null;
+            $hasInLit = isset($item['literature']) && $item['literature'] !== '' && $item['literature'] !== null;
+            $hasInPres = isset($item['presentation']) && $item['presentation'] !== '' && $item['presentation'] !== null;
+            $hasInInterctn = isset($item['interaction']) && $item['interaction'] !== '' && $item['interaction'] !== null;
+            $hasInReport = isset($item['report']) && $item['report'] !== '' && $item['report'] !== null;
+
+            $inRelVal = $hasInRel ? min(7.5, max(0.0, round((float)$item['relevance'], 2))) : 0.0;
+            $inLitVal = $hasInLit ? min(7.5, max(0.0, round((float)$item['literature'], 2))) : 0.0;
+            $inPresVal = $hasInPres ? min(37.5, max(0.0, round((float)$item['presentation'], 2))) : 0.0;
+            $inInterctnVal = $hasInInterctn ? min(7.5, max(0.0, round((float)$item['interaction'], 2))) : 0.0;
+            $inReportVal = $hasInReport ? min(7.5, max(0.0, round((float)$item['report'], 2))) : 0.0;
+
+            $hasNonZeroRubric = ($inRelVal > 0 || $inLitVal > 0 || $inPresVal > 0 || $inInterctnVal > 0 || $inReportVal > 0);
+            $existingHasMarks = $existingEval && ((float)$existingEval->report > 0 || (float)$existingEval->presentation > 0 || (float)$existingEval->relevance > 0);
+
+            if ($hasNonZeroRubric) {
+                $relevance = $inRelVal;
+                $literature = $inLitVal;
+                $presentation = $inPresVal;
+                $interaction = $inInterctnVal;
+                $report = $inReportVal;
+                $shouldSaveEvaluation = true;
+            } elseif ($existingHasMarks) {
+                // Preserve existing evaluated rubric marks!
+                $relevance = (float)$existingEval->relevance;
+                $literature = (float)$existingEval->literature;
+                $presentation = (float)$existingEval->presentation;
+                $interaction = (float)$existingEval->interaction;
+                $report = (float)$existingEval->report;
+                $shouldSaveEvaluation = true;
+            } else {
+                $relevance = 0.0;
+                $literature = 0.0;
+                $presentation = 0.0;
+                $interaction = 0.0;
+                $report = 0.0;
+                $shouldSaveEvaluation = false;
+            }
+
+            $hasAttInput = (isset($item['att_percentage']) && $item['att_percentage'] !== '' && $item['att_percentage'] !== null)
+                || (isset($item['attendance']) && $item['attendance'] !== '' && $item['attendance'] !== null);
+
+            // Only skip if student has NO existing evaluation AND NO rubrics entered AND NO attendance input
+            if (!$shouldSaveEvaluation && !$hasAttInput) {
                 continue;
             }
 
-            // Attendance from TEAMS (or override if provided in row)
-            $attPercentage = null;
-            if (isset($item['att_percentage']) && $item['att_percentage'] !== null && $item['att_percentage'] !== '') {
-                $attPercentage = min(100.0, max(0.0, (float)$item['att_percentage']));
-            }
+            // Centralized attendance record lookup from subject_official_attendances
+            $existingOfficial = $subjectOfficialAttendances->get($regNo);
+            $rawTeamsPct = ($existingOfficial && $existingOfficial->teams_percentage !== null)
+                ? (float)$existingOfficial->teams_percentage
+                : null;
+            $totalHours = $existingOfficial ? (int)$existingOfficial->total_hours : 0;
+            $attendedHours = $existingOfficial ? (int)$existingOfficial->attended_hours : 0;
 
-            if (isset($item['attendance']) && $item['attendance'] !== null && $item['attendance'] !== '') {
-                $attendance = min(7.5, max(0.0, round((float)$item['attendance'], 2)));
-                if ($attPercentage === null) {
-                    $attPercentage = round(($attendance / 7.5) * 100, 1);
-                }
-            } elseif ($attPercentage !== null) {
-                $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
-            } else {
+            if ($rawTeamsPct === null) {
                 $officialAttendance = DB::table('student_attendance')
                     ->where('reg_no', $regNo)
                     ->where('subject_code', $batchSubject->subject_code)
@@ -688,77 +906,156 @@ class R21VirtualClassroomSeminarController extends Controller
                 }
 
                 if ($officialAttendance->isNotEmpty()) {
-                    $offTot = $officialAttendance->count();
-                    $offPres = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
-                    $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
+                    $totalHours = $officialAttendance->count();
+                    $attendedHours = $officialAttendance->whereIn('status', ['Present', 'Late'])->count();
+                    $rawTeamsPct = ($totalHours > 0) ? round(($attendedHours / $totalHours) * 100, 1) : 0.0;
                 } else {
                     $classLogs = DB::table('class_logs_attendance')->where('batch_subject_id', $subjectId)->get();
                     if ($classLogs->isNotEmpty()) {
-                        $offTot = $classLogs->count();
-                        $offPres = 0;
+                        $totalHours = $classLogs->count();
+                        $attendedHours = 0;
                         foreach ($classLogs as $cl) {
                             $pList = json_decode($cl->present_students, true) ?: [];
-                            if (in_array($regNo, $pList)) $offPres++;
+                            if (in_array($regNo, $pList)) $attendedHours++;
                         }
-                        $attPercentage = ($offTot > 0) ? round(($offPres / $offTot) * 100, 1) : 0.0;
+                        $rawTeamsPct = ($totalHours > 0) ? round(($attendedHours / $totalHours) * 100, 1) : 0.0;
                     } else {
-                        $attPercentage = 0.0;
+                        $rawTeamsPct = 0.0;
                     }
                 }
+            }
 
+            // Attendance from TEAMS (or override if provided in row)
+            $attPercentage = null;
+            if (isset($item['att_percentage']) && $item['att_percentage'] !== null && $item['att_percentage'] !== '') {
+                $attPercentage = min(100.0, max(0.0, round((float)$item['att_percentage'], 1)));
+            }
+
+            if (isset($item['attendance']) && $item['attendance'] !== null && $item['attendance'] !== '') {
+                $attendance = min(7.5, max(0.0, round((float)$item['attendance'], 2)));
+                if ($attPercentage === null) {
+                    $attPercentage = round(($attendance / 7.5) * 100, 1);
+                }
+            } elseif ($attPercentage !== null) {
+                $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            } else {
+                $attPercentage = $rawTeamsPct;
                 $attendance = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
             }
 
-            $totalScore = (int)min(75, round($relevance + $literature + $presentation + $interaction + $report + $attendance));
+            $calculatedRawMark = \App\Services\AttainmentService::calculateR21AttendanceMark($rawTeamsPct, 7.5);
+            $isOverridden = (isset($item['att_percentage']) && $item['att_percentage'] !== '' && $item['att_percentage'] !== null)
+                ? (abs($attPercentage - $rawTeamsPct) > 0.05)
+                : ($existingOfficial && $existingOfficial->override_percentage !== null);
 
-            // Assessor
-            $assessorMobile = $userId;
-            if (!StaffProfile::where('mobile_no', $assessorMobile)->exists()) {
-                $fallback = DB::table('subject_staff_assignments')->where('batch_subject_id', $subjectId)->value('staff_mobile_no') ?: StaffProfile::value('mobile_no');
-                if ($fallback) $assessorMobile = $fallback;
-            }
-
-            SeminarEvaluation::updateOrCreate(
+            // Persist to subject_official_attendances
+            DB::table('subject_official_attendances')->updateOrInsert(
                 [
                     'batch_subject_id' => $subjectId,
                     'reg_no' => $regNo,
-                    'assessor_mobile_no' => $assessorMobile
                 ],
                 [
-                    'relevance' => $relevance,
-                    'literature' => $literature,
-                    'presentation' => $presentation,
-                    'interaction' => $interaction,
-                    'report' => $report,
-                    'attendance' => $attendance,
-                    'total_score' => $totalScore
+                    'subject_code' => $batchSubject->subject_code,
+                    'classroom_id' => $batchSubject->classroom_id,
+                    'total_hours' => $totalHours,
+                    'attended_hours' => $attendedHours,
+                    'teams_percentage' => $rawTeamsPct,
+                    'override_percentage' => $isOverridden ? $attPercentage : null,
+                    'final_percentage' => $attPercentage,
+                    'max_attendance_marks' => 7.50,
+                    'attendance_mark' => $calculatedRawMark,
+                    'override_mark' => $isOverridden ? $attendance : null,
+                    'final_mark' => $attendance,
+                    'source' => $isOverridden ? 'SEMINAR_ATTENDANCE_OVERRIDE' : ($existingOfficial->source ?? 'TEAMS_UPLOAD'),
+                    'updated_at' => now(),
                 ]
             );
+
+            if ($shouldSaveEvaluation) {
+                $totalScore = (int)min(75, round($relevance + $literature + $presentation + $interaction + $report + $attendance));
+
+                SeminarEvaluation::updateOrCreate(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'reg_no' => $regNo,
+                        'assessor_mobile_no' => $assessorMobile
+                    ],
+                    [
+                        'relevance' => $relevance,
+                        'literature' => $literature,
+                        'presentation' => $presentation,
+                        'interaction' => $interaction,
+                        'report' => $report,
+                        'attendance' => $attendance,
+                        'total_score' => $totalScore
+                    ]
+                );
+
+                // Synchronize attendance across all evaluations for this student in this seminar
+                SeminarEvaluation::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->update([
+                        'attendance' => $attendance,
+                        'total_score' => DB::raw('LEAST(75.0, ROUND(relevance + literature + presentation + interaction + report + ' . (float)$attendance . ', 2))')
+                    ]);
+            } else {
+                // Synchronize attendance only if evaluations already exist
+                SeminarEvaluation::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->update([
+                        'attendance' => $attendance,
+                        'total_score' => DB::raw('LEAST(75.0, ROUND(relevance + literature + presentation + interaction + report + ' . (float)$attendance . ', 2))')
+                    ]);
+            }
 
             // Committee average & AcademicMark
             $studentAllEvals = SeminarEvaluation::where('batch_subject_id', $subjectId)->where('reg_no', $regNo)->get();
-            $avgRelevance = round($studentAllEvals->avg('relevance'), 2);
-            $avgLiterature = round($studentAllEvals->avg('literature'), 2);
-            $avgPresentation = round($studentAllEvals->avg('presentation'), 2);
-            $avgInteraction = round($studentAllEvals->avg('interaction'), 2);
-            $avgReport = round($studentAllEvals->avg('report'), 2);
-            $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
-            $averageScore = min(75, (int)round($seminarComponent + $attendance));
+            $validEvals = $studentAllEvals->filter(function ($ev) {
+                return ((float)$ev->relevance > 0 || (float)$ev->literature > 0 || (float)$ev->presentation > 0 || (float)$ev->interaction > 0 || (float)$ev->report > 0);
+            });
 
-            AcademicMark::updateOrCreate(
-                [
-                    'reg_no' => $regNo,
-                    'subject_code' => $batchSubject->subject_code,
-                    'category' => 'Seminar'
-                ],
-                [
-                    'batch_subject_id' => $subjectId,
-                    'co_tag' => 'CO1',
-                    'max_marks' => 75,
-                    'marks_obtained' => $averageScore,
-                    'entered_by' => $assessorMobile
-                ]
-            );
+            if ($validEvals->isNotEmpty()) {
+                $avgRelevance = round($validEvals->avg('relevance'), 2);
+                $avgLiterature = round($validEvals->avg('literature'), 2);
+                $avgPresentation = round($validEvals->avg('presentation'), 2);
+                $avgInteraction = round($validEvals->avg('interaction'), 2);
+                $avgReport = round($validEvals->avg('report'), 2);
+                $seminarComponent = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
+                $averageScore = min(75, (int)round($seminarComponent + $attendance));
+
+                // Decisive final step: isCompleted is strictly based on RPRT mark > 0
+                $isCompleted = ($avgReport !== null && (float)$avgReport > 0);
+                if ($isCompleted) {
+                    DB::table('syllabus_registry')->updateOrInsert(
+                        ['subject_code' => $batchSubject->subject_code],
+                        [
+                            'subject_name' => $batchSubject->subject_name,
+                            'revision_year' => 2021,
+                            'co_count' => 6,
+                            'cia_marks' => 75,
+                            'ese_marks' => 0,
+                            'credits' => 1.5,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]
+                    );
+
+                    AcademicMark::updateOrCreate(
+                        [
+                            'reg_no' => $regNo,
+                            'subject_code' => $batchSubject->subject_code,
+                            'category' => 'Seminar'
+                        ],
+                        [
+                            'batch_subject_id' => $subjectId,
+                            'co_tag' => 'CO1',
+                            'max_marks' => 75,
+                            'marks_obtained' => $averageScore,
+                            'entered_by' => $assessorMobile
+                        ]
+                    );
+                }
+            }
 
             $savedCount++;
         }
@@ -795,11 +1092,16 @@ class R21VirtualClassroomSeminarController extends Controller
 
         $regNo = $request->input('reg_no');
         $topic = trim($request->input('topic'));
-        $presentationDate = $request->input('presentation_date');
+        $existingReg = StudentSeminarRegistration::where('batch_subject_id', $subjectId)
+            ->where('reg_no', $regNo)
+            ->first();
+
         $guideMobile = trim($request->input('guide_mobile_no') ?? '');
         if ($guideMobile === '' || !StaffProfile::where('mobile_no', $guideMobile)->exists()) {
-            $guideMobile = null;
+            $guideMobile = $existingReg ? $existingReg->guide_mobile_no : ($userId ?: DB::table('subject_staff_assignments')->where('batch_subject_id', $subjectId)->value('staff_mobile_no') ?: StaffProfile::value('mobile_no'));
         }
+
+        $presentationDate = $request->input('presentation_date') ?: ($existingReg ? $existingReg->presentation_date : date('Y-m-d'));
 
         $semReg = StudentSeminarRegistration::updateOrCreate(
             [
@@ -839,6 +1141,14 @@ class R21VirtualClassroomSeminarController extends Controller
      */
     public function printReport(Request $request, $subjectId)
     {
+        $userId = Session::get('userId');
+        if (!$userId) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
+            }
+            return redirect('/')->with('error', 'Please log in to continue.');
+        }
+
         $rawType = strtolower($request->query('type', 'consolidated'));
         if (in_array($rawType, ['internal', 'cia_submission', 'cia', 'cie'])) {
             $reportType = 'internal';
@@ -884,38 +1194,79 @@ class R21VirtualClassroomSeminarController extends Controller
             ->where('batch_subject_id', $subjectId)
             ->get();
 
-        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs, $subjectAttendance, $overallAttendance, $classLogs, $staffProfiles) {
+        // Centralized Authoritative Official Attendance (including overrides) from subject_official_attendances
+        $subjectOfficialAttendances = DB::table('subject_official_attendances')
+            ->where('batch_subject_id', $subjectId)
+            ->get()
+            ->keyBy('reg_no');
+
+        $reportData = $students->map(function ($student) use ($allEvaluations, $seminarRegs, $subjectAttendance, $overallAttendance, $classLogs, $staffProfiles, $subjectOfficialAttendances) {
             $regNo = $student->reg_no;
+            $sbteRegNo = $student->sbte_reg_no;
             $reg = $seminarRegs->get($regNo);
             $stAllEvals = $allEvaluations->where('reg_no', $regNo);
             $evalCount = $stAllEvals->count();
 
-            // Authoritative Attendance from TEAMS uploaded attendance
-            $stAtt = $subjectAttendance->get($regNo);
+            // Official Attendance Record from subject_official_attendances
+            $offRecord = $subjectOfficialAttendances->get($regNo) ?: ($sbteRegNo ? $subjectOfficialAttendances->get($sbteRegNo) : null);
+
+            // Raw Attendance from TEAMS uploaded attendance
+            $stAtt = $subjectAttendance->get($regNo) ?: ($sbteRegNo ? $subjectAttendance->get($sbteRegNo) : null);
             if (!$stAtt || $stAtt->isEmpty()) {
-                $stAtt = $overallAttendance->get($regNo);
+                $stAtt = $overallAttendance->get($regNo) ?: ($sbteRegNo ? $overallAttendance->get($sbteRegNo) : null);
             }
 
+            $totalAtt = 0;
+            $present = 0;
             if ($stAtt && $stAtt->isNotEmpty()) {
                 $totalAtt = $stAtt->count();
                 $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
+                $calculatedRawPct = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } elseif ($classLogs->isNotEmpty()) {
                 $totalAtt = $classLogs->count();
                 $present = 0;
                 foreach ($classLogs as $cl) {
                     $pList = json_decode($cl->present_students, true) ?: [];
-                    if (in_array($regNo, $pList)) $present++;
+                    if (in_array($regNo, $pList) || ($sbteRegNo && in_array($sbteRegNo, $pList))) $present++;
                 }
-                $attPercentage = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
+                $calculatedRawPct = ($totalAtt > 0) ? round(($present / $totalAtt) * 100, 1) : 0.0;
             } else {
-                $attPercentage = 0.0;
+                $calculatedRawPct = 0.0;
+            }
+
+            $rawAttPercentage = ($offRecord && $offRecord->teams_percentage !== null)
+                ? (float)$offRecord->teams_percentage
+                : $calculatedRawPct;
+
+            $totalHours = ($offRecord && $offRecord->total_hours > 0) ? (int)$offRecord->total_hours : $totalAtt;
+            $attendedHours = ($offRecord && $offRecord->attended_hours > 0) ? (int)$offRecord->attended_hours : $present;
+
+            // Attendance Override Determination
+            $hasAttOverride = ($offRecord && $offRecord->override_percentage !== null);
+            if ($hasAttOverride) {
+                $attPercentage = (float)$offRecord->override_percentage;
+            } elseif ($offRecord && $offRecord->final_percentage !== null) {
+                $attPercentage = (float)$offRecord->final_percentage;
+            } else {
+                $attPercentage = $rawAttPercentage;
             }
 
             // Rev 2021: Statutory Attendance mark (Max 7.5M per Clause 11.2.6)
-            $savedAttMark = $stAllEvals->isNotEmpty() ? (float)$stAllEvals->first()->attendance : null;
-            $calculatedAttMark = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
-            $attendanceComponent = ($savedAttMark !== null && $savedAttMark > 0) ? $savedAttMark : $calculatedAttMark;
+            $savedAttMark = $stAllEvals->where('attendance', '>', 0)->isNotEmpty() 
+                ? (float)$stAllEvals->where('attendance', '>', 0)->first()->attendance 
+                : null;
+
+            if ($offRecord && $offRecord->override_mark !== null) {
+                $attendanceComponent = min(7.5, max(0.0, (float)$offRecord->override_mark));
+            } elseif ($hasAttOverride) {
+                $attendanceComponent = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            } elseif ($savedAttMark !== null && $savedAttMark > 0) {
+                $attendanceComponent = $savedAttMark;
+            } elseif ($offRecord && $offRecord->final_mark !== null && (float)$offRecord->final_mark > 0) {
+                $attendanceComponent = min(7.5, max(0.0, (float)$offRecord->final_mark));
+            } else {
+                $attendanceComponent = \App\Services\AttainmentService::calculateR21AttendanceMark($attPercentage, 7.5);
+            }
 
             // Averaged Presentation Rubrics across committee faculty
             $avgRelevance = $evalCount > 0 ? round($stAllEvals->avg('relevance'), 2) : 0;
@@ -961,6 +1312,10 @@ class R21VirtualClassroomSeminarController extends Controller
                 'topic' => $reg && !empty($reg->topic) ? $reg->topic : '—',
                 'presentation_date' => $reg && $reg->presentation_date ? date('d-m-Y', strtotime($reg->presentation_date)) : '—',
                 'guide_name' => $reg && $reg->guide ? $reg->guide->name : '—',
+                'total_attendance_sessions' => $totalHours > 0 ? $totalHours : '—',
+                'attended_sessions' => $attendedHours > 0 ? $attendedHours : ($totalHours > 0 ? 0 : '—'),
+                'raw_att_percentage' => $rawAttPercentage,
+                'has_att_override' => $hasAttOverride,
                 'att_percentage' => $attPercentage,
                 'relevance' => $avgRelevance,
                 'literature' => $avgLiterature,
@@ -1120,7 +1475,7 @@ class R21VirtualClassroomSeminarController extends Controller
     {
         $userId = Session::get('userId');
         if (!$userId) {
-            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized'], 403);
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized. Please log in.'], 401);
         }
 
         $batchSubject = BatchSubject::findOrFail($subjectId);

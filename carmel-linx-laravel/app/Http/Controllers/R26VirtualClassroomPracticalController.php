@@ -80,15 +80,11 @@ class R26VirtualClassroomPracticalController extends Controller
             // 3. Combined CE (40M) = Daywork 30M + Open Ended 10M
             $ceTotal40 = round($scaled30 + $scaled10, 2);
 
-            // 4. Series avg → scale to 15M (Two series tests in 40 -> avg in 40 -> converted to 15)
-            $seriesNums = [];
-            foreach (['Series 1', 'Series 2'] as $sName) {
-                if (isset($seriesExamLogs[$sName])) {
-                    $log = $seriesExamLogs[$sName]->where('reg_no', $regNo)->first();
-                    if ($log) $seriesNums[] = floatval($log->total_score_40);
-                }
-            }
-            $avg40 = count($seriesNums) > 0 ? array_sum($seriesNums) / count($seriesNums) : 0;
+            // 4. Series avg → scale to 15M (Two series tests in 40 -> avg in 40 -> converted to 15; missing/absent treated as 0)
+            $s1 = (isset($seriesExamLogs['Series 1']) && ($l1 = $seriesExamLogs['Series 1']->where('reg_no', $regNo)->first())) ? floatval($l1->total_score_40) : 0.0;
+            $s2 = (isset($seriesExamLogs['Series 2']) && ($l2 = $seriesExamLogs['Series 2']->where('reg_no', $regNo)->first())) ? floatval($l2->total_score_40) : 0.0;
+            $hasAnySeries = (isset($seriesExamLogs['Series 1']) && $seriesExamLogs['Series 1']->where('reg_no', $regNo)->isNotEmpty()) || (isset($seriesExamLogs['Series 2']) && $seriesExamLogs['Series 2']->where('reg_no', $regNo)->isNotEmpty());
+            $avg40 = $hasAnySeries ? round(($s1 + $s2) / 2.0, 2) : 0.0;
             $scaled15 = round(($avg40 / 40) * 15, 2);
 
             // 5. Attendance → 5M (default 0 if no upload/log)
@@ -701,6 +697,28 @@ class R26VirtualClassroomPracticalController extends Controller
 
         $dayNo = 1;
 
+        $batchSubject = BatchSubject::find($subjectId);
+        $firstLog = DB::table('class_logs_attendance')
+            ->where('batch_subject_id', $subjectId)
+            ->whereNotNull('date')
+            ->orderBy('date', 'asc')
+            ->first();
+
+        if ($firstLog && !empty($firstLog->date)) {
+            $currentDate = \Carbon\Carbon::parse($firstLog->date);
+        } else {
+            $classroom = $this->getClassroom($batchSubject->classroom_id ?? null);
+            $batchYear = (int)($classroom->batch_year ?? date('Y'));
+            $sem = (int)($batchSubject->semester ?? 1);
+            if ($sem % 2 === 1) {
+                // Odd semester: first week of August
+                $currentDate = \Carbon\Carbon::create($batchYear, 8, 3);
+            } else {
+                // Even semester: first week of January
+                $currentDate = \Carbon\Carbon::create($batchYear + 1, 1, 5);
+            }
+        }
+
         // 2. Insert Experiment Rows
         foreach ($filteredExpts as $idx => $expt) {
             $title  = $expt['title']   ?? ('Experiment ' . ($idx + 1));
@@ -723,6 +741,7 @@ class R26VirtualClassroomPracticalController extends Controller
             }
 
             foreach ($chunks as $chunkHours) {
+                $chunkProposedDate = $currentDate->toDateString();
                 foreach ($targetSubBatches as $bName) {
                     LessonPlan::create([
                         'batch_subject_id' => $subjectId,
@@ -732,13 +751,16 @@ class R26VirtualClassroomPracticalController extends Controller
                         'allocated_hours'  => $chunkHours,
                         'pedagogy'         => 'Practical',
                         'sub_batch'        => $bName,
+                        'proposed_date'    => $chunkProposedDate,
                         'status'           => 'Pending',
                     ]);
                 }
+                $currentDate->addWeek();
             }
         }
 
         // 3. Always add two more days with lab for series exams at the end (1 hour each)
+        $series1Date = $currentDate->toDateString();
         foreach ($targetSubBatches as $bName) {
             LessonPlan::create([
                 'batch_subject_id' => $subjectId,
@@ -748,9 +770,13 @@ class R26VirtualClassroomPracticalController extends Controller
                 'allocated_hours'  => 1,
                 'pedagogy'         => 'Exam',
                 'sub_batch'        => $bName,
+                'proposed_date'    => $series1Date,
                 'status'           => 'Pending',
             ]);
         }
+        $currentDate->addWeek();
+
+        $series2Date = $currentDate->toDateString();
         foreach ($targetSubBatches as $bName) {
             LessonPlan::create([
                 'batch_subject_id' => $subjectId,
@@ -760,9 +786,13 @@ class R26VirtualClassroomPracticalController extends Controller
                 'allocated_hours'  => 1,
                 'pedagogy'         => 'Exam',
                 'sub_batch'        => $bName,
+                'proposed_date'    => $series2Date,
                 'status'           => 'Pending',
             ]);
         }
+
+        // 4. Auto-sync dates and attendance records from class logs if any exist
+        \App\Http\Controllers\SbteSubjectLogImportController::executeLessonPlanSync((int)$subjectId);
 
         $totalRows = LessonPlan::where('batch_subject_id', $subjectId)->count();
         return response()->json(['success' => true, 'message' => "Lesson plan generated! {$totalRows} entries created (mode: {$mode}).", 'reload' => true]);
@@ -776,8 +806,9 @@ class R26VirtualClassroomPracticalController extends Controller
         $plans = $request->input('plans', []);
         $savedIds = [];
         foreach ($plans as $id => $data) {
-            $actualDate = $data['actual_date'] ?? null;
-            $status     = $data['status'] ?? 'Pending';
+            $actualDate   = !empty(trim($data['actual_date'] ?? '')) ? trim($data['actual_date']) : null;
+            $proposedDate = !empty(trim($data['proposed_date'] ?? '')) ? trim($data['proposed_date']) : null;
+            $status       = $data['status'] ?? 'Pending';
             if ($actualDate && $status === 'Pending') {
                 $status = 'Completed';
             }
@@ -788,7 +819,7 @@ class R26VirtualClassroomPracticalController extends Controller
                 'co_id'           => $data['co_id'] ?? 'CO1',
                 'allocated_hours' => (int)($data['allocated_hours'] ?? 1),
                 'pedagogy'        => $data['pedagogy'] ?? 'Practical',
-                'proposed_date'   => $data['proposed_date'] ?? null,
+                'proposed_date'   => $proposedDate,
                 'actual_date'     => $actualDate,
                 'status'          => $status,
             ];
@@ -808,6 +839,21 @@ class R26VirtualClassroomPracticalController extends Controller
             }
         }
         return response()->json(['success' => true, 'status' => 'SUCCESS', 'message' => 'Lesson plan saved!', 'id_map' => $savedIds]);
+    }
+
+    /**
+     * Synchronize lesson plan dates with conducted class logs.
+     */
+    public function syncLessonPlanDatesFromLogs(Request $request, $subjectId)
+    {
+        $userId = Session::get('userId');
+        if (!$userId) return response()->json(['status' => 'ERROR', 'success' => false, 'message' => 'Unauthorized.'], 401);
+
+        $result = \App\Http\Controllers\SbteSubjectLogImportController::executeLessonPlanSync((int)$subjectId);
+
+        return response()->json(array_merge([
+            'success' => (($result['status'] ?? '') === 'SUCCESS')
+        ], $result));
     }
 
     public function deleteLessonPlanRow(Request $request, $subjectId, $planId)
@@ -1230,7 +1276,12 @@ class R26VirtualClassroomPracticalController extends Controller
         if ($type === 'plan') {
             $assignedStaffList = $batchSubject->getAssignedFacultyList();
             $facultyNames = $batchSubject->getAssignedFacultyNames();
-            return view('r26_practical.lesson_plan_print', compact('batchSubject', 'classroom', 'lessonPlans', 'assignedStaffList', 'facultyNames'));
+            $classLogs = DB::table('class_logs_attendance')
+                ->where('batch_subject_id', $subjectId)
+                ->whereNotNull('lesson_plan_id')
+                ->get()
+                ->keyBy('lesson_plan_id');
+            return view('r26_practical.lesson_plan_print', compact('batchSubject', 'classroom', 'lessonPlans', 'assignedStaffList', 'facultyNames', 'classLogs'));
         }
 
         if ($type === 'attainment') {

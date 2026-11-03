@@ -584,11 +584,15 @@
                                                min="0" 
                                                max="100" 
                                                value="{{ $st['att_percentage'] }}" 
-                                               class="seminar-att-pct w-14 bg-slate-900 border border-slate-700/80 rounded px-1 py-1 text-center text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-950 transition" 
+                                               class="seminar-att-pct w-14 bg-slate-900 border {{ !empty($st['has_att_override']) ? 'border-amber-400 text-amber-300 ring-1 ring-amber-400/40 has-override' : 'border-slate-700/80 text-slate-200' }} rounded px-1 py-1 text-center text-xs font-bold focus:outline-none focus:border-blue-500 focus:bg-slate-950 transition" 
                                                data-reg="{{ $st['reg_no'] }}" 
-                                               oninput="onAttendancePctChange(this)" 
-                                               onchange="onAttendancePctChange(this)" 
-                                               title="Attendance % from TEAMS (edit to override)">
+                                               data-raw-pct="{{ $st['raw_att_percentage'] ?? $st['att_percentage'] }}" 
+                                               onfocus="this.select()" 
+                                               oninput="onAttendancePctChange(this, false)" 
+                                               onchange="onAttendancePctChange(this, true)" 
+                                               onblur="onAttendancePctBlur(this)" 
+                                               onkeydown="handleAttendancePctKeyDown(event, this)" 
+                                               title="{{ !empty($st['has_att_override']) ? 'Overridden Attendance: ' . $st['att_percentage'] . '% (TEAMS Raw: ' . ($st['raw_att_percentage'] ?? $st['att_percentage']) . '%)' : 'Attendance % from TEAMS (edit to override)' }}">
                                         <span class="text-[10px] text-slate-400 font-bold">%</span>
                                     </div>
                                 </td>
@@ -2422,6 +2426,16 @@
                         st.eval_count = data.data.eval_count;
                         st.is_completed = isCompleted;
                         st.assessors_list = data.data.assessors_list || st.assessors_list;
+                        if (data.data.att_percentage !== undefined) {
+                            st.att_percentage = data.data.att_percentage;
+                        }
+                        if (data.data.attendance_mark !== undefined) {
+                            st.attendance_mark = data.data.attendance_mark;
+                            st.suggested_att_mark = data.data.attendance_mark;
+                        }
+                        if (data.data.has_att_override !== undefined) {
+                            st.has_att_override = data.data.has_att_override;
+                        }
                         if (data.data.topic) st.topic = data.data.topic;
                         if (data.data.guide_name) st.guide_name = data.data.guide_name;
                         if (data.data.guide_mobile_no) st.guide_mobile_no = data.data.guide_mobile_no;
@@ -2447,6 +2461,16 @@
                         const attPctInput = row.querySelector('.seminar-att-pct');
                         if (attPctInput && data.data.att_percentage !== undefined) {
                             attPctInput.value = data.data.att_percentage;
+                            if (data.data.has_att_override) {
+                                attPctInput.classList.add('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                                attPctInput.classList.remove('border-slate-700/80', 'text-slate-200');
+                                const rawVal = attPctInput.getAttribute('data-raw-pct') || data.data.raw_att_percentage || data.data.att_percentage;
+                                attPctInput.title = `Overridden Attendance: ${data.data.att_percentage}% (TEAMS Raw: ${rawVal}%)`;
+                            } else {
+                                attPctInput.classList.remove('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                                attPctInput.classList.add('border-slate-700/80', 'text-slate-200');
+                                attPctInput.title = 'Attendance % from TEAMS (edit to override)';
+                            }
                         }
                         const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
                         if (attnCell && data.data.attendance_mark !== undefined) {
@@ -2840,13 +2864,21 @@
             if (pendingEl) pendingEl.textContent = Math.max(0, total - completed);
         }
 
-        function onAttendancePctChange(input) {
+        function onAttendancePctChange(input, immediate = false) {
             const regNo = input.getAttribute('data-reg');
             const row = document.getElementById(`row-eval-${regNo}`);
             if (!row) return;
 
-            let pct = parseFloat(input.value);
-            if (isNaN(pct)) pct = 0;
+            let valStr = input.value.trim();
+            let pct = parseFloat(valStr);
+            if (isNaN(pct)) {
+                if (immediate) {
+                    pct = parseFloat(input.getAttribute('data-raw-pct')) || 0;
+                    input.value = pct;
+                } else {
+                    return; // Allow typing
+                }
+            }
             if (pct > 100) { pct = 100; input.value = 100; }
             if (pct < 0) { pct = 0; input.value = 0; }
 
@@ -2858,8 +2890,102 @@
                 attnCell.textContent = mark.toFixed(1);
             }
 
+            // Visual override styling
+            const rawPct = parseFloat(input.getAttribute('data-raw-pct')) || 0;
+            const isOverride = (Math.abs(pct - rawPct) > 0.05);
+            if (isOverride) {
+                input.classList.add('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                input.classList.remove('border-slate-700/80', 'text-slate-200');
+                input.title = `Overridden Attendance: ${pct}% (TEAMS Raw: ${rawPct}%)`;
+            } else {
+                input.classList.remove('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                input.classList.add('border-slate-700/80', 'text-slate-200');
+                input.title = 'Attendance % from TEAMS (edit to override)';
+            }
+
+            // Update cached student dataset immediately
+            const st = studentDataset.find(s => s.reg_no === regNo);
+            if (st) {
+                st.att_percentage = pct;
+                st.attendance_mark = mark;
+                st.suggested_att_mark = mark;
+                st.has_att_override = isOverride;
+            }
+
             calculateRowCia(input);
-            triggerSeminarAutoSave(input, true);
+            triggerSeminarAutoSave(input, immediate);
+        }
+
+        function onAttendancePctBlur(input) {
+            if (input.value.trim() === '') {
+                const rawPct = parseFloat(input.getAttribute('data-raw-pct')) || 0;
+                input.value = rawPct;
+            }
+            onAttendancePctChange(input, true);
+        }
+
+        function handleAttendancePctKeyDown(event, input) {
+            const currentRow = input.closest('tr.student-row');
+            if (!currentRow) return;
+
+            if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                let nextRow = currentRow.nextElementSibling;
+                while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
+                    nextRow = nextRow.nextElementSibling;
+                }
+                if (nextRow) {
+                    const target = nextRow.querySelector('.seminar-att-pct');
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
+                }
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                let prevRow = currentRow.previousElementSibling;
+                while (prevRow && (prevRow.classList.contains('hidden') || !prevRow.classList.contains('student-row'))) {
+                    prevRow = prevRow.previousElementSibling;
+                }
+                if (prevRow) {
+                    const target = prevRow.querySelector('.seminar-att-pct');
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
+                }
+            } else if (event.key === 'Tab' && !event.shiftKey) {
+                // Tab forward: jump to next student's first rubric (.mark-rel)
+                event.preventDefault();
+                let nextRow = currentRow.nextElementSibling;
+                while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
+                    nextRow = nextRow.nextElementSibling;
+                }
+                if (nextRow) {
+                    const target = nextRow.querySelector('.mark-rel');
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
+                }
+            } else if (event.key === 'Tab' && event.shiftKey) {
+                // Shift+Tab backward: jump to current row's .mark-report
+                event.preventDefault();
+                const target = currentRow.querySelector('.mark-report');
+                if (target) {
+                    target.focus();
+                    target.select();
+                }
+            } else if (event.key === 'ArrowLeft') {
+                if (input.selectionStart === 0 || input.value === '') {
+                    event.preventDefault();
+                    const target = currentRow.querySelector('.mark-report');
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    }
+                }
+            }
         }
 
         function setAutoSaveStatus(status, text) {
@@ -2899,17 +3025,29 @@
             const row = document.getElementById(`row-eval-${regNo}`);
             if (!row) return;
 
-            const rel = parseFloat(row.querySelector('.mark-rel')?.value) || 0;
-            const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
-            const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
-            const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
-            const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+            const relInput = row.querySelector('.mark-rel');
+            const litInput = row.querySelector('.mark-lit');
+            const presInput = row.querySelector('.mark-pres');
+            const interctnInput = row.querySelector('.mark-interctn');
+            const repInput = row.querySelector('.mark-report');
+            const attPctInput = row.querySelector('.seminar-att-pct');
+
+            const relVal = relInput?.value?.trim();
+            const litVal = litInput?.value?.trim();
+            const presVal = presInput?.value?.trim();
+            const interctnVal = interctnInput?.value?.trim();
+            const repVal = repInput?.value?.trim();
+            const attPctVal = attPctInput?.value?.trim();
+
+            const rel = (relVal !== '' && relVal !== undefined && !isNaN(parseFloat(relVal))) ? parseFloat(relVal) : null;
+            const lit = (litVal !== '' && litVal !== undefined && !isNaN(parseFloat(litVal))) ? parseFloat(litVal) : null;
+            const pres = (presVal !== '' && presVal !== undefined && !isNaN(parseFloat(presVal))) ? parseFloat(presVal) : null;
+            const interctn = (interctnVal !== '' && interctnVal !== undefined && !isNaN(parseFloat(interctnVal))) ? parseFloat(interctnVal) : null;
+            const rep = (repVal !== '' && repVal !== undefined && !isNaN(parseFloat(repVal))) ? parseFloat(repVal) : null;
             
             const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
-            const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
-
-            const attPctInput = row.querySelector('.seminar-att-pct');
-            const attPct = parseFloat(attPctInput?.value) || 0;
+            const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || null;
+            const attPct = (attPctVal !== '' && attPctVal !== undefined && !isNaN(parseFloat(attPctVal))) ? parseFloat(attPctVal) : null;
 
             const st = studentDataset.find(s => s.reg_no === regNo);
 
@@ -2943,7 +3081,7 @@
                 if (data.status === 'SUCCESS') {
                     setAutoSaveStatus('saved', 'All changes saved');
 
-                    const isCompleted = (rep > 0);
+                    const isCompleted = (data.data.is_completed === true);
 
                     // Update cached dataset
                     if (st) {
@@ -2953,6 +3091,36 @@
                         st.eval_count = data.data.eval_count;
                         st.is_completed = isCompleted;
                         st.assessors_list = data.data.assessors_list || st.assessors_list;
+                        if (data.data.att_percentage !== undefined) {
+                            st.att_percentage = data.data.att_percentage;
+                        }
+                        if (data.data.attendance_mark !== undefined) {
+                            st.attendance_mark = data.data.attendance_mark;
+                            st.suggested_att_mark = data.data.attendance_mark;
+                        }
+                        if (data.data.has_att_override !== undefined) {
+                            st.has_att_override = data.data.has_att_override;
+                        }
+                    }
+
+                    // Update UI Row in Evaluation Table for attendance & marks
+                    const updatedAttPctInput = row.querySelector('.seminar-att-pct');
+                    if (updatedAttPctInput && data.data.att_percentage !== undefined) {
+                        updatedAttPctInput.value = data.data.att_percentage;
+                        if (data.data.has_att_override) {
+                            updatedAttPctInput.classList.add('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                            updatedAttPctInput.classList.remove('border-slate-700/80', 'text-slate-200');
+                            const rawVal = updatedAttPctInput.getAttribute('data-raw-pct') || data.data.raw_att_percentage || data.data.att_percentage;
+                            updatedAttPctInput.title = `Overridden Attendance: ${data.data.att_percentage}% (TEAMS Raw: ${rawVal}%)`;
+                        } else {
+                            updatedAttPctInput.classList.remove('border-amber-400', 'text-amber-300', 'ring-1', 'ring-amber-400/40', 'has-override');
+                            updatedAttPctInput.classList.add('border-slate-700/80', 'text-slate-200');
+                            updatedAttPctInput.title = 'Attendance % from TEAMS (edit to override)';
+                        }
+                    }
+                    if (attnCell && data.data.attendance_mark !== undefined) {
+                        attnCell.setAttribute('data-attn', Number(data.data.attendance_mark).toFixed(1));
+                        attnCell.textContent = Number(data.data.attendance_mark).toFixed(1);
                     }
 
                     // Update Grades table row if it exists
@@ -2970,11 +3138,12 @@
         }
 
         async function saveAllSeminarMarks() {
-            const rows = document.querySelectorAll('.student-row');
+            // Strictly select evaluation table body rows (exactly 1 row per student, avoiding other tab tables)
+            const rows = document.querySelectorAll('#evaluationTable tbody tr.student-row');
             if (!rows.length) return;
 
-            const btnTop = document.getElementById('btnSaveAllSeminar');
-            const btnBtm = document.getElementById('btnSaveAllSeminarBottom');
+            const btnTop = document.getElementById('btnSaveSeminarMarksTop') || document.getElementById('btnSaveAllSeminar');
+            const btnBtm = document.getElementById('btnSaveSeminarMarksBottom') || document.getElementById('btnSaveAllSeminarBottom');
             
             const setButtonsLoading = (isLoading) => {
                 [btnTop, btnBtm].forEach(btn => {
@@ -2992,21 +3161,36 @@
             setAutoSaveStatus('saving');
 
             const evaluations = [];
+            const processedRegs = new Set();
+
             rows.forEach(row => {
                 const regNo = row.getAttribute('data-reg');
-                if (!regNo) return;
+                if (!regNo || processedRegs.has(regNo)) return;
+                processedRegs.add(regNo);
 
-                const rel = parseFloat(row.querySelector('.mark-rel')?.value) || 0;
-                const lit = parseFloat(row.querySelector('.mark-lit')?.value) || 0;
-                const pres = parseFloat(row.querySelector('.mark-pres')?.value) || 0;
-                const interctn = parseFloat(row.querySelector('.mark-interctn')?.value) || 0;
-                const rep = parseFloat(row.querySelector('.mark-report')?.value) || 0;
+                const relInput = row.querySelector('.mark-rel');
+                const litInput = row.querySelector('.mark-lit');
+                const presInput = row.querySelector('.mark-pres');
+                const interctnInput = row.querySelector('.mark-interctn');
+                const repInput = row.querySelector('.mark-report');
+                const attPctInput = row.querySelector('.seminar-att-pct');
+
+                const relVal = relInput?.value?.trim();
+                const litVal = litInput?.value?.trim();
+                const presVal = presInput?.value?.trim();
+                const interctnVal = interctnInput?.value?.trim();
+                const repVal = repInput?.value?.trim();
+                const attPctVal = attPctInput?.value?.trim();
+
+                const rel = (relVal !== '' && relVal !== undefined && !isNaN(parseFloat(relVal))) ? parseFloat(relVal) : null;
+                const lit = (litVal !== '' && litVal !== undefined && !isNaN(parseFloat(litVal))) ? parseFloat(litVal) : null;
+                const pres = (presVal !== '' && presVal !== undefined && !isNaN(parseFloat(presVal))) ? parseFloat(presVal) : null;
+                const interctn = (interctnVal !== '' && interctnVal !== undefined && !isNaN(parseFloat(interctnVal))) ? parseFloat(interctnVal) : null;
+                const rep = (repVal !== '' && repVal !== undefined && !isNaN(parseFloat(repVal))) ? parseFloat(repVal) : null;
                 
                 const attnCell = row.querySelector('.col-attn-mark') || row.querySelector('[data-attn]');
-                const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || 0;
-
-                const attPctInput = row.querySelector('.seminar-att-pct');
-                const attPct = parseFloat(attPctInput?.value) || 0;
+                const attn = parseFloat(attnCell?.getAttribute('data-attn') || attnCell?.textContent) || null;
+                const attPct = (attPctVal !== '' && attPctVal !== undefined && !isNaN(parseFloat(attPctVal))) ? parseFloat(attPctVal) : null;
 
                 const st = studentDataset.find(s => s.reg_no === regNo);
 
@@ -3124,19 +3308,25 @@
 
             const rIdx = rubricOrder.indexOf(rubric);
 
-            // Tab navigation: seamless wrap from last rubric to next student's first rubric
+            // Tab navigation: seamless wrap from rubrics to attendance and next student
             if (event.key === 'Tab' && !event.shiftKey) {
                 if (rubric === 'report') {
                     event.preventDefault();
-                    let nextRow = currentRow.nextElementSibling;
-                    while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
-                        nextRow = nextRow.nextElementSibling;
-                    }
-                    if (nextRow) {
-                        const target = nextRow.querySelector('.mark-rel');
-                        if (target) {
-                            target.focus();
-                            target.select();
+                    const target = currentRow.querySelector('.seminar-att-pct');
+                    if (target) {
+                        target.focus();
+                        target.select();
+                    } else {
+                        let nextRow = currentRow.nextElementSibling;
+                        while (nextRow && (nextRow.classList.contains('hidden') || !nextRow.classList.contains('student-row'))) {
+                            nextRow = nextRow.nextElementSibling;
+                        }
+                        if (nextRow) {
+                            const nextTarget = nextRow.querySelector('.mark-rel');
+                            if (nextTarget) {
+                                nextTarget.focus();
+                                nextTarget.select();
+                            }
                         }
                     }
                 }
@@ -3148,7 +3338,7 @@
                         prevRow = prevRow.previousElementSibling;
                     }
                     if (prevRow) {
-                        const target = prevRow.querySelector('.mark-report');
+                        const target = prevRow.querySelector('.seminar-att-pct') || prevRow.querySelector('.mark-report');
                         if (target) {
                             target.focus();
                             target.select();
@@ -3165,6 +3355,13 @@
                             target.focus();
                             target.select();
                         }
+                    } else if (rubric === 'report') {
+                        event.preventDefault();
+                        const target = currentRow.querySelector('.seminar-att-pct');
+                        if (target) {
+                            target.focus();
+                            target.select();
+                        }
                     }
                 }
             } else if (event.key === 'ArrowLeft') {
@@ -3176,6 +3373,19 @@
                         if (target) {
                             target.focus();
                             target.select();
+                        }
+                    } else if (rubric === 'relevance') {
+                        let prevRow = currentRow.previousElementSibling;
+                        while (prevRow && (prevRow.classList.contains('hidden') || !prevRow.classList.contains('student-row'))) {
+                            prevRow = prevRow.previousElementSibling;
+                        }
+                        if (prevRow) {
+                            event.preventDefault();
+                            const target = prevRow.querySelector('.seminar-att-pct');
+                            if (target) {
+                                target.focus();
+                                target.select();
+                            }
                         }
                     }
                 }

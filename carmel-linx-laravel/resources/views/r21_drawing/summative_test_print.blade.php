@@ -108,15 +108,10 @@
           $t1Score15 = ($t1 && !$t1->is_absent && $t1->total_score_100 !== null) ? round((floatval($t1->total_score_100) / 100.0) * 15.0, 2) : null;
           $t2Score15 = ($t2 && !$t2->is_absent && $t2->total_score_100 !== null) ? round((floatval($t2->total_score_100) / 100.0) * 15.0, 2) : null;
 
-          if ($t1Score15 !== null && $t2Score15 !== null) {
-              $avgSeries15 = round(($t1Score15 + $t2Score15) / 2.0, 2);
-          } elseif ($t1Score15 !== null) {
-              $avgSeries15 = $t1Score15;
-          } elseif ($t2Score15 !== null) {
-              $avgSeries15 = $t2Score15;
-          } else {
-              $avgSeries15 = 0.00;
-          }
+          // 2 series tests: missing or absent test treated as 0 (divisor 2.0)
+          $avgSeries15 = ($t1Score15 !== null || $t2Score15 !== null)
+              ? round(((float)($t1Score15 ?? 0) + (float)($t2Score15 ?? 0)) / 2.0, 2)
+              : 0.00;
         @endphp
         <tr data-student-name="{{ $st->name }}" data-student-roll="{{ $st->roll_no ?? '-' }}" data-student-reg="{{ $st->reg_no }}">
           <td>{{ $idx + 1 }}</td>

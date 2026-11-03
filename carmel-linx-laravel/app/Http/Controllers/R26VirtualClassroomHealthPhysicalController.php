@@ -135,6 +135,18 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                 ->get();
         }
 
+        // Fetch Official TEAMS Uploaded Subject Attendance & Manual Logs
+        $subjectOfficialAttendance = DB::table('subject_official_attendances')
+            ->where(function ($query) use ($subjectId, $batchSubject) {
+                $query->where('batch_subject_id', $subjectId)
+                      ->orWhere(function ($q) use ($batchSubject) {
+                          $q->where('subject_code', $batchSubject->subject_code)
+                            ->where('classroom_id', $batchSubject->classroom_id);
+                      });
+            })
+            ->get()
+            ->keyBy('reg_no');
+
         // Attendance Records
         $attendanceData = DB::table('student_attendance')
             ->where('subject_code', $batchSubject->subject_code)
@@ -151,53 +163,113 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             ->get()
             ->groupBy('reg_no');
 
+        // Check if any CA1 record specifically configured for standard scaled_40 mode
+        $series1Mode = 'direct_15'; // Default to direct 15M mode for accidental 15M entry support
+        foreach ($fitnessTests as $testGroup) {
+            $ca1Item = $testGroup->where('test_no', 'CA1')->first();
+            if ($ca1Item && isset($ca1Item->criteria_json['mode']) && $ca1Item->criteria_json['mode'] === 'scaled_40') {
+                $series1Mode = 'scaled_40';
+                break;
+            }
+        }
+
         // ESE Marks
         $eseMarks = R26HealthPhysicalEseMark::where('batch_subject_id', $subjectId)
             ->get()
             ->keyBy('reg_no');
 
         // Student Results Computation (60 CIE + 40 ESE = 100)
+        // CIE Breakdown: Attendance (5M) + Continuous Evaluation (25M from 50M) + Series Tests (30M = CA1 15M + CA2 15M) = 60M
         $studentResults = $students->map(function ($student) use (
+            $subjectOfficialAttendance,
             $attendanceData,
             $activityEvals,
             $fitnessTests,
-            $eseMarks
+            $eseMarks,
+            $series1Mode
         ) {
             $regNo = $student->reg_no;
 
-            // 1. Attendance Marks (Max 5)
+            // 1. Attendance (Teams Upload / Log / Override)
+            $stOfficial = $subjectOfficialAttendance->get($regNo);
+            $teamsUploadedPct = null;
+            $overridePct = null;
+            if ($stOfficial) {
+                if ($stOfficial->teams_percentage !== null) {
+                    $teamsUploadedPct = (float)$stOfficial->teams_percentage;
+                } elseif ($stOfficial->final_percentage !== null && $stOfficial->override_percentage === null) {
+                    $teamsUploadedPct = (float)$stOfficial->final_percentage;
+                }
+                if ($stOfficial->override_percentage !== null) {
+                    $overridePct = (float)$stOfficial->override_percentage;
+                }
+            }
+
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 2) : 0.00;
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : null;
 
-            if ($attPercentage >= 90) { $attMarks = 5; }
-            elseif ($attPercentage >= 80) { $attMarks = 4; }
-            elseif ($attPercentage >= 75) { $attMarks = 3; }
-            elseif ($attPercentage >= 70) { $attMarks = 2; }
-            elseif ($attPercentage >= 65) { $attMarks = 1; }
-            else { $attMarks = 0; }
+            $rawAttPercentage = $teamsUploadedPct !== null ? $teamsUploadedPct : $logAttPct;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
 
-            // 2. Continuous Activity Log (Max 30 CIE Marks)
+            $attMarks = 0.0;
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) { $attMarks = 5.0; }
+                elseif ($effectivePct >= 80) { $attMarks = 4.0; }
+                elseif ($effectivePct >= 75) { $attMarks = 3.0; }
+                elseif ($effectivePct >= 70) { $attMarks = 2.0; }
+                elseif ($effectivePct >= 65) { $attMarks = 1.0; }
+                else { $attMarks = 0.0; }
+            }
+
+            // 2. Continuous Activity Log (Max 25 CIE Marks, scaled from 50M whole number entry)
             $stActs = $activityEvals->get($regNo, collect());
-            $avgScore50 = $stActs->avg('total_score_50') ?: 0.00;
-            $activityMarks = round((($avgScore50 / 50.0) * 30.0) * 2) / 2;
+            $stEval = $stActs->first();
+            $avgScore50 = $stEval ? floatval($stEval->total_score_50) : 0.00;
+            $activityMarks = round(($avgScore50 / 50.0) * 25.0, 1);
 
-            // 3. Fitness Tests CA1 & CA2 (Max 15 CIE Marks)
+            // 3. Fitness / Series Tests CA1 & CA2 (Max 15M each, Total 30M)
+            // Supports accidental 15M direct entry for Series 1 as well as standard 40M converted to 15M
             $stTests = $fitnessTests->get($regNo, collect());
             $ca1 = $stTests->where('test_no', 'CA1')->first();
             $ca2 = $stTests->where('test_no', 'CA2')->first();
-            $ca1Score = ($ca1 && !$ca1->is_absent) ? $ca1->total_score_40 : 0.00;
-            $ca2Score = ($ca2 && !$ca2->is_absent) ? $ca2->total_score_40 : 0.00;
 
-            $ca1Marks = round((($ca1Score / 40.0) * 7.5) * 2) / 2;
-            $ca2Marks = round((($ca2Score / 40.0) * 7.5) * 2) / 2;
-            $testMarks = $ca1Marks + $ca2Marks;
+            $ca1Absent = $ca1 ? (bool)$ca1->is_absent : false;
+            $ca2Absent = $ca2 ? (bool)$ca2->is_absent : false;
 
-            // 4. Logbook / Posture & Activity Record (Max 10 CIE Marks)
-            $logbookMarks = 10.0;
+            $c1Mode = $ca1 ? ($ca1->criteria_json['mode'] ?? $series1Mode) : $series1Mode;
+            $c2Mode = $ca2 ? ($ca2->criteria_json['mode'] ?? 'scaled_40') : 'scaled_40';
 
-            // Total CIE Marks (Max 60)
+            if ($ca1 && !$ca1Absent) {
+                if ($c1Mode === 'direct_15') {
+                    $ca1Raw = floatval($ca1->criteria_json['raw_score'] ?? round(($ca1->total_score_40 / 40.0) * 15.0, 1));
+                    $ca1Conv = min(15.0, max(0.0, $ca1Raw));
+                } else {
+                    $ca1Raw = floatval($ca1->total_score_40);
+                    $ca1Conv = round(($ca1Raw / 40.0) * 15.0, 1);
+                }
+            } else {
+                $ca1Raw = 0.0;
+                $ca1Conv = 0.0;
+            }
+
+            if ($ca2 && !$ca2Absent) {
+                if ($c2Mode === 'direct_15') {
+                    $ca2Raw = floatval($ca2->criteria_json['raw_score'] ?? round(($ca2->total_score_40 / 40.0) * 15.0, 1));
+                    $ca2Conv = min(15.0, max(0.0, $ca2Raw));
+                } else {
+                    $ca2Raw = floatval($ca2->total_score_40);
+                    $ca2Conv = round(($ca2Raw / 40.0) * 15.0, 1);
+                }
+            } else {
+                $ca2Raw = 0.0;
+                $ca2Conv = 0.0;
+            }
+
+            $testMarks = round($ca1Conv + $ca2Conv, 1);
+
+            // Total CIE Marks (Max 60: 5 Att + 25 Continuous + 30 Series)
             $totalCieMarks = round(($attMarks + $activityMarks + $testMarks) * 2) / 2;
             if ($totalCieMarks > 60.0) $totalCieMarks = 60.0;
 
@@ -209,19 +281,30 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             $rScore = $stEse ? floatval($stEse->record_score) : 0.00;
             $totalEse = ($stEse && !$stEse->is_absent) ? ($fScore + $sScore + $vScore + $rScore) : 0.00;
 
-            $totalCourseMarks = $totalCieMarks + $totalEse;
-            $isPassed = ($totalEse >= 16.0 && $totalCourseMarks >= 40.0);
+            $totalCourseMarks = round($totalCieMarks + $totalEse, 1);
+            $isPassed = ($totalEse >= 16.0 && $totalCieMarks >= 24.0 && $totalCourseMarks >= 40.0);
 
             return [
                 'reg_no' => $student->reg_no,
                 'sbte_reg_no' => $student->sbte_reg_no ?? $student->reg_no,
                 'name' => $student->name,
                 'roll_no' => $student->roll_no,
-                'att_percentage' => $attPercentage,
+                'total_sessions' => $totalAtt ?: 30,
+                'attended_sessions' => $present ?: ($totalAtt ?: 30),
+                'raw_att_percentage' => $rawAttPercentage,
+                'attendance_override_pct' => $overridePct,
+                'att_percentage' => $effectivePct,
                 'att_marks' => $attMarks,
+                'activity_total_50' => round($avgScore50),
                 'activity_marks' => $activityMarks,
-                'ca1_score' => $ca1Score,
-                'ca2_score' => $ca2Score,
+                'ca1_raw' => $ca1Raw,
+                'ca1_conv' => $ca1Conv,
+                'ca1_absent' => $ca1Absent,
+                'ca1_mode' => $c1Mode,
+                'ca2_raw' => $ca2Raw,
+                'ca2_conv' => $ca2Conv,
+                'ca2_absent' => $ca2Absent,
+                'ca2_mode' => $c2Mode,
                 'test_marks' => $testMarks,
                 'total_cie_marks' => $totalCieMarks,
                 'ese_fitness' => $fScore,
@@ -385,6 +468,8 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             'studentResults',
             'activityEvals',
             'fitnessTests',
+            'series1Mode',
+            'subjectOfficialAttendance',
             'eseMarks',
             'assignedStaff',
             'mappings',
@@ -422,6 +507,16 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
         $fitnessTests = R26HealthPhysicalFitnessTest::where('batch_subject_id', $subjectId)->get()->groupBy('reg_no');
         $eseMarks = R26HealthPhysicalEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
 
+        // Check Series 1 Mode
+        $series1Mode = 'direct_15';
+        foreach ($fitnessTests as $testGroup) {
+            $ca1Item = $testGroup->where('test_no', 'CA1')->first();
+            if ($ca1Item && isset($ca1Item->criteria_json['mode']) && $ca1Item->criteria_json['mode'] === 'scaled_40') {
+                $series1Mode = 'scaled_40';
+                break;
+            }
+        }
+
         // Also compute student results for consolidated reports
         $evalScheme = $hpCourseFile->parsed_eval_scheme ?: [
             'day_work' => [
@@ -432,6 +527,18 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                 ['key' => 'c5', 'title' => 'Sportsmanship & Attendance', 'max_marks' => 5]
             ]
         ];
+
+        // Fetch Official TEAMS Uploaded Subject Attendance
+        $subjectOfficialAttendance = DB::table('subject_official_attendances')
+            ->where(function ($query) use ($subjectId, $batchSubject) {
+                $query->where('batch_subject_id', $subjectId)
+                      ->orWhere(function ($q) use ($batchSubject) {
+                          $q->where('subject_code', $batchSubject->subject_code)
+                            ->where('classroom_id', $batchSubject->classroom_id);
+                      });
+            })
+            ->get()
+            ->keyBy('reg_no');
 
         // Attendance Data
         $attendanceData = DB::table('student_attendance')
@@ -446,34 +553,98 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             ->select('staff_profiles.name', 'staff_profiles.designation', 'staff_profiles.mobile_no')
             ->get();
 
-        $studentResults = $students->map(function ($student) use ($attendanceData, $activityEvals, $fitnessTests, $eseMarks) {
+        $studentResults = $students->map(function ($student) use (
+            $subjectOfficialAttendance,
+            $attendanceData,
+            $activityEvals,
+            $fitnessTests,
+            $eseMarks,
+            $series1Mode
+        ) {
             $regNo = $student->reg_no;
+
+            // Attendance
+            $stOfficial = $subjectOfficialAttendance->get($regNo);
+            $teamsUploadedPct = null;
+            $overridePct = null;
+            if ($stOfficial) {
+                if ($stOfficial->teams_percentage !== null) {
+                    $teamsUploadedPct = (float)$stOfficial->teams_percentage;
+                } elseif ($stOfficial->final_percentage !== null && $stOfficial->override_percentage === null) {
+                    $teamsUploadedPct = (float)$stOfficial->final_percentage;
+                }
+                if ($stOfficial->override_percentage !== null) {
+                    $overridePct = (float)$stOfficial->override_percentage;
+                }
+            }
+
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
             $present = $stAtt->whereIn('status', ['Present', 'Late'])->count();
-            $attPercentage = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : 0.0;
+            $logAttPct = $totalAtt > 0 ? round(($present / $totalAtt) * 100, 1) : null;
 
-            if ($attPercentage >= 90) { $attMarks = 5.0; }
-            elseif ($attPercentage >= 80) { $attMarks = 4.0; }
-            elseif ($attPercentage >= 75) { $attMarks = 3.0; }
-            elseif ($attPercentage >= 70) { $attMarks = 2.0; }
-            elseif ($attPercentage >= 65) { $attMarks = 1.0; }
-            else { $attMarks = 0.0; }
+            $rawAttPercentage = $teamsUploadedPct !== null ? $teamsUploadedPct : $logAttPct;
+            $effectivePct = $overridePct !== null ? $overridePct : $rawAttPercentage;
 
-            $stEval = $activityEvals->get($regNo, collect())->first();
+            if ($effectivePct !== null) {
+                if ($effectivePct >= 90) { $attMarks = 5.0; }
+                elseif ($effectivePct >= 80) { $attMarks = 4.0; }
+                elseif ($effectivePct >= 75) { $attMarks = 3.0; }
+                elseif ($effectivePct >= 70) { $attMarks = 2.0; }
+                elseif ($effectivePct >= 65) { $attMarks = 1.0; }
+                else { $attMarks = 0.0; }
+            } else {
+                $attMarks = 0.0;
+            }
+
+            $stActs = $activityEvals->get($regNo, collect());
+            $stEval = $stActs->first();
+            $tot50 = $stEval ? floatval($stEval->total_score_50) : 0.0;
+            $activityMarks = round(($tot50 / 50.0) * 25.0, 1);
+
             $stTests = $fitnessTests->get($regNo, collect());
-            $stEse = $eseMarks->get($regNo);
-
-            $activityMarks = $stEval ? floatval($stEval->total_score_50) * 0.6 : 0.0;
             $ca1 = $stTests->where('test_no', 'CA1')->first();
             $ca2 = $stTests->where('test_no', 'CA2')->first();
-            $ca1Score = $ca1 ? floatval($ca1->total_score_40) : 0.0;
-            $ca2Score = $ca2 ? floatval($ca2->total_score_40) : 0.0;
-            $testMarks = (($ca1Score + $ca2Score) / 80.0) * 15.0;
 
-            $totalCieMarks = round($attMarks + $activityMarks + $testMarks, 2);
-            $totalEse = $stEse ? floatval($stEse->total_ese_40) : 0.0;
-            $totalCourseMarks = round($totalCieMarks + $totalEse, 2);
+            $ca1Absent = $ca1 ? (bool)$ca1->is_absent : false;
+            $ca2Absent = $ca2 ? (bool)$ca2->is_absent : false;
+
+            $c1Mode = $ca1 ? ($ca1->criteria_json['mode'] ?? $series1Mode) : $series1Mode;
+            $c2Mode = $ca2 ? ($ca2->criteria_json['mode'] ?? 'scaled_40') : 'scaled_40';
+
+            if ($ca1 && !$ca1Absent) {
+                if ($c1Mode === 'direct_15') {
+                    $ca1Raw = floatval($ca1->criteria_json['raw_score'] ?? round(($ca1->total_score_40 / 40.0) * 15.0, 1));
+                    $ca1Conv = min(15.0, max(0.0, $ca1Raw));
+                } else {
+                    $ca1Raw = floatval($ca1->total_score_40);
+                    $ca1Conv = round(($ca1Raw / 40.0) * 15.0, 1);
+                }
+            } else {
+                $ca1Raw = 0.0;
+                $ca1Conv = 0.0;
+            }
+
+            if ($ca2 && !$ca2Absent) {
+                if ($c2Mode === 'direct_15') {
+                    $ca2Raw = floatval($ca2->criteria_json['raw_score'] ?? round(($ca2->total_score_40 / 40.0) * 15.0, 1));
+                    $ca2Conv = min(15.0, max(0.0, $ca2Raw));
+                } else {
+                    $ca2Raw = floatval($ca2->total_score_40);
+                    $ca2Conv = round(($ca2Raw / 40.0) * 15.0, 1);
+                }
+            } else {
+                $ca2Raw = 0.0;
+                $ca2Conv = 0.0;
+            }
+
+            $testMarks = round($ca1Conv + $ca2Conv, 1);
+            $totalCieMarks = round($attMarks + $activityMarks + $testMarks, 1);
+            if ($totalCieMarks > 60.0) $totalCieMarks = 60.0;
+
+            $stEse = $eseMarks->get($regNo);
+            $totalEse = ($stEse && !$stEse->is_absent) ? floatval($stEse->total_ese_40) : 0.0;
+            $totalCourseMarks = round($totalCieMarks + $totalEse, 1);
 
             return [
                 'reg_no' => $student->reg_no,
@@ -481,11 +652,17 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                 'roll_no' => $student->roll_no,
                 'total_sessions' => $totalAtt ?: 30,
                 'attended_sessions' => $present ?: ($totalAtt ?: 30),
-                'att_percentage' => $attPercentage,
+                'raw_att_percentage' => $rawAttPercentage,
+                'attendance_override_pct' => $overridePct,
+                'att_percentage' => $effectivePct !== null ? $effectivePct : 0.0,
                 'att_marks' => $attMarks,
-                'activity_score_50' => $stEval ? floatval($stEval->total_score_50) : 0.0,
-                'activity_marks' => round($activityMarks, 2),
-                'test_marks' => round($testMarks, 2),
+                'activity_score_50' => round($tot50),
+                'activity_marks' => $activityMarks,
+                'ca1_raw' => $ca1Raw,
+                'ca1_conv' => $ca1Conv,
+                'ca2_raw' => $ca2Raw,
+                'ca2_conv' => $ca2Conv,
+                'test_marks' => $testMarks,
                 'total_cie_marks' => $totalCieMarks,
                 'total_ese' => $totalEse,
                 'total_course_marks' => $totalCourseMarks,
@@ -522,7 +699,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             'batchSubject', 'classroom', 'students', 'hpCourseFile', 'lessonPlans',
             'activityEvals', 'fitnessTests', 'eseMarks', 'studentResults', 'evalScheme', 'type',
             'exitSurvey', 'exitSurveyResponses', 'midSemSurvey', 'midSemResponses',
-            'attendanceData', 'assignedStaff'
+            'attendanceData', 'assignedStaff', 'series1Mode'
         ));
     }
 
@@ -632,6 +809,7 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
 
     /**
      * Save Continuous Fitness & Activity Log Marks (Dynamic criteria based on uploaded PDF)
+     * All inputs and totals are saved as clean whole numbers with prioritized record book allocation.
      */
     public function saveActivityMarks(Request $request, $subjectId)
     {
@@ -648,13 +826,16 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
 
         foreach ($marksData as $row) {
             $regNo = $row['reg_no'];
-            $c1 = floatval($row['c1'] ?? 0);
-            $c2 = floatval($row['c2'] ?? 0);
-            $c3 = floatval($row['c3'] ?? 0);
-            $c4 = floatval($row['c4'] ?? 0);
-            $c5 = floatval($row['c5'] ?? 0);
-            $c6 = floatval($row['c6'] ?? 0);
-            $total50 = $c1 + $c2 + $c3 + $c4 + $c5 + $c6;
+            $c1 = round(floatval($row['c1'] ?? 0));
+            $c2 = round(floatval($row['c2'] ?? 0));
+            $c3 = round(floatval($row['c3'] ?? 0));
+            $c4 = round(floatval($row['c4'] ?? 0));
+            $c5 = round(floatval($row['c5'] ?? 0));
+            $c6 = round(floatval($row['c6'] ?? 0));
+            
+            $total50 = isset($row['total_score_50']) && $row['total_score_50'] !== '' && $row['total_score_50'] !== null
+                ? min(50, max(0, round(floatval($row['total_score_50']))))
+                : min(50, max(0, $c1 + $c2 + $c3 + $c4 + $c5 + $c6));
 
             R26HealthPhysicalEvaluation::updateOrCreate(
                 [
@@ -674,26 +855,40 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
             );
         }
 
-        return response()->json(['status' => 'SUCCESS', 'message' => 'Activity evaluation marks saved successfully!']);
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Continuous evaluation marks saved successfully!']);
     }
 
     /**
      * Save Physical Fitness & Skill Test Marks (CA1 & CA2)
+     * Supports both standard 40M mode and accidental 15M direct mode.
      */
     public function saveFitnessTestMarks(Request $request, $subjectId)
     {
         $request->validate([
             'test_no' => 'required|string',
+            'mode' => 'nullable|string',
             'marks_data' => 'required|array'
         ]);
 
         $testNo = $request->input('test_no');
+        $mode = $request->input('mode', ($testNo === 'CA1' ? 'direct_15' : 'scaled_40'));
         $marksData = $request->input('marks_data');
 
         foreach ($marksData as $row) {
             $regNo = $row['reg_no'];
-            $total40 = floatval($row['total_score_40'] ?? 0);
             $isAbsent = !empty($row['is_absent']);
+            $rawScore = floatval($row['raw_score'] ?? ($row['total_score_40'] ?? 0));
+
+            if ($isAbsent) {
+                $total40 = 0.00;
+                $rawScore = 0.00;
+            } elseif ($mode === 'direct_15') {
+                $rawScore = min(15.0, max(0.0, $rawScore));
+                $total40 = round(($rawScore / 15.0) * 40.0, 2);
+            } else {
+                $rawScore = min(40.0, max(0.0, $rawScore));
+                $total40 = $rawScore;
+            }
 
             R26HealthPhysicalFitnessTest::updateOrCreate(
                 [
@@ -702,13 +897,133 @@ class R26VirtualClassroomHealthPhysicalController extends Controller
                     'reg_no' => $regNo
                 ],
                 [
-                    'total_score_40' => $isAbsent ? 0.00 : $total40,
+                    'criteria_json' => [
+                        'raw_score' => $rawScore,
+                        'mode' => $mode
+                    ],
+                    'total_score_40' => $total40,
                     'is_absent' => $isAbsent
                 ]
             );
         }
 
-        return response()->json(['status' => 'SUCCESS', 'message' => 'Physical Fitness test marks saved successfully!']);
+        $modeLabel = ($mode === 'direct_15') ? 'Direct 15M Mode' : 'Standard 40M Mode';
+        return response()->json(['status' => 'SUCCESS', 'message' => "Physical Fitness {$testNo} test scores saved successfully! ({$modeLabel})"]);
+    }
+
+    /**
+     * Save Attendance Override for Health & Physical Education
+     */
+    public function saveAttendanceOverride(Request $request, $subjectId)
+    {
+        $request->validate([
+            'reg_no' => 'required|string',
+            'override_percentage' => 'nullable|numeric|min:0|max:100'
+        ]);
+
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $regNo = $request->input('reg_no');
+        $overrideVal = $request->input('override_percentage');
+        $overridePct = ($overrideVal !== null && $overrideVal !== '') ? floatval($overrideVal) : null;
+
+        $attMark = null;
+        if ($overridePct !== null) {
+            if ($overridePct >= 90) $attMark = 5.0;
+            elseif ($overridePct >= 80) $attMark = 4.0;
+            elseif ($overridePct >= 75) $attMark = 3.0;
+            elseif ($overridePct >= 70) $attMark = 2.0;
+            elseif ($overridePct >= 65) $attMark = 1.0;
+            else $attMark = 0.0;
+        }
+
+        DB::table('subject_official_attendances')->updateOrInsert(
+            [
+                'batch_subject_id' => $subjectId,
+                'reg_no' => $regNo
+            ],
+            [
+                'subject_code' => $batchSubject->subject_code,
+                'classroom_id' => $batchSubject->classroom_id,
+                'override_percentage' => $overridePct,
+                'override_mark' => $attMark,
+                'final_percentage' => $overridePct,
+                'final_mark' => $attMark,
+                'updated_at' => now()
+            ]
+        );
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Attendance override updated successfully!',
+            'effective_pct' => $overridePct,
+            'att_mark' => $attMark
+        ]);
+    }
+
+    /**
+     * Bulk Save CIE Register
+     */
+    public function saveCieRegister(Request $request, $subjectId)
+    {
+        $batchSubject = BatchSubject::findOrFail($subjectId);
+        $rows = $request->input('rows', []);
+
+        foreach ($rows as $row) {
+            $regNo = $row['reg_no'] ?? null;
+            if (!$regNo) continue;
+
+            // Attendance Override
+            if (array_key_exists('attendance_override_pct', $row)) {
+                $val = $row['attendance_override_pct'];
+                $overridePct = ($val !== null && $val !== '') ? floatval($val) : null;
+                $attMark = null;
+                if ($overridePct !== null) {
+                    if ($overridePct >= 90) $attMark = 5.0;
+                    elseif ($overridePct >= 80) $attMark = 4.0;
+                    elseif ($overridePct >= 75) $attMark = 3.0;
+                    elseif ($overridePct >= 70) $attMark = 2.0;
+                    elseif ($overridePct >= 65) $attMark = 1.0;
+                    else $attMark = 0.0;
+                }
+
+                DB::table('subject_official_attendances')->updateOrInsert(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'reg_no' => $regNo
+                    ],
+                    [
+                        'subject_code' => $batchSubject->subject_code,
+                        'classroom_id' => $batchSubject->classroom_id,
+                        'override_percentage' => $overridePct,
+                        'override_mark' => $attMark,
+                        'final_percentage' => $overridePct,
+                        'final_mark' => $attMark,
+                        'updated_at' => now()
+                    ]
+                );
+            }
+
+            // ESE Mark if provided
+            if (isset($row['total_ese']) && $row['total_ese'] !== '' && $row['total_ese'] !== null) {
+                $eseTotal = floatval($row['total_ese']);
+                R26HealthPhysicalEseMark::updateOrCreate(
+                    [
+                        'batch_subject_id' => $subjectId,
+                        'reg_no' => $regNo
+                    ],
+                    [
+                        'fitness_test_score' => round($eseTotal * 0.25, 1),
+                        'skill_demo_score' => round($eseTotal * 0.25, 1),
+                        'viva_score' => round($eseTotal * 0.25, 1),
+                        'record_score' => round($eseTotal * 0.25, 1),
+                        'total_ese_40' => $eseTotal,
+                        'is_absent' => !empty($row['ese_absent'])
+                    ]
+                );
+            }
+        }
+
+        return response()->json(['status' => 'SUCCESS', 'message' => 'CIE Register saved successfully!']);
     }
 
     /**

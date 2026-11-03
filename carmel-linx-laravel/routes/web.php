@@ -631,6 +631,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practical/{subjectId}/experiments', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentsList']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plan/generate', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'generateLessonPlan']);
     Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/bulk-update', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'bulkUpdateLessonPlans']);
+    Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'syncLessonPlanDatesFromLogs']);
     Route::delete('/api/r26/classroom/practical/{subjectId}/lesson-plans/{planId}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'deleteLessonPlanRow']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/experiment', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveExperimentMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/open-ended', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
@@ -756,6 +757,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/r21/classroom/seminar/{subjectId}/schedule', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'updateSeminarSchedule']);
     Route::get('/r21/classroom/seminar/{subjectId}/print', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'printReport']);
     Route::get('/r21/classroom/seminar/{subjectId}/attainment-summary', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'getAttainmentSummary']);
+    Route::get('/r21/classroom/seminar/{subjectId}/attainment/summary', [App\Http\Controllers\R21VirtualClassroomSeminarController::class, 'getAttainmentSummary']);
 
     // Revision 2021 Virtual Major Project Classroom (Regulation Clauses 11.2.5 & 11.3.4)
     Route::get('/r21/classroom/project/{subjectId}', [App\Http\Controllers\R21VirtualClassroomMajorProjectController::class, 'show']);
@@ -800,6 +802,8 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/health-physical/{subjectId}/evaluate/activity', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveActivityMarks']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/evaluate/fitness-test', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveFitnessTestMarks']);
     Route::post('/api/r26/classroom/health-physical/{subjectId}/evaluate/ese', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveEseMarks']);
+    Route::post('/api/r26/classroom/health-physical/{subjectId}/attendance/override', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveAttendanceOverride']);
+    Route::post('/api/r26/classroom/health-physical/{subjectId}/cie-register/save', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'saveCieRegister']);
     Route::get('/r26/classroom/health-physical/{subjectId}/print/{type}', [App\Http\Controllers\R26VirtualClassroomHealthPhysicalController::class, 'printReport']);
 
     // HOD Subject Allocation
@@ -910,7 +914,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/classroom/{subjectId}/practical/experiments/import', [App\Http\Controllers\ClassroomController::class, 'importPracticalExperiments']);
     Route::post('/api/classroom/{subjectId}/practical/lesson-plans/generate', [App\Http\Controllers\ClassroomController::class, 'generateLessonPlansFromExperiments']);
     Route::post('/api/classroom/{subjectId}/practical/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
-    Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
+    Route::post('/api/r26/classroom/practical/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'syncLessonPlanDatesFromLogs']);
     Route::post('/api/classroom/{subjectId}/lesson-plans/sync-dates', [App\Http\Controllers\ClassroomController::class, 'syncLessonPlanDatesFromLogs']);
     Route::get('/api/classroom/{subjectId}/practical/copo-mapping', [App\Http\Controllers\ClassroomController::class, 'getPracticalCoPoMapping']);
     Route::post('/api/classroom/{subjectId}/practical/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'savePracticalCoPoMapping']);

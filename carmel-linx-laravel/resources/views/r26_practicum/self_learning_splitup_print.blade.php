@@ -1,3 +1,7 @@
+@php
+    $isChem = str_contains(strtoupper(trim(str_replace([' ', '-'], '', $batchSubject->subject_code ?? ''))), '2003') || str_contains(strtolower($batchSubject->subject_name ?? ''), 'chemistry');
+    $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041') || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +22,7 @@
     <!-- Print Button Bar -->
     <div class="no-print mb-6 flex items-center justify-between bg-white p-4 rounded-xl border border-slate-300 shadow-sm">
         <div>
-            <h2 class="font-bold text-slate-800 text-lg">Self-Learning Activity-Wise Splitup Report (CA - 5 CIA Marks)</h2>
+            <h2 class="font-bold text-slate-800 text-lg">Self-Learning Activity-Wise Splitup Report (CA - {{ $isChem ? '10 CIA Marks' : '5 CIA Marks' }})</h2>
             <p class="text-slate-600 text-xs">Official printable splitup report of all assigned assessment activities per student.</p>
         </div>
         <div class="flex items-center space-x-3">
@@ -63,12 +67,12 @@
                 <th class="border border-slate-400 p-2 text-center w-10">Roll</th>
                 <th class="border border-slate-400 p-2 w-28">SBTE Reg No</th>
                 <th class="border border-slate-400 p-2">Student Name</th>
-                <th class="border border-slate-400 p-2 text-center">CO1 Splitup (/10)</th>
-                <th class="border border-slate-400 p-2 text-center">CO2 Splitup (/10)</th>
-                <th class="border border-slate-400 p-2 text-center">CO3 Splitup (/10)</th>
-                <th class="border border-slate-400 p-2 text-center">CO4 Splitup (/10)</th>
-                <th class="border border-slate-400 p-2 text-center w-24">Avg Raw (/10)</th>
-                <th class="border border-slate-400 p-2 text-center w-24">CA Score (/5M)</th>
+                <th class="border border-slate-400 p-2 text-center">CO1 Splitup (/{{ ($isChem || $isEl1041) ? 15 : 10 }})</th>
+                <th class="border border-slate-400 p-2 text-center">CO2 Splitup (/{{ ($isChem || $isEl1041) ? 15 : 10 }})</th>
+                <th class="border border-slate-400 p-2 text-center">CO3 Splitup (/{{ ($isChem || $isEl1041) ? 15 : 10 }})</th>
+                <th class="border border-slate-400 p-2 text-center">CO4 Splitup (/{{ ($isChem || $isEl1041) ? 15 : 10 }})</th>
+                <th class="border border-slate-400 p-2 text-center w-24">Avg Raw (/{{ ($isChem || $isEl1041) ? 15 : 10 }})</th>
+                <th class="border border-slate-400 p-2 text-center w-24">CA Score (/{{ $isChem ? '10M' : '5M' }})</th>
             </tr>
         </thead>
         <tbody>
@@ -83,7 +87,7 @@
 
                 $allVals = collect($split)->flatMap(fn($item) => array_values($item));
                 $avgRaw = $allVals->count() > 0 ? $allVals->avg() : 0.0;
-                $caScore = min(5.0, ($avgRaw / 10.0) * 5.0);
+                $caScore = $isChem ? min(10.0, ($avgRaw / 15.0) * 10.0) : ($isEl1041 ? min(5.0, round((($avgRaw / 15.0) * 5.0) * 2) / 2) : min(5.0, ($avgRaw / 10.0) * 5.0));
             @endphp
             <tr class="border-b border-slate-300">
                 <td class="border border-slate-300 p-1.5 text-center font-bold">{{ $st->roll_no }}</td>

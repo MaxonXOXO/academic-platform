@@ -49,10 +49,10 @@
         <h2>Department of General Engineering (Aided & Self-Finance)</h2>
         <p>
             @if($type === 'lesson-plan') 30-HOUR PHYSICAL ACTIVITY SCHEDULE & LESSON PLAN
-            @elseif($type === 'activity-log' || $type === 'splitup') CONTINUOUS FITNESS & ACTIVITY SPLIT-UP MARKSHEET REPORT (50M & 30M CIE)
+            @elseif($type === 'activity-log' || $type === 'splitup') CONTINUOUS FITNESS & ACTIVITY SPLIT-UP MARKSHEET REPORT (50M & 25M CIE)
             @elseif($type === 'cia') CONTINUOUS INTERNAL ASSESSMENT (CIA) CONSOLIDATED REPORT (60 MARKS)
             @elseif($type === 'attendance') HEALTH & PHYSICAL EDUCATION ATTENDANCE REGISTER & STATUTORY MARKS (30 HOURS)
-            @elseif($type === 'fitness-tests') PHYSICAL FITNESS & SKILL DEMO TESTS (CA1 & CA2 MARKSHEET)
+            @elseif($type === 'fitness-tests') PHYSICAL FITNESS & SKILL DEMO TESTS (CA1 & CA2 MARKSHEET - 30M)
             @elseif($type === 'consolidated') CONSOLIDATED CIA (60M) + ESE (40M) MARKSHEET REGISTER (100M)
             @elseif($type === 'attainment') DIRECT & INDIRECT CO-PO ATTAINMENT REPORT (REVISION 2026)
             @else CLASSROOM REPORT
@@ -104,7 +104,7 @@
                 <th>{{ $crit['title'] }}<br><span style="font-size: 9px; font-weight: normal;">({{ $crit['max_marks'] }}M)</span></th>
                 @endforeach
                 <th style="width: 70px;">Total<br><span style="font-size: 9px; font-weight: normal;">(50M)</span></th>
-                <th style="width: 80px; background-color: #bae6fd; color: #0284c7;">CIE Continuous<br><span style="font-size: 9px; font-weight: normal;">(30M)</span></th>
+                <th style="width: 80px; background-color: #bae6fd; color: #0284c7;">CIE Continuous<br><span style="font-size: 9px; font-weight: normal;">(25M)</span></th>
             </tr>
         </thead>
         <tbody>
@@ -112,7 +112,7 @@
             @php
                 $stEval = $activityEvals->get($s->reg_no, collect())->first();
                 $tot50 = $stEval ? floatval($stEval->total_score_50) : 0.0;
-                $cie30 = round($tot50 * 0.6, 2);
+                $cie25 = round(($tot50 / 50.0) * 25.0, 1);
             @endphp
             <tr>
                 <td>{{ $idx + 1 }}</td>
@@ -122,8 +122,8 @@
                 @php $k = $crit['key']; @endphp
                 <td>{{ $stEval ? ($stEval->$k ?? 0) : 0 }}</td>
                 @endforeach
-                <td class="bold">{{ number_format($tot50, 1) }}</td>
-                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ number_format($cie30, 2) }}</td>
+                <td class="bold">{{ number_format($tot50, 0) }}</td>
+                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ number_format($cie25, 1) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -136,28 +136,20 @@
                 <th style="width: 30px;">#</th>
                 <th style="width: 90px;">Reg No</th>
                 <th class="text-left">Student Name</th>
-                <th>CA1 Fitness Test (40M)</th>
-                <th>CA2 Skill Demo (40M)</th>
-                <th>Avg Test Score (15M)</th>
+                <th>CA1 Fitness Test<br><span style="font-size: 9px; font-weight: normal;">(Max 15M)</span></th>
+                <th>CA2 Skill Demo<br><span style="font-size: 9px; font-weight: normal;">(Max 15M)</span></th>
+                <th style="background-color: #bae6fd; color: #0284c7;">Total Series Tests<br><span style="font-size: 9px; font-weight: normal;">(Max 30M)</span></th>
             </tr>
         </thead>
         <tbody>
-            @foreach($students as $idx => $s)
-            @php
-                $stTests = $fitnessTests->get($s->reg_no, collect());
-                $ca1 = $stTests->where('test_no', 'CA1')->first();
-                $ca2 = $stTests->where('test_no', 'CA2')->first();
-                $ca1Score = $ca1 ? floatval($ca1->total_score_40) : 0.0;
-                $ca2Score = $ca2 ? floatval($ca2->total_score_40) : 0.0;
-                $testAvg15 = (($ca1Score + $ca2Score) / 80.0) * 15.0;
-            @endphp
+            @foreach($studentResults as $idx => $res)
             <tr>
                 <td>{{ $idx + 1 }}</td>
-                <td>{{ $s->reg_no }}</td>
-                <td class="text-left">{{ $s->name }}</td>
-                <td>{{ $ca1Score }}</td>
-                <td>{{ $ca2Score }}</td>
-                <td class="bold">{{ number_format($testAvg15, 2) }}</td>
+                <td>{{ $res['reg_no'] }}</td>
+                <td class="text-left">{{ $res['name'] }}</td>
+                <td>{{ $res['ca1_conv'] }}</td>
+                <td>{{ $res['ca2_conv'] }}</td>
+                <td class="bold" style="background-color: #f0f9ff; color: #0284c7;">{{ $res['test_marks'] }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -283,8 +275,8 @@
                 <th style="width: 90px;">Reg No</th>
                 <th class="text-left">Student Name</th>
                 <th>Class Attendance (5M)</th>
-                <th>Continuous Fitness & Activity (30M)</th>
-                <th>Fitness & Skill Tests CA1/CA2 (15M)</th>
+                <th>Continuous Fitness & Activity (25M)</th>
+                <th>Fitness & Skill Tests CA1/CA2 (30M)</th>
                 <th style="background-color: #bae6fd; color: #0284c7;">Total CIA Marks (60M)</th>
                 <th style="width: 80px;">Min Pass (24M)</th>
                 <th style="width: 80px;">CIA Status</th>
@@ -354,8 +346,8 @@
                 <th style="width: 90px;">Reg No</th>
                 <th class="text-left">Student Name</th>
                 <th>Att (5M)</th>
-                <th>Continuous (30M)</th>
-                <th>Tests (15M)</th>
+                <th>Continuous (25M)</th>
+                <th>Tests (30M)</th>
                 <th>CIE (60M)</th>
                 <th>ESE (40M)</th>
                 <th>Grand Total (100M)</th>

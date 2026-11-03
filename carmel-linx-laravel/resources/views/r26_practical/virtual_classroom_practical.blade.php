@@ -158,6 +158,13 @@
             font-size: 1.15rem !important;
         }
 
+        /* ── Auto-Sizing Lesson Plan Textarea ─────────────── */
+        .lp-topic {
+            field-sizing: content;
+            min-height: 40px !important;
+            box-sizing: border-box !important;
+        }
+
         /* ── Cards & Panels ───────────────────────────────── */
         .glass-panel {
             background: rgba(2, 6, 23, 0.94);
@@ -733,9 +740,18 @@
                             </button>
                         </div>
 
-                        <button onclick="saveLessonPlannerBulk()" id="btnSavePlan" class="exp-btn-touch px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm md:text-base font-black flex items-center gap-2 cursor-pointer shadow-lg">
+                        <button onclick="saveLessonPlannerBulk()" id="btnSavePlan" class="exp-btn-touch px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm md:text-base font-black flex items-center gap-2 cursor-pointer shadow-lg">
                             <i class="fa-solid fa-floppy-disk text-sm"></i> Save Plan
                         </button>
+
+                        <button onclick="syncPracticalLessonPlanDates()" id="btnSyncPlanDates" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm font-bold flex items-center gap-1.5 cursor-pointer shadow" title="Sync conducted dates from class attendance logs">
+                            <span class="material-symbols-rounded text-base">sync</span> Sync Dates
+                        </button>
+
+                        <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/plan" target="_blank" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs md:text-sm font-bold flex items-center gap-1.5 cursor-pointer shadow" title="Print Practical Lesson Plan">
+                            <span class="material-symbols-rounded text-base">print</span> Print Plan
+                        </a>
+
                         <span id="lp-autosave-indicator" class="hidden"></span>
                     </div>
                 </div>
@@ -787,13 +803,13 @@
                                     <input type="number" min="1" max="6" value="{{ $plan->allocated_hours ?? 1 }}" class="lp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
                                 </td>
                                 <td class="p-1.5">
-                                    <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden" oninput="autoGrowTextarea(this); triggerLpAutoSave()">{{ $plan->topic_content }}</textarea>
+                                    <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden min-h-[40px]" oninput="autoGrowTextarea(this); triggerLpAutoSave()" onfocus="autoGrowTextarea(this)">{{ $plan->topic_content }}</textarea>
                                 </td>
                                 <td class="p-1.5">
-                                    <input type="date" value="{{ $plan->proposed_date }}" class="lp-proposed w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs md:text-sm font-mono font-medium" onchange="triggerLpAutoSave()">
+                                    <input type="date" value="{{ $plan->proposed_date ? date('Y-m-d', strtotime($plan->proposed_date)) : '' }}" class="lp-proposed w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs md:text-sm font-mono font-medium" onchange="triggerLpAutoSave()">
                                 </td>
                                 <td class="p-1.5">
-                                    <input type="date" value="{{ $plan->actual_date }}" class="lp-actual w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-emerald-400 text-xs md:text-sm font-mono font-bold" onchange="onActualDateChange(this)">
+                                    <input type="date" value="{{ $plan->actual_date ? date('Y-m-d', strtotime($plan->actual_date)) : '' }}" class="lp-actual w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-emerald-400 text-xs md:text-sm font-mono font-bold" onchange="onActualDateChange(this)">
                                 </td>
                                 <td class="p-1.5">
                                     <select class="lp-pedagogy w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs md:text-sm font-medium" onchange="triggerLpAutoSave()">
@@ -1171,11 +1187,10 @@
                                     $series2Log = $seriesExamLogs->get('Series 2') ? $seriesExamLogs->get('Series 2')->where('reg_no', $student->reg_no)->first() : null;
                                     $s1Val = $series1Log ? floatval($series1Log->total_score_40) : null;
                                     $s2Val = $series2Log ? floatval($series2Log->total_score_40) : null;
-                                    $sNums = array_filter([$s1Val, $s2Val], fn($v) => $v !== null);
-                                    $hasSeries = count($sNums) > 0;
-                                    $avg40 = $hasSeries ? (array_sum($sNums) / count($sNums)) : null;
-                                    $scaled15 = $avg40 !== null ? round(($avg40 / 40) * 15, 2) : null;
-                                    $rounded15 = $scaled15 !== null ? (int)round($scaled15) : null;
+                                    // Missing or absent series test is treated as 0 (divisor 2.0)
+                                    $avg40 = round(((float)($s1Val ?? 0) + (float)($s2Val ?? 0)) / 2.0, 2);
+                                    $scaled15 = round(($avg40 / 40) * 15, 2);
+                                    $rounded15 = (int)round($scaled15);
                                 @endphp
                                 <tr class="student-row hover:bg-slate-900/50 transition" 
                                     data-reg-no="{{ $student->reg_no }}" 
@@ -1205,14 +1220,10 @@
                                                oninput="calcSeriesRow(this)">
                                     </td>
                                     <td class="py-2 px-2 text-center font-mono text-slate-200 text-sm md:text-base font-bold" id="series-row-avg-{{ $student->reg_no }}">
-                                        {{ $avg40 !== null ? number_format($avg40, 2) : '—' }}
+                                        {{ number_format($avg40, 2) }}
                                     </td>
                                     <td class="py-2 px-2 text-center font-mono text-amber-300 bg-purple-950/40 text-sm md:text-base font-black" id="series-row-scaled-{{ $student->reg_no }}">
-                                        @if($scaled15 !== null)
-                                            {{ number_format($scaled15, 2) }} <span class="text-xs text-amber-400 font-semibold">({{ $rounded15 }})</span>
-                                        @else
-                                            —
-                                        @endif
+                                        {{ number_format($scaled15, 2) }} <span class="text-xs text-amber-400 font-semibold">({{ $rounded15 }})</span>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -1725,6 +1736,11 @@
             if (tabId === 'series_test') {
                 loadSeriesQpConfig(document.getElementById('series_qp_select')?.value || 'Series 1');
             }
+
+            if (tabId === 'lesson_plan') {
+                autoGrowAllLessonPlanTextareas();
+                setTimeout(autoGrowAllLessonPlanTextareas, 50);
+            }
             
             filterLabBatch(activeBatchFilter);
         }
@@ -1839,27 +1855,20 @@
             const s1Val = s1Input && s1Input.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(s1Input.value))) : null;
             const s2Val = s2Input && s2Input.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(s2Input.value))) : null;
 
-            let validScores = [];
-            if (s1Val !== null && !isNaN(s1Val)) validScores.push(s1Val);
-            if (s2Val !== null && !isNaN(s2Val)) validScores.push(s2Val);
+            const s1 = (s1Val !== null && !isNaN(s1Val)) ? s1Val : 0.0;
+            const s2 = (s2Val !== null && !isNaN(s2Val)) ? s2Val : 0.0;
+            // 2 series tests: missing or absent test treated as 0 (divisor 2.0)
+            const avg40 = (s1 + s2) / 2.0;
+            const scaled15 = Math.round(((avg40 / 40) * 15) * 100) / 100;
+            const roundedSeries = Math.round(scaled15);
 
             const avgEl = document.getElementById(`series-row-avg-${regNo}`);
             const scaledEl = document.getElementById(`series-row-scaled-${regNo}`);
             const ciaSeriesEl = document.getElementById(`cia-series-${regNo}`);
 
-            if (validScores.length > 0) {
-                const avg40 = validScores.reduce((a, b) => a + b, 0) / validScores.length;
-                const scaled15 = Math.round(((avg40 / 40) * 15) * 100) / 100;
-                const roundedSeries = Math.round(scaled15);
-
-                if (avgEl) avgEl.innerText = avg40.toFixed(2);
-                if (scaledEl) scaledEl.innerHTML = `${scaled15.toFixed(2)} <span class="text-xs text-amber-400 font-semibold">(${roundedSeries})</span>`;
-                if (ciaSeriesEl) ciaSeriesEl.innerText = scaled15.toFixed(2);
-            } else {
-                if (avgEl) avgEl.innerText = '—';
-                if (scaledEl) scaledEl.innerText = '—';
-                if (ciaSeriesEl) ciaSeriesEl.innerText = '0.00';
-            }
+            if (avgEl) avgEl.innerText = avg40.toFixed(2);
+            if (scaledEl) scaledEl.innerHTML = `${scaled15.toFixed(2)} <span class="text-xs text-amber-400 font-semibold">(${roundedSeries})</span>`;
+            if (ciaSeriesEl) ciaSeriesEl.innerText = scaled15.toFixed(2);
 
             recalculateCIA(regNo);
         }
@@ -2021,13 +2030,13 @@
             // Series 15M (Checks direct inputs first, then fallback to scoresState)
             const s1Input = document.querySelector(`.series-input-s1[data-reg-no="${regNo}"]`);
             const s2Input = document.querySelector(`.series-input-s2[data-reg-no="${regNo}"]`);
-            let sNums = [];
-            if (s1Input && s1Input.value.trim() !== '') sNums.push(parseFloat(s1Input.value));
-            if (s2Input && s2Input.value.trim() !== '') sNums.push(parseFloat(s2Input.value));
+            const hasDirectInput = (s1Input && s1Input.value.trim() !== '') || (s2Input && s2Input.value.trim() !== '');
 
             let scaled31 = 0;
-            if (sNums.length > 0) {
-                const avg40 = sNums.reduce((a, b) => a + b, 0) / sNums.length;
+            if (hasDirectInput) {
+                const s1 = (s1Input && s1Input.value.trim() !== '') ? (parseFloat(s1Input.value) || 0) : 0.0;
+                const s2 = (s2Input && s2Input.value.trim() !== '') ? (parseFloat(s2Input.value) || 0) : 0.0;
+                const avg40 = (s1 + s2) / 2.0;
                 scaled31 = Math.round(((avg40 / 40) * 15) * 100) / 100;
             } else {
                 const s31_1 = scoresState.table31[regNo]?.['Series 1'] || {};
@@ -2538,7 +2547,7 @@
                     <input type="number" min="1" max="6" value="${defaultHours}" class="lp-hours w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 text-center text-xs md:text-sm font-mono font-bold" onchange="triggerLpAutoSave()">
                 </td>
                 <td class="p-1.5">
-                    <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden" oninput="autoGrowTextarea(this); triggerLpAutoSave()"></textarea>
+                    <textarea rows="1" placeholder="Enter topic content..." class="lp-topic w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-100 text-xs md:text-sm font-medium focus:border-blue-500 outline-none resize-none leading-relaxed overflow-hidden min-h-[40px]" oninput="autoGrowTextarea(this); triggerLpAutoSave()" onfocus="autoGrowTextarea(this)"></textarea>
                 </td>
                 <td class="p-1.5">
                     <input type="date" value="" class="lp-proposed w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs md:text-sm font-mono font-medium" onchange="triggerLpAutoSave()">
@@ -2581,14 +2590,32 @@
 
             resequenceLessonPlanRows();
             const input = tr.querySelector('.lp-topic');
-            if (input) input.focus();
+            if (input) {
+                input.focus();
+                autoGrowTextarea(input);
+            }
             triggerLpAutoSave();
         }
 
         function autoGrowTextarea(el) {
             if (!el) return;
+            // Prevent collapsed 0px height if textarea is in a hidden tab
+            if (el.offsetParent === null) return;
             el.style.height = 'auto';
-            el.style.height = (el.scrollHeight) + 'px';
+            const targetHeight = Math.max(40, el.scrollHeight);
+            el.style.height = targetHeight + 'px';
+        }
+
+        function autoGrowAllLessonPlanTextareas() {
+            requestAnimationFrame(() => {
+                document.querySelectorAll('#lesson-plan-rows-container .lp-topic').forEach(ta => {
+                    if (ta.offsetParent !== null) {
+                        ta.style.height = 'auto';
+                        const targetHeight = Math.max(40, ta.scrollHeight);
+                        ta.style.height = targetHeight + 'px';
+                    }
+                });
+            });
         }
 
         async function deleteR26LessonPlanRow(btn, lpId) {
@@ -2699,6 +2726,56 @@
                 }
             } catch(e) {
                 alert("Failed to generate plan.");
+            }
+        }
+
+        async function syncPracticalLessonPlanDates() {
+            const btn = document.getElementById('btnSyncPlanDates');
+            const originalContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-rounded text-base fa-spin">sync</span> Syncing...`;
+            }
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/lesson-plans/sync-dates`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                const data = await res.json();
+                if (data.status === 'SUCCESS' || data.success) {
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Sync Complete',
+                            text: data.message || 'Successfully synchronized dates from class logs!',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                    } else {
+                        alert(data.message || 'Successfully synchronized dates from class logs!');
+                    }
+                    window.location.reload();
+                } else {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Sync Notice',
+                            text: data.message || 'No new attendance dates found to sync.',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                    } else {
+                        alert(data.message || 'No new attendance dates found to sync.');
+                    }
+                }
+            } catch(err) {
+                alert('Failed to sync dates: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }
             }
         }
 
@@ -3021,8 +3098,23 @@
             initExperimentSelect();
             loadExperimentsInventoryTable();
             filterLabBatch('All');
-            document.querySelectorAll('.lp-topic').forEach(ta => {
-                autoGrowTextarea(ta);
+            autoGrowAllLessonPlanTextareas();
+
+            // Observe Lesson Planner tab container so that whenever it is made visible, textareas auto-grow
+            const lessonPlanTabEl = document.getElementById('tab-content-lesson_plan');
+            if (lessonPlanTabEl && window.MutationObserver) {
+                const observer = new MutationObserver(() => {
+                    if (!lessonPlanTabEl.classList.contains('hidden')) {
+                        autoGrowAllLessonPlanTextareas();
+                    }
+                });
+                observer.observe(lessonPlanTabEl, { attributes: true, attributeFilter: ['class', 'style'] });
+            }
+
+            window.addEventListener('resize', () => {
+                if (activeTab === 'lesson_plan') {
+                    autoGrowAllLessonPlanTextareas();
+                }
             });
         });
     </script>

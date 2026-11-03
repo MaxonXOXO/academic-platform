@@ -1,3 +1,6 @@
+@php
+    $isEl1041 = isset($isEl1041) ? $isEl1041 : (str_contains(strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? '')), '1041') || str_contains(strtolower($batchSubject->subject_name ?? ''), 'elementary concept'));
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1033,7 +1036,11 @@
                             <span>Self Learning Activities (SLA &bull; Modules 1, 2, 3 &amp; 4)</span>
                         </h2>
                         <p class="text-xs text-slate-400 mt-0.5">
-                            Module assignments &amp; MCQ quizzes (10M each &bull; Total 40M) &bull; Average (/10) converted to <strong>5 CIA Marks</strong>
+                            @if($isEl1041)
+                                Module assignments &amp; MCQ quizzes (15M each &bull; Total 60M) &bull; Average (/15) converted to <strong>5 CIA Marks</strong>
+                            @else
+                                Module assignments &amp; MCQ quizzes (10M each &bull; Total 40M) &bull; Average (/10) converted to <strong>5 CIA Marks</strong>
+                            @endif
                         </p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
@@ -1061,19 +1068,19 @@
                                 <th class="p-2.5 w-32 border-r border-slate-800">SBTE Reg No</th>
                                 <th class="p-2.5 min-w-[200px] border-r border-slate-800">Student Name</th>
                                 <th class="p-2.5 text-center w-28 bg-blue-950/20 text-blue-300 font-bold border-r border-slate-800">
-                                    Module 1<br><span class="text-[10px] font-normal text-blue-400/80">(Max 10)</span>
+                                    Module 1<br><span class="text-[10px] font-normal text-blue-400/80">(Max {{ $isEl1041 ? 15 : 10 }})</span>
                                 </th>
                                 <th class="p-2.5 text-center w-28 bg-blue-950/20 text-blue-300 font-bold border-r border-slate-800">
-                                    Module 2<br><span class="text-[10px] font-normal text-blue-400/80">(Max 10)</span>
+                                    Module 2<br><span class="text-[10px] font-normal text-blue-400/80">(Max {{ $isEl1041 ? 15 : 10 }})</span>
                                 </th>
                                 <th class="p-2.5 text-center w-28 bg-blue-950/20 text-blue-300 font-bold border-r border-slate-800">
-                                    Module 3<br><span class="text-[10px] font-normal text-blue-400/80">(Max 10)</span>
+                                    Module 3<br><span class="text-[10px] font-normal text-blue-400/80">(Max {{ $isEl1041 ? 15 : 10 }})</span>
                                 </th>
                                 <th class="p-2.5 text-center w-28 bg-blue-950/20 text-blue-300 font-bold border-r border-slate-800">
-                                    Module 4<br><span class="text-[10px] font-normal text-blue-400/80">(Max 10)</span>
+                                    Module 4<br><span class="text-[10px] font-normal text-blue-400/80">(Max {{ $isEl1041 ? 15 : 10 }})</span>
                                 </th>
                                 <th class="p-2.5 text-center w-28 bg-slate-950 text-slate-300 font-bold border-r border-slate-800">
-                                    Raw Avg<br><span class="text-[10px] font-normal text-slate-400">(/10)</span>
+                                    Raw Avg<br><span class="text-[10px] font-normal text-slate-400">(/{{ $isEl1041 ? 15 : 10 }})</span>
                                 </th>
                                 <th class="p-2.5 text-center w-32 bg-emerald-950/30 text-emerald-300 font-bold">
                                     SLA CIE<br><span class="text-[10px] font-normal text-emerald-400">(/5 Marks)</span>
@@ -1103,19 +1110,19 @@
                                     </td>
                                     <!-- M1 -->
                                     <td class="p-1.5 text-center border-r border-slate-800">
-                                        <input type="number" step="0.5" min="0" max="10" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="1" value="{{ $m1 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 1, this.value)">
+                                        <input type="number" step="0.5" min="0" max="{{ $isEl1041 ? 15 : 10 }}" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="1" value="{{ $m1 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 1, this.value)">
                                     </td>
                                     <!-- M2 -->
                                     <td class="p-1.5 text-center border-r border-slate-800">
-                                        <input type="number" step="0.5" min="0" max="10" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="2" value="{{ $m2 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 2, this.value)">
+                                        <input type="number" step="0.5" min="0" max="{{ $isEl1041 ? 15 : 10 }}" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="2" value="{{ $m2 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 2, this.value)">
                                     </td>
                                     <!-- M3 -->
                                     <td class="p-1.5 text-center border-r border-slate-800">
-                                        <input type="number" step="0.5" min="0" max="10" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="3" value="{{ $m3 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 3, this.value)">
+                                        <input type="number" step="0.5" min="0" max="{{ $isEl1041 ? 15 : 10 }}" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="3" value="{{ $m3 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 3, this.value)">
                                     </td>
                                     <!-- M4 -->
                                     <td class="p-1.5 text-center border-r border-slate-800">
-                                        <input type="number" step="0.5" min="0" max="10" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="4" value="{{ $m4 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 4, this.value)">
+                                        <input type="number" step="0.5" min="0" max="{{ $isEl1041 ? 15 : 10 }}" class="sla-input w-20 bg-slate-950 border border-slate-700/80 rounded px-2 py-1.5 text-sm sm:text-base font-bold font-mono text-center text-white focus:border-blue-500 outline-none nav-input shadow-xs" data-reg="{{ $reg }}" data-mod="4" value="{{ $m4 }}" oninput="handlePracticumSlaChange('{{ $reg }}', 4, this.value)">
                                     </td>
                                     <!-- Raw Avg -->
                                     <td class="p-2 text-center font-mono font-bold text-slate-300 border-r border-slate-800 cell-sla-raw sla-raw-avg text-sm sm:text-base">
@@ -2314,7 +2321,7 @@
                             <div class="flex items-center gap-4 text-xs">
                                 <label class="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" name="cfg_{{ $co }}_assignment" {{ !empty($cfg['assignment']) ? 'checked' : '' }} class="rounded border-slate-700 text-blue-600">
-                                    <span class="text-slate-300">Assignment (5M)</span>
+                                    <span class="text-slate-300">Assignment ({{ $isEl1041 ? '10M' : '5M' }})</span>
                                 </label>
                                 <label class="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" name="cfg_{{ $co }}_mcq" {{ !empty($cfg['mcq']) ? 'checked' : '' }} class="rounded border-slate-700 text-blue-600">
@@ -2585,9 +2592,11 @@
             const entered = [m1, m2, m3, m4].filter(v => v !== null && !isNaN(v));
             let rawAvg = 0;
             let sl5 = 0;
+            const isEl1041 = {{ $isEl1041 ? 'true' : 'false' }};
+            const maxModMarks = isEl1041 ? 15.0 : 10.0;
             if (entered.length > 0) {
                 rawAvg = entered.reduce((a, b) => a + b, 0) / entered.length;
-                sl5 = Math.min(5, Math.round(((rawAvg / 10.0) * 5.0) * 2) / 2);
+                sl5 = Math.min(5, Math.round(((rawAvg / maxModMarks) * 5.0) * 2) / 2);
             }
 
             const avgCell = row.querySelector('.cell-sla-raw') || row.querySelector('.sla-raw-avg');

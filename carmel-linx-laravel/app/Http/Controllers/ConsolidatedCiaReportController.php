@@ -260,6 +260,15 @@ class ConsolidatedCiaReportController extends Controller
                 ->get()
                 ->groupBy('batch_subject_id');
         }
+        if (Schema::hasTable('practical_experiment_marks') && Schema::hasTable('practical_experiments') && !empty($subjectIds)) {
+            $practicalExpMarks = DB::table('practical_experiment_marks')
+                ->join('practical_experiments', 'practical_experiment_marks.practical_experiment_id', '=', 'practical_experiments.id')
+                ->whereIn('practical_experiments.batch_subject_id', $subjectIds)
+                ->whereIn('practical_experiment_marks.reg_no', $allLookupRegs)
+                ->select('practical_experiment_marks.*', 'practical_experiments.batch_subject_id')
+                ->get()
+                ->groupBy('batch_subject_id');
+        }
 
         // C. Drawing sheet evaluations & series tests
         $drawingSheets = collect();
@@ -502,7 +511,8 @@ class ConsolidatedCiaReportController extends Controller
                     $seminarEvals->get($sId, collect()),
                     $projectEvals->get($sId, collect()),
                     $semesterMarks,
-                    $workshopSummaries->get($sId, collect())
+                    $workshopSummaries->get($sId, collect()),
+                    $practicalExpMarks->get($sId, collect())
                 );
 
                 $markVal = $ciaResult['mark'];
@@ -715,7 +725,8 @@ class ConsolidatedCiaReportController extends Controller
         $seminarEvals,
         $projectEvals,
         $semesterMarks,
-        $wsSummaries = null
+        $wsSummaries = null,
+        $pracExpMarks = null
     ): array {
         $type = strtolower($subject->subject_type ?? '');
         $name = strtolower($subject->subject_name ?? '');
@@ -794,7 +805,8 @@ class ConsolidatedCiaReportController extends Controller
                     $testScores[] = round(((float)$t->total_score_100 / 100.0) * 15.0, 2);
                 }
             }
-            $drawTestAvg = count($testScores) > 0 ? (array_sum($testScores) / count($testScores)) : 0.0;
+            // 2 drawing series tests: missing or absent test treated as 0
+            $drawTestAvg = count($testScores) > 0 ? round(array_sum($testScores) / 2.0, 2) : 0.0;
 
             // Attendance mark (max 15): check faculty override in practical_evaluations first!
             if ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') {
@@ -849,15 +861,19 @@ class ConsolidatedCiaReportController extends Controller
             });
 
             if ($stSemEvals->isNotEmpty()) {
+                $avgReport = (float)$stSemEvals->avg(fn($e) => $e->report ?? $e->report_score ?? 0);
+                if ($avgReport <= 0) {
+                    return ['mark' => null, 'is_generated' => false];
+                }
+
                 $avgRelevance = (float)$stSemEvals->avg(fn($e) => $e->relevance ?? $e->relevance_score ?? 0);
                 $avgLiterature = (float)$stSemEvals->avg(fn($e) => $e->literature ?? $e->literature_score ?? 0);
                 $avgPresentation = (float)$stSemEvals->avg(fn($e) => $e->presentation ?? $e->presentation_score ?? 0);
                 $avgInteraction = (float)$stSemEvals->avg(fn($e) => $e->interaction ?? $e->interaction_score ?? 0);
-                $avgReport = (float)$stSemEvals->avg(fn($e) => $e->report ?? $e->report_score ?? 0);
                 $avgAtt = (float)$stSemEvals->avg(fn($e) => $e->attendance ?? 0);
 
                 $seminarComp = round($avgRelevance + $avgLiterature + $avgPresentation + $avgInteraction + $avgReport, 2);
-                $attComp = ($avgAtt > 0) ? $avgAtt : AttainmentService::calculateR21AttendanceMark($attPct, 15.0);
+                $attComp = ($avgAtt > 0) ? $avgAtt : AttainmentService::calculateR21AttendanceMark($attPct, 7.5);
                 $tot = min(75, (int)round($seminarComp + $attComp));
                 return ['mark' => $tot, 'is_generated' => true];
             }
@@ -921,7 +937,8 @@ class ConsolidatedCiaReportController extends Controller
                     $tScores[] = $val;
                 }
             }
-            $testAvg = count($tScores) > 0 ? (array_sum($tScores) / count($tScores)) : 0.0;
+            // 2 practical series tests: missing or absent test treated as 0
+            $testAvg = count($tScores) > 0 ? round(array_sum($tScores) / 2.0, 2) : 0.0;
 
             // Attendance marks (max 15): check faculty override in practical_evaluations first!
             if ($eval && $eval->attendance_marks !== null && $eval->attendance_marks !== '') {
@@ -934,6 +951,34 @@ class ConsolidatedCiaReportController extends Controller
                 $labWork = min(37.5, max(0.0, (float)$eval->lab_work_marks));
                 $tot = (int)round($labWork + $micro + $testAvg + $attMark);
                 return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
+            }
+
+            // Continuous lab work derived from experiment marks (Rubrics avg) if direct override is null
+            $stExpMarks = $pracExpMarks ? $pracExpMarks->filter(fn($m) => $m->reg_no === $regNo || ($sbteRegNo && $m->reg_no === $sbteRegNo)) : collect();
+            if ($stExpMarks->isNotEmpty()) {
+                $sumRough = 0; $sumFair = 0; $sumObs = 0; $sumProc = 0; $sumViva = 0;
+                $gradedExpCount = 0;
+                foreach ($stExpMarks as $em) {
+                    if (($em->total_mark ?? 0) > 0 || ($em->rough_record ?? 0) > 0 || ($em->fair_record ?? 0) > 0 || ($em->prerequisites ?? 0) > 0 || ($em->work_done ?? 0) > 0 || ($em->result ?? 0) > 0) {
+                        $sumRough += (float)($em->rough_record ?? 0);
+                        $sumFair  += (float)($em->fair_record ?? 0);
+                        $sumObs   += (float)($em->prerequisites ?? 0);
+                        $sumProc  += (float)($em->work_done ?? 0);
+                        $sumViva  += (float)($em->result ?? 0);
+                        $gradedExpCount++;
+                    }
+                }
+                if ($gradedExpCount > 0) {
+                    $totalDivisor = max(1, $gradedExpCount);
+                    $avgRough = round($sumRough / $totalDivisor, 2);
+                    $avgFair  = round($sumFair / $totalDivisor, 2);
+                    $avgObs   = round($sumObs / $totalDivisor, 2);
+                    $avgProc  = round($sumProc / $totalDivisor, 2);
+                    $avgViva  = round($sumViva / $totalDivisor, 2);
+                    $labWork = min(37.5, max(0.0, round($avgRough + $avgFair + $avgObs + $avgProc + $avgViva, 2)));
+                    $tot = (int)round($labWork + $micro + $testAvg + $attMark);
+                    return ['mark' => min(75, max(0, $tot)), 'is_generated' => true];
+                }
             }
 
             // Check if fallback to student_semester_marks exists
@@ -975,22 +1020,22 @@ class ConsolidatedCiaReportController extends Controller
         }
 
         if (count($assignScores) > 0 || count($summScores) > 0) {
-            // Best 2 out of assignments (max 20)
+            // Best 2 out of assignments (max 20) - missing assignment treated as 0
             rsort($assignScores);
             if (count($assignScores) >= 2) {
                 $assignAvg = ($assignScores[0] + $assignScores[1]) / 2.0;
             } elseif (count($assignScores) === 1) {
-                $assignAvg = $assignScores[0];
+                $assignAvg = round($assignScores[0] / 2.0, 2);
             } else {
                 $assignAvg = 0.0;
             }
 
-            // Best 2 out of summatives (max 20)
+            // Best 2 out of summatives (max 20) - missing or absent test treated as 0
             rsort($summScores);
             if (count($summScores) >= 2) {
                 $summAvg = ($summScores[0] + $summScores[1]) / 2.0;
             } elseif (count($summScores) === 1) {
-                $summAvg = $summScores[0];
+                $summAvg = round($summScores[0] / 2.0, 2);
             } else {
                 $summAvg = 0.0;
             }

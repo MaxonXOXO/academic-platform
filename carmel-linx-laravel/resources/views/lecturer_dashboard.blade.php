@@ -2984,25 +2984,25 @@
 
         rowsHtml += `
           <tr class="border-b border-slate-800/40 hover:bg-slate-900/40 transition-premium" data-reg="${student.reg_no}" data-practical="false" data-assign="${assignAvg}" data-summ="${summAvg}">
-            <td class="p-3 text-slate-400 font-bold text-center text-xs">${student.roll_no || (index + 1)}</td>
+            <td class="p-3 text-slate-300 font-bold text-center text-sm">${student.roll_no || (index + 1)}</td>
             <td class="p-3">
-              <div class="font-bold text-slate-100 text-sm">${student.name}</div>
-              <div class="font-mono text-slate-400 text-xs">${student.sbte_reg_no || student.reg_no}</div>
+              <div class="font-bold text-slate-100 text-base">${student.name}</div>
+              <div class="font-mono text-slate-400 text-sm">${student.sbte_reg_no || student.reg_no}</div>
             </td>
-            <td class="p-3 text-center font-mono font-bold text-emerald-400 text-sm bg-emerald-500/5">
+            <td class="p-3 text-center font-mono font-bold text-emerald-400 text-base bg-emerald-500/5">
               ${assignAvgText}
             </td>
-            <td class="p-3 text-center font-mono font-bold text-sky-400 text-sm bg-sky-500/5">
+            <td class="p-3 text-center font-mono font-bold text-sky-400 text-base bg-sky-500/5">
               ${summAvgText}
             </td>
             <td class="p-3 text-center">
-              <span class="inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-cyan-950/70 border border-cyan-800/70 text-cyan-300" title="Official TEAMS percentage from attendance upload">
-                <span class="material-symbols-rounded text-xs text-cyan-400">upload_file</span>
+              <span class="inline-flex items-center gap-1 font-mono font-bold text-sm px-3 py-1 rounded-md bg-cyan-950/70 border border-cyan-800/70 text-cyan-300" title="Official TEAMS percentage from attendance upload">
+                <span class="material-symbols-rounded text-sm text-cyan-400">upload_file</span>
                 ${teamsPctDisplay}
               </span>
             </td>
             <td class="p-3 text-center">
-              <div class="inline-flex items-center gap-1">
+              <div class="inline-flex items-center gap-1.5 justify-center">
                 <input type="number" step="0.1" min="0" max="100"
                   value="${overrideDisplay}"
                   placeholder="Auto"
@@ -3010,25 +3010,25 @@
                   data-teams="${teamsPctVal !== null ? teamsPctVal : 0}"
                   data-practical="false"
                   title="Enter manual override attendance % (leave empty to use official TEAMS %)"
-                  class="cia-att-override-input override-att-input no-spinner w-20 bg-slate-900 border ${overrideDisplay ? 'border-amber-400 text-amber-300 ring-1 ring-amber-500/50' : 'border-slate-700/80 text-slate-200'} rounded-lg px-2 py-1.5 text-center font-mono font-bold text-xs focus:outline-none focus:border-amber-400"
+                  class="cia-att-override-input override-att-input no-spinner w-24 bg-slate-900 border ${overrideDisplay ? 'border-amber-400 text-amber-300 ring-2 ring-amber-500/40' : 'border-slate-700/80 text-slate-200'} rounded-lg px-2.5 py-1.5 text-center font-mono font-extrabold text-sm focus:outline-none focus:border-amber-400 shadow-sm"
                   onfocus="this.select()"
                   oninput="handleCiaAttOverrideInput(this)"
                   onchange="saveCiaAttOverrideSingle(this)">
                 ${overrideDisplay ? `
                   <button type="button" onclick="resetCiaAttOverride('${student.reg_no}')" title="Reset override to official TEAMS %" class="text-slate-500 hover:text-rose-400 p-1 cursor-pointer transition-colors">
-                    <span class="material-symbols-rounded text-sm">close</span>
+                    <span class="material-symbols-rounded text-base">close</span>
                   </button>
                 ` : ''}
               </div>
             </td>
-            <td class="p-3 text-center font-mono font-bold text-amber-300 text-sm cia-row-att-mark">
-              ${attMark} <span class="text-[10px] text-slate-500 font-normal">/ 10</span>
+            <td class="p-3 text-center font-mono font-black text-amber-300 text-base cia-row-att-mark">
+              ${attMark} <span class="text-xs text-slate-400 font-normal">/ 10</span>
             </td>
-            <td class="p-3 text-center font-mono font-extrabold text-base text-indigo-300 bg-indigo-500/10 cia-row-total-cia cia-row-total-cie">
-              ${totalCia} <span class="text-[10px] text-slate-500 font-normal">/ 50</span>
+            <td class="p-3 text-center font-mono font-black text-lg text-indigo-300 bg-indigo-500/10 cia-row-total-cia cia-row-total-cie">
+              ${totalCia} <span class="text-xs text-slate-400 font-normal">/ 50</span>
             </td>
             <td class="p-3 text-center cia-row-status">
-              <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md border ${isPassed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">
+              <span class="px-2.5 py-1 text-xs font-black rounded-md border ${isPassed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">
                 ${isPassed ? 'PASSED ✓' : 'FAILED'}
               </span>
             </td>
@@ -3038,18 +3038,18 @@
 
       workspace.innerHTML = `
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse min-w-[850px]">
+          <table class="w-full text-left border-collapse min-w-[950px]">
             <thead>
-              <tr class="bg-slate-900/60 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                <th class="p-3 text-center w-12">Roll</th>
+              <tr class="bg-slate-900/80 text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800">
+                <th class="p-3 text-center w-14">Roll</th>
                 <th class="p-3">Student Name &amp; Reg No</th>
-                <th class="p-3 text-center w-28 text-emerald-400">Assignment Avg<br><span class="text-[9px] font-normal text-emerald-300/80">Best 2 (/20)</span></th>
-                <th class="p-3 text-center w-28 text-sky-400">Written Test Avg<br><span class="text-[9px] font-normal text-sky-300/80">Best 2 (/20)</span></th>
-                <th class="p-3 text-center w-32 text-cyan-400">TEAMS Attn %<br><span class="text-[9px] font-normal text-cyan-300/80">Official Upload</span></th>
-                <th class="p-3 text-center w-36 text-amber-400">Override Attn %<br><span class="text-[9px] font-normal text-amber-300/80">Manual Correction</span></th>
-                <th class="p-3 text-center w-24 text-amber-300">Attn Mark<br><span class="text-[9px] font-normal text-slate-400">(Max 10)</span></th>
-                <th class="p-3 text-center w-24 text-indigo-400 bg-indigo-500/10">Total CIA<br><span class="text-[9px] font-normal text-indigo-300/80">(Max 50)</span></th>
-                <th class="p-3 text-center w-24">CIA Status</th>
+                <th class="p-3 text-center w-32 text-emerald-400">Assignment Avg<br><span class="text-xs font-normal text-emerald-300/80">Best 2 (/20)</span></th>
+                <th class="p-3 text-center w-32 text-sky-400">Written Test Avg<br><span class="text-xs font-normal text-sky-300/80">Best 2 (/20)</span></th>
+                <th class="p-3 text-center w-36 text-cyan-400">TEAMS Attn %<br><span class="text-xs font-normal text-cyan-300/80">Official Upload</span></th>
+                <th class="p-3 text-center w-40 text-amber-400">Override Attn %<br><span class="text-xs font-normal text-amber-300/80">Manual Correction</span></th>
+                <th class="p-3 text-center w-28 text-amber-300">Attn Mark<br><span class="text-xs font-normal text-slate-400">(Max 10)</span></th>
+                <th class="p-3 text-center w-28 text-indigo-400 bg-indigo-500/15">Total CIA<br><span class="text-xs font-normal text-indigo-300/80">(Max 50)</span></th>
+                <th class="p-3 text-center w-28">CIA Status</th>
               </tr>
             </thead>
             <tbody id="ciaCalculationTableBody" class="divide-y divide-slate-800/40">

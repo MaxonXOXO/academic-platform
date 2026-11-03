@@ -230,12 +230,19 @@
     </style>
 </head>
 <body>
+@php
+    $scale = request('scale', '100');
+    $isOriginal = ($scale === 'original');
+@endphp
 
     <div class="action-bar">
         <span style="font-size: 11px; font-weight: 600; color: #4b5563;">
-            Showing {{ count($students) }} Students across {{ count($subjects) }} Subjects ({{ $classroom['revision'] ?? 'REV2026' }})
+            Showing {{ count($students) }} Students across {{ count($subjects) }} Subjects ({{ $classroom['revision'] ?? 'REV2026' }}) | Mode: <strong style="color: {{ $isOriginal ? '#d97706' : '#0284c7' }}">{{ $isOriginal ? 'Original Weighted (Staff Entry)' : '100-Scale (Normalized)' }}</strong>
         </span>
-        <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&mode=all_cards" target="_blank" class="btn btn-secondary" title="Print Individual Report Card Slips for Parent-Teacher Meeting">
+        <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&scale={{ $isOriginal ? '100' : 'original' }}" class="btn" style="background-color: {{ $isOriginal ? '#4b5563' : '#d97706' }};">
+            {{ $isOriginal ? 'Switch to 100-Scale' : 'Switch to Original Staff Marks' }}
+        </a>
+        <a href="/tutor/progress-report/print?classroom_id={{ $classroom['id'] }}&mode=all_cards{{ $isOriginal ? '&scale=original' : '' }}" target="_blank" class="btn btn-secondary" title="Print Individual Report Card Slips for Parent-Teacher Meeting">
             PTM Student Cards View
         </a>
         <button class="btn" onclick="window.print()">
@@ -303,10 +310,20 @@
                 @endphp
                 <tr>
                     <td style="font-weight: 700; color: #1e3a8a;">{{ $s1 ? $s1->subject_code : '-' }}</td>
-                    <td>{{ $s1 ? $s1->subject_name : '-' }}</td>
+                    <td>
+                        {{ $s1 ? $s1->subject_name : '-' }}
+                        @if(!empty($s1->faculty_names) && $s1->faculty_names !== 'Not Assigned')
+                            <div style="font-size: 7.5px; color: #059669; font-weight: 600;">Faculty: {{ $s1->faculty_names }}</div>
+                        @endif
+                    </td>
                     <td style="color: #4b5563;">{{ $s1 ? $s1->subject_type : '-' }}</td>
                     <td style="font-weight: 700; color: #1e3a8a;">{{ $s2 ? $s2->subject_code : '-' }}</td>
-                    <td>{{ $s2 ? $s2->subject_name : '-' }}</td>
+                    <td>
+                        {{ $s2 ? $s2->subject_name : '-' }}
+                        @if(!empty($s2->faculty_names) && $s2->faculty_names !== 'Not Assigned')
+                            <div style="font-size: 7.5px; color: #059669; font-weight: 600;">Faculty: {{ $s2->faculty_names }}</div>
+                        @endif
+                    </td>
                     <td style="color: #4b5563;">{{ $s2 ? $s2->subject_type : '-' }}</td>
                 </tr>
             @endfor
@@ -335,9 +352,20 @@
             </tr>
             <tr>
                 @foreach($subjects as $subj)
-                    <th class="co-sub">S1<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
-                    <th class="co-sub">S2<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
-                    <th class="co-sub col-tot">Avg<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                    @php
+                        $m1 = $subj->max_series_1 ?? 50;
+                        $m2 = $subj->max_series_2 ?? 50;
+                        $mTot = $subj->max_total ?? 50;
+                    @endphp
+                    @if($isOriginal)
+                        <th class="co-sub">S1<br><span style="font-size: 6px; font-weight: normal;">/{{ $m1 }}</span></th>
+                        <th class="co-sub">S2<br><span style="font-size: 6px; font-weight: normal;">/{{ $m2 }}</span></th>
+                        <th class="co-sub col-tot">Tot<br><span style="font-size: 6px; font-weight: normal;">/{{ $mTot }}</span></th>
+                    @else
+                        <th class="co-sub">S1<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                        <th class="co-sub">S2<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                        <th class="co-sub col-tot">Avg<br><span style="font-size: 6px; font-weight: normal;">/100</span></th>
+                    @endif
                 @endforeach
             </tr>
         </thead>
@@ -352,9 +380,15 @@
                     @foreach($subjects as $subj)
                         @php
                             $sData = $st['subjects'][$subj->id] ?? collect($st['subjects'])->firstWhere('subject_code', $subj->subject_code);
-                            $s1 = $sData['series_1'] ?? null;
-                            $s2 = $sData['series_2'] ?? null;
-                            $tot = $sData['subject_total'] ?? null;
+                            if ($isOriginal) {
+                                $s1 = $sData['raw_series_1'] ?? null;
+                                $s2 = $sData['raw_series_2'] ?? null;
+                                $tot = $sData['raw_total'] ?? null;
+                            } else {
+                                $s1 = $sData['series_1'] ?? null;
+                                $s2 = $sData['series_2'] ?? null;
+                                $tot = $sData['subject_total'] ?? null;
+                            }
                         @endphp
                         <td>{{ $s1 !== null ? $s1 : '-' }}</td>
                         <td>{{ $s2 !== null ? $s2 : '-' }}</td>
@@ -365,7 +399,11 @@
 
                     <!-- Grand Total Marks -->
                     <td class="col-grand">
-                        {{ $st['grand_total_marks'] > 0 ? $st['grand_total_marks'] : '-' }}
+                        @if($isOriginal)
+                            {{ ($st['raw_grand_total_marks'] ?? 0) > 0 ? $st['raw_grand_total_marks'] : '-' }}
+                        @else
+                            {{ $st['grand_total_marks'] > 0 ? $st['grand_total_marks'] : '-' }}
+                        @endif
                     </td>
 
                     <!-- Total Attendance % (Uploaded by Tutor in Total) -->

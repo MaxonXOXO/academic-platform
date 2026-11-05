@@ -1150,11 +1150,13 @@ class TutorController extends Controller
             $mode = 'card';
         }
 
+        $subjectsCollection = $this->sortProgressReportSubjects(collect($data['subjects'])->map(fn($s) => (object)$s));
+
         if ($mode === 'card' || $mode === 'all_cards') {
             return view('tutor.progress_report_card_print', [
                 'classroom' => $data['classroom'],
                 'summary'   => $data['summary'],
-                'subjects'  => collect($data['subjects'])->map(fn($s) => (object)$s),
+                'subjects'  => $subjectsCollection,
                 'students'  => $data['students'],
                 'isSingle'  => !empty($targetStudent)
             ]);
@@ -1163,9 +1165,122 @@ class TutorController extends Controller
         return view('tutor.progress_report_consolidated_print', [
             'classroom' => $data['classroom'],
             'summary'   => $data['summary'],
-            'subjects'  => collect($data['subjects'])->map(fn($s) => (object)$s),
+            'subjects'  => $subjectsCollection,
             'students'  => $data['students']
         ]);
+    }
+
+    /**
+     * Sort subjects specifically for TM Cards and Progress Report printouts according to official hierarchy:
+     * 1. Practicum Program core
+     * 2. Practicum Basic science
+     * 3. Theory
+     * 4. Project based theory
+     * 5. Practical
+     * 6. Lab
+     * 7. Workshop
+     * 8. Seminar
+     * 9. Projects
+     * 10. Internship
+     * 11. etc.
+     */
+    private function sortProgressReportSubjects($subjects)
+    {
+        $getPriority = function ($s) {
+            $code = strtoupper(trim(str_replace([' ', '-'], '', (string)($s->subject_code ?? ''))));
+            $name = strtolower(trim((string)($s->subject_name ?? '')));
+            $type = strtolower(trim((string)($s->subject_type ?? '')));
+
+            // 10. Internship
+            if (str_contains($type, 'internship') || str_contains($name, 'internship')) {
+                return 10;
+            }
+
+            // 4. Project based theory (Check before Theory and before Projects)
+            if (str_contains($type, 'project based theory')
+                || str_contains($type, 'project-based theory')
+                || str_contains($name, 'project based theory')
+                || str_contains($name, 'project-based theory')
+                || (str_contains($type, 'project based') && str_contains($type, 'theory'))
+                || (str_contains($name, 'project based') && str_contains($name, 'theory'))) {
+                return 4;
+            }
+
+            // 9. Projects (Major Project, Mini Project, Project course, code 6009 - excluding pure theory like Project Management)
+            if ((str_contains($name, 'major project') || str_contains($name, 'mini project') || str_contains($type, 'project') || $code === '6009')
+                && !str_contains($name, 'project based') && !str_contains($name, 'project-based') && !str_contains($name, 'project management')) {
+                return 9;
+            }
+
+            // 8. Seminar
+            if (str_contains($type, 'seminar') || str_contains($name, 'seminar')) {
+                return 8;
+            }
+
+            // 7. Workshop (Engineering Workshop, Mechanical Workshop, Machine Shop, etc.)
+            if (str_contains($name, 'workshop') || str_contains($name, 'machine shop') || (str_contains($type, 'workshop') && !str_contains($type, 'laboratory'))) {
+                return 7;
+            }
+
+            // Health / Physical Education / Sports -> Tier 11 (etc.)
+            if (str_contains($name, 'health and physical') || str_contains($name, 'physical education') || str_contains($name, 'sports')) {
+                return 11;
+            }
+
+            // 1 & 2. Practicum: Program core vs Basic science
+            $isPracticum = str_contains($type, 'practicum') || str_contains($name, 'practicum');
+            if ($isPracticum) {
+                $isBasicScience = str_contains($type, 'basic science')
+                    || str_contains($type, 'humanities')
+                    || str_contains($name, 'chemistry')
+                    || str_contains($name, 'physics')
+                    || str_contains($name, 'english')
+                    || str_contains($code, '2003')
+                    || str_contains($code, '2002')
+                    || str_contains($code, '2001')
+                    || str_contains($code, '1001');
+
+                if ($isBasicScience) {
+                    return 2; // Practicum Basic science
+                }
+                return 1; // Practicum Program core
+            }
+
+            if (str_contains($type, 'basic science') || str_contains($type, 'humanities')) {
+                return 2; // Practicum Basic science
+            }
+
+            // 3. Theory (Theory Courses, Theory, Drawing Theory)
+            if (str_contains($type, 'theory') || str_contains($type, 'theory courses') || (str_contains($type, 'drawing') && str_contains($type, 'theory'))) {
+                return 3;
+            }
+
+            // 5. Practical (Practical Courses, or type is purely practical without lab)
+            if ($type === 'practical' || $type === 'practical courses') {
+                return 5;
+            }
+
+            // 6. Lab (Drawing Lab, ... Lab, Laboratory/Workshop where title is IT skills / CAD / Lab, Practical / Lab)
+            if (str_contains($name, 'lab') || str_contains($type, 'lab') || str_contains($type, 'laboratory')) {
+                return 6;
+            }
+
+            if (str_contains($type, 'practical')) {
+                return 5;
+            }
+
+            // 11. Other / etc. (Drawing Courses, Health & Physical, etc.)
+            return 11;
+        };
+
+        return $subjects->values()->sort(function ($a, $b) use ($getPriority) {
+            $pa = $getPriority($a);
+            $pb = $getPriority($b);
+            if ($pa !== $pb) {
+                return $pa <=> $pb;
+            }
+            return 0;
+        })->values();
     }
 
     /**

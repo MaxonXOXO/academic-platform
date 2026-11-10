@@ -26,6 +26,30 @@ class R26ClassroomController extends Controller
     }
 
     /**
+     * Determine if a Revision 2026 course must be routed to Practical Lab Virtual Classroom.
+     * (Covers 1004 EL & CT, and General Engineering Workshop 2009 / 2009A / 2009B across Sem 1 & Sem 2 in all branches).
+     */
+    private function shouldRedirectToPracticalLab($batchSubject, $subjectId): bool
+    {
+        $sCode = $batchSubject->subject_code ?? '';
+        $sName = $batchSubject->subject_name ?? '';
+        $cId = $batchSubject->classroom_id ?? '';
+        $isR26 = ($batchSubject->syllabus_revision_code === 'REV2026' || str_contains($cId, '2026'));
+
+        $is1004ElCt = (str_contains($sCode, '1004') || in_array((string)$subjectId, ['72', '128', '163'])) &&
+                      (str_contains($sCode, 'EL') || str_contains($sCode, 'CT') || str_contains($cId, 'EL') || str_contains($cId, 'CT') || in_array((string)$subjectId, ['72', '128', '163']));
+
+        $isWorkshopR26 = $isR26 && (
+            str_contains($sCode, '2009') ||
+            stripos($sName, 'General Engineering Workshop') !== false ||
+            stripos($sName, 'Engineering Workshop') !== false ||
+            stripos($sName, 'Workshop Practice') !== false
+        );
+
+        return $is1004ElCt || $isWorkshopR26;
+    }
+
+    /**
      * View Virtual Classroom (Theory) for Revision 2026.
      */
     public function viewTheoryClassroom($subjectId)
@@ -40,6 +64,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) {
             abort(404, 'Subject not found.');
+        }
+
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
         }
 
         // Dedicated redirection for Revision 2026 English (1001)
@@ -1352,6 +1381,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
+        }
+
         // Dedicated redirection for Revision 2026 English (1001)
         if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
             return redirect('/r26/classroom/english-1001/' . $subjectId);
@@ -1621,6 +1655,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
+        }
+
         // Dedicated redirection for Revision 2026 English (1001)
         if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
             return redirect('/r26/classroom/english-1001/' . $subjectId);
@@ -1644,6 +1683,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) {
             abort(404, 'Subject not found.');
+        }
+
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
         }
 
         // Dedicated redirection for Revision 2026 English (1001)
@@ -2499,6 +2543,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
+        }
+
         // Dedicated redirection for Revision 2026 English (1001)
         if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
             return redirect('/r26/classroom/english-1001/' . $subjectId);
@@ -3219,6 +3268,11 @@ class R26ClassroomController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
+        }
+
         // Dedicated redirection for Revision 2026 English (1001)
         if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
             return redirect('/r26/classroom/english-1001/' . $subjectId);
@@ -3355,6 +3409,11 @@ class R26ClassroomController extends Controller
         $batchSubject = BatchSubject::find($subjectId);
         if (!$batchSubject) {
             abort(404, 'Subject not found.');
+        }
+
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects
+        if ($this->shouldRedirectToPracticalLab($batchSubject, $subjectId)) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
         }
 
         // Dedicated redirection for Revision 2026 English (1001)

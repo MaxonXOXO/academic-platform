@@ -127,6 +127,18 @@ class Student extends Model
 
     public static function getClassroomStudentsQuery($classroomId)
     {
+        // Special Handling for Admission 2024 Open Elective Multi-Branch Classrooms
+        if (str_contains($classroomId, '_OE') || str_starts_with($classroomId, 'OE_')) {
+            $oeStudentAdmNos = \App\Models\OeVirtualClassroom::where('classroom_id', $classroomId)
+                ->pluck('student_adm_no')
+                ->toArray();
+
+            if (!empty($oeStudentAdmNos)) {
+                return self::whereIn('adm_no', $oeStudentAdmNos)
+                    ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, UPPER(name) ASC');
+            }
+        }
+
         if (str_ends_with($classroomId, '_LET')) {
             $baseClassroomId = substr($classroomId, 0, -4);
             return self::where('classroom_id', $baseClassroomId)

@@ -305,6 +305,12 @@
       <a href="/dashboard/lecturer" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block mobile-link">
          <span class="material-symbols-rounded text-base">calendar_view_week</span> My Batches
       </a>
+      <a href="/hod/open-elective" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-cyan-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block mobile-link" title="S6 Open Elective Classroom & Nominal Roll">
+         <div class="flex items-center gap-2.5">
+           <span class="material-symbols-rounded text-base text-cyan-400">how_to_reg</span> S6 Open Elective
+         </div>
+         <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-cyan-500/20 text-cyan-300">R21</span>
+      </a>
       <a href="/hod/report-centre" class="w-full text-left px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2.5 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block mobile-link">
          <span class="material-symbols-rounded text-base">analytics</span> Report Centre
       </a>

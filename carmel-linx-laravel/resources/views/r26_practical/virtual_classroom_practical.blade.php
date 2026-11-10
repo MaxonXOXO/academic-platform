@@ -928,6 +928,25 @@
                     <div id="exp-pdf-status" class="exp-pdf-status hidden mt-2 text-xs font-semibold"></div>
                 </div>
 
+                <!-- Direct Logbook Entry Notice Card -->
+                <div class="p-4 rounded-2xl bg-emerald-950/50 border border-emerald-500/40 my-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-lg border border-emerald-500/40 shrink-0">
+                            <i class="fa-solid fa-bolt"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-sm md:text-base font-black text-white flex items-center gap-2">
+                                <span>Physical Log Book Direct Entry Enabled</span>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider">No Sliders Needed</span>
+                            </h4>
+                            <p class="text-xs text-slate-300 mt-0.5">Enter each student's consolidated average mark out of 50 directly in the CIA Master Register table. Individual experiment evaluations with criteria sliders are optional.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="switchTab('cia_register')" class="exp-btn-touch px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-black flex items-center gap-2 shrink-0 shadow cursor-pointer">
+                        <i class="fa-solid fa-table-list"></i> Go to CIA Direct Entry
+                    </button>
+                </div>
+
                 <!-- Subtab Switcher (Daywork Log vs Open Ended) -->
                 <div class="flex items-center gap-2.5 mt-5 border-b border-slate-800 pb-2.5">
                     <button onclick="switchCeSubtab('daywork')" id="ce-subtab-btn-daywork" class="px-3.5 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center gap-2 cursor-pointer shadow-sm">
@@ -1209,7 +1228,8 @@
                                                data-reg-no="{{ $student->reg_no }}"
                                                value="{{ $s1Val !== null ? $s1Val : '' }}"
                                                placeholder="—"
-                                               oninput="calcSeriesRow(this)">
+                                               oninput="handleMarkInputDebounced('series', '{{ $student->reg_no }}', this)"
+                                               onchange="saveSeriesSingleAjax('{{ $student->reg_no }}', this)">
                                     </td>
                                     <td class="p-2 text-center">
                                         <input type="number" min="0" max="40" step="0.5" 
@@ -1217,7 +1237,8 @@
                                                data-reg-no="{{ $student->reg_no }}"
                                                value="{{ $s2Val !== null ? $s2Val : '' }}"
                                                placeholder="—"
-                                               oninput="calcSeriesRow(this)">
+                                               oninput="handleMarkInputDebounced('series', '{{ $student->reg_no }}', this)"
+                                               onchange="saveSeriesSingleAjax('{{ $student->reg_no }}', this)">
                                     </td>
                                     <td class="py-2 px-2 text-center font-mono text-slate-200 text-sm md:text-base font-bold" id="series-row-avg-{{ $student->reg_no }}">
                                         {{ number_format($avg40, 2) }}
@@ -1261,30 +1282,47 @@
                             <button onclick="filterLabBatch('Batch 2')" class="batch-filter-btn px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white cursor-pointer">Batch 2</button>
                         </div>
 
+                        <button onclick="saveCiaDirectMarks()" id="btnSaveCiaDirect" class="exp-btn-touch px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black flex items-center gap-2 shadow-md cursor-pointer transition">
+                            <i class="fa-solid fa-floppy-disk text-sm"></i> Save CE Marks
+                        </button>
                         <a href="/r26/classroom/practical/{{ $batchSubject->id }}/print/cia" target="_blank" class="exp-btn-touch px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-black flex items-center gap-2 no-underline shadow-md">
                             <i class="fa-solid fa-print text-sm"></i> Print Register
                         </a>
                     </div>
                 </div>
 
+                <!-- Info Banner on Direct Entry -->
+                <div class="px-4 py-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-300 font-medium">
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm shrink-0"></i>
+                    <span><strong>Physical Log Book Direct Entry Enabled:</strong> Enter each student's consolidated average mark out of 50 directly in the green <strong>CE Logbook (50M)</strong> field. It converts to 30M Daywork + 10M Open-Ended (40M CE Total) live without needing experiment sliders.</span>
+                </div>
+
                 <!-- CIA Master Register Table -->
-                <div class="overflow-x-auto rounded-xl border border-slate-700 mt-4">
+                <div class="overflow-x-auto rounded-xl border border-slate-700 mt-2">
                     <table class="w-full text-left text-xs md:text-sm border-collapse">
                         <thead>
                             <tr class="bg-slate-950 text-slate-200 font-bold uppercase text-[11px] md:text-xs border-b border-slate-700">
                                 <th class="py-2 px-1.5 w-12 text-center">Roll</th>
-                                <th class="py-2 px-2 w-32">Reg No</th>
+                                <th class="py-2 px-2 w-28">Reg No</th>
                                 <th class="py-2 px-2">Student Name</th>
-                                <th class="py-2 px-1.5 w-24 text-center">Batch</th>
-                                <th class="py-2 px-1.5 w-24 text-center">TEAMS %</th>
-                                <th class="py-2 px-1.5 w-28 text-center text-amber-300">Atten Override %</th>
-                                <th class="py-2 px-1.5 w-24 text-center text-emerald-400">Atten (5M)</th>
-                                <th class="py-2 px-1.5 w-24 text-center">CE (40M)</th>
-                                <th class="py-2 px-1.5 w-24 text-center text-purple-400">Series (15M)</th>
-                                <th class="py-2.5 px-2 w-32 text-center font-black text-emerald-400 bg-emerald-500/20 border-x border-emerald-500/30 text-xs md:text-sm">CIA Total (60M)</th>
-                                <th class="py-2 px-1.5 w-24 text-center text-sky-400">ESE (40M)</th>
-                                <th class="py-2 px-1.5 w-28 text-center text-cyan-300 font-bold">Total (100M)</th>
-                                <th class="py-2 px-1.5 w-20 text-center text-amber-300 font-bold">Grade</th>
+                                <th class="py-2 px-1.5 w-20 text-center">Batch</th>
+                                <th class="py-2 px-1.5 w-20 text-center">TEAMS %</th>
+                                <th class="py-2 px-1.5 w-24 text-center text-amber-300">Atten Override %</th>
+                                <th class="py-2 px-1.5 w-20 text-center text-emerald-400">Atten (5M)</th>
+                                <th class="py-2 px-1.5 w-28 text-center text-emerald-300 bg-emerald-950/40 border-x border-emerald-500/30">
+                                    <span>CE Logbook (50M)</span>
+                                    <span class="block text-[10px] text-emerald-400/80 font-mono font-normal">&rarr; Converted 30M</span>
+                                </th>
+                                <th class="py-2 px-1.5 w-28 text-center text-amber-300 bg-amber-950/20 border-r border-amber-500/30">
+                                    <span>Open-Ended (50M)</span>
+                                    <span class="block text-[10px] text-amber-400/80 font-mono font-normal">&rarr; Converted 10M</span>
+                                </th>
+                                <th class="py-2 px-1.5 w-20 text-center text-cyan-200">CE (40M)</th>
+                                <th class="py-2 px-1.5 w-20 text-center text-purple-400">Series (15M)</th>
+                                <th class="py-2.5 px-2 w-28 text-center font-black text-emerald-400 bg-emerald-500/20 border-x border-emerald-500/30 text-xs md:text-sm">CIA Total (60M)</th>
+                                <th class="py-2 px-1.5 w-20 text-center text-sky-400">ESE (40M)</th>
+                                <th class="py-2 px-1.5 w-24 text-center text-cyan-300 font-bold">Total (100M)</th>
+                                <th class="py-2 px-1.5 w-16 text-center text-amber-300 font-bold">Grade</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800">
@@ -1313,7 +1351,7 @@
                                     {{ $attInfo['teams_percentage'] !== null ? number_format($attInfo['teams_percentage'], 1) . '%' : (($attInfo['raw_percentage'] ?? null) !== null ? number_format($attInfo['raw_percentage'], 1) . '%' : '—') }}
                                 </td>
 
-                                <!-- Attendance Override % (ONLY editable field) -->
+                                <!-- Attendance Override % (with Autosave) -->
                                 <td class="p-1 text-center">
                                     <input type="number" 
                                            step="0.01" 
@@ -1323,8 +1361,9 @@
                                            placeholder="—"
                                            data-reg-no="{{ $student->reg_no }}"
                                            data-prev-val="{{ $attInfo['override_percentage'] ?? '' }}"
+                                           oninput="handleMarkInputDebounced('atten', '{{ $student->reg_no }}', this)"
                                            onchange="saveAttendanceOverrideAjax(this, '{{ $student->reg_no }}')"
-                                           class="cell-att-override {{ $hasOverride ? 'has-override' : '' }} w-20 md:w-24 px-2 py-1.5 text-center text-xs md:text-sm font-mono font-bold rounded-lg border-2 border-slate-700 focus:border-amber-400 bg-slate-950">
+                                           class="cell-att-override {{ $hasOverride ? 'has-override' : '' }} w-20 md:w-24 px-2 py-1.5 text-center text-xs md:text-sm font-mono font-bold rounded-lg border-2 border-slate-700 focus:border-amber-400 bg-slate-950 transition">
                                 </td>
 
                                 <!-- Attendance Mark (5M) -->
@@ -1332,14 +1371,48 @@
                                     {{ $score['attendance_mark_5'] ?? 0 }}
                                 </td>
 
-                                <!-- CE Total (40M) -->
-                                <td class="py-2 px-1.5 text-center font-mono text-slate-100 text-xs md:text-sm font-bold" id="cia-ce-total-{{ $student->reg_no }}">
-                                    {{ $score['ce_total_40'] ?? '0.00' }}
+                                <!-- CE Logbook Average (50M) -> Scaled 30M Direct Input (with Autosave) -->
+                                <td class="p-1 text-center bg-emerald-950/20 border-x border-emerald-500/20">
+                                    <input type="number" 
+                                           min="0" 
+                                           max="50" 
+                                           step="0.5" 
+                                           class="ce-input-50 w-20 md:w-24 px-2 py-1.5 bg-slate-950 border-2 border-slate-700 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 rounded-xl text-center font-mono font-black text-emerald-300 outline-none text-sm transition"
+                                           data-reg-no="{{ $student->reg_no }}"
+                                           value="{{ ($score['raw_exp_avg'] ?? 0) > 0 ? $score['raw_exp_avg'] : '' }}"
+                                           placeholder="—"
+                                           oninput="handleMarkInputDebounced('ce', '{{ $student->reg_no }}', this)"
+                                           onchange="saveCeSingleAjax('{{ $student->reg_no }}', this)">
+                                    <div class="text-[10px] font-mono text-emerald-400/90 font-bold mt-0.5" id="cia-ce-scaled-{{ $student->reg_no }}">
+                                        {{ number_format($score['scaled_lab_work_30'] ?? 0, 2) }} / 30
+                                    </div>
+                                </td>
+
+                                <!-- Open-Ended Experiment (50M) -> Scaled 10M Direct Input (auto-inherits CE if blank, with Autosave) -->
+                                <td class="p-1 text-center bg-amber-950/10 border-r border-amber-500/20">
+                                    <input type="number" 
+                                           min="0" 
+                                           max="50" 
+                                           step="0.5" 
+                                           class="oee-input-50 w-20 md:w-24 px-2 py-1.5 bg-slate-950 border-2 border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 rounded-xl text-center font-mono font-black text-amber-300 outline-none text-sm transition"
+                                           data-reg-no="{{ $student->reg_no }}"
+                                           value="{{ ($score['has_direct_oee'] ?? false) ? $score['raw_open_ended'] : '' }}"
+                                           placeholder="{{ ($score['raw_exp_avg'] ?? 0) > 0 ? number_format($score['raw_exp_avg'], 1) : '—' }}"
+                                           oninput="handleMarkInputDebounced('oee', '{{ $student->reg_no }}', this)"
+                                           onchange="saveCeSingleAjax('{{ $student->reg_no }}', this)">
+                                    <div class="text-[10px] font-mono text-amber-400/90 font-bold mt-0.5" id="cia-open-scaled-{{ $student->reg_no }}">
+                                        {{ number_format($score['scaled_open_ended_10'] ?? 0, 2) }} / 10
+                                    </div>
+                                </td>
+
+                                <!-- Combined CE Total (40M) -->
+                                <td class="py-2 px-1.5 text-center font-mono text-cyan-200 text-xs md:text-sm font-black" id="cia-ce-total-{{ $student->reg_no }}">
+                                    {{ number_format($score['ce_total_40'] ?? 0, 2) }}
                                 </td>
 
                                 <!-- Series Total (15M) -->
                                 <td class="py-2 px-1.5 text-center font-mono text-purple-300 text-xs md:text-sm font-bold" id="cia-series-{{ $student->reg_no }}">
-                                    {{ $score['scaled_series_15'] ?? '0.00' }}
+                                    {{ number_format($score['scaled_series_15'] ?? 0, 2) }}
                                 </td>
 
                                 <!-- Total CIA (60M) rounded without decimal! Prominent large font & emerald green color -->
@@ -1349,9 +1422,18 @@
                                     </span>
                                 </td>
 
-                                <!-- ESE (40M) -->
-                                <td class="py-2 px-1.5 text-center font-mono text-sky-300 text-xs md:text-sm font-semibold" id="cia-ese-{{ $student->reg_no }}">
-                                    {{ number_format($score['ese_score_40'] ?? 0, 2) }}
+                                <!-- ESE (40M) Direct Input with Autosave -->
+                                <td class="p-1 text-center bg-sky-950/20 border-x border-sky-500/20">
+                                    <input type="number" 
+                                           min="0" 
+                                           max="40" 
+                                           step="0.5" 
+                                           class="ese-input-40 w-16 md:w-20 px-2 py-1.5 bg-slate-950 border-2 border-slate-700 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30 rounded-xl text-center font-mono font-black text-sky-300 outline-none text-sm transition"
+                                           data-reg-no="{{ $student->reg_no }}"
+                                           value="{{ ($score['ese_score_40'] ?? 0) > 0 ? $score['ese_score_40'] : '' }}"
+                                           placeholder="—"
+                                           oninput="handleMarkInputDebounced('ese', '{{ $student->reg_no }}', this)"
+                                           onchange="saveEseSingleAjax('{{ $student->reg_no }}', this)">
                                 </td>
 
                                 <!-- Grand Total (100M) -->
@@ -1857,8 +1939,24 @@
 
             const s1 = (s1Val !== null && !isNaN(s1Val)) ? s1Val : 0.0;
             const s2 = (s2Val !== null && !isNaN(s2Val)) ? s2Val : 0.0;
-            // 2 series tests: missing or absent test treated as 0 (divisor 2.0)
-            const avg40 = (s1 + s2) / 2.0;
+
+            // Check if Series 2 has entries anywhere
+            let anySeries2 = false;
+            document.querySelectorAll('.series-input-s2').forEach(el => {
+                if (el.value.trim() !== '') anySeries2 = true;
+            });
+
+            let avg40 = 0.0;
+            if (anySeries2) {
+                // Two series tests conducted: missing or absent test treated as 0 (divisor 2.0)
+                avg40 = (s1 + s2) / 2.0;
+            } else if (s1Val !== null) {
+                // Only Series 1 conducted so far
+                avg40 = s1;
+            } else {
+                avg40 = 0.0;
+            }
+
             const scaled15 = Math.round(((avg40 / 40) * 15) * 100) / 100;
             const roundedSeries = Math.round(scaled15);
 
@@ -1871,6 +1969,66 @@
             if (ciaSeriesEl) ciaSeriesEl.innerText = scaled15.toFixed(2);
 
             recalculateCIA(regNo);
+        }
+
+        // Direct CIA Register Row Live Calculation
+        function calcCiaDirectRow(regNo) {
+            recalculateCIA(regNo);
+        }
+
+        // Bulk Save Direct Consolidated CE & Open-Ended Marks
+        async function saveCiaDirectMarks() {
+            const marks = {};
+            document.querySelectorAll('.ce-input-50').forEach(ceInput => {
+                const regNo = ceInput.getAttribute('data-reg-no');
+                const oeeInput = document.querySelector(`.oee-input-50[data-reg-no="${regNo}"]`);
+                marks[regNo] = {
+                    ce_50: ceInput.value.trim() !== '' ? parseFloat(ceInput.value) : null,
+                    open_50: oeeInput && oeeInput.value.trim() !== '' ? parseFloat(oeeInput.value) : null,
+                };
+            });
+
+            const btn = document.getElementById('btnSaveCiaDirect');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
+                btn.disabled = true;
+            }
+
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/evaluate/ce-bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ marks })
+                });
+                const data = await res.json();
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Saved!';
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Save CE Marks';
+                        btn.disabled = false;
+                    }, 1800);
+                }
+                if (data.status === 'SUCCESS' || data.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Consolidated CE marks saved successfully',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            } catch(err) {
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Save CE Marks';
+                    btn.disabled = false;
+                }
+                console.error(err);
+                alert('Failed to save continuous evaluation marks.');
+            }
         }
 
         // Bulk Save Direct Series Marks
@@ -1957,13 +2115,240 @@
             }
         }
 
-        // Attendance Override Auto-Save (The ONLY editable field in CIA register!)
+        // ═══ AUTOSAVE & LIVE CALCULATIONS ═══════════════════════════════════════
+        const autosaveTimers = {};
+        let autosaveHideTimeout = null;
+
+        function computeAttendanceMarkJs(pct) {
+            if (pct >= 90) return 5;
+            if (pct >= 80) return 4;
+            if (pct >= 75) return 3;
+            if (pct >= 70) return 2;
+            if (pct >= 65) return 1;
+            return 0;
+        }
+
+        function showAutosaveFeedback(state, message, inputEl) {
+            const indicator = document.getElementById('global-autosave-status');
+            if (indicator) {
+                if (state === 'saving') {
+                    indicator.className = 'fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-amber-500/50 shadow-2xl text-xs font-semibold text-amber-300 flex items-center gap-2 transition-all duration-200 transform translate-y-0 opacity-100 pointer-events-none';
+                    indicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> <span>' + (message || 'Autosaving...') + '</span>';
+                } else if (state === 'saved') {
+                    indicator.className = 'fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-emerald-500/50 shadow-2xl text-xs font-semibold text-emerald-300 flex items-center gap-2 transition-all duration-200 transform translate-y-0 opacity-100 pointer-events-none';
+                    indicator.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>' + (message || 'Changes saved') + '</span>';
+                    clearTimeout(autosaveHideTimeout);
+                    autosaveHideTimeout = setTimeout(() => {
+                        indicator.className = 'fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-slate-700 shadow-2xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition-all duration-300 pointer-events-none opacity-0 translate-y-2';
+                    }, 2200);
+                } else if (state === 'error') {
+                    indicator.className = 'fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-rose-500/50 shadow-2xl text-xs font-semibold text-rose-300 flex items-center gap-2 transition-all duration-200 transform translate-y-0 opacity-100 pointer-events-none';
+                    indicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> <span>' + (message || 'Autosave failed') + '</span>';
+                    clearTimeout(autosaveHideTimeout);
+                    autosaveHideTimeout = setTimeout(() => {
+                        indicator.className = 'fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-slate-700 shadow-2xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition-all duration-300 pointer-events-none opacity-0 translate-y-2';
+                    }, 3500);
+                }
+            }
+
+            if (inputEl) {
+                if (state === 'saving') {
+                    inputEl.classList.add('ring-2', 'ring-amber-400/50', 'border-amber-400');
+                } else if (state === 'saved') {
+                    inputEl.classList.remove('ring-amber-400/50', 'border-amber-400', 'ring-rose-500/50', 'border-rose-500');
+                    inputEl.classList.add('ring-2', 'ring-emerald-400/60', 'border-emerald-400');
+                    setTimeout(() => {
+                        inputEl.classList.remove('ring-2', 'ring-emerald-400/60', 'border-emerald-400');
+                    }, 1200);
+                } else if (state === 'error') {
+                    inputEl.classList.remove('ring-amber-400/50', 'border-amber-400');
+                    inputEl.classList.add('ring-2', 'ring-rose-500/60', 'border-rose-500');
+                }
+            }
+        }
+
+        // Live calculation and debounced autosave trigger
+        function handleMarkInputDebounced(type, regNo, input) {
+            const timerKey = `${type}_${regNo}`;
+            if (autosaveTimers[timerKey]) {
+                clearTimeout(autosaveTimers[timerKey]);
+            }
+
+            // Immediate client-side recalculation
+            if (type === 'series') {
+                calcSeriesRow(input);
+            } else if (type === 'ce' || type === 'oee') {
+                calcCiaDirectRow(regNo);
+            } else if (type === 'atten') {
+                const val = input.value.trim();
+                if (val !== '') {
+                    const pct = Math.min(100, Math.max(0, parseFloat(val) || 0));
+                    const computedMark = computeAttendanceMarkJs(pct);
+                    const attSpan = document.getElementById(`cia-att-mark-${regNo}`);
+                    if (attSpan) attSpan.innerText = computedMark;
+                    attendanceMarks[regNo] = attendanceMarks[regNo] || {};
+                    attendanceMarks[regNo].mark = computedMark;
+                }
+                recalculateCIA(regNo);
+            } else if (type === 'ese') {
+                recalculateCIA(regNo);
+            }
+
+            // Debounced network save
+            autosaveTimers[timerKey] = setTimeout(() => {
+                delete autosaveTimers[timerKey];
+                if (type === 'series') {
+                    saveSeriesSingleAjax(regNo, input);
+                } else if (type === 'ce' || type === 'oee') {
+                    saveCeSingleAjax(regNo, input);
+                } else if (type === 'atten') {
+                    saveAttendanceOverrideAjax(input, regNo);
+                } else if (type === 'ese') {
+                    saveEseSingleAjax(regNo, input);
+                }
+            }, 600);
+        }
+
+        // Autosave Single Student CE Marks (Consolidated 50M & Open-Ended 50M)
+        async function saveCeSingleAjax(regNo, input) {
+            const timerKey = `ce_${regNo}`;
+            const oeeKey = `oee_${regNo}`;
+            if (autosaveTimers[timerKey]) { clearTimeout(autosaveTimers[timerKey]); delete autosaveTimers[timerKey]; }
+            if (autosaveTimers[oeeKey]) { clearTimeout(autosaveTimers[oeeKey]); delete autosaveTimers[oeeKey]; }
+
+            const ceInput = document.querySelector(`.ce-input-50[data-reg-no="${regNo}"]`);
+            const oeeInput = document.querySelector(`.oee-input-50[data-reg-no="${regNo}"]`);
+
+            const ceVal = ceInput && ceInput.value.trim() !== '' ? Math.min(50, Math.max(0, parseFloat(ceInput.value))) : null;
+            const openVal = oeeInput && oeeInput.value.trim() !== '' ? Math.min(50, Math.max(0, parseFloat(oeeInput.value))) : null;
+
+            const targetInput = input || ceInput || oeeInput;
+            showAutosaveFeedback('saving', 'Autosaving CE mark...', targetInput);
+
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/evaluate/ce-bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        marks: {
+                            [regNo]: {
+                                ce_50: ceVal,
+                                open_50: openVal
+                            }
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'SUCCESS' || data.success) {
+                    if (ceInput) ceInput.dataset.lastSavedVal = ceInput.value.trim();
+                    if (oeeInput) oeeInput.dataset.lastSavedVal = oeeInput.value.trim();
+                    recalculateCIA(regNo);
+                    showAutosaveFeedback('saved', 'CE mark autosaved', targetInput);
+                } else {
+                    showAutosaveFeedback('error', data.message || 'Failed to autosave CE mark', targetInput);
+                }
+            } catch(err) {
+                console.error(err);
+                showAutosaveFeedback('error', 'Network error saving CE mark', targetInput);
+            }
+        }
+
+        // Autosave Single Student Series Test Marks (Series 1 & Series 2 out of 40)
+        async function saveSeriesSingleAjax(regNo, input) {
+            const timerKey = `series_${regNo}`;
+            if (autosaveTimers[timerKey]) { clearTimeout(autosaveTimers[timerKey]); delete autosaveTimers[timerKey]; }
+
+            const s1Input = document.querySelector(`.series-input-s1[data-reg-no="${regNo}"]`);
+            const s2Input = document.querySelector(`.series-input-s2[data-reg-no="${regNo}"]`);
+
+            const s1Val = s1Input && s1Input.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(s1Input.value))) : null;
+            const s2Val = s2Input && s2Input.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(s2Input.value))) : null;
+
+            const targetInput = input || s1Input || s2Input;
+            showAutosaveFeedback('saving', 'Autosaving Series mark...', targetInput);
+
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/evaluate/series-bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        marks: {
+                            [regNo]: {
+                                series_1: s1Val,
+                                series_2: s2Val
+                            }
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'SUCCESS' || data.success) {
+                    if (s1Input) s1Input.dataset.lastSavedVal = s1Input.value.trim();
+                    if (s2Input) s2Input.dataset.lastSavedVal = s2Input.value.trim();
+                    calcSeriesRow(targetInput);
+                    showAutosaveFeedback('saved', 'Series mark autosaved', targetInput);
+                } else {
+                    showAutosaveFeedback('error', data.message || 'Failed to autosave series mark', targetInput);
+                }
+            } catch(err) {
+                console.error(err);
+                showAutosaveFeedback('error', 'Network error saving series mark', targetInput);
+            }
+        }
+
+        // Autosave Single Student ESE Mark (out of 40)
+        async function saveEseSingleAjax(regNo, input) {
+            const timerKey = `ese_${regNo}`;
+            if (autosaveTimers[timerKey]) { clearTimeout(autosaveTimers[timerKey]); delete autosaveTimers[timerKey]; }
+
+            const eseInput = input || document.querySelector(`.ese-input-40[data-reg-no="${regNo}"]`);
+            const eseVal = eseInput && eseInput.value.trim() !== '' ? Math.min(40, Math.max(0, parseFloat(eseInput.value))) : null;
+
+            showAutosaveFeedback('saving', 'Autosaving ESE mark...', eseInput);
+
+            try {
+                const res = await fetch(`/api/r26/classroom/practical/${subjectId}/ese-marks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        marks: {
+                            [regNo]: eseVal
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'SUCCESS' || data.success) {
+                    if (eseInput) eseInput.dataset.lastSavedVal = eseInput.value.trim();
+                    recalculateCIA(regNo);
+                    showAutosaveFeedback('saved', 'ESE mark autosaved', eseInput);
+                } else {
+                    showAutosaveFeedback('error', data.message || 'Failed to autosave ESE mark', eseInput);
+                }
+            } catch(err) {
+                console.error(err);
+                showAutosaveFeedback('error', 'Network error saving ESE mark', eseInput);
+            }
+        }
+
+        // Attendance Override Auto-Save with Autosave Indicator
         async function saveAttendanceOverrideAjax(input, regNo) {
+            const timerKey = `atten_${regNo}`;
+            if (autosaveTimers[timerKey]) { clearTimeout(autosaveTimers[timerKey]); delete autosaveTimers[timerKey]; }
+
             const val = input.value.trim();
             const prevVal = input.getAttribute('data-prev-val') || '';
             if (val === prevVal) return;
 
             input.classList.add('opacity-50');
+            showAutosaveFeedback('saving', 'Saving attendance override...', input);
             try {
                 const res = await fetch(`/api/r26/classroom/practical/${subjectId}/attendance-override`, {
                     method: 'POST',
@@ -1980,6 +2365,7 @@
                 input.classList.remove('opacity-50');
                 if (data.status === 'SUCCESS' || data.success) {
                     input.setAttribute('data-prev-val', val);
+                    input.dataset.lastSavedVal = val;
                     if (val !== '') {
                         input.classList.add('has-override');
                     } else {
@@ -1996,29 +2382,60 @@
 
                     // Recalculate CIA
                     recalculateCIA(regNo);
+                    showAutosaveFeedback('saved', 'Attendance override saved', input);
                 } else {
-                    alert(data.message || 'Failed to save attendance override.');
+                    showAutosaveFeedback('error', data.message || 'Failed to save attendance', input);
                 }
             } catch(e) {
                 input.classList.remove('opacity-50');
                 console.error(e);
-                alert('Network error saving attendance override.');
+                showAutosaveFeedback('error', 'Network error saving attendance', input);
             }
         }
 
         // Recalculate CIA Register client-side values live
         function recalculateCIA(regNo) {
-            // Day Work 30M
-            const s22 = scoresState.table22[regNo] || {};
-            const sum22 = (s22.c1||0) + (s22.c2||0) + (s22.c3||0) + (s22.c4||0) + (s22.c5||0) + (s22.c6||0);
-            const scaled22 = Math.round(((sum22 / 50) * 30) * 100) / 100;
+            const ceInput = document.querySelector(`.ce-input-50[data-reg-no="${regNo}"]`);
+            const oeeInput = document.querySelector(`.oee-input-50[data-reg-no="${regNo}"]`);
+
+            let scaled22 = 0;
+            let scaled23 = 0;
+
+            if (ceInput && ceInput.value.trim() !== '') {
+                const ceVal = Math.min(50, Math.max(0, parseFloat(ceInput.value) || 0));
+                scaled22 = Math.round(((ceVal / 50) * 30) * 100) / 100;
+
+                if (oeeInput && oeeInput.value.trim() !== '') {
+                    const oeeVal = Math.min(50, Math.max(0, parseFloat(oeeInput.value) || 0));
+                    scaled23 = Math.round(((oeeVal / 50) * 10) * 100) / 100;
+                } else {
+                    // Syllabus Note 3: drawing sheets from module I & II count as open-ended
+                    scaled23 = Math.round(((ceVal / 50) * 10) * 100) / 100;
+                    if (oeeInput) {
+                        oeeInput.placeholder = ceVal.toFixed(1);
+                    }
+                }
+            } else {
+                // Day Work 30M fallback to scoresState
+                const s22 = scoresState.table22[regNo] || {};
+                const sum22 = (s22.c1||0) + (s22.c2||0) + (s22.c3||0) + (s22.c4||0) + (s22.c5||0) + (s22.c6||0);
+                scaled22 = Math.round(((sum22 / 50) * 30) * 100) / 100;
+
+                // Open-ended 10M fallback to scoresState
+                const s23 = scoresState.table23[regNo] || {};
+                const sum23 = (s23.c1||0) + (s23.c2||0) + (s23.c3||0) + (s23.c4||0) + (s23.c5||0);
+                scaled23 = Math.round(((sum23 / 50) * 10) * 100) / 100;
+            }
+
+            const ceScaledEl = document.getElementById(`cia-ce-scaled-${regNo}`);
+            if (ceScaledEl) ceScaledEl.innerText = `${scaled22.toFixed(2)} / 30`;
+
+            const oeeScaledEl = document.getElementById(`cia-open-scaled-${regNo}`);
+            if (oeeScaledEl) oeeScaledEl.innerText = `${scaled23.toFixed(2)} / 10`;
+
             const labWorkEl = document.getElementById(`cia-lab-work-${regNo}`);
             if (labWorkEl) labWorkEl.innerText = scaled22.toFixed(2);
 
-            // Open-ended 10M
-            const s23 = scoresState.table23[regNo] || {};
-            const sum23 = (s23.c1||0) + (s23.c2||0) + (s23.c3||0) + (s23.c4||0) + (s23.c5||0);
-            const scaled23 = Math.round(((sum23 / 50) * 10) * 100) / 100;
             const openEl = document.getElementById(`cia-open-${regNo}`);
             if (openEl) openEl.innerText = scaled23.toFixed(2);
 
@@ -2036,7 +2453,11 @@
             if (hasDirectInput) {
                 const s1 = (s1Input && s1Input.value.trim() !== '') ? (parseFloat(s1Input.value) || 0) : 0.0;
                 const s2 = (s2Input && s2Input.value.trim() !== '') ? (parseFloat(s2Input.value) || 0) : 0.0;
-                const avg40 = (s1 + s2) / 2.0;
+                let anySeries2 = false;
+                document.querySelectorAll('.series-input-s2').forEach(el => {
+                    if (el.value.trim() !== '') anySeries2 = true;
+                });
+                const avg40 = anySeries2 ? ((s1 + s2) / 2.0) : ((s1Input && s1Input.value.trim() !== '') ? s1 : 0.0);
                 scaled31 = Math.round(((avg40 / 40) * 15) * 100) / 100;
             } else {
                 const s31_1 = scoresState.table31[regNo]?.['Series 1'] || {};
@@ -2059,9 +2480,10 @@
             const ciaEl = document.getElementById(`cia-total-${regNo}`);
             if (ciaEl) ciaEl.innerText = cia;
 
-            // ESE 40M
+            // ESE 40M (reads direct input field if present, falls back to text element)
+            const eseInput = document.querySelector(`.ese-input-40[data-reg-no="${regNo}"]`);
             const eseEl = document.getElementById(`cia-ese-${regNo}`);
-            const ese = eseEl ? (parseFloat(eseEl.innerText) || 0) : 0;
+            const ese = eseInput && eseInput.value.trim() !== '' ? (parseFloat(eseInput.value) || 0) : (eseEl ? (parseFloat(eseEl.innerText) || 0) : 0);
 
             // Grand Total (100M)
             const grand = Math.round(cia + ese);
@@ -3062,7 +3484,12 @@
 
             const input = e.target;
             if (!input || input.tagName !== 'INPUT' || input.type === 'checkbox' || input.type === 'hidden') return;
-            if (!input.classList.contains('series-input-s1') && !input.classList.contains('series-input-s2') && !input.classList.contains('cell-att-override')) return;
+            if (!input.classList.contains('series-input-s1') && 
+                !input.classList.contains('series-input-s2') && 
+                !input.classList.contains('cell-att-override') &&
+                !input.classList.contains('ce-input-50') &&
+                !input.classList.contains('oee-input-50') &&
+                !input.classList.contains('ese-input-40')) return;
 
             const row = input.closest('tr');
             if (!row) return;
@@ -3075,6 +3502,9 @@
             if (input.classList.contains('series-input-s1')) selector = '.series-input-s1';
             else if (input.classList.contains('series-input-s2')) selector = '.series-input-s2';
             else if (input.classList.contains('cell-att-override')) selector = '.cell-att-override';
+            else if (input.classList.contains('ce-input-50')) selector = '.ce-input-50';
+            else if (input.classList.contains('oee-input-50')) selector = '.oee-input-50';
+            else if (input.classList.contains('ese-input-40')) selector = '.ese-input-40';
             if (!selector) return;
 
             const visibleRows = Array.from(tbody.querySelectorAll('tr.student-row')).filter(r => r.offsetParent !== null);
@@ -3118,6 +3548,12 @@
             });
         });
     </script>
+    <!-- Floating Autosave Status Pill -->
+    <div id="global-autosave-status" class="fixed bottom-5 right-5 z-50 px-4 py-2 rounded-xl bg-slate-900/95 border border-slate-700 shadow-2xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition-all duration-300 pointer-events-none opacity-0 translate-y-2">
+        <i class="fa-solid fa-cloud-arrow-up text-slate-400"></i>
+        <span>Ready</span>
+    </div>
+
     @include('partials.carmie_assistant')
 </body>
 </html>

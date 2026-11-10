@@ -420,6 +420,27 @@
             <!-- TAB 1: HOME / DASHBOARD OVERVIEW -->
             <div id="tab-home" class="tab-pane fade-in">
 
+                <!-- S6 Open Elective Registration Banner (For 5th Semester Students) -->
+                @if(($student->semester ?? session('semester')) == 5)
+                <div class="app-card border border-cyan border-opacity-50 shadow-lg mb-3" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.98) 100%);">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.68rem; font-weight: 800;">
+                            <i class="fa-solid fa-graduation-cap me-1"></i> SEMESTER 6 REV 2021
+                        </span>
+                        <span class="badge bg-danger bg-opacity-20 text-rose-300 border border-danger border-opacity-30" style="font-size: 0.68rem; font-weight: 800;">
+                            <i class="fa-solid fa-fire me-1"></i> OPEN ELECTIVE
+                        </span>
+                    </div>
+                    <h6 class="fw-bold text-white mb-1" style="font-size: 0.92rem;">Open Elective Course Registration</h6>
+                    <p class="text-secondary mb-2.5" style="font-size: 0.74rem; line-height: 1.35;">
+                        Rank your 5 preferences across disciplines (excluding {{ $student->branch ?? session('userBranch') }}). Seats are filled on first-come, first-served basis.
+                    </p>
+                    <a href="/student/open-elective" class="btn btn-sm btn-cyan w-100 fw-bold py-1.5 rounded-pill shadow-sm d-flex align-items-center justify-center gap-2" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Select Open Elective Courses Now
+                    </a>
+                </div>
+                @endif
+
                 <!-- Executive Flash Notice Banner (Student Mobile) -->
                 <div id="studentExecutiveFlashNoticeBanner" class="mb-3 d-none"></div>
 

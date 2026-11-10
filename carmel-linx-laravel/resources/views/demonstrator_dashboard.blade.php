@@ -451,7 +451,17 @@
                       $sTypeLower = strtolower($s->subject_type ?? '');
                       
                       if ($isR26) {
-                        if (str_contains($s->subject_code ?? '', '1001') || str_contains($sNameLower, 'english')) {
+                        $is1004ElCt = (str_contains($s->subject_code ?? '', '1004') || in_array((string)($s->subject_id ?? ''), ['72', '128', '163'])) &&
+                                      (str_contains($s->subject_code ?? '', 'EL') || str_contains($s->subject_code ?? '', 'CT') || str_contains($s->classroom_id ?? '', 'EL') || str_contains($s->classroom_id ?? '', 'CT') || in_array((string)($s->subject_id ?? ''), ['72', '128', '163']));
+
+                        $isWorkshop2026 = str_contains($s->subject_code ?? '', '2009') ||
+                                          str_contains($sNameLower, 'general engineering workshop') ||
+                                          str_contains($sNameLower, 'engineering workshop') ||
+                                          str_contains($sNameLower, 'workshop practice');
+
+                        if ($is1004ElCt || $isWorkshop2026) {
+                          $targetUrl = "/r26/classroom/practical/{$s->subject_id}";
+                        } elseif (str_contains($s->subject_code ?? '', '1001') || str_contains($sNameLower, 'english')) {
                           $targetUrl = "/r26/classroom/english-1001/{$s->subject_id}";
                         } elseif (str_contains($sNameLower, 'health') || str_contains($sNameLower, 'physical') || str_contains($sTypeLower, 'health') || str_contains($sTypeLower, 'physical')) {
                           $targetUrl = "/r26/classroom/health-physical/{$s->subject_id}";

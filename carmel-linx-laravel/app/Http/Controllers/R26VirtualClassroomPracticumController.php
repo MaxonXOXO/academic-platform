@@ -36,6 +36,26 @@ class R26VirtualClassroomPracticumController extends Controller
             abort(404, 'Subject not found.');
         }
 
+        // Dedicated redirection for Revision 2026 Practical Lab & Workshop subjects (1004 EL & CT, 2009 / 2009A / 2009B)
+        $sCode = $batchSubject->subject_code ?? '';
+        $sName = $batchSubject->subject_name ?? '';
+        $cId = $batchSubject->classroom_id ?? '';
+        $isR26 = ($batchSubject->syllabus_revision_code === 'REV2026' || str_contains($cId, '2026'));
+
+        $is1004ElCt = (str_contains($sCode, '1004') || in_array((string)$subjectId, ['72', '128', '163'])) &&
+                      (str_contains($sCode, 'EL') || str_contains($sCode, 'CT') || str_contains($cId, 'EL') || str_contains($cId, 'CT') || in_array((string)$subjectId, ['72', '128', '163']));
+
+        $isWorkshopR26 = $isR26 && (
+            str_contains($sCode, '2009') ||
+            stripos($sName, 'General Engineering Workshop') !== false ||
+            stripos($sName, 'Engineering Workshop') !== false ||
+            stripos($sName, 'Workshop Practice') !== false
+        );
+
+        if ($is1004ElCt || $isWorkshopR26) {
+            return redirect('/r26/classroom/practical/' . $subjectId);
+        }
+
         // Dedicated redirection for Revision 2026 English (1001)
         if ($batchSubject->syllabus_revision_code === 'REV2026' && (str_contains($batchSubject->subject_code ?? '', '1001') || stripos($batchSubject->subject_name ?? '', 'English') !== false)) {
             return redirect('/r26/classroom/english-1001/' . $subjectId);

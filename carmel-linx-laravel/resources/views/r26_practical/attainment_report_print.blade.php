@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CO-PO Attainment Report - {{ $batchSubject->subject_code }}</title>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm 10mm;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 30px;

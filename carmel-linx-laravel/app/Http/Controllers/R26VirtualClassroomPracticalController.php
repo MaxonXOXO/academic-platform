@@ -64,27 +64,63 @@ class R26VirtualClassroomPracticalController extends Controller
             $regNo = $student->reg_no;
 
             // 1. Day Work avg → scale to 30M
-            $expNums = [];
-            foreach ($experimentLogs as $expNo => $logs) {
-                $log = $logs->where('reg_no', $regNo)->first();
-                if ($log) $expNums[] = floatval($log->total_score_50);
+            // Check first if direct consolidated mark exists for 'Consolidated'
+            $consLog = (isset($experimentLogs['Consolidated'])) ? $experimentLogs['Consolidated']->where('reg_no', $regNo)->first() : null;
+            if ($consLog && $consLog->total_score_50 !== null) {
+                $avgExp50 = floatval($consLog->total_score_50);
+                $hasDirectCe = true;
+            } else {
+                $expNums = [];
+                foreach ($experimentLogs as $expNo => $logs) {
+                    if ($expNo === 'Consolidated') continue;
+                    $log = $logs->where('reg_no', $regNo)->first();
+                    if ($log && $log->total_score_50 !== null) $expNums[] = floatval($log->total_score_50);
+                }
+                $avgExp50 = count($expNums) > 0 ? array_sum($expNums) / count($expNums) : 0;
+                $hasDirectCe = false;
             }
-            $avgExp50 = count($expNums) > 0 ? array_sum($expNums) / count($expNums) : 0;
             $scaled30 = round(($avgExp50 / 50) * 30, 2);
 
             // 2. Open-ended → scale to 10M
             $openLog = $openEndedLogs->get($regNo);
-            $open50 = $openLog ? floatval($openLog->total_score_50) : 0;
-            $scaled10 = round(($open50 / 50) * 10, 2);
+            if ($openLog && $openLog->total_score_50 !== null && $openLog->total_score_50 !== '') {
+                $open50 = floatval($openLog->total_score_50);
+                $scaled10 = round(($open50 / 50) * 10, 2);
+                $hasDirectOee = true;
+            } else {
+                // If Open-Ended is not separately entered, but CE logbook mark exists:
+                // As per Syllabus Note 3 (Modules I & II drawing sheets count as open-ended),
+                // inherit CE logbook score so student is not penalized.
+                if ($avgExp50 > 0) {
+                    $open50 = $avgExp50;
+                    $scaled10 = round(($open50 / 50) * 10, 2);
+                } else {
+                    $open50 = 0.0;
+                    $scaled10 = 0.0;
+                }
+                $hasDirectOee = false;
+            }
 
             // 3. Combined CE (40M) = Daywork 30M + Open Ended 10M
             $ceTotal40 = round($scaled30 + $scaled10, 2);
 
             // 4. Series avg → scale to 15M (Two series tests in 40 -> avg in 40 -> converted to 15; missing/absent treated as 0)
-            $s1 = (isset($seriesExamLogs['Series 1']) && ($l1 = $seriesExamLogs['Series 1']->where('reg_no', $regNo)->first())) ? floatval($l1->total_score_40) : 0.0;
-            $s2 = (isset($seriesExamLogs['Series 2']) && ($l2 = $seriesExamLogs['Series 2']->where('reg_no', $regNo)->first())) ? floatval($l2->total_score_40) : 0.0;
-            $hasAnySeries = (isset($seriesExamLogs['Series 1']) && $seriesExamLogs['Series 1']->where('reg_no', $regNo)->isNotEmpty()) || (isset($seriesExamLogs['Series 2']) && $seriesExamLogs['Series 2']->where('reg_no', $regNo)->isNotEmpty());
-            $avg40 = $hasAnySeries ? round(($s1 + $s2) / 2.0, 2) : 0.0;
+            $s1Log = (isset($seriesExamLogs['Series 1'])) ? $seriesExamLogs['Series 1']->where('reg_no', $regNo)->first() : null;
+            $s2Log = (isset($seriesExamLogs['Series 2'])) ? $seriesExamLogs['Series 2']->where('reg_no', $regNo)->first() : null;
+            $s1 = $s1Log ? floatval($s1Log->total_score_40) : 0.0;
+            $s2 = $s2Log ? floatval($s2Log->total_score_40) : 0.0;
+            $hasSeries1Class = isset($seriesExamLogs['Series 1']) && $seriesExamLogs['Series 1']->isNotEmpty();
+            $hasSeries2Class = isset($seriesExamLogs['Series 2']) && $seriesExamLogs['Series 2']->isNotEmpty();
+
+            if ($hasSeries1Class && $hasSeries2Class) {
+                $avg40 = round(($s1 + $s2) / 2.0, 2);
+            } elseif ($hasSeries1Class) {
+                $avg40 = $s1Log ? round($s1, 2) : 0.0;
+            } elseif ($hasSeries2Class) {
+                $avg40 = $s2Log ? round($s2, 2) : 0.0;
+            } else {
+                $avg40 = 0.0;
+            }
             $scaled15 = round(($avg40 / 40) * 15, 2);
 
             // 5. Attendance → 5M (default 0 if no upload/log)
@@ -127,6 +163,8 @@ class R26VirtualClassroomPracticalController extends Controller
                 'scaled_lab_work_30'   => $scaled30,
                 'raw_open_ended'       => round($open50, 2),
                 'scaled_open_ended_10' => $scaled10,
+                'has_direct_ce'        => $hasDirectCe,
+                'has_direct_oee'       => $hasDirectOee,
                 'ce_total_40'          => $ceTotal40,
                 'raw_series_avg'       => round($avg40, 2),
                 'scaled_series_15'     => $scaled15,
@@ -1020,34 +1058,48 @@ class R26VirtualClassroomPracticalController extends Controller
         $marks    = $request->input('marks', []);
 
         foreach ($marks as $regNo => $data) {
-            if (isset($data['series_1']) && $data['series_1'] !== '' && $data['series_1'] !== null) {
-                $score1 = min(40.0, max(0.0, (float)$data['series_1']));
-                R26PracticalSeriesEvaluation::updateOrCreate(
-                    [
-                        'batch_subject_id' => $subjectId,
-                        'series_no'        => 'Series 1',
-                        'reg_no'           => $regNo,
-                    ],
-                    [
-                        'total_score_40'     => $score1,
-                        'assessor_mobile_no' => $assessor,
-                    ]
-                );
+            if (array_key_exists('series_1', $data)) {
+                if ($data['series_1'] !== '' && $data['series_1'] !== null) {
+                    $score1 = min(40.0, max(0.0, (float)$data['series_1']));
+                    R26PracticalSeriesEvaluation::updateOrCreate(
+                        [
+                            'batch_subject_id' => $subjectId,
+                            'series_no'        => 'Series 1',
+                            'reg_no'           => $regNo,
+                        ],
+                        [
+                            'total_score_40'     => $score1,
+                            'assessor_mobile_no' => $assessor,
+                        ]
+                    );
+                } else {
+                    R26PracticalSeriesEvaluation::where('batch_subject_id', $subjectId)
+                        ->where('series_no', 'Series 1')
+                        ->where('reg_no', $regNo)
+                        ->delete();
+                }
             }
 
-            if (isset($data['series_2']) && $data['series_2'] !== '' && $data['series_2'] !== null) {
-                $score2 = min(40.0, max(0.0, (float)$data['series_2']));
-                R26PracticalSeriesEvaluation::updateOrCreate(
-                    [
-                        'batch_subject_id' => $subjectId,
-                        'series_no'        => 'Series 2',
-                        'reg_no'           => $regNo,
-                    ],
-                    [
-                        'total_score_40'     => $score2,
-                        'assessor_mobile_no' => $assessor,
-                    ]
-                );
+            if (array_key_exists('series_2', $data)) {
+                if ($data['series_2'] !== '' && $data['series_2'] !== null) {
+                    $score2 = min(40.0, max(0.0, (float)$data['series_2']));
+                    R26PracticalSeriesEvaluation::updateOrCreate(
+                        [
+                            'batch_subject_id' => $subjectId,
+                            'series_no'        => 'Series 2',
+                            'reg_no'           => $regNo,
+                        ],
+                        [
+                            'total_score_40'     => $score2,
+                            'assessor_mobile_no' => $assessor,
+                        ]
+                    );
+                } else {
+                    R26PracticalSeriesEvaluation::where('batch_subject_id', $subjectId)
+                        ->where('series_no', 'Series 2')
+                        ->where('reg_no', $regNo)
+                        ->delete();
+                }
             }
         }
 
@@ -1055,6 +1107,71 @@ class R26VirtualClassroomPracticalController extends Controller
             'status'  => 'SUCCESS',
             'success' => true,
             'message' => 'Series marks updated successfully!',
+        ]);
+    }
+
+    /**
+     * Save consolidated continuous evaluation marks (CE out of 50 -> 30M, Open-Ended out of 50 -> 10M)
+     * entered directly from physical lab log book without needing individual experiment splitup or sliders.
+     */
+    public function saveCeBulkDirect(Request $request, $subjectId)
+    {
+        $staff    = $this->getStaff();
+        $assessor = $staff?->mobile_no ?? Session::get('userId');
+        $marks    = $request->input('marks', []);
+
+        foreach ($marks as $regNo => $data) {
+            // 1. Consolidated CE Logbook mark out of 50 (scales to 30M)
+            if (array_key_exists('ce_50', $data)) {
+                if ($data['ce_50'] !== '' && $data['ce_50'] !== null) {
+                    $score50 = min(50.0, max(0.0, (float)$data['ce_50']));
+                    R26PracticalExperimentEvaluation::updateOrCreate(
+                        [
+                            'batch_subject_id' => $subjectId,
+                            'experiment_no'    => 'Consolidated',
+                            'reg_no'           => $regNo,
+                        ],
+                        [
+                            'title'              => 'Continuous Evaluation Consolidated Logbook Average',
+                            'total_score_50'     => $score50,
+                            'assessor_mobile_no' => $assessor,
+                        ]
+                    );
+                } else {
+                    R26PracticalExperimentEvaluation::where('batch_subject_id', $subjectId)
+                        ->where('experiment_no', 'Consolidated')
+                        ->where('reg_no', $regNo)
+                        ->delete();
+                }
+            }
+
+            // 2. Open-Ended mark out of 50 (scales to 10M)
+            if (array_key_exists('open_50', $data)) {
+                if ($data['open_50'] !== '' && $data['open_50'] !== null) {
+                    $open50 = min(50.0, max(0.0, (float)$data['open_50']));
+                    R26OpenEndedEvaluation::updateOrCreate(
+                        [
+                            'batch_subject_id' => $subjectId,
+                            'reg_no'           => $regNo,
+                        ],
+                        [
+                            'project_title'      => 'Drawing Sheets / Open-Ended Practical Project',
+                            'total_score_50'     => $open50,
+                            'assessor_mobile_no' => $assessor,
+                        ]
+                    );
+                } else {
+                    R26OpenEndedEvaluation::where('batch_subject_id', $subjectId)
+                        ->where('reg_no', $regNo)
+                        ->delete();
+                }
+            }
+        }
+
+        return response()->json([
+            'status'  => 'SUCCESS',
+            'success' => true,
+            'message' => 'Consolidated Continuous Evaluation marks saved successfully.',
         ]);
     }
 
@@ -1083,13 +1200,21 @@ class R26VirtualClassroomPracticalController extends Controller
     public function saveEseMarks(Request $request, $subjectId)
     {
         $staff = $this->getStaff();
+        $assessor = $staff?->mobile_no ?? Session::get('userId');
         foreach ($request->input('marks', []) as $regNo => $val) {
-            R26PracticalEseMark::updateOrCreate(
-                ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
-                ['ese_score' => (float)$val, 'assessor_mobile_no' => $staff?->mobile_no]
-            );
+            if ($val === '' || $val === null) {
+                R26PracticalEseMark::where('batch_subject_id', $subjectId)
+                    ->where('reg_no', $regNo)
+                    ->delete();
+            } else {
+                $score = min(40.0, max(0.0, (float)$val));
+                R26PracticalEseMark::updateOrCreate(
+                    ['batch_subject_id' => $subjectId, 'reg_no' => $regNo],
+                    ['ese_score' => $score, 'assessor_mobile_no' => $assessor]
+                );
+            }
         }
-        return response()->json(['success' => true, 'message' => 'ESE marks saved!']);
+        return response()->json(['status' => 'SUCCESS', 'success' => true, 'message' => 'ESE marks saved!']);
     }
 
     /**

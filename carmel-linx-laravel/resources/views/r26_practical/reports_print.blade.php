@@ -17,46 +17,46 @@
     <title>{{ $currentTitle }} - {{ $batchSubject->subject_code }}</title>
     <style>
         @page {
-            size: A4 {{ in_array($reportType, ['consolidated', 'cia']) ? 'landscape' : 'portrait' }};
-            margin: 12mm 10mm;
+            size: A4 portrait;
+            margin: 8mm 6mm;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 15px;
+            padding: 8px 10px;
             color: #111827;
-            font-size: 13.5px;
-            line-height: 1.45;
+            font-size: 11px;
+            line-height: 1.35;
             background: #fff;
         }
         .header {
             text-align: center;
             border-bottom: 2px solid #1e293b;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
         .college-title {
             margin: 0;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 800;
             letter-spacing: -0.01em;
             text-transform: uppercase;
             color: #0f172a;
         }
         .dept-subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14.5px;
+            margin: 2px 0 0 0;
+            font-size: 11.5px;
             font-weight: 600;
             color: #334155;
         }
         .report-badge {
             display: inline-block;
-            margin-top: 8px;
-            padding: 4px 14px;
+            margin-top: 5px;
+            padding: 3px 12px;
             background: #f1f5f9;
             border: 1.5px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
@@ -66,39 +66,40 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 14px;
-            padding: 10px 14px;
+            margin-bottom: 8px;
+            padding: 6px 10px;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 10.5px;
         }
         .meta-col {
-            line-height: 1.65;
+            line-height: 1.5;
         }
         .meta-col strong {
             color: #1e293b;
             display: inline-block;
-            min-width: 95px;
+            min-width: 80px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12.5px;
-            margin-top: 8px;
+            font-size: 10px;
+            margin-top: 6px;
         }
         th, td {
             border: 1px solid #94a3b8;
-            padding: 7px 6px;
+            padding: 4px 3px;
             text-align: center;
         }
         th {
             background-color: #f1f5f9;
             color: #0f172a;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 9.5px;
             text-transform: uppercase;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.01em;
+            line-height: 1.25;
         }
         tr:nth-child(even) {
             background-color: #fcfcfc;
@@ -109,41 +110,41 @@
         .bold { font-weight: 700; }
         .highlight-col { background-color: #f8fafc; font-weight: 700; }
         .footer {
-            margin-top: 50px;
+            margin-top: 32px;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 10.5px;
             page-break-inside: avoid;
         }
         .signature-box {
             text-align: center;
-            width: 220px;
+            width: 180px;
         }
         .signature-line {
             border-top: 1.5px solid #334155;
-            padding-top: 6px;
+            padding-top: 4px;
             font-weight: 700;
             color: #1e293b;
         }
         .signature-role {
-            font-size: 11px;
+            font-size: 10px;
             color: #64748b;
         }
         .no-print {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             gap: 8px;
         }
         .print-btn {
             background: #2563eb;
             color: #fff;
             border: none;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 6px;
             font-weight: 700;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
         }
         @media print {
             .no-print { display: none !important; }
@@ -151,6 +152,7 @@
             th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .highlight-col { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .meta-box { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -186,15 +188,15 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 45px;">Sl No</th>
-                    <th style="width: 60px;">Roll No</th>
-                    <th style="width: 120px;">Register No</th>
+                    <th style="width: 30px;">Sl</th>
+                    <th style="width: 40px;">Roll</th>
+                    <th style="width: 95px;">Reg No</th>
                     <th class="text-left">Student Name</th>
-                    <th style="width: 80px;">Batch</th>
-                    <th style="width: 100px;">TEAMS Log %</th>
-                    <th style="width: 100px;">Override %</th>
-                    <th style="width: 110px;">Effective %</th>
-                    <th style="width: 110px;" class="highlight-col">Atten Mark (5M)</th>
+                    <th style="width: 55px;">Batch</th>
+                    <th style="width: 70px;">TEAMS %</th>
+                    <th style="width: 70px;">Override %</th>
+                    <th style="width: 70px;">Effective %</th>
+                    <th style="width: 70px;" class="highlight-col">Atten (5M)</th>
                 </tr>
             </thead>
             <tbody>
@@ -224,15 +226,15 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 45px;">Sl No</th>
-                    <th style="width: 60px;">Roll No</th>
-                    <th style="width: 120px;">Register No</th>
+                    <th style="width: 30px;">Sl</th>
+                    <th style="width: 40px;">Roll</th>
+                    <th style="width: 95px;">Reg No</th>
                     <th class="text-left">Student Name</th>
-                    <th style="width: 80px;">Batch</th>
-                    <th style="width: 110px;">Series 1 (40M)</th>
-                    <th style="width: 110px;">Series 2 (40M)</th>
-                    <th style="width: 110px;">Average (40M)</th>
-                    <th style="width: 130px;" class="highlight-col">Scaled Series Total (15M)</th>
+                    <th style="width: 55px;">Batch</th>
+                    <th style="width: 70px;">Series 1 (40)</th>
+                    <th style="width: 70px;">Series 2 (40)</th>
+                    <th style="width: 70px;">Avg (40)</th>
+                    <th style="width: 80px;" class="highlight-col">Series (15M)</th>
                 </tr>
             </thead>
             <tbody>
@@ -266,16 +268,16 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 45px;">Sl No</th>
-                    <th style="width: 60px;">Roll No</th>
-                    <th style="width: 120px;">Register No</th>
+                    <th style="width: 28px;">Sl</th>
+                    <th style="width: 36px;">Roll</th>
+                    <th style="width: 90px;">Reg No</th>
                     <th class="text-left">Student Name</th>
-                    <th style="width: 80px;">Batch</th>
-                    <th style="width: 110px;">Daywork Avg (50M)</th>
-                    <th style="width: 110px;">Lab Work (30M)</th>
-                    <th style="width: 110px;">Open-Ended (50M)</th>
-                    <th style="width: 110px;">Open-Ended (10M)</th>
-                    <th style="width: 130px;" class="highlight-col">CE Total (40M)</th>
+                    <th style="width: 50px;">Batch</th>
+                    <th style="width: 60px;">Daywork (50)</th>
+                    <th style="width: 60px;">Lab (30)</th>
+                    <th style="width: 60px;">Open (50)</th>
+                    <th style="width: 60px;">Open (10)</th>
+                    <th style="width: 65px;" class="highlight-col">CE (40M)</th>
                 </tr>
             </thead>
             <tbody>
@@ -306,20 +308,20 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 40px;">Sl</th>
-                    <th style="width: 50px;">Roll</th>
-                    <th style="width: 105px;">Reg No</th>
+                    <th style="width: 26px;">Sl</th>
+                    <th style="width: 32px;">Roll</th>
+                    <th style="width: 78px;">Reg No</th>
                     <th class="text-left">Student Name</th>
-                    <th style="width: 65px;">Batch</th>
-                    <th style="width: 70px;">Lab (30M)</th>
-                    <th style="width: 70px;">Open (10M)</th>
-                    <th style="width: 75px;">CE (40M)</th>
-                    <th style="width: 75px;">Series (15M)</th>
-                    <th style="width: 70px;">Atten (5M)</th>
-                    <th style="width: 80px;" class="highlight-col">CIA (60M)</th>
-                    <th style="width: 75px;">ESE (40M)</th>
-                    <th style="width: 85px;" class="highlight-col">Total (100M)</th>
-                    <th style="width: 55px;">Grade</th>
+                    <th style="width: 46px;">Batch</th>
+                    <th style="width: 44px;">Lab (30)</th>
+                    <th style="width: 44px;">Open (10)</th>
+                    <th style="width: 46px;">CE (40)</th>
+                    <th style="width: 46px;">Series (15)</th>
+                    <th style="width: 38px;">Atten (5)</th>
+                    <th style="width: 48px;" class="highlight-col">CIA (60)</th>
+                    <th style="width: 44px;">ESE (40)</th>
+                    <th style="width: 48px;" class="highlight-col">Total (100)</th>
+                    <th style="width: 36px;">Grade</th>
                 </tr>
             </thead>
             <tbody>
@@ -354,18 +356,17 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 45px;">Sl No</th>
-                    <th style="width: 60px;">Roll No</th>
-                    <th style="width: 120px;">Register No</th>
+                    <th style="width: 28px;">Sl</th>
+                    <th style="width: 36px;">Roll</th>
+                    <th style="width: 88px;">Reg No</th>
                     <th class="text-left">Student Name</th>
-                    <th style="width: 75px;">Batch</th>
-                    <th style="width: 90px;">CE Total (40M)</th>
-                    <th style="width: 90px;">Series (15M)</th>
-                    <th style="width: 90px;">Attendance (5M)</th>
-                    <th style="width: 100px;" class="highlight-col">CIA Total (60M)</th>
-                    <th style="width: 90px;">ESE (40M)</th>
-                    <th style="width: 100px;" class="highlight-col">Grand Total (100M)</th>
-                    <th style="width: 65px;">Grade</th>
+                    <th style="width: 52px;">Batch</th>
+                    <th style="width: 54px;">Daywork (30M)</th>
+                    <th style="width: 54px;">Open-Ended (10M)</th>
+                    <th style="width: 58px;">CE Total (40M)</th>
+                    <th style="width: 58px;">Series (15M)</th>
+                    <th style="width: 44px;">Atten (5M)</th>
+                    <th style="width: 62px;" class="highlight-col">CIA Total (60M)</th>
                 </tr>
             </thead>
             <tbody>
@@ -381,13 +382,12 @@
                     <td class="font-mono bold">{{ $student->reg_no }}</td>
                     <td class="text-left bold">{{ $student->name }}</td>
                     <td>{{ $batchVal }}</td>
-                    <td class="font-mono">{{ number_format($sc['ce_total_40'] ?? 0, 2) }}</td>
+                    <td class="font-mono">{{ number_format($sc['scaled_lab_work_30'] ?? 0, 2) }}</td>
+                    <td class="font-mono">{{ number_format($sc['scaled_open_ended_10'] ?? 0, 2) }}</td>
+                    <td class="font-mono bold">{{ number_format($sc['ce_total_40'] ?? 0, 2) }}</td>
                     <td class="font-mono">{{ number_format($sc['scaled_series_15'] ?? 0, 2) }}</td>
                     <td class="font-mono">{{ $sc['attendance_mark_5'] ?? 0 }}</td>
-                    <td class="highlight-col font-mono bold">{{ $sc['total_cia_60'] ?? 0 }}</td>
-                    <td class="font-mono">{{ number_format($sc['ese_score_40'] ?? 0, 2) }}</td>
-                    <td class="highlight-col font-mono bold">{{ $sc['grand_total_100'] ?? 0 }}</td>
-                    <td class="bold font-mono">{{ $sc['grade'] ?? '—' }}</td>
+                    <td class="highlight-col font-mono bold">{{ $sc['total_cia_60'] ?? 0 }} / 60</td>
                 </tr>
                 @endforeach
             </tbody>

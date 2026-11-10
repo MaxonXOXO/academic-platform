@@ -199,6 +199,14 @@
          <span class="material-symbols-rounded text-lg">calendar_view_day</span> Todays Timetable
       </a>
 
+      <!-- S6 Open Elective Central Desk (Super Admin & Principal) -->
+      <a href="/admin/open-elective" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between transition-premium text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 hover:bg-cyan-900/60 hover:text-white cursor-pointer no-underline block" title="S6 Open Elective Management & Registration Desk">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-rounded text-lg text-cyan-400">how_to_reg</span> Open Elective S6
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">Rev 2021</span>
+      </a>
+
       <a href="/dashboard/lecturer" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
          <span class="material-symbols-rounded text-lg">grid_view</span> My batches
       </a>

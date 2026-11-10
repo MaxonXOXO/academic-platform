@@ -46,6 +46,11 @@ class VirtualClassroomPracticalController extends Controller
 
         $batchSubject = BatchSubject::with(['classroom', 'courseFile'])->findOrFail($batchSubjectId);
 
+        // Safeguard: If subject is Theory, redirect to the Theory classroom
+        if (strtolower($batchSubject->subject_type ?? '') === 'theory') {
+            return redirect("/classroom/theory/{$batchSubjectId}");
+        }
+
         // Fetch students enrolled in this classroom
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')

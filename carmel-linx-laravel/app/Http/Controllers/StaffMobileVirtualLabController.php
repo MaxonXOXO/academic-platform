@@ -57,6 +57,10 @@ class StaffMobileVirtualLabController extends Controller
         $isR2021 = str_contains($revCode, '2021') || str_contains($revCode, 'R21') || str_contains($revCode, 'REV2021');
 
         if (!$isPractical || !$isR2021) {
+            // If Revision 2026 Practical/Lab subject, smoothly redirect to R26 Practical Virtual Classroom
+            if (str_contains($revCode, '2026') || str_contains($revCode, 'R26') || str_contains($revCode, 'REV2026') || str_contains($batchSubject->classroom_id ?? '', '2026')) {
+                return redirect('/r26/classroom/practical/' . $subjectId);
+            }
             return redirect('/staff/mobile')
                 ->with('error', 'Virtual Lab is only available for R2021 Lab/Practical subjects.');
         }

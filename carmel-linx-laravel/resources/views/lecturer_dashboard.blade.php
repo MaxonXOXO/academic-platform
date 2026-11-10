@@ -972,6 +972,10 @@
       <a href="/dashboard/hod" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer no-underline block">
         <span class="material-symbols-rounded text-lg">admin_panel_settings</span> HOD Console
       </a>
+      @elseif(session('userRole') === 'Workshop_Superintendent')
+      <a href="/dashboard/workshop" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-amber-400 hover:bg-amber-950/30 hover:text-amber-300 cursor-pointer no-underline block border border-amber-900/40 bg-amber-950/20">
+        <span class="material-symbols-rounded text-lg">precision_manufacturing</span> Workshop Console
+      </a>
       @elseif(in_array(session('userRole'), ['Principal', 'Super_Admin']))
       <a href="/dashboard/principal" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-3 transition-premium text-sky-400 hover:bg-sky-950/30 hover:text-sky-300 cursor-pointer no-underline block border border-sky-900/40 bg-sky-950/20">
         <span class="material-symbols-rounded text-lg">shield_person</span> Principal Control Desk
@@ -2121,9 +2125,13 @@
         }
         openClassroom(classroomId, subjectId, subjectName, subjectCode, revParam, typeParam, tabParam);
       } else {
-        // If a Demonstrator lands here without a subject (e.g. browser back), send them home
+        // If a Demonstrator or Workshop Superintendent lands here without a subject (e.g. browser back), send them home
         if ('{{ session("userRole") }}' === 'Demonstrator') {
           window.location.replace('/dashboard/demonstrator');
+          return;
+        }
+        if ('{{ session("userRole") }}' === 'Workshop_Superintendent') {
+          window.location.replace('/dashboard/workshop');
           return;
         }
         loadLecturerBatches();
@@ -2145,6 +2153,10 @@
         window.location.href = '/dashboard/demonstrator';
         return;
       }
+      if (userRole === 'Workshop_Superintendent') {
+        window.location.href = '/dashboard/workshop';
+        return;
+      }
       switchPanel('dashboard');
     }
 
@@ -2153,6 +2165,10 @@
         const userRole = '{{ session("userRole") }}';
         if (userRole === 'Demonstrator') {
           window.location.href = '/dashboard/demonstrator';
+          return;
+        }
+        if (userRole === 'Workshop_Superintendent') {
+          window.location.href = '/dashboard/workshop';
           return;
         }
       }
@@ -2370,6 +2386,20 @@
       const isR26 = (revision === 'REV2026' || (batchId && batchId.includes('2026')));
 
       if (isR26) {
+        // Specific fix for 1004 EL & CT and General Engineering Workshop (2009 / 2009A / 2009B) - strictly Lab virtual class
+        const is1004ElCt = (sCodeStr.includes('1004') || ['72', '128', '163'].includes(String(subjectId))) && 
+                           (sCodeStr.includes('EL') || sCodeStr.includes('CT') || String(batchId).includes('EL') || String(batchId).includes('CT') || ['72', '128', '163'].includes(String(subjectId)));
+
+        const isWorkshop2026 = sCodeStr.includes('2009') || 
+                               sNameLower.includes('general engineering workshop') || 
+                               sNameLower.includes('engineering workshop') || 
+                               sNameLower.includes('workshop practice');
+
+        if (is1004ElCt || isWorkshop2026) {
+          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
+          return;
+        }
+
         if (sCodeStr.includes('1001') || sNameLower.includes('english')) {
           window.open(`/r26/classroom/english-1001/${subjectId}`, '_blank');
           return;

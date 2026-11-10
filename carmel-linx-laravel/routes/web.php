@@ -454,12 +454,57 @@ Route::middleware(['web'])->group(function () {
     });
 
     Route::get('/dashboard/workshop', function () {
-        if (Session::get('userRole') !== 'Workshop_Superintendent') return redirect('/');
+        $userRole = Session::get('userRole');
+        if (!in_array($userRole, ['Workshop_Superintendent', 'Admin', 'Superadmin', 'Principal'])) {
+            return redirect('/');
+        }
         $ua = strtolower(request()->header('User-Agent', ''));
         if ((str_contains($ua, 'mobile') || str_contains($ua, 'android') || str_contains($ua, 'iphone')) && request()->query('mode') !== 'desktop') {
             return redirect('/staff/mobile');
         }
-        return noCacheView('workshop_superintendent_dashboard');
+
+        $userId = Session::get('userId');
+        // If previewing as admin/principal without direct workshop assignments, fallback to the workshop superintendent profile
+        $hasAssignments = DB::table('subject_staff_assignments')->where('staff_mobile_no', $userId)->exists();
+        if (!$hasAssignments && in_array($userRole, ['Superadmin', 'Admin', 'Principal'])) {
+            $wsStaff = DB::table('staff_profiles')->where('designation', 'Workshop_Superintendent')->first();
+            if ($wsStaff) $userId = $wsStaff->mobile_no;
+        }
+
+        $assignments = DB::table('subject_staff_assignments')
+            ->join('batch_subjects', 'subject_staff_assignments.batch_subject_id', '=', 'batch_subjects.id')
+            ->leftJoin('class_management', 'batch_subjects.classroom_id', '=', 'class_management.classroom_id')
+            ->leftJoin('r26_class_management', 'batch_subjects.classroom_id', '=', 'r26_class_management.classroom_id')
+            ->where('subject_staff_assignments.staff_mobile_no', $userId)
+            ->select(
+                'batch_subjects.id as subject_id',
+                'batch_subjects.subject_code',
+                'batch_subjects.subject_name',
+                'batch_subjects.subject_type',
+                'batch_subjects.semester',
+                'batch_subjects.classroom_id',
+                'batch_subjects.syllabus_revision_code',
+                DB::raw("COALESCE(class_management.branch, r26_class_management.branch) as branch"),
+                DB::raw("COALESCE(class_management.batch_year, r26_class_management.batch_year) as batch_year")
+            )
+            ->orderByRaw("CASE WHEN batch_subjects.syllabus_revision_code = 'REV2026' OR batch_subjects.classroom_id LIKE '%2026%' THEN 0 ELSE 1 END")
+            ->orderBy('batch_subjects.classroom_id')
+            ->get();
+
+        $coFaculty = DB::table('subject_staff_assignments')
+            ->join('staff_profiles', 'subject_staff_assignments.staff_mobile_no', '=', 'staff_profiles.mobile_no')
+            ->whereIn('subject_staff_assignments.batch_subject_id', $assignments->pluck('subject_id'))
+            ->select(
+                'subject_staff_assignments.batch_subject_id',
+                'staff_profiles.name',
+                'staff_profiles.mobile_no',
+                'staff_profiles.designation',
+                'staff_profiles.branch'
+            )
+            ->get()
+            ->groupBy('batch_subject_id');
+
+        return noCacheView('workshop_superintendent_dashboard', compact('assignments', 'coFaculty'));
     });
 
     Route::get('/dashboard/sf-office', [SfOfficeController::class, 'index']);
@@ -637,6 +682,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/open-ended', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveOpenEndedMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/series', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveSeriesExamMarks']);
     Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/series-bulk', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveSeriesBulkDirect']);
+    Route::post('/api/r26/classroom/practical/{subjectId}/evaluate/ce-bulk', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveCeBulkDirect']);
     Route::post('/api/r26/classroom/practical/{subjectId}/series-exams/configure', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'configureSeriesExam']);
     Route::post('/api/r26/classroom/practical/{subjectId}/ese-marks', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'saveEseMarks']);
     Route::get('/r26/classroom/practical/{subjectId}/print/{type}', [App\Http\Controllers\R26VirtualClassroomPracticalController::class, 'printReport']);
@@ -920,6 +966,29 @@ Route::middleware(['web'])->group(function () {
     Route::post('/api/classroom/{subjectId}/practical/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'savePracticalCoPoMapping']);
     Route::post('/api/classroom/{subjectId}/copo-mapping/save', [App\Http\Controllers\ClassroomController::class, 'saveTheoryCoPoMapping']);
     Route::get('/classroom/{subjectId}/practical-report/print', [App\Http\Controllers\ClassroomController::class, 'printPracticalReportByType']);
+
+    // Theory Virtual Classroom (Revision 2021)
+    Route::get('/classroom/theory/{subjectId}', function ($subjectId) {
+        $subject = DB::table('batch_subjects')->where('id', $subjectId)->first();
+        if (!$subject) abort(404, 'Subject not found');
+
+        if ($subject->syllabus_revision_code === 'REV2026' || str_contains($subject->classroom_id, '2026')) {
+            return redirect("/r26/classroom/theory/{$subjectId}");
+        }
+
+        $query = http_build_query([
+            'subject_id' => $subject->id,
+            'classroom_id' => $subject->classroom_id,
+            'subject_name' => $subject->subject_name,
+            'subject_code' => $subject->subject_code,
+            'revision' => $subject->syllabus_revision_code ?? 'REV2021',
+            'type' => 'Theory'
+        ]);
+        return redirect("/dashboard/lecturer?{$query}");
+    });
+    Route::get('/r21/classroom/theory/{subjectId}', function ($subjectId) {
+        return redirect("/classroom/theory/{$subjectId}");
+    });
 
     // Practical / Lab Evaluation (Revision 2021)
     Route::get('/classroom/practical/{subjectId}', [App\Http\Controllers\VirtualClassroomPracticalController::class, 'show']);
@@ -2462,6 +2531,33 @@ Route::middleware(['web'])->group(function () {
     Route::match(['post', 'delete'], '/sf-attendance/delete-punch/{id}', [\App\Http\Controllers\StaffAttendanceMobileController::class, 'deletePunch']);
     Route::match(['post', 'delete'], '/sf-attendance/reset-face/{staffId}', [\App\Http\Controllers\StaffAttendanceMobileController::class, 'resetFaceRegistration']);
 });
+
+// R21 Semester 6 Open Elective Management & Multi-Branch Virtual System
+Route::middleware(['web'])->group(function () {
+    // 1. Super Admin & Principal Central Management Desk
+    Route::get('/admin/open-elective', [\App\Http\Controllers\OpenElectiveAdminController::class, 'index']);
+    Route::post('/admin/open-elective/courses/save', [\App\Http\Controllers\OpenElectiveAdminController::class, 'saveCourse']);
+    Route::post('/admin/open-elective/courses/{id}/delete', [\App\Http\Controllers\OpenElectiveAdminController::class, 'deleteCourse']);
+    Route::post('/admin/open-elective/settings/save', [\App\Http\Controllers\OpenElectiveAdminController::class, 'saveSettings']);
+    Route::post('/admin/open-elective/broadcast-notification', [\App\Http\Controllers\OpenElectiveAdminController::class, 'broadcastPush']);
+    Route::get('/admin/open-elective/allocation-data', [\App\Http\Controllers\OpenElectiveAdminController::class, 'getAllocationData']);
+    Route::post('/admin/open-elective/auto-allocate', [\App\Http\Controllers\OpenElectiveAdminController::class, 'autoAllocate']);
+    Route::post('/admin/open-elective/manual-override', [\App\Http\Controllers\OpenElectiveAdminController::class, 'manualOverride']);
+    Route::post('/admin/open-elective/release-to-hods', [\App\Http\Controllers\OpenElectiveAdminController::class, 'releaseToHods']);
+    Route::post('/admin/open-elective/reset-trial-data', [\App\Http\Controllers\OpenElectiveAdminController::class, 'resetTrialData']);
+    Route::get('/admin/open-elective/export-roster/{courseId}', [\App\Http\Controllers\OpenElectiveAdminController::class, 'exportNominalRoll']);
+
+    // 2. Student Mobile Registration & Preference Submission
+    Route::get('/student/open-elective', [\App\Http\Controllers\OpenElectiveStudentController::class, 'index']);
+    Route::post('/student/open-elective/submit', [\App\Http\Controllers\OpenElectiveStudentController::class, 'submitPreferences']);
+    Route::get('/student/open-elective/print-slip', [\App\Http\Controllers\OpenElectiveStudentController::class, 'printRegistrationSlip']);
+
+    // 3. Department HOD Desk
+    Route::get('/hod/open-elective', [\App\Http\Controllers\OpenElectiveHodController::class, 'index']);
+    Route::post('/hod/open-elective/save-offering', [\App\Http\Controllers\OpenElectiveHodController::class, 'saveCourseOffering']);
+    Route::post('/hod/open-elective/assign-faculty', [\App\Http\Controllers\OpenElectiveHodController::class, 'assignFaculty']);
+});
+
 
 
 

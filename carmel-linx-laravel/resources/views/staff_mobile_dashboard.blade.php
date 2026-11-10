@@ -2199,6 +2199,14 @@
                                                     <span class="badge" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8; font-size: 0.62rem; font-weight: 700;">
                                                         <i class="fa-solid fa-wrench me-0.5"></i> Workshop CIA
                                                     </span>
+                                                @elseif(!empty($subjItem) && (str_contains(strtoupper($subjItem->syllabus_revision_code ?? ''), '2026') || str_contains(strtoupper($subjItem->classroom_id ?? ''), '2026')) && (str_contains($sCode, '2009') || str_contains($sName, 'workshop')))
+                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.62rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.35);">
+                                                        <i class="fa-solid fa-screwdriver-wrench me-0.5"></i> Workshop Lab (CIA 60M)
+                                                    </span>
+                                                @elseif(strtolower($subjItem->subject_type ?? '') === 'theory')
+                                                    <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; font-size: 0.62rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.35);">
+                                                        <i class="fa-solid fa-book-open me-0.5"></i> Theory Classroom
+                                                    </span>
                                                 @endif
                                             </div>
                                             <h6 class="text-white fw-bold mb-0 text-truncate" style="font-size: 0.84rem;" title="{{ $subjItem->subject_name }}">
@@ -2222,6 +2230,14 @@
                                         @elseif(str_contains(strtolower($subjItem->subject_name ?? ''), 'health') || str_contains(strtolower($subjItem->subject_name ?? ''), 'physical'))
                                             <a href="/r26/classroom/health-physical/{{ $subjItem->id }}" class="btn btn-sm rounded-pill fw-bold text-white px-3 py-1" style="background: linear-gradient(135deg, #0891b2, #3b82f6); font-size: 0.74rem; text-decoration: none;">
                                                 <i class="fa-solid fa-person-running me-1"></i> Open H&amp;PE
+                                            </a>
+                                        @elseif(str_contains(strtoupper($subjItem->syllabus_revision_code ?? ''), '2026') || str_contains(strtoupper($subjItem->classroom_id ?? ''), '2026'))
+                                            <a href="/r26/classroom/practical/{{ $subjItem->id }}" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 text-cyan text-decoration-none" style="font-size: 0.72rem;">
+                                                <i class="fa-solid fa-flask me-1"></i> {{ (str_contains($sCode, '2009') || str_contains($sName, 'workshop')) ? 'Open Workshop Lab' : 'Open Lab' }}
+                                            </a>
+                                        @elseif(strtolower($subjItem->subject_type ?? '') === 'theory')
+                                            <a href="/classroom/theory/{{ $subjItem->id }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 text-decoration-none" style="font-size: 0.72rem; color: #93c5fd; border-color: rgba(147, 197, 253, 0.4);">
+                                                <i class="fa-solid fa-book-open me-1"></i> Open Theory Class
                                             </a>
                                         @else
                                             <button type="button" onclick="openMobileVirtualLab('{{ $subjItem->id }}')" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 text-cyan" style="font-size: 0.72rem;">
@@ -2261,9 +2277,13 @@
             }
         }
 
-        function openMobileVirtualLab(subjectId) {
+        function openMobileVirtualLab(subjectId, isR26 = false) {
             if (!subjectId) {
                 alert('Virtual Lab error: Subject ID is missing.');
+                return;
+            }
+            if (isR26) {
+                window.location.href = '/r26/classroom/practical/' + subjectId;
                 return;
             }
             window.location.href = '/staff/mobile/virtual-lab/' + subjectId;
@@ -3051,6 +3071,11 @@
                     !subTypeLower.includes('theory') &&
                     (revCode.includes('2021') || revCode.includes('R21') || revCode.includes('REV2021')) &&
                     !revCode.includes('2026') && !revCode.includes('R26');
+
+                const isR26Practical = batchSubId &&
+                    isPracticalSlot &&
+                    !subTypeLower.includes('theory') &&
+                    (revCode.includes('2026') || revCode.includes('R26') || revCode.includes('REV2026') || String(batchId || '').includes('2026'));
                 
                 const sNameLower = (st.subject_name || (matchedAssig ? matchedAssig.subject_name : '')).toLowerCase();
                 const sCodeStr = String(st.subject_code || (matchedAssig ? matchedAssig.subject_code : ''));
@@ -3101,7 +3126,26 @@
                                 ">
                                 <i class="fa-solid fa-flask"></i> Virtual Lab
                             </button>`
-                ) : '';
+                ) : (isR26Practical ? `
+                            <button onclick="openMobileVirtualLab('${batchSubId}', true)"
+                                style="
+                                    flex:1;
+                                    background: linear-gradient(135deg,#06b6d4,#3b82f6);
+                                    color:#fff;
+                                    border:none;
+                                    border-radius:10px;
+                                    font-size:0.76rem;
+                                    font-weight:800;
+                                    padding:8px 0;
+                                    cursor:pointer;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    gap:5px;
+                                    box-shadow: 0 2px 8px rgba(6,182,212,0.3);
+                                ">
+                                <i class="fa-solid fa-flask"></i> Virtual Lab
+                            </button>` : '');
 
                 const progressSection = hasProgress ? `
                             <div style="margin-top:10px;">

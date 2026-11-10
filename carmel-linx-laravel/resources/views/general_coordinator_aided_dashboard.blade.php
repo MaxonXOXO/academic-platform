@@ -580,6 +580,20 @@
       const isR26 = revision === 'REV2026' || (batchId && batchId.includes('2026'));
 
       if (isR26) {
+        // Specific fix for 1004 EL & CT and General Engineering Workshop (2009 / 2009A / 2009B) - strictly Lab virtual class
+        const is1004ElCt = (sCodeStr.includes('1004') || ['72', '128', '163'].includes(String(subjectId))) && 
+                           (sCodeStr.includes('EL') || sCodeStr.includes('CT') || String(batchId).includes('EL') || String(batchId).includes('CT') || ['72', '128', '163'].includes(String(subjectId)));
+
+        const isWorkshop2026 = sCodeStr.includes('2009') || 
+                               sNameLower.includes('general engineering workshop') || 
+                               sNameLower.includes('engineering workshop') || 
+                               sNameLower.includes('workshop practice');
+
+        if (is1004ElCt || isWorkshop2026) {
+          window.open(`/r26/classroom/practical/${subjectId}`, '_blank');
+          return;
+        }
+
         if (sCodeStr.includes('1001') || sNameLower.includes('english')) {
           window.open(`/r26/classroom/english-1001/${subjectId}`, '_blank');
           return;

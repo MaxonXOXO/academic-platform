@@ -2527,11 +2527,11 @@
     }
 
     function changeBatchSemesterPrompt(classroomId, currentSem) {
-      let newSemStr = prompt("Enter active Semester (1-8) for batch " + classroomId + ":", currentSem);
+      let newSemStr = prompt("Enter active Semester (1-6) for batch " + classroomId + ":", currentSem);
       if (newSemStr === null) return;
       let newSem = parseInt(newSemStr);
-      if (isNaN(newSem) || newSem < 1 || newSem > 8) {
-        alert("Invalid semester! Please enter a number between 1 and 8.");
+      if (isNaN(newSem) || newSem < 1 || newSem > 6) {
+        alert("Invalid semester! Please enter a number between 1 and 6.");
         return;
       }
 

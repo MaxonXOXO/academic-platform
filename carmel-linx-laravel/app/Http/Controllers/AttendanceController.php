@@ -58,8 +58,10 @@ class AttendanceController extends Controller
             ->orderBy('semester', 'asc')
             ->get();
 
-        // Filter to keep ONLY active classes (where batch current_semester <= 6 and subject semester >= batch current_semester)
-        $activeSubjects = $allSubjects->filter(function ($subj) {
+        $status = $request->query('status', 'active');
+
+        // Filter based on status ('active', 'historical', or 'all')
+        $filteredSubjects = $allSubjects->filter(function ($subj) use ($status) {
             $batch = \App\Models\ClassManagement::where('classroom_id', $subj->classroom_id)->first();
             if (!$batch) {
                 $batch = \App\Models\R26ClassManagement::where('classroom_id', $subj->classroom_id)->first();
@@ -69,13 +71,21 @@ class AttendanceController extends Controller
             $currentSem = (int) $batch->current_semester;
             $subjectSem = (int) $subj->semester;
 
-            // Must be an active batch (current_semester <= 6) AND subject semester must match current active semester
-            return $currentSem <= 6 && $subjectSem >= $currentSem;
+            if ($status === 'all') {
+                return true;
+            } elseif ($status === 'historical') {
+                return $currentSem > 6 || $subjectSem < $currentSem;
+            } elseif ($status === 'upcoming') {
+                return $currentSem <= 6 && $subjectSem > $currentSem;
+            } else {
+                // Active: strictly the current active ongoing semester for this batch
+                return $currentSem <= 6 && $subjectSem === $currentSem;
+            }
         })->values();
 
         return response()->json([
             'status' => 'SUCCESS',
-            'subjects' => $activeSubjects
+            'subjects' => $filteredSubjects
         ]);
     }
 
@@ -122,6 +132,9 @@ class AttendanceController extends Controller
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
+            ->where(function($q) {
+                $q->whereNull('academic_status')->orWhere('academic_status', 'Active');
             })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
@@ -222,6 +235,9 @@ class AttendanceController extends Controller
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
             })
+            ->where(function($q) {
+                $q->whereNull('academic_status')->orWhere('academic_status', 'Active');
+            })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 
@@ -295,6 +311,9 @@ class AttendanceController extends Controller
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
             ->where(function($q) {
                 $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
+            ->where(function($q) {
+                $q->whereNull('academic_status')->orWhere('academic_status', 'Active');
             })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'roll_no']);
@@ -1327,7 +1346,12 @@ class AttendanceController extends Controller
         // 2. Fetch Date-Wise Attendance Matrix
         $batchSubject = BatchSubject::findOrFail($batchSubjectId);
         $students = Student::getClassroomStudentsQuery($batchSubject->classroom_id)
-            ->where('status', 'Approved')
+            ->where(function($q) {
+                $q->where('status', 'Approved')->orWhere('status', 'Active');
+            })
+            ->where(function($q) {
+                $q->whereNull('academic_status')->orWhere('academic_status', 'Active');
+            })
             ->orderByRaw('ISNULL(roll_no) ASC, CAST(roll_no AS UNSIGNED) ASC, CASE WHEN admission_type = \'LET\' THEN 1 ELSE 0 END ASC, UPPER(name) ASC')
             ->get(['reg_no', 'name', 'roll_no']);
 

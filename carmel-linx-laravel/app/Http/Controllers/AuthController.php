@@ -44,11 +44,11 @@ class AuthController extends Controller
 
                 $isPasswordValid = $student && $this->verifyPassword($password, $student->password);
 
-                // Fallback check for standard initial password "carmel2026" on legacy default passwords
-                if ($student && !$isPasswordValid && $password === 'carmel2026') {
-                    if ($this->verifyPassword('Carmel@123', $student->password)) {
+                // Case-insensitive fallback check for standard initial password "carmel2026" / "CARMEL2026" or legacy "Carmel@123"
+                if ($student && !$isPasswordValid && strtolower($password) === 'carmel2026') {
+                    if ($this->verifyPassword('carmel2026', $student->password) || $this->verifyPassword('Carmel@123', $student->password)) {
                         $isPasswordValid = true;
-                        // Auto-upgrade password hash to carmel2026
+                        // Auto-upgrade password hash to standard carmel2026
                         $student->update(['password' => Hash::make('carmel2026')]);
                     }
                 }
@@ -61,9 +61,9 @@ class AuthController extends Controller
                     return response()->json(['status' => 'ERROR', 'message' => 'Your registration is pending approval by your Class Tutor.']);
                 }
 
-                // Check if student is logging in with default common password "carmel2026"
-                $isDefaultPassword = ($password === 'carmel2026') || $this->verifyPassword('carmel2026', $student->password);
-                if ($isDefaultPassword || $password === 'carmel2026') {
+                // Check if student is logging in with default common password "carmel2026" (case-insensitive)
+                $isDefaultPassword = (strtolower($password) === 'carmel2026') || $this->verifyPassword('carmel2026', $student->password);
+                if ($isDefaultPassword || strtolower($password) === 'carmel2026') {
                     Session::put('must_update_profile', true);
                 }
 

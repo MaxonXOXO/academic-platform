@@ -35,6 +35,35 @@ class OeRegistration extends Model
         'registered_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'parent_branch_full',
+        'is_complete_five_options',
+    ];
+
+    public function getParentBranchFullAttribute(): string
+    {
+        return OeCourse::getBranchFullName($this->parent_branch);
+    }
+
+    public function getParentBranchFullNameAttribute(): string
+    {
+        return OeCourse::getBranchFullName($this->parent_branch);
+    }
+
+    public function getIsCompleteFiveOptionsAttribute(): bool
+    {
+        return $this->hasAllFiveOptions();
+    }
+
+    public function hasAllFiveOptions(): bool
+    {
+        return !empty($this->option_1_course_id)
+            && !empty($this->option_2_course_id)
+            && !empty($this->option_3_course_id)
+            && !empty($this->option_4_course_id)
+            && !empty($this->option_5_course_id);
+    }
+
     public function option1Course()
     {
         return $this->belongsTo(OeCourse::class, 'option_1_course_id');

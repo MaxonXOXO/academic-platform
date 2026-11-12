@@ -72,7 +72,7 @@
         </div>
         <div class="text-2xl sm:text-3xl font-black text-white">{{ $totalS5Students }}</div>
         <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-          <span>Branches: AU, CE, CT, EEE, EL, ME</span>
+          <span>Automobile, Civil, Computer, Electrical, Electronics, Mechanical</span>
         </div>
       </div>
 
@@ -85,6 +85,12 @@
         <div class="text-2xl sm:text-3xl font-black text-white flex items-baseline gap-2">
           {{ $registeredCount }}
           <span class="text-xs font-bold text-slate-400">/ {{ $totalS5Students }}</span>
+        </div>
+        <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+          <span>5 Options Locked: <strong class="text-emerald-400 font-bold">{{ $completed5Count }}</strong></span>
+          @if($incompleteCount > 0)
+            <span>Incomplete: <strong class="text-rose-400 font-bold">{{ $incompleteCount }}</strong></span>
+          @endif
         </div>
         @php
           $regPct = $totalS5Students > 0 ? round(($registeredCount / $totalS5Students) * 100) : 0;
@@ -105,7 +111,7 @@
           <span class="text-xs font-bold text-slate-400">fixed</span>
         </div>
         <div class="text-[11px] text-slate-400 mt-1">
-          Pending: <strong class="text-amber-400">{{ $pendingCount }}</strong>
+          Pending: <strong class="text-amber-400 font-bold">{{ $pendingCount }}</strong>
         </div>
       </div>
 
@@ -131,26 +137,37 @@
       <div>
         <div class="flex items-center gap-2 mb-1">
           <span class="material-symbols-rounded text-cyan-400 text-lg">fact_check</span>
-          <h2 class="text-sm font-extrabold text-white">Department HOD Course Setup Status</h2>
+          <h2 class="text-base font-extrabold text-white">Department HOD Course Setup Status</h2>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ $submittedHodsCount >= 6 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30' }}">
             {{ $submittedHodsCount }} of 6 Departments Ready
           </span>
         </div>
         <p class="text-xs text-slate-400">
-          HODs configure Course Code, Course Title, Syllabus PDF, and Course Outcomes from their HOD desk.
+          All 6 departments configure their course offering for Semester 6 Open Elective (Rev 2021).
         </p>
       </div>
 
-      <!-- Branch Badges -->
+      <!-- Branch Badges with Full Names -->
       <div class="flex flex-wrap gap-2">
+        @php
+          $deptNames = [
+            'AU' => 'Automobile Engineering',
+            'CE' => 'Civil Engineering',
+            'CT' => 'Computer Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'EL' => 'Electronics Engineering',
+            'ME' => 'Mechanical Engineering'
+          ];
+        @endphp
         @foreach(['AU', 'CE', 'CT', 'EEE', 'EL', 'ME'] as $br)
           @php
             $brCourse = $courses->firstWhere('offering_branch', $br);
             $isSubmitted = $brCourse && ($brCourse->is_hod_submitted || !empty($brCourse->course_title));
+            $brFull = $deptNames[$br];
           @endphp
-          <div class="px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 {{ $isSubmitted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400' }}">
+          <div class="px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 {{ $isSubmitted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400' }}" title="{{ $brFull }} ({{ $br }})">
             <span class="w-2 h-2 rounded-full {{ $isSubmitted ? 'bg-emerald-400' : 'bg-slate-600' }}"></span>
-            <span>{{ $br }}</span>
+            <span>{{ $brFull }}</span>
             @if($isSubmitted)
               <span class="text-[10px] font-mono text-slate-300">({{ $brCourse->course_code }})</span>
             @else
@@ -169,8 +186,14 @@
       <button onclick="switchTab('tab-window')" id="btn-tab-window" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white">
         <span class="material-symbols-rounded text-base">schedule_send</span> 2. Window Timers &amp; Push Alert
       </button>
+      <button onclick="switchTab('tab-registrations')" id="btn-tab-registrations" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white">
+        <span class="material-symbols-rounded text-base">how_to_reg</span> 3. Student Registration Status (How &amp; When Registered)
+        <span class="px-2 py-0.5 rounded-full text-[10px] {{ $incompleteCount > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' }} font-bold">
+          {{ $registeredCount }} Total &bull; {{ $completed5Count }} Complete
+        </span>
+      </button>
       <button onclick="switchTab('tab-allocation')" id="btn-tab-allocation" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-premium text-slate-400 hover:bg-slate-800 hover:text-white">
-        <span class="material-symbols-rounded text-base">fact_check</span> 3. Course Roster &amp; Allocation Desk
+        <span class="material-symbols-rounded text-base">fact_check</span> 4. Course Roster &amp; Allocation Desk
       </button>
     </div>
 
@@ -383,22 +406,22 @@
           <span class="block text-xs font-bold text-slate-300 mb-2">One-Click Branch Simulator (Admin Preview):</span>
           <div class="flex flex-wrap gap-2">
             <a href="/student/open-elective?preview_branch=CE" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Simulate Civil (CE) Student
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Simulate Civil Engineering Student
             </a>
             <a href="/student/open-elective?preview_branch=ME" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span> Simulate Mechanical (ME) Student
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span> Simulate Mechanical Engineering Student
             </a>
             <a href="/student/open-elective?preview_branch=CT" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-emerald-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Simulate Computer (CT) Student
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Simulate Computer Engineering Student
             </a>
             <a href="/student/open-elective?preview_branch=EEE" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-purple-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-purple-400"></span> Simulate Electrical (EEE) Student
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span> Simulate Electrical &amp; Electronics Engineering Student
             </a>
             <a href="/student/open-elective?preview_branch=EL" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-pink-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-pink-400"></span> Simulate Electronics (EL) Student
+              <span class="w-2 h-2 rounded-full bg-pink-400"></span> Simulate Electronics Engineering Student
             </a>
             <a href="/student/open-elective?preview_branch=AU" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-blue-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5 no-underline transition-premium">
-              <span class="w-2 h-2 rounded-full bg-blue-400"></span> Simulate Automobile (AU) Student
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span> Simulate Automobile Engineering Student
             </a>
           </div>
           <span class="text-[11px] text-slate-400 mt-1 block">Each link opens the exact student registration view with that department's course excluded.</span>
@@ -443,7 +466,201 @@
       </div>
     </div>
 
-    <!-- TAB 3: Course Roster & Allocation Desk -->
+    <!-- TAB 3: Student Registration Status (How & When Registered, 5 Options Audit) -->
+    <div id="tab-registrations" class="tab-content hidden space-y-5">
+      <!-- Registration Stats & Actions Bar -->
+      <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-md">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-rounded text-cyan-400 text-xl">fact_check</span>
+            <h2 class="text-base sm:text-lg font-black text-white">Student Registration Status (Audit &amp; 5-Option Verification)</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              Rev 2021 Compulsory Audit
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Review how and when each student registered, their parent department in full, and all 5 mandatory ranked options. Filter by branch or status, and notify students who need to resubmit.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="handleNotifyResubmit()" id="btnNotifyResubmit" class="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 font-bold text-xs flex items-center gap-1.5 transition-premium shadow-sm" title="Notify students to resubmit all 5 options">
+            <span class="material-symbols-rounded text-sm">notification_important</span> Notify Students to Resubmit
+          </button>
+
+          <button onclick="handleResetTrialData()" class="px-3.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 transition-premium shadow-sm">
+            <span class="material-symbols-rounded text-sm">restart_alt</span> Reset All Registrations
+          </button>
+
+          <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-premium">
+            <span class="material-symbols-rounded text-sm">print</span> Print Status List
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3 flex-grow">
+          <!-- Search Input -->
+          <div class="relative min-w-[240px] flex-grow max-w-md">
+            <span class="material-symbols-rounded absolute left-3 top-2.5 text-slate-500 text-sm">search</span>
+            <input type="text" id="regSearchInput" oninput="filterRegistrationTable()" placeholder="Search student name, PRN, or admission no..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium">
+          </div>
+
+          <!-- Branch Filter -->
+          <select id="regBranchFilter" onchange="filterRegistrationTable()" class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold">
+            <option value="">All Departments</option>
+            <option value="AU">Automobile Engineering</option>
+            <option value="CE">Civil Engineering</option>
+            <option value="CT">Computer Engineering</option>
+            <option value="EEE">Electrical &amp; Electronics Engineering</option>
+            <option value="EL">Electronics Engineering</option>
+            <option value="ME">Mechanical Engineering</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="regStatusFilter" onchange="filterRegistrationTable()" class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold">
+            <option value="">All Statuses</option>
+            <option value="complete">5 Options Complete</option>
+            <option value="incomplete">Incomplete / 1 Option</option>
+          </select>
+        </div>
+
+        <div class="text-[11px] text-slate-400 font-mono">
+          Showing <span id="regVisibleCount" class="font-bold text-cyan-400">{{ $registrations->count() }}</span> of {{ $registrations->count() }} registrations
+        </div>
+      </div>
+
+      <!-- Registration Master Audit Table -->
+      <div class="rounded-2xl bg-slate-900/70 border border-slate-800 overflow-hidden shadow-lg">
+        <div class="overflow-x-auto">
+          <table id="tblRegistrationsMaster" class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">#</th>
+                <th class="py-3 px-3">Student Details</th>
+                <th class="py-3 px-3">How &amp; When Registered</th>
+                <th class="py-3 px-3">Status</th>
+                <th class="py-3 px-3">Option 1 (Highest)</th>
+                <th class="py-3 px-3">Option 2</th>
+                <th class="py-3 px-3">Option 3</th>
+                <th class="py-3 px-3">Option 4</th>
+                <th class="py-3 px-3">Option 5</th>
+                <th class="py-3 px-3 text-right">Option Chart Slip</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium">
+              @forelse($registrations as $idx => $r)
+                @php
+                  $isComplete = $r->hasAllFiveOptions();
+                  $parentFull = \App\Models\OeCourse::getBranchFullName($r->parent_branch);
+                @endphp
+                <tr class="reg-row hover:bg-slate-800/40 transition-premium"
+                    data-branch="{{ $r->parent_branch }}"
+                    data-status="{{ $isComplete ? 'complete' : 'incomplete' }}"
+                    data-search="{{ strtolower($r->student_name . ' ' . $r->sbte_reg_no . ' ' . $r->student_adm_no . ' ' . $parentFull) }}">
+                  <td class="py-3 px-3 text-slate-500 font-mono">{{ $idx + 1 }}</td>
+                  <td class="py-3 px-3">
+                    <span class="font-extrabold text-white block">{{ $r->student_name }}</span>
+                    <span class="text-[11px] font-mono text-cyan-400 block">{{ $r->sbte_reg_no }}</span>
+                    <span class="text-[10px] text-amber-300 font-semibold block">{{ $parentFull }} ({{ $r->parent_branch }})</span>
+                    <span class="text-[10px] text-slate-400">Adm: {{ $r->student_adm_no }}</span>
+                  </td>
+                  <td class="py-3 px-3">
+                    <span class="text-white font-bold block">{{ $r->registered_at ? $r->registered_at->format('d M Y, h:i A') : 'Recorded' }}</span>
+                    <span class="text-[10px] text-slate-400 block font-mono">{{ $r->registered_at ? $r->registered_at->diffForHumans() : '' }}</span>
+                    <span class="text-[10px] text-slate-500 font-mono block">IP: {{ $r->ip_address ?: '127.0.0.1' }} &bull; Web/Mobile</span>
+                  </td>
+                  <td class="py-3 px-3">
+                    @if($isComplete)
+                      <span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                        <span class="material-symbols-rounded text-xs">check_circle</span> 5 Options Locked
+                      </span>
+                    @else
+                      <span class="px-2 py-1 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                        <span class="material-symbols-rounded text-xs">warning</span> Incomplete (<5)
+                      </span>
+                    @endif
+                  </td>
+
+                  <!-- Option 1 -->
+                  <td class="py-3 px-3">
+                    @if($r->option1Course)
+                      <span class="text-white font-bold block text-[11px]">{{ $r->option1Course->course_title }}</span>
+                      <span class="text-[10px] text-cyan-300 block font-semibold">{{ $r->option1Course->offering_branch_full }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">Code: {{ $r->option1Course->course_code }}</span>
+                    @else
+                      <span class="text-rose-400 text-[10px] font-bold">— Missing —</span>
+                    @endif
+                  </td>
+
+                  <!-- Option 2 -->
+                  <td class="py-3 px-3">
+                    @if($r->option2Course)
+                      <span class="text-slate-200 font-bold block text-[11px]">{{ $r->option2Course->course_title }}</span>
+                      <span class="text-[10px] text-slate-300 block font-semibold">{{ $r->option2Course->offering_branch_full }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">Code: {{ $r->option2Course->course_code }}</span>
+                    @else
+                      <span class="text-rose-400 text-[10px] font-bold">— Missing —</span>
+                    @endif
+                  </td>
+
+                  <!-- Option 3 -->
+                  <td class="py-3 px-3">
+                    @if($r->option3Course)
+                      <span class="text-slate-200 font-bold block text-[11px]">{{ $r->option3Course->course_title }}</span>
+                      <span class="text-[10px] text-slate-300 block font-semibold">{{ $r->option3Course->offering_branch_full }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">Code: {{ $r->option3Course->course_code }}</span>
+                    @else
+                      <span class="text-rose-400 text-[10px] font-bold">— Missing —</span>
+                    @endif
+                  </td>
+
+                  <!-- Option 4 -->
+                  <td class="py-3 px-3">
+                    @if($r->option4Course)
+                      <span class="text-slate-200 font-bold block text-[11px]">{{ $r->option4Course->course_title }}</span>
+                      <span class="text-[10px] text-slate-300 block font-semibold">{{ $r->option4Course->offering_branch_full }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">Code: {{ $r->option4Course->course_code }}</span>
+                    @else
+                      <span class="text-rose-400 text-[10px] font-bold">— Missing —</span>
+                    @endif
+                  </td>
+
+                  <!-- Option 5 -->
+                  <td class="py-3 px-3">
+                    @if($r->option5Course)
+                      <span class="text-slate-200 font-bold block text-[11px]">{{ $r->option5Course->course_title }}</span>
+                      <span class="text-[10px] text-slate-300 block font-semibold">{{ $r->option5Course->offering_branch_full }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">Code: {{ $r->option5Course->course_code }}</span>
+                    @else
+                      <span class="text-rose-400 text-[10px] font-bold">— Missing —</span>
+                    @endif
+                  </td>
+
+                  <!-- Actions / Slip -->
+                  <td class="py-3 px-3 text-right">
+                    <a href="/student/open-elective/print-slip?student_adm_no={{ $r->student_adm_no }}" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white text-[11px] font-bold inline-flex items-center gap-1 no-underline transition-premium">
+                      <span class="material-symbols-rounded text-xs">print</span> Print Slip
+                    </a>
+                  </td>
+                </tr>
+              @empty
+                <tr id="tblEmptyRow">
+                  <td colspan="10" class="py-12 text-center text-slate-500">
+                    <span class="material-symbols-rounded text-4xl text-slate-600 block mb-2">how_to_reg</span>
+                    <p class="text-sm font-bold text-slate-400">No student registrations recorded yet.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">When students register and lock their 5 options, their full audit trail and choices will appear here.</p>
+                  </td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Course Roster & Allocation Desk -->
     <div id="tab-allocation" class="tab-content hidden space-y-5">
       <!-- Allocation Actions & Controls -->
       <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-md">
@@ -505,13 +722,13 @@
           <div>
             <label class="block text-sm font-bold text-slate-200 mb-1">Offering Department</label>
             <select id="course_offering_branch" name="offering_branch" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 text-sm text-white focus:outline-none focus:border-cyan-500 font-bold">
-              <option value="">Select Branch</option>
-              <option value="AU">AU — Automobile</option>
-              <option value="CE">CE — Civil</option>
-              <option value="CT">CT — Computer</option>
-              <option value="EEE">EEE — Electrical</option>
-              <option value="EL">EL — Electronics</option>
-              <option value="ME">ME — Mechanical</option>
+              <option value="">Select Department</option>
+              <option value="AU">Automobile Engineering (AU)</option>
+              <option value="CE">Civil Engineering (CE)</option>
+              <option value="CT">Computer Engineering (CT)</option>
+              <option value="EEE">Electrical &amp; Electronics Engineering (EEE)</option>
+              <option value="EL">Electronics Engineering (EL)</option>
+              <option value="ME">Mechanical Engineering (ME)</option>
             </select>
           </div>
           <div>
@@ -585,7 +802,7 @@
           <select id="reassign_target_course_id" required class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold">
             @foreach($courses as $c)
               <option value="{{ $c->id }}" data-branch="{{ $c->offering_branch }}">
-                {{ $c->offering_branch }} — {{ $c->course_code }} ({{ $c->course_title }})
+                {{ $c->offering_branch_full }} — {{ $c->course_code }} ({{ $c->course_title }})
               </option>
             @endforeach
           </select>
@@ -607,8 +824,79 @@
 
   <script>
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const BRANCH_FULL_NAMES = {
+      'AU': 'Automobile Engineering',
+      'CE': 'Civil Engineering',
+      'CT': 'Computer Engineering',
+      'EEE': 'Electrical & Electronics Engineering',
+      'EL': 'Electronics Engineering',
+      'ME': 'Mechanical Engineering'
+    };
     let allocationData = null;
     let activeCourseId = {{ $courses->first()->id ?? 0 }};
+
+    function filterRegistrationTable() {
+      const q = (document.getElementById('regSearchInput')?.value || '').toLowerCase().trim();
+      const branch = (document.getElementById('regBranchFilter')?.value || '').toUpperCase();
+      const status = document.getElementById('regStatusFilter')?.value || '';
+
+      const rows = document.querySelectorAll('.reg-row');
+      let visible = 0;
+
+      rows.forEach(row => {
+        const rowBranch = (row.getAttribute('data-branch') || '').toUpperCase();
+        const rowStatus = row.getAttribute('data-status') || '';
+        const rowSearch = row.getAttribute('data-search') || '';
+
+        const matchBranch = !branch || rowBranch === branch;
+        const matchStatus = !status || rowStatus === status;
+        const matchSearch = !q || rowSearch.includes(q);
+
+        if (matchBranch && matchStatus && matchSearch) {
+          row.style.display = '';
+          visible++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      const countEl = document.getElementById('regVisibleCount');
+      if (countEl) countEl.innerText = visible;
+    }
+
+    async function handleNotifyResubmit() {
+      const targetType = prompt('Notify students to submit all 5 options compulsory (Revision 2021).\n\nType 1 to notify ALL Semester 5 students.\nType 2 to notify ONLY students with incomplete (< 5) choices.\n\nEnter choice (1 or 2):', '1');
+      if (!targetType) return;
+
+      const btn = document.getElementById('btnNotifyResubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> Sending Alert...';
+
+      try {
+        const res = await fetch('/admin/open-elective/notify-resubmit', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            target_type: targetType === '2' ? 'incomplete_only' : 'all_s5'
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          alert(data.message);
+        } else {
+          alert(data.message || 'Notification broadcast failed.');
+        }
+      } catch (err) {
+        alert('Server communication error.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-rounded text-sm">notification_important</span> Notify Students to Resubmit';
+      }
+    }
 
     // Countdown Timer
     function updateCountdown() {
@@ -860,7 +1148,7 @@
         <div class="space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
             <div>
-              <div class="text-xs font-black text-cyan-400">${course.offering_branch} Dept &bull; ${course.course_code}</div>
+              <div class="text-xs font-black text-cyan-400">${BRANCH_FULL_NAMES[course.offering_branch] || course.offering_branch} Dept &bull; ${course.course_code}</div>
               <h4 class="text-sm font-extrabold text-white">${course.course_title}</h4>
             </div>
             <div class="flex items-center gap-3">
@@ -908,8 +1196,8 @@
               <td class="py-2 px-3 font-bold text-white">${st.student_name}</td>
               <td class="py-2 px-3 font-mono text-cyan-400">${st.sbte_reg_no}</td>
               <td class="py-2 px-3">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-800 text-amber-300 border border-slate-700">
-                  ${st.parent_branch}
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-800 text-amber-300 border border-slate-700" title="${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}">
+                  ${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}
                 </span>
               </td>
               <td class="py-2 px-3">
@@ -917,8 +1205,14 @@
                   ${(st.allocation_source || 'allotted').replace(/_/g, ' ')}
                 </span>
               </td>
-              <td class="py-2 px-3 text-slate-400 text-[11px]">
-                1: ${st.option1_course ? st.option1_course.course_code : '-'} &bull; 2: ${st.option2_course ? st.option2_course.course_code : '-'}
+              <td class="py-2 px-3 text-slate-300 text-[11px]">
+                <div class="flex flex-wrap items-center gap-1 font-mono text-[10px]">
+                  <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20 font-bold" title="1st Choice">1: ${st.option1_course ? st.option1_course.course_code : '-'}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="2nd Choice">2: ${st.option2_course ? st.option2_course.course_code : '-'}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="3rd Choice">3: ${st.option3_course ? st.option3_course.course_code : '-'}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="4th Choice">4: ${st.option4_course ? st.option4_course.course_code : '-'}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="5th Choice">5: ${st.option5_course ? st.option5_course.course_code : '-'}</span>
+                </div>
               </td>
               <td class="py-2 px-3 text-right">
                 <button onclick='openReassignModal(${JSON.stringify(st)})' class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-bold transition-premium">

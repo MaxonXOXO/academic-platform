@@ -361,8 +361,9 @@
             </div>
 
             <div class="flex items-center bg-slate-900 border border-slate-800 p-1 rounded-xl gap-1">
-              <button id="btnActiveBatches" onclick="filterBatches('active')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm">Active Batches</button>
-              <button id="btnHistoricalBatches" onclick="filterBatches('historical')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white">Historical</button>
+              <button id="btnActiveBatches" onclick="filterBatches('active')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm flex items-center gap-1"><span class="material-symbols-rounded text-sm">school</span><span>Current Classes</span></button>
+              <button id="btnHistoricalBatches" onclick="filterBatches('historical')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white flex items-center gap-1"><span class="material-symbols-rounded text-sm">history</span><span>Previous Classes</span></button>
+              <button id="btnUpcomingBatches" onclick="filterBatches('upcoming')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white flex items-center gap-1"><span class="material-symbols-rounded text-sm">event_upcoming</span><span>Upcoming Classes</span></button>
             </div>
           </div>
 
@@ -434,12 +435,18 @@
       currentDashboardFilter = status;
       const btnActive = document.getElementById('btnActiveBatches');
       const btnHist = document.getElementById('btnHistoricalBatches');
+      const btnUp = document.getElementById('btnUpcomingBatches');
+      const idle = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white flex items-center gap-1";
+      if (btnActive) btnActive.className = idle;
+      if (btnHist) btnHist.className = idle;
+      if (btnUp) btnUp.className = idle;
+
       if (status === 'active') {
-        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm";
-        btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white";
-      } else {
-        btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm";
-        btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium text-slate-400 hover:text-white";
+        if (btnActive) btnActive.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-blue-600 text-white shadow-sm flex items-center gap-1";
+      } else if (status === 'historical') {
+        if (btnHist) btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-amber-600 text-white shadow-sm flex items-center gap-1";
+      } else if (status === 'upcoming') {
+        if (btnUp) btnUp.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-premium bg-cyan-600 text-white shadow-sm flex items-center gap-1";
       }
       loadLecturerBatches();
     }

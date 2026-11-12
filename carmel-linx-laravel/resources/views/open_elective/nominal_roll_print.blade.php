@@ -108,7 +108,7 @@
   <table class="meta-table">
     <tr>
       <td width="15%" class="bold">Offering Dept:</td>
-      <td width="35%">Department of {{ $course->offering_branch }}</td>
+      <td width="35%">Department of {{ $course->offering_branch_full }}</td>
       <td width="15%" class="bold">Course Code:</td>
       <td width="35%" class="bold">{{ $course->course_code }}</td>
     </tr>
@@ -143,7 +143,7 @@
           <td>{{ $st->student_adm_no }}</td>
           <td class="bold">{{ $st->sbte_reg_no }}</td>
           <td class="bold">{{ strtoupper($st->student_name) }}</td>
-          <td class="center bold">{{ $st->parent_branch }}</td>
+          <td class="center bold">{{ \App\Models\OeCourse::getBranchFullName($st->parent_branch) }}</td>
         </tr>
       @empty
         <tr>

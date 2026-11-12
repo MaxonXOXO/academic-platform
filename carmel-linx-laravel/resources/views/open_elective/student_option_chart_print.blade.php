@@ -48,7 +48,7 @@
     </tr>
     <tr>
       <td class="bold">Parent Department:</td>
-      <td><strong>{{ $student->branch }}</strong></td>
+      <td><strong>{{ \App\Models\OeCourse::getBranchFullName($student->branch) }} ({{ $student->branch }})</strong></td>
       <td class="bold">Admission No:</td>
       <td>{{ $student->adm_no }}</td>
     </tr>
@@ -87,7 +87,7 @@
           <td class="center bold">
             <span class="badge {{ $opt['cls'] }}">{{ $opt['rank'] }}</span>
           </td>
-          <td class="bold">{{ $opt['course']->offering_branch ?? 'N/A' }}</td>
+          <td class="bold">{{ $opt['course'] ? $opt['course']->offering_branch_full : 'N/A' }}</td>
           <td class="bold">{{ $opt['course']->course_code ?? 'N/A' }}</td>
           <td class="bold">{{ $opt['course']->course_title ?? 'N/A' }}</td>
           <td style="font-size: 9.5px; color: #333;">
@@ -108,7 +108,7 @@
         {{ $registration->allottedCourse->course_title }} (Code: {{ $registration->allottedCourse->course_code }})
       </div>
       <div style="margin-top: 3px; font-size: 11px; color: #047857;">
-        Offering Department: <strong>Department of {{ $registration->allottedCourse->offering_branch }}</strong> &bull;
+        Offering Department: <strong>Department of {{ $registration->allottedCourse->offering_branch_full }}</strong> &bull;
         Classroom: <strong>{{ $registration->allottedCourse->classroom_id ?: 'OE_2024_' . $registration->allottedCourse->offering_branch }}</strong>
       </div>
     </div>

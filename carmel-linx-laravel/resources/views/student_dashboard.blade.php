@@ -308,6 +308,41 @@
         </div>
       </div>
 
+      <!-- S6 Open Elective Registration Banner (For 5th Semester Students) -->
+      @php
+        $currentStudentSem = session('semester');
+        if (!$currentStudentSem && session('userId')) {
+            $currentStudentSem = \App\Models\Student::where('reg_no', session('userId'))->value('semester');
+        }
+      @endphp
+      @if($currentStudentSem == 5)
+      <div class="mb-6 bg-gradient-to-r from-cyan-950/70 via-slate-900 to-sky-950/70 border-2 border-cyan-500/60 rounded-2xl p-5 shadow-2xl relative overflow-hidden fade-up">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+          <div class="flex items-start gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center flex-shrink-0 shadow-lg text-cyan-400">
+              <span class="material-symbols-rounded text-2xl">how_to_reg</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-black uppercase tracking-wider">SEMESTER 6 REV 2021 &bull; OPEN ELECTIVE</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black uppercase tracking-wider animate-pulse">Registration Open</span>
+              </div>
+              <h3 class="font-black text-white text-base mt-1">Open Elective Course Registration</h3>
+              <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+                Rank your 5 preferences across inter-disciplinary courses. Seats are allocated based on SBTE regulation and choice priorities.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-end">
+            <a href="/student/open-elective" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-xl text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer no-underline">
+              <span class="material-symbols-rounded text-base">arrow_forward</span>
+              Select Open Elective Courses Now
+            </a>
+          </div>
+        </div>
+      </div>
+      @endif
+
       <!-- PANEL: ACTIVE EXAMS -->
       <div id="panelExams" class="fade-up">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

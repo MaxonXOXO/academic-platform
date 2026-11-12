@@ -41,6 +41,8 @@ class OpenElectiveStudentController extends Controller
             return redirect('/dashboard/student')->with('error', 'Student profile record not found.');
         }
 
+        $student->parent_branch_full = OeCourse::getBranchFullName($student->branch);
+
         $settings = OeSetting::getActiveSettings();
 
         // Check if student has already registered
@@ -56,6 +58,7 @@ class OpenElectiveStudentController extends Controller
 
         // Attach live 1st-choice demand metrics & parse COs
         foreach ($eligibleCourses as $c) {
+            $c->offering_branch_full = OeCourse::getBranchFullName($c->offering_branch);
             $opt1Count = OeRegistration::where('option_1_course_id', $c->id)->count();
             $c->opt1_demand = $opt1Count;
             $c->remaining_indicator = max(0, $c->max_capacity - $opt1Count);
@@ -132,13 +135,19 @@ class OpenElectiveStudentController extends Controller
             return response()->json(['status' => 'ERROR', 'message' => 'Registration deadline has passed.'], 422);
         }
 
-        // Validate 5 choices
+        // Validate 5 choices - All 5 options are compulsory for Rev 2021
         $request->validate([
             'option_1' => 'required|integer|exists:oe_courses,id',
             'option_2' => 'required|integer|exists:oe_courses,id',
             'option_3' => 'required|integer|exists:oe_courses,id',
             'option_4' => 'required|integer|exists:oe_courses,id',
             'option_5' => 'required|integer|exists:oe_courses,id',
+        ], [
+            'option_1.required' => 'Option 1 is compulsory. Please select your 1st preference.',
+            'option_2.required' => 'Option 2 is compulsory. Please select your 2nd preference.',
+            'option_3.required' => 'Option 3 is compulsory. Please select your 3rd preference.',
+            'option_4.required' => 'Option 4 is compulsory. Please select your 4th preference.',
+            'option_5.required' => 'Option 5 is compulsory. Please select your 5th preference.',
         ]);
 
         $options = [
@@ -148,6 +157,14 @@ class OpenElectiveStudentController extends Controller
             (int)$request->option_4,
             (int)$request->option_5,
         ];
+
+        // Strictly verify that exactly 5 valid options are selected
+        if (count($options) !== 5 || in_array(0, $options, true)) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'All 5 options are compulsory for Revision 2021. Single or incomplete submissions cannot be accepted.'
+            ], 422);
+        }
 
         // Ensure all 5 choices are unique
         if (count(array_unique($options)) !== 5) {

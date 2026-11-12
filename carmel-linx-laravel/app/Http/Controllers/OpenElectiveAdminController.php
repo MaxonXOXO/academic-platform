@@ -58,6 +58,22 @@ class OpenElectiveAdminController extends Controller
         $allottedCount = OeRegistration::whereNotNull('allotted_course_id')->count();
         $pendingCount = max(0, $totalS5Students - $registeredCount);
 
+        // Complete list of registrations with all 5 preferences & student info
+        $registrations = OeRegistration::with([
+            'option1Course',
+            'option2Course',
+            'option3Course',
+            'option4Course',
+            'option5Course',
+            'allottedCourse',
+            'student'
+        ])->orderBy('registered_at', 'DESC')->get();
+
+        $completed5Count = $registrations->filter(function ($r) {
+            return $r->hasAllFiveOptions();
+        })->count();
+        $incompleteCount = max(0, $registrations->count() - $completed5Count);
+
         // Course statistics & HOD readiness check
         $courseStats = [];
         $submittedHodsCount = 0;
@@ -85,7 +101,10 @@ class OpenElectiveAdminController extends Controller
             'allottedCount',
             'pendingCount',
             'courseStats',
-            'submittedHodsCount'
+            'submittedHodsCount',
+            'registrations',
+            'completed5Count',
+            'incompleteCount'
         ));
     }
 
@@ -256,6 +275,70 @@ class OpenElectiveAdminController extends Controller
     }
 
     /**
+     * Broadcast mandatory 5-option resubmission notification to S5 students.
+     */
+    public function notifyResubmit(Request $request)
+    {
+        if (!$this->checkAccess()) {
+            return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $targetType = $request->input('target_type', 'all_s5'); // 'all_s5' or 'incomplete_only'
+
+        if ($targetType === 'incomplete_only') {
+            $completeAdmNos = OeRegistration::whereNotNull('option_1_course_id')
+                ->whereNotNull('option_2_course_id')
+                ->whereNotNull('option_3_course_id')
+                ->whereNotNull('option_4_course_id')
+                ->whereNotNull('option_5_course_id')
+                ->pluck('student_adm_no')
+                ->toArray();
+
+            $s5StudentRegNos = Student::where('semester', 5)
+                ->whereNotIn('adm_no', $completeAdmNos)
+                ->whereNotNull('reg_no')
+                ->pluck('reg_no')
+                ->toArray();
+        } else {
+            $s5StudentRegNos = Student::where('semester', 5)
+                ->whereNotNull('reg_no')
+                ->pluck('reg_no')
+                ->toArray();
+        }
+
+        if (empty($s5StudentRegNos)) {
+            return response()->json(['status' => 'ERROR', 'message' => 'No matching Semester 5 students found.'], 404);
+        }
+
+        $subscriptions = PushSubscription::where('role', 'student')
+            ->whereIn('user_id', $s5StudentRegNos)
+            ->get();
+
+        $title = $request->input('title', 'Rev 2021 Open Elective: 5 Options Compulsory');
+        $body = $request->input('body', 'All 5 options are mandatory for Revision 2021 Semester 6 Open Elective. If you have selected fewer options or need to re-register, please login to Carmel Linx and lock all 5 preferences.');
+        $url = '/student/open-elective';
+
+        $dispatchCount = 0;
+        if ($subscriptions->isNotEmpty()) {
+            PushNotificationService::dispatchPayload(
+                $subscriptions,
+                $title,
+                $body,
+                $url,
+                'oe-resubmit-alert'
+            );
+            $dispatchCount = $subscriptions->count();
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => "Mandatory 5-option notice dispatched to {$dispatchCount} student devices (Cohort size: " . count($s5StudentRegNos) . " students).",
+            'dispatched_count' => $dispatchCount,
+            'cohort_count' => count($s5StudentRegNos),
+        ]);
+    }
+
+    /**
      * Fetch real-time Allocation & Course-wise Pool data.
      */
     public function getAllocationData(Request $request)
@@ -300,6 +383,7 @@ class OpenElectiveAdminController extends Controller
             'courses' => $courses,
             'coursePools' => $coursePools,
             'unallotted' => $unallotted,
+            'all_registrations' => $registrations,
             'total_registered' => $registrations->count(),
             'total_allotted' => $registrations->whereNotNull('allotted_course_id')->count(),
         ]);

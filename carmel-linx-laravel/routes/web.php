@@ -2540,6 +2540,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/admin/open-elective/courses/{id}/delete', [\App\Http\Controllers\OpenElectiveAdminController::class, 'deleteCourse']);
     Route::post('/admin/open-elective/settings/save', [\App\Http\Controllers\OpenElectiveAdminController::class, 'saveSettings']);
     Route::post('/admin/open-elective/broadcast-notification', [\App\Http\Controllers\OpenElectiveAdminController::class, 'broadcastPush']);
+    Route::post('/admin/open-elective/notify-resubmit', [\App\Http\Controllers\OpenElectiveAdminController::class, 'notifyResubmit']);
     Route::get('/admin/open-elective/allocation-data', [\App\Http\Controllers\OpenElectiveAdminController::class, 'getAllocationData']);
     Route::post('/admin/open-elective/auto-allocate', [\App\Http\Controllers\OpenElectiveAdminController::class, 'autoAllocate']);
     Route::post('/admin/open-elective/manual-override', [\App\Http\Controllers\OpenElectiveAdminController::class, 'manualOverride']);

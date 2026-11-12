@@ -35,6 +35,34 @@ class OeCourse extends Model
         'batch_subject_id' => 'integer',
     ];
 
+    protected $appends = [
+        'offering_branch_full',
+    ];
+
+    public static function getBranchFullName(?string $branch): string
+    {
+        $map = [
+            'AU' => 'Automobile Engineering',
+            'CE' => 'Civil Engineering',
+            'CT' => 'Computer Engineering',
+            'EEE' => 'Electrical & Electronics Engineering',
+            'EL' => 'Electronics Engineering',
+            'ME' => 'Mechanical Engineering',
+        ];
+        $code = strtoupper(trim($branch ?? ''));
+        return $map[$code] ?? ($branch ?: '');
+    }
+
+    public function getOfferingBranchFullAttribute(): string
+    {
+        return self::getBranchFullName($this->offering_branch);
+    }
+
+    public function getOfferingBranchFullNameAttribute(): string
+    {
+        return self::getBranchFullName($this->offering_branch);
+    }
+
     public function registrations()
     {
         return $this->hasMany(OeRegistration::class, 'allotted_course_id');

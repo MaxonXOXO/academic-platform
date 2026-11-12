@@ -132,7 +132,7 @@ class R26DataController extends Controller
             'admission_year'    => 'required|integer|min:2000|max:2100',
             'tutor_mobile_no'   => 'nullable|string',
             'mentor_mobile_no'  => 'nullable|string',
-            'current_semester'  => 'nullable|integer|min:1|max:8',
+            'current_semester'  => 'nullable|integer|min:1|max:6',
         ]);
 
         $admYear      = (int) $request->input('admission_year');

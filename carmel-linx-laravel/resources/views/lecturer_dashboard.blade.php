@@ -1078,14 +1078,20 @@
         <div id="assignedClassroomHeader" class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-950/30 border border-slate-800/40 p-4 rounded-2xl gap-4">
           <div>
             <h3 class="text-lg font-black text-slate-200">My Assigned Batches & Classrooms</h3>
-            <p class="text-sm text-slate-400 mt-0.5">Select a subject to enter the virtual classroom for assignments and assessments.</p>
+            <p id="assignedClassroomSubtext" class="text-sm text-slate-400 mt-0.5">Select a subject to enter the virtual classroom for assignments and assessments.</p>
           </div>
-          <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-xl shadow-inner">
-            <button onclick="setDashboardBatchFilter('active')" id="btnFilterActive" class="px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow transition-premium cursor-pointer">
-              Active Batches
+          <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-xl shadow-inner gap-1">
+            <button onclick="setDashboardBatchFilter('active')" id="btnFilterActive" class="px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow transition-premium cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base">school</span>
+              <span>Current Classes</span>
             </button>
-            <button onclick="setDashboardBatchFilter('historical')" id="btnFilterHistorical" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer">
-              Archived Batches
+            <button onclick="setDashboardBatchFilter('historical')" id="btnFilterHistorical" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base">history</span>
+              <span>Previous Classes</span>
+            </button>
+            <button onclick="setDashboardBatchFilter('upcoming')" id="btnFilterUpcoming" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base">event_upcoming</span>
+              <span>Upcoming Classes</span>
             </button>
           </div>
         </div>
@@ -2231,13 +2237,24 @@
       
       const activeBtn = document.getElementById('btnFilterActive');
       const historicalBtn = document.getElementById('btnFilterHistorical');
+      const upcomingBtn = document.getElementById('btnFilterUpcoming');
+      const subtext = document.getElementById('assignedClassroomSubtext');
+
+      const idleClass = 'px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer flex items-center gap-1.5';
+
+      if (activeBtn) activeBtn.className = idleClass;
+      if (historicalBtn) historicalBtn.className = idleClass;
+      if (upcomingBtn) upcomingBtn.className = idleClass;
 
       if (status === 'active') {
-        if (activeBtn) activeBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow transition-premium cursor-pointer';
-        if (historicalBtn) historicalBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer';
-      } else {
-        if (activeBtn) activeBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-200 transition-premium cursor-pointer';
-        if (historicalBtn) historicalBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow transition-premium cursor-pointer';
+        if (activeBtn) activeBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow transition-premium cursor-pointer flex items-center gap-1.5';
+        if (subtext) subtext.textContent = 'Current active semester classrooms. Select a subject to enter the virtual classroom for assignments, marks, and assessments.';
+      } else if (status === 'historical') {
+        if (historicalBtn) historicalBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold bg-amber-600 text-white shadow transition-premium cursor-pointer flex items-center gap-1.5';
+        if (subtext) subtext.textContent = 'Previous semester class cards. Select any past subject to complete pending marks, lab evaluations, view logs, or print course files.';
+      } else if (status === 'upcoming') {
+        if (upcomingBtn) upcomingBtn.className = 'px-4 py-2 rounded-lg text-sm font-bold bg-cyan-600 text-white shadow transition-premium cursor-pointer flex items-center gap-1.5';
+        if (subtext) subtext.textContent = 'Upcoming semester class cards configured ahead of commencement. Review allocations, upload syllabus, or prepare lesson plans.';
       }
 
       loadLecturerBatches();
@@ -2268,11 +2285,28 @@
       grid.innerHTML = '';
 
       if (batches.length === 0) {
+        let icon = 'sentiment_dissatisfied';
+        let title = 'No Current Classes Assigned';
+        let desc = 'You have not been assigned as a Tutor, Mentor, or Subject Staff for any active classes this semester.';
+        let color = 'text-slate-700';
+
+        if (currentDashboardFilter === 'historical') {
+          icon = 'history_toggle_off';
+          title = 'No Previous Classes Found';
+          desc = 'You have no archived subjects from previous semesters.';
+          color = 'text-amber-500/60';
+        } else if (currentDashboardFilter === 'upcoming') {
+          icon = 'event_busy';
+          title = 'No Upcoming Classes Pre-Configured';
+          desc = 'No subjects have been pre-allocated for future semesters yet.';
+          color = 'text-cyan-500/60';
+        }
+
         grid.innerHTML = `
           <div class="col-span-full bg-slate-950/40 border border-slate-800/60 p-8 rounded-2xl text-center shadow-sm max-w-2xl mx-auto">
-            <span class="material-symbols-rounded text-5xl text-slate-700 mb-3">sentiment_dissatisfied</span>
-            <p class="font-bold text-slate-300 text-sm">No batches assigned</p>
-            <p class="text-xs text-slate-500 mt-1">You have not been assigned as a Tutor, Mentor, or Subject Staff for any batches yet.</p>
+            <span class="material-symbols-rounded text-5xl ${color} mb-3">${icon}</span>
+            <p class="font-bold text-slate-300 text-sm">${title}</p>
+            <p class="text-xs text-slate-500 mt-1">${desc}</p>
           </div>
         `;
         return;
@@ -2291,10 +2325,44 @@
         let brName = b.branch || (b.classroom_id ? b.classroom_id.split('_')[0] : 'CE');
         let brPrefix = `${brName}-`;
 
+        const isHistorical = currentDashboardFilter === 'historical' || b.is_previous;
+        const isUpcoming = currentDashboardFilter === 'upcoming' || b.is_upcoming;
+
         const card = document.createElement('div');
         let yearBorderColor = 'border-t-violet-500';
-        if (b.batch_year % 3 === 0) yearBorderColor = 'border-t-sky-500';
-        else if (b.batch_year % 3 === 1) yearBorderColor = 'border-t-emerald-500';
+        if (isHistorical) {
+          yearBorderColor = 'border-t-amber-500';
+        } else if (isUpcoming) {
+          yearBorderColor = 'border-t-cyan-500';
+        } else if (b.batch_year % 3 === 0) {
+          yearBorderColor = 'border-t-sky-500';
+        } else if (b.batch_year % 3 === 1) {
+          yearBorderColor = 'border-t-emerald-500';
+        }
+
+        // Semester badge logic:
+        let semesterBadge = '';
+        if (isHistorical) {
+          let semText = (b.subject_semesters && b.subject_semesters.length > 0)
+            ? `SEM ${b.subject_semesters.join(', ')}`
+            : `SEM-${b.current_semester || 1}`;
+          if ((b.current_semester || 1) > 6) {
+            semesterBadge = `<span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:13px">school</span>PREVIOUS (GRADUATED)</span>`;
+          } else {
+            semesterBadge = `<span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:13px">history</span>PREVIOUS CLASS (${semText})</span>`;
+          }
+        } else if (isUpcoming) {
+          let semText = (b.subject_semesters && b.subject_semesters.length > 0)
+            ? `SEM ${b.subject_semesters.join(', ')}`
+            : `SEM-${(b.current_semester || 1) + 1}`;
+          semesterBadge = `<span class="px-2.5 py-0.5 bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:13px">event_upcoming</span>UPCOMING (${semText})</span>`;
+        } else {
+          if ((b.current_semester || 1) > 6) {
+            semesterBadge = `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`;
+          } else {
+            semesterBadge = `<span class="px-2.5 py-0.5 bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 rounded-lg font-black text-xs select-none">SEM-${b.current_semester || 1}</span>`;
+          }
+        }
         
         card.className = `bg-slate-950/40 border border-slate-800/80 ${yearBorderColor} border-t-[3px] rounded-2xl overflow-hidden flex flex-col transition-premium hover:shadow-xl hover:shadow-black/50 hover:border-slate-700/60`;
         card.innerHTML = `
@@ -2305,10 +2373,7 @@
                   <h4 class="font-black text-slate-100 text-lg tracking-tight">Admission ${b.batch_year}</h4>
                   ${b.branch ? `<span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">${b.branch}</span>` : ''}
                   <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-600 rounded text-xs font-black font-mono">${b.scheme || (b.classroom_id && b.classroom_id.includes('2026') ? 'R2026' : 'R2021')}</span>
-                  ${(b.current_semester || 1) > 6
-                    ? `<span class="px-2.5 py-0.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 rounded-lg font-black text-xs select-none flex items-center gap-1"><span class="material-symbols-rounded" style="font-size:14px">school</span>Graduated</span>`
-                    : `<span class="px-2.5 py-0.5 bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 rounded-lg font-black text-xs select-none">SEM-${b.current_semester || 1}</span>`
-                  }
+                  ${semesterBadge}
                 </div>
                 <span class="inline-block px-2.5 py-0.5 bg-slate-800 border border-slate-600/60 rounded-lg font-mono text-sm font-bold text-slate-300 tracking-wide">${b.classroom_id}</span>
               </div>
@@ -2322,7 +2387,13 @@
           </div>
           
           <div class="p-4 flex-grow space-y-3 bg-slate-950/20">
-            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span class="material-symbols-rounded text-xs">book</span> Assigned Subjects</h5>
+            <div class="flex justify-between items-center mb-2">
+              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-xs">${isHistorical ? 'history_edu' : (isUpcoming ? 'upcoming' : 'book')}</span>
+                ${isHistorical ? 'Previous Semester Subjects' : (isUpcoming ? 'Upcoming Semester Subjects' : 'Assigned Subjects')}
+              </h5>
+              ${isHistorical ? `<span class="text-[11px] font-bold text-amber-400/80 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">Archived Workspace</span>` : (isUpcoming ? `<span class="text-[11px] font-bold text-cyan-400/80 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">Pre-Term Planning</span>` : '')}
+            </div>
             <div class="space-y-3 divide-y divide-slate-800/80">
               ${b.subjects && b.subjects.length > 0 ? b.subjects.map((s, idx) => {
                 let isAuDrawingTheory = (String(s.id) === '110' || (String(s.code || '').includes('3055') && (String(b.classroom_id || '').includes('AU') || (s.name || '').toLowerCase().includes('automobile'))));
@@ -2330,9 +2401,13 @@
                 let topicsPct = s.total_topics > 0 ? Math.round((s.covered_topics / s.total_topics) * 100) : 0;
                 let hoursPct  = s.total_hours  > 0 ? Math.round((s.engaged_hours  / s.total_hours)  * 100) : 0;
                 let barPct    = isPractical ? topicsPct : (topicsPct || hoursPct);
-                let barColor  = isPractical
-                  ? (barPct >= 80 ? 'from-purple-500 to-cyan-400' : barPct >= 50 ? 'from-purple-600 to-blue-400' : 'from-purple-700 to-indigo-500')
-                  : (barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400');
+                let barColor  = isHistorical
+                  ? 'from-amber-600 to-yellow-500'
+                  : (isUpcoming
+                    ? 'from-cyan-600 to-teal-400'
+                    : (isPractical
+                      ? (barPct >= 80 ? 'from-purple-500 to-cyan-400' : barPct >= 50 ? 'from-purple-600 to-blue-400' : 'from-purple-700 to-indigo-500')
+                      : (barPct >= 80 ? 'from-emerald-500 to-teal-400' : barPct >= 50 ? 'from-blue-500 to-sky-400' : 'from-violet-500 to-indigo-400')));
                 
                 let progressLabel = isPractical
                   ? `${s.covered_topics}/${s.total_topics} exps conducted`
@@ -2343,22 +2418,41 @@
                   ? rawCode
                   : `${brPrefix}${rawCode.replace(/^[A-Z]+-/, '')}`;
                 
+                let termBadge = isHistorical 
+                  ? `<span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-bold">Past Term</span>` 
+                  : (isUpcoming ? `<span class="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] font-bold">Upcoming</span>` : '');
+
+                let borderHoverColor = isHistorical 
+                  ? 'border-amber-500/20 hover:border-amber-500/50' 
+                  : (isUpcoming ? 'border-cyan-500/20 hover:border-cyan-500/50' : 'border-slate-800 hover:border-blue-500/50');
+
+                let titleHoverColor = isHistorical 
+                  ? 'group-hover:text-amber-400' 
+                  : (isUpcoming ? 'group-hover:text-cyan-400' : 'group-hover:text-blue-400');
+
+                let iconHoverColor = isHistorical 
+                  ? 'group-hover:text-amber-500' 
+                  : (isUpcoming ? 'group-hover:text-cyan-500' : 'group-hover:text-blue-500');
+
                 return `
                   <div class="${idx > 0 ? 'pt-3' : ''} w-full">
-                    <div class="w-full px-3.5 py-3 bg-slate-900/80 border border-slate-800 rounded-xl transition-premium group hover:border-blue-500/50 hover:bg-slate-900 flex flex-col gap-2">
+                    <div class="w-full px-3.5 py-3 bg-slate-900/80 border ${borderHoverColor} rounded-xl transition-premium group hover:bg-slate-900 flex flex-col gap-2">
                       <div class="flex justify-between items-center cursor-pointer" onclick="openClassroom('${b.classroom_id}', '${s.id}', '${s.name}', '${formattedCode}', '${s.syllabus_revision_code || 'REV2021'}', '${isAuDrawingTheory ? 'Theory' : s.type}')">
                         <div class="flex-1 min-w-0 pr-2">
-                          <div class="text-base font-extrabold text-slate-200 group-hover:text-blue-400 transition-premium truncate">${s.name}</div>
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-base font-extrabold text-slate-200 ${titleHoverColor} transition-premium truncate">${s.name}</span>
+                            ${termBadge}
+                          </div>
                           <div class="text-xs text-slate-450 font-mono mt-0.5">Sem ${s.semester} · ${isAuDrawingTheory ? 'Theory' : s.type} · ${formattedCode}</div>
                         </div>
-                        <span class="material-symbols-rounded text-slate-600 group-hover:text-blue-500 text-base transition-premium flex-shrink-0">open_in_new</span>
+                        <span class="material-symbols-rounded text-slate-600 ${iconHoverColor} text-base transition-premium flex-shrink-0">open_in_new</span>
                       </div>
                       <!-- Compact progress bar -->
                       <div class="flex items-center gap-2 mt-1">
                         <div class="flex-1 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
                           <div class="bg-gradient-to-r ${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${barPct}%"></div>
                         </div>
-                        <span class="text-[11px] font-bold ${isPractical ? 'text-purple-300' : 'text-slate-400'} whitespace-nowrap flex-shrink-0">${progressLabel}</span>
+                        <span class="text-[11px] font-bold ${isHistorical ? 'text-amber-300/80' : (isUpcoming ? 'text-cyan-300/80' : (isPractical ? 'text-purple-300' : 'text-slate-400'))} whitespace-nowrap flex-shrink-0">${progressLabel}</span>
                       </div>
                     </div>
                   </div>

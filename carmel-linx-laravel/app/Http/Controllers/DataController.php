@@ -1663,7 +1663,7 @@ class DataController extends Controller
                 'admission_year'    => 'required|integer|min:2000|max:2100',
                 'tutor_mobile_no'   => 'nullable|string',
                 'mentor_mobile_no'  => 'nullable|string',
-                'current_semester'  => 'nullable|integer|min:1|max:8',
+                'current_semester'  => 'nullable|integer|min:1|max:6',
             ]);
             $admYear    = (int) $request->input('admission_year');
             $branchCode = strtoupper($currentBranch);
@@ -1800,7 +1800,7 @@ class DataController extends Controller
         if (!$this->checkHodOrPrincipalAccess($request, $branch)) {
             return response()->json(['status' => 'ERROR', 'message' => 'Unauthorized.']);
         }
-        $request->validate(['current_semester' => 'required|integer|min:1|max:8']);
+        $request->validate(['current_semester' => 'required|integer|min:1|max:6']);
 
         try {
             $batch = ClassManagement::where('classroom_id', $classroomId)->first();
@@ -2218,15 +2218,7 @@ class DataController extends Controller
                 'syllabus_revision_code' => $request->syllabus_revision_code ?? 'REV2021'
             ]);
 
-            // Automatically update the batch's active semester to match the subject's semester
-            $classroom->update(['current_semester' => $request->semester]);
-
-            // Update all active students in this batch to this semester
-            Student::getClassroomStudentsQuery($request->classroom_id)
-                ->where('academic_status', 'Active')
-                ->update(['semester' => $request->semester]);
-
-            return response()->json(['status' => 'SUCCESS', 'message' => 'Subject created successfully. Active batch semester synced.']);
+            return response()->json(['status' => 'SUCCESS', 'message' => 'Subject created successfully.']);
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
         }
@@ -2652,6 +2644,11 @@ class DataController extends Controller
             if ($filterStatus === 'historical') {
                 $managedQuery->where('current_semester', '>', 6);
                 $r26ManagedQuery->where('current_semester', '>', 6);
+            } elseif ($filterStatus === 'upcoming') {
+                $managedQuery->whereRaw('1 = 0');
+                $r26ManagedQuery->whereRaw('1 = 0');
+            } elseif ($filterStatus === 'all') {
+                // all managed batches
             } else {
                 $managedQuery->where('current_semester', '<=', 6);
                 $r26ManagedQuery->where('current_semester', '<=', 6);
@@ -2722,16 +2719,23 @@ class DataController extends Controller
                     $subjectSem = (int) $sa->batchSubject->semester;
                     $currentSem = (int) $batch->current_semester;
                     
-                    // Filter based on status
+                    // Filter based on status ('active', 'historical', 'upcoming', 'all')
                     if ($filterStatus === 'historical') {
                         // Historical means the subject was taught in a previous semester OR the whole batch is completed (>6)
                         if ($subjectSem >= $currentSem && $currentSem <= 6) {
-                            continue; // Skip active subjects when requesting historical
+                            continue; // Skip active and upcoming subjects when requesting historical
                         }
+                    } elseif ($filterStatus === 'upcoming') {
+                        // Upcoming means future semester configured ahead of time before commencement
+                        if ($subjectSem <= $currentSem || $currentSem > 6) {
+                            continue; // Skip historical and active subjects when requesting upcoming
+                        }
+                    } elseif ($filterStatus === 'all') {
+                        // Show all assigned subjects
                     } else {
-                        // Active means the subject is for the current semester (or future), AND batch is not completed
-                        if ($subjectSem < $currentSem || $currentSem > 6) {
-                            continue; // Skip historical subjects when requesting active
+                        // Active (Current Classes): STRICTLY the current ongoing semester for this batch
+                        if ($subjectSem !== $currentSem || $currentSem > 6) {
+                            continue; // Skip historical and upcoming subjects when requesting current active
                         }
                     }
 
@@ -2750,6 +2754,16 @@ class DataController extends Controller
                     }
                     if (!in_array('Subject Staff', $batchesMap[$cid]['roles'])) {
                         $batchesMap[$cid]['roles'][] = 'Subject Staff';
+                    }
+                    if ($batch->tutor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->tutor_mobile_no) === $cleanMobile)) {
+                        if (!in_array('Tutor', $batchesMap[$cid]['roles'])) {
+                            $batchesMap[$cid]['roles'][] = 'Tutor';
+                        }
+                    }
+                    if ($batch->mentor_mobile_no === $userId || ($cleanMobile && preg_replace('/[^0-9]/', '', $batch->mentor_mobile_no) === $cleanMobile)) {
+                        if (!in_array('Mentor', $batchesMap[$cid]['roles'])) {
+                            $batchesMap[$cid]['roles'][] = 'Mentor';
+                        }
                     }
                     $subjId = $sa->batchSubject->id;
                     $prog = self::getSubjectProgressData($subjId, $sa->batchSubject->subject_type);
@@ -2785,14 +2799,29 @@ class DataController extends Controller
 
             // 3. Seminar Evaluator is handled separately now; no need to inject into batch list.
 
-            // Sort subjects by semester
-            foreach ($batchesMap as &$b) {
+            // Filter batches so empty/unrelated cards don't clutter the view
+            $finalBatches = array_values(array_filter($batchesMap, function($b) use ($filterStatus) {
+                // If the batch has subjects for this filter view, always show it
+                if (!empty($b['subjects'])) return true;
+                // For active view, show if user is Tutor/Mentor
+                if ($filterStatus === 'active' && !empty($b['roles'])) return true;
+                // For historical view, only show if batch has subjects or is a completed batch (>6) where user had a role
+                if ($filterStatus === 'historical' && (int)$b['current_semester'] > 6 && !empty($b['roles'])) return true;
+                return false;
+            }));
+
+            // Sort subjects by semester and attach helper metadata
+            foreach ($finalBatches as &$b) {
                 usort($b['subjects'], function($a, $b_item) {
                     return $a['semester'] <=> $b_item['semester'];
                 });
+                $b['view_status'] = $filterStatus;
+                $b['is_previous'] = ($filterStatus === 'historical');
+                $b['is_upcoming'] = ($filterStatus === 'upcoming');
+                $b['subject_semesters'] = array_values(array_unique(array_column($b['subjects'], 'semester')));
             }
 
-            return response()->json(['status' => 'SUCCESS', 'batches' => array_values($batchesMap)]);
+            return response()->json(['status' => 'SUCCESS', 'batches' => $finalBatches]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
         }
@@ -3560,7 +3589,7 @@ class DataController extends Controller
 
             // Increment the semester for the classroom
             $currentSem = (int) $supervisedClass->current_semester;
-            $newSem = $currentSem < 8 ? $currentSem + 1 : $currentSem;
+            $newSem = $currentSem < 6 ? $currentSem + 1 : $currentSem;
 
             $supervisedClass->update(['current_semester' => $newSem]);
 
@@ -3643,6 +3672,7 @@ class DataController extends Controller
 
         $student->email = $email;
         $student->save();
+        Session::put('userEmail', $email);
 
         return response()->json([
             'status' => 'SUCCESS',

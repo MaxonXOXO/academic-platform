@@ -67,7 +67,7 @@ class OpenElectiveAdminController extends Controller
             'option5Course',
             'allottedCourse',
             'student'
-        ])->orderBy('registered_at', 'DESC')->get();
+        ])->orderBy('registered_at', 'ASC')->get();
 
         $completed5Count = $registrations->filter(function ($r) {
             return $r->hasAllFiveOptions();
@@ -764,5 +764,41 @@ class OpenElectiveAdminController extends Controller
         $branchSummary = $students->groupBy('parent_branch')->map->count();
 
         return view('open_elective.nominal_roll_print', compact('course', 'students', 'branchSummary', 'settings'));
+    }
+
+    /**
+     * Print / Export Pre-Allocation First-Option Applicants List for courses.
+     */
+    public function exportFirstOptionList(Request $request)
+    {
+        if (!$this->checkAccess()) {
+            return redirect('/')->with('error', 'Unauthorized access.');
+        }
+
+        $courseId = $request->query('course_id');
+        $settings = OeSetting::getActiveSettings();
+
+        if ($courseId) {
+            $courses = OeCourse::where('id', $courseId)->get();
+        } else {
+            $courses = OeCourse::where('is_active', true)->orderBy('offering_branch')->get();
+        }
+
+        $coursePools = [];
+        foreach ($courses as $c) {
+            $applicants = OeRegistration::where('option_1_course_id', $c->id)
+                ->with(['student', 'option1Course', 'option2Course', 'option3Course', 'option4Course', 'option5Course'])
+                ->orderBy('registered_at', 'ASC')
+                ->get();
+
+            $coursePools[] = [
+                'course' => $c,
+                'applicants' => $applicants,
+                'branchSummary' => $applicants->groupBy('parent_branch')->map->count()->toArray(),
+                'total_count' => $applicants->count(),
+            ];
+        }
+
+        return view('open_elective.first_option_list_print', compact('coursePools', 'settings', 'courseId'));
     }
 }

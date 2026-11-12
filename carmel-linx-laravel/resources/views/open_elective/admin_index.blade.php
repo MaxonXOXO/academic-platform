@@ -498,14 +498,76 @@
         </div>
       </div>
 
+      <!-- Subject-Wise 1st Option Demand Strip (Pre-Allocation Queue Status) -->
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/70 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded text-cyan-400 text-lg">format_list_numbered</span>
+            <span class="text-xs font-black uppercase tracking-wider text-slate-200">
+              Subject-Wise 1st Option Status &amp; Demand (Pre-Allocation Queue)
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              Pre-Allocation View
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <a id="btnSubjectPrintRoster" href="/admin/open-elective/print-first-options" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-premium flex items-center gap-1.5 no-underline shadow-sm">
+              <span class="material-symbols-rounded text-sm">print</span> Print 1st Option Dossier
+            </a>
+          </div>
+        </div>
+
+        <!-- Subject Demand Cards Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+          <!-- All Subjects Card -->
+          <div onclick="selectFirstOptionSubject('')" id="opt1-card-all" class="opt1-subject-card p-2.5 rounded-xl bg-cyan-500/20 border-2 border-cyan-400 text-left cursor-pointer transition-premium shadow-sm">
+            <div class="text-[9px] font-black uppercase text-cyan-300">All Subjects</div>
+            <div class="text-base font-black text-white mt-0.5">{{ $registrations->count() }}</div>
+            <div class="text-[10px] text-slate-300">Total Applicants</div>
+          </div>
+
+          @foreach($courses as $c)
+            @php
+              $opt1Count = $courseStats[$c->id]['opt1_count'] ?? 0;
+              $maxCap = $c->max_capacity ?: 60;
+              $isOverCapacity = $opt1Count > $maxCap;
+            @endphp
+            <div onclick="selectFirstOptionSubject('{{ $c->id }}')" id="opt1-card-{{ $c->id }}" class="opt1-subject-card p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 text-left cursor-pointer transition-premium shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-slate-800 text-amber-300 border border-slate-700">{{ $c->offering_branch }}</span>
+                <span class="text-[10px] font-mono text-cyan-400 font-bold">{{ $c->course_code }}</span>
+              </div>
+              <div class="text-base font-black text-white mt-1">
+                {{ $opt1Count }} <span class="text-[10px] text-slate-400 font-normal">/ {{ $maxCap }}</span>
+              </div>
+              <div class="text-[10px] text-slate-300 truncate font-semibold" title="{{ $c->course_title }}">{{ $c->course_title ?: 'Course' }}</div>
+              <div class="text-[9px] {{ $isOverCapacity ? 'text-rose-400 font-bold' : ($opt1Count > 0 ? 'text-emerald-400' : 'text-slate-500') }} mt-0.5">
+                {{ $isOverCapacity ? 'Over capacity' : ($opt1Count > 0 ? $opt1Count . ' 1st choices' : '0 1st choices') }}
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+
       <!-- Filters & Search Toolbar -->
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex flex-wrap items-center gap-3 flex-grow">
           <!-- Search Input -->
-          <div class="relative min-w-[240px] flex-grow max-w-md">
+          <div class="relative min-w-[200px] flex-grow max-w-sm">
             <span class="material-symbols-rounded absolute left-3 top-2.5 text-slate-500 text-sm">search</span>
             <input type="text" id="regSearchInput" oninput="filterRegistrationTable()" placeholder="Search student name, PRN, or admission no..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium">
           </div>
+
+          <!-- 1st Option Subject Filter -->
+          <select id="regSubjectFilter" onchange="onSubjectFilterChange()" class="px-3 py-2 rounded-xl bg-slate-950 border border-cyan-500/40 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 font-bold">
+            <option value="">All 1st-Option Subjects ({{ $registrations->count() }})</option>
+            @foreach($courses as $c)
+              @php $opt1Count = $courseStats[$c->id]['opt1_count'] ?? 0; @endphp
+              <option value="{{ $c->id }}">
+                {{ $c->offering_branch }} &bull; {{ $c->course_code }} — {{ Str::limit($c->course_title, 22) }} ({{ $opt1Count }} 1st choices)
+              </option>
+            @endforeach
+          </select>
 
           <!-- Branch Filter -->
           <select id="regBranchFilter" onchange="filterRegistrationTable()" class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold">
@@ -557,9 +619,10 @@
                 @endphp
                 <tr class="reg-row hover:bg-slate-800/40 transition-premium"
                     data-branch="{{ $r->parent_branch }}"
+                    data-opt1-id="{{ $r->option_1_course_id }}"
                     data-status="{{ $isComplete ? 'complete' : 'incomplete' }}"
-                    data-search="{{ strtolower($r->student_name . ' ' . $r->sbte_reg_no . ' ' . $r->student_adm_no . ' ' . $parentFull) }}">
-                  <td class="py-3 px-3 text-slate-500 font-mono">{{ $idx + 1 }}</td>
+                    data-search="{{ strtolower($r->student_name . ' ' . $r->sbte_reg_no . ' ' . $r->student_adm_no . ' ' . $parentFull . ' ' . ($r->option1Course->course_code ?? '') . ' ' . ($r->option1Course->course_title ?? '')) }}">
+                  <td class="py-3 px-3 text-slate-500 font-mono reg-index-cell">{{ $idx + 1 }}</td>
                   <td class="py-3 px-3">
                     <span class="font-extrabold text-white block">{{ $r->student_name }}</span>
                     <span class="text-[11px] font-mono text-cyan-400 block">{{ $r->sbte_reg_no }}</span>
@@ -835,10 +898,42 @@
     let allocationData = null;
     let activeCourseId = {{ $courses->first()->id ?? 0 }};
 
+    function selectFirstOptionSubject(courseId) {
+      const select = document.getElementById('regSubjectFilter');
+      if (select) {
+        select.value = courseId || '';
+      }
+      onSubjectFilterChange();
+    }
+
+    function onSubjectFilterChange() {
+      const courseId = document.getElementById('regSubjectFilter')?.value || '';
+
+      // Update card visual active styling
+      document.querySelectorAll('.opt1-subject-card').forEach(card => {
+        card.classList.remove('bg-cyan-500/20', 'border-2', 'border-cyan-400');
+        card.classList.add('bg-slate-950/80', 'border', 'border-slate-800');
+      });
+      const targetCard = document.getElementById(courseId ? 'opt1-card-' + courseId : 'opt1-card-all');
+      if (targetCard) {
+        targetCard.classList.remove('bg-slate-950/80', 'border', 'border-slate-800');
+        targetCard.classList.add('bg-cyan-500/20', 'border-2', 'border-cyan-400');
+      }
+
+      // Update print button link
+      const printBtn = document.getElementById('btnSubjectPrintRoster');
+      if (printBtn) {
+        printBtn.href = '/admin/open-elective/print-first-options' + (courseId ? '?course_id=' + courseId : '');
+      }
+
+      filterRegistrationTable();
+    }
+
     function filterRegistrationTable() {
       const q = (document.getElementById('regSearchInput')?.value || '').toLowerCase().trim();
       const branch = (document.getElementById('regBranchFilter')?.value || '').toUpperCase();
       const status = document.getElementById('regStatusFilter')?.value || '';
+      const opt1CourseId = document.getElementById('regSubjectFilter')?.value || '';
 
       const rows = document.querySelectorAll('.reg-row');
       let visible = 0;
@@ -847,14 +942,20 @@
         const rowBranch = (row.getAttribute('data-branch') || '').toUpperCase();
         const rowStatus = row.getAttribute('data-status') || '';
         const rowSearch = row.getAttribute('data-search') || '';
+        const rowOpt1Id = row.getAttribute('data-opt1-id') || '';
 
         const matchBranch = !branch || rowBranch === branch;
         const matchStatus = !status || rowStatus === status;
         const matchSearch = !q || rowSearch.includes(q);
+        const matchCourse = !opt1CourseId || rowOpt1Id === opt1CourseId;
 
-        if (matchBranch && matchStatus && matchSearch) {
+        if (matchBranch && matchStatus && matchSearch && matchCourse) {
           row.style.display = '';
           visible++;
+          const indexCell = row.querySelector('.reg-index-cell');
+          if (indexCell) {
+            indexCell.innerText = visible;
+          }
         } else {
           row.style.display = 'none';
         }
@@ -1130,6 +1231,13 @@
       renderCourseRoster(courseId);
     }
 
+    let currentRosterSubTab = 'opt1';
+
+    function setRosterSubTab(tab) {
+      currentRosterSubTab = tab;
+      renderCourseRoster(activeCourseId);
+    }
+
     function renderCourseRoster(courseId) {
       const container = document.getElementById('rosterContainer');
       if (!allocationData || !allocationData.coursePools) return;
@@ -1144,22 +1252,118 @@
       const allotted = pool.allotted_students || [];
       const opt1 = pool.opt1_applicants || [];
 
+      // Auto-toggle: If there are allotted students and user hasn't explicitly clicked opt1, or vice versa
+      let isOpt1View = currentRosterSubTab === 'opt1';
+
       let html = `
         <div class="space-y-4">
+          <!-- Course Info & Summary Banner -->
           <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
             <div>
               <div class="text-xs font-black text-cyan-400">${BRANCH_FULL_NAMES[course.offering_branch] || course.offering_branch} Dept &bull; ${course.course_code}</div>
               <h4 class="text-sm font-extrabold text-white">${course.course_title}</h4>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-slate-400">Allotted: <strong class="text-emerald-400 text-sm">${allotted.length}</strong> / ${course.max_capacity}</span>
+            <div class="flex flex-wrap items-center gap-3">
               <span class="text-xs text-slate-400">1st Choices: <strong class="text-cyan-400 text-sm">${opt1.length}</strong></span>
-              <a href="/admin/open-elective/export-roster/${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium">
-                <span class="material-symbols-rounded text-sm">print</span> Print Nominal Roll
+              <span class="text-xs text-slate-400">Allotted: <strong class="text-emerald-400 text-sm">${allotted.length}</strong> / ${course.max_capacity}</span>
+              <a href="/admin/open-elective/print-first-options?course_id=${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print pre-allocation 1st choice applicants list">
+                <span class="material-symbols-rounded text-sm">print</span> Print 1st Option List
+              </a>
+              <a href="/admin/open-elective/export-roster/${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print official post-allocation nominal roll">
+                <span class="material-symbols-rounded text-sm">print</span> Print Allotted Roll
               </a>
             </div>
           </div>
 
+          <!-- Pre-Allocation vs Post-Allocation Sub-Tabs Switcher -->
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-2.5">
+            <button onclick="setRosterSubTab('opt1')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium ${isOpt1View ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'}">
+              <span class="material-symbols-rounded text-sm">priority_high</span>
+              Pre-Allocation: 1st Choice Applicants (${opt1.length})
+            </button>
+            <button onclick="setRosterSubTab('allotted')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium ${!isOpt1View ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'}">
+              <span class="material-symbols-rounded text-sm">done_all</span>
+              Post-Allocation: Allotted Students (${allotted.length} / ${course.max_capacity})
+            </button>
+          </div>
+      `;
+
+      if (isOpt1View) {
+        // VIEW: PRE-ALLOCATION 1ST OPTION APPLICANTS
+        html += `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-950 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-2.5 px-3">FCFS #</th>
+                  <th class="py-2.5 px-3">Registration Time</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">SBTE PRN</th>
+                  <th class="py-2.5 px-3">Parent Dept</th>
+                  <th class="py-2.5 px-3">Choice Hierarchy</th>
+                  <th class="py-2.5 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium">
+        `;
+
+        if (opt1.length === 0) {
+          html += `
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-500">
+                No students have chosen this course as their 1st option yet.
+              </td>
+            </tr>
+          `;
+        } else {
+          opt1.forEach((st, idx) => {
+            const isAllottedHere = st.allotted_course_id == course.id;
+            const isAllottedElsewhere = st.allotted_course_id && !isAllottedHere;
+            let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Pre-Allocation Queue</span>`;
+            if (isAllottedHere) {
+              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Allotted to this Course</span>`;
+            } else if (isAllottedElsewhere) {
+              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">Allotted Elsewhere</span>`;
+            }
+
+            const regTimeStr = st.registered_at ? new Date(st.registered_at).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }) : '-';
+
+            html += `
+              <tr class="hover:bg-slate-800/40 transition-premium">
+                <td class="py-2 px-3 text-cyan-400 font-mono font-bold">#${idx + 1}</td>
+                <td class="py-2 px-3 text-slate-300 font-mono text-[11px]">${regTimeStr}</td>
+                <td class="py-2 px-3 font-bold text-white">${st.student_name}</td>
+                <td class="py-2 px-3 font-mono text-cyan-400">${st.sbte_reg_no}</td>
+                <td class="py-2 px-3">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-800 text-amber-300 border border-slate-700">
+                    ${st.parent_branch}
+                  </span>
+                </td>
+                <td class="py-2 px-3 text-slate-300 text-[11px]">
+                  <div class="flex flex-wrap items-center gap-1 font-mono text-[10px]">
+                    <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold" title="1st Choice">1: ${st.option1_course ? st.option1_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="2nd Choice">2: ${st.option2_course ? st.option2_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="3rd Choice">3: ${st.option3_course ? st.option3_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="4th Choice">4: ${st.option4_course ? st.option4_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="5th Choice">5: ${st.option5_course ? st.option5_course.course_code : '-'}</span>
+                  </div>
+                </td>
+                <td class="py-2 px-3">
+                  ${statusBadge}
+                </td>
+              </tr>
+            `;
+          });
+        }
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        // VIEW: POST-ALLOCATION ALLOTTED ROSTER
+        html += `
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-950 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
@@ -1174,60 +1378,64 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-800/60 font-medium">
-      `;
-
-      if (allotted.length === 0) {
-        html += `
-          <tr>
-            <td colspan="7" class="py-8 text-center text-slate-500">
-              No students currently allotted to this course. Run Auto-Allocate or manually assign students.
-            </td>
-          </tr>
         `;
-      } else {
-        allotted.forEach((st, idx) => {
-          let badgeColor = 'bg-blue-500/20 text-blue-300';
-          if (st.allocation_source === 'option_1_fcfs') badgeColor = 'bg-emerald-500/20 text-emerald-300';
-          if (st.allocation_source === 'admin_override') badgeColor = 'bg-purple-500/20 text-purple-300';
 
+        if (allotted.length === 0) {
           html += `
-            <tr class="hover:bg-slate-800/40 transition-premium">
-              <td class="py-2 px-3 text-slate-500 font-mono">${idx + 1}</td>
-              <td class="py-2 px-3 font-bold text-white">${st.student_name}</td>
-              <td class="py-2 px-3 font-mono text-cyan-400">${st.sbte_reg_no}</td>
-              <td class="py-2 px-3">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-800 text-amber-300 border border-slate-700" title="${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}">
-                  ${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}
-                </span>
-              </td>
-              <td class="py-2 px-3">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
-                  ${(st.allocation_source || 'allotted').replace(/_/g, ' ')}
-                </span>
-              </td>
-              <td class="py-2 px-3 text-slate-300 text-[11px]">
-                <div class="flex flex-wrap items-center gap-1 font-mono text-[10px]">
-                  <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20 font-bold" title="1st Choice">1: ${st.option1_course ? st.option1_course.course_code : '-'}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="2nd Choice">2: ${st.option2_course ? st.option2_course.course_code : '-'}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="3rd Choice">3: ${st.option3_course ? st.option3_course.course_code : '-'}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="4th Choice">4: ${st.option4_course ? st.option4_course.course_code : '-'}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="5th Choice">5: ${st.option5_course ? st.option5_course.course_code : '-'}</span>
-                </div>
-              </td>
-              <td class="py-2 px-3 text-right">
-                <button onclick='openReassignModal(${JSON.stringify(st)})' class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-bold transition-premium">
-                  Reassign
-                </button>
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-500">
+                No students currently allotted to this course. Run Auto-Allocate or manually assign students.
               </td>
             </tr>
           `;
-        });
-      }
+        } else {
+          allotted.forEach((st, idx) => {
+            let badgeColor = 'bg-blue-500/20 text-blue-300';
+            if (st.allocation_source === 'option_1_fcfs') badgeColor = 'bg-emerald-500/20 text-emerald-300';
+            if (st.allocation_source === 'admin_override') badgeColor = 'bg-purple-500/20 text-purple-300';
 
-      html += `
+            html += `
+              <tr class="hover:bg-slate-800/40 transition-premium">
+                <td class="py-2 px-3 text-slate-500 font-mono">${idx + 1}</td>
+                <td class="py-2 px-3 font-bold text-white">${st.student_name}</td>
+                <td class="py-2 px-3 font-mono text-cyan-400">${st.sbte_reg_no}</td>
+                <td class="py-2 px-3">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-800 text-amber-300 border border-slate-700" title="${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}">
+                    ${BRANCH_FULL_NAMES[st.parent_branch] || st.parent_branch}
+                  </span>
+                </td>
+                <td class="py-2 px-3">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
+                    ${(st.allocation_source || 'allotted').replace(/_/g, ' ')}
+                  </span>
+                </td>
+                <td class="py-2 px-3 text-slate-300 text-[11px]">
+                  <div class="flex flex-wrap items-center gap-1 font-mono text-[10px]">
+                    <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20 font-bold" title="1st Choice">1: ${st.option1_course ? st.option1_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="2nd Choice">2: ${st.option2_course ? st.option2_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="3rd Choice">3: ${st.option3_course ? st.option3_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="4th Choice">4: ${st.option4_course ? st.option4_course.course_code : '-'}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300" title="5th Choice">5: ${st.option5_course ? st.option5_course.course_code : '-'}</span>
+                  </div>
+                </td>
+                <td class="py-2 px-3 text-right">
+                  <button onclick='openReassignModal(${JSON.stringify(st)})' class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-bold transition-premium">
+                    Reassign
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        }
+
+        html += `
               </tbody>
             </table>
           </div>
+        `;
+      }
+
+      html += `
         </div>
       `;
 

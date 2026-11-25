@@ -6,11 +6,14 @@
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 10mm;
+      margin: 10mm 8mm;
+    }
+    * {
+      box-sizing: border-box;
     }
     body {
       font-family: Arial, sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       color: #111;
       margin: 0;
       padding: 0;
@@ -19,50 +22,62 @@
     .header {
       text-align: center;
       border-bottom: 2px solid #000;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
     }
     .college-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .college-sub {
-      font-size: 10px;
+      font-size: 9.5px;
       color: #333;
     }
     .doc-title {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: bold;
-      margin-top: 5px;
+      margin-top: 4px;
       text-decoration: underline;
       text-transform: uppercase;
     }
     .meta-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 12px;
-      font-size: 11px;
+      margin-bottom: 10px;
+      font-size: 10px;
+      table-layout: fixed;
     }
     .meta-table td {
-      padding: 3px 6px;
+      padding: 3px 5px;
+      word-wrap: break-word;
     }
     .roster-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10.5px;
+      font-size: 10px;
+      table-layout: fixed;
+    }
+    .roster-table thead {
+      display: table-header-group;
+    }
+    .roster-table tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .roster-table th, .roster-table td {
       border: 1px solid #333;
-      padding: 4.5px 6px;
+      padding: 3.5px 5px;
       text-align: left;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .roster-table th {
       background-color: #f2f2f2;
       font-weight: bold;
       text-transform: uppercase;
-      font-size: 9.5px;
+      font-size: 9px;
     }
     .center { text-align: center; }
     .bold { font-weight: bold; }
@@ -71,24 +86,28 @@
       padding: 6px 10px;
       background: #f9f9f9;
       border: 1px dashed #666;
-      font-size: 10.5px;
+      font-size: 10px;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .signatures {
-      margin-top: 35px;
+      margin-top: 30px;
       display: flex;
       justify-content: space-between;
       width: 100%;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .sig-col {
       text-align: center;
       width: 30%;
       border-top: 1px solid #222;
       padding-top: 5px;
-      font-size: 10.5px;
+      font-size: 10px;
     }
     @media print {
-      .no-print { display: none; }
-      body { -webkit-print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>

@@ -2548,6 +2548,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/admin/open-elective/reset-trial-data', [\App\Http\Controllers\OpenElectiveAdminController::class, 'resetTrialData']);
     Route::get('/admin/open-elective/export-roster/{courseId}', [\App\Http\Controllers\OpenElectiveAdminController::class, 'exportNominalRoll']);
     Route::get('/admin/open-elective/print-first-options', [\App\Http\Controllers\OpenElectiveAdminController::class, 'exportFirstOptionList']);
+    Route::get('/admin/open-elective/print-allocation-analysis', [\App\Http\Controllers\OpenElectiveAdminController::class, 'exportAllocationAnalysis']);
 
     // 2. Student Mobile Registration & Preference Submission
     Route::get('/student/open-elective', [\App\Http\Controllers\OpenElectiveStudentController::class, 'index']);

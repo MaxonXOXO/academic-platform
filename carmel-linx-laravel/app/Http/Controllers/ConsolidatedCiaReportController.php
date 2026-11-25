@@ -337,12 +337,35 @@ class ConsolidatedCiaReportController extends Controller
                 ->groupBy('batch_subject_id');
         }
 
+        // H. Revision 2026 Evaluation Tables
+        $r26Data = [];
+        if ($isR26 && !empty($subjectIds) && !empty($allLookupRegs)) {
+            $r26Tables = [
+                'theory'             => 'r26_theory_evaluations',
+                'english'            => 'r26_english_evaluations',
+                'drawing'            => 'r26_drawing_evaluations',
+                'practicum_exp'      => 'r26_practicum_experiment_evaluations',
+                'practicum_th'       => 'r26_practicum_series_theory',
+                'practicum_pr'       => 'r26_practicum_series_practical',
+                'practical_exp'      => 'r26_practical_experiment_evaluations',
+                'practical_oee'      => 'r26_open_ended_evaluations',
+                'practical_ser'      => 'r26_practical_series_evaluations',
+                'hp_evals'           => 'r26_health_physical_evaluations',
+                'hp_tests'           => 'r26_health_physical_fitness_tests',
+            ];
+            foreach ($r26Tables as $key => $tbl) {
+                $r26Data[$key] = Schema::hasTable($tbl)
+                    ? DB::table($tbl)->whereIn('batch_subject_id', $subjectIds)->whereIn('reg_no', $allLookupRegs)->get()->groupBy('batch_subject_id')
+                    : collect();
+            }
+        }
+
         // 6. Process Subjects Metadata & Assigned Faculty
         $subjectsMeta = [];
         $allAssignedStaff = [];
 
         foreach ($subjects as $s) {
-            $maxCia = self::determineMaxCia($s);
+            $maxCia = self::determineMaxCia($s, $isR26);
             $facList = $s->getAssignedFacultyList();
             $facNames = $s->getAssignedFacultyNames();
 
@@ -496,24 +519,37 @@ class ConsolidatedCiaReportController extends Controller
                 $totalConductedAll += $conducted;
                 $totalAttendedAll += $attended;
 
-                // Compute Live CIA Mark based on subject type
-                $ciaResult = self::calculateSubjectCia(
-                    $s,
-                    $regNo,
-                    $sbteRegNo,
-                    $subjAttPct,
-                    $maxCia,
-                    $academicMarks,
-                    $practicalEvals->get($sId, collect()),
-                    $practicalTests->get($sId, collect()),
-                    $drawingSheets->get($sId, collect()),
-                    $drawingTests->get($sId, collect()),
-                    $seminarEvals->get($sId, collect()),
-                    $projectEvals->get($sId, collect()),
-                    $semesterMarks,
-                    $workshopSummaries->get($sId, collect()),
-                    $practicalExpMarks->get($sId, collect())
-                );
+                // Compute Live CIA Mark based on subject type (Rev 2026 vs Rev 2021)
+                if ($isR26) {
+                    $ciaResult = self::calculateR26SubjectCia(
+                        $s,
+                        $regNo,
+                        $sbteRegNo,
+                        $subjAttPct,
+                        $maxCia,
+                        $academicMarks,
+                        $r26Data,
+                        $semesterMarks
+                    );
+                } else {
+                    $ciaResult = self::calculateSubjectCia(
+                        $s,
+                        $regNo,
+                        $sbteRegNo,
+                        $subjAttPct,
+                        $maxCia,
+                        $academicMarks,
+                        $practicalEvals->get($sId, collect()),
+                        $practicalTests->get($sId, collect()),
+                        $drawingSheets->get($sId, collect()),
+                        $drawingTests->get($sId, collect()),
+                        $seminarEvals->get($sId, collect()),
+                        $projectEvals->get($sId, collect()),
+                        $semesterMarks,
+                        $workshopSummaries->get($sId, collect()),
+                        $practicalExpMarks->get($sId, collect())
+                    );
+                }
 
                 $markVal = $ciaResult['mark'];
                 $isGenerated = $ciaResult['is_generated'];
@@ -680,15 +716,26 @@ class ConsolidatedCiaReportController extends Controller
     /**
      * Determine maximum CIA mark for a subject based on type and syllabus.
      */
-    private static function determineMaxCia(BatchSubject $subject): int
+    private static function determineMaxCia(BatchSubject $subject, bool $isR26 = false): int
     {
+        $type = strtolower($subject->subject_type ?? '');
+        $name = strtolower($subject->subject_name ?? '');
+        $code = strtoupper($subject->subject_code ?? '');
+
+        if ($isR26 || ($subject->syllabus_revision_code ?? '') === 'REV2026') {
+            if (str_contains($code, '1009') || str_contains($name, 'health and physical')) {
+                return 60;
+            }
+            if (str_contains($type, 'laboratory') || str_contains($type, 'workshop') || str_contains($type, 'practical')) {
+                return 60;
+            }
+            return 40;
+        }
+
         $isAu3055Theory = ($subject->id == 110 || ($subject->subject_code == '3055' && (str_contains($subject->classroom_id ?? '', 'AU') || ($subject->branch ?? '') === 'AU' || str_contains(strtolower($subject->subject_name ?? ''), 'automobile'))));
         if ($isAu3055Theory) {
             return 50;
         }
-
-        $type = strtolower($subject->subject_type ?? '');
-        $name = strtolower($subject->subject_name ?? '');
 
         if (str_contains($type, 'practical') || str_contains($type, 'lab') || str_contains($name, 'lab') || str_contains($name, 'workshop')) {
             return 75;
@@ -706,6 +753,183 @@ class ConsolidatedCiaReportController extends Controller
 
         // Theory default is 50 in R2021 (or check syllabus)
         return 50;
+    }
+
+    /**
+     * Compute live CIA mark for a Revision 2026 subject.
+     */
+    private static function calculateR26SubjectCia(
+        $subject,
+        string $regNo,
+        ?string $sbteRegNo,
+        float $attPct,
+        int $maxCia,
+        $academicMarks,
+        array $r26Data,
+        $semesterMarks
+    ): array {
+        $sId = $subject->id;
+        $sCode = $subject->subject_code ?? '';
+        $type = strtolower($subject->subject_type ?? '');
+        $name = strtolower($subject->subject_name ?? '');
+
+        $matchReg = fn($row) => ($row->reg_no === $regNo || ($sbteRegNo && $row->reg_no === $sbteRegNo));
+
+        // R26 Attendance Mark (5M)
+        $att5 = 0.0;
+        if ($attPct >= 90) $att5 = 5.0;
+        elseif ($attPct >= 80) $att5 = 4.0;
+        elseif ($attPct >= 75) $att5 = 3.0;
+        elseif ($attPct >= 70) $att5 = 2.0;
+        elseif ($attPct >= 65) $att5 = 1.0;
+
+        // 1. English (1001)
+        if (str_contains($sCode, '1001') || str_contains($name, 'english')) {
+            $ev = ($r26Data['english'] ?? collect())->get($sId, collect())->first($matchReg);
+            if ($ev && $ev->total_cia_40 !== null) {
+                return ['mark' => min($maxCia, max(0, (int)round((float)$ev->total_cia_40))), 'is_generated' => true];
+            }
+        }
+
+        // 2. Drawing Courses (Engineering Graphics)
+        if (str_contains($type, 'drawing')) {
+            $ev = ($r26Data['drawing'] ?? collect())->get($sId, collect())->first($matchReg);
+            if ($ev && $ev->total_cia_40 !== null) {
+                return ['mark' => min($maxCia, max(0, (int)round((float)$ev->total_cia_40))), 'is_generated' => true];
+            }
+        }
+
+        // 3. Health & Physical Education (1009)
+        if (str_contains($sCode, '1009') || str_contains($name, 'health and physical')) {
+            $acts = ($r26Data['hp_evals'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $tests = ($r26Data['hp_tests'] ?? collect())->get($sId, collect())->filter($matchReg);
+            if ($acts->isNotEmpty() || $tests->isNotEmpty()) {
+                $avg50 = $acts->isNotEmpty() ? (float)$acts->first()->total_score_50 : 0.0;
+                $actMarks = round(($avg50 / 50.0) * 25.0, 1);
+                $testMarks = 0.0;
+                foreach (['CA1', 'CA2'] as $tNo) {
+                    $t = $tests->firstWhere('test_no', $tNo);
+                    if ($t) {
+                        $cj = is_string($t->criteria_json) ? json_decode($t->criteria_json, true) : (array)($t->criteria_json ?? []);
+                        $raw = isset($cj['raw_score']) ? (float)$cj['raw_score'] : round(((float)$t->total_score_40 / 40.0) * 15.0, 1);
+                        $testMarks += round(($raw / 40.0) * 15.0, 1);
+                    }
+                }
+                $tot = round(($att5 + $actMarks + $testMarks) * 2) / 2;
+                return ['mark' => min($maxCia, max(0, (int)round($tot))), 'is_generated' => true];
+            }
+        }
+
+        // 4. Practicum Courses (including Basic Science & Humanities)
+        if (str_contains($type, 'practicum')) {
+            $exps = ($r26Data['practicum_exp'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $thEvals = ($r26Data['practicum_th'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $prEvals = ($r26Data['practicum_pr'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $slMarksRows = $academicMarks->filter(function ($m) use ($matchReg, $sId, $sCode) {
+                return $matchReg($m)
+                    && ((isset($m->batch_subject_id) && $m->batch_subject_id == $sId) || $m->subject_code == $sCode)
+                    && str_starts_with((string)($m->category ?? ''), 'Self Study:');
+            });
+
+            if ($exps->isNotEmpty() || $thEvals->isNotEmpty() || $prEvals->isNotEmpty() || $slMarksRows->isNotEmpty()) {
+                // Self-Learning (5M)
+                $isEl1041 = str_contains(strtoupper(str_replace([' ', '-'], '', $sCode)), '1041');
+                $baseMax = $isEl1041 ? 15.0 : 10.0;
+                $mSum = 0.0;
+                $hasSl = false;
+                foreach (['CO1', 'CO2', 'CO3', 'CO4'] as $coTag) {
+                    $direct = $slMarksRows->firstWhere('category', "Self Study: {$coTag}");
+                    if ($direct && $direct->marks_obtained !== null) {
+                        $mSum += (float)$direct->marks_obtained;
+                        if ((float)$direct->marks_obtained > 0) $hasSl = true;
+                    }
+                }
+                $sl5 = $hasSl ? min(5.0, round((($mSum / 4.0) / $baseMax) * 5.0 * 2) / 2) : 0.0;
+
+                // Continuous Evaluation (10M)
+                $ceRec = $exps->firstWhere('experiment_no', 'Continuous Evaluation') ?: $exps->firstWhere('experiment_no', 'CE');
+                $ce50 = $ceRec ? (float)$ceRec->total_score_50 : ($exps->isNotEmpty() ? (float)$exps->avg('total_score_50') : 0.0);
+                $ce10 = min(10.0, round((min(50.0, max(0.0, $ce50)) / 50.0) * 10.0 * 2) / 2);
+
+                // Theory Series (10M)
+                $st1 = $thEvals->firstWhere('series_no', 'CO1') ?: $thEvals->firstWhere('series_no', 'Series 1');
+                $st2 = $thEvals->firstWhere('series_no', 'CO2') ?: $thEvals->firstWhere('series_no', 'Series 2');
+                $st3 = $thEvals->firstWhere('series_no', 'CO3') ?: $thEvals->firstWhere('series_no', 'Series 3');
+                $st4 = $thEvals->firstWhere('series_no', 'CO4') ?: $thEvals->firstWhere('series_no', 'Series 4');
+                $s1Th = min(50.0, ($st1 && !$st1->is_absent ? (float)$st1->total_score_50 : 0.0) + ($st2 && !$st2->is_absent ? (float)$st2->total_score_50 : 0.0));
+                $s2Th = min(50.0, ($st3 && !$st3->is_absent ? (float)$st3->total_score_50 : 0.0) + ($st4 && !$st4->is_absent ? (float)$st4->total_score_50 : 0.0));
+                $serTh10 = min(10.0, round(((($s1Th + $s2Th) / 2.0) / 50.0) * 10.0 * 2) / 2);
+
+                // Practical Series (10M)
+                $s1Dir = $prEvals->firstWhere('series_no', 'Series 1');
+                $s2Dir = $prEvals->firstWhere('series_no', 'Series 2');
+                if ($s1Dir) {
+                    $sp1Tot = $s1Dir->is_absent ? 0.0 : min(40.0, (float)$s1Dir->total_score_40);
+                } else {
+                    $c1 = $prEvals->firstWhere('series_no', 'CO1');
+                    $c2 = $prEvals->firstWhere('series_no', 'CO2');
+                    $sp1Tot = min(40.0, ($c1 ? (float)$c1->total_score_40 : 0.0) + ($c2 ? (float)$c2->total_score_40 : 0.0));
+                }
+                if ($s2Dir) {
+                    $sp2Tot = $s2Dir->is_absent ? 0.0 : min(40.0, (float)$s2Dir->total_score_40);
+                } else {
+                    $c3 = $prEvals->firstWhere('series_no', 'CO3');
+                    $c4 = $prEvals->firstWhere('series_no', 'CO4');
+                    $sp2Tot = min(40.0, ($c3 ? (float)$c3->total_score_40 : 0.0) + ($c4 ? (float)$c4->total_score_40 : 0.0));
+                }
+                $serPr10 = min(10.0, round(((($sp1Tot + $sp2Tot) / 2.0) / 40.0) * 10.0 * 2) / 2);
+
+                $tot = (int)round($att5 + $sl5 + $ce10 + $serTh10 + $serPr10);
+                return ['mark' => min($maxCia, max(0, $tot)), 'is_generated' => true];
+            }
+        }
+
+        // 5. Laboratory / Workshop Courses (60M)
+        if (str_contains($type, 'laboratory') || str_contains($type, 'workshop') || str_contains($type, 'practical')) {
+            $exps = ($r26Data['practical_exp'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $oees = ($r26Data['practical_oee'] ?? collect())->get($sId, collect())->filter($matchReg);
+            $sers = ($r26Data['practical_ser'] ?? collect())->get($sId, collect())->filter($matchReg);
+
+            if ($exps->isNotEmpty() || $oees->isNotEmpty() || $sers->isNotEmpty()) {
+                $cons = $exps->firstWhere('experiment_no', 'Consolidated');
+                $avgExp50 = $cons && $cons->total_score_50 !== null
+                    ? (float)$cons->total_score_50
+                    : ($exps->isNotEmpty() ? (float)$exps->avg('total_score_50') : 0.0);
+                $scaled30 = round(($avgExp50 / 50.0) * 30.0, 2);
+
+                $openLog = $oees->first();
+                $open50 = ($openLog && $openLog->total_score_50 !== null) ? (float)$openLog->total_score_50 : $avgExp50;
+                $scaled10 = round(($open50 / 50.0) * 10.0, 2);
+
+                $s1 = $sers->firstWhere('series_no', 'Series 1');
+                $s2 = $sers->firstWhere('series_no', 'Series 2');
+                $s1Val = $s1 ? (float)$s1->total_score_40 : 0.0;
+                $s2Val = $s2 ? (float)$s2->total_score_40 : 0.0;
+                $hasS1 = $sers->where('series_no', 'Series 1')->isNotEmpty();
+                $hasS2 = $sers->where('series_no', 'Series 2')->isNotEmpty();
+                $avgSer40 = ($hasS1 && $hasS2) ? ($s1Val + $s2Val) / 2.0 : ($hasS1 ? $s1Val : ($hasS2 ? $s2Val : 0.0));
+                $scaled15 = round(($avgSer40 / 40.0) * 15.0, 2);
+
+                $tot = (int)round($scaled30 + $scaled10 + $scaled15 + $att5);
+                return ['mark' => min($maxCia, max(0, $tot)), 'is_generated' => true];
+            }
+        }
+
+        // 6. Theory Courses (40M)
+        $thEv = ($r26Data['theory'] ?? collect())->get($sId, collect())->first($matchReg);
+        if ($thEv && $thEv->total_cia_40 !== null) {
+            return ['mark' => min($maxCia, max(0, (int)round((float)$thEv->total_cia_40))), 'is_generated' => true];
+        }
+
+        // Fallback to student_semester_marks
+        $preMark = $semesterMarks->filter(function ($m) use ($matchReg, $sCode) {
+            return $matchReg($m) && $m->subject_code == $sCode;
+        })->first();
+        if ($preMark && is_numeric($preMark->internal_marks)) {
+            return ['mark' => min($maxCia, max(0, (int)round($preMark->internal_marks))), 'is_generated' => true];
+        }
+
+        return ['mark' => null, 'is_generated' => false];
     }
 
     /**

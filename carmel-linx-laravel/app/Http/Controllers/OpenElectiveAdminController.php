@@ -44,8 +44,8 @@ class OpenElectiveAdminController extends Controller
         $settings = OeSetting::getActiveSettings();
         $courses = OeCourse::orderBy('offering_branch')->get();
 
-        // 5th Semester Student Analytics
-        $s5StudentsQuery = Student::where('semester', 5);
+        // 5th Semester Student Analytics (Exclude suspended duplicate self-registration accounts)
+        $s5StudentsQuery = Student::where('semester', 5)->where('status', 'Approved');
         $totalS5Students = (clone $s5StudentsQuery)->count();
         $branchBreakdown = (clone $s5StudentsQuery)
             ->select('branch', DB::raw('count(*) as count'))
@@ -236,8 +236,9 @@ class OpenElectiveAdminController extends Controller
 
         $settings = OeSetting::getActiveSettings();
 
-        // Get all S5 student registration numbers
+        // Get all active/approved S5 student registration numbers
         $s5StudentRegNos = Student::where('semester', 5)
+            ->where('status', 'Approved')
             ->whereNotNull('reg_no')
             ->pluck('reg_no')
             ->toArray();
@@ -295,12 +296,14 @@ class OpenElectiveAdminController extends Controller
                 ->toArray();
 
             $s5StudentRegNos = Student::where('semester', 5)
+                ->where('status', 'Approved')
                 ->whereNotIn('adm_no', $completeAdmNos)
                 ->whereNotNull('reg_no')
                 ->pluck('reg_no')
                 ->toArray();
         } else {
             $s5StudentRegNos = Student::where('semester', 5)
+                ->where('status', 'Approved')
                 ->whereNotNull('reg_no')
                 ->pluck('reg_no')
                 ->toArray();
@@ -380,6 +383,7 @@ class OpenElectiveAdminController extends Controller
 
         return response()->json([
             'status' => 'SUCCESS',
+            'is_released_to_hods' => (bool) OeSetting::getActiveSettings()->is_released_to_hods,
             'courses' => $courses,
             'coursePools' => $coursePools,
             'unallotted' => $unallotted,
@@ -800,5 +804,63 @@ class OpenElectiveAdminController extends Controller
         }
 
         return view('open_elective.first_option_list_print', compact('coursePools', 'settings', 'courseId'));
+    }
+
+    /**
+     * Print / Export Pre-Approval Allocation Analysis List (after FCFS, before HOD handover).
+     * Includes Branch, SBTE Number, Name, 1st Option, 2nd Option, and Allocation Source.
+     */
+    public function exportAllocationAnalysis(Request $request)
+    {
+        if (!$this->checkAccess()) {
+            return redirect('/')->with('error', 'Unauthorized access.');
+        }
+
+        $courseId = $request->query('course_id');
+        $settings = OeSetting::getActiveSettings();
+
+        if ($courseId) {
+            $courses = OeCourse::where('id', $courseId)->get();
+        } else {
+            $courses = OeCourse::where('is_active', true)->orderBy('offering_branch')->get();
+        }
+
+        $coursePools = [];
+        foreach ($courses as $c) {
+            $students = OeRegistration::where('allotted_course_id', $c->id)
+                ->with(['option1Course', 'option2Course', 'allottedCourse'])
+                ->orderBy('parent_branch', 'ASC')
+                ->orderBy('sbte_reg_no', 'ASC')
+                ->get();
+
+            $coursePools[] = [
+                'course' => $c,
+                'students' => $students,
+                'branchSummary' => $students->groupBy('parent_branch')->map->count()->toArray(),
+                'sourceSummary' => $students->groupBy('allocation_source')->map->count()->toArray(),
+                'total_count' => $students->count(),
+            ];
+        }
+
+        $unallottedStudents = collect();
+        if (!$courseId) {
+            $unallottedStudents = OeRegistration::whereNull('allotted_course_id')
+                ->with(['option1Course', 'option2Course'])
+                ->orderBy('parent_branch', 'ASC')
+                ->orderBy('sbte_reg_no', 'ASC')
+                ->get();
+        }
+
+        $totalRegistered = OeRegistration::count();
+        $totalAllotted = OeRegistration::whereNotNull('allotted_course_id')->count();
+
+        return view('open_elective.allocation_analysis_print', compact(
+            'coursePools',
+            'unallottedStudents',
+            'settings',
+            'courseId',
+            'totalRegistered',
+            'totalAllotted'
+        ));
     }
 }

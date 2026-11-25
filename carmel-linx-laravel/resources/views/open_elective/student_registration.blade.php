@@ -61,27 +61,51 @@
       </div>
     </div>
 
-    <!-- Official Allotment Notification Banner (When Confirmed by Principal) -->
+    <!-- Allotment Notification Banner (Trial vs Official Final Confirmation by Principal) -->
     @if($existingReg && $existingReg->allottedCourse)
-      <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/90 to-slate-900 border-2 border-emerald-500/60 shadow-2xl space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
-            🎉 Allotment Confirmed
-          </span>
-          <span class="text-xs font-mono font-bold text-emerald-400">Class: {{ $existingReg->allottedCourse->classroom_id ?: 'OE_2024_' . $existingReg->allottedCourse->offering_branch }}</span>
+      @if($settings->is_released_to_hods)
+        <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/90 to-slate-900 border-2 border-emerald-500/60 shadow-2xl space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
+              🎉 Allotment Confirmed
+            </span>
+            <span class="text-xs font-mono font-bold text-emerald-400">Class: {{ $existingReg->allottedCourse->classroom_id ?: 'OE_2024_' . $existingReg->allottedCourse->offering_branch }}</span>
+          </div>
+          <h2 class="text-base sm:text-lg font-black text-white">
+            {{ $existingReg->allottedCourse->course_title }}
+          </h2>
+          <div class="text-xs sm:text-sm text-slate-300 flex flex-wrap items-center gap-2">
+            <span>Offering Dept: <strong class="text-white">{{ $existingReg->allottedCourse->offering_branch_full }}</strong></span>
+            <span>&bull;</span>
+            <span>Course Code: <strong class="text-cyan-400 font-mono">{{ $existingReg->allottedCourse->course_code }}</strong></span>
+          </div>
+          <p class="text-xs text-emerald-300/80 pt-1">
+            You are officially enrolled in this multi-branch theory classroom for Semester 6. Attendance and CIA marks will be maintained by Department of {{ $existingReg->allottedCourse->offering_branch_full }}.
+          </p>
         </div>
-        <h2 class="text-base sm:text-lg font-black text-white">
-          {{ $existingReg->allottedCourse->course_title }}
-        </h2>
-        <div class="text-xs sm:text-sm text-slate-300 flex flex-wrap items-center gap-2">
-          <span>Offering Dept: <strong class="text-white">{{ $existingReg->allottedCourse->offering_branch_full }}</strong></span>
-          <span>&bull;</span>
-          <span>Course Code: <strong class="text-cyan-400 font-mono">{{ $existingReg->allottedCourse->course_code }}</strong></span>
+      @else
+        <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-950/85 to-slate-900 border-2 border-amber-500/70 shadow-2xl space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wider">
+              &#9888;&#65039; TRIAL ALLOTMENT ONLY — NOT FINAL
+            </span>
+            <span class="text-[11px] font-mono font-bold text-amber-300">Pending Principal Confirmation</span>
+          </div>
+          <h2 class="text-base sm:text-lg font-black text-white">
+            TRIAL ALLOTMENT - {{ $existingReg->allottedCourse->course_title }}
+          </h2>
+          <div class="text-xs sm:text-sm text-slate-300 flex flex-wrap items-center gap-2">
+            <span>Option Subject: <strong class="text-amber-300">{{ $existingReg->allottedCourse->course_title }}</strong></span>
+            <span>&bull;</span>
+            <span>Offering Dept: <strong class="text-white">{{ $existingReg->allottedCourse->offering_branch_full }}</strong></span>
+            <span>&bull;</span>
+            <span>Course Code: <strong class="text-cyan-400 font-mono">{{ $existingReg->allottedCourse->course_code }}</strong></span>
+          </div>
+          <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200/95 leading-relaxed">
+            <strong>Important Notice:</strong> This is a <strong>Trial Allotment Only</strong>. Registration is still continuing, and students may be removed later after internship registration or seat/allotment criteria updates. After the due date, the <strong>Principal will confirm the final allocation and send the list to HODs</strong>. <strong>Your final allotted option may change.</strong>
+          </div>
         </div>
-        <p class="text-xs text-emerald-300/80 pt-1">
-          You are officially enrolled in this multi-branch theory classroom for Semester 6. Attendance and CIA marks will be maintained by Department of {{ $existingReg->allottedCourse->offering_branch_full }}.
-        </p>
-      </div>
+      @endif
     @endif
 
     <!-- SUBMISSION STATUS LIST (At the top of the page after submission) -->

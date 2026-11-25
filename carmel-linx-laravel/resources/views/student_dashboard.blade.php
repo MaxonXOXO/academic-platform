@@ -311,8 +311,30 @@
       <!-- S6 Open Elective Registration Banner (For 5th Semester Students) -->
       @php
         $currentStudentSem = session('semester');
-        if (!$currentStudentSem && session('userId')) {
-            $currentStudentSem = \App\Models\Student::where('reg_no', session('userId'))->value('semester');
+        $currentStudentAdmNo = null;
+        if (session('userId')) {
+            $stuObj = \App\Models\Student::where(function($q) {
+                    $q->where('reg_no', session('userId'))
+                      ->orWhere('adm_no', session('userId'));
+                })
+                ->orderByRaw("CASE WHEN status = 'Approved' THEN 0 ELSE 1 END")
+                ->first();
+            if ($stuObj) {
+                $currentStudentSem = $currentStudentSem ?: $stuObj->semester;
+                $currentStudentAdmNo = $stuObj->adm_no;
+            }
+        }
+        $oeSettingsDesk = null;
+        $oeRegDesk = null;
+        if ($currentStudentSem == 5) {
+            try {
+                $oeSettingsDesk = \App\Models\OeSetting::getActiveSettings();
+                if ($currentStudentAdmNo) {
+                    $oeRegDesk = \App\Models\OeRegistration::with('allottedCourse')
+                        ->where('student_adm_no', $currentStudentAdmNo)
+                        ->first();
+                }
+            } catch (\Throwable $e) {}
         }
       @endphp
       @if($currentStudentSem == 5)
@@ -323,20 +345,47 @@
               <span class="material-symbols-rounded text-2xl">how_to_reg</span>
             </div>
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-black uppercase tracking-wider">SEMESTER 6 REV 2021 &bull; OPEN ELECTIVE</span>
-                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black uppercase tracking-wider animate-pulse">Registration Open</span>
+                @if($oeRegDesk && $oeRegDesk->allottedCourse && !($oeSettingsDesk->is_released_to_hods ?? false))
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-wider">TRIAL ALLOTMENT ONLY (NOT FINAL)</span>
+                @elseif($oeRegDesk && $oeRegDesk->allottedCourse && ($oeSettingsDesk->is_released_to_hods ?? false))
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider">ALLOTMENT CONFIRMED</span>
+                @else
+                  <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black uppercase tracking-wider animate-pulse">Registration Open</span>
+                @endif
               </div>
               <h3 class="font-black text-white text-base mt-1">Open Elective Course Registration</h3>
-              <p class="text-xs text-slate-300 mt-1 max-w-2xl">
-                Rank your 5 preferences across inter-disciplinary courses. Seats are allocated based on SBTE regulation and choice priorities.
-              </p>
+              @if($oeRegDesk && $oeRegDesk->allottedCourse)
+                @if(!($oeSettingsDesk->is_released_to_hods ?? false))
+                  <div class="mt-2 p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 max-w-2xl">
+                    <div class="text-xs font-black text-amber-300">
+                      TRIAL ALLOTMENT - {{ $oeRegDesk->allottedCourse->course_title }} ({{ $oeRegDesk->allottedCourse->course_code }})
+                    </div>
+                    <p class="text-[11px] text-amber-100/90 mt-1">
+                      <strong>Warning:</strong> This is a <strong>Trial Allotment Only</strong>. Registration is continuing and students may be removed after internship registration. After the due date, the Principal will confirm the final allocation and send the list to HODs. <strong>Your final allotted option may change.</strong>
+                    </p>
+                  </div>
+                @else
+                  <p class="text-xs text-emerald-300 font-bold mt-1">
+                    Confirmed Subject: {{ $oeRegDesk->allottedCourse->course_title }} ({{ $oeRegDesk->allottedCourse->course_code }})
+                  </p>
+                @endif
+              @elseif($oeRegDesk)
+                <p class="text-xs text-cyan-300 mt-1 max-w-2xl">
+                  5 preferences submitted. Pending trial/final allotment by the Principal.
+                </p>
+              @else
+                <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+                  Rank your 5 preferences across inter-disciplinary courses. Late registrations will get only remaining available slots from the 5 courses.
+                </p>
+              @endif
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-end">
             <a href="/student/open-elective" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-xl text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer no-underline">
               <span class="material-symbols-rounded text-base">arrow_forward</span>
-              Select Open Elective Courses Now
+              {{ $oeRegDesk ? 'View Open Elective Status' : 'Select Open Elective Courses Now' }}
             </a>
           </div>
         </div>

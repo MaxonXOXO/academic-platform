@@ -438,9 +438,6 @@
           <button type="button" onclick="printCurrentClassLog()" class="px-3 py-1.5 text-xs font-bold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Print official A4 classroom teaching & attendance log">
             <span class="material-symbols-rounded text-sm">print</span> Print Class Log (A4)
           </button>
-          <button type="button" onclick="printCurrentClassRoster()" class="px-3 py-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Print official A4 class roster with attendance & marks">
-            <span class="material-symbols-rounded text-sm">badge</span> Print Class Roster (A4)
-          </button>
           <button type="button" onclick="loadDesktopPastLogs()" class="px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg flex items-center gap-1.5 transition cursor-pointer" title="Refresh recorded logs">
             <span class="material-symbols-rounded text-sm">refresh</span> Refresh Logs
           </button>

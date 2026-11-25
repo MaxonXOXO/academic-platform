@@ -103,12 +103,12 @@
       <!-- Allotted Students -->
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-md">
         <div class="flex items-center justify-between text-slate-400 mb-1">
-          <span class="text-xs font-bold uppercase tracking-wider">Roster Allotted</span>
-          <span class="material-symbols-rounded text-emerald-400 text-xl">task_alt</span>
+          <span class="text-xs font-bold uppercase tracking-wider">{{ $settings->is_released_to_hods ? 'Final Roster Allotted' : 'Trial Allotted (Pre-Approval)' }}</span>
+          <span class="material-symbols-rounded {{ $settings->is_released_to_hods ? 'text-emerald-400' : 'text-amber-400' }} text-xl">task_alt</span>
         </div>
-        <div class="text-2xl sm:text-3xl font-black text-emerald-400 flex items-baseline gap-2">
+        <div class="text-2xl sm:text-3xl font-black {{ $settings->is_released_to_hods ? 'text-emerald-400' : 'text-amber-400' }} flex items-baseline gap-2">
           {{ $allottedCount }}
-          <span class="text-xs font-bold text-slate-400">fixed</span>
+          <span class="text-xs font-bold text-slate-400">{{ $settings->is_released_to_hods ? 'final' : 'trial' }}</span>
         </div>
         <div class="text-[11px] text-slate-400 mt-1">
           Pending: <strong class="text-amber-400 font-bold">{{ $pendingCount }}</strong>
@@ -634,7 +634,7 @@
                     <span class="text-[10px] text-slate-400 block font-mono">{{ $r->registered_at ? $r->registered_at->diffForHumans() : '' }}</span>
                     <span class="text-[10px] text-slate-500 font-mono block">IP: {{ $r->ip_address ?: '127.0.0.1' }} &bull; Web/Mobile</span>
                   </td>
-                  <td class="py-3 px-3">
+                  <td class="py-3 px-3 space-y-1">
                     @if($isComplete)
                       <span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap inline-flex items-center gap-1">
                         <span class="material-symbols-rounded text-xs">check_circle</span> 5 Options Locked
@@ -643,6 +643,17 @@
                       <span class="px-2 py-1 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap inline-flex items-center gap-1">
                         <span class="material-symbols-rounded text-xs">warning</span> Incomplete (<5)
                       </span>
+                    @endif
+                    @if($r->allottedCourse)
+                      @if($settings->is_released_to_hods)
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                          FINAL: {{ $r->allottedCourse->course_code }} ({{ $r->allottedCourse->offering_branch }})
+                        </span>
+                      @else
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                          TRIAL: {{ $r->allottedCourse->course_code }} ({{ $r->allottedCourse->offering_branch }})
+                        </span>
+                      @endif
                     @endif
                   </td>
 
@@ -728,13 +739,16 @@
       <!-- Allocation Actions & Controls -->
       <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-md">
         <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <h2 class="text-base font-bold text-white flex flex-wrap items-center gap-2">
             <span class="material-symbols-rounded text-emerald-400">rule</span> Allocation &amp; Admission 2024 Class Setup Desk
+            @if(!$settings->is_released_to_hods)
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wider">TRIAL ALLOTMENT MODE (Not Finalized by Principal)</span>
+            @endif
           </h2>
-          <p class="text-xs text-slate-400">Run algorithmic FCFS allocation, fine-tune manual overrides, and setup official Admission 2024 Open Elective Classrooms for HODs.</p>
+          <p class="text-xs text-slate-400">Run algorithmic FCFS trial allocation, fine-tune manual overrides, and setup official Admission 2024 Open Elective Classrooms for HODs after due date.</p>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5">
           <button onclick="handleResetTrialData()" id="btnResetTrialTab3" class="px-3.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 transition-premium shadow-sm">
             <span class="material-symbols-rounded text-sm">restart_alt</span> Reset Trial Data
           </button>
@@ -742,6 +756,10 @@
           <button onclick="handleAutoAllocate()" id="btnAutoAllocate" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-premium">
             <span class="material-symbols-rounded text-sm">auto_fix_high</span> Run FCFS Auto-Allocate
           </button>
+
+          <a href="/admin/open-elective/print-allocation-analysis" target="_blank" class="px-3.5 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 font-bold text-xs flex items-center gap-1.5 no-underline transition-premium shadow-sm" title="Print pre-approval FCFS allocation list with 1st &amp; 2nd options for analysis (A4 Portrait)">
+            <span class="material-symbols-rounded text-sm">print</span> Print Allocation Analysis (A4)
+          </a>
 
           <button onclick="handleReleaseToHods()" id="btnReleaseToHods" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-900/40 transition-premium">
             <span class="material-symbols-rounded text-sm">send_and_archive</span> Approve &amp; Setup Classrooms for HODs
@@ -1251,6 +1269,8 @@
       const course = pool.course;
       const allotted = pool.allotted_students || [];
       const opt1 = pool.opt1_applicants || [];
+      const isFinalReleased = !!(allocationDataCache && allocationDataCache.is_released_to_hods);
+      const allotLabel = isFinalReleased ? 'Allotted' : 'Trial Allotted';
 
       // Auto-toggle: If there are allotted students and user hasn't explicitly clicked opt1, or vice versa
       let isOpt1View = currentRosterSubTab === 'opt1';
@@ -1265,12 +1285,15 @@
             </div>
             <div class="flex flex-wrap items-center gap-3">
               <span class="text-xs text-slate-400">1st Choices: <strong class="text-cyan-400 text-sm">${opt1.length}</strong></span>
-              <span class="text-xs text-slate-400">Allotted: <strong class="text-emerald-400 text-sm">${allotted.length}</strong> / ${course.max_capacity}</span>
+              <span class="text-xs text-slate-400">${allotLabel}: <strong class="${isFinalReleased ? 'text-emerald-400' : 'text-amber-400'} text-sm">${allotted.length}</strong> / ${course.max_capacity}</span>
               <a href="/admin/open-elective/print-first-options?course_id=${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print pre-allocation 1st choice applicants list">
                 <span class="material-symbols-rounded text-sm">print</span> Print 1st Option List
               </a>
-              <a href="/admin/open-elective/export-roster/${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print official post-allocation nominal roll">
-                <span class="material-symbols-rounded text-sm">print</span> Print Allotted Roll
+              <a href="/admin/open-elective/print-allocation-analysis?course_id=${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print pre-approval FCFS allocation analysis list with 1st &amp; 2nd options (A4 Portrait)">
+                <span class="material-symbols-rounded text-sm">print</span> Print Allocation Analysis
+              </a>
+              <a href="/admin/open-elective/export-roster/${course.id}" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 no-underline transition-premium" title="Print official post-approval final nominal roll for HOD">
+                <span class="material-symbols-rounded text-sm">print</span> Print Final HOD Roll
               </a>
             </div>
           </div>
@@ -1283,7 +1306,7 @@
             </button>
             <button onclick="setRosterSubTab('allotted')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-premium ${!isOpt1View ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'}">
               <span class="material-symbols-rounded text-sm">done_all</span>
-              Post-Allocation: Allotted Students (${allotted.length} / ${course.max_capacity})
+              ${isFinalReleased ? 'Post-Allocation: Allotted Students' : 'Trial Allotment List (Not Final)'} (${allotted.length} / ${course.max_capacity})
             </button>
           </div>
       `;
@@ -1321,9 +1344,9 @@
             const isAllottedElsewhere = st.allotted_course_id && !isAllottedHere;
             let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Pre-Allocation Queue</span>`;
             if (isAllottedHere) {
-              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Allotted to this Course</span>`;
+              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isFinalReleased ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'} border">${isFinalReleased ? 'Allotted to this Course' : 'Trial: Allotted to this Course'}</span>`;
             } else if (isAllottedElsewhere) {
-              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">Allotted Elsewhere</span>`;
+              statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">${isFinalReleased ? 'Allotted Elsewhere' : 'Trial: Allotted Elsewhere'}</span>`;
             }
 
             const regTimeStr = st.registered_at ? new Date(st.registered_at).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }) : '-';

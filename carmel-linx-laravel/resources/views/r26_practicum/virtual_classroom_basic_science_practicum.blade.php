@@ -2541,7 +2541,11 @@
                 <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-3">
                     <div>
                         <h3 class="text-base font-semibold text-slate-200">Practical Series Examinations (CA2 &amp; CA3)</h3>
-                        <p class="text-slate-400 text-xs mt-0.5 font-normal">4 Modular/CO Practical Tests (CO1–CO4 · 20M each) or 2 Combined Series (CA2: CO1 &amp; CO2 · 40M each, CA3: CO3 &amp; CO4 · 40M each). CIA is calculated from the 2 Series averaged and scaled to 10 Marks.</p>
+                        @if($isChemistry)
+                            <p class="text-slate-400 text-xs mt-0.5 font-normal">Enter Practical Series 1 &amp; Series 2 marks out of 40. CIA (10M) is calculated from Series 1 and Series 2; CO1–CO4 (20M each) are auto-split (read-only) for CO attainment.</p>
+                        @else
+                            <p class="text-slate-400 text-xs mt-0.5 font-normal">4 Modular/CO Practical Tests (CO1–CO4 · 20M each) or 2 Combined Series (CA2: CO1 &amp; CO2 · 40M each, CA3: CO3 &amp; CO4 · 40M each). CIA is calculated from the 2 Series averaged and scaled to 10 Marks.</p>
+                        @endif
                     </div>
                     <div class="flex items-center space-x-2">
                         <button onclick="printSubtabReport('Practical Series Examinations Report', 'lab-subcontent-series')" class="header-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all no-print">🖨️ Print Report</button>
@@ -2649,38 +2653,34 @@
                             @foreach($studentResults as $res)
                             @php
                                 $spEvals = $seriesPracticalEvals->get($res['reg_no'], collect());
-                                $sp1 = $spEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-                                $sp2 = $spEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-                                $sp3 = $spEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-                                $sp4 = $spEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
                                 $regKey = preg_replace('/[^a-zA-Z0-9_]/', '_', $res['reg_no']);
 
-                                $spCo1Val = $sp1 ? (float)$sp1->total_score_40 : null;
-                                $spCo2Val = $sp2 ? (float)$sp2->total_score_40 : null;
-                                $spCo3Val = $sp3 ? (float)$sp3->total_score_40 : null;
-                                $spCo4Val = $sp4 ? (float)$sp4->total_score_40 : null;
+                                $s1Row = $spEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                                $s2Row = $spEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
 
-                                // Fallback to legacy single-series if available
-                                if ($spCo1Val === null && $spCo2Val === null) {
-                                    $legacyCa2 = $spEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
-                                    if ($legacyCa2) {
-                                        $spCo1Val = round(((float)$legacyCa2->total_score_40) / 2.0, 1);
-                                        $spCo2Val = round(((float)$legacyCa2->total_score_40) / 2.0, 1);
-                                    }
-                                }
-                                if ($spCo3Val === null && $spCo4Val === null) {
-                                    $legacyCa3 = $spEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
-                                    if ($legacyCa3) {
-                                        $spCo3Val = round(((float)$legacyCa3->total_score_40) / 2.0, 1);
-                                        $spCo4Val = round(((float)$legacyCa3->total_score_40) / 2.0, 1);
-                                    }
+                                if ($s1Row) {
+                                    $spS1Tot = $s1Row->is_absent ? 0.0 : min(40.0, (float)$s1Row->total_score_40);
+                                    $spCo1Val = round($spS1Tot / 2.0, 2);
+                                    $spCo2Val = round($spS1Tot / 2.0, 2);
+                                } else {
+                                    $sp1 = $spEvals->firstWhere('series_no', 'CO1');
+                                    $sp2 = $spEvals->firstWhere('series_no', 'CO2');
+                                    $spCo1Val = $sp1 ? (float)$sp1->total_score_40 : null;
+                                    $spCo2Val = $sp2 ? (float)$sp2->total_score_40 : null;
+                                    $spS1Tot = ($spCo1Val !== null || $spCo2Val !== null) ? min(40.0, ($spCo1Val ?? 0) + ($spCo2Val ?? 0)) : null;
                                 }
 
-                                $hasSpS1 = ($spCo1Val !== null || $spCo2Val !== null);
-                                $hasSpS2 = ($spCo3Val !== null || $spCo4Val !== null);
-
-                                $spS1Tot = $hasSpS1 ? min(40.0, ($spCo1Val ?? 0) + ($spCo2Val ?? 0)) : null;
-                                $spS2Tot = $hasSpS2 ? min(40.0, ($spCo3Val ?? 0) + ($spCo4Val ?? 0)) : null;
+                                if ($s2Row) {
+                                    $spS2Tot = $s2Row->is_absent ? 0.0 : min(40.0, (float)$s2Row->total_score_40);
+                                    $spCo3Val = round($spS2Tot / 2.0, 2);
+                                    $spCo4Val = round($spS2Tot / 2.0, 2);
+                                } else {
+                                    $sp3 = $spEvals->firstWhere('series_no', 'CO3');
+                                    $sp4 = $spEvals->firstWhere('series_no', 'CO4');
+                                    $spCo3Val = $sp3 ? (float)$sp3->total_score_40 : null;
+                                    $spCo4Val = $sp4 ? (float)$sp4->total_score_40 : null;
+                                    $spS2Tot = ($spCo3Val !== null || $spCo4Val !== null) ? min(40.0, ($spCo3Val ?? 0) + ($spCo4Val ?? 0)) : null;
+                                }
 
                                 $spAvg40 = ((($spS1Tot ?? 0) + ($spS2Tot ?? 0)) / 2.0);
                                 $spCia10 = min(10.0, round((($spAvg40 / 40.0) * 10.0) * 2) / 2);
@@ -2711,10 +2711,10 @@
                                         data-reg="{{ $res['reg_no'] }}"
                                         data-series="CO1"
                                         min="0" max="20" step="0.5"
-                                        value="{{ $spCo1Val !== null ? number_format($spCo1Val, 1, '.', '') : '' }}"
+                                        value="{{ $spCo1Val !== null ? rtrim(rtrim(number_format($spCo1Val, 2, '.', ''), '0'), '.') : '' }}"
                                         placeholder="—"
-                                        oninput="autoSaveSeriesPractical(this)"
-                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        readonly tabindex="-1" title="Auto-split from Series 1 (read-only)"
+                                        class="sp-input w-full max-w-[90px] bg-slate-950/60 border border-slate-800 text-slate-400 cursor-not-allowed pointer-events-none rounded-lg px-2 py-1.5 text-center font-bold text-sm outline-none no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2725,10 +2725,10 @@
                                         data-reg="{{ $res['reg_no'] }}"
                                         data-series="CO2"
                                         min="0" max="20" step="0.5"
-                                        value="{{ $spCo2Val !== null ? number_format($spCo2Val, 1, '.', '') : '' }}"
+                                        value="{{ $spCo2Val !== null ? rtrim(rtrim(number_format($spCo2Val, 2, '.', ''), '0'), '.') : '' }}"
                                         placeholder="—"
-                                        oninput="autoSaveSeriesPractical(this)"
-                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-emerald-300 text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30 no-spinners transition-all mx-auto block"
+                                        readonly tabindex="-1" title="Auto-split from Series 1 (read-only)"
+                                        class="sp-input w-full max-w-[90px] bg-slate-950/60 border border-slate-800 text-slate-400 cursor-not-allowed pointer-events-none rounded-lg px-2 py-1.5 text-center font-bold text-sm outline-none no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2753,10 +2753,10 @@
                                         data-reg="{{ $res['reg_no'] }}"
                                         data-series="CO3"
                                         min="0" max="20" step="0.5"
-                                        value="{{ $spCo3Val !== null ? number_format($spCo3Val, 1, '.', '') : '' }}"
+                                        value="{{ $spCo3Val !== null ? rtrim(rtrim(number_format($spCo3Val, 2, '.', ''), '0'), '.') : '' }}"
                                         placeholder="—"
-                                        oninput="autoSaveSeriesPractical(this)"
-                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        readonly tabindex="-1" title="Auto-split from Series 2 (read-only)"
+                                        class="sp-input w-full max-w-[90px] bg-slate-950/60 border border-slate-800 text-slate-400 cursor-not-allowed pointer-events-none rounded-lg px-2 py-1.5 text-center font-bold text-sm outline-none no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -2767,10 +2767,10 @@
                                         data-reg="{{ $res['reg_no'] }}"
                                         data-series="CO4"
                                         min="0" max="20" step="0.5"
-                                        value="{{ $spCo4Val !== null ? number_format($spCo4Val, 1, '.', '') : '' }}"
+                                        value="{{ $spCo4Val !== null ? rtrim(rtrim(number_format($spCo4Val, 2, '.', ''), '0'), '.') : '' }}"
                                         placeholder="—"
-                                        oninput="autoSaveSeriesPractical(this)"
-                                        class="sp-input w-full max-w-[90px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-teal-300 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-500/30 no-spinners transition-all mx-auto block"
+                                        readonly tabindex="-1" title="Auto-split from Series 2 (read-only)"
+                                        class="sp-input w-full max-w-[90px] bg-slate-950/60 border border-slate-800 text-slate-400 cursor-not-allowed pointer-events-none rounded-lg px-2 py-1.5 text-center font-bold text-sm outline-none no-spinners transition-all mx-auto block"
                                     >
                                 </td>
 
@@ -6297,9 +6297,10 @@
             if (coAInp) coAInp.value = '';
             if (coBInp) coBInp.value = '';
         } else {
-            const half = Math.round((val / 2.0) * 10) / 10;
-            if (coAInp) coAInp.value = half.toFixed(1);
-            if (coBInp) coBInp.value = half.toFixed(1);
+            const half = Math.round((val / 2.0) * 100) / 100;
+            const halfStr = Number(half.toFixed(2)).toString();
+            if (coAInp) coAInp.value = halfStr;
+            if (coBInp) coBInp.value = halfStr;
         }
 
         updateSeriesPracticalRowLive(regNo);
@@ -6409,18 +6410,29 @@
         const v3 = (inp3 && inp3.value !== '') ? parseFloat(inp3.value) : null;
         const v4 = (inp4 && inp4.value !== '') ? parseFloat(inp4.value) : null;
 
+        const isChemPracticumLive = {{ $isChemistry ? 'true' : 'false' }};
         let s1Total = null;
-        if (v1 !== null || v2 !== null) {
-            s1Total = Math.min(40, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0));
-        } else if (inpS1Tot && inpS1Tot.value !== '') {
-            s1Total = Math.min(40, parseFloat(inpS1Tot.value) || 0);
-        }
-
         let s2Total = null;
-        if (v3 !== null || v4 !== null) {
-            s2Total = Math.min(40, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0));
-        } else if (inpS2Tot && inpS2Tot.value !== '') {
-            s2Total = Math.min(40, parseFloat(inpS2Tot.value) || 0);
+
+        if (isChemPracticumLive) {
+            if (inpS1Tot && inpS1Tot.value !== '') {
+                s1Total = Math.min(40, Math.max(0, parseFloat(inpS1Tot.value) || 0));
+            }
+            if (inpS2Tot && inpS2Tot.value !== '') {
+                s2Total = Math.min(40, Math.max(0, parseFloat(inpS2Tot.value) || 0));
+            }
+        } else {
+            if (v1 !== null || v2 !== null) {
+                s1Total = Math.min(40, (v1 !== null ? v1 : 0) + (v2 !== null ? v2 : 0));
+            } else if (inpS1Tot && inpS1Tot.value !== '') {
+                s1Total = Math.min(40, parseFloat(inpS1Tot.value) || 0);
+            }
+
+            if (v3 !== null || v4 !== null) {
+                s2Total = Math.min(40, (v3 !== null ? v3 : 0) + (v4 !== null ? v4 : 0));
+            } else if (inpS2Tot && inpS2Tot.value !== '') {
+                s2Total = Math.min(40, parseFloat(inpS2Tot.value) || 0);
+            }
         }
 
         if (inpS1Tot && document.activeElement !== inpS1Tot) {
@@ -6735,7 +6747,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
                 <div>
                     <h3 class="text-lg font-bold text-white">Practical Series Exam Marks Evaluator</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Select a series test (CO1–CO4 · 20M each) and enter score for each student.</p>
+                    <p class="text-slate-400 text-xs mt-0.5">{{ $isChemistry ? 'Select Series 1 or Series 2 (40M each) and enter score for each student. CO1–CO4 are auto-split.' : 'Select a series test (CO1–CO4 · 20M each) and enter score for each student.' }}</p>
                 </div>
                 <button type="button" onclick="closeSeriesPracticalModal()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
@@ -6745,10 +6757,15 @@
                 <div class="flex items-center justify-between gap-3">
                     <label class="text-slate-300 text-xs font-semibold">Select Practical Test:</label>
                     <select id="series-practical-test-select" onchange="onSeriesPracticalTestChange(this.value)" class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-amber-400 font-bold outline-none focus:border-amber-500 cursor-pointer">
-                        <option value="CO1">Practical Series 1: Test 1 / CO1 (Max 20M)</option>
-                        <option value="CO2">Practical Series 1: Test 2 / CO2 (Max 20M)</option>
-                        <option value="CO3">Practical Series 2: Test 3 / CO3 (Max 20M)</option>
-                        <option value="CO4">Practical Series 2: Test 4 / CO4 (Max 20M)</option>
+                        @if($isChemistry)
+                            <option value="Series 1">Practical Series 1 (Max 40M)</option>
+                            <option value="Series 2">Practical Series 2 (Max 40M)</option>
+                        @else
+                            <option value="CO1">Practical Series 1: Test 1 / CO1 (Max 20M)</option>
+                            <option value="CO2">Practical Series 1: Test 2 / CO2 (Max 20M)</option>
+                            <option value="CO3">Practical Series 2: Test 3 / CO3 (Max 20M)</option>
+                            <option value="CO4">Practical Series 2: Test 4 / CO4 (Max 20M)</option>
+                        @endif
                     </select>
                 </div>
 
@@ -6780,8 +6797,8 @@
 
                 <div class="border-t border-slate-800/80 pt-3 space-y-3">
                     <div>
-                        <label class="block text-slate-400 text-xs font-semibold mb-1">Practical Test Mark (Max 20 Marks):</label>
-                        <input type="number" id="series-practical-total" min="0" max="20" step="0.5" oninput="onSeriesPracticalMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
+                        <label class="block text-slate-400 text-xs font-semibold mb-1">Practical Test Mark (Max {{ $isChemistry ? '40' : '20' }} Marks):</label>
+                        <input type="number" id="series-practical-total" min="0" max="{{ $isChemistry ? '40' : '20' }}" step="0.5" oninput="onSeriesPracticalMarksInput()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 font-bold text-sm text-white text-center focus:border-emerald-500 outline-none">
                     </div>
 
                     <div class="flex items-center space-x-2">
@@ -7541,43 +7558,66 @@
     // =====================================================================
     // Practical Series Exams Evaluation System
     // =====================================================================
+    const isChemPracticumModal = {{ $isChemistry ? 'true' : 'false' }};
     const seriesPracticalEvalsDb = @json($seriesPracticalEvals);
     const seriesPracticalEvalsState = {};
 
     studentsList.forEach(s => {
         const regNo = s.reg_no;
-        seriesPracticalEvalsState[regNo] = {
-            'CO1': { total_score_40: 0, is_absent: false },
-            'CO2': { total_score_40: 0, is_absent: false },
-            'CO3': { total_score_40: 0, is_absent: false },
-            'CO4': { total_score_40: 0, is_absent: false }
-        };
-
-        const dbList = seriesPracticalEvalsDb[regNo] || [];
-        dbList.forEach(evalRecord => {
-            const sNo = evalRecord.series_no;
-            let mapped = sNo;
-            if (sNo === 'Series 1' || sNo === 'Test 1') mapped = 'CO1';
-            if (sNo === 'Series 2' || sNo === 'Test 2') mapped = 'CO2';
-            if (sNo === 'Series 3' || sNo === 'Test 3') mapped = 'CO3';
-            if (sNo === 'Series 4' || sNo === 'Test 4') mapped = 'CO4';
-
-            // Also handle legacy combined CA2 / CA3
-            if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'CA2' || sNo === 'Practical Series 1') {
-                const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
-                seriesPracticalEvalsState[regNo]['CO1'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
-                seriesPracticalEvalsState[regNo]['CO2'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
-            } else if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'CA3' || sNo === 'Practical Series 2') {
-                const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
-                seriesPracticalEvalsState[regNo]['CO3'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
-                seriesPracticalEvalsState[regNo]['CO4'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
-            } else if (seriesPracticalEvalsState[regNo][mapped]) {
-                seriesPracticalEvalsState[regNo][mapped] = {
-                    total_score_40: parseFloat(evalRecord.total_score_40) || 0,
-                    is_absent: !!evalRecord.is_absent
+        if (isChemPracticumModal) {
+            seriesPracticalEvalsState[regNo] = {
+                'Series 1': { total_score_40: 0, is_absent: false },
+                'Series 2': { total_score_40: 0, is_absent: false }
+            };
+            const dbList = seriesPracticalEvalsDb[regNo] || [];
+            const s1Rec = dbList.find(r => ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'].includes(r.series_no));
+            const s2Rec = dbList.find(r => ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'].includes(r.series_no));
+            if (s1Rec) {
+                seriesPracticalEvalsState[regNo]['Series 1'] = {
+                    total_score_40: s1Rec.is_absent ? 0 : (parseFloat(s1Rec.total_score_40) || 0),
+                    is_absent: !!s1Rec.is_absent
                 };
             }
-        });
+            if (s2Rec) {
+                seriesPracticalEvalsState[regNo]['Series 2'] = {
+                    total_score_40: s2Rec.is_absent ? 0 : (parseFloat(s2Rec.total_score_40) || 0),
+                    is_absent: !!s2Rec.is_absent
+                };
+            }
+        } else {
+            seriesPracticalEvalsState[regNo] = {
+                'CO1': { total_score_40: 0, is_absent: false },
+                'CO2': { total_score_40: 0, is_absent: false },
+                'CO3': { total_score_40: 0, is_absent: false },
+                'CO4': { total_score_40: 0, is_absent: false }
+            };
+
+            const dbList = seriesPracticalEvalsDb[regNo] || [];
+            dbList.forEach(evalRecord => {
+                const sNo = evalRecord.series_no;
+                let mapped = sNo;
+                if (sNo === 'Series 1' || sNo === 'Test 1') mapped = 'CO1';
+                if (sNo === 'Series 2' || sNo === 'Test 2') mapped = 'CO2';
+                if (sNo === 'Series 3' || sNo === 'Test 3') mapped = 'CO3';
+                if (sNo === 'Series 4' || sNo === 'Test 4') mapped = 'CO4';
+
+                // Also handle legacy combined CA2 / CA3
+                if (sNo === 'Test 1 (CO1+CO2)' || sNo === 'CA2' || sNo === 'Practical Series 1') {
+                    const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
+                    seriesPracticalEvalsState[regNo]['CO1'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                    seriesPracticalEvalsState[regNo]['CO2'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                } else if (sNo === 'Test 2 (CO3+CO4)' || sNo === 'CA3' || sNo === 'Practical Series 2') {
+                    const half = Math.round(((parseFloat(evalRecord.total_score_40) || 0) / 2.0) * 2) / 2;
+                    seriesPracticalEvalsState[regNo]['CO3'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                    seriesPracticalEvalsState[regNo]['CO4'] = { total_score_40: half, is_absent: !!evalRecord.is_absent };
+                } else if (seriesPracticalEvalsState[regNo][mapped]) {
+                    seriesPracticalEvalsState[regNo][mapped] = {
+                        total_score_40: parseFloat(evalRecord.total_score_40) || 0,
+                        is_absent: !!evalRecord.is_absent
+                    };
+                }
+            });
+        }
     });
 
     function openSeriesPracticalModal() {
@@ -7626,8 +7666,9 @@
         if (!regNo) return;
 
         const test = document.getElementById('series-practical-test-select').value;
+        const maxScore = isChemPracticumModal ? 40 : 20;
         const rawTotal = parseFloat(document.getElementById('series-practical-total').value);
-        const total = isNaN(rawTotal) ? 0 : Math.max(0, Math.min(20, rawTotal));
+        const total = isNaN(rawTotal) ? 0 : Math.max(0, Math.min(maxScore, rawTotal));
 
         if (!seriesPracticalEvalsState[regNo]) seriesPracticalEvalsState[regNo] = {};
         if (!seriesPracticalEvalsState[regNo][test]) seriesPracticalEvalsState[regNo][test] = { total_score_40: 0, is_absent: false };
@@ -7663,9 +7704,10 @@
     function updateSeriesPracticalLiveTotal() {
         const total = parseFloat(document.getElementById('series-practical-total').value) || 0;
         const isAbsent = document.getElementById('series-practical-absent').checked;
+        const maxScore = isChemPracticumModal ? 40 : 20;
 
         const displayTotal = isAbsent ? 0 : total;
-        document.getElementById('series-practical-live-total').innerText = `${displayTotal.toFixed(2)} / 20.00`;
+        document.getElementById('series-practical-live-total').innerText = `${displayTotal.toFixed(2)} / ${maxScore.toFixed(2)}`;
     }
 
     function prevSeriesPracticalStudent() {

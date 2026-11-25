@@ -4665,6 +4665,9 @@
                 <button type="button" onclick="document.getElementById('series-q-image-file-PartA').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
                   <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
                 </button>
+                <button type="button" onclick="openMatrixBuilder('series-q-text-PartA')" title="Insert Matrix / Math Equation" class="px-2.5 py-1.5 bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">grid_on</span> Math / Matrix
+                </button>
                 <button type="button" onclick="autoGenPartQuestion('Part A')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part A')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
               </div>
@@ -4718,6 +4721,9 @@
                 <input type="hidden" id="series-q-image-url-PartB" value="">
                 <button type="button" onclick="document.getElementById('series-q-image-file-PartB').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
                   <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
+                </button>
+                <button type="button" onclick="openMatrixBuilder('series-q-text-PartB')" title="Insert Matrix / Math Equation" class="px-2.5 py-1.5 bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">grid_on</span> Math / Matrix
                 </button>
                 <button type="button" onclick="autoGenPartQuestion('Part B')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part B')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
@@ -4773,6 +4779,9 @@
                 <button type="button" onclick="document.getElementById('series-q-image-file-PartC').click()" title="Attach Diagram / Image" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
                   <span class="material-symbols-rounded text-xs">add_photo_alternate</span>
                 </button>
+                <button type="button" onclick="openMatrixBuilder('series-q-text-PartC')" title="Insert Matrix / Math Equation" class="px-2.5 py-1.5 bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">grid_on</span> Math / Matrix
+                </button>
                 <button type="button" onclick="autoGenPartQuestion('Part C')" title="Suggest from Q-Bank" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all"><span class="material-symbols-rounded text-xs">psychology</span></button>
                 <button type="button" onclick="addSeriesQuestionDirect('Part C')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-0.5"><span class="material-symbols-rounded text-xs">add</span> Add</button>
               </div>
@@ -4789,6 +4798,119 @@
         <button type="button" id="btn-save-series-qp" onclick="saveSeriesExamQuestions()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer border-0 shadow-sm">Save Questions</button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Visual Matrix & Math Equation Builder Modal -->
+  <div id="matrix-builder-modal" class="fixed inset-0 z-[10000] hidden flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-indigo-500/40 rounded-2xl w-full max-w-xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-black text-white flex items-center gap-1.5">
+            <span class="material-symbols-rounded text-indigo-400 text-lg">functions</span> Math &amp; Matrix Builder
+          </h3>
+          <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 ml-2">
+            <button type="button" id="mb-tab-matrix" onclick="switchMathBuilderTab('matrix')" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white border-0 cursor-pointer">Matrix Grid</button>
+            <button type="button" id="mb-tab-eq" onclick="switchMathBuilderTab('equation')" class="px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white bg-transparent border-0 cursor-pointer">Equation Builder</button>
+          </div>
+        </div>
+        <button type="button" onclick="closeMatrixBuilder()" class="text-slate-400 hover:text-white bg-transparent border-0 cursor-pointer">
+          <span class="material-symbols-rounded text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: MATRIX GRID -->
+      <div id="mb-panel-matrix" class="space-y-3">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Rows</label>
+            <select id="mb-rows" onchange="renderMatrixBuilderGrid()" class="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Columns</label>
+            <select id="mb-cols" onchange="renderMatrixBuilderGrid()" class="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Brackets</label>
+            <select id="mb-env" onchange="updateMatrixBuilderPreview()" class="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs">
+              <option value="bmatrix" selected>[ ] Square</option>
+              <option value="pmatrix">( ) Round</option>
+              <option value="vmatrix">| | Det</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Prefix (Opt.)</label>
+            <input type="text" id="mb-prefix" oninput="updateMatrixBuilderPreview()" placeholder="e.g. A =" class="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Enter Matrix Elements (Tab to move next cell)</label>
+          <div id="mb-grid" class="grid gap-1.5 p-3 rounded-xl bg-slate-950 border border-slate-800"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: EQUATION BUILDER -->
+      <div id="mb-panel-equation" class="hidden space-y-3">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Click Symbols / Templates to Insert</label>
+          <div class="flex flex-wrap gap-1.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+            <button type="button" onclick="appendEqToken('\\frac{a}{b}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">a/b</button>
+            <button type="button" onclick="appendEqToken('^{2}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">x&#178;</button>
+            <button type="button" onclick="appendEqToken('^{n}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">x&#8319;</button>
+            <button type="button" onclick="appendEqToken('_{n}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">x&#8345;</button>
+            <button type="button" onclick="appendEqToken('\\sqrt{x}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">&radic;x</button>
+            <button type="button" onclick="appendEqToken('\\int_{a}^{b} ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">&int; a..b</button>
+            <button type="button" onclick="appendEqToken('\\lim_{x \\to 0} ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">lim</button>
+            <button type="button" onclick="appendEqToken('\\sum_{i=1}^{n} ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">&Sigma;</button>
+            <button type="button" onclick="appendEqToken('\\frac{dy}{dx}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 cursor-pointer">dy/dx</button>
+            <button type="button" onclick="appendEqToken('\\sin ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer">sin</button>
+            <button type="button" onclick="appendEqToken('\\cos ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer">cos</button>
+            <button type="button" onclick="appendEqToken('\\tan ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer">tan</button>
+            <button type="button" onclick="appendEqToken('\\log ')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer">log</button>
+            <button type="button" onclick="appendEqToken('\\theta')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 cursor-pointer">&theta;</button>
+            <button type="button" onclick="appendEqToken('\\pi')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 cursor-pointer">&pi;</button>
+            <button type="button" onclick="appendEqToken('\\alpha')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 cursor-pointer">&alpha;</button>
+            <button type="button" onclick="appendEqToken('\\beta')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 cursor-pointer">&beta;</button>
+            <button type="button" onclick="appendEqToken('\\Delta')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 cursor-pointer">&Delta;</button>
+            <button type="button" onclick="appendEqToken('\\pm')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&plusmn;</button>
+            <button type="button" onclick="appendEqToken('\\leq')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&le;</button>
+            <button type="button" onclick="appendEqToken('\\geq')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&ge;</button>
+            <button type="button" onclick="appendEqToken('\\neq')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&ne;</button>
+            <button type="button" onclick="appendEqToken('\\infty')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&infin;</button>
+            <button type="button" onclick="appendEqToken('\\to')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 cursor-pointer">&rarr;</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Equation Expression</label>
+          <input type="text" id="mb-eq-input" oninput="updateMatrixBuilderPreview()" placeholder="e.g. x^2 + y^2 + 2gx + 2fy + c = 0" class="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-indigo-500">
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Live Preview</span>
+          <label class="inline-flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer">
+            <input type="checkbox" id="mb-inline" onchange="updateMatrixBuilderPreview()" class="rounded"> Inline ($...$) instead of Block ($$...$$)
+          </label>
+        </div>
+        <div id="mb-preview" class="min-h-[56px] p-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm flex items-center justify-center overflow-x-auto"></div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <button type="button" onclick="closeMatrixBuilder()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold border-0 cursor-pointer">Cancel</button>
+        <button type="button" onclick="insertBuiltMatrix()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold border-0 cursor-pointer">Insert into Question</button>
+      </div>
     </div>
   </div>
 
@@ -5086,7 +5208,135 @@
           `;
           container.appendChild(tr);
         });
+
+        if (window.renderMathInElement) {
+          renderMathInElement(container, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+          });
+        }
       });
+    }
+
+    let matrixBuilderTargetInputId = null;
+    let matrixBuilderMode = 'matrix';
+
+    function openMatrixBuilder(targetInputId) {
+      matrixBuilderTargetInputId = targetInputId;
+      document.getElementById('matrix-builder-modal').classList.remove('hidden');
+      switchMathBuilderTab('matrix');
+      renderMatrixBuilderGrid();
+    }
+
+    function switchMathBuilderTab(mode) {
+      matrixBuilderMode = mode;
+      const isMatrix = mode === 'matrix';
+      document.getElementById('mb-panel-matrix').classList.toggle('hidden', !isMatrix);
+      document.getElementById('mb-panel-equation').classList.toggle('hidden', isMatrix);
+      document.getElementById('mb-tab-matrix').className = isMatrix
+        ? 'px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white border-0 cursor-pointer'
+        : 'px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white bg-transparent border-0 cursor-pointer';
+      document.getElementById('mb-tab-eq').className = !isMatrix
+        ? 'px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white border-0 cursor-pointer'
+        : 'px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white bg-transparent border-0 cursor-pointer';
+      updateMatrixBuilderPreview();
+    }
+
+    function appendEqToken(token) {
+      const eqInput = document.getElementById('mb-eq-input');
+      if (!eqInput) return;
+      const start = eqInput.selectionStart ?? eqInput.value.length;
+      const end = eqInput.selectionEnd ?? eqInput.value.length;
+      eqInput.value = eqInput.value.slice(0, start) + token + eqInput.value.slice(end);
+      eqInput.focus();
+      eqInput.setSelectionRange(start + token.length, start + token.length);
+      updateMatrixBuilderPreview();
+    }
+
+    function closeMatrixBuilder() {
+      document.getElementById('matrix-builder-modal').classList.add('hidden');
+    }
+
+    function renderMatrixBuilderGrid() {
+      const rows = parseInt(document.getElementById('mb-rows').value, 10) || 2;
+      const cols = parseInt(document.getElementById('mb-cols').value, 10) || 2;
+      const grid = document.getElementById('mb-grid');
+      grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+      let html = '';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          html += `<input type="text" class="mb-cell bg-slate-900 border border-slate-700 text-white text-center rounded-lg px-2 py-1.5 text-xs outline-none focus:border-indigo-500" data-r="${r}" data-c="${c}" placeholder="a${r+1}${c+1}" oninput="updateMatrixBuilderPreview()">`;
+        }
+      }
+      grid.innerHTML = html;
+      updateMatrixBuilderPreview();
+    }
+
+    function buildMatrixLatex() {
+      const isInline = document.getElementById('mb-inline').checked;
+      if (matrixBuilderMode === 'equation') {
+        const eq = (document.getElementById('mb-eq-input').value || '').trim();
+        if (!eq) return '';
+        return isInline ? `$${eq}$` : `$$${eq}$$`;
+      }
+      const rows = parseInt(document.getElementById('mb-rows').value, 10) || 2;
+      const cols = parseInt(document.getElementById('mb-cols').value, 10) || 2;
+      const env = document.getElementById('mb-env').value || 'bmatrix';
+      const prefix = (document.getElementById('mb-prefix').value || '').trim();
+      const cells = document.querySelectorAll('#mb-grid .mb-cell');
+      const gridData = Array.from({ length: rows }, () => Array(cols).fill('0'));
+      cells.forEach(cell => {
+        const r = parseInt(cell.dataset.r, 10);
+        const c = parseInt(cell.dataset.c, 10);
+        const val = cell.value.trim();
+        gridData[r][c] = val !== '' ? val : '0';
+      });
+      const body = gridData.map(row => row.join(' & ')).join(' \\\\ ');
+      const expr = (prefix ? prefix + ' ' : '') + `\\begin{${env}} ${body} \\end{${env}}`;
+      return isInline ? `$${expr}$` : `$$${expr}$$`;
+    }
+
+    function updateMatrixBuilderPreview() {
+      const preview = document.getElementById('mb-preview');
+      const latex = buildMatrixLatex();
+      if (!latex) {
+        preview.innerHTML = '<span class="text-xs text-slate-500 italic">Type an equation or click symbols above to preview...</span>';
+        return;
+      }
+      preview.textContent = latex;
+      if (window.renderMathInElement) {
+        renderMathInElement(preview, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function insertTextAtCursor(inputEl, snippet) {
+      const start = inputEl.selectionStart ?? inputEl.value.length;
+      const end = inputEl.selectionEnd ?? inputEl.value.length;
+      const before = inputEl.value.slice(0, start);
+      const after = inputEl.value.slice(end);
+      const sepBefore = before && !before.endsWith(' ') ? ' ' : '';
+      const sepAfter = after && !after.startsWith(' ') ? ' ' : '';
+      inputEl.value = before + sepBefore + snippet + sepAfter + after;
+      inputEl.focus();
+    }
+
+    function insertBuiltMatrix() {
+      const inputEl = matrixBuilderTargetInputId ? document.getElementById(matrixBuilderTargetInputId) : null;
+      const latex = buildMatrixLatex();
+      if (!inputEl || !latex) return;
+      insertTextAtCursor(inputEl, latex);
+      closeMatrixBuilder();
     }
 
     function addSeriesQuestionDirect(partName) {

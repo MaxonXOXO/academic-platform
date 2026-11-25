@@ -520,7 +520,17 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // 5. Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            if ($isBasicScience) {
+            if ($isChemistry) {
+                $chemSp = $this->computeChemistryPracticalSeries($stSpEvals);
+                $co1PrScore = $chemSp['co1'];
+                $co2PrScore = $chemSp['co2'];
+                $co3PrScore = $chemSp['co3'];
+                $co4PrScore = $chemSp['co4'];
+                $sp1Total = $chemSp['s1_total'];
+                $sp2Total = $chemSp['s2_total'];
+                $avgPracticalSeries40 = $chemSp['avg_40'];
+                $seriesPracticalMarks = $chemSp['cia_10'];
+            } elseif ($isBasicScience) {
                 $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
                 $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
                 $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
@@ -1171,6 +1181,19 @@ class R26VirtualClassroomPracticumController extends Controller
         $seriesNo = $request->input('series_no');
         $marksData = $request->input('marks_data');
 
+        $batchSubject = BatchSubject::find($subjectId);
+        $practicumCourseFile = $batchSubject ? R26PracticumCourseFile::where('batch_subject_id', $subjectId)->first() : null;
+        $isBasicScienceSubject = $batchSubject && (
+            $this->isChemistryPracticum($batchSubject)
+            || (($this->resolveSubjectType($practicumCourseFile, $batchSubject)['type'] ?? '') === 'basic_science')
+        );
+        if ($isBasicScienceSubject && in_array($seriesNo, ['CO1', 'CO2', 'CO3', 'CO4'])) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Marks can only be entered in Series 1 and Series 2. CO1–CO4 are auto-split equally for attainment.'
+            ], 422);
+        }
+
         foreach ($marksData as $row) {
             $regNo = $row['reg_no'];
             $w = floatval($row['writeup_procedure'] ?? 0);
@@ -1205,7 +1228,7 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // Auto-split Series 1 / Series 2 (out of 40) into COs (out of 20 each) for attainment
             if ($seriesNo === 'Series 1' || $seriesNo === 'CA2' || $seriesNo === 'Test 1 (CO1+CO2)') {
-                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 1);
+                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 2);
                 foreach (['CO1', 'CO2'] as $coKey) {
                     R26PracticumSeriesPractical::updateOrCreate(
                         ['batch_subject_id' => $subjectId, 'series_no' => $coKey, 'reg_no' => $regNo],
@@ -1213,7 +1236,7 @@ class R26VirtualClassroomPracticumController extends Controller
                     );
                 }
             } elseif ($seriesNo === 'Series 2' || $seriesNo === 'CA3' || $seriesNo === 'Test 2 (CO3+CO4)') {
-                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 1);
+                $half = $isAbsent ? 0.00 : round($total40 / 2.0, 2);
                 foreach (['CO3', 'CO4'] as $coKey) {
                     R26PracticumSeriesPractical::updateOrCreate(
                         ['batch_subject_id' => $subjectId, 'series_no' => $coKey, 'reg_no' => $regNo],
@@ -1307,7 +1330,8 @@ class R26VirtualClassroomPracticumController extends Controller
         $eseMarks = R26PracticumEseMark::where('batch_subject_id', $subjectId)->get()->keyBy('reg_no');
         $slSubmissions = DB::table('student_task_submissions')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
 
-        $studentResults = $students->map(function ($student) use ($attendanceData, $experimentEvals, $seriesTheoryEvals, $seriesPracticalEvals, $eseMarks, $slSubmissions, $practicumCourseFile) {
+        $isChemPracticum = $this->isChemistryPracticum($batchSubject);
+        $studentResults = $students->map(function ($student) use ($attendanceData, $experimentEvals, $seriesTheoryEvals, $seriesPracticalEvals, $eseMarks, $slSubmissions, $practicumCourseFile, $isChemPracticum) {
             $regNo = $student->reg_no;
             $stAtt = $attendanceData->get($regNo, collect());
             $totalAtt = $stAtt->count();
@@ -1350,33 +1374,43 @@ class R26VirtualClassroomPracticumController extends Controller
             $seriesTheoryMarks = round((($avgTheorySeries50 / 50.0) * 10.0) * 2) / 2;
 
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
-
-            if (!$sp1 && !$sp2) {
-                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
-                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
-                $sp2Pr = $sp1Pr;
+            if ($isChemPracticum) {
+                $chemSp = $this->computeChemistryPracticalSeries($stSpEvals);
+                $sp1Total = $chemSp['s1_total'];
+                $sp2Total = $chemSp['s2_total'];
+                $avgPracticalSeries40 = $chemSp['avg_40'];
+                $seriesPracticalMarks = $chemSp['cia_10'];
             } else {
-                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
-                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
-            }
+                $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+                $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+                $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+                $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
+                $s1Direct = $stSpEvals->firstWhere('series_no', 'Series 1');
+                $s2Direct = $stSpEvals->firstWhere('series_no', 'Series 2');
 
-            if (!$sp3 && !$sp4) {
-                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
-                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
-                $sp4Pr = $sp3Pr;
-            } else {
-                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
-                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
-            }
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 2) : 0.00;
+                    $sp2Pr = $sp1Pr;
+                } else {
+                    $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
 
-            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
-            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
-            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
-            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 2) : 0.00;
+                    $sp4Pr = $sp3Pr;
+                } else {
+                    $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = $s1Direct ? min(40.0, (float)$s1Direct->total_score_40) : min(40.0, $sp1Pr + $sp2Pr);
+                $sp2Total = $s2Direct ? min(40.0, (float)$s2Direct->total_score_40) : min(40.0, $sp3Pr + $sp4Pr);
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+            }
 
             $totalCiaMarks = round(($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
 
@@ -2646,15 +2680,23 @@ class R26VirtualClassroomPracticumController extends Controller
 
             // Practical Series Exam Marks (CO1: 20M, CO2: 20M -> S1 40M; CO3: 20M, CO4: 20M -> S2 40M -> Avg 40M -> CIA 10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            if ($isBasicScience) {
-                $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-                $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-                $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-                $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
+            if ($isChemistry) {
+                $chemSp = $this->computeChemistryPracticalSeries($stSpEvals);
+                $sp1Total = $chemSp['s1_total'];
+                $sp2Total = $chemSp['s2_total'];
+                $avgPracticalSeries40 = $chemSp['avg_40'];
+                $seriesPracticalMarks = $chemSp['cia_10'];
+            } elseif ($isBasicScience) {
+                $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+                $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+                $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+                $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
+                $s1Direct = $stSpEvals->firstWhere('series_no', 'Series 1');
+                $s2Direct = $stSpEvals->firstWhere('series_no', 'Series 2');
 
                 if (!$sp1 && !$sp2) {
-                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
-                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 2) : 0.00;
                     $sp2Pr = $sp1Pr;
                 } else {
                     $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
@@ -2662,16 +2704,16 @@ class R26VirtualClassroomPracticumController extends Controller
                 }
 
                 if (!$sp3 && !$sp4) {
-                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
-                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 2) : 0.00;
                     $sp4Pr = $sp3Pr;
                 } else {
                     $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
                     $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
                 }
 
-                $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
-                $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
+                $sp1Total = $s1Direct ? min(40.0, (float)$s1Direct->total_score_40) : min(40.0, $sp1Pr + $sp2Pr);
+                $sp2Total = $s2Direct ? min(40.0, (float)$s2Direct->total_score_40) : min(40.0, $sp3Pr + $sp4Pr);
                 $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
                 $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
             } else {
@@ -3996,8 +4038,10 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             ->where('batch_subject_id', $subjectId)
             ->orderBy('date', 'asc')
             ->orderBy('period', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+            ->orderBy('id', 'desc')
+            ->get()
+            ->unique(fn($l) => $l->date . '|' . $l->period . '|' . ($l->sub_batch ?? 'Whole'))
+            ->values();
 
         $totalHours = $rawLogs->count();
         $totalAttnPctSum = 0;
@@ -4535,9 +4579,10 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
         $slAcademicMarks = DB::table('academic_marks')->where('batch_subject_id', $subjectId)->where('category', 'like', 'Self Study:%')->get()->groupBy('reg_no');
         $slSubmissions = DB::table('student_task_submissions')->where('subject_code', $batchSubject->subject_code)->get()->groupBy('reg_no');
 
+        $isChemPracticum = $this->isChemistryPracticum($batchSubject);
         $studentResults = $students->map(function ($student) use (
             $attendanceData, $subjectOfficialAttendances, $experimentEvals,
-            $seriesTheoryEvals, $seriesPracticalEvals, $slAcademicMarks, $slSubmissions
+            $seriesTheoryEvals, $seriesPracticalEvals, $slAcademicMarks, $slSubmissions, $isChemPracticum
         ) {
             $regNo = $student->reg_no;
 
@@ -4668,33 +4713,43 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 5. Practical Series Marks (10M)
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
-
-            if (!$sp1 && !$sp2) {
-                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
-                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
-                $sp2Pr = $sp1Pr;
+            if ($isChemPracticum) {
+                $chemSp = $this->computeChemistryPracticalSeries($stSpEvals);
+                $sp1Total = $chemSp['s1_total'];
+                $sp2Total = $chemSp['s2_total'];
+                $avgPracticalSeries40 = $chemSp['avg_40'];
+                $seriesPracticalMarks = $chemSp['cia_10'];
             } else {
-                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
-                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
-            }
+                $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+                $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+                $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+                $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
+                $s1Direct = $stSpEvals->firstWhere('series_no', 'Series 1');
+                $s2Direct = $stSpEvals->firstWhere('series_no', 'Series 2');
 
-            if (!$sp3 && !$sp4) {
-                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
-                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
-                $sp4Pr = $sp3Pr;
-            } else {
-                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
-                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
-            }
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 2) : 0.00;
+                    $sp2Pr = $sp1Pr;
+                } else {
+                    $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
 
-            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
-            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
-            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
-            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 2) : 0.00;
+                    $sp4Pr = $sp3Pr;
+                } else {
+                    $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = $s1Direct ? min(40.0, (float)$s1Direct->total_score_40) : min(40.0, $sp1Pr + $sp2Pr);
+                $sp2Total = $s2Direct ? min(40.0, (float)$s2Direct->total_score_40) : min(40.0, $sp3Pr + $sp4Pr);
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+            }
 
             $totalSeries20 = round(($seriesTheoryMarks + $seriesPracticalMarks) * 2) / 2;
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
@@ -4904,12 +4959,13 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
         $subjectType = $this->resolveSubjectType($practicumCourseFile, $batchSubject);
         $isBasicScience = (($subjectType['type'] ?? '') === 'basic_science');
+        $isChemPracticum = $this->isChemistryPracticum($batchSubject);
 
         $studentResults = $students->map(function ($student) use (
             $attendanceData, $subjectOfficialAttendances, $experimentEvals,
             $seriesTheoryEvals, $seriesPracticalEvals, $eseMarks,
             $slAcademicMarks, $slSubmissions, $practicumCourseFile,
-            $batchSubject, $subjectType, $isBasicScience
+            $batchSubject, $subjectType, $isBasicScience, $isChemPracticum
         ) {
             $regNo = $student->reg_no;
 
@@ -5026,33 +5082,43 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
 
             // 5. Practical Series
             $stSpEvals = $seriesPracticalEvals->get($regNo, collect());
-            $sp1 = $stSpEvals->whereIn('series_no', ['CO1', 'Series 1'])->first();
-            $sp2 = $stSpEvals->whereIn('series_no', ['CO2', 'Series 2'])->first();
-            $sp3 = $stSpEvals->whereIn('series_no', ['CO3', 'Series 3'])->first();
-            $sp4 = $stSpEvals->whereIn('series_no', ['CO4', 'Series 4'])->first();
-
-            if (!$sp1 && !$sp2) {
-                $legacySp1 = $stSpEvals->whereIn('series_no', ['Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
-                $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 1) : 0.00;
-                $sp2Pr = $sp1Pr;
+            if ($isChemPracticum) {
+                $chemSp = $this->computeChemistryPracticalSeries($stSpEvals);
+                $sp1Total = $chemSp['s1_total'];
+                $sp2Total = $chemSp['s2_total'];
+                $avgPracticalSeries40 = $chemSp['avg_40'];
+                $seriesPracticalMarks = $chemSp['cia_10'];
             } else {
-                $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
-                $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
-            }
+                $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+                $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+                $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+                $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
+                $s1Direct = $stSpEvals->firstWhere('series_no', 'Series 1');
+                $s2Direct = $stSpEvals->firstWhere('series_no', 'Series 2');
 
-            if (!$sp3 && !$sp4) {
-                $legacySp2 = $stSpEvals->whereIn('series_no', ['Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
-                $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 1) : 0.00;
-                $sp4Pr = $sp3Pr;
-            } else {
-                $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
-                $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
-            }
+                if (!$sp1 && !$sp2) {
+                    $legacySp1 = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+                    $sp1Pr = $legacySp1 ? round(((float)$legacySp1->total_score_40) / 2.0, 2) : 0.00;
+                    $sp2Pr = $sp1Pr;
+                } else {
+                    $sp1Pr = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+                    $sp2Pr = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+                }
 
-            $sp1Total = min(40.0, $sp1Pr + $sp2Pr);
-            $sp2Total = min(40.0, $sp3Pr + $sp4Pr);
-            $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
-            $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+                if (!$sp3 && !$sp4) {
+                    $legacySp2 = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+                    $sp3Pr = $legacySp2 ? round(((float)$legacySp2->total_score_40) / 2.0, 2) : 0.00;
+                    $sp4Pr = $sp3Pr;
+                } else {
+                    $sp3Pr = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+                    $sp4Pr = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+                }
+
+                $sp1Total = $s1Direct ? min(40.0, (float)$s1Direct->total_score_40) : min(40.0, $sp1Pr + $sp2Pr);
+                $sp2Total = $s2Direct ? min(40.0, (float)$s2Direct->total_score_40) : min(40.0, $sp3Pr + $sp4Pr);
+                $avgPracticalSeries40 = ($sp1Total + $sp2Total) / 2.0;
+                $seriesPracticalMarks = min(10.0, round((($avgPracticalSeries40 / 40.0) * 10.0) * 2) / 2);
+            }
 
             // Consolidated Total CIA Marks (Max 40) - Whole Number
             $totalCiaMarks = round($attMarks + $slMarks + $continuousEvalMarks + $seriesTheoryMarks + $seriesPracticalMarks);
@@ -5114,6 +5180,68 @@ Return ONLY a valid JSON object matching the exact schema (do not include markdo
             'batchSubject', 'classroom', 'students', 'practicumCourseFile',
             'studentResults', 'assignedStaff', 'departmentName', 'batchName', 'batchYear', 'lecturerName', 'isBasicScience'
         ));
+    }
+
+    /**
+     * Check whether the given batch subject is Chemistry Practicum (Rev 2026).
+     */
+    private function isChemistryPracticum($batchSubject): bool
+    {
+        if (!$batchSubject) {
+            return false;
+        }
+        $codeClean = strtoupper(str_replace([' ', '-'], '', $batchSubject->subject_code ?? ''));
+        $nameLower = strtolower($batchSubject->subject_name ?? '');
+        return str_contains($codeClean, '2003') || str_contains($nameLower, 'chemistry');
+    }
+
+    /**
+     * Compute practical series totals and equal CO splits for Chemistry Practicum (Rev 2026).
+     * Series 1 and Series 2 (/40) are used directly for CIA; CO1..CO4 (/20) are equal splits for attainment.
+     */
+    private function computeChemistryPracticalSeries($stSpEvals): array
+    {
+        $s1Row = $stSpEvals->whereIn('series_no', ['Series 1', 'Test 1 (CO1+CO2)', 'Test 1', 'CA2', 'Practical Series 1'])->first();
+        $s2Row = $stSpEvals->whereIn('series_no', ['Series 2', 'Test 2 (CO3+CO4)', 'Test 2', 'CA3', 'Practical Series 2'])->first();
+
+        $sp1 = $stSpEvals->firstWhere('series_no', 'CO1');
+        $sp2 = $stSpEvals->firstWhere('series_no', 'CO2');
+        $sp3 = $stSpEvals->firstWhere('series_no', 'CO3');
+        $sp4 = $stSpEvals->firstWhere('series_no', 'CO4');
+
+        if ($s1Row) {
+            $sp1Total = $s1Row->is_absent ? 0.00 : min(40.0, (float)$s1Row->total_score_40);
+            $co1 = round($sp1Total / 2.0, 1);
+            $co2 = round($sp1Total / 2.0, 1);
+        } else {
+            $co1 = $sp1 ? (float)$sp1->total_score_40 : 0.00;
+            $co2 = $sp2 ? (float)$sp2->total_score_40 : 0.00;
+            $sp1Total = min(40.0, $co1 + $co2);
+        }
+
+        if ($s2Row) {
+            $sp2Total = $s2Row->is_absent ? 0.00 : min(40.0, (float)$s2Row->total_score_40);
+            $co3 = round($sp2Total / 2.0, 1);
+            $co4 = round($sp2Total / 2.0, 1);
+        } else {
+            $co3 = $sp3 ? (float)$sp3->total_score_40 : 0.00;
+            $co4 = $sp4 ? (float)$sp4->total_score_40 : 0.00;
+            $sp2Total = min(40.0, $co3 + $co4);
+        }
+
+        $avg40 = ($sp1Total + $sp2Total) / 2.0;
+        $cia10 = min(10.0, round((($avg40 / 40.0) * 10.0) * 2) / 2);
+
+        return [
+            'co1' => $co1,
+            'co2' => $co2,
+            'co3' => $co3,
+            'co4' => $co4,
+            's1_total' => $sp1Total,
+            's2_total' => $sp2Total,
+            'avg_40' => $avg40,
+            'cia_10' => $cia10,
+        ];
     }
 }
 

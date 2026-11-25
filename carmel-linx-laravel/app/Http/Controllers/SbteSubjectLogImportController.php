@@ -578,8 +578,8 @@ class SbteSubjectLogImportController extends Controller
         $facultyName = trim($facM[1] ?? "");
         $year = !empty($rangeM[1]) ? substr($rangeM[1], -4) : date("Y");
 
-        // Extract Dates (DD/MM)
-        preg_match("/(?:Roll\.\s*No\.\s*Name\s*)?((?:\d{2}\/\d{2}\s*){10,})/i", $fullText, $datesM);
+        // Extract Dates (DD/MM) — allow 2 or more dates (subjects with fewer than 10 sessions, e.g. EL-1004 with 9 dates)
+        preg_match("/(?:Roll\.\s*No\.\s*Name\s*)?((?:\d{2}\/\d{2}\s*){2,})/i", $fullText, $datesM);
         $datesStr = preg_replace("/\s+/", "", $datesM[1] ?? "");
         preg_match_all("/\d{2}\/\d{2}/", $datesStr, $dateMatches);
         $datesRaw = $dateMatches[0] ?? [];
@@ -1033,11 +1033,14 @@ class SbteSubjectLogImportController extends Controller
                         ->where("period", $period)
                         ->first();
 
+                    // R26 English uses r26_english_lesson_plans, whereas class_logs_attendance.lesson_plan_id has a FK to lesson_plans.id
+                    $fkLpId = $isR26English ? null : $assignedLpId;
+
                     if ($existingLog) {
                         DB::table("class_logs_attendance")
                             ->where("id", $existingLog->id)
                             ->update([
-                                "lesson_plan_id" => $assignedLpId ?: $existingLog->lesson_plan_id,
+                                "lesson_plan_id" => $isR26English ? null : ($fkLpId ?: $existingLog->lesson_plan_id),
                                 "topics_covered" => $assignedTopic ?: $existingLog->topics_covered,
                                 "present_students" => json_encode($presentRegNos),
                                 "absent_students" => json_encode($absentRegNos),
@@ -1050,7 +1053,7 @@ class SbteSubjectLogImportController extends Controller
                             "batch_subject_id" => $batchSubject->id,
                             "date" => $date,
                             "period" => $period,
-                            "lesson_plan_id" => $assignedLpId,
+                            "lesson_plan_id" => $fkLpId,
                             "topics_covered" => $assignedTopic,
                             "present_students" => json_encode($presentRegNos),
                             "absent_students" => json_encode($absentRegNos),
@@ -1225,8 +1228,14 @@ class SbteSubjectLogImportController extends Controller
             $maxPdfAttended = !empty($studPdfTotals) ? max($studPdfTotals) : 0;
             $b1MaxPdfAtt = !empty($b1PdfTotals) ? max($b1PdfTotals) : 0;
             $b2MaxPdfAtt = !empty($b2PdfTotals) ? max($b2PdfTotals) : 0;
+            $dbTotalWholeHours = DB::table("class_logs_attendance")
+                ->where("batch_subject_id", $batchSubject->id)
+                ->where("sub_batch", "Whole")
+                ->count();
             if (!empty($studPdfTotals)) {
-                $docConductedHours = max($docConductedHours, $maxPdfAttended);
+                $docConductedHours = max($docConductedHours, $maxPdfAttended, $dbTotalWholeHours);
+            } else {
+                $docConductedHours = max($docConductedHours, $dbTotalWholeHours);
             }
 
             // Universal Split Lab Nominal Conducted Hours calculation:
@@ -1235,10 +1244,10 @@ class SbteSubjectLogImportController extends Controller
                 $b1PdfHours = ($pdfBatchHours["1"] ?? 0) + ($pdfBatchHours["Whole"] ?? 0);
                 $b2PdfHours = ($pdfBatchHours["2"] ?? 0) + ($pdfBatchHours["Whole"] ?? 0);
                 $batchPeak = max($b1MaxPdfAtt, $b2MaxPdfAtt);
-                if ($b1PdfHours > 0 && $b2PdfHours > 0) {
+                if (($pdfBatchHours["1"] ?? 0) > 0 && ($pdfBatchHours["2"] ?? 0) > 0) {
                     $splitLabNominalConducted = max($batchPeak, min($b1PdfHours, $b2PdfHours));
                 } else {
-                    $splitLabNominalConducted = max($batchPeak, max($b1PdfHours, $b2PdfHours));
+                    $splitLabNominalConducted = max($batchPeak, max($b1PdfHours, $b2PdfHours), $dbTotalWholeHours);
                 }
             }
 
@@ -1497,11 +1506,14 @@ class SbteSubjectLogImportController extends Controller
                         ->where("sub_batch", $subBatch)
                         ->first();
 
+                    // R26 English uses r26_english_lesson_plans, whereas class_logs_attendance.lesson_plan_id has a FK to lesson_plans.id
+                    $fkLpId = $isR26English ? null : $assignedLpId;
+
                     if ($existingLog) {
                         DB::table("class_logs_attendance")
                             ->where("id", $existingLog->id)
                             ->update([
-                                "lesson_plan_id" => $assignedLpId ?: $existingLog->lesson_plan_id,
+                                "lesson_plan_id" => $isR26English ? null : ($fkLpId ?: $existingLog->lesson_plan_id),
                                 "topics_covered" => $assignedTopic ?: $existingLog->topics_covered,
                                 "present_students" => json_encode($sessionStudentRegNos),
                                 "absent_students" => json_encode([]),
@@ -1513,7 +1525,7 @@ class SbteSubjectLogImportController extends Controller
                             "batch_subject_id" => $batchSubject->id,
                             "date" => $date,
                             "period" => $period,
-                            "lesson_plan_id" => $assignedLpId,
+                            "lesson_plan_id" => $fkLpId,
                             "topics_covered" => $assignedTopic,
                             "present_students" => json_encode($sessionStudentRegNos),
                             "absent_students" => json_encode([]),
@@ -1860,7 +1872,7 @@ class SbteSubjectLogImportController extends Controller
                     $assignedLp = $lessonPlans->get($idx);
                     if ($assignedLp) {
                         $newTopic = $assignedLp->topic_content;
-                        $newLpId = $assignedLp->id;
+                        $newLpId = $isR26English ? null : $assignedLp->id;
 
                         $assignedLp->status = 'Completed';
                         $assignedLp->actual_date = $log->date;
@@ -1980,7 +1992,7 @@ class SbteSubjectLogImportController extends Controller
                             DB::table('class_logs_attendance')
                                 ->where('id', $matchedLogId)
                                 ->update([
-                                    'lesson_plan_id' => $plan->id,
+                                    'lesson_plan_id' => $isR26English ? null : $plan->id,
                                     'topics_covered' => $plan->topic_content,
                                     'updated_at' => now()
                                 ]);

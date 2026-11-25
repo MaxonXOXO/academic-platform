@@ -422,21 +422,67 @@
 
                 <!-- S6 Open Elective Registration Banner (For 5th Semester Students) -->
                 @if(($student->semester ?? session('semester')) == 5)
+                @php
+                    $oeSettings = null;
+                    $oeReg = null;
+                    try {
+                        $oeSettings = \App\Models\OeSetting::getActiveSettings();
+                        $admNoForOe = $student->adm_no ?? null;
+                        if ($admNoForOe) {
+                            $oeReg = \App\Models\OeRegistration::with('allottedCourse')
+                                ->where('student_adm_no', $admNoForOe)
+                                ->first();
+                        }
+                    } catch (\Throwable $e) {}
+                @endphp
                 <div class="app-card border border-cyan border-opacity-50 shadow-lg mb-3" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.98) 100%);">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="badge px-2.5 py-1 rounded-pill" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.68rem; font-weight: 800;">
                             <i class="fa-solid fa-graduation-cap me-1"></i> SEMESTER 6 REV 2021
                         </span>
+                        @if($oeReg && $oeReg->allottedCourse && !($oeSettings->is_released_to_hods ?? false))
+                        <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-40" style="font-size: 0.65rem; font-weight: 800;">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> TRIAL ALLOTMENT ONLY
+                        </span>
+                        @elseif($oeReg && $oeReg->allottedCourse && ($oeSettings->is_released_to_hods ?? false))
+                        <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-40" style="font-size: 0.65rem; font-weight: 800;">
+                            <i class="fa-solid fa-circle-check me-1"></i> CONFIRMED
+                        </span>
+                        @else
                         <span class="badge bg-danger bg-opacity-20 text-rose-300 border border-danger border-opacity-30" style="font-size: 0.68rem; font-weight: 800;">
                             <i class="fa-solid fa-fire me-1"></i> OPEN ELECTIVE
                         </span>
+                        @endif
                     </div>
                     <h6 class="fw-bold text-white mb-1" style="font-size: 0.92rem;">Open Elective Course Registration</h6>
-                    <p class="text-secondary mb-2.5" style="font-size: 0.74rem; line-height: 1.35;">
-                        Rank your 5 preferences across disciplines (excluding {{ $student->branch ?? session('userBranch') }}). Seats are filled on first-come, first-served basis.
+                    @if($oeReg && $oeReg->allottedCourse)
+                        @if(!($oeSettings->is_released_to_hods ?? false))
+                        <div class="p-2.5 rounded-3 mb-2.5" style="background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.45);">
+                            <div class="fw-bold text-warning mb-1" style="font-size: 0.78rem;">
+                                TRIAL ALLOTMENT - {{ $oeReg->allottedCourse->course_title }} ({{ $oeReg->allottedCourse->course_code }})
+                            </div>
+                            <div class="text-warning-emphasis" style="font-size: 0.7rem; color: #fde68a; line-height: 1.35;">
+                                <strong>Warning:</strong> This is a <strong>Trial Allotment Only</strong> (not final). Registration is continuing and students may be removed after internship registration. After the due date, the Principal will confirm the final allocation to HODs — <strong>your final option may change</strong>.
+                            </div>
+                        </div>
+                        @else
+                        <div class="p-2.5 rounded-3 mb-2.5" style="background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.45);">
+                            <div class="fw-bold text-success" style="font-size: 0.78rem;">
+                                Allotted Subject: {{ $oeReg->allottedCourse->course_title }} ({{ $oeReg->allottedCourse->course_code }})
+                            </div>
+                        </div>
+                        @endif
+                    @elseif($oeReg)
+                    <p class="text-info mb-2.5" style="font-size: 0.74rem; line-height: 1.35;">
+                        5 preferences submitted. Pending trial/final allotment by the Principal.
                     </p>
+                    @else
+                    <p class="text-secondary mb-2.5" style="font-size: 0.74rem; line-height: 1.35;">
+                        Rank your 5 preferences across disciplines (excluding {{ $student->branch ?? session('userBranch') }}). Late registrations will get only remaining available slots from the 5 courses.
+                    </p>
+                    @endif
                     <a href="/student/open-elective" class="btn btn-sm btn-cyan w-100 fw-bold py-1.5 rounded-pill shadow-sm d-flex align-items-center justify-center gap-2" style="font-size: 0.78rem;">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Select Open Elective Courses Now
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> {{ $oeReg ? 'View Open Elective Status & Options' : 'Select Open Elective Courses Now' }}
                     </a>
                 </div>
                 @endif

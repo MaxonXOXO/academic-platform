@@ -100,18 +100,33 @@
 
   <!-- Allotment Status Box -->
   @if($registration->allottedCourse)
-    <div class="allotted-box">
-      <div style="font-size: 12px; font-weight: bold; color: #065f46; text-transform: uppercase; margin-bottom: 3px;">
-        &check; Officially Allotted Course for Semester 6:
+    @if(!empty($settings) && $settings->is_released_to_hods)
+      <div class="allotted-box">
+        <div style="font-size: 12px; font-weight: bold; color: #065f46; text-transform: uppercase; margin-bottom: 3px;">
+          &check; Officially Allotted Course for Semester 6:
+        </div>
+        <div style="font-size: 13px; font-weight: bold;">
+          {{ $registration->allottedCourse->course_title }} (Code: {{ $registration->allottedCourse->course_code }})
+        </div>
+        <div style="margin-top: 3px; font-size: 11px; color: #047857;">
+          Offering Department: <strong>Department of {{ $registration->allottedCourse->offering_branch_full }}</strong> &bull;
+          Classroom: <strong>{{ $registration->allottedCourse->classroom_id ?: 'OE_2024_' . $registration->allottedCourse->offering_branch }}</strong>
+        </div>
       </div>
-      <div style="font-size: 13px; font-weight: bold;">
-        {{ $registration->allottedCourse->course_title }} (Code: {{ $registration->allottedCourse->course_code }})
+    @else
+      <div class="pending-box" style="background: #fffbeb; border: 1.5px solid #d97706; color: #92400e;">
+        <div style="font-size: 12px; font-weight: bold; color: #b45309; text-transform: uppercase; margin-bottom: 3px;">
+          TRIAL ALLOTMENT ONLY (NOT FINAL) — Pending Principal Confirmation:
+        </div>
+        <div style="font-size: 13px; font-weight: bold; color: #111827;">
+          TRIAL ALLOTMENT - {{ $registration->allottedCourse->course_title }} (Code: {{ $registration->allottedCourse->course_code }})
+        </div>
+        <div style="margin-top: 3px; font-size: 11px; color: #78350f;">
+          Offering Department: <strong>Department of {{ $registration->allottedCourse->offering_branch_full }}</strong><br>
+          <strong>Warning:</strong> This is a trial allotment only. After the due date and internship registration updates, the Principal will confirm the final allocation and send the list to HODs. Final allotted option may change.
+        </div>
       </div>
-      <div style="margin-top: 3px; font-size: 11px; color: #047857;">
-        Offering Department: <strong>Department of {{ $registration->allottedCourse->offering_branch_full }}</strong> &bull;
-        Classroom: <strong>{{ $registration->allottedCourse->classroom_id ?: 'OE_2024_' . $registration->allottedCourse->offering_branch }}</strong>
-      </div>
-    </div>
+    @endif
   @else
     <div class="pending-box">
       <strong>Status:</strong> Ranked preferences recorded. Central seat allocation on First-Come, First-Served basis is being processed by the Principal Office.

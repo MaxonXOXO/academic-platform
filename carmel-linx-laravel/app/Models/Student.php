@@ -162,7 +162,8 @@ class Student extends Model
             
             if ($branch && $batchYear) {
                 $query->orWhere(function($sub) use ($branch, $batchYear) {
-                    $sub->where('branch', $branch)
+                    $sub->whereNull('classroom_id')
+                        ->where('branch', $branch)
                         ->where('admission_year', $batchYear);
                 });
             }

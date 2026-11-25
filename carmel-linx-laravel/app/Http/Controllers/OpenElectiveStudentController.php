@@ -28,17 +28,24 @@ class OpenElectiveStudentController extends Controller
 
         if ($isAdmin && strtolower($role) !== 'student') {
             $branch = strtoupper($request->input('preview_branch', 'CE'));
-            $student = Student::where('semester', 5)->where('branch', $branch)->first()
-                    ?: Student::where('semester', 5)->first();
+            $student = Student::where('semester', 5)->where('status', 'Approved')->where('branch', $branch)->first()
+                    ?: Student::where('semester', 5)->where('status', 'Approved')->first();
         } else {
-            $student = Student::where('reg_no', $userId)
-                ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
-                ->orWhere('adm_no', $userId)
+            $student = Student::where(function ($q) use ($userId) {
+                    $q->where('reg_no', $userId)
+                      ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
+                      ->orWhere('adm_no', $userId);
+                })
+                ->orderByRaw("CASE WHEN status = 'Approved' THEN 0 ELSE 1 END")
                 ->first();
         }
 
         if (!$student) {
             return redirect('/dashboard/student')->with('error', 'Student profile record not found.');
+        }
+
+        if (strcasecmp((string) $student->status, 'Suspended') === 0) {
+            return redirect('/dashboard/student')->with('error', 'This duplicate self-registered student account is suspended. Please log in with your official student credentials.');
         }
 
         $student->parent_branch_full = OeCourse::getBranchFullName($student->branch);
@@ -108,17 +115,24 @@ class OpenElectiveStudentController extends Controller
             $simAdmNo = $request->input('student_adm_no');
             $student = $simAdmNo ? Student::where('adm_no', $simAdmNo)->first() : null;
             if (!$student) {
-                $student = Student::where('semester', 5)->first();
+                $student = Student::where('semester', 5)->where('status', 'Approved')->first();
             }
         } else {
-            $student = Student::where('reg_no', $userId)
-                ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
-                ->orWhere('adm_no', $userId)
+            $student = Student::where(function ($q) use ($userId) {
+                    $q->where('reg_no', $userId)
+                      ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
+                      ->orWhere('adm_no', $userId);
+                })
+                ->orderByRaw("CASE WHEN status = 'Approved' THEN 0 ELSE 1 END")
                 ->first();
         }
 
         if (!$student) {
             return response()->json(['status' => 'ERROR', 'message' => 'Student record not found.'], 404);
+        }
+
+        if (strcasecmp((string) $student->status, 'Suspended') === 0) {
+            return response()->json(['status' => 'ERROR', 'message' => 'This duplicate self-registered account is suspended. Please log in with your official student credentials.'], 403);
         }
 
         $settings = OeSetting::getActiveSettings();
@@ -240,9 +254,12 @@ class OpenElectiveStudentController extends Controller
                 $student = $registration ? Student::where('adm_no', $registration->student_adm_no)->first() : null;
             }
         } else {
-            $student = Student::where('reg_no', $userId)
-                ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
-                ->orWhere('adm_no', $userId)
+            $student = Student::where(function ($q) use ($userId) {
+                    $q->where('reg_no', $userId)
+                      ->orWhere('sbte_reg_no', Session::get('sbteRegNo'))
+                      ->orWhere('adm_no', $userId);
+                })
+                ->orderByRaw("CASE WHEN status = 'Approved' THEN 0 ELSE 1 END")
                 ->first();
         }
 
